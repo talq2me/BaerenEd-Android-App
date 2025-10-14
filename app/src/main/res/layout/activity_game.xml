@@ -1,6 +1,7 @@
 <!-- res/layout/activity_game.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/game_root"
     android:orientation="vertical"
     android:padding="16dp"
@@ -76,7 +77,7 @@
         android:id="@+id/choicesGrid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="3"
+        app:columnCount="3"
         android:layout_marginTop="16dp" />
 
     <Button

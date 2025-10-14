@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -68,6 +69,26 @@ class GameActivity : AppCompatActivity() {
             if (status == TextToSpeech.SUCCESS) {
                 tts.language = Locale.US
                 ttsReady = true
+                // Set up utterance progress listener to handle TTS completion
+                tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                    override fun onStart(utteranceId: String?) {
+                        // TTS started
+                    }
+
+                    override fun onDone(utteranceId: String?) {
+                        // TTS completed, now check if we need to play audio clips
+                        currentQuestion?.let { question ->
+                            playQuestionAudioClips(question)
+                        }
+                    }
+
+                    override fun onError(utteranceId: String?) {
+                        // TTS error occurred, still try to play audio clips
+                        currentQuestion?.let { question ->
+                            playQuestionAudioClips(question)
+                        }
+                    }
+                })
                 // Show the first question after TTS is ready
                 showNextQuestion()
             } else {
@@ -141,8 +162,11 @@ class GameActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.replayButton).setOnClickListener {
-            // Replay the TTS content for current question
-            currentQuestion?.let { speakSequentially(it) }
+            // Replay the TTS content for current question and audio clips
+            currentQuestion?.let { question ->
+                speakSequentially(question)
+                // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
+            }
             // Clear message area when replaying (but don't clear user answers)
             // findViewById<TextView>(R.id.messageArea).text = ""
         }
@@ -171,7 +195,7 @@ class GameActivity : AppCompatActivity() {
         // Speak prompt first (if it has lang)
         question.prompt?.let { prompt ->
             if (prompt.lang != null) {
-                speakText(prompt.text, prompt.lang)
+                speakTextWithDelay(prompt.text, prompt.lang, totalDelay)
                 totalDelay += 2000 // 2 second delay for prompt
             }
         }
@@ -181,6 +205,31 @@ class GameActivity : AppCompatActivity() {
             android.os.Handler().postDelayed({
                 speakText(question.question.text ?: "", question.question.lang)
             }, totalDelay)
+        }
+    }
+
+    private fun speakTextWithDelay(text: String, lang: String, delayMs: Long) {
+        android.os.Handler().postDelayed({
+            speakText(text, lang)
+        }, delayMs)
+    }
+
+    private fun playQuestionAudioClips(question: GameData) {
+        question.question.media?.audioclips?.forEachIndexed { index, audioClip ->
+            try {
+                android.os.Handler().postDelayed({
+                    val afd = assets.openFd(audioClip)
+                    val mp = MediaPlayer()
+                    mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                    mp.prepare()
+                    mp.start()
+                    mp.setOnCompletionListener {
+                        mp.release()
+                    }
+                }, index * 0L) // No delay between audio clips
+            } catch (e: Exception) {
+                android.util.Log.w("GameActivity", "Failed to play question audio clip: $audioClip", e)
+            }
         }
     }
 
@@ -245,17 +294,7 @@ class GameActivity : AppCompatActivity() {
             container.addView(img)
         }
 
-        q.question.media?.audioclips?.forEach {
-            try {
-                val afd = assets.openFd(it)
-                val mp = MediaPlayer()
-                mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                mp.prepare()
-                mp.start()
-            } catch (e: Exception) {
-                android.util.Log.w("GameActivity", "Failed to play question audio clip: $it", e)
-            }
-        }
+        // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
 
         // Choices
         val grid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
