@@ -28,6 +28,7 @@ class GameActivity : AppCompatActivity() {
     private var ttsReady = false
     private var currentQuestion: GameData? = null
     private var messageClearHandler: android.os.Handler? = null
+    private var audioClipsPlayedForCurrentQuestion = false
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,16 +77,30 @@ class GameActivity : AppCompatActivity() {
                     }
 
                     override fun onDone(utteranceId: String?) {
-                        // TTS completed, now check if we need to play audio clips
-                        currentQuestion?.let { question ->
-                            playQuestionAudioClips(question)
+                        // TTS completed, play audio clips after a short delay to ensure all TTS is done
+                        runOnUiThread {
+                            if (!audioClipsPlayedForCurrentQuestion) {
+                                currentQuestion?.let { question ->
+                                    android.os.Handler().postDelayed({
+                                        playQuestionAudioClips(question)
+                                        audioClipsPlayedForCurrentQuestion = true
+                                    }, 500) // Small delay to ensure all TTS utterances complete
+                                }
+                            }
                         }
                     }
 
                     override fun onError(utteranceId: String?) {
                         // TTS error occurred, still try to play audio clips
-                        currentQuestion?.let { question ->
-                            playQuestionAudioClips(question)
+                        runOnUiThread {
+                            if (!audioClipsPlayedForCurrentQuestion) {
+                                currentQuestion?.let { question ->
+                                    android.os.Handler().postDelayed({
+                                        playQuestionAudioClips(question)
+                                        audioClipsPlayedForCurrentQuestion = true
+                                    }, 500)
+                                }
+                            }
                         }
                     }
                 })
@@ -164,6 +179,7 @@ class GameActivity : AppCompatActivity() {
         findViewById<Button>(R.id.replayButton).setOnClickListener {
             // Replay the TTS content for current question and audio clips
             currentQuestion?.let { question ->
+                audioClipsPlayedForCurrentQuestion = false // Reset flag for replay
                 speakSequentially(question)
                 // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
             }
@@ -172,7 +188,7 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun speakText(text: String, lang: String) {
+    private fun speakText(text: String, lang: String, utteranceId: String = "default") {
         if (text.isNotEmpty() && ttsReady) {
             val locale = when (lang.lowercase()) {
                 "eng", "en" -> Locale.US
@@ -183,7 +199,7 @@ class GameActivity : AppCompatActivity() {
             }
 
             tts.language = locale
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
         }
     }
 
@@ -191,11 +207,12 @@ class GameActivity : AppCompatActivity() {
         if (!ttsReady) return
 
         var totalDelay = 0L
+        val questionId = System.currentTimeMillis().toString() // Unique ID for this question
 
         // Speak prompt first (if it has lang)
         question.prompt?.let { prompt ->
             if (prompt.lang != null) {
-                speakTextWithDelay(prompt.text, prompt.lang, totalDelay)
+                speakTextWithDelay(prompt.text, prompt.lang, totalDelay, "$questionId-prompt")
                 totalDelay += 2000 // 2 second delay for prompt
             }
         }
@@ -203,14 +220,14 @@ class GameActivity : AppCompatActivity() {
         // Speak question after prompt (if it has lang)
         if (question.question.lang != null) {
             android.os.Handler().postDelayed({
-                speakText(question.question.text ?: "", question.question.lang)
+                speakText(question.question.text ?: "", question.question.lang, "$questionId-question")
             }, totalDelay)
         }
     }
 
-    private fun speakTextWithDelay(text: String, lang: String, delayMs: Long) {
+    private fun speakTextWithDelay(text: String, lang: String, delayMs: Long, utteranceId: String = "default") {
         android.os.Handler().postDelayed({
-            speakText(text, lang)
+            speakText(text, lang, utteranceId)
         }, delayMs)
     }
 
@@ -226,7 +243,7 @@ class GameActivity : AppCompatActivity() {
                     mp.setOnCompletionListener {
                         mp.release()
                     }
-                }, index * 0L) // No delay between audio clips
+                }, index * 300L) // 300ms delay between each audio clip
             } catch (e: Exception) {
                 android.util.Log.w("GameActivity", "Failed to play question audio clip: $audioClip", e)
             }
@@ -251,6 +268,7 @@ class GameActivity : AppCompatActivity() {
         currentQuestion = gameEngine.getCurrentQuestion()
         val q = currentQuestion!!
         userAnswers.clear()
+        audioClipsPlayedForCurrentQuestion = false // Reset flag for new question
 
         // Cancel any existing message clear handlers and clear current message
         messageClearHandler?.removeCallbacksAndMessages(null)

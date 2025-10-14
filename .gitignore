@@ -1,13 +1,24 @@
-/app/build/
-/app/local.properties
-.idea
-*.iml
-.gradle
-
-/build
-/.gradle
-/.idea
+gitignore
+# Folders and files created by Android Studio and Gradle
+# =======================================================
+# Gradle build cache
+/.gradle/
+# Kotlin build cache
+.kotlin/
+# IDE settings
+/.idea/
+# Local properties (contains SDK path)
 /local.properties
+# Module files
+*.iml
 
-#ignore build folders no matter where they are    
-build/
+# Build output
+# =======================================================
+# Ignore all directories named 'build' anywhere in the project
+**/build/
+# Native C++ build cache
+.cxx/
+
+# macOS files
+# ===========
+.DS_Store
