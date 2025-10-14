@@ -293,8 +293,9 @@ class GameActivity : AppCompatActivity() {
         val container = findViewById<LinearLayout>(R.id.questionContainer)
         container.removeAllViews()
 
-        if (q.question.lang == null) {
-            // No lang property - display visually
+        // Hide question text if it has TTS or audio clips (since those provide the question content)
+        if (q.question.lang == null && q.question.media?.audioclips == null) {
+            // No TTS or audio clips - display question text visually
             q.question.text?.let {
                 val tv = TextView(this)
                 tv.text = it
@@ -340,7 +341,7 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun updateMessage() {
-        val message = userAnswers.joinToString(" ")
+        val message = userAnswers.joinToString("") // No spaces between answers
         // Show user input immediately and keep it visible (no auto-clear)
         findViewById<TextView>(R.id.messageArea).text = message
     }
