@@ -313,8 +313,8 @@ class Layout(private val activity: MainActivity) {
         } ?: run {
             // Fallback if no buttons in content
             val fallbackButtons = listOf(
-                ProfileButton("AM Tasks", "https://via.placeholder.com/100", "https://talq2me.github.io/Baeren/BaerenEd/androidJson/AM_config.json"),
-                ProfileButton("BM Tasks", "https://via.placeholder.com/100", "https://talq2me.github.io/Baeren/BaerenEd/androidJson/BM_config.json")
+                ProfileButton("AM Tasks", "https://via.placeholder.com/100", "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/AM_config.json"),
+                ProfileButton("BM Tasks", "https://via.placeholder.com/100", "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/BM_config.json")
             )
 
             fallbackButtons.forEach { profileButton ->

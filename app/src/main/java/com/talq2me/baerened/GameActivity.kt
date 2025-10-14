@@ -246,11 +246,15 @@ class GameActivity : AppCompatActivity() {
         }
 
         q.question.media?.audioclips?.forEach {
-            val afd = assets.openFd(it)
-            val mp = MediaPlayer()
-            mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-            mp.prepare()
-            mp.start()
+            try {
+                val afd = assets.openFd(it)
+                val mp = MediaPlayer()
+                mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                mp.prepare()
+                mp.start()
+            } catch (e: Exception) {
+                android.util.Log.w("GameActivity", "Failed to play question audio clip: $it", e)
+            }
         }
 
         // Choices

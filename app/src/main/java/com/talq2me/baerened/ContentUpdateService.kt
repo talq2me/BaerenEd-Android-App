@@ -38,9 +38,9 @@ class ContentUpdateService : Service() {
         val child = childPrefs.getString("profile", "A") ?: "A"
 
         return when (child) {
-            "A" -> "https://talq2me.github.io/Baeren/BaerenEd/androidJson/AM_config.json"
-            "B" -> "https://talq2me.github.io/Baeren/BaerenEd/androidJson/BM_config.json"
-            else -> "https://talq2me.github.io/Baeren/BaerenEd/androidJson/Main_config.json"
+            "A" -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/AM_config.json"
+            "B" -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/BM_config.json"
+            else -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/Main_config.json"
         }
     }
 
@@ -147,7 +147,7 @@ class ContentUpdateService : Service() {
 
         // 1. Try fetching from Network
         try {
-            val url = "https://talq2me.github.io/Baeren/BaerenEd/gameData/$gameFileName"
+            val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$gameFileName"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
