@@ -22,14 +22,20 @@
       "description": "Complete all of these first!",
       "tasks": [
         {
-          "title": "Spelling Game",
-          "launch": "spelling",
-          "stars": 2,
+          "title": "French Letter Sounds",
+          "launch": "frenchLetterSounds",
+          "stars": 1,
           "totalQuestions": 10
         },
         {
           "title": "Sight Words",
           "launch": "sightWords",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Sk Spellings",
+          "launch": "skSpelling",
           "stars": 3,
           "totalQuestions": 5
         }

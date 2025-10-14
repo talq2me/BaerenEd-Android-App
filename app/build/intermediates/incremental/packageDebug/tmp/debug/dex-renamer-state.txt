@@ -1,4 +1,4 @@
-#Fri Oct 10 15:58:08 EDT 2025
+#Tue Oct 14 11:20:20 EDT 2025
 base.0=C\:\\Sandbox\\androidApp\\Baeren\\BaerenEd\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=C\:\\Sandbox\\androidApp\\Baeren\\BaerenEd\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
 base.2=C\:\\Sandbox\\androidApp\\Baeren\\BaerenEd\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\9\\classes.dex

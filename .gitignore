@@ -1,1 +1,14 @@
 /app/build/
+/app/local.properties
+.idea
+*.iml
+.gradle
+
+/build
+/.gradle
+/.idea
+/local.properties
+*.iml
+
+#ignore build folders no matter where they are    
+build/
