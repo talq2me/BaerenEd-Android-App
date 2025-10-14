@@ -1,0 +1,70 @@
+{
+  "questions": [],
+  "memoryCards": [
+    {
+      "id": "apple_1",
+      "symbol": "🍎",
+      "pairId": "apple_pair"
+    },
+    {
+      "id": "apple_2",
+      "symbol": "🍎",
+      "pairId": "apple_pair"
+    },
+    {
+      "id": "banana_1",
+      "symbol": "🍌",
+      "pairId": "banana_pair"
+    },
+    {
+      "id": "banana_2",
+      "symbol": "🍌",
+      "pairId": "banana_pair"
+    },
+    {
+      "id": "orange_1",
+      "symbol": "🍊",
+      "pairId": "orange_pair"
+    },
+    {
+      "id": "orange_2",
+      "symbol": "🍊",
+      "pairId": "orange_pair"
+    },
+    {
+      "id": "grape_1",
+      "symbol": "🍇",
+      "pairId": "grape_pair"
+    },
+    {
+      "id": "grape_2",
+      "symbol": "🍇",
+      "pairId": "grape_pair"
+    },
+    {
+      "id": "strawberry_1",
+      "symbol": "🍓",
+      "pairId": "strawberry_pair"
+    },
+    {
+      "id": "strawberry_2",
+      "symbol": "🍓",
+      "pairId": "strawberry_pair"
+    },
+    {
+      "id": "watermelon_1",
+      "symbol": "🍉",
+      "pairId": "watermelon_pair"
+    },
+    {
+      "id": "watermelon_2",
+      "symbol": "🍉",
+      "pairId": "watermelon_pair"
+    }
+  ],
+  "wordGamePrompt": "",
+  "wordGameOptions": [],
+  "mathProblems": [],
+  "version": "1.0.0"
+}
+

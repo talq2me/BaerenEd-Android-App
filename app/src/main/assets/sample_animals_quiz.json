@@ -1,0 +1,40 @@
+{
+  "questions": [
+    {
+      "question": "What sound does a cow make?",
+      "options": ["Moo", "Meow", "Woof", "Oink"],
+      "correctAnswer": "Moo",
+      "explanation": "Cows say 'Moo'! They are farm animals that give us milk."
+    },
+    {
+      "question": "Which animal has a long trunk?",
+      "options": ["Lion", "Elephant", "Giraffe", "Monkey"],
+      "correctAnswer": "Elephant",
+      "explanation": "Elephants have long trunks that they use like a hand to pick things up!"
+    },
+    {
+      "question": "What do we call a baby cat?",
+      "options": ["Puppy", "Kitten", "Calf", "Foal"],
+      "correctAnswer": "Kitten",
+      "explanation": "A baby cat is called a kitten. They grow up to be cats!"
+    },
+    {
+      "question": "Which animal lives in the water and has fins?",
+      "options": ["Bird", "Dog", "Fish", "Snake"],
+      "correctAnswer": "Fish",
+      "explanation": "Fish live in water and use their fins to swim. They breathe through gills!"
+    },
+    {
+      "question": "What animal is known for jumping very high?",
+      "options": ["Turtle", "Kangaroo", "Sloth", "Penguin"],
+      "correctAnswer": "Kangaroo",
+      "explanation": "Kangaroos can jump very high and far! They live in Australia."
+    }
+  ],
+  "memoryCards": [],
+  "wordGamePrompt": "",
+  "wordGameOptions": [],
+  "mathProblems": [],
+  "version": "1.0.0"
+}
+
