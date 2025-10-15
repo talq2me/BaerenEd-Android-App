@@ -40,6 +40,24 @@
           "totalQuestions": 5
         },
         {
+          "title": "Money Game",
+          "launch": "canadianMoneyEasy",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "English Sentence Builder",
+          "launch": "englishSentences",
+          "stars": 3,
+          "totalQuestions": 3
+        },
+        {
+          "title": "UFLI Word Builder",
+          "launch": "ufliLessonData",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
           "title": "Kung Fu Form",
           "launch": "noviceKungFuVideos",
           "stars": 3,

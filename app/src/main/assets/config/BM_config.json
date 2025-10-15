@@ -51,6 +51,12 @@
           "launch": "sentences",
           "stars": 1,
           "totalQuestions": 5
+        },
+        {
+          "title": "Money Game",
+          "launch": "canadianMoneyHard",
+          "stars": 1,
+          "totalQuestions": 5
         }
       ]
     },
