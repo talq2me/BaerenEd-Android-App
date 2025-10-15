@@ -38,6 +38,19 @@
           "launch": "skSpelling",
           "stars": 3,
           "totalQuestions": 5
+        },
+        {
+          "title": "Kung Fu Form",
+          "launch": "noviceKungFuVideos",
+          "stars": 3,
+          "video": "SingleStepForm",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "Kung Fu Practice",
+          "launch": "noviceKungFuVideos",
+          "stars": 3,
+          "videoSequence": "sequential"
         }
       ]
     },

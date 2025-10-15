@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#fffbe6">
+
+    <!-- Header Layout with Navigation Buttons -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#333333"
+        android:gravity="center_vertical">
+
+        <!-- Navigation Buttons will be added programmatically -->
+    </LinearLayout>
+
+    <!-- Main Content Area -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Recently Unlocked Section -->
+        <TextView
+            android:id="@+id/recentlyUnlockedText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Unlocked Pokemon: 0"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp"
+            android:background="#ffffff"
+            android:padding="12dp"
+            android:elevation="2dp" />
+
+        <!-- Pokemon Grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pokemonRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scrollbars="vertical" />
+
+    </LinearLayout>
+
+    <!-- Admin Button (Settings Icon) -->
+    <ImageButton
+        android:id="@+id/adminButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="8dp"
+        android:src="@android:drawable/ic_menu_manage"
+        android:background="@android:color/transparent"
+        android:contentDescription="Admin Settings"
+        android:elevation="4dp"
+        android:padding="8dp" />
+
+    <!-- Back to Top Button -->
+    <Button
+        android:id="@+id/backToTopButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:text="↑"
+        android:textSize="20sp"
+        android:background="#ffe066"
+        android:textColor="#333333"
+        android:visibility="gone"
+        android:elevation="4dp"
+        android:stateListAnimator="@null" />
+
+</LinearLayout>

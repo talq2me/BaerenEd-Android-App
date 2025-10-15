@@ -19,6 +19,9 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_COMPLETED_TASKS = "completed_tasks"
         private const val KEY_LAST_RESET_DATE = "last_reset_date"
         private const val KEY_TOTAL_POSSIBLE_STARS = "total_possible_stars"
+        private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
+        private const val KEY_LAST_POKEMON_UNLOCK_DATE = "last_pokemon_unlock_date"
+        private const val POKEDEX_PIN = "1981" // Same PIN as web version
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -48,7 +51,27 @@ class DailyProgressManager(private val context: Context) {
             .putString(KEY_COMPLETED_TASKS, gson.toJson(emptyMap<String, Boolean>()))
             .putString(KEY_LAST_RESET_DATE, getCurrentDateString())
             .apply()
+
+        // Also reset video sequence progress for new day
+        resetVideoSequenceProgress()
+
         Log.d("DailyProgressManager", "Reset progress for new day: ${getCurrentDateString()}")
+    }
+
+    /**
+     * Resets video sequence progress for all video files
+     */
+    private fun resetVideoSequenceProgress() {
+        val videoPrefs = context.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
+        videoPrefs.edit().clear().apply()
+        Log.d("DailyProgressManager", "Reset video sequence progress for new day")
+    }
+
+    /**
+     * Manually reset video sequence progress (for debugging)
+     */
+    fun resetVideoProgress() {
+        resetVideoSequenceProgress()
     }
 
     /**
@@ -300,5 +323,91 @@ class DailyProgressManager(private val context: Context) {
      */
     fun getLastResetDate(): String {
         return prefs.getString(KEY_LAST_RESET_DATE, "Never") ?: "Never"
+    }
+
+    /**
+     * Pokemon Collection Management
+     */
+
+    /**
+     * Gets the current number of unlocked Pokemon for the current kid
+     */
+    fun getUnlockedPokemonCount(): Int {
+        val kid = getCurrentKid()
+        return prefs.getInt("${kid}_$KEY_POKEMON_UNLOCKED", 0)
+    }
+
+    /**
+     * Sets the number of unlocked Pokemon for the current kid
+     */
+    fun setUnlockedPokemonCount(count: Int) {
+        val kid = getCurrentKid()
+        prefs.edit().putInt("${kid}_$KEY_POKEMON_UNLOCKED", count).apply()
+    }
+
+    /**
+     * Gets the current kid identifier (A or B)
+     */
+    private fun getCurrentKid(): String {
+        return context.getSharedPreferences("child_profile", Context.MODE_PRIVATE)
+            .getString("profile", "A") ?: "A"
+    }
+
+    /**
+     * Checks if all coins have been earned today (for showing Pokemon button)
+     */
+    fun hasAllCoinsBeenEarned(config: MainContent): Boolean {
+        val (earnedCoins, totalCoins) = getCurrentProgressWithCoinsAndStars(config).first
+        return earnedCoins >= totalCoins && totalCoins > 0
+    }
+
+    /**
+     * Validates admin PIN for Pokemon management
+     */
+    fun validateAdminPin(pin: String): Boolean {
+        return pin == POKEDEX_PIN
+    }
+
+    /**
+     * Unlocks additional Pokemon (admin function)
+     */
+    fun unlockPokemon(count: Int): Boolean {
+        val currentCount = getUnlockedPokemonCount()
+        setUnlockedPokemonCount(currentCount + count)
+        return true
+    }
+
+    /**
+     * Gets the last unlocked Pokemon (for display)
+     */
+    fun getLastUnlockedPokemon(): String? {
+        // This would need to be implemented based on how Pokemon are organized
+        // For now, return null - will be implemented when we have Pokemon data structure
+        return null
+    }
+
+    /**
+     * Checks if a Pokemon was already unlocked today
+     */
+    fun wasPokemonUnlockedToday(): Boolean {
+        val lastUnlockDate = prefs.getString(KEY_LAST_POKEMON_UNLOCK_DATE, "")
+        val currentDate = getCurrentDateString()
+        return lastUnlockDate == currentDate
+    }
+
+    /**
+     * Records that a Pokemon was unlocked today
+     */
+    fun recordPokemonUnlockToday() {
+        prefs.edit()
+            .putString(KEY_LAST_POKEMON_UNLOCK_DATE, getCurrentDateString())
+            .apply()
+    }
+
+    /**
+     * Checks if all coins have been earned AND no Pokemon was unlocked today
+     */
+    fun shouldShowPokemonUnlockButton(config: MainContent): Boolean {
+        return hasAllCoinsBeenEarned(config) && !wasPokemonUnlockedToday()
     }
 }

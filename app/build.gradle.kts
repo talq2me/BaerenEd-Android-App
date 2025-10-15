@@ -41,6 +41,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.cardview)
 
     // HTTP client for JSON downloading
     implementation(libs.okhttp)

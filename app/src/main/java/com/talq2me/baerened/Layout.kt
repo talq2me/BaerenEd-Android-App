@@ -1,5 +1,7 @@
 package com.talq2me.baerened
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Resources
 import android.util.Log
 import android.util.TypedValue
@@ -9,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
+import android.widget.Toast
 import kotlinx.coroutines.*
 
 /**
@@ -106,6 +109,11 @@ class Layout(private val activity: MainActivity) {
             }
             headerLayout.addView(btn)
         }
+
+        // Add "My Pokedex" button if user has unlocked Pokemon
+        if (progressManager.getUnlockedPokemonCount() > 0) {
+            addMyPokedexButton()
+        }
     }
 
     private fun setupDefaultHeaderButtons() {
@@ -140,6 +148,34 @@ class Layout(private val activity: MainActivity) {
             }
             headerLayout.addView(btn)
         }
+
+        // Add "My Pokedex" button if user has unlocked Pokemon
+        if (progressManager.getUnlockedPokemonCount() > 0) {
+            addMyPokedexButton()
+        }
+    }
+
+    private fun addMyPokedexButton() {
+        val pokedexButton = android.widget.Button(activity).apply {
+            text = "📱 My Pokedex"
+            textSize = 16f
+            setTextColor(activity.resources.getColor(android.R.color.white))
+            background = activity.resources.getDrawable(R.drawable.button_rounded)
+            setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
+
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                70.dpToPx()  // Same height as nav buttons
+            ).apply {
+                setMargins(8.dpToPx(), 0, 0, 0)
+            }
+
+            setOnClickListener {
+                activity.openPokemonCollection()
+            }
+        }
+
+        headerLayout.addView(pokedexButton)
     }
 
     private fun setupProgress(progress: Progress, content: MainContent) {
@@ -153,6 +189,13 @@ class Layout(private val activity: MainActivity) {
         progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
         progressBar.max = totalStars
         progressBar.progress = earnedStars
+
+        // Add Pokemon button if all coins earned AND no Pokemon unlocked today
+        if (progressManager.shouldShowPokemonUnlockButton(content)) {
+            addPokemonButtonToProgressLayout()
+        } else {
+            removePokemonButtonFromProgressLayout()
+        }
 
         // Force refresh of progress display to ensure it shows correct values
         refreshProgressDisplay()
@@ -171,6 +214,13 @@ class Layout(private val activity: MainActivity) {
             progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
             progressBar.max = totalStars
             progressBar.progress = earnedStars
+
+            // Update Pokemon button visibility
+            if (progressManager.shouldShowPokemonUnlockButton(currentContent)) {
+                addPokemonButtonToProgressLayout()
+            } else {
+                removePokemonButtonFromProgressLayout()
+            }
         } else {
             // Fallback - use cached values but ensure they're calculated correctly
             val progressData = progressManager.getCurrentProgressWithTotals()
@@ -190,6 +240,141 @@ class Layout(private val activity: MainActivity) {
      */
     fun refreshProgressDisplay() {
         updateProgressDisplay()
+    }
+
+    /**
+     * Refreshes the header buttons (for when Pokemon are unlocked)
+     */
+    fun refreshHeaderButtons() {
+        // Re-setup default header buttons to include My Pokedex if needed
+        setupDefaultHeaderButtons()
+    }
+
+    private fun addPokemonButtonToProgressLayout() {
+        // Check if Pokemon button already exists
+        if (progressLayout.findViewWithTag<View>("pokemon_button") != null) {
+            return
+        }
+
+        // Create Pokemon button
+        val pokemonButton = android.widget.Button(activity).apply {
+            tag = "pokemon_button"
+            text = "Unlock Pokemon"
+            textSize = 16f
+            setTextColor(activity.resources.getColor(android.R.color.white))
+            background = activity.resources.getDrawable(R.drawable.button_rounded)
+            setPadding(16.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                70.dpToPx()  // Same height as nav buttons
+            ).apply {
+                setMargins(16.dpToPx(), 0, 0, 0)
+            }
+
+            setOnClickListener {
+                // Auto-unlock one Pokemon and record the unlock
+                val currentUnlocked = progressManager.getUnlockedPokemonCount()
+                progressManager.setUnlockedPokemonCount(currentUnlocked + 1)
+                progressManager.recordPokemonUnlockToday()
+
+                // Refresh progress display to hide the button (since we unlocked a Pokemon today)
+                refreshProgressDisplay()
+
+                // Refresh header buttons to show My Pokedex if this is the first Pokemon
+                refreshHeaderButtons()
+
+                // Open Pokemon collection
+                activity.openPokemonCollection()
+            }
+        }
+
+        progressLayout.addView(pokemonButton)
+    }
+
+    private fun removePokemonButtonFromProgressLayout() {
+        val pokemonButton = progressLayout.findViewWithTag<View>("pokemon_button")
+        pokemonButton?.let {
+            progressLayout.removeView(it)
+        }
+    }
+
+    private fun handleVideoSequenceTask(task: Task) {
+        val videoSequence = task.videoSequence ?: return
+        val videoFile = task.launch ?: return
+
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                // Load the video JSON file from assets
+                val videoJson = activity.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
+
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    when (videoSequence) {
+                        "exact" -> {
+                            // Play specific video
+                            val videoName = task.video ?: return@withContext
+                            playYouTubeVideo(videoJson, videoName)
+                        }
+                        "sequential" -> {
+                            // Play next video in sequence
+                            playNextVideoInSequence(videoJson, videoFile)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error loading video content for $videoFile", e)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun playYouTubeVideo(videoJson: String, videoName: String) {
+        try {
+            val gson = com.google.gson.Gson()
+            val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
+            val videoId = videoMap[videoName]
+
+            if (videoId != null) {
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/watch?v=$videoId"))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                activity.startActivity(intent)
+            } else {
+                Toast.makeText(activity, "Video not found: $videoName", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("Layout", "Error parsing video JSON", e)
+            Toast.makeText(activity, "Error playing video", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun playNextVideoInSequence(videoJson: String, videoFile: String) {
+        try {
+            val gson = com.google.gson.Gson()
+            val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
+            val videoList = videoMap.keys.toList()
+
+            // Get the last played video index for this file and profile
+            val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
+            val currentKid = activity.getSharedPreferences("child_profile", Context.MODE_PRIVATE)
+                .getString("profile", "A") ?: "A"
+            val lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", 0)
+
+            // Get next video (wrap around if at end)
+            val nextIndex = (lastVideoIndex + 1) % videoList.size
+            val nextVideoName = videoList[nextIndex]
+
+            // Play the video
+            playYouTubeVideo(videoJson, nextVideoName)
+
+            // Update the last played index
+            prefs.edit().putInt("${currentKid}_${videoFile}_index", nextIndex).apply()
+
+        } catch (e: Exception) {
+            android.util.Log.e("Layout", "Error handling sequential video", e)
+            Toast.makeText(activity, "Error playing video sequence", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupSections(sections: List<Section>) {
@@ -328,42 +513,48 @@ class Layout(private val activity: MainActivity) {
                     val gameType = task.launch ?: "unknown"
                     val gameTitle = task.title ?: "Task"
 
-                    // Fetch game content asynchronously
-                    kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                        try {
-                            val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
+                    // Check if this is a video sequence task
+                    if (task.videoSequence != null) {
+                        handleVideoSequenceTask(task)
+                    } else {
+                        // Handle regular game content
+                        // Fetch game content asynchronously
+                        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            try {
+                                val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
 
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                val game = Game(
-                                    id = gameType,
-                                    title = gameTitle,
-                                    description = "Educational activity",
-                                    type = gameType,
-                                    iconUrl = "",
-                                    requiresRewardTime = false,
-                                    difficulty = "Easy",
-                                    estimatedTime = task.stars ?: 1,
-                                    totalQuestions = task.totalQuestions
-                                )
-                                activity.startGame(game, gameContent)
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    val game = Game(
+                                        id = gameType,
+                                        title = gameTitle,
+                                        description = "Educational activity",
+                                        type = gameType,
+                                        iconUrl = "",
+                                        requiresRewardTime = false,
+                                        difficulty = "Easy",
+                                        estimatedTime = task.stars ?: 1,
+                                        totalQuestions = task.totalQuestions
+                                    )
+                                    activity.startGame(game, gameContent)
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
 
-                            // Fallback to starting game without content
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                val game = Game(
-                                    id = gameType,
-                                    title = gameTitle,
-                                    description = "Educational activity",
-                                    type = gameType,
-                                    iconUrl = "",
-                                    requiresRewardTime = false,
-                                    difficulty = "Easy",
-                                    estimatedTime = task.stars ?: 1,
-                                    totalQuestions = task.totalQuestions
-                                )
-                                activity.startGame(game, null)
+                                // Fallback to starting game without content
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    val game = Game(
+                                        id = gameType,
+                                        title = gameTitle,
+                                        description = "Educational activity",
+                                        type = gameType,
+                                        iconUrl = "",
+                                        requiresRewardTime = false,
+                                        difficulty = "Easy",
+                                        estimatedTime = task.stars ?: 1,
+                                        totalQuestions = task.totalQuestions
+                                    )
+                                    activity.startGame(game, null)
+                                }
                             }
                         }
                     }

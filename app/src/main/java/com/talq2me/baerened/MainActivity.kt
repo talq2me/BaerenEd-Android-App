@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onResume()
         // Refresh progress display and sections when returning to main screen
         layout.refreshProgressDisplay()
+        layout.refreshHeaderButtons()
         // Also refresh the sections to update completion states
         currentMainContent?.let { content ->
             layout.displayContent(content)
@@ -170,6 +171,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    fun openPokemonCollection() {
+        Log.d(TAG, "Opening Pokemon collection")
+        val intent = Intent(this, PokemonActivity::class.java)
+        startActivity(intent)
+    }
+
 
 
 
@@ -197,17 +204,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     fun startGame(game: Game, gameContent: String? = null) {
         Log.d(TAG, "Starting game: ${game.title}")
-        
+
         when (game.type) {
             "profile_selection" -> {
                 selectProfile(game.id)
             }
-            // For any other game type, try to launch it with GameActivity
+            // Handle video sequences
             else -> {
                 if (game.requiresRewardTime && !hasAvailableRewardTime()) {
                     showRewardTimeDialog()
                     return
                 }
+
+                // Check if this is a video sequence task by looking at the game object
+                // We need to access the original task data, but for now we'll handle it in the calling code
                 if (gameContent != null) {
                     launchGameActivity(game, gameContent)
                 } else {
@@ -367,7 +377,9 @@ data class Task(
     val title: String? = null,
     val launch: String? = null,
     val stars: Int? = null,
-    val totalQuestions: Int? = null
+    val totalQuestions: Int? = null,
+    val videoSequence: String? = null, // "exact" or "sequential"
+    val video: String? = null // specific video name for "exact" mode
 )
 
 data class ChecklistItem(
