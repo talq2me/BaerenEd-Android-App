@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var loadingProgressBar: ProgressBar
     lateinit var contentUpdateService: ContentUpdateService
     private lateinit var layout: Layout
+    private var currentMainContent: MainContent? = null
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -65,6 +66,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Check for child profile selection
         checkChildProfile()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh progress display and sections when returning to main screen
+        layout.refreshProgressDisplay()
+        // Also refresh the sections to update completion states
+        currentMainContent?.let { content ->
+            layout.displayContent(content)
+        }
     }
 
     override fun onInit(status: Int) {
@@ -136,9 +147,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
 
     private fun displayContent(content: MainContent) {
+        currentMainContent = content
         layout.displayContent(content)
     }
 
+    fun getCurrentMainContent(): MainContent? {
+        return currentMainContent
+    }
 
     fun handleHeaderButtonClick(action: String?) {
         when (action) {
@@ -292,11 +307,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val questions = gson.fromJson(gameContent, Array<GameData>::class.java)
             val totalQuestions = game.totalQuestions ?: questions.size
 
+            // Determine if this is a required game
+            val currentContent = getCurrentMainContent()
+            val isRequired = currentContent?.sections?.any { section ->
+                section.id == "required" && section.tasks?.any { it.launch == game.type } == true
+            } ?: false
+
             val intent = Intent(this, com.talq2me.baerened.GameActivity::class.java).apply {
                 putExtra("GAME_CONTENT", gameContent)
                 putExtra("GAME_TYPE", game.type)
                 putExtra("GAME_TITLE", game.title)
                 putExtra("TOTAL_QUESTIONS", totalQuestions)
+                putExtra("GAME_STARS", game.estimatedTime) // Use estimatedTime as stars
+                putExtra("IS_REQUIRED_GAME", isRequired)
             }
             startActivity(intent)
         } catch (e: Exception) {
@@ -349,7 +372,9 @@ data class Task(
 
 data class ChecklistItem(
     val label: String? = null,
-    val done: Boolean? = null
+    val stars: Int? = null,
+    val done: Boolean? = null,
+    val id: String? = null
 )
 
 data class Reward(

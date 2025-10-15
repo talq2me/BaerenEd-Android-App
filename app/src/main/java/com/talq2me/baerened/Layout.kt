@@ -30,6 +30,9 @@ class Layout(private val activity: MainActivity) {
     private val rewardTitle: TextView get() = activity.rewardTitle
     private val rewardDescription: TextView get() = activity.rewardDescription
 
+    // Progress management
+    private val progressManager = DailyProgressManager(activity)
+
     /**
      * Display the main content by setting up all UI components
      */
@@ -42,12 +45,14 @@ class Layout(private val activity: MainActivity) {
         titleText.text = content.title ?: "BaerenEd"
         titleText.visibility = View.VISIBLE
 
-        // Display progress
+        // Setup progress with dynamic calculation
         if (content.progress != null) {
             progressLayout.visibility = View.VISIBLE
-            setupProgress(content.progress)
+            setupProgress(content.progress, content)
         } else {
             progressLayout.visibility = View.GONE
+            // Always calculate totals from config to ensure correct caching
+            progressManager.calculateTotalsFromConfig(content)
         }
 
         // Display sections (tasks and buttons)
@@ -137,10 +142,57 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun setupProgress(progress: Progress) {
-        progressText.text = "${progress.starsEarned ?: 0}/${progress.starsGoal ?: 0} ⭐ - ${progress.message ?: "Complete tasks to earn stars!"}"
-        progressBar.max = progress.starsGoal ?: 10
-        progressBar.progress = progress.starsEarned ?: 0
+    private fun setupProgress(progress: Progress, content: MainContent) {
+        // Use the provided content for accurate calculation
+        val progressData = progressManager.getCurrentProgressWithTotals(content)
+        val earnedCoins = progressData.first.first
+        val totalCoins = progressData.first.second
+        val earnedStars = progressData.second.first
+        val totalStars = progressData.second.second
+
+        Log.d("Layout", "Progress setup - Coins: $earnedCoins/$totalCoins, Stars: $earnedStars/$totalStars")
+        progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
+        progressBar.max = totalStars
+        progressBar.progress = earnedStars
+
+        // Force refresh of progress display to ensure it shows correct values
+        refreshProgressDisplay()
+    }
+
+    private fun updateProgressDisplay() {
+        val currentContent = activity.getCurrentMainContent()
+        if (currentContent != null) {
+            // Get current progress with accurate calculation
+            val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
+            val earnedCoins = progressData.first.first
+            val totalCoins = progressData.first.second
+            val earnedStars = progressData.second.first
+            val totalStars = progressData.second.second
+
+            Log.d("Layout", "Progress update - Coins: $earnedCoins/$totalCoins, Stars: $earnedStars/$totalStars")
+            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
+            progressBar.max = totalStars
+            progressBar.progress = earnedStars
+        } else {
+            // Fallback - use cached values but ensure they're calculated correctly
+            val progressData = progressManager.getCurrentProgressWithTotals()
+            val earnedCoins = progressData.first.first
+            val totalCoins = progressData.first.second
+            val earnedStars = progressData.second.first
+            val totalStars = progressData.second.second
+
+            Log.d("Layout", "Progress update (cached) - Coins: $earnedCoins/$totalCoins, Stars: $earnedStars/$totalStars")
+            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
+            progressBar.max = totalStars
+            progressBar.progress = earnedStars
+        }
+    }
+
+    /**
+     * Refreshes the progress display (can be called from other activities)
+     */
+    fun refreshProgressDisplay() {
+        updateProgressDisplay()
     }
 
     private fun setupSections(sections: List<Section>) {
@@ -213,6 +265,9 @@ class Layout(private val activity: MainActivity) {
         // Use 70dp height to match nav buttons for compact layout
         val tileHeight = (70 * density).toInt()
 
+        // Check if this task is completed today
+        val isCompleted = progressManager.isTaskCompleted(task.launch ?: "unknown_task")
+
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -222,7 +277,14 @@ class Layout(private val activity: MainActivity) {
                 setMargins((6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt())
                 weight = 1f
             }
-            background = activity.getDrawable(R.drawable.game_item_background)
+
+            // Grey out background if completed
+            background = if (isCompleted) {
+                activity.getDrawable(R.drawable.game_item_background_grey)
+            } else {
+                activity.getDrawable(R.drawable.game_item_background)
+            }
+
             setPadding((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
             // Ensure consistent height - match nav button height for compact layout
             minimumHeight = tileHeight
@@ -232,7 +294,7 @@ class Layout(private val activity: MainActivity) {
                 id = View.generateViewId() // Important for RelativeLayout rules
                 text = "⭐".repeat(task.stars ?: 1)
                 textSize = 16f // Slightly smaller for compact layout
-                // Set text color to yellow if needed, but the emoji has color
+                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.parseColor("#FFD700")) // Gold for active, grey for completed
                 gravity = android.view.Gravity.CENTER
                 layoutParams = RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.WRAP_CONTENT,
@@ -248,7 +310,7 @@ class Layout(private val activity: MainActivity) {
             val titleView = TextView(activity).apply {
                 text = task.title ?: "Task"
                 textSize = 18f // Slightly smaller for compact layout
-                setTextColor(android.graphics.Color.BLACK) // FIX: Changed text color to black for readability
+                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
                 gravity = android.view.Gravity.CENTER
                 setPadding((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
                 // Ensure consistent single line behavior
@@ -263,47 +325,49 @@ class Layout(private val activity: MainActivity) {
                 }
             }
 
-            // Set the click listener on the parent layout
-            setOnClickListener {
-                val gameType = task.launch ?: "unknown"
-                val gameTitle = task.title ?: "Task"
+            // Set the click listener on the parent layout (only if not completed)
+            if (!isCompleted) {
+                setOnClickListener {
+                    val gameType = task.launch ?: "unknown"
+                    val gameTitle = task.title ?: "Task"
 
-                // Fetch game content asynchronously
-                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                    try {
-                        val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
+                    // Fetch game content asynchronously
+                    kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
 
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            val game = Game(
-                                id = gameType,
-                                title = gameTitle,
-                                description = "Educational activity",
-                                type = gameType,
-                                iconUrl = "",
-                                requiresRewardTime = false,
-                                difficulty = "Easy",
-                                estimatedTime = task.stars ?: 1,
-                                totalQuestions = task.totalQuestions
-                            )
-                            activity.startGame(game, gameContent)
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                val game = Game(
+                                    id = gameType,
+                                    title = gameTitle,
+                                    description = "Educational activity",
+                                    type = gameType,
+                                    iconUrl = "",
+                                    requiresRewardTime = false,
+                                    difficulty = "Easy",
+                                    estimatedTime = task.stars ?: 1,
+                                    totalQuestions = task.totalQuestions
+                                )
+                                activity.startGame(game, gameContent)
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
 
-                        // Fallback to starting game without content
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            val game = Game(
-                                id = gameType,
-                                title = gameTitle,
-                                description = "Educational activity",
-                                type = gameType,
-                                iconUrl = "",
-                                requiresRewardTime = false,
-                                difficulty = "Easy",
-                                estimatedTime = task.stars ?: 1,
-                                totalQuestions = task.totalQuestions
-                            )
-                            activity.startGame(game, null)
+                            // Fallback to starting game without content
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                val game = Game(
+                                    id = gameType,
+                                    title = gameTitle,
+                                    description = "Educational activity",
+                                    type = gameType,
+                                    iconUrl = "",
+                                    requiresRewardTime = false,
+                                    difficulty = "Easy",
+                                    estimatedTime = task.stars ?: 1,
+                                    totalQuestions = task.totalQuestions
+                                )
+                                activity.startGame(game, null)
+                            }
                         }
                     }
                 }
@@ -321,16 +385,66 @@ class Layout(private val activity: MainActivity) {
             setPadding(16, 8, 16, 8)
             background = activity.getDrawable(R.drawable.game_item_background)
 
-            val checkbox = android.widget.CheckBox(activity).apply {
-                isChecked = item.done == true
-                isEnabled = false // Read-only for now
+            // Check if this item is completed
+            val itemId = item.id ?: "checkbox_${item.label}"
+            val isCompleted = progressManager.isTaskCompleted(itemId)
+
+            // Create label with star indicator first
+            val labelView = TextView(activity).apply {
+                val starText = if (item.stars != null && item.stars!! > 0) {
+                    "${item.label ?: "Checklist Item"} (${item.stars}⭐)"
+                } else {
+                    item.label ?: "Checklist Item"
+                }
+                text = starText
+                textSize = 18f // Larger for tablet readability
+                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
+                alpha = if (isCompleted) 0.6f else 1.0f // Make completed items slightly faded
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
 
-            val labelView = TextView(activity).apply {
-                text = item.label ?: "Checklist Item"
-                textSize = 18f // Larger for tablet readability
-                setTextColor(if (item.done == true) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            // Create checkbox
+            val checkbox = android.widget.CheckBox(activity).apply {
+                isChecked = isCompleted
+                isEnabled = !isCompleted // Disable if already completed
+
+                // Style checkbox based on completion state
+                setTextColor(if (isChecked) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
+                alpha = if (isChecked) 0.6f else 1.0f // Make completed items slightly faded
+
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked && !isCompleted && item.stars != null && item.stars!! > 0) {
+                        // Award stars when checkbox is checked (only if not already completed)
+                        // ALL checklist items give coins and should only be completed once per day
+                        val earnedStars = progressManager.markTaskCompleted(
+                            itemId,
+                            item.stars!!,
+                            true  // isRequired parameter - checklist items behave like required tasks
+                        )
+                        if (earnedStars > 0) {
+                            updateProgressDisplay()
+                            // Update visual state - disable and grey out
+                            post {
+                                isEnabled = false
+                                setTextColor(android.graphics.Color.GRAY)
+                                alpha = 0.6f
+                                // Also update the label
+                                labelView.setTextColor(android.graphics.Color.GRAY)
+                                labelView.alpha = 0.6f
+                            }
+                        }
+                    } else if (isChecked && isCompleted) {
+                        // If already completed but checkbox was checked again, ensure visual state
+                        post {
+                            isEnabled = false
+                            setTextColor(android.graphics.Color.GRAY)
+                            alpha = 0.6f
+                            // Also update the label
+                            labelView.setTextColor(android.graphics.Color.GRAY)
+                            labelView.alpha = 0.6f
+                        }
+                    }
+                }
             }
 
             addView(checkbox)

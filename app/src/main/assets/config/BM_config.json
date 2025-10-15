@@ -70,9 +70,9 @@
       "title": "Checklist",
       "description": "Mark each one when done",
       "items": [
-        { "label": "Read for 15 minutes", "done": false },
-        { "label": "Clean up toys", "done": true },
-        { "label": "Practice piano", "done": false }
+        { "label": "Read for 15 minutes", "stars": 1, "done": false, "id": "bm_read_15_min" },
+        { "label": "Clean up toys", "stars": 1, "done": false, "id": "bm_clean_toys" },
+        { "label": "Practice piano", "stars": 1, "done": false, "id": "bm_practice_piano" }
       ]
     }
   ],

@@ -29,6 +29,12 @@ class GameActivity : AppCompatActivity() {
     private var currentQuestion: GameData? = null
     private var messageClearHandler: android.os.Handler? = null
     private var audioClipsPlayedForCurrentQuestion = false
+    private lateinit var progressManager: DailyProgressManager
+
+    // Game configuration
+    private lateinit var gameType: String
+    private var gameStars: Int = 1
+    private var isRequiredGame: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +43,11 @@ class GameActivity : AppCompatActivity() {
 
         // Get game content and config from intent extras
         val gameContent = intent.getStringExtra("GAME_CONTENT")
-        val gameType = intent.getStringExtra("GAME_TYPE") ?: "unknown"
+        gameType = intent.getStringExtra("GAME_TYPE") ?: "unknown"
         val gameTitle = intent.getStringExtra("GAME_TITLE") ?: "Game"
         val totalQuestions = intent.getIntExtra("TOTAL_QUESTIONS", 5) // Default to 5 if not provided
+        gameStars = intent.getIntExtra("GAME_STARS", 1) // Default to 1 star if not provided
+        val isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
 
         if (gameContent == null) {
             Toast.makeText(this, "Game content not available", Toast.LENGTH_SHORT).show()
@@ -64,6 +72,9 @@ class GameActivity : AppCompatActivity() {
         )
 
         gameEngine = GameEngine(this, gameType, questions, config)
+
+        // Initialize progress manager
+        progressManager = DailyProgressManager(this)
 
         // TTS Init
         tts = TextToSpeech(this) { status ->
@@ -134,6 +145,14 @@ class GameActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.messageArea).text = ""
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
+                    // Game completed successfully - award stars
+                    val earnedStars = progressManager.markTaskCompleted(gameType, gameStars, isRequiredGame)
+                    if (earnedStars > 0) {
+                        // Update progress display on main screen if this activity has access to it
+                        // For now, just log the progress
+                        android.util.Log.d("GameActivity", "Game $gameType completed, earned $earnedStars stars")
+                    }
+
                     // Navigate back to profile screen after delay
                     android.os.Handler().postDelayed({
                         finish()
