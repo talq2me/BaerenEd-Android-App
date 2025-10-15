@@ -1,6 +1,8 @@
 package com.talq2me.baerened
 
+import android.content.res.Resources
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.CheckBox
 import android.widget.LinearLayout
@@ -32,13 +34,9 @@ class Layout(private val activity: MainActivity) {
      * Display the main content by setting up all UI components
      */
     fun displayContent(content: MainContent) {
-        // Display header buttons
-        if (content.header?.buttons?.isNotEmpty() == true) {
-            headerLayout.visibility = View.VISIBLE
-            setupHeaderButtons(content.header.buttons)
-        } else {
-            headerLayout.visibility = View.GONE
-        }
+        // Display header buttons - always show default navigation buttons
+        headerLayout.visibility = View.VISIBLE
+        setupDefaultHeaderButtons()
 
         // Display title
         titleText.text = content.title ?: "BaerenEd"
@@ -71,9 +69,69 @@ class Layout(private val activity: MainActivity) {
         buttons.forEach { button ->
             val btn = android.widget.Button(activity).apply {
                 text = button.label ?: "Button"
+                textSize = 18f // Match game screen button text size
                 setOnClickListener {
                     activity.handleHeaderButtonClick(button.action)
                 }
+
+                // Style buttons to match game screen - simple rounded style
+                layoutParams = LinearLayout.LayoutParams(
+                    140.dpToPx(), // 140dp width like game screen
+                    70.dpToPx()  // 70dp height like game screen
+                ).apply {
+                    marginEnd = 12.dpToPx() // 12dp margin like game screen
+                }
+
+                background = activity.resources.getDrawable(R.drawable.button_rounded)
+                setTextColor(activity.resources.getColor(android.R.color.white))
+                setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
+
+                // Set text with consistent symbols
+                when (button.action) {
+                    "back" -> {
+                        text = "< Back"
+                    }
+                    "home" -> {
+                        text = "⌂ Home"
+                    }
+                    "refresh" -> {
+                        text = "⟳ Refresh"
+                    }
+                }
+            }
+            headerLayout.addView(btn)
+        }
+    }
+
+    private fun setupDefaultHeaderButtons() {
+        headerLayout.removeAllViews()
+
+        // Create default navigation buttons
+        val defaultButtons = listOf(
+            Button("< Back", "back"),
+            Button("⌂ Home", "home"),
+            Button("⟳ Refresh", "refresh")
+        )
+
+        defaultButtons.forEach { button ->
+            val btn = android.widget.Button(activity).apply {
+                text = button.label ?: "Button"
+                textSize = 18f // Match game screen button text size
+                setOnClickListener {
+                    activity.handleHeaderButtonClick(button.action)
+                }
+
+                // Style buttons to match game screen - simple rounded style
+                layoutParams = LinearLayout.LayoutParams(
+                    140.dpToPx(), // 140dp width like game screen
+                    70.dpToPx()  // 70dp height like game screen
+                ).apply {
+                    marginEnd = 12.dpToPx() // 12dp margin like game screen
+                }
+
+                background = activity.resources.getDrawable(R.drawable.button_rounded)
+                setTextColor(activity.resources.getColor(android.R.color.white))
+                setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
             }
             headerLayout.addView(btn)
         }
@@ -97,23 +155,23 @@ class Layout(private val activity: MainActivity) {
     private fun createSectionView(section: Section): View {
         val sectionLayout = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(0, 16, 0, 16)
+            setPadding(0, 12, 0, 12) // Reduced for compact layout
         }
 
-        // Section title and description
+        // Section title and description - Larger for tablet readability
         val titleView = TextView(activity).apply {
             text = section.title ?: "Section"
-            textSize = 18f
+            textSize = 24f // Larger like game screen
             setTextColor(android.graphics.Color.BLACK)
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(0, 0, 0, 8)
+            setPadding(0, 0, 0, 12)
         }
 
         val descriptionView = TextView(activity).apply {
             text = section.description ?: "Section description"
-            textSize = 14f
+            textSize = 18f // Larger like game screen
             setTextColor(android.graphics.Color.DKGRAY)
-            setPadding(0, 0, 0, 16)
+            setPadding(0, 0, 0, 20)
         }
 
         sectionLayout.addView(titleView)
@@ -152,24 +210,28 @@ class Layout(private val activity: MainActivity) {
 
     private fun createTaskView(task: Task): View {
         val density = activity.resources.displayMetrics.density
-        val buttonSize = (120 * density).toInt() // 120dp square
+        // Use 70dp height to match nav buttons for compact layout
+        val tileHeight = (70 * density).toInt()
 
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
-            layoutParams = LinearLayout.LayoutParams(buttonSize, buttonSize).apply {
-                setMargins((8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt())
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, // Let width be determined by content
+                tileHeight // Fixed 70dp height to match nav buttons
+            ).apply {
+                setMargins((6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt())
                 weight = 1f
             }
             background = activity.getDrawable(R.drawable.game_item_background)
-            setPadding((8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt())
-            // Ensure consistent minimum height
-            minimumHeight = (120 * density).toInt()
+            setPadding((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
+            // Ensure consistent height - match nav button height for compact layout
+            minimumHeight = tileHeight
 
             // Create the stars indicator first, so we can position the text above it
             val starsView = TextView(activity).apply {
                 id = View.generateViewId() // Important for RelativeLayout rules
                 text = "⭐".repeat(task.stars ?: 1)
-                textSize = 14f
+                textSize = 16f // Slightly smaller for compact layout
                 // Set text color to yellow if needed, but the emoji has color
                 gravity = android.view.Gravity.CENTER
                 layoutParams = RelativeLayout.LayoutParams(
@@ -178,17 +240,17 @@ class Layout(private val activity: MainActivity) {
                 ).apply {
                     addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
                     addRule(RelativeLayout.CENTER_HORIZONTAL)
-                    bottomMargin = (4 * density).toInt()
+                    bottomMargin = (6 * density).toInt()
                 }
             }
 
             // Create the main text label for the task
             val titleView = TextView(activity).apply {
                 text = task.title ?: "Task"
-                textSize = 16f
+                textSize = 18f // Slightly smaller for compact layout
                 setTextColor(android.graphics.Color.BLACK) // FIX: Changed text color to black for readability
                 gravity = android.view.Gravity.CENTER
-                setPadding((8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt())
+                setPadding((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
                 // Ensure consistent single line behavior
                 setSingleLine(false)
                 maxLines = 2
@@ -266,7 +328,7 @@ class Layout(private val activity: MainActivity) {
 
             val labelView = TextView(activity).apply {
                 text = item.label ?: "Checklist Item"
-                textSize = 16f
+                textSize = 18f // Larger for tablet readability
                 setTextColor(if (item.done == true) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
@@ -340,4 +402,13 @@ class Layout(private val activity: MainActivity) {
             }
         }
     }
+}
+
+// Extension function to convert dp to pixels
+private fun Int.dpToPx(): Int {
+    return TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        this.toFloat(),
+        Resources.getSystem().displayMetrics
+    ).toInt()
 }

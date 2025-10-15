@@ -1,89 +1,133 @@
-<!-- res/layout/activity_game.xml -->
+<!-- res/layout/activity_game.xml - Kid-friendly tablet layout -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/game_root"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:padding="24dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
 
-    <!-- Header Buttons -->
+    <!-- Header Buttons - Larger and more spaced -->
     <LinearLayout
         android:id="@+id/gameHeaderLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp"
-        android:gravity="center">
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:padding="8dp">
 
         <Button
             android:id="@+id/gameBackButton"
-            android:text="Back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp" />
+            android:text="&lt; Back"
+            android:layout_width="140dp"
+            android:layout_height="70dp"
+            android:layout_marginEnd="12dp"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_rounded"
+            style="?android:attr/buttonStyle" />
 
         <Button
             android:id="@+id/gameHomeButton"
-            android:text="Home"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp" />
+            android:text="⌂ Home"
+            android:layout_width="140dp"
+            android:layout_height="70dp"
+            android:layout_marginEnd="12dp"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_rounded"
+            style="?android:attr/buttonStyle" />
 
         <Button
             android:id="@+id/gameRefreshButton"
-            android:text="Refresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:text="⟳ Refresh"
+            android:layout_width="140dp"
+            android:layout_height="70dp"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/button_rounded"
+            style="?android:attr/buttonStyle" />
 
     </LinearLayout>
 
-    <!-- Replay button for TTS content -->
+    <!-- Replay button for TTS content - Larger -->
     <Button
         android:id="@+id/replayButton"
-        android:text="🔊 Replay Instructions"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:text="▶️ Play Instructions"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
         android:layout_marginBottom="8dp"
+        android:textSize="20sp"
+        android:background="@drawable/button_rounded_primary"
+        android:textColor="#FFFFFF"
         android:visibility="gone" />
 
+    <!-- Prompt text - Larger -->
     <TextView
         android:id="@+id/promptText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18sp"/>
+        android:textSize="28sp"
+        android:textColor="#333333"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="sans-serif-medium" />
 
+    <!-- Question container -->
     <LinearLayout
         android:id="@+id/questionContainer"
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp" />
 
+    <!-- Message area - Larger text -->
     <TextView
         android:id="@+id/messageArea"
-        android:textSize="20sp"
-        android:layout_marginTop="16dp"
+        android:textSize="32sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="#FF6B35"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:background="@drawable/text_background_rounded"
+        android:padding="16dp" />
 
+    <!-- Delete button - Larger -->
     <Button
         android:id="@+id/deleteButton"
-        android:text="Delete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:text="⌫ Delete"
+        android:layout_width="200dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="8dp"
+        android:textSize="20sp"
+        android:background="@drawable/button_rounded_secondary"
+        android:textColor="#FFFFFF" />
 
+    <!-- Choice buttons grid - Auto-fit columns based on screen width -->
     <androidx.gridlayout.widget.GridLayout
         android:id="@+id/choicesGrid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:columnCount="3"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="8dp"
+        android:background="#E8F4F8"
+        android:padding="12dp" />
 
+    <!-- Submit button - Larger and more prominent -->
     <Button
         android:id="@+id/submitButton"
-        android:text="Submit"
+        android:text="✓ Submit"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"/>
+        android:layout_height="90dp"
+        android:layout_marginTop="12dp"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:background="@drawable/button_rounded_success"
+        android:textColor="#FFFFFF"
+        android:fontFamily="sans-serif-medium" />
 </LinearLayout>

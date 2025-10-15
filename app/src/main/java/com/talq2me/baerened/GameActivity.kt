@@ -145,15 +145,14 @@ class GameActivity : AppCompatActivity() {
                     }, 2500) // 2.5 seconds total
                 }
             } else {
-                // Show their wrong answer with red X and "Try again"
-                val wrongAnswer = userAnswers.lastOrNull() ?: ""
-                val messageWithX = "$wrongAnswer ❌ Try again!"
-                showMessageAndClear(messageWithX, 2000)
+                // Show "Try again" message without including the wrong answer text
+                // (prevents visual glitches with the user's chosen text display)
+                showMessageAndClear("❌ Try again!", 2000)
 
-                // Schedule clearing user answers after message clears
+                // Schedule clearing user answers after message clears (with small buffer)
                 android.os.Handler().postDelayed({
                     userAnswers.clear()
-                }, 2000) // Clear after 2 seconds (when message clears)
+                }, 2100) // Clear after 2.1 seconds (after message clears + buffer)
             }
         }
     }
@@ -323,8 +322,22 @@ class GameActivity : AppCompatActivity() {
         for (choice in allChoices) {
             val btn = Button(this)
             btn.text = choice.text
+            btn.textSize = 24f // Larger text for kids
             // Ensure text displays exactly as in JSON (no auto-capitalization)
             btn.transformationMethod = null
+
+            // Set button layout parameters - wrap content width, auto-fit to screen
+            val params = androidx.gridlayout.widget.GridLayout.LayoutParams()
+            params.width = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
+            params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
+            params.setMargins(12, 12, 12, 12) // Equal margins around each button
+            btn.layoutParams = params
+
+            // Make button more prominent with rounded corners and equal padding
+            btn.background = resources.getDrawable(R.drawable.button_rounded_choice)
+            btn.setPadding(20, 20, 20, 20) // Equal horizontal and vertical padding
+            btn.minHeight = 140 // Minimum height for finger tapping
+
             btn.setOnClickListener {
                 userAnswers.add(choice.text)
                 updateMessage()
