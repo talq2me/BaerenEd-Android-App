@@ -150,7 +150,6 @@ class Layout(private val activity: MainActivity) {
         val earnedStars = progressData.second.first
         val totalStars = progressData.second.second
 
-        Log.d("Layout", "Progress setup - Coins: $earnedCoins/$totalCoins, Stars: $earnedStars/$totalStars")
         progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
         progressBar.max = totalStars
         progressBar.progress = earnedStars
@@ -169,7 +168,6 @@ class Layout(private val activity: MainActivity) {
             val earnedStars = progressData.second.first
             val totalStars = progressData.second.second
 
-            Log.d("Layout", "Progress update - Coins: $earnedCoins/$totalCoins, Stars: $earnedStars/$totalStars")
             progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
             progressBar.max = totalStars
             progressBar.progress = earnedStars
@@ -181,7 +179,6 @@ class Layout(private val activity: MainActivity) {
             val earnedStars = progressData.second.first
             val totalStars = progressData.second.second
 
-            Log.d("Layout", "Progress update (cached) - Coins: $earnedCoins/$totalCoins, Stars: $earnedStars/$totalStars")
             progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
             progressBar.max = totalStars
             progressBar.progress = earnedStars
@@ -389,19 +386,38 @@ class Layout(private val activity: MainActivity) {
             val itemId = item.id ?: "checkbox_${item.label}"
             val isCompleted = progressManager.isTaskCompleted(itemId)
 
-            // Create label with star indicator first
+            // Create a container for label + stars
+            val labelStarsContainer = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+
+            // Create label (without stars in text)
             val labelView = TextView(activity).apply {
-                val starText = if (item.stars != null && item.stars!! > 0) {
-                    "${item.label ?: "Checklist Item"} (${item.stars}⭐)"
-                } else {
-                    item.label ?: "Checklist Item"
-                }
-                text = starText
+                text = item.label ?: "Checklist Item"
                 textSize = 18f // Larger for tablet readability
                 setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
                 alpha = if (isCompleted) 0.6f else 1.0f // Make completed items slightly faded
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
             }
+
+            // Create stars view (right next to label)
+            val starsView = TextView(activity).apply {
+                text = if (item.stars != null && item.stars!! > 0) "⭐".repeat(item.stars!!) else ""
+                textSize = 16f
+                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.parseColor("#FFD700")) // Gold for active, grey for completed
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            // Add label and stars to container
+            labelStarsContainer.addView(labelView)
+            labelStarsContainer.addView(starsView)
 
             // Create checkbox
             val checkbox = android.widget.CheckBox(activity).apply {
@@ -428,9 +444,10 @@ class Layout(private val activity: MainActivity) {
                                 isEnabled = false
                                 setTextColor(android.graphics.Color.GRAY)
                                 alpha = 0.6f
-                                // Also update the label
+                                // Also update the label and stars
                                 labelView.setTextColor(android.graphics.Color.GRAY)
                                 labelView.alpha = 0.6f
+                                starsView.setTextColor(android.graphics.Color.GRAY)
                             }
                         }
                     } else if (isChecked && isCompleted) {
@@ -439,16 +456,18 @@ class Layout(private val activity: MainActivity) {
                             isEnabled = false
                             setTextColor(android.graphics.Color.GRAY)
                             alpha = 0.6f
-                            // Also update the label
+                            // Also update the label and stars
                             labelView.setTextColor(android.graphics.Color.GRAY)
                             labelView.alpha = 0.6f
+                            starsView.setTextColor(android.graphics.Color.GRAY)
                         }
                     }
                 }
             }
 
+            // Add views in order: checkbox, label+stars container
             addView(checkbox)
-            addView(labelView)
+            addView(labelStarsContainer)
         }
     }
 

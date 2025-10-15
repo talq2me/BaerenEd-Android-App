@@ -1,0 +1,592 @@
+[
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$1.00"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$0.75"
+      },
+      {
+        "text": "$1.25"
+      },
+      {
+        "text": "$2.00"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/toonie.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.00"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$1.50"
+      },
+      {
+        "text": "$2.50"
+      },
+      {
+        "text": "$3.00"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/quarter.png",
+          "../images/quarter.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$0.75"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$0.70"
+      },
+      {
+        "text": "$0.80"
+      },
+      {
+        "text": "$1.00"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$0.50"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$0.45"
+      },
+      {
+        "text": "$0.55"
+      },
+      {
+        "text": "$0.60"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/quarter.png",
+          "../images/quarter.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$0.70"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$0.65"
+      },
+      {
+        "text": "$0.75"
+      },
+      {
+        "text": "$0.80"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$1.25"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$1.20"
+      },
+      {
+        "text": "$1.30"
+      },
+      {
+        "text": "$1.50"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$1.20"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$1.15"
+      },
+      {
+        "text": "$1.25"
+      },
+      {
+        "text": "$1.30"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/toonie.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.25"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.20"
+      },
+      {
+        "text": "$2.30"
+      },
+      {
+        "text": "$2.50"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/toonie.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.20"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.15"
+      },
+      {
+        "text": "$2.25"
+      },
+      {
+        "text": "$2.30"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/loonie.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.00"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$1.75"
+      },
+      {
+        "text": "$2.25"
+      },
+      {
+        "text": "$3.00"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/quarter.png",
+          "../images/quarter.png",
+          "../images/quarter.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$1.00"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$0.95"
+      },
+      {
+        "text": "$1.05"
+      },
+      {
+        "text": "$1.10"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$0.60"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$0.55"
+      },
+      {
+        "text": "$0.65"
+      },
+      {
+        "text": "$0.70"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/quarter.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$1.50"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$1.45"
+      },
+      {
+        "text": "$1.55"
+      },
+      {
+        "text": "$1.60"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$1.30"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$1.25"
+      },
+      {
+        "text": "$1.35"
+      },
+      {
+        "text": "$1.40"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/toonie.png",
+          "../images/quarter.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.50"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.45"
+      },
+      {
+        "text": "$2.55"
+      },
+      {
+        "text": "$2.60"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/toonie.png",
+          "../images/dime.png",
+          "../images/dime.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.30"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.25"
+      },
+      {
+        "text": "$2.35"
+      },
+      {
+        "text": "$2.40"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/loonie.png",
+          "../images/quarter.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.25"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.20"
+      },
+      {
+        "text": "$2.30"
+      },
+      {
+        "text": "$2.50"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/loonie.png",
+          "../images/loonie.png",
+          "../images/dime.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$2.10"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.05"
+      },
+      {
+        "text": "$2.15"
+      },
+      {
+        "text": "$2.20"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "How much money is this?",
+      "lang": "eng"
+    },
+    "question": {
+      "media": {
+        "images": [
+          "../images/toonie.png",
+          "../images/loonie.png"
+        ]
+      }
+    },
+    "correctChoices": [
+      {
+        "text": "$3.00"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "$2.75"
+      },
+      {
+        "text": "$3.25"
+      },
+      {
+        "text": "$4.00"
+      }
+    ]
+  }
+]

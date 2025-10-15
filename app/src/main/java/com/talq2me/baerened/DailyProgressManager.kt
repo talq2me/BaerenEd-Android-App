@@ -166,39 +166,28 @@ class DailyProgressManager(private val context: Context) {
         var totalStars = 0
 
         config.sections?.forEach { section ->
-            Log.d("DailyProgressManager", "Processing section: ${section.id}, title: ${section.title}")
-
             section.tasks?.forEach { task ->
                 val stars = task.stars ?: 0
-
-                Log.d("DailyProgressManager", "Task ${task.launch}: $stars stars, section: ${section.id}")
 
                 // Required tasks award coins equal to their stars
                 if (section.id == "required") {
                     totalCoins += stars
-                    Log.d("DailyProgressManager", "Adding $stars coins for required task ${task.launch}")
                 }
 
                 // All tasks with stars contribute to total stars
                 if (stars > 0) {
                     totalStars += stars
-                    Log.d("DailyProgressManager", "Adding $stars stars for task ${task.launch}")
                 }
             }
 
             // Check for checklist items if they have stars
-            val items = section.items
-            Log.d("DailyProgressManager", "Section ${section.id} has ${items?.size ?: 0} checklist items")
             section.items?.forEach { item ->
                 val stars = item.stars ?: 0
-
-                Log.d("DailyProgressManager", "Checklist item ${item.id}: $stars stars, label: ${item.label}")
 
                 // ALL checklist items award coins equal to their stars (not just required ones)
                 if (stars > 0) {
                     totalCoins += stars
                     totalStars += stars
-                    Log.d("DailyProgressManager", "Adding $stars coins and $stars stars for checklist item ${item.id}")
                 }
             }
         }
@@ -242,8 +231,6 @@ class DailyProgressManager(private val context: Context) {
         var earnedCoins = 0
         var earnedStars = 0
 
-        Log.d("DailyProgressManager", "Calculating progress from config. Completed tasks: ${completedTasks.size}")
-
         config.sections?.forEach { section ->
             section.tasks?.forEach { task ->
                 val taskId = task.launch ?: "unknown_task"
@@ -251,12 +238,10 @@ class DailyProgressManager(private val context: Context) {
 
                 if (completedTasks[taskId] == true && stars > 0) {
                     earnedStars += stars
-                    Log.d("DailyProgressManager", "Task $taskId completed, adding $stars stars")
 
                     // Required tasks award coins equal to their stars
                     if (section.id == "required") {
                         earnedCoins += stars
-                        Log.d("DailyProgressManager", "Task $taskId is required, adding $stars coins")
                     }
                 }
             }
@@ -268,13 +253,11 @@ class DailyProgressManager(private val context: Context) {
                 if (completedTasks[itemId] == true && stars > 0) {
                     earnedStars += stars
                     earnedCoins += stars  // ALL checklist items award coins
-                    Log.d("DailyProgressManager", "Checklist item $itemId completed, adding $stars stars and $stars coins")
                 }
             }
         }
 
         val (totalCoins, totalStars) = calculateTotalsFromConfig(config)
-        Log.d("DailyProgressManager", "Progress calculated - Earned: $earnedCoins coins, $earnedStars stars, Total: $totalCoins coins, $totalStars stars")
         return Pair(Pair(earnedCoins, totalCoins), Pair(earnedStars, totalStars))
     }
 
@@ -295,7 +278,6 @@ class DailyProgressManager(private val context: Context) {
         // For now, just count completed tasks as 1 star each
         completedTasks.values.forEach { if (it) earnedStars += 1 }
 
-        Log.d("DailyProgressManager", "Fallback progress - Earned: $earnedStars stars, $earnedCoins coins, Total: $totalStars stars, $totalCoins coins")
         return Pair(Pair(earnedCoins, totalCoins), Pair(earnedStars, totalStars))
     }
 
