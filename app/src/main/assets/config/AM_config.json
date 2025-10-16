@@ -22,7 +22,7 @@
       "description": "Complete all of these first!",
       "tasks": [
         {
-          "title": "French Letter Sounds",
+          "title": "French Sounds",
           "launch": "frenchLetterSounds",
           "stars": 1,
           "totalQuestions": 10
@@ -46,16 +46,18 @@
           "totalQuestions": 5
         },
         {
-          "title": "English Sentence Builder",
+          "title": "Sentence Builder",
           "launch": "englishSentences",
           "stars": 3,
-          "totalQuestions": 3
+          "totalQuestions": 3,
+          "blockOutlines": true
         },
         {
-          "title": "UFLI Word Builder",
+          "title": "UFLI Words",
           "launch": "ufliLessonData",
           "stars": 3,
-          "totalQuestions": 5
+          "totalQuestions": 5,
+          "blockOutlines": true
         },
         {
           "title": "Kung Fu Form",
@@ -65,7 +67,7 @@
           "videoSequence": "exact"
         },
         {
-          "title": "Kung Fu Practice",
+          "title": "Kung Fu",
           "launch": "noviceKungFuVideos",
           "stars": 3,
           "videoSequence": "sequential"

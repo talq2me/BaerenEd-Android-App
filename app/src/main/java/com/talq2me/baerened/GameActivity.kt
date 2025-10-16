@@ -38,6 +38,8 @@ class GameActivity : AppCompatActivity() {
     private lateinit var gameType: String
     private var gameStars: Int = 1
     private var isRequiredGame: Boolean = false
+    private var blockOutlines: Boolean = false
+    private val selectedChoices = mutableSetOf<String>()
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +53,7 @@ class GameActivity : AppCompatActivity() {
         val totalQuestions = intent.getIntExtra("TOTAL_QUESTIONS", 5) // Default to 5 if not provided
         gameStars = intent.getIntExtra("GAME_STARS", 1) // Default to 1 star if not provided
         val isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
+        blockOutlines = intent.getBooleanExtra("BLOCK_OUTLINES", false)
 
         if (gameContent == null) {
             Toast.makeText(this, "Game content not available", Toast.LENGTH_SHORT).show()
@@ -136,7 +139,12 @@ class GameActivity : AppCompatActivity() {
     private fun setupClickListeners() {
         findViewById<Button>(R.id.deleteButton).setOnClickListener {
             if (userAnswers.isNotEmpty()) {
-                userAnswers.removeAt(userAnswers.lastIndex)
+                val removedChoice = userAnswers.removeAt(userAnswers.lastIndex)
+                selectedChoices.remove(removedChoice)
+
+                // Re-enable the choice button that was just removed
+                reEnableChoiceButton(removedChoice)
+
                 updateMessage() // Update message area with remaining text
             }
         }
@@ -174,6 +182,9 @@ class GameActivity : AppCompatActivity() {
                 // Schedule clearing user answers after message clears (with small buffer)
                 android.os.Handler().postDelayed({
                     userAnswers.clear()
+                    selectedChoices.clear()
+                    // Re-enable all choice buttons
+                    reEnableAllChoiceButtons()
                 }, 2100) // Clear after 2.1 seconds (after message clears + buffer)
             }
         }
@@ -193,6 +204,8 @@ class GameActivity : AppCompatActivity() {
         findViewById<Button>(R.id.gameRefreshButton).setOnClickListener {
             // Reset the game state but keep progress
             userAnswers.clear()
+            selectedChoices.clear()
+            reEnableAllChoiceButtons()
             findViewById<TextView>(R.id.messageArea).text = ""
             showNextQuestion()
         }
@@ -234,7 +247,7 @@ class GameActivity : AppCompatActivity() {
         val textToSpeak: String
         val langToSpeak: String
 
-        if (question.question?.text != null && question.question.text.isNotEmpty()) {
+        if (question.question?.text != null && question.question.text.isNotEmpty() && question.question.lang != null) {
             // Question has its own text - speak the question
             textToSpeak = question.question.text
             langToSpeak = question.question.lang
@@ -297,6 +310,8 @@ class GameActivity : AppCompatActivity() {
         currentQuestion = gameEngine.getCurrentQuestion()
         val q = currentQuestion!!
         userAnswers.clear()
+        selectedChoices.clear() // Clear selected choices for new question
+        reEnableAllChoiceButtons() // Re-enable all choice buttons for new question
         audioClipsPlayedForCurrentQuestion = false // Reset flag for new question
 
         // Cancel any existing message clear handlers and clear current message
@@ -307,7 +322,7 @@ class GameActivity : AppCompatActivity() {
         val promptTextView = findViewById<TextView>(R.id.promptText)
         val replayButton = findViewById<Button>(R.id.replayButton)
 
-        if (q.prompt?.lang != null || q.question.lang != null) {
+        if (q.prompt?.lang != null || q.question?.lang != null) {
             // Has TTS content - show replay button and speak sequentially
             replayButton.visibility = View.VISIBLE
             promptTextView.text = ""
@@ -323,9 +338,9 @@ class GameActivity : AppCompatActivity() {
         container.removeAllViews()
 
         // Hide question text if it has TTS or audio clips (since those provide the question content)
-        if (q.question.lang == null && q.question.media?.audioclips == null) {
+        if (q.question?.lang == null && q.question?.media?.audioclips == null) {
             // No TTS or audio clips - display question text visually
-            q.question.text?.let {
+            q.question?.text?.let {
                 val tv = TextView(this)
                 tv.text = it
                 tv.textSize = 24f
@@ -334,7 +349,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         // Create horizontal layout for images to display them side by side
-        if (q.question.media?.images?.isNotEmpty() == true) {
+        if (q.question?.media?.images?.isNotEmpty() == true) {
             val imageContainer = LinearLayout(this)
             imageContainer.orientation = LinearLayout.HORIZONTAL
             imageContainer.layoutParams = LinearLayout.LayoutParams(
@@ -342,7 +357,7 @@ class GameActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-            q.question.media.images.forEach {
+            q.question?.media?.images?.forEach {
                 val img = ImageView(this)
                 img.layoutParams = LinearLayout.LayoutParams(200, 200).apply {
                     setMargins(8, 0, 8, 0) // Add some spacing between images
@@ -394,14 +409,19 @@ class GameActivity : AppCompatActivity() {
             btn.minHeight = 140 // Minimum height for finger tapping
 
             btn.setOnClickListener {
-                userAnswers.add(choice.text)
-                updateMessage()
-                choice.media?.audioclip?.let { clip ->
-                    val afd = assets.openFd(clip)
-                    val mp = MediaPlayer()
-                    mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                    mp.prepare()
-                    mp.start()
+                if (!selectedChoices.contains(choice.text)) {
+                    userAnswers.add(choice.text)
+                    selectedChoices.add(choice.text)
+                    btn.isEnabled = false
+                    btn.alpha = 0.5f // Make it look greyed out
+                    updateMessage()
+                    choice.media?.audioclip?.let { clip ->
+                        val afd = assets.openFd(clip)
+                        val mp = MediaPlayer()
+                        mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                        mp.prepare()
+                        mp.start()
+                    }
                 }
             }
             grid.addView(btn)
@@ -409,8 +429,52 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun updateMessage() {
-        val message = userAnswers.joinToString("") // No spaces between answers
-        // Show user input immediately and keep it visible (no auto-clear)
-        findViewById<TextView>(R.id.messageArea).text = message
+        val messageArea = findViewById<TextView>(R.id.messageArea)
+
+        if (blockOutlines && currentQuestion != null) {
+            // Show block outlines for correct answers needed
+            val correctChoicesCount = currentQuestion?.correctChoices?.size ?: 0
+            val selectedCount = userAnswers.size
+
+            // Create a visual representation with blocks
+            val blocks = mutableListOf<String>()
+            // Add filled blocks for selected answers
+            for (i in 0 until selectedCount) {
+                blocks.add("█") // Filled block
+            }
+            // Add empty blocks for remaining correct answers
+            for (i in selectedCount until correctChoicesCount) {
+                blocks.add("□") // Empty block outline
+            }
+
+            messageArea.text = blocks.joinToString(" ")
+        } else {
+            // Default behavior - just show the selected text
+            val message = userAnswers.joinToString("") // No spaces between answers
+            messageArea.text = message
+        }
+    }
+
+    private fun reEnableChoiceButton(choiceText: String) {
+        val choicesGrid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
+        for (i in 0 until choicesGrid.childCount) {
+            val child = choicesGrid.getChildAt(i)
+            if (child is Button && child.text == choiceText) {
+                child.isEnabled = true
+                child.alpha = 1.0f // Restore normal appearance
+                break
+            }
+        }
+    }
+
+    private fun reEnableAllChoiceButtons() {
+        val choicesGrid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
+        for (i in 0 until choicesGrid.childCount) {
+            val child = choicesGrid.getChildAt(i)
+            if (child is Button) {
+                child.isEnabled = true
+                child.alpha = 1.0f // Restore normal appearance
+            }
+        }
     }
 }

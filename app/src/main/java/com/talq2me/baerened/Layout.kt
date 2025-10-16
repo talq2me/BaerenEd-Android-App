@@ -535,7 +535,8 @@ class Layout(private val activity: MainActivity) {
                                         requiresRewardTime = false,
                                         difficulty = "Easy",
                                         estimatedTime = task.stars ?: 1,
-                                        totalQuestions = task.totalQuestions
+                                        totalQuestions = task.totalQuestions,
+                                        blockOutlines = task.blockOutlines ?: false
                                     )
                                     activity.startGame(game, gameContent)
                                 }
@@ -553,7 +554,8 @@ class Layout(private val activity: MainActivity) {
                                         requiresRewardTime = false,
                                         difficulty = "Easy",
                                         estimatedTime = task.stars ?: 1,
-                                        totalQuestions = task.totalQuestions
+                                        totalQuestions = task.totalQuestions,
+                                        blockOutlines = task.blockOutlines ?: false
                                     )
                                     activity.startGame(game, null)
                                 }

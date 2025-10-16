@@ -3,7 +3,7 @@ package com.talq2me.baerened
 // GameData.kt
 data class GameData(
     val prompt: Prompt?,
-    val question: Question,
+    val question: Question?,
     val correctChoices: List<Choice>,
     val extraChoices: List<Choice>
 )
@@ -16,7 +16,7 @@ data class Prompt(
 
 data class Question(
     val text: String?,
-    val lang: String,
+    val lang: String?,
     val media: Media? = null
 )
 

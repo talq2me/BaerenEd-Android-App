@@ -330,6 +330,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 putExtra("TOTAL_QUESTIONS", totalQuestions)
                 putExtra("GAME_STARS", game.estimatedTime) // Use estimatedTime as stars
                 putExtra("IS_REQUIRED_GAME", isRequired)
+                putExtra("BLOCK_OUTLINES", game.blockOutlines)
             }
             startActivity(intent)
         } catch (e: Exception) {
@@ -379,7 +380,8 @@ data class Task(
     val stars: Int? = null,
     val totalQuestions: Int? = null,
     val videoSequence: String? = null, // "exact" or "sequential"
-    val video: String? = null // specific video name for "exact" mode
+    val video: String? = null, // specific video name for "exact" mode
+    val blockOutlines: Boolean? = null
 )
 
 data class ChecklistItem(
@@ -414,5 +416,6 @@ data class Game(
     val requiresRewardTime: Boolean,
     val difficulty: String,
     val estimatedTime: Int,
-    val totalQuestions: Int? = null
+    val totalQuestions: Int? = null,
+    val blockOutlines: Boolean = false
 )
