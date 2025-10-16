@@ -250,25 +250,16 @@ class GameActivity : AppCompatActivity() {
         var totalDelay = 0L
         val questionId = System.currentTimeMillis().toString() // Unique ID for this question
 
-        // Determine what text to speak and its language
-        val textToSpeak: String
-        val langToSpeak: String
-
-        if (question.question?.text != null && question.question.text.isNotEmpty() && question.question.lang != null) {
-            // Question has its own text - speak the question
-            textToSpeak = question.question.text
-            langToSpeak = question.question.lang
-        } else if (question.prompt?.text != null && question.prompt.text.isNotEmpty()) {
-            // Question has no text but prompt exists - speak the prompt
-            textToSpeak = question.prompt.text
-            langToSpeak = question.prompt.lang
-        } else {
-            // No text to speak
-            return
+        // Speak prompt first if it exists
+        if (question.prompt?.text != null && question.prompt.text.isNotEmpty() && question.prompt.lang != null) {
+            speakTextWithDelay(question.prompt.text, question.prompt.lang, totalDelay, "$questionId-prompt")
+            totalDelay += 2000L // 2 second delay between prompt and question
         }
 
-        // Speak the determined text
-        speakTextWithDelay(textToSpeak, langToSpeak, totalDelay, "$questionId-content")
+        // Speak question if it exists
+        if (question.question?.text != null && question.question.text.isNotEmpty() && question.question.lang != null) {
+            speakTextWithDelay(question.question.text, question.question.lang, totalDelay, "$questionId-content")
+        }
     }
 
     private fun speakTextWithDelay(text: String, lang: String, delayMs: Long, utteranceId: String = "default") {
