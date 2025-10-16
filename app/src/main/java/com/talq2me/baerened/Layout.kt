@@ -413,22 +413,79 @@ class Layout(private val activity: MainActivity) {
 
         // Add tasks or checklist items in a flexbox-like layout
         section.tasks?.let { tasks ->
-            // Create a container for tasks that can wrap horizontally
+            if (tasks.isEmpty()) return@let
+
+            // Calculate how many buttons can fit per row based on screen width
+            val displayMetrics = activity.resources.displayMetrics
+            val screenWidth = displayMetrics.widthPixels
+            val density = displayMetrics.density
+
+            // Button parameters
+            val minButtonWidthDp = 120f // Minimum button width in dp
+            val maxButtonWidthDp = 200f // Maximum button width in dp
+            val horizontalMarginDp = 6f // Margin on each side of button
+            val containerPaddingDp = 0f // Container padding (can be adjusted)
+
+            val minButtonWidthPx = (minButtonWidthDp * density).toInt()
+            val horizontalMarginPx = (horizontalMarginDp * density * 2).toInt() // Left + right margins
+            val containerPaddingPx = (containerPaddingDp * density * 2).toInt() // Left + right padding
+
+            val availableWidth = screenWidth - containerPaddingPx
+
+            // Calculate optimal buttons per row
+            val maxPossibleButtons = (availableWidth + horizontalMarginPx) / (minButtonWidthPx + horizontalMarginPx)
+            val buttonsPerRow = maxOf(1, minOf(maxPossibleButtons.toInt(), 6)) // Between 1 and 6 buttons
+
+            // Create a container for tasks that wraps to multiple lines
             val tasksContainer = LinearLayout(activity).apply {
-                orientation = LinearLayout.HORIZONTAL
+                orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                // Ensure baseline alignment for consistent button heights
-                setBaselineAligned(false)
-                // Use weight sum for equal distribution of fixed-width tiles
-                weightSum = tasks.size.toFloat()
+                setPadding(0, 0, 0, 0)
             }
 
-            tasks.forEach { task ->
-                val taskView = createTaskView(task)
-                tasksContainer.addView(taskView)
+            // Create rows of tasks
+            val rows = (tasks.size + buttonsPerRow - 1) / buttonsPerRow // Ceiling division
+
+            for (rowIndex in 0 until rows) {
+                // Create a horizontal row container
+                val rowContainer = LinearLayout(activity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    setPadding(0, 0, 0, 0)
+                    weightSum = buttonsPerRow.toFloat()
+                }
+
+                // Add tasks to this row
+                val startIndex = rowIndex * buttonsPerRow
+                val endIndex = minOf(startIndex + buttonsPerRow, tasks.size)
+
+                for (i in startIndex until endIndex) {
+                    val task = tasks[i]
+                    val taskView = createTaskView(task)
+                    rowContainer.addView(taskView)
+                }
+
+                // Add empty views to fill remaining spots if needed
+                while (rowContainer.childCount < buttonsPerRow) {
+                    val emptyView = View(activity).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            0,
+                            (70 * density).toInt(),
+                            1f
+                        ).apply {
+                            setMargins((6 * density).toInt(), 0, (6 * density).toInt(), 0)
+                        }
+                    }
+                    rowContainer.addView(emptyView)
+                }
+
+                tasksContainer.addView(rowContainer)
             }
 
             sectionLayout.addView(tasksContainer)
@@ -455,9 +512,10 @@ class Layout(private val activity: MainActivity) {
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
             layoutParams = LinearLayout.LayoutParams(
-                (180 * density).toInt(), // Fixed width that's large enough for longer titles like "Sentence Builder"
+                0, // Use weight for width instead of fixed width
                 tileHeight // Fixed 70dp height to match nav buttons
             ).apply {
+                weight = 1f // Each task takes equal width in the row
                 setMargins((6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt())
             }
 
