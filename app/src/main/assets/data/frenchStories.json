@@ -1,0 +1,446 @@
+[
+  {
+    "prompt": {
+      "text": "Marie a un petit chat gris. Chaque matin, elle donne du lait à son chat. Le chat aime jouer dans le jardin et courir après les papillons.",
+      "lang": "fr"
+    },
+    "questions": [
+      {
+        "question": {
+          "text": "De quelle couleur est le chat de Marie ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Gris"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Noir"
+          },
+          {
+            "text": "Blanc"
+          },
+          {
+            "text": "Marron"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Que fait Marie chaque matin ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Elle donne du lait à son chat."
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Elle va à l'école."
+          },
+          {
+            "text": "Elle joue avec son frère."
+          },
+          {
+            "text": "Elle lit un livre."
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Où le chat aime-t-il jouer ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Dans le jardin"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Dans la maison"
+          },
+          {
+            "text": "Dans la rue"
+          },
+          {
+            "text": "Dans la cuisine"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Paul va à l'école à pied tous les jours. Il porte un sac à dos bleu. À l'école, il retrouve ses amis et apprend de nouvelles choses.",
+      "lang": "fr"
+    },
+    "questions": [
+      {
+        "question": {
+          "text": "Comment Paul va-t-il à l'école ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "À pied"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "En bus"
+          },
+          {
+            "text": "En voiture"
+          },
+          {
+            "text": "À vélo"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "De quelle couleur est le sac à dos de Paul ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Bleu"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Rouge"
+          },
+          {
+            "text": "Vert"
+          },
+          {
+            "text": "Noir"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Que fait Paul à l'école ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Il apprend de nouvelles choses."
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Il dort."
+          },
+          {
+            "text": "Il cuisine."
+          },
+          {
+            "text": "Il regarde la télévision."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Tom a un petit chien blanc qui s'appelle Max. Chaque jour, Tom promène Max dans le parc. Max aime courir et jouer avec les autres chiens.",
+      "lang": "fr"
+    },
+    "questions": [
+      {
+        "question": {
+          "text": "Comment s'appelle le chien de Tom ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Max"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Milo"
+          },
+          {
+            "text": "Oscar"
+          },
+          {
+            "text": "Léo"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Où Tom promène-t-il son chien ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Dans le parc"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "À la maison"
+          },
+          {
+            "text": "À l'école"
+          },
+          {
+            "text": "Au marché"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Avec qui Max aime-t-il jouer ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Les autres chiens"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Les chats"
+          },
+          {
+            "text": "Les oiseaux"
+          },
+          {
+            "text": "Les enfants"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Julie adore les fleurs. Elle plante des roses et des tulipes dans le jardin. Elle arrose ses fleurs tous les matins.",
+      "lang": "fr"
+    },
+    "questions": [
+      {
+        "question": {
+          "text": "Qu'est-ce que Julie aime ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Les fleurs"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Les voitures"
+          },
+          {
+            "text": "Les poissons"
+          },
+          {
+            "text": "Les livres"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Quelles fleurs Julie plante-t-elle ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Roses et tulipes"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Marguerites et lys"
+          },
+          {
+            "text": "Orchidées et pivoines"
+          },
+          {
+            "text": "Violettes et jonquilles"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Quand Julie arrose-t-elle ses fleurs ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Le matin"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Le soir"
+          },
+          {
+            "text": "À midi"
+          },
+          {
+            "text": "La nuit"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Léo va à la piscine avec son papa le samedi. Il nage dans l'eau et joue avec un ballon. Après la baignade, ils mangent une glace.",
+      "lang": "fr"
+    },
+    "questions": [
+      {
+        "question": {
+          "text": "Où Léo va-t-il le samedi ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "À la piscine"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Au cinéma"
+          },
+          {
+            "text": "À l'école"
+          },
+          {
+            "text": "Au zoo"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Avec qui Léo va-t-il à la piscine ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Son papa"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Sa maman"
+          },
+          {
+            "text": "Son frère"
+          },
+          {
+            "text": "Sa sœur"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Que mangent-ils après la baignade ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Une glace"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Un gâteau"
+          },
+          {
+            "text": "Une pomme"
+          },
+          {
+            "text": "Un sandwich"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Anna aime aller à la bibliothèque. Elle choisit un livre et s'assoit pour lire. Parfois, elle lit des histoires à son petit frère.",
+      "lang": "fr"
+    },
+    "questions": [
+      {
+        "question": {
+          "text": "Où Anna aime-t-elle aller ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "À la bibliothèque"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Au parc"
+          },
+          {
+            "text": "À la piscine"
+          },
+          {
+            "text": "Au marché"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "Qu'est-ce qu'Anna fait à la bibliothèque ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "Elle lit un livre"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "Elle joue au ballon"
+          },
+          {
+            "text": "Elle mange une glace"
+          },
+          {
+            "text": "Elle dessine"
+          }
+        ]
+      },
+      {
+        "question": {
+          "text": "À qui Anna lit-elle parfois des histoires ?",
+          "lang": "fr"
+        },
+        "correctChoices": [
+          {
+            "text": "À son petit frère"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "À sa maman"
+          },
+          {
+            "text": "À son chat"
+          },
+          {
+            "text": "À son amie"
+          }
+        ]
+      }
+    ]
+  }
+]

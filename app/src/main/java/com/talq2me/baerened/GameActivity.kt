@@ -18,6 +18,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.gridlayout.widget.GridLayout
 import com.google.gson.Gson
+import com.talq2me.baerened.GameData
+import com.talq2me.baerened.Media
 import java.util.Locale
 
 // GameActivity.kt
@@ -236,9 +238,13 @@ class GameActivity : AppCompatActivity() {
         }
 
         // Speak question after prompt (if it has lang)
-        if (question.question.lang != null) {
+        // For sentence builder games, the prompt IS the question
+        val questionText = question.question?.text ?: question.prompt?.text ?: ""
+        val questionLang = question.question?.lang ?: question.prompt?.lang
+
+        if (questionLang != null) {
             android.os.Handler().postDelayed({
-                speakText(question.question.text ?: "", question.question.lang, "$questionId-question")
+                speakText(questionText, questionLang, "$questionId-question")
             }, totalDelay)
         }
     }
@@ -250,7 +256,10 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun playQuestionAudioClips(question: GameData) {
-        question.question.media?.audioclips?.forEachIndexed { index, audioClip ->
+        // Check for audio clips in question (prompt doesn't have media property)
+        val audioClips = question.question?.media?.audioclips
+
+        audioClips?.forEachIndexed { index, audioClip ->
             try {
                 android.os.Handler().postDelayed({
                     val afd = assets.openFd(audioClip)

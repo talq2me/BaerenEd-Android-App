@@ -7,7 +7,7 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png"
+          "images/loonie.png"
         ]
       }
     },
@@ -36,7 +36,7 @@
     "question": {
       "media": {
         "images": [
-          "../images/toonie.png"
+          "images/toonie.png"
         ]
       }
     },
@@ -65,9 +65,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/quarter.png",
-          "../images/quarter.png",
-          "../images/quarter.png"
+          "images/quarter.png",
+          "images/quarter.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -96,11 +96,11 @@
     "question": {
       "media": {
         "images": [
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -129,10 +129,10 @@
     "question": {
       "media": {
         "images": [
-          "../images/quarter.png",
-          "../images/quarter.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/quarter.png",
+          "images/quarter.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -161,8 +161,8 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/quarter.png"
+          "images/loonie.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -191,9 +191,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/loonie.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -222,8 +222,8 @@
     "question": {
       "media": {
         "images": [
-          "../images/toonie.png",
-          "../images/quarter.png"
+          "images/toonie.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -252,9 +252,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/toonie.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/toonie.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -283,8 +283,8 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/loonie.png"
+          "images/loonie.png",
+          "images/loonie.png"
         ]
       }
     },
@@ -313,10 +313,10 @@
     "question": {
       "media": {
         "images": [
-          "../images/quarter.png",
-          "../images/quarter.png",
-          "../images/quarter.png",
-          "../images/quarter.png"
+          "images/quarter.png",
+          "images/quarter.png",
+          "images/quarter.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -345,12 +345,12 @@
     "question": {
       "media": {
         "images": [
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -379,9 +379,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/quarter.png",
-          "../images/quarter.png"
+          "images/loonie.png",
+          "images/quarter.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -410,10 +410,10 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/loonie.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -442,9 +442,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/toonie.png",
-          "../images/quarter.png",
-          "../images/quarter.png"
+          "images/toonie.png",
+          "images/quarter.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -473,10 +473,10 @@
     "question": {
       "media": {
         "images": [
-          "../images/toonie.png",
-          "../images/dime.png",
-          "../images/dime.png",
-          "../images/dime.png"
+          "images/toonie.png",
+          "images/dime.png",
+          "images/dime.png",
+          "images/dime.png"
         ]
       }
     },
@@ -505,9 +505,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/loonie.png",
-          "../images/quarter.png"
+          "images/loonie.png",
+          "images/loonie.png",
+          "images/quarter.png"
         ]
       }
     },
@@ -536,9 +536,9 @@
     "question": {
       "media": {
         "images": [
-          "../images/loonie.png",
-          "../images/loonie.png",
-          "../images/dime.png"
+          "images/loonie.png",
+          "images/loonie.png",
+          "images/dime.png"
         ]
       }
     },
@@ -567,8 +567,8 @@
     "question": {
       "media": {
         "images": [
-          "../images/toonie.png",
-          "../images/loonie.png"
+          "images/toonie.png",
+          "images/loonie.png"
         ]
       }
     },

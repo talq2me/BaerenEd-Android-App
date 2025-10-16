@@ -422,6 +422,8 @@ class Layout(private val activity: MainActivity) {
                 )
                 // Ensure baseline alignment for consistent button heights
                 setBaselineAligned(false)
+                // Make container wider to accommodate longer text
+                weightSum = tasks.size.toFloat()
             }
 
             tasks.forEach { task ->
@@ -453,7 +455,7 @@ class Layout(private val activity: MainActivity) {
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
             layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, // Let width be determined by content
+                0, // Use weight for width
                 tileHeight // Fixed 70dp height to match nav buttons
             ).apply {
                 setMargins((6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt())
@@ -491,13 +493,13 @@ class Layout(private val activity: MainActivity) {
             // Create the main text label for the task
             val titleView = TextView(activity).apply {
                 text = task.title ?: "Task"
-                textSize = 18f // Slightly smaller for compact layout
+                textSize = 14f // Smaller for more text
                 setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
                 gravity = android.view.Gravity.CENTER
                 setPadding((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
                 // Ensure consistent single line behavior
                 setSingleLine(false)
-                maxLines = 2
+                maxLines = 3 // Allow more lines for longer titles
 
                 layoutParams = RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.MATCH_PARENT,

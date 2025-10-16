@@ -69,6 +69,18 @@
           "launch": "noviceKungFuVideos",
           "stars": 3,
           "videoSequence": "sequential"
+        },
+        {
+          "title": "Facile A Lire 1",
+          "launch": "facileAlire",
+          "stars": 3,
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "Facile A Lire 2",
+          "launch": "facileAlire2",
+          "stars": 3,
+          "videoSequence": "sequential"
         }
       ]
     },
