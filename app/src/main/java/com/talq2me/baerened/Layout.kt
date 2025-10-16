@@ -422,7 +422,7 @@ class Layout(private val activity: MainActivity) {
                 )
                 // Ensure baseline alignment for consistent button heights
                 setBaselineAligned(false)
-                // Make container wider to accommodate longer text
+                // Use weight sum for equal distribution of fixed-width tiles
                 weightSum = tasks.size.toFloat()
             }
 
@@ -455,11 +455,10 @@ class Layout(private val activity: MainActivity) {
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
             layoutParams = LinearLayout.LayoutParams(
-                0, // Use weight for width
+                (180 * density).toInt(), // Fixed width that's large enough for longer titles like "Sentence Builder"
                 tileHeight // Fixed 70dp height to match nav buttons
             ).apply {
                 setMargins((6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt())
-                weight = 1f
             }
 
             // Grey out background if completed
