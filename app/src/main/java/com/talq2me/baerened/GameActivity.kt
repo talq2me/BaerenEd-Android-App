@@ -20,6 +20,7 @@ import androidx.gridlayout.widget.GridLayout
 import com.google.gson.Gson
 import com.talq2me.baerened.GameData
 import com.talq2me.baerened.Media
+import kotlinx.coroutines.*
 import java.util.Locale
 
 // GameActivity.kt
@@ -229,24 +230,25 @@ class GameActivity : AppCompatActivity() {
         var totalDelay = 0L
         val questionId = System.currentTimeMillis().toString() // Unique ID for this question
 
-        // Speak prompt first (if it has lang)
-        question.prompt?.let { prompt ->
-            if (prompt.lang != null) {
-                speakTextWithDelay(prompt.text, prompt.lang, totalDelay, "$questionId-prompt")
-                totalDelay += 2000 // 2 second delay for prompt
-            }
+        // Determine what text to speak and its language
+        val textToSpeak: String
+        val langToSpeak: String
+
+        if (question.question?.text != null && question.question.text.isNotEmpty()) {
+            // Question has its own text - speak the question
+            textToSpeak = question.question.text
+            langToSpeak = question.question.lang
+        } else if (question.prompt?.text != null && question.prompt.text.isNotEmpty()) {
+            // Question has no text but prompt exists - speak the prompt
+            textToSpeak = question.prompt.text
+            langToSpeak = question.prompt.lang
+        } else {
+            // No text to speak
+            return
         }
 
-        // Speak question after prompt (if it has lang)
-        // For sentence builder games, the prompt IS the question
-        val questionText = question.question?.text ?: question.prompt?.text ?: ""
-        val questionLang = question.question?.lang ?: question.prompt?.lang
-
-        if (questionLang != null) {
-            android.os.Handler().postDelayed({
-                speakText(questionText, questionLang, "$questionId-question")
-            }, totalDelay)
-        }
+        // Speak the determined text
+        speakTextWithDelay(textToSpeak, langToSpeak, totalDelay, "$questionId-content")
     }
 
     private fun speakTextWithDelay(text: String, lang: String, delayMs: Long, utteranceId: String = "default") {
@@ -331,13 +333,38 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
-        q.question.media?.images?.forEach {
-            val img = ImageView(this)
-            val afd = assets.openFd(it)
-            val bmp = BitmapFactory.decodeStream(afd.createInputStream())
-            img.setImageBitmap(bmp)
-            img.layoutParams = ViewGroup.LayoutParams(200, 200)
-            container.addView(img)
+        // Create horizontal layout for images to display them side by side
+        if (q.question.media?.images?.isNotEmpty() == true) {
+            val imageContainer = LinearLayout(this)
+            imageContainer.orientation = LinearLayout.HORIZONTAL
+            imageContainer.layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+            q.question.media.images.forEach {
+                val img = ImageView(this)
+                img.layoutParams = LinearLayout.LayoutParams(200, 200).apply {
+                    setMargins(8, 0, 8, 0) // Add some spacing between images
+                }
+
+                // Load bitmap asynchronously to avoid blocking UI thread
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val afd = assets.openFd(it)
+                        val bmp = BitmapFactory.decodeStream(afd.createInputStream())
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            img.setImageBitmap(bmp)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("GameActivity", "Failed to load image: $it", e)
+                    }
+                }
+
+                imageContainer.addView(img)
+            }
+
+            container.addView(imageContainer)
         }
 
         // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
