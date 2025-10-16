@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -151,9 +152,15 @@ class GameActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.submitButton).setOnClickListener {
             val correct = gameEngine.submitAnswer(userAnswers)
+
+            // Clear blocks and reset choice buttons immediately when answer is submitted
+            findViewById<TextView>(R.id.messageArea).text = ""
+            val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
+            blocksContainer.removeAllViews()
+            reEnableAllChoiceButtons() // Re-enable choice buttons immediately
+
             if (correct) {
-                // Clear user input and show feedback
-                findViewById<TextView>(R.id.messageArea).text = ""
+                // Show feedback for correct answer
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
                     // Game completed successfully - award stars
@@ -175,16 +182,14 @@ class GameActivity : AppCompatActivity() {
                     }, 2500) // 2.5 seconds total
                 }
             } else {
-                // Show "Try again" message without including the wrong answer text
-                // (prevents visual glitches with the user's chosen text display)
+                // Show "Try again" message - choice buttons already re-enabled above
                 showMessageAndClear("❌ Try again!", 2000)
 
                 // Schedule clearing user answers after message clears (with small buffer)
                 android.os.Handler().postDelayed({
                     userAnswers.clear()
                     selectedChoices.clear()
-                    // Re-enable all choice buttons
-                    reEnableAllChoiceButtons()
+                    // Choice buttons are already re-enabled above
                 }, 2100) // Clear after 2.1 seconds (after message clears + buffer)
             }
         }
@@ -207,6 +212,8 @@ class GameActivity : AppCompatActivity() {
             selectedChoices.clear()
             reEnableAllChoiceButtons()
             findViewById<TextView>(R.id.messageArea).text = ""
+            val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
+            blocksContainer.removeAllViews()
             showNextQuestion()
         }
 
@@ -294,7 +301,11 @@ class GameActivity : AppCompatActivity() {
 
     private fun showMessageAndClear(message: String, delayMs: Long) {
         val messageArea = findViewById<TextView>(R.id.messageArea)
+        val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
+
         messageArea.text = message
+        messageArea.visibility = View.VISIBLE
+        blocksContainer.visibility = View.GONE
 
         // Cancel any existing clear handler
         messageClearHandler?.removeCallbacksAndMessages(null)
@@ -303,6 +314,12 @@ class GameActivity : AppCompatActivity() {
         messageClearHandler = android.os.Handler()
         messageClearHandler?.postDelayed({
             messageArea.text = ""
+            // Restore blocks container if we're in blockOutlines mode
+            if (blockOutlines && currentQuestion != null) {
+                messageArea.visibility = View.GONE
+                blocksContainer.visibility = View.VISIBLE
+                updateMessage()
+            }
         }, delayMs)
     }
 
@@ -317,6 +334,13 @@ class GameActivity : AppCompatActivity() {
         // Cancel any existing message clear handlers and clear current message
         messageClearHandler?.removeCallbacksAndMessages(null)
         findViewById<TextView>(R.id.messageArea).text = ""
+
+        // Clear blocks container for new question
+        val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
+        blocksContainer.removeAllViews()
+
+        // Initialize empty dashed blocks for blockOutlines games
+        updateMessage()
 
         // Handle prompt display/TTS based on lang property
         val promptTextView = findViewById<TextView>(R.id.promptText)
@@ -412,8 +436,8 @@ class GameActivity : AppCompatActivity() {
                 if (!selectedChoices.contains(choice.text)) {
                     userAnswers.add(choice.text)
                     selectedChoices.add(choice.text)
-                    btn.isEnabled = false
-                    btn.alpha = 0.5f // Make it look greyed out
+                    // Mark button as used by greying it out
+                    btn.alpha = 0.5f
                     updateMessage()
                     choice.media?.audioclip?.let { clip ->
                         val afd = assets.openFd(clip)
@@ -430,28 +454,60 @@ class GameActivity : AppCompatActivity() {
 
     private fun updateMessage() {
         val messageArea = findViewById<TextView>(R.id.messageArea)
+        val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
 
         if (blockOutlines && currentQuestion != null) {
-            // Show block outlines for correct answers needed
+            // Show selected text in dashed outline blocks
             val correctChoicesCount = currentQuestion?.correctChoices?.size ?: 0
-            val selectedCount = userAnswers.size
 
-            // Create a visual representation with blocks
-            val blocks = mutableListOf<String>()
-            // Add filled blocks for selected answers
-            for (i in 0 until selectedCount) {
-                blocks.add("█") // Filled block
-            }
-            // Add empty blocks for remaining correct answers
-            for (i in selectedCount until correctChoicesCount) {
-                blocks.add("□") // Empty block outline
+            // Hide the text message area
+            messageArea.visibility = View.GONE
+
+            // Clear existing blocks and create new ones
+            blocksContainer.removeAllViews()
+
+            // Create dashed outline blocks - one for each correct answer needed
+            for (i in 0 until correctChoicesCount) {
+                val blockTextView = TextView(this)
+
+                if (i < userAnswers.size) {
+                    // Show selected text in dashed block
+                    val text = userAnswers[i]
+                    blockTextView.text = text
+                } else {
+                    // Show empty dashed block with placeholder
+                    blockTextView.text = ""
+                }
+
+                // Set up the dashed block appearance
+                blockTextView.background = resources.getDrawable(R.drawable.button_rounded_choice_used)
+                blockTextView.setTextColor(resources.getColor(android.R.color.black))
+                blockTextView.textSize = 27f // Increased from 18f (1.5x bigger)
+                blockTextView.gravity = Gravity.CENTER
+                blockTextView.setPadding(24, 18, 24, 18) // Increased from 16,12,16,12 (1.5x bigger)
+
+                // Set minimum width to ensure consistent block sizes
+                blockTextView.minWidth = 180 // Increased from 120 (1.5x bigger)
+
+                // Add to container
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.setMargins(8, 0, 8, 0)
+                blockTextView.layoutParams = params
+
+                blocksContainer.addView(blockTextView)
             }
 
-            messageArea.text = blocks.joinToString(" ")
+            // Show blocks container only after all blocks are created and added
+            blocksContainer.visibility = View.VISIBLE
         } else {
             // Default behavior - just show the selected text
             val message = userAnswers.joinToString("") // No spaces between answers
             messageArea.text = message
+            messageArea.visibility = View.VISIBLE
+            blocksContainer.visibility = View.GONE
         }
     }
 
