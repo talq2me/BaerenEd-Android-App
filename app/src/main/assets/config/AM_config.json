@@ -111,8 +111,9 @@
       "description": "Just for fun!",
       "tasks": [
         {
-          "title": "Sound Match",
-          "launch": "soundmatch"
+          "title": "Bluey",
+          "launch": "PL8QD6oFoDT8ZgR8vqV0LzSqWMD4HuZmnV",
+          "videoSequence": "playlist"
         }
       ]
     },
