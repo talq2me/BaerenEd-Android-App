@@ -36,6 +36,7 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version = "4.12.0" }
 gson = { group = "com.google.code.gson", name = "gson", version = "2.10.1" }
 google-tts = { group = "com.google.android.tts", name = "tts", version = "1.0" }
 androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
+# Using WebView with YouTube IFrame API instead of deprecated YouTube Android Player API
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

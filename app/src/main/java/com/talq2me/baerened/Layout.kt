@@ -337,8 +337,12 @@ class Layout(private val activity: MainActivity) {
             val videoId = videoMap[videoName]
 
             if (videoId != null) {
-                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/watch?v=$videoId"))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // Launch our custom YouTube player activity for kid-safe viewing
+                val intent = Intent(activity, YouTubePlayerActivity::class.java).apply {
+                    putExtra(YouTubePlayerActivity.EXTRA_VIDEO_ID, videoId)
+                    putExtra(YouTubePlayerActivity.EXTRA_VIDEO_TITLE, videoName)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
                 activity.startActivity(intent)
             } else {
                 Toast.makeText(activity, "Video not found: $videoName", Toast.LENGTH_SHORT).show()
