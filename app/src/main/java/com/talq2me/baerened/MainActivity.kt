@@ -379,8 +379,9 @@ data class Task(
     val launch: String? = null,
     val stars: Int? = null,
     val totalQuestions: Int? = null,
-    val videoSequence: String? = null, // "exact" or "sequential"
+    val videoSequence: String? = null, // "exact", "sequential", or "playlist"
     val video: String? = null, // specific video name for "exact" mode
+    val playlistId: String? = null, // playlist ID for "playlist" mode
     val blockOutlines: Boolean? = null
 )
 

@@ -301,30 +301,53 @@ class Layout(private val activity: MainActivity) {
 
     private fun handleVideoSequenceTask(task: Task) {
         val videoSequence = task.videoSequence ?: return
-        val videoFile = task.launch ?: return
 
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                // Load the video JSON file from assets
-                val videoJson = activity.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
+        when (videoSequence) {
+            "playlist" -> {
+                // Play YouTube playlist directly (no JSON file needed)
+                // For playlist tasks, the playlist ID should be in the playlistId field,
+                // but support launch field for backward compatibility
+                val playlistId = task.playlistId ?: task.launch
+                android.util.Log.d("Layout", "Playlist task detected, playlistId: $playlistId, task.launch: ${task.launch}, task.playlistId: ${task.playlistId}")
+                if (playlistId != null) {
+                    val playlistTitle = task.title ?: "Playlist"
+                    playYouTubePlaylist(playlistId, playlistTitle)
+                } else {
+                    android.util.Log.e("Layout", "No playlist ID found for playlist task")
+                }
+            }
+            else -> {
+                // Handle video sequences that need JSON files
+                val videoFile = task.launch ?: return
 
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    when (videoSequence) {
-                        "exact" -> {
-                            // Play specific video
-                            val videoName = task.video ?: return@withContext
-                            playYouTubeVideo(videoJson, videoName)
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        // Load the video JSON file from assets
+                        val videoJson = activity.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
+
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            when (videoSequence) {
+                                "exact" -> {
+                                    // Play specific video
+                                    val videoName = task.video ?: return@withContext
+                                    playYouTubeVideo(videoJson, videoName)
+                                }
+                                "sequential" -> {
+                                    // Play next video in sequence
+                                    playNextVideoInSequence(videoJson, videoFile)
+                                }
+                                else -> {
+                                    // Unknown video sequence type
+                                    Toast.makeText(activity, "Unknown video sequence type", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
-                        "sequential" -> {
-                            // Play next video in sequence
-                            playNextVideoInSequence(videoJson, videoFile)
+                    } catch (e: Exception) {
+                        android.util.Log.e("Layout", "Error loading video content for $videoFile", e)
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
                         }
                     }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error loading video content for $videoFile", e)
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -378,6 +401,22 @@ class Layout(private val activity: MainActivity) {
         } catch (e: Exception) {
             android.util.Log.e("Layout", "Error handling sequential video", e)
             Toast.makeText(activity, "Error playing video sequence", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun playYouTubePlaylist(playlistId: String, playlistTitle: String) {
+        android.util.Log.d("Layout", "Launching playlist player with ID: $playlistId, title: $playlistTitle")
+        try {
+            // Launch the playlist player activity
+            val intent = Intent(activity, YouTubePlaylistPlayerActivity::class.java).apply {
+                putExtra(YouTubePlaylistPlayerActivity.EXTRA_PLAYLIST_ID, playlistId)
+                putExtra(YouTubePlaylistPlayerActivity.EXTRA_PLAYLIST_TITLE, playlistTitle)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            android.util.Log.e("Layout", "Error launching playlist player", e)
+            Toast.makeText(activity, "Error playing playlist", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -576,9 +615,14 @@ class Layout(private val activity: MainActivity) {
                     val gameType = task.launch ?: "unknown"
                     val gameTitle = task.title ?: "Task"
 
-                    // Check if this is a video sequence task
+                    // Check if this is a video sequence task or playlist task
                     if (task.videoSequence != null) {
+                        android.util.Log.d("Layout", "Handling video sequence task: ${task.videoSequence}, launch: ${task.launch}, playlistId: ${task.playlistId}")
                         handleVideoSequenceTask(task)
+                    } else if (task.playlistId != null) {
+                        // Handle playlist task with playlistId field
+                        android.util.Log.d("Layout", "Handling direct playlist task with playlistId: ${task.playlistId}")
+                        playYouTubePlaylist(task.playlistId, task.title ?: "Playlist")
                     } else {
                         // Handle regular game content
                         // Fetch game content asynchronously

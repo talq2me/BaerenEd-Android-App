@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/black"
+    android:gravity="center">
+
+    <!-- YouTube Playlist WebView -->
+    <WebView
+        android:id="@+id/playlist_webview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/black" />
+
+    <!-- Loading Layout -->
+    <LinearLayout
+        android:id="@+id/loading_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@android:color/black">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:indeterminateTint="@android:color/white" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading playlist..."
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+
+    <!-- Error Layout -->
+    <LinearLayout
+        android:id="@+id/error_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@android:color/black"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unable to load playlist"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/retry_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retry"
+            android:textColor="@android:color/black"
+            android:background="@android:color/white"
+            android:padding="12dp"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- Custom Controls Layout -->
+    <LinearLayout
+        android:id="@+id/custom_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@android:color/transparent"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/prev_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⏮️ Prev"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_rounded"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:minHeight="48dp" />
+
+        <Button
+            android:id="@+id/play_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="▶️ Play"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_rounded"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:minHeight="48dp" />
+
+        <Button
+            android:id="@+id/pause_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⏸️ Pause"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_rounded"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:minHeight="48dp" />
+
+        <Button
+            android:id="@+id/next_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⏭️ Next"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_rounded"
+            android:textSize="16sp"
+            android:layout_margin="4dp"
+            android:minHeight="48dp" />
+
+    </LinearLayout>
+
+    <!-- Back Button (always visible at bottom) -->
+    <Button
+        android:id="@+id/back_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Back to App"
+        android:textColor="@android:color/black"
+        android:background="@android:color/white"
+        android:padding="16dp"
+        android:textSize="18sp"
+        android:layout_margin="16dp"
+        android:drawableLeft="@android:drawable/ic_menu_revert"
+        android:gravity="center" />
+
+</LinearLayout>

@@ -32,6 +32,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
 
     private var videoId: String? = null
     private var videoTitle: String? = null
+    private var autoReturnHandler: android.os.Handler? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,6 +71,17 @@ class YouTubePlayerActivity : AppCompatActivity() {
 
         // Load the video
         loadVideo()
+
+        // Set up auto-return timer as fallback (15 minutes max video length)
+        setupAutoReturnTimer()
+    }
+
+    private fun setupAutoReturnTimer() {
+        autoReturnHandler = android.os.Handler()
+        autoReturnHandler?.postDelayed({
+            // Auto-return after 15 minutes as fallback
+            finish()
+        }, 15 * 60 * 1000L) // 15 minutes
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -102,7 +114,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
                 }
             }
 
-            // Enable JavaScript for YouTube embed
+            // Enable JavaScript for YouTube embed and API
             settings.javaScriptEnabled = true
 
             // Configure settings for better video playback
@@ -117,6 +129,16 @@ class YouTubePlayerActivity : AppCompatActivity() {
                 domStorageEnabled = true
             }
 
+            // Add JavaScript interface for communication
+            addJavascriptInterface(object {
+                @android.webkit.JavascriptInterface
+                fun returnToMainScreen() {
+                    runOnUiThread {
+                        finish() // Return to main screen
+                    }
+                }
+            }, "Android")
+
             // Prevent scrolling and zooming
             isVerticalScrollBarEnabled = false
             isHorizontalScrollBarEnabled = false
@@ -128,7 +150,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
     }
 
     private fun loadVideo() {
-        // Use YouTube's privacy-enhanced embed with minimal UI
+        // Use YouTube's privacy-enhanced embed with minimal UI and JavaScript API
         // This prevents showing related videos, comments, and suggested videos
         val embedUrl = "https://www.youtube.com/embed/$videoId?" +
                 "autoplay=1&" +           // Auto-play the video
@@ -140,9 +162,113 @@ class YouTubePlayerActivity : AppCompatActivity() {
                 "rel=0&" +                // Don't show related videos at the end
                 "showinfo=0&" +           // Hide video info
                 "cc_load_policy=0&" +     // Hide closed captions by default
-                "playsinline=1"           // Play inline on mobile
+                "playsinline=1&" +        // Play inline on mobile
+                "enablejsapi=1"           // Enable JavaScript API for event detection
 
         webView.loadUrl(embedUrl)
+    }
+
+    private fun injectVideoEndDetectionScript() {
+        // Wait for the page to load, then inject our script
+        webView.postDelayed({
+            val script = """
+                (function() {
+                    console.log('YouTube video end detection script injected');
+
+                    // First, let's also try a simple approach - listen for when the video ends naturally
+                    // by checking if the iframe src changes or if certain elements appear
+                    function simpleVideoEndDetection() {
+                        var iframe = document.querySelector('iframe[src*="youtube.com"]');
+                        if (iframe) {
+                            // Check every second if the video has ended (when autoplay stops)
+                            var checkInterval = setInterval(function() {
+                                try {
+                                    // If the iframe is still there but no longer autoplaying, video likely ended
+                                    var iframeSrc = iframe.src || '';
+                                    if (iframeSrc.indexOf('autoplay=1') === -1) {
+                                        console.log('Video autoplay stopped, likely ended');
+                                        clearInterval(checkInterval);
+                                        window.Android.returnToMainScreen();
+                                    }
+                                } catch (e) {
+                                    clearInterval(checkInterval);
+                                }
+                            }, 1000);
+                        }
+                    }
+
+                    // Also try the YouTube API approach
+                    if (!window.YT) {
+                        console.log('Loading YouTube API...');
+                        var tag = document.createElement('script');
+                        tag.src = "https://www.youtube.com/iframe_api";
+                        var firstScriptTag = document.getElementsByTagName('script')[0];
+                        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+                        window.onYouTubeIframeAPIReady = function() {
+                            console.log('YouTube API ready, setting up player');
+                            setupYouTubeAPIPlayer();
+                        };
+                    } else {
+                        console.log('YouTube API already loaded');
+                        setupYouTubeAPIPlayer();
+                    }
+
+                    function setupYouTubeAPIPlayer() {
+                        console.log('Setting up YouTube API player');
+
+                        // Function to find and setup the player
+                        function findAndSetupPlayer() {
+                            try {
+                                // Look for the YouTube iframe
+                                var iframe = document.querySelector('iframe[src*="youtube.com"]');
+                                console.log('Found iframe:', iframe);
+
+                                if (iframe) {
+                                    console.log('Creating YT.Player instance');
+                                    var player = new YT.Player(iframe, {
+                                        events: {
+                                            'onReady': function(event) {
+                                                console.log('YouTube player ready');
+                                            },
+                                            'onStateChange': function(event) {
+                                                console.log('Player state changed to:', event.data);
+                                                console.log('YT.PlayerState constants:', {
+                                                    UNSTARTED: YT.PlayerState.UNSTARTED,
+                                                    ENDED: YT.PlayerState.ENDED,
+                                                    PLAYING: YT.PlayerState.PLAYING,
+                                                    PAUSED: YT.PlayerState.PAUSED,
+                                                    BUFFERING: YT.PlayerState.BUFFERING,
+                                                    CUED: YT.PlayerState.CUED
+                                                });
+                                                if (event.data === YT.PlayerState.ENDED) {
+                                                    console.log('Video ended via API, returning to main screen');
+                                                    window.Android.returnToMainScreen();
+                                                }
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    console.log('Iframe not found, retrying...');
+                                    setTimeout(findAndSetupPlayer, 500);
+                                }
+                            } catch (e) {
+                                console.log('Error in setupYouTubeAPIPlayer: ' + e);
+                                setTimeout(findAndSetupPlayer, 500);
+                            }
+                        }
+
+                        // Start trying to find and setup the player
+                        findAndSetupPlayer();
+                    }
+
+                    // Start the simple detection as backup
+                    simpleVideoEndDetection();
+                })();
+            """.trimIndent()
+
+            webView.evaluateJavascript(script, null)
+        }, 3000) // Wait 3 seconds for the page to fully load
     }
 
     private fun showLoading() {
@@ -166,6 +292,10 @@ class YouTubePlayerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // Clean up auto-return timer
+        autoReturnHandler?.removeCallbacksAndMessages(null)
+
         // Clean up WebView to prevent memory leaks
         webView.apply {
             stopLoading()
