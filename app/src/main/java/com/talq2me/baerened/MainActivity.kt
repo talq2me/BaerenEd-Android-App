@@ -166,6 +166,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 loadMainContent()
             }
             "refreshPage" -> loadMainContent()
+            "settings" -> openSettings()
             null -> Log.w(TAG, "Header button action is null")
             else -> Log.d(TAG, "Unknown header button action: $action")
         }
@@ -175,6 +176,68 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Log.d(TAG, "Opening Pokemon collection")
         val intent = Intent(this, PokemonActivity::class.java)
         startActivity(intent)
+    }
+
+    fun openSettings() {
+        Log.d(TAG, "Opening settings")
+
+        // Create a simple settings dialog
+        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
+
+        // Initialize the progress manager
+        val progressManager = DailyProgressManager(this)
+
+        val currentPinEditText = dialogView.findViewById<EditText>(R.id.currentPinInput)
+        val newPinEditText = dialogView.findViewById<EditText>(R.id.newPinInput)
+        val confirmPinEditText = dialogView.findViewById<EditText>(R.id.confirmPinInput)
+        val statusText = dialogView.findViewById<TextView>(R.id.settingsStatus)
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Settings")
+            .setView(dialogView)
+            .setPositiveButton("Save") { _, _ ->
+                val currentPin = currentPinEditText.text.toString()
+                val newPin = newPinEditText.text.toString()
+                val confirmPin = confirmPinEditText.text.toString()
+
+                // Validate current PIN
+                if (!progressManager.validateAdminPin(currentPin)) {
+                    statusText.text = "Current PIN is incorrect!"
+                    return@setPositiveButton
+                }
+
+                // Validate new PIN
+                if (newPin.isEmpty()) {
+                    statusText.text = "New PIN cannot be empty!"
+                    return@setPositiveButton
+                }
+
+                if (newPin != confirmPin) {
+                    statusText.text = "New PIN and confirmation don't match!"
+                    return@setPositiveButton
+                }
+
+                if (newPin.length < 4) {
+                    statusText.text = "PIN must be at least 4 digits!"
+                    return@setPositiveButton
+                }
+
+                // Save new PIN
+                progressManager.setAdminPin(newPin)
+                statusText.text = "PIN updated successfully!"
+                statusText.setTextColor(resources.getColor(android.R.color.holo_green_dark))
+
+                // Clear inputs after successful save
+                currentPinEditText.text.clear()
+                newPinEditText.text.clear()
+                confirmPinEditText.text.clear()
+            }
+            .setNegativeButton("Cancel") { _, _ ->
+                // Do nothing
+            }
+            .create()
+
+        dialog.show()
     }
 
 

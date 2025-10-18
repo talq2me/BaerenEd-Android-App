@@ -123,7 +123,8 @@ class Layout(private val activity: MainActivity) {
         val defaultButtons = listOf(
             Button("< Back", "back"),
             Button("⌂ Home", "home"),
-            Button("⟳ Refresh", "refresh")
+            Button("⟳ Refresh", "refresh"),
+            Button("⚙ Settings", "settings")
         )
 
         defaultButtons.forEach { button ->

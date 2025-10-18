@@ -21,7 +21,8 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_TOTAL_POSSIBLE_STARS = "total_possible_stars"
         private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
         private const val KEY_LAST_POKEMON_UNLOCK_DATE = "last_pokemon_unlock_date"
-        private const val POKEDEX_PIN = "1981" // Same PIN as web version
+        private const val KEY_ADMIN_PIN = "admin_pin"
+        private const val DEFAULT_ADMIN_PIN = "1981" // Default PIN for first-time setup
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -362,10 +363,24 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Gets the current admin PIN (creates default if none exists)
+     */
+    fun getAdminPin(): String {
+        return prefs.getString(KEY_ADMIN_PIN, DEFAULT_ADMIN_PIN) ?: DEFAULT_ADMIN_PIN
+    }
+
+    /**
+     * Sets a new admin PIN
+     */
+    fun setAdminPin(pin: String) {
+        prefs.edit().putString(KEY_ADMIN_PIN, pin).apply()
+    }
+
+    /**
      * Validates admin PIN for Pokemon management
      */
     fun validateAdminPin(pin: String): Boolean {
-        return pin == POKEDEX_PIN
+        return pin == getAdminPin()
     }
 
     /**
