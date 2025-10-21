@@ -196,11 +196,20 @@ class GameActivity : AppCompatActivity() {
                 // Show "Try again" message - choice buttons already re-enabled above
                 showMessageAndClear("❌ Try again!", 2000)
 
-                // Schedule clearing user answers after message clears (with small buffer)
+                // Schedule clearing user answers and resetting UI after message clears (with small buffer)
                 android.os.Handler().postDelayed({
                     userAnswers.clear()
                     selectedChoices.clear()
                     // Choice buttons are already re-enabled above
+
+                    // Reset audio clips played flag for retry
+                    audioClipsPlayedForCurrentQuestion = false
+
+                    // Replay the question content (TTS and audio) for retry
+                    currentQuestion?.let { question ->
+                        speakSequentially(question)
+                        // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
+                    }
                 }, 2100) // Clear after 2.1 seconds (after message clears + buffer)
             }
         }
