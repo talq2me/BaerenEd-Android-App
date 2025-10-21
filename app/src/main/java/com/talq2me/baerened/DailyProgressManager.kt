@@ -14,9 +14,35 @@ import java.util.*
  */
 class DailyProgressManager(private val context: Context) {
 
+    /**
+     * Comprehensive progress report including time tracking and detailed analytics
+     */
+    data class ComprehensiveProgressReport(
+        val date: String,
+        val earnedCoins: Int,
+        val totalCoins: Int,
+        val earnedStars: Int,
+        val totalStars: Int,
+        val completionRate: Double,
+        val totalTimeMinutes: Double,
+        val gamesPlayed: Int,
+        val videosWatched: Int,
+        val completedTasks: List<String>,
+        val completedTaskNames: Map<String, String>, // taskId -> taskName mapping
+        val gameSessions: List<TimeTracker.ActivitySession>,
+        val videoSessions: List<TimeTracker.ActivitySession>,
+        val completedGameSessions: List<TimeTracker.ActivitySession>,
+        val averageGameTimeMinutes: Double,
+        val averageVideoTimeMinutes: Double,
+        val longestSessionMinutes: Double,
+        val mostPlayedGame: String?,
+        val totalSessions: Int
+    )
+
     companion object {
         private const val PREF_NAME = "daily_progress_prefs"
         private const val KEY_COMPLETED_TASKS = "completed_tasks"
+        private const val KEY_COMPLETED_TASK_NAMES = "completed_task_names"
         private const val KEY_LAST_RESET_DATE = "last_reset_date"
         private const val KEY_TOTAL_POSSIBLE_STARS = "total_possible_stars"
         private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
@@ -32,7 +58,9 @@ class DailyProgressManager(private val context: Context) {
      * Gets the current date as a string for daily reset tracking
      */
     private fun getCurrentDateString(): String {
-        return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        Log.d("DailyProgressManager", "Current date string: $date")
+        return date
     }
 
     /**
@@ -41,22 +69,27 @@ class DailyProgressManager(private val context: Context) {
     private fun shouldResetProgress(): Boolean {
         val lastResetDate = prefs.getString(KEY_LAST_RESET_DATE, "")
         val currentDate = getCurrentDateString()
-        return lastResetDate != currentDate
+        val shouldReset = lastResetDate != currentDate
+        Log.d("DailyProgressManager", "Reset check - Last: '$lastResetDate', Current: '$currentDate', Should reset: $shouldReset")
+        return shouldReset
     }
 
     /**
      * Resets progress for a new day
      */
     private fun resetProgressForNewDay() {
+        val currentDate = getCurrentDateString()
+        Log.d("DailyProgressManager", "RESETTING progress for new day: $currentDate")
         prefs.edit()
             .putString(KEY_COMPLETED_TASKS, gson.toJson(emptyMap<String, Boolean>()))
-            .putString(KEY_LAST_RESET_DATE, getCurrentDateString())
+            .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(emptyMap<String, String>()))
+            .putString(KEY_LAST_RESET_DATE, currentDate)
             .apply()
 
         // Also reset video sequence progress for new day
         resetVideoSequenceProgress()
 
-        Log.d("DailyProgressManager", "Reset progress for new day: ${getCurrentDateString()}")
+        Log.d("DailyProgressManager", "Progress reset completed for date: $currentDate")
     }
 
     /**
@@ -76,9 +109,17 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Manually reset all progress (for debugging or forced reset)
+     */
+    fun resetAllProgress() {
+        resetProgressForNewDay()
+    }
+
+    /**
      * Gets the completion status map for today
      */
     private fun getCompletedTasks(): MutableMap<String, Boolean> {
+        // Always check if we need to reset before returning data
         if (shouldResetProgress()) {
             resetProgressForNewDay()
         }
@@ -98,11 +139,43 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Gets the completed task names map
+     */
+    private fun getCompletedTaskNames(): MutableMap<String, String> {
+        // Always check if we need to reset before returning data
+        if (shouldResetProgress()) {
+            resetProgressForNewDay()
+        }
+
+        val json = prefs.getString(KEY_COMPLETED_TASK_NAMES, "{}")
+        val type = object : TypeToken<MutableMap<String, String>>() {}.type
+        return gson.fromJson(json, type) ?: mutableMapOf()
+    }
+
+    /**
+     * Saves a completed task name
+     */
+    private fun saveCompletedTaskName(taskId: String, taskName: String) {
+        val completedTaskNames = getCompletedTaskNames()
+        completedTaskNames[taskId] = taskName
+        prefs.edit()
+            .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(completedTaskNames))
+            .apply()
+    }
+
+    /**
      * Marks a task as completed and returns the stars earned
      * For required/once-per-day tasks: only award once per day
      * For optional tasks: award each time completed
      */
     fun markTaskCompleted(taskId: String, stars: Int, isRequiredTask: Boolean = false): Int {
+        return markTaskCompletedWithName(taskId, taskId, stars, isRequiredTask)
+    }
+
+    /**
+     * Marks a task as completed with a display name and returns the stars earned
+     */
+    fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false): Int {
         val completedTasks = getCompletedTasks()
 
         if (isRequiredTask) {
@@ -110,7 +183,8 @@ class DailyProgressManager(private val context: Context) {
             if (completedTasks[taskId] != true) {
                 completedTasks[taskId] = true
                 saveCompletedTasks(completedTasks)
-                Log.d("DailyProgressManager", "Required task $taskId completed, earned $stars stars")
+                saveCompletedTaskName(taskId, taskName)
+                Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars")
                 return stars
             }
             Log.d("DailyProgressManager", "Required task $taskId already completed today")
@@ -121,7 +195,8 @@ class DailyProgressManager(private val context: Context) {
             if (completedTasks[taskId] != true) {
                 completedTasks[taskId] = true
                 saveCompletedTasks(completedTasks)
-                Log.d("DailyProgressManager", "Optional task $taskId completed, earned $stars stars")
+                saveCompletedTaskName(taskId, taskName)
+                Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars")
                 return stars
             } else {
                 // For optional tasks that are already completed today, still award stars
@@ -349,7 +424,7 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Gets the current kid identifier (A or B)
      */
-    private fun getCurrentKid(): String {
+    fun getCurrentKid(): String {
         return context.getSharedPreferences("child_profile", Context.MODE_PRIVATE)
             .getString("profile", "A") ?: "A"
     }
@@ -425,4 +500,54 @@ class DailyProgressManager(private val context: Context) {
     fun shouldShowPokemonUnlockButton(config: MainContent): Boolean {
         return hasAllCoinsBeenEarned(config) && !wasPokemonUnlockedToday()
     }
+
+    /**
+     * Gets comprehensive progress report including time tracking
+     */
+    fun getComprehensiveProgressReport(config: MainContent, timeTracker: TimeTracker): ComprehensiveProgressReport {
+        val progressData = getCurrentProgressWithCoinsAndStars(config)
+        val (earnedCoins, totalCoins) = progressData.first
+        val (earnedStars, totalStars) = progressData.second
+        val completedTasks = getCompletedTasks()
+
+        // Get the stored completed task names
+        val completedTaskNames = getCompletedTaskNames()
+
+        // Get time tracking data
+        val todaySummary = timeTracker.getTodaySummary()
+        val totalTimeMinutes = todaySummary.totalTimeMinutes
+        val gamesPlayed = todaySummary.gamesPlayed
+        val videosWatched = todaySummary.videosWatched
+
+        // Calculate completion rates
+        val completionRate = if (totalStars > 0) (earnedStars.toDouble() / totalStars.toDouble()) * 100 else 0.0
+
+        // Get detailed session information
+        val gameSessions = todaySummary.gameSessions
+        val videoSessions = todaySummary.sessions.filter { it.activityType in listOf("video", "youtube") }
+        val completedGameSessions = todaySummary.completedGameSessions
+
+        return ComprehensiveProgressReport(
+            date = getCurrentDateString(),
+            earnedCoins = earnedCoins,
+            totalCoins = totalCoins,
+            earnedStars = earnedStars,
+            totalStars = totalStars,
+            completionRate = completionRate,
+            totalTimeMinutes = totalTimeMinutes,
+            gamesPlayed = gamesPlayed,
+            videosWatched = videosWatched,
+            completedTasks = completedTasks.filter { it.value }.keys.toList(),
+            completedTaskNames = completedTaskNames,
+            gameSessions = gameSessions,
+            videoSessions = videoSessions,
+            completedGameSessions = completedGameSessions,
+            averageGameTimeMinutes = if (gameSessions.isNotEmpty()) gameSessions.map { it.durationMinutes }.average() else 0.0,
+            averageVideoTimeMinutes = if (videoSessions.isNotEmpty()) videoSessions.map { it.durationMinutes }.average() else 0.0,
+            longestSessionMinutes = todaySummary.sessions.maxOfOrNull { it.durationMinutes } ?: 0.0,
+            mostPlayedGame = gameSessions.groupBy { it.activityName }.maxByOrNull { it.value.size }?.key,
+            totalSessions = todaySummary.sessions.size
+        )
+    }
+
 }

@@ -15,5 +15,33 @@
     <string name="word_game_instructions">Tap words to hear them pronounced!</string>
     <string name="quiz_game_instructions">Choose the correct answer!</string>
     <string name="math_game_instructions">Solve the math problem!</string>
+
+    <!-- Report strings -->
+    <string name="report_frequency_prompt">Select report frequency</string>
+    <string name="report_format_prompt">Select report format</string>
+
+    <!-- Report frequency options -->
+    <string-array name="report_frequencies">
+        <item>Daily</item>
+        <item>Weekly</item>
+    </string-array>
+
+    <!-- Report format options -->
+    <string-array name="report_formats">
+        <item>Text</item>
+        <item>HTML</item>
+        <item>CSV</item>
+    </string-array>
+
+    <!-- Days of week -->
+    <string-array name="days_of_week">
+        <item>Sunday</item>
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+    </string-array>
 </resources>
 

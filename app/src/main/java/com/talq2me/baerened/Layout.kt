@@ -733,8 +733,9 @@ class Layout(private val activity: MainActivity) {
                     if (isChecked && !isCompleted && item.stars != null && item.stars!! > 0) {
                         // Award stars when checkbox is checked (only if not already completed)
                         // ALL checklist items give coins and should only be completed once per day
-                        val earnedStars = progressManager.markTaskCompleted(
+                        val earnedStars = progressManager.markTaskCompletedWithName(
                             itemId,
+                            item.label ?: itemId,
                             item.stars!!,
                             true  // isRequired parameter - checklist items behave like required tasks
                         )

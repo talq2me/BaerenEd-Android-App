@@ -37,6 +37,7 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
 
     private var playlistId: String? = null
     private var playlistTitle: String? = null
+    private lateinit var timeTracker: TimeTracker
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +53,12 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        // Initialize time tracker
+        timeTracker = TimeTracker(this)
+
+        // Start time tracking for this playlist
+        timeTracker.startActivity(playlistId ?: "unknown_playlist", "youtube", playlistTitle ?: "YouTube Playlist")
 
         // Initialize views
         webView = findViewById(R.id.playlist_webview)
@@ -320,4 +327,5 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
         // Override back button to return to app instead of navigating in WebView
         finish()
     }
+
 }

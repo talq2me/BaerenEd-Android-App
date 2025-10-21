@@ -34,9 +34,11 @@ class GameActivity : AppCompatActivity() {
     private var messageClearHandler: android.os.Handler? = null
     private var audioClipsPlayedForCurrentQuestion = false
     private lateinit var progressManager: DailyProgressManager
+    private lateinit var timeTracker: TimeTracker
 
     // Game configuration
     private lateinit var gameType: String
+    private lateinit var gameTitle: String
     private var gameStars: Int = 1
     private var isRequiredGame: Boolean = false
     private var blockOutlines: Boolean = false
@@ -50,7 +52,7 @@ class GameActivity : AppCompatActivity() {
         // Get game content and config from intent extras
         val gameContent = intent.getStringExtra("GAME_CONTENT")
         gameType = intent.getStringExtra("GAME_TYPE") ?: "unknown"
-        val gameTitle = intent.getStringExtra("GAME_TITLE") ?: "Game"
+        gameTitle = intent.getStringExtra("GAME_TITLE") ?: "Game"
         val totalQuestions = intent.getIntExtra("TOTAL_QUESTIONS", 5) // Default to 5 if not provided
         gameStars = intent.getIntExtra("GAME_STARS", 1) // Default to 1 star if not provided
         val isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
@@ -82,6 +84,12 @@ class GameActivity : AppCompatActivity() {
 
         // Initialize progress manager
         progressManager = DailyProgressManager(this)
+
+        // Initialize time tracker
+        timeTracker = TimeTracker(this)
+
+        // Start time tracking for this game
+        timeTracker.startActivity(gameType, "game", gameTitle)
 
         // TTS Init
         tts = TextToSpeech(this) { status ->
@@ -164,11 +172,14 @@ class GameActivity : AppCompatActivity() {
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
                     // Game completed successfully - award stars
-                    val earnedStars = progressManager.markTaskCompleted(gameType, gameStars, isRequiredGame)
+                    val earnedStars = progressManager.markTaskCompletedWithName(gameType, gameTitle, gameStars, isRequiredGame)
                     if (earnedStars > 0) {
                         // Update progress display on main screen if this activity has access to it
                         // For now, just log the progress
                         android.util.Log.d("GameActivity", "Game $gameType completed, earned $earnedStars stars")
+
+                        // Update time tracker with stars earned
+                        timeTracker.updateStarsEarned("game", earnedStars)
                     }
 
                     // Navigate back to profile screen after delay
@@ -523,5 +534,12 @@ class GameActivity : AppCompatActivity() {
                 child.alpha = 1.0f // Restore normal appearance
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        // End time tracking when the activity is destroyed
+        timeTracker.endActivity("game")
     }
 }

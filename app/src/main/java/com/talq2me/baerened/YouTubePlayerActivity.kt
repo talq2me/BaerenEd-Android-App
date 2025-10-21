@@ -37,6 +37,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
     private var videoId: String? = null
     private var videoTitle: String? = null
     private var autoReturnHandler: android.os.Handler? = null
+    private lateinit var timeTracker: TimeTracker
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +64,12 @@ class YouTubePlayerActivity : AppCompatActivity() {
         replayButton = findViewById(R.id.replay_button)
         playButton = findViewById(R.id.play_button)
         pauseButton = findViewById(R.id.pause_button)
+
+        // Initialize time tracker
+        timeTracker = TimeTracker(this)
+
+        // Start time tracking for this video
+        timeTracker.startActivity(videoId ?: "unknown_video", "youtube", videoTitle ?: "YouTube Video")
 
         // Set up click listeners
         retryButton.setOnClickListener {
@@ -342,4 +349,5 @@ class YouTubePlayerActivity : AppCompatActivity() {
         // Override back button to return to app instead of navigating in WebView
         finish()
     }
+
 }

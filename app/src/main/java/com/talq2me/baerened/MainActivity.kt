@@ -240,6 +240,72 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         dialog.show()
     }
 
+    /**
+     * Sends daily progress report via email
+     */
+    fun sendProgressReport(view: android.view.View) {
+        try {
+            val progressManager = DailyProgressManager(this)
+            val timeTracker = TimeTracker(this)
+            val reportGenerator = ReportGenerator(this)
+
+            // Get main content for progress calculation (needed for progress calculation but not for task names)
+            val mainContent = getCurrentMainContent() ?: MainContent()
+
+            val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
+
+            // Get current child profile (A or B) and convert to AM or BM
+            val currentKid = progressManager.getCurrentKid()
+            val childName = if (currentKid == "A") "AM" else "BM"
+
+            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.TEXT)
+
+            // Create email intent to Tiffany
+            val emailIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
+                putExtra(android.content.Intent.EXTRA_TEXT, report)
+            }
+
+            // Try to open Gmail directly using mailto URI (like the web app)
+            val gmailIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                data = android.net.Uri.parse("mailto:")
+                putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
+                putExtra(android.content.Intent.EXTRA_TEXT, report)
+                setPackage("com.google.android.gm") // Gmail package name
+            }
+
+            try {
+                // Try to open Gmail directly
+                startActivity(gmailIntent)
+            } catch (e: Exception) {
+                // If Gmail isn't available, try other email apps using ACTION_SENDTO
+                try {
+                    val fallbackIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                        data = android.net.Uri.parse("mailto:")
+                        putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
+                        putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
+                        putExtra(android.content.Intent.EXTRA_TEXT, report)
+                    }
+                    startActivity(fallbackIntent)
+                } catch (e2: Exception) {
+                    // Final fallback - use chooser with generic share
+                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, report)
+                    }
+                    startActivity(android.content.Intent.createChooser(shareIntent, "Share Progress Report"))
+                }
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error sending progress report", e)
+            Toast.makeText(this, "Error generating report", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
 
 
