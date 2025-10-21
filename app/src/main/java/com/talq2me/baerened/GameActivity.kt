@@ -171,12 +171,12 @@ class GameActivity : AppCompatActivity() {
                 // Show feedback for correct answer
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
-                    // Game completed successfully - award stars
+                    // Game completed successfully - award stars to reward bank
                     val earnedStars = progressManager.markTaskCompletedWithName(gameType, gameTitle, gameStars, isRequiredGame)
                     if (earnedStars > 0) {
-                        // Update progress display on main screen if this activity has access to it
-                        // For now, just log the progress
-                        android.util.Log.d("GameActivity", "Game $gameType completed, earned $earnedStars stars")
+                        // Add stars to reward bank and convert to minutes
+                        val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+                        android.util.Log.d("GameActivity", "Game $gameType completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
 
                         // Update time tracker with stars earned
                         timeTracker.updateStarsEarned("game", earnedStars)

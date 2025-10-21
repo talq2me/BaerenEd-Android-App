@@ -2,6 +2,7 @@ package com.talq2me.baerened
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Resources
 import android.util.Log
 import android.util.TypedValue
@@ -187,15 +188,25 @@ class Layout(private val activity: MainActivity) {
         val earnedStars = progressData.second.first
         val totalStars = progressData.second.second
 
-        progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
-        progressBar.max = totalStars
-        progressBar.progress = earnedStars
+        // Get actual banked reward minutes (not recalculated from stars)
+        val rewardMinutes = progressManager.getBankedRewardMinutes()
+
+        progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
+        progressBar.max = totalCoins
+        progressBar.progress = earnedCoins
 
         // Add Pokemon button if all coins earned AND no Pokemon unlocked today
         if (progressManager.shouldShowPokemonUnlockButton(content)) {
             addPokemonButtonToProgressLayout()
         } else {
             removePokemonButtonFromProgressLayout()
+        }
+
+        // Add/Remove Use Rewards button based on banked minutes
+        if (rewardMinutes > 0) {
+            addUseRewardsButtonToProgressLayout(rewardMinutes)
+        } else {
+            removeUseRewardsButtonFromProgressLayout()
         }
 
         // Force refresh of progress display to ensure it shows correct values
@@ -212,15 +223,25 @@ class Layout(private val activity: MainActivity) {
             val earnedStars = progressData.second.first
             val totalStars = progressData.second.second
 
-            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
-            progressBar.max = totalStars
-            progressBar.progress = earnedStars
+            // Get actual banked reward minutes (not recalculated from stars)
+            val rewardMinutes = progressManager.getBankedRewardMinutes()
+
+            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - Complete tasks to earn coins and stars!"
+            progressBar.max = totalCoins
+            progressBar.progress = earnedCoins
 
             // Update Pokemon button visibility
             if (progressManager.shouldShowPokemonUnlockButton(currentContent)) {
                 addPokemonButtonToProgressLayout()
             } else {
                 removePokemonButtonFromProgressLayout()
+            }
+
+            // Update Use Rewards button visibility
+            if (rewardMinutes > 0) {
+                addUseRewardsButtonToProgressLayout(rewardMinutes)
+            } else {
+                removeUseRewardsButtonFromProgressLayout()
             }
         } else {
             // Fallback - use cached values but ensure they're calculated correctly
@@ -230,9 +251,12 @@ class Layout(private val activity: MainActivity) {
             val earnedStars = progressData.second.first
             val totalStars = progressData.second.second
 
-            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars/$totalStars ⭐ - Complete tasks to earn coins and stars!"
-            progressBar.max = totalStars
-            progressBar.progress = earnedStars
+            // Get actual banked reward minutes (not recalculated from stars)
+            val rewardMinutes = progressManager.getBankedRewardMinutes()
+
+            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - Complete tasks to earn coins and stars!"
+            progressBar.max = totalCoins
+            progressBar.progress = earnedCoins
         }
     }
 
@@ -299,6 +323,93 @@ class Layout(private val activity: MainActivity) {
             progressLayout.removeView(it)
         }
     }
+
+    private fun addUseRewardsButtonToProgressLayout(rewardMinutes: Double) {
+        // Check if Use Rewards button already exists
+        if (progressLayout.findViewWithTag<View>("use_rewards_button") != null) {
+            return
+        }
+
+        // Create Use Rewards button
+        val useRewardsButton = android.widget.Button(activity).apply {
+            tag = "use_rewards_button"
+            text = "🎮 Use Rewards (${rewardMinutes.toInt()} mins)"
+            textSize = 16f
+            setTextColor(activity.resources.getColor(android.R.color.white))
+            background = activity.resources.getDrawable(R.drawable.button_rounded)
+            setPadding(16.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                70.dpToPx()  // Same height as nav buttons
+            ).apply {
+                setMargins(16.dpToPx(), 0, 0, 0)
+            }
+
+            setOnClickListener {
+                useRewardMinutes()
+            }
+        }
+
+        progressLayout.addView(useRewardsButton)
+    }
+
+    private fun removeUseRewardsButtonFromProgressLayout() {
+        val useRewardsButton = progressLayout.findViewWithTag<View>("use_rewards_button")
+        useRewardsButton?.let {
+            progressLayout.removeView(it)
+        }
+    }
+
+    private fun useRewardMinutes() {
+        val rewardMinutes = progressManager.useAllRewardMinutes()
+        if (rewardMinutes > 0) {
+            // Send reward time to BaerenLock app via shared storage
+            sendRewardTimeToBaerenLock(rewardMinutes.toInt())
+
+            // Clear the pending reward data since we've consumed it
+            progressManager.clearPendingRewardData()
+
+            // Refresh progress display to update the UI
+            refreshProgressDisplay()
+
+            // Show confirmation message
+            android.widget.Toast.makeText(activity, "🎮 Started ${rewardMinutes.toInt()} minutes of reward time!", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun sendRewardTimeToBaerenLock(minutes: Int) {
+        try {
+            val progressManager = DailyProgressManager(activity)
+
+            // First check if there's already pending reward data
+            val existingReward = progressManager.getPendingRewardData()
+
+            if (existingReward != null) {
+                // Add to existing minutes
+                val (existingMinutes, timestamp) = existingReward
+                val totalMinutes = existingMinutes + minutes
+
+                // Update the shared file with new total
+                val sharedFile = progressManager.getSharedRewardFile()
+                sharedFile.writeText("$totalMinutes\n$timestamp")
+
+                android.util.Log.d("Layout", "Added $minutes minutes to existing $existingMinutes minutes, total: $totalMinutes minutes")
+            } else {
+                // Create new reward data
+                val currentTime = System.currentTimeMillis()
+                val sharedFile = progressManager.getSharedRewardFile()
+                sharedFile.writeText("$minutes\n$currentTime")
+
+                android.util.Log.d("Layout", "Created new reward data: $minutes minutes")
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("Layout", "Error sending reward time to BaerenLock", e)
+            android.widget.Toast.makeText(activity, "Error starting reward time", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun handleVideoSequenceTask(task: Task) {
         val videoSequence = task.videoSequence ?: return
@@ -731,7 +842,7 @@ class Layout(private val activity: MainActivity) {
 
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked && !isCompleted && item.stars != null && item.stars!! > 0) {
-                        // Award stars when checkbox is checked (only if not already completed)
+                        // Award stars to reward bank when checkbox is checked (only if not already completed)
                         // ALL checklist items give coins and should only be completed once per day
                         val earnedStars = progressManager.markTaskCompletedWithName(
                             itemId,
@@ -740,6 +851,8 @@ class Layout(private val activity: MainActivity) {
                             true  // isRequired parameter - checklist items behave like required tasks
                         )
                         if (earnedStars > 0) {
+                            // Add stars to reward bank
+                            progressManager.addStarsToRewardBank(earnedStars)
                             updateProgressDisplay()
                             // Update visual state - disable and grey out
                             post {

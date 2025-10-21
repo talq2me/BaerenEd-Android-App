@@ -66,6 +66,51 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Check for child profile selection
         checkChildProfile()
+
+        // Clean up any stale reward data on app start
+        cleanupStaleRewardData()
+
+        // Reset reward data for new day if needed
+        resetRewardDataForNewDay()
+    }
+
+    private fun cleanupStaleRewardData() {
+        try {
+            val progressManager = DailyProgressManager(this)
+            val pendingReward = progressManager.getPendingRewardData()
+
+            if (pendingReward != null) {
+                val (minutes, timestamp) = pendingReward
+                val currentTime = System.currentTimeMillis()
+                val oneHourInMillis = 60 * 60 * 1000L
+
+                // Clear reward data if it's older than 1 hour
+                if (currentTime - timestamp > oneHourInMillis) {
+                    progressManager.clearPendingRewardData()
+                    android.util.Log.d("MainActivity", "Cleaned up stale reward data: $minutes minutes from ${java.util.Date(timestamp)}")
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error cleaning up stale reward data", e)
+        }
+    }
+
+    private fun resetRewardDataForNewDay() {
+        try {
+            val progressManager = DailyProgressManager(this)
+
+            // Check if we need to reset for a new day
+            val lastResetDate = progressManager.getLastResetDate()
+            val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+
+            if (lastResetDate != currentDate) {
+                // Clear any existing reward data for the new day
+                progressManager.clearPendingRewardData()
+                android.util.Log.d("MainActivity", "Reset reward data for new day: $currentDate")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error resetting reward data for new day", e)
+        }
     }
 
     override fun onResume() {

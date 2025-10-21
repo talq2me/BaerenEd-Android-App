@@ -84,6 +84,7 @@ class DailyProgressManager(private val context: Context) {
             .putString(KEY_COMPLETED_TASKS, gson.toJson(emptyMap<String, Boolean>()))
             .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(emptyMap<String, String>()))
             .putString(KEY_LAST_RESET_DATE, currentDate)
+            .putFloat("banked_reward_minutes", 0f) // Reset reward bank for new day
             .apply()
 
         // Also reset video sequence progress for new day
@@ -113,6 +114,8 @@ class DailyProgressManager(private val context: Context) {
      */
     fun resetAllProgress() {
         resetProgressForNewDay()
+        // Also reset reward bank
+        setBankedRewardMinutes(0.0)
     }
 
     /**
@@ -499,6 +502,132 @@ class DailyProgressManager(private val context: Context) {
      */
     fun shouldShowPokemonUnlockButton(config: MainContent): Boolean {
         return hasAllCoinsBeenEarned(config) && !wasPokemonUnlockedToday()
+    }
+
+    /**
+     * Converts earned stars to reward minutes based on the conversion rules:
+     * 1 star = 1 minute, 2 stars = 2.5 minutes, 3 stars = 5 minutes
+     * For 4+ stars, uses the 3-star multiplier (5 minutes per 3 stars)
+     */
+    fun convertStarsToMinutes(stars: Int): Double {
+        if (stars <= 0) return 0.0
+
+        return when (stars) {
+            1 -> 1.0
+            2 -> 2.5
+            3 -> 5.0
+            else -> {
+                // For 4+ stars, calculate using 3-star = 5 minutes ratio
+                val fullSetsOf3 = stars / 3
+                val remainingStars = stars % 3
+                (fullSetsOf3 * 5.0) + when (remainingStars) {
+                    1 -> 1.0
+                    2 -> 2.5
+                    else -> 0.0
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the current banked reward minutes
+     */
+    fun getBankedRewardMinutes(): Double {
+        return prefs.getFloat("banked_reward_minutes", 0f).toDouble()
+    }
+
+    /**
+     * Sets the banked reward minutes
+     */
+    fun setBankedRewardMinutes(minutes: Double) {
+        prefs.edit().putFloat("banked_reward_minutes", minutes.toFloat()).apply()
+    }
+
+    /**
+     * Adds stars to the bank and converts to reward minutes
+     */
+    fun addStarsToRewardBank(stars: Int): Double {
+        val currentMinutes = getBankedRewardMinutes()
+        val newMinutes = currentMinutes + convertStarsToMinutes(stars)
+        setBankedRewardMinutes(newMinutes)
+        return newMinutes
+    }
+
+    /**
+     * Uses all banked reward minutes and resets them to 0
+     * Returns the minutes that were used
+     */
+    fun useAllRewardMinutes(): Double {
+        val currentMinutes = getBankedRewardMinutes()
+        if (currentMinutes > 0) {
+            setBankedRewardMinutes(0.0)
+            return currentMinutes
+        }
+        return 0.0
+    }
+
+    /**
+     * Gets reward data from shared file (for BaerenLock to read)
+     * This method can be called from BaerenLock to check for pending reward time
+     */
+    fun getPendingRewardData(): Pair<Int, Long>? {
+        return try {
+            val sharedFile = getSharedRewardFile()
+            if (!sharedFile.exists()) return null
+
+            val content = sharedFile.readText()
+            val lines = content.lines()
+            if (lines.size >= 2) {
+                val rewardMinutes = lines[0].toIntOrNull() ?: 0
+                val timestamp = lines[1].toLongOrNull() ?: 0L
+
+                if (rewardMinutes > 0 && timestamp > 0) {
+                    // Check if data is not too old (more than 24 hours)
+                    val currentTime = System.currentTimeMillis()
+                    val oneDayInMillis = 24 * 60 * 60 * 1000L
+                    if (currentTime - timestamp < oneDayInMillis) {
+                        return Pair(rewardMinutes, timestamp)
+                    }
+                }
+            }
+            null
+        } catch (e: Exception) {
+            android.util.Log.e("DailyProgressManager", "Error reading shared reward file", e)
+            null
+        }
+    }
+
+    /**
+     * Clears pending reward data from shared file (call this after consuming the reward)
+     */
+    fun clearPendingRewardData() {
+        try {
+            val sharedFile = getSharedRewardFile()
+            if (sharedFile.exists()) {
+                sharedFile.delete()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("DailyProgressManager", "Error clearing shared reward file", e)
+        }
+    }
+
+    /**
+     * Gets the shared reward file that both apps can access
+     */
+    fun getSharedRewardFile(): java.io.File {
+        // Use external files directory if available, otherwise use internal
+        val externalDir = context.getExternalFilesDir(null)
+        val sharedDir = if (externalDir != null) {
+            java.io.File(externalDir, "shared")
+        } else {
+            java.io.File(context.filesDir, "shared")
+        }
+
+        if (!sharedDir.exists()) {
+            sharedDir.mkdirs()
+        }
+
+        return java.io.File(sharedDir, "baeren_reward_data.txt")
     }
 
     /**
