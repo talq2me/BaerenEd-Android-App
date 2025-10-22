@@ -181,6 +181,9 @@ class DailyProgressManager(private val context: Context) {
     fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false): Int {
         val completedTasks = getCompletedTasks()
 
+        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask")
+        Log.d("DailyProgressManager", "Current completed tasks: ${completedTasks.keys}")
+
         if (isRequiredTask) {
             // Required tasks: only award once per day
             if (completedTasks[taskId] != true) {
@@ -213,7 +216,10 @@ class DailyProgressManager(private val context: Context) {
      * Checks if a task is completed today
      */
     fun isTaskCompleted(taskId: String): Boolean {
-        return getCompletedTasks()[taskId] == true
+        val completedTasks = getCompletedTasks()
+        val isCompleted = completedTasks[taskId] == true
+        Log.d("DailyProgressManager", "isTaskCompleted: taskId=$taskId, isCompleted=$isCompleted, all completed tasks: ${completedTasks.keys}")
+        return isCompleted
     }
 
     /**

@@ -41,6 +41,9 @@ class Layout(private val activity: MainActivity) {
      * Display the main content by setting up all UI components
      */
     fun displayContent(content: MainContent) {
+        android.util.Log.d("Layout", "displayContent called with content: ${content.title}")
+        android.util.Log.d("Layout", "Content sections count: ${content.sections?.size ?: 0}")
+
         // Display header buttons - always show default navigation buttons
         headerLayout.visibility = View.VISIBLE
         setupDefaultHeaderButtons()
@@ -70,6 +73,8 @@ class Layout(private val activity: MainActivity) {
         } else {
             rewardLayout.visibility = View.GONE
         }
+
+        android.util.Log.d("Layout", "displayContent completed")
     }
 
     private fun setupHeaderButtons(buttons: List<Button>) {
@@ -275,6 +280,63 @@ class Layout(private val activity: MainActivity) {
         setupDefaultHeaderButtons()
     }
 
+    /**
+     * Refreshes the sections to update task completion visual state
+     */
+    fun refreshSections() {
+        val currentContent = activity.getCurrentMainContent()
+        if (currentContent != null) {
+            // Re-setup sections to update task completion states
+            setupSections(currentContent.sections ?: emptyList())
+        }
+    }
+
+    /**
+     * Handles video completion and grants rewards if the video was watched to completion
+     */
+    fun handleVideoCompletion(taskId: String, taskTitle: String, stars: Int) {
+        android.util.Log.d("Layout", "handleVideoCompletion called: taskId=$taskId, taskTitle=$taskTitle, stars=$stars")
+
+        // Only grant rewards if this is a legitimate completion (not manual exit)
+        // The video activities will only call this on actual completion
+        if (stars > 0) {
+            val progressManager = DailyProgressManager(activity)
+            val earnedStars = progressManager.markTaskCompletedWithName(taskId, taskTitle, stars, false)
+
+            android.util.Log.d("Layout", "markTaskCompletedWithName returned: $earnedStars stars")
+
+            if (earnedStars > 0) {
+                // Add stars to reward bank and convert to minutes
+                val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+
+                android.util.Log.d("Layout", "Video task $taskId ($taskTitle) completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
+
+                // Show completion message first
+                Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+
+                // Force refresh the entire content to ensure task completion is reflected
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    android.util.Log.d("Layout", "Re-displaying content to update task completion state")
+                    displayContent(currentContent)
+                    android.util.Log.d("Layout", "Content re-displayed, checking if task completion is now reflected")
+                } else {
+                    android.util.Log.e("Layout", "Current content is null, cannot refresh UI")
+                }
+
+                // Also refresh progress display
+                refreshProgressDisplay()
+
+                android.util.Log.d("Layout", "Task completion UI refresh completed")
+            } else {
+                android.util.Log.d("Layout", "Task $taskId was already completed today, no additional stars awarded")
+                Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            android.util.Log.d("Layout", "No stars to award for task $taskId")
+        }
+    }
+
     private fun addPokemonButtonToProgressLayout() {
         // Check if Pokemon button already exists
         if (progressLayout.findViewWithTag<View>("pokemon_button") != null) {
@@ -442,11 +504,11 @@ class Layout(private val activity: MainActivity) {
                                 "exact" -> {
                                     // Play specific video
                                     val videoName = task.video ?: return@withContext
-                                    playYouTubeVideo(videoJson, videoName)
+                                    playYouTubeVideo(videoJson, videoName, task)
                                 }
                                 "sequential" -> {
                                     // Play next video in sequence
-                                    playNextVideoInSequence(videoJson, videoFile)
+                                    playNextVideoInSequence(videoJson, videoFile, task)
                                 }
                                 else -> {
                                     // Unknown video sequence type
@@ -465,7 +527,7 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun playYouTubeVideo(videoJson: String, videoName: String) {
+    private fun playYouTubeVideo(videoJson: String, videoName: String, task: Task) {
         try {
             val gson = com.google.gson.Gson()
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
@@ -476,9 +538,11 @@ class Layout(private val activity: MainActivity) {
                 val intent = Intent(activity, YouTubePlayerActivity::class.java).apply {
                     putExtra(YouTubePlayerActivity.EXTRA_VIDEO_ID, videoId)
                     putExtra(YouTubePlayerActivity.EXTRA_VIDEO_TITLE, videoName)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    putExtra("TASK_ID", task.launch ?: "unknown")
+                    putExtra("TASK_TITLE", task.title ?: "Video Task")
+                    putExtra("TASK_STARS", task.stars ?: 0)
                 }
-                activity.startActivity(intent)
+                activity.videoCompletionLauncher.launch(intent)
             } else {
                 Toast.makeText(activity, "Video not found: $videoName", Toast.LENGTH_SHORT).show()
             }
@@ -488,7 +552,7 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun playNextVideoInSequence(videoJson: String, videoFile: String) {
+    private fun playNextVideoInSequence(videoJson: String, videoFile: String, task: Task) {
         try {
             val gson = com.google.gson.Gson()
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
@@ -504,8 +568,8 @@ class Layout(private val activity: MainActivity) {
             val nextIndex = (lastVideoIndex + 1) % videoList.size
             val nextVideoName = videoList[nextIndex]
 
-            // Play the video
-            playYouTubeVideo(videoJson, nextVideoName)
+            // Play the video using the activity result launcher
+            playYouTubeVideo(videoJson, nextVideoName, task)
 
             // Update the last played index
             prefs.edit().putInt("${currentKid}_${videoFile}_index", nextIndex).apply()
@@ -519,11 +583,10 @@ class Layout(private val activity: MainActivity) {
     private fun playYouTubePlaylist(playlistId: String, playlistTitle: String) {
         android.util.Log.d("Layout", "Launching playlist player with ID: $playlistId, title: $playlistTitle")
         try {
-            // Launch the playlist player activity
+            // Launch the playlist player activity (no rewards for playlists)
             val intent = Intent(activity, YouTubePlaylistPlayerActivity::class.java).apply {
                 putExtra(YouTubePlaylistPlayerActivity.EXTRA_PLAYLIST_ID, playlistId)
                 putExtra(YouTubePlaylistPlayerActivity.EXTRA_PLAYLIST_TITLE, playlistTitle)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             activity.startActivity(intent)
         } catch (e: Exception) {
@@ -533,12 +596,16 @@ class Layout(private val activity: MainActivity) {
     }
 
     private fun setupSections(sections: List<Section>) {
+        android.util.Log.d("Layout", "setupSections called with ${sections.size} sections")
         sectionsContainer.removeAllViews()
 
         sections.forEach { section ->
+            android.util.Log.d("Layout", "Creating section: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
             val sectionView = createSectionView(section)
             sectionsContainer.addView(sectionView)
         }
+
+        android.util.Log.d("Layout", "setupSections completed")
     }
 
     private fun createSectionView(section: Section): View {
@@ -566,85 +633,88 @@ class Layout(private val activity: MainActivity) {
         sectionLayout.addView(titleView)
         sectionLayout.addView(descriptionView)
 
-        // Add tasks or checklist items in a flexbox-like layout
-        section.tasks?.let { tasks ->
-            if (tasks.isEmpty()) return@let
+            // Add tasks or checklist items in a flexbox-like layout
+            section.tasks?.let { tasks ->
+                if (tasks.isEmpty()) return@let
 
-            // Calculate how many buttons can fit per row based on screen width
-            val displayMetrics = activity.resources.displayMetrics
-            val screenWidth = displayMetrics.widthPixels
-            val density = displayMetrics.density
+                android.util.Log.d("Layout", "Processing ${tasks.size} tasks for section ${section.title}")
 
-            // Button parameters
-            val minButtonWidthDp = 120f // Minimum button width in dp
-            val maxButtonWidthDp = 200f // Maximum button width in dp
-            val horizontalMarginDp = 6f // Margin on each side of button
-            val containerPaddingDp = 0f // Container padding (can be adjusted)
+                // Calculate how many buttons can fit per row based on screen width
+                val displayMetrics = activity.resources.displayMetrics
+                val screenWidth = displayMetrics.widthPixels
+                val density = displayMetrics.density
 
-            val minButtonWidthPx = (minButtonWidthDp * density).toInt()
-            val horizontalMarginPx = (horizontalMarginDp * density * 2).toInt() // Left + right margins
-            val containerPaddingPx = (containerPaddingDp * density * 2).toInt() // Left + right padding
+                // Button parameters
+                val minButtonWidthDp = 120f // Minimum button width in dp
+                val maxButtonWidthDp = 200f // Maximum button width in dp
+                val horizontalMarginDp = 6f // Margin on each side of button
+                val containerPaddingDp = 0f // Container padding (can be adjusted)
 
-            val availableWidth = screenWidth - containerPaddingPx
+                val minButtonWidthPx = (minButtonWidthDp * density).toInt()
+                val horizontalMarginPx = (horizontalMarginDp * density * 2).toInt() // Left + right margins
+                val containerPaddingPx = (containerPaddingDp * density * 2).toInt() // Left + right padding
 
-            // Calculate optimal buttons per row
-            val maxPossibleButtons = (availableWidth + horizontalMarginPx) / (minButtonWidthPx + horizontalMarginPx)
-            val buttonsPerRow = maxOf(1, minOf(maxPossibleButtons.toInt(), 6)) // Between 1 and 6 buttons
+                val availableWidth = screenWidth - containerPaddingPx
 
-            // Create a container for tasks that wraps to multiple lines
-            val tasksContainer = LinearLayout(activity).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                setPadding(0, 0, 0, 0)
-            }
+                // Calculate optimal buttons per row
+                val maxPossibleButtons = (availableWidth + horizontalMarginPx) / (minButtonWidthPx + horizontalMarginPx)
+                val buttonsPerRow = maxOf(1, minOf(maxPossibleButtons.toInt(), 6)) // Between 1 and 6 buttons
 
-            // Create rows of tasks
-            val rows = (tasks.size + buttonsPerRow - 1) / buttonsPerRow // Ceiling division
-
-            for (rowIndex in 0 until rows) {
-                // Create a horizontal row container
-                val rowContainer = LinearLayout(activity).apply {
-                    orientation = LinearLayout.HORIZONTAL
+                // Create a container for tasks that wraps to multiple lines
+                val tasksContainer = LinearLayout(activity).apply {
+                    orientation = LinearLayout.VERTICAL
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     )
                     setPadding(0, 0, 0, 0)
-                    weightSum = buttonsPerRow.toFloat()
                 }
 
-                // Add tasks to this row
-                val startIndex = rowIndex * buttonsPerRow
-                val endIndex = minOf(startIndex + buttonsPerRow, tasks.size)
+                // Create rows of tasks
+                val rows = (tasks.size + buttonsPerRow - 1) / buttonsPerRow // Ceiling division
 
-                for (i in startIndex until endIndex) {
-                    val task = tasks[i]
-                    val taskView = createTaskView(task)
-                    rowContainer.addView(taskView)
-                }
-
-                // Add empty views to fill remaining spots if needed
-                while (rowContainer.childCount < buttonsPerRow) {
-                    val emptyView = View(activity).apply {
+                for (rowIndex in 0 until rows) {
+                    // Create a horizontal row container
+                    val rowContainer = LinearLayout(activity).apply {
+                        orientation = LinearLayout.HORIZONTAL
                         layoutParams = LinearLayout.LayoutParams(
-                            0,
-                            (70 * density).toInt(),
-                            1f
-                        ).apply {
-                            setMargins((6 * density).toInt(), 0, (6 * density).toInt(), 0)
-                        }
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                        setPadding(0, 0, 0, 0)
+                        weightSum = buttonsPerRow.toFloat()
                     }
-                    rowContainer.addView(emptyView)
+
+                    // Add tasks to this row
+                    val startIndex = rowIndex * buttonsPerRow
+                    val endIndex = minOf(startIndex + buttonsPerRow, tasks.size)
+
+                    for (i in startIndex until endIndex) {
+                        val task = tasks[i]
+                        android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
+                        val taskView = createTaskView(task)
+                        rowContainer.addView(taskView)
+                    }
+
+                    // Add empty views to fill remaining spots if needed
+                    while (rowContainer.childCount < buttonsPerRow) {
+                        val emptyView = View(activity).apply {
+                            layoutParams = LinearLayout.LayoutParams(
+                                0,
+                                (70 * density).toInt(),
+                                1f
+                            ).apply {
+                                setMargins((6 * density).toInt(), 0, (6 * density).toInt(), 0)
+                            }
+                        }
+                        rowContainer.addView(emptyView)
+                    }
+
+                    tasksContainer.addView(rowContainer)
                 }
 
-                tasksContainer.addView(rowContainer)
+                sectionLayout.addView(tasksContainer)
             }
-
-            sectionLayout.addView(tasksContainer)
-        }
 
         section.items?.let { items ->
             items.forEach { item ->
@@ -662,7 +732,9 @@ class Layout(private val activity: MainActivity) {
         val tileHeight = (70 * density).toInt()
 
         // Check if this task is completed today
-        val isCompleted = progressManager.isTaskCompleted(task.launch ?: "unknown_task")
+        val taskIdForCheck = task.launch ?: "unknown_task"
+        val isCompleted = progressManager.isTaskCompleted(taskIdForCheck)
+        android.util.Log.d("Layout", "Task UI check: taskId=$taskIdForCheck, taskTitle=${task.title}, isCompleted=$isCompleted")
 
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
@@ -732,7 +804,7 @@ class Layout(private val activity: MainActivity) {
                         android.util.Log.d("Layout", "Handling video sequence task: ${task.videoSequence}, launch: ${task.launch}, playlistId: ${task.playlistId}")
                         handleVideoSequenceTask(task)
                     } else if (task.playlistId != null) {
-                        // Handle playlist task with playlistId field
+                        // Handle playlist task with playlistId field (no rewards for playlists)
                         android.util.Log.d("Layout", "Handling direct playlist task with playlistId: ${task.playlistId}")
                         playYouTubePlaylist(task.playlistId, task.title ?: "Playlist")
                     } else {

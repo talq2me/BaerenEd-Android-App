@@ -36,8 +36,12 @@ class YouTubePlayerActivity : AppCompatActivity() {
 
     private var videoId: String? = null
     private var videoTitle: String? = null
+    private var taskId: String? = null
+    private var taskTitle: String? = null
+    private var taskStars: Int = 0
     private var autoReturnHandler: android.os.Handler? = null
     private lateinit var timeTracker: TimeTracker
+    private var videoCompleted: Boolean = false
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +51,9 @@ class YouTubePlayerActivity : AppCompatActivity() {
         // Get video information from intent
         videoId = intent.getStringExtra(EXTRA_VIDEO_ID)
         videoTitle = intent.getStringExtra(EXTRA_VIDEO_TITLE)
+        taskId = intent.getStringExtra("TASK_ID")
+        taskTitle = intent.getStringExtra("TASK_TITLE")
+        taskStars = intent.getIntExtra("TASK_STARS", 0)
 
         if (videoId.isNullOrEmpty()) {
             Log.e("YouTubePlayerActivity", "No video ID provided")
@@ -78,7 +85,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
         }
 
         backButton.setOnClickListener {
-            finish()
+            finish() // Manual exit, no rewards
         }
 
         // Set up custom control listeners
@@ -92,6 +99,9 @@ class YouTubePlayerActivity : AppCompatActivity() {
 
         // Set up auto-return timer as fallback (15 minutes max video length)
         setupAutoReturnTimer()
+
+        // Set up video completion detection
+        setupVideoCompletionDetection()
     }
 
     private fun injectPlayerReadyScript() {
@@ -99,20 +109,33 @@ class YouTubePlayerActivity : AppCompatActivity() {
         webView.postDelayed({
             val script = """
                 (function() {
-                    console.log('Ensuring YouTube player is accessible');
+                    console.log('Injecting player ready script');
 
                     // Wait for YouTube API and player to be ready
                     function checkPlayerReady() {
-                        if (window.ytPlayer && window.ytPlayer.playVideo) {
-                            console.log('YouTube player is ready');
+                        if (typeof YT !== 'undefined' && YT.Player && window.ytPlayer) {
+                            console.log('YouTube API and player are ready');
                             // Ensure player is accessible globally
                             window.youtubePlayerReady = true;
+
+                            // Set up state change listener for video completion
+                            window.ytPlayer.addEventListener('onStateChange', function(event) {
+                                console.log('Video state changed:', event.data);
+                                if (event.data === 0) { // YT.PlayerState.ENDED
+                                    console.log('Video ended, calling returnToMainScreen');
+                                    if (window.Android && window.Android.returnToMainScreen) {
+                                        window.Android.returnToMainScreen();
+                                    }
+                                }
+                            });
+
                             // Show custom controls
                             if (window.Android && window.Android.onVideoPlayerReady) {
                                 window.Android.onVideoPlayerReady();
                             }
                         } else {
-                            setTimeout(checkPlayerReady, 500);
+                            console.log('YouTube API or player not ready yet');
+                            setTimeout(checkPlayerReady, 1000);
                         }
                     }
 
@@ -122,15 +145,44 @@ class YouTubePlayerActivity : AppCompatActivity() {
             """.trimIndent()
 
             webView.evaluateJavascript(script, null)
-        }, 2000) // Wait 2 seconds for the page to load
+        }, 3000) // Wait 3 seconds for the page to load
     }
 
     private fun setupAutoReturnTimer() {
         autoReturnHandler = android.os.Handler()
         autoReturnHandler?.postDelayed({
             // Auto-return after 15 minutes as fallback
+            android.util.Log.d("YouTubePlayerActivity", "Auto-return timer triggered")
             finish()
         }, 15 * 60 * 1000L) // 15 minutes
+    }
+
+    private fun setupVideoCompletionDetection() {
+        // Set up a timer to periodically check if the video has ended
+        val completionHandler = android.os.Handler()
+        completionHandler.postDelayed(object : Runnable {
+            override fun run() {
+                if (!videoCompleted) {
+                    // Check if video has ended by trying to get player state
+                    webView.evaluateJavascript("""
+                        (function() {
+                            if (window.ytPlayer && window.ytPlayer.getPlayerState) {
+                                var state = window.ytPlayer.getPlayerState();
+                                console.log('Player state:', state);
+                                if (state === 0) { // YT.PlayerState.ENDED
+                                    console.log('Video ended detected via polling');
+                                    return 'ended';
+                                }
+                            }
+                            return 'not_ended';
+                        })();
+                    """.trimIndent(), null)
+
+                    // Check again in 5 seconds
+                    completionHandler.postDelayed(this, 5000)
+                }
+            }
+        }, 10000) // Start checking after 10 seconds
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -192,7 +244,9 @@ class YouTubePlayerActivity : AppCompatActivity() {
                 @android.webkit.JavascriptInterface
                 fun returnToMainScreen() {
                     runOnUiThread {
-                        finish() // Return to main screen
+                        android.util.Log.d("YouTubePlayerActivity", "returnToMainScreen called - video completed")
+                        videoCompleted = true
+                        finishWithResult()
                     }
                 }
             }, "Android")
@@ -334,6 +388,18 @@ class YouTubePlayerActivity : AppCompatActivity() {
         // Clean up auto-return timer
         autoReturnHandler?.removeCallbacksAndMessages(null)
 
+        // If activity is being destroyed and video was completed but not yet processed,
+        // make sure to return the completion result
+        if (videoCompleted && taskId != null && taskTitle != null) {
+            android.util.Log.d("YouTubePlayerActivity", "Activity destroyed with completed video, sending result")
+            val resultIntent = Intent().apply {
+                putExtra("TASK_ID", taskId)
+                putExtra("TASK_TITLE", taskTitle)
+                putExtra("TASK_STARS", taskStars)
+            }
+            setResult(RESULT_OK, resultIntent)
+        }
+
         // Clean up WebView to prevent memory leaks
         webView.apply {
             stopLoading()
@@ -347,6 +413,42 @@ class YouTubePlayerActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         // Override back button to return to app instead of navigating in WebView
+        videoCompleted = false // Manual exit, no rewards
+        finishWithResult()
+    }
+
+    override fun finish() {
+        // Check if this is a video completion vs manual exit
+        if (videoCompleted && taskId != null && taskTitle != null) {
+            android.util.Log.d("YouTubePlayerActivity", "Finishing with video completion")
+            val resultIntent = Intent().apply {
+                putExtra("TASK_ID", taskId)
+                putExtra("TASK_TITLE", taskTitle)
+                putExtra("TASK_STARS", taskStars)
+            }
+            setResult(RESULT_OK, resultIntent)
+        } else {
+            android.util.Log.d("YouTubePlayerActivity", "Finishing with manual exit or error")
+            setResult(RESULT_CANCELED)
+        }
+        super.finish()
+    }
+
+    private fun finishWithResult() {
+        if (videoCompleted && taskId != null && taskTitle != null) {
+            // Only return completion data if video actually completed
+            val resultIntent = Intent().apply {
+                putExtra("TASK_ID", taskId)
+                putExtra("TASK_TITLE", taskTitle)
+                putExtra("TASK_STARS", taskStars)
+            }
+            setResult(RESULT_OK, resultIntent)
+            android.util.Log.d("YouTubePlayerActivity", "Video completed successfully, returning task data: taskId=$taskId, taskTitle=$taskTitle, stars=$taskStars")
+        } else {
+            // Manual exit or error, no rewards
+            setResult(RESULT_CANCELED)
+            android.util.Log.d("YouTubePlayerActivity", "Video exited manually or error occurred, no rewards. videoCompleted=$videoCompleted, taskId=$taskId")
+        }
         finish()
     }
 

@@ -15,6 +15,9 @@ import java.util.*
 
 // Import GameData for JSON parsing
 import android.content.Intent
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import com.talq2me.baerened.GameData
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -24,6 +27,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var contentUpdateService: ContentUpdateService
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
+
+    // Activity result launcher for video completion
+    lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -63,6 +69,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Initialize layout manager
         layout = Layout(this)
+
+        // Initialize activity result launcher for video completion
+        videoCompletionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            android.util.Log.d("MainActivity", "Activity result received: resultCode=${result.resultCode}")
+
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                val taskId = result.data?.getStringExtra("TASK_ID")
+                val taskTitle = result.data?.getStringExtra("TASK_TITLE")
+                val stars = result.data?.getIntExtra("TASK_STARS", 0) ?: 0
+
+                android.util.Log.d("MainActivity", "Video completed: taskId=$taskId, taskTitle=$taskTitle, stars=$stars")
+
+                if (taskId != null && taskTitle != null) {
+                    // Handle video completion and grant rewards
+                    layout.handleVideoCompletion(taskId, taskTitle, stars)
+                } else {
+                    android.util.Log.e("MainActivity", "Task data is null: taskId=$taskId, taskTitle=$taskTitle")
+                }
+            } else {
+                android.util.Log.d("MainActivity", "Video completion failed or cancelled: resultCode=${result.resultCode}")
+            }
+        }
 
         // Check for child profile selection
         checkChildProfile()
@@ -512,6 +542,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Toast.makeText(this, "Error loading game content", Toast.LENGTH_SHORT).show()
         }
     }
+
 }
 
 // Simple data class to hold the JSON content

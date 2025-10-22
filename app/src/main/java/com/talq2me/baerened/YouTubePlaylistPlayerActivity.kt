@@ -79,7 +79,7 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
         }
 
         backButton.setOnClickListener {
-            finish()
+            finish() // Manual exit, no rewards
         }
 
         // Set up custom control listeners
@@ -150,8 +150,8 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
 
                 @android.webkit.JavascriptInterface
                 fun onVideoEnd() {
-                    // Could implement auto-advance or other logic here
-                    Log.d("YouTubePlaylistPlayerActivity", "Video ended")
+                    // Playlist completion - just log for now (no rewards)
+                    Log.d("YouTubePlaylistPlayerActivity", "Playlist video ended")
                 }
             }, "AndroidBridge")
 
