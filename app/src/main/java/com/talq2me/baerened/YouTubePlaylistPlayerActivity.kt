@@ -29,15 +29,8 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
     private lateinit var errorLayout: LinearLayout
     private lateinit var retryButton: Button
     private lateinit var backButton: Button
-    private lateinit var customControlsLayout: LinearLayout
-    private lateinit var prevButton: Button
-    private lateinit var playButton: Button
-    private lateinit var pauseButton: Button
-    private lateinit var nextButton: Button
-
     private var playlistId: String? = null
     private var playlistTitle: String? = null
-    private lateinit var timeTracker: TimeTracker
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,23 +47,12 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
             return
         }
 
-        // Initialize time tracker
-        timeTracker = TimeTracker(this)
-
-        // Start time tracking for this playlist
-        timeTracker.startActivity(playlistId ?: "unknown_playlist", "youtube", playlistTitle ?: "YouTube Playlist")
-
         // Initialize views
         webView = findViewById(R.id.playlist_webview)
         loadingLayout = findViewById(R.id.loading_layout)
         errorLayout = findViewById(R.id.error_layout)
         retryButton = findViewById(R.id.retry_button)
         backButton = findViewById(R.id.back_button)
-        customControlsLayout = findViewById(R.id.custom_controls)
-        prevButton = findViewById(R.id.prev_button)
-        playButton = findViewById(R.id.play_button)
-        pauseButton = findViewById(R.id.pause_button)
-        nextButton = findViewById(R.id.next_button)
 
         // Set up click listeners
         retryButton.setOnClickListener {
@@ -79,11 +61,8 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
         }
 
         backButton.setOnClickListener {
-            finish() // Manual exit, no rewards
+            finish()
         }
-
-        // Set up custom control listeners
-        setupCustomControls()
 
         // Configure WebView for YouTube playlist playback
         setupWebView()
@@ -99,8 +78,6 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
                     showPlayer()
-                    // Inject playlist player script after page loads
-                    injectPlaylistPlayerScript()
                 }
 
                 override fun onReceivedError(
@@ -143,14 +120,12 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
             addJavascriptInterface(object {
                 @android.webkit.JavascriptInterface
                 fun onPlaylistReady() {
-                    runOnUiThread {
-                        showCustomControls()
-                    }
+                    // Playlist is ready - no custom controls needed
                 }
 
                 @android.webkit.JavascriptInterface
                 fun onVideoEnd() {
-                    // Playlist completion - just log for now (no rewards)
+                    // Playlist video ended - just log for now
                     Log.d("YouTubePlaylistPlayerActivity", "Playlist video ended")
                 }
             }, "AndroidBridge")
@@ -161,146 +136,128 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
     }
 
     private fun loadPlaylist() {
-        // Create a simple HTML page that will load the YouTube playlist
-        val htmlContent = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        background: #000;
-                        overflow: hidden;
-                        font-family: Arial, sans-serif;
-                    }
-                    #playlistPlayer {
-                        width: 100vw;
-                        height: 100vh;
-                        border: none;
-                    }
-                </style>
-            </head>
-            <body>
-                <div id="playlistPlayer"></div>
-                <script src="https://www.youtube.com/iframe_api"></script>
-                <script>
-                    let playlistYTPlayer;
+        // Use YouTube's playlist embed with minimal UI and JavaScript API
+        val embedUrl = "https://www.youtube.com/embed/videoseries?" +
+                "list=$playlistId&" +
+                "autoplay=1&" +           // Auto-play the playlist
+                "controls=0&" +           // Hide player controls
+                "disablekb=1&" +          // Disable keyboard shortcuts
+                "fs=0&" +                 // Hide fullscreen button
+                "iv_load_policy=3&" +     // Hide video annotations
+                "modestbranding=1&" +     // Hide YouTube logo
+                "rel=0&" +                // Don't show related videos at the end
+                "showinfo=0&" +           // Hide video info
+                "cc_load_policy=0&" +     // Hide closed captions by default
+                "playsinline=1&" +        // Play inline on mobile
+                "enablejsapi=1"           // Enable JavaScript API for event detection
 
-                    function onYouTubeIframeAPIReady() {
-                        createYTPlaylistPlayer('$playlistId');
-                    }
-
-                    function createYTPlaylistPlayer(playlistId) {
-                        playlistYTPlayer = new YT.Player('playlistPlayer', {
-                            height: '100%',
-                            width: '100%',
-                            playerVars: {
-                                autoplay: 1,
-                                rel: 0,
-                                controls: 0,
-                                modestbranding: 1,
-                                enablejsapi: 1,
-                                listType: 'playlist',
-                                list: playlistId,
-                                loop: 0
-                            },
-                            events: {
-                                'onReady': function (event) {
-                                    console.log('Playlist player ready');
-                                    // Notify Android that player is ready
-                                    window.AndroidBridge.onPlaylistReady();
-                                    // Make player globally accessible
-                                    window.playlistYTPlayer = event.target;
-                                },
-                                'onStateChange': function (event) {
-                                    console.log('Playlist state changed:', event.data);
-                                    if (event.data === YT.PlayerState.ENDED) {
-                                        window.AndroidBridge.onVideoEnd();
-                                    }
-                                }
-                            }
-                        });
-                    }
-                </script>
-            </body>
-            </html>
-        """.trimIndent()
-
-        webView.loadDataWithBaseURL("https://www.youtube.com", htmlContent, "text/html", "UTF-8", null)
+        webView.loadUrl(embedUrl)
     }
 
-    private fun injectPlaylistPlayerScript() {
-        // Wait for the page to load, then inject our custom control script
+    private fun injectPlaylistEndDetectionScript() {
+        // Wait for the page to load, then inject our script
         webView.postDelayed({
             val script = """
                 (function() {
-                    console.log('Injecting playlist player controls');
+                    console.log('YouTube playlist end detection script injected');
 
-                    // Wait for YouTube API and player to be ready
-                    function checkPlayerReady() {
-                        if (window.playlistYTPlayer && window.playlistYTPlayer.playVideo) {
-                            console.log('YouTube player is ready');
-                            // Ensure player is accessible globally
-                            window.youtubePlayerReady = true;
-                        } else {
-                            setTimeout(checkPlayerReady, 500);
+                    // Simple approach - listen for when videos change or autoplay stops
+                    function simplePlaylistDetection() {
+                        var iframe = document.querySelector('iframe[src*="youtube.com"]');
+                        if (iframe) {
+                            // Check every few seconds if the playlist has ended
+                            var checkInterval = setInterval(function() {
+                                try {
+                                    // If autoplay stops and no new video loads, playlist likely ended
+                                    var iframeSrc = iframe.src || '';
+                                    if (iframeSrc.indexOf('autoplay=1') === -1) {
+                                        console.log('Playlist autoplay stopped, likely ended');
+                                        clearInterval(checkInterval);
+                                        window.AndroidBridge.onVideoEnd();
+                                    }
+                                } catch (e) {
+                                    clearInterval(checkInterval);
+                                }
+                            }, 2000);
                         }
                     }
 
-                    // Start checking for player readiness
-                    checkPlayerReady();
+                    // Also try the YouTube API approach if available
+                    if (!window.YT) {
+                        console.log('Loading YouTube API for playlist...');
+                        var tag = document.createElement('script');
+                        tag.src = "https://www.youtube.com/iframe_api";
+                        var firstScriptTag = document.getElementsByTagName('script')[0];
+                        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+                        window.onYouTubeIframeAPIReady = function() {
+                            console.log('YouTube API ready for playlist');
+                            setupYouTubeAPIPlaylistPlayer();
+                        };
+                    } else {
+                        console.log('YouTube API already loaded for playlist');
+                        setupYouTubeAPIPlaylistPlayer();
+                    }
+
+                    function setupYouTubeAPIPlaylistPlayer() {
+                        console.log('Setting up YouTube API playlist player');
+
+                        function findAndSetupPlayer() {
+                            try {
+                                var iframe = document.querySelector('iframe[src*="youtube.com"]');
+                                console.log('Found playlist iframe:', iframe);
+
+                                if (iframe) {
+                                    console.log('Creating YT.Player instance for playlist');
+                                    var player = new YT.Player(iframe, {
+                                        events: {
+                                            'onReady': function(event) {
+                                                console.log('YouTube playlist player ready');
+                                                window.AndroidBridge.onPlaylistReady();
+                                            },
+                                            'onStateChange': function(event) {
+                                                console.log('Playlist player state changed to:', event.data);
+                                                if (event.data === YT.PlayerState.ENDED) {
+                                                    console.log('Playlist ended via API');
+                                                    window.AndroidBridge.onVideoEnd();
+                                                }
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    console.log('Playlist iframe not found, retrying...');
+                                    setTimeout(findAndSetupPlayer, 500);
+                                }
+                            } catch (e) {
+                                console.log('Error in setupYouTubeAPIPlaylistPlayer: ' + e);
+                                setTimeout(findAndSetupPlayer, 500);
+                            }
+                        }
+
+                        findAndSetupPlayer();
+                    }
+
+                    // Start the simple detection as backup
+                    simplePlaylistDetection();
                 })();
             """.trimIndent()
 
             webView.evaluateJavascript(script, null)
-        }, 2000) // Wait 2 seconds for the page to load
-    }
-
-    private fun setupCustomControls() {
-        // Set up click listeners for custom control buttons
-        prevButton.setOnClickListener {
-            webView.evaluateJavascript("javascript:if(window.playlistYTPlayer && window.playlistYTPlayer.previousVideo) window.playlistYTPlayer.previousVideo();", null)
-        }
-
-        playButton.setOnClickListener {
-            webView.evaluateJavascript("javascript:if(window.playlistYTPlayer && window.playlistYTPlayer.playVideo) window.playlistYTPlayer.playVideo();", null)
-        }
-
-        pauseButton.setOnClickListener {
-            webView.evaluateJavascript("javascript:if(window.playlistYTPlayer && window.playlistYTPlayer.pauseVideo) window.playlistYTPlayer.pauseVideo();", null)
-        }
-
-        nextButton.setOnClickListener {
-            webView.evaluateJavascript("javascript:if(window.playlistYTPlayer && window.playlistYTPlayer.nextVideo) window.playlistYTPlayer.nextVideo();", null)
-        }
-
-        // Update button states based on player state
-        updateControlStates()
-    }
-
-    private fun updateControlStates() {
-        // This would be called from JavaScript to update button states
-        // For now, just ensure controls are visible
-        customControlsLayout.visibility = View.VISIBLE
+        }, 3000) // Wait 3 seconds for the page to fully load
     }
 
     private fun showLoading() {
         loadingLayout.visibility = View.VISIBLE
         webView.visibility = View.GONE
         errorLayout.visibility = View.GONE
-        customControlsLayout.visibility = View.GONE
     }
 
     private fun showPlayer() {
         loadingLayout.visibility = View.GONE
         webView.visibility = View.VISIBLE
         errorLayout.visibility = View.GONE
-    }
-
-    private fun showCustomControls() {
-        customControlsLayout.visibility = View.VISIBLE
+        // Inject playlist end detection script when player is shown
+        injectPlaylistEndDetectionScript()
     }
 
     private fun showError(errorMessage: String) {
@@ -308,7 +265,6 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
         loadingLayout.visibility = View.GONE
         webView.visibility = View.GONE
         errorLayout.visibility = View.VISIBLE
-        customControlsLayout.visibility = View.GONE
     }
 
     override fun onDestroy() {
@@ -325,6 +281,7 @@ class YouTubePlaylistPlayerActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         // Override back button to return to app instead of navigating in WebView
+        super.onBackPressed()
         finish()
     }
 

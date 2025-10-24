@@ -71,66 +71,6 @@
 
     </LinearLayout>
 
-    <!-- Custom Controls Layout -->
-    <LinearLayout
-        android:id="@+id/custom_controls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="@android:color/transparent"
-        android:padding="16dp"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/prev_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="⏮️ Prev"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_rounded"
-            android:textSize="16sp"
-            android:layout_margin="4dp"
-            android:minHeight="48dp" />
-
-        <Button
-            android:id="@+id/play_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="▶️ Play"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_rounded"
-            android:textSize="16sp"
-            android:layout_margin="4dp"
-            android:minHeight="48dp" />
-
-        <Button
-            android:id="@+id/pause_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="⏸️ Pause"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_rounded"
-            android:textSize="16sp"
-            android:layout_margin="4dp"
-            android:minHeight="48dp" />
-
-        <Button
-            android:id="@+id/next_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="⏭️ Next"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_rounded"
-            android:textSize="16sp"
-            android:layout_margin="4dp"
-            android:minHeight="48dp" />
-
-    </LinearLayout>
 
     <!-- Back Button (always visible at bottom) -->
     <Button
