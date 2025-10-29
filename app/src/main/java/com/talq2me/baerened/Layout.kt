@@ -2,12 +2,10 @@ package com.talq2me.baerened
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.res.Resources
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
-import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
@@ -533,6 +531,8 @@ class Layout(private val activity: MainActivity) {
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
             val videoId = videoMap[videoName]
 
+            android.util.Log.d("Layout", "Looking for video: $videoName in JSON file, found videoId: $videoId")
+
             if (videoId != null) {
                 // Launch our custom YouTube player activity for kid-safe viewing
                 val intent = Intent(activity, YouTubePlayerActivity::class.java).apply {
@@ -542,8 +542,10 @@ class Layout(private val activity: MainActivity) {
                     putExtra("TASK_TITLE", task.title ?: "Video Task")
                     putExtra("TASK_STARS", task.stars ?: 0)
                 }
+                android.util.Log.d("Layout", "Starting YouTube player with videoId: $videoId, videoName: $videoName")
                 activity.videoCompletionLauncher.launch(intent)
             } else {
+                android.util.Log.e("Layout", "Video not found: $videoName in JSON: $videoJson")
                 Toast.makeText(activity, "Video not found: $videoName", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
@@ -583,11 +585,12 @@ class Layout(private val activity: MainActivity) {
     private fun playYouTubePlaylist(playlistId: String, playlistTitle: String) {
         android.util.Log.d("Layout", "Launching playlist player with ID: $playlistId, title: $playlistTitle")
         try {
-            // Launch the playlist player activity (no rewards for playlists)
-            val intent = Intent(activity, YouTubePlaylistPlayerActivity::class.java).apply {
-                putExtra(YouTubePlaylistPlayerActivity.EXTRA_PLAYLIST_ID, playlistId)
-                putExtra(YouTubePlaylistPlayerActivity.EXTRA_PLAYLIST_TITLE, playlistTitle)
+            // Launch the unified YouTube player activity (no rewards for playlists)
+            val intent = Intent(activity, YouTubePlayerActivity::class.java).apply {
+                putExtra(YouTubePlayerActivity.EXTRA_PLAYLIST_ID, playlistId)
+                putExtra(YouTubePlayerActivity.EXTRA_VIDEO_TITLE, playlistTitle) // Use video title for consistency
             }
+            android.util.Log.d("Layout", "Starting YouTubePlayerActivity for playlistId: $playlistId")
             activity.startActivity(intent)
         } catch (e: Exception) {
             android.util.Log.e("Layout", "Error launching playlist player", e)
