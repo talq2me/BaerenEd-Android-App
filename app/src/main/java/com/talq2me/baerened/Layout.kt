@@ -324,6 +324,46 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
+    fun handleWebGameCompletion(rewardId: String?) {
+        android.util.Log.d("Layout", "handleWebGameCompletion called with rewardId: $rewardId")
+
+        if (!rewardId.isNullOrEmpty()) {
+            // In a real application, you would use the rewardId to look up the actual reward (e.g., stars, coins)
+            // For now, let's assume the rewardId directly corresponds to a task ID and we award a fixed number of stars.
+            // You'll need to adapt this logic to your specific reward system.
+
+            val progressManager = DailyProgressManager(activity)
+            // For demonstration, let's assume a web game always awards 5 stars if a rewardId is present
+            val starsToAward = 5
+            val taskTitle = "Web Game: $rewardId"
+
+            val earnedStars = progressManager.markTaskCompletedWithName(rewardId, taskTitle, starsToAward, false)
+
+            if (earnedStars > 0) {
+                val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+
+                android.util.Log.d("Layout", "Web game completed ($rewardId), earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
+
+                Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    android.util.Log.d("Layout", "Re-displaying content to update task completion state")
+                    displayContent(currentContent)
+                } else {
+                    android.util.Log.e("Layout", "Current content is null, cannot refresh UI")
+                }
+                refreshProgressDisplay()
+            } else {
+                android.util.Log.d("Layout", "Web game task $rewardId was already completed today, no additional stars awarded")
+                Toast.makeText(activity, "Web game already completed today", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            android.util.Log.d("Layout", "No rewardId provided for web game completion.")
+            Toast.makeText(activity, "Web game completed, but no reward was issued.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun addPokemonButtonToProgressLayout() {
         // Check if Pokemon button already exists
         if (progressLayout.findViewWithTag<View>("pokemon_button") != null) {
@@ -795,8 +835,15 @@ class Layout(private val activity: MainActivity) {
                     val gameType = task.launch ?: "unknown"
                     val gameTitle = task.title ?: "Task"
 
-                    // Check if this is a video sequence task or playlist task
-                    if (task.videoSequence != null) {
+                    // Check if this is a web game task
+                    if (task.webGame == true && !task.url.isNullOrEmpty()) {
+                        android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
+                        val intent = Intent(activity, WebGameActivity::class.java).apply {
+                            putExtra(WebGameActivity.EXTRA_GAME_URL, task.url)
+                            putExtra(WebGameActivity.EXTRA_REWARD_ID, task.rewardId ?: task.launch)
+                        }
+                        activity.webGameCompletionLauncher.launch(intent)
+                    } else if (task.videoSequence != null) {
                         android.util.Log.d("Layout", "Handling video sequence task: ${task.videoSequence}, launch: ${task.launch}, playlistId: ${task.playlistId}")
                         handleVideoSequenceTask(task)
                     } else if (task.playlistId != null) {

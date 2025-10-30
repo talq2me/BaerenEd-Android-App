@@ -31,6 +31,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Activity result launcher for video completion
     lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
 
+    // Activity result launcher for web game completion
+    lateinit var webGameCompletionLauncher: ActivityResultLauncher<Intent>
+
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
     lateinit var titleText: TextView
@@ -85,6 +88,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             } else {
                 android.util.Log.d("MainActivity", "Video completion failed or cancelled: resultCode=${result.resultCode}")
+            }
+        }
+
+        // Initialize activity result launcher for web game completion
+        webGameCompletionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            android.util.Log.d("MainActivity", "WebGameActivity result received: resultCode=${result.resultCode}")
+
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                val rewardId = result.data?.getStringExtra(WebGameActivity.EXTRA_REWARD_ID)
+                android.util.Log.d("MainActivity", "Web game completed, rewardId: $rewardId")
+                layout.handleWebGameCompletion(rewardId)
+            } else {
+                android.util.Log.d("MainActivity", "Web game completion failed or cancelled: resultCode=${result.resultCode}")
             }
         }
 
@@ -579,7 +597,10 @@ data class Task(
     val videoSequence: String? = null, // "exact", "sequential", or "playlist"
     val video: String? = null, // specific video name for "exact" mode
     val playlistId: String? = null, // playlist ID for "playlist" mode
-    val blockOutlines: Boolean? = null
+    val blockOutlines: Boolean? = null,
+    val webGame: Boolean? = null,
+    val url: String? = null,
+    val rewardId: String? = null
 )
 
 data class ChecklistItem(

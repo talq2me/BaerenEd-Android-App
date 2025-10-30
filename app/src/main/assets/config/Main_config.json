@@ -4,14 +4,14 @@
   "icon": "https://talq2me.github.io/Baeren/BaerenEd/images/Baeren-Ed.jpeg",
   "buttons": [
     {
-      "title": "BM Tasks",
+      "title": "AM Tasks",
       "icon": "https://yourcdn.com/icons/sun.png",
-      "configUrl": "https://talq2me.github.io/Baeren/BaerenEd/androidJson/AM_config.json"
+      "configUrl": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/AM_config.json"
     },
     {
-      "title": "AM Tasks",
+      "title": "BM Tasks",
       "icon": "https://yourcdn.com/icons/moon.png",
-      "configUrl": "https://talq2me.github.io/Baeren/BaerenEd/androidJson/BM_config.json"
+      "configUrl": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/BM_config.json"
     }
   ]
 }
