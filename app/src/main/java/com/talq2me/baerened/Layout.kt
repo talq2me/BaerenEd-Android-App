@@ -28,9 +28,6 @@ class Layout(private val activity: MainActivity) {
     private val progressText: TextView get() = activity.progressText
     private val progressBar: ProgressBar get() = activity.progressBar
     private val sectionsContainer: LinearLayout get() = activity.sectionsContainer
-    private val rewardLayout: LinearLayout get() = activity.rewardLayout
-    private val rewardTitle: TextView get() = activity.rewardTitle
-    private val rewardDescription: TextView get() = activity.rewardDescription
 
     // Progress management
     private val progressManager = DailyProgressManager(activity)
@@ -63,14 +60,6 @@ class Layout(private val activity: MainActivity) {
         // Display sections (tasks and buttons)
         sectionsContainer.visibility = View.VISIBLE
         setupSections(content.sections ?: emptyList())
-
-        // Display reward
-        if (content.reward != null) {
-            rewardLayout.visibility = View.VISIBLE
-            setupReward(content.reward)
-        } else {
-            rewardLayout.visibility = View.GONE
-        }
 
         android.util.Log.d("Layout", "displayContent completed")
     }
@@ -384,16 +373,20 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun addUseRewardsButtonToProgressLayout(rewardMinutes: Double) {
+    private fun addUseRewardsButtonToProgressLayout(rewardMinutes: Int) {
         // Check if Use Rewards button already exists
-        if (progressLayout.findViewWithTag<View>("use_rewards_button") != null) {
+        var useRewardsButton = progressLayout.findViewWithTag<android.widget.Button>("use_rewards_button")
+
+        if (useRewardsButton != null) {
+            // If it exists, just update its text
+            useRewardsButton.text = "🎮 Use Rewards (${rewardMinutes} mins)"
             return
         }
 
-        // Create Use Rewards button
-        val useRewardsButton = android.widget.Button(activity).apply {
+        // Create Use Rewards button if it doesn't exist
+        useRewardsButton = android.widget.Button(activity).apply {
             tag = "use_rewards_button"
-            text = "🎮 Use Rewards (${rewardMinutes.toInt()} mins)"
+            text = "🎮 Use Rewards (${rewardMinutes} mins)"
             textSize = 16f
             setTextColor(activity.resources.getColor(android.R.color.white))
             background = activity.resources.getDrawable(R.drawable.button_rounded)
@@ -961,11 +954,6 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun setupReward(reward: Reward) {
-        rewardTitle.text = reward.title ?: "Reward"
-        rewardDescription.text = reward.description ?: "Complete tasks to unlock rewards"
-    }
-
     /**
      * Display profile selection screen
      */
@@ -976,7 +964,6 @@ class Layout(private val activity: MainActivity) {
         headerLayout.visibility = View.GONE
         progressLayout.visibility = View.GONE
         sectionsContainer.visibility = View.GONE
-        rewardLayout.visibility = View.GONE
 
         // Show title
         titleText.text = content.title ?: "Select Your Profile"

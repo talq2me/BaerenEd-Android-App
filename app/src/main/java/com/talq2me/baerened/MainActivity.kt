@@ -38,9 +38,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var progressText: TextView
     lateinit var progressBar: ProgressBar
     lateinit var sectionsContainer: LinearLayout
-    lateinit var rewardLayout: LinearLayout
-    lateinit var rewardTitle: TextView
-    lateinit var rewardDescription: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,9 +57,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         progressText = findViewById(R.id.progressText)
         progressBar = findViewById(R.id.progressBar)
         sectionsContainer = findViewById(R.id.sectionsContainer)
-        rewardLayout = findViewById(R.id.rewardLayout)
-        rewardTitle = findViewById(R.id.rewardTitle)
-        rewardDescription = findViewById(R.id.rewardDescription)
 
         // Initialize content update service
         contentUpdateService = ContentUpdateService()
@@ -195,7 +189,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         headerLayout.visibility = View.GONE
         progressLayout.visibility = View.GONE
         sectionsContainer.visibility = View.GONE
-        rewardLayout.visibility = View.GONE
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -552,7 +545,6 @@ data class MainContent(
     val header: Header? = null,
     val progress: Progress? = null,
     val sections: List<Section>? = null,
-    val reward: Reward? = null,
     val buttons: List<ProfileButton>? = null
 )
 
@@ -595,16 +587,6 @@ data class ChecklistItem(
     val stars: Int? = null,
     val done: Boolean? = null,
     val id: String? = null
-)
-
-data class Reward(
-    val title: String? = null,
-    val description: String? = null,
-    val unlocked15: Boolean? = null,
-    val unlocked30: Boolean? = null,
-    val unlocked45: Boolean? = null,
-    val unlocked60: Boolean? = null,
-    val action: String? = null
 )
 
 data class ProfileButton(

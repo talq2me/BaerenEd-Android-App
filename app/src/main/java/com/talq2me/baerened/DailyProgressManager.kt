@@ -24,7 +24,7 @@ class DailyProgressManager(private val context: Context) {
         val earnedStars: Int,
         val totalStars: Int,
         val completionRate: Double,
-        val totalTimeMinutes: Double,
+        val totalTimeMinutes: Int,
         val gamesPlayed: Int,
         val videosWatched: Int,
         val completedTasks: List<String>,
@@ -32,9 +32,9 @@ class DailyProgressManager(private val context: Context) {
         val gameSessions: List<TimeTracker.ActivitySession>,
         val videoSessions: List<TimeTracker.ActivitySession>,
         val completedGameSessions: List<TimeTracker.ActivitySession>,
-        val averageGameTimeMinutes: Double,
-        val averageVideoTimeMinutes: Double,
-        val longestSessionMinutes: Double,
+        val averageGameTimeMinutes: Int,
+        val averageVideoTimeMinutes: Int,
+        val longestSessionMinutes: Int,
         val mostPlayedGame: String?,
         val totalSessions: Int
     )
@@ -84,7 +84,7 @@ class DailyProgressManager(private val context: Context) {
             .putString(KEY_COMPLETED_TASKS, gson.toJson(emptyMap<String, Boolean>()))
             .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(emptyMap<String, String>()))
             .putString(KEY_LAST_RESET_DATE, currentDate)
-            .putFloat("banked_reward_minutes", 0f) // Reset reward bank for new day
+            .putInt("banked_reward_minutes", 0) // Reset reward bank for new day
             .apply()
 
         // Also reset video sequence progress for new day
@@ -115,7 +115,7 @@ class DailyProgressManager(private val context: Context) {
     fun resetAllProgress() {
         resetProgressForNewDay()
         // Also reset reward bank
-        setBankedRewardMinutes(0.0)
+        setBankedRewardMinutes(0)
     }
 
     /**
@@ -512,24 +512,24 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Converts earned stars to reward minutes based on the conversion rules:
-     * 1 star = 1 minute, 2 stars = 2.5 minutes, 3 stars = 5 minutes
+     * 1 star = 1 minute, 2 stars = 3 minutes, 3 stars = 5 minutes
      * For 4+ stars, uses the 3-star multiplier (5 minutes per 3 stars)
      */
-    fun convertStarsToMinutes(stars: Int): Double {
-        if (stars <= 0) return 0.0
+    fun convertStarsToMinutes(stars: Int): Int {
+        if (stars <= 0) return 0
 
         return when (stars) {
-            1 -> 1.0
-            2 -> 2.5
-            3 -> 5.0
+            1 -> 1
+            2 -> 3
+            3 -> 5
             else -> {
                 // For 4+ stars, calculate using 3-star = 5 minutes ratio
                 val fullSetsOf3 = stars / 3
                 val remainingStars = stars % 3
-                (fullSetsOf3 * 5.0) + when (remainingStars) {
-                    1 -> 1.0
-                    2 -> 2.5
-                    else -> 0.0
+                (fullSetsOf3 * 5) + when (remainingStars) {
+                    1 -> 1
+                    2 -> 3
+                    else -> 0
                 }
             }
         }
@@ -538,21 +538,36 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Gets the current banked reward minutes
      */
-    fun getBankedRewardMinutes(): Double {
-        return prefs.getFloat("banked_reward_minutes", 0f).toDouble()
+    fun getBankedRewardMinutes(): Int {
+        return try {
+            prefs.getInt("banked_reward_minutes", 0)
+        } catch (e: ClassCastException) {
+            // Handle case where it was previously stored as a String or Float
+            try {
+                val floatValue = prefs.getFloat("banked_reward_minutes", 0f)
+                floatValue.toInt()
+            } catch (e2: ClassCastException) {
+                // Fallback for extremely old versions or incorrect storage type
+                val stringValue = prefs.getString("banked_reward_minutes", "0")
+                stringValue?.toFloatOrNull()?.toInt() ?: 0
+            }
+        }
     }
 
     /**
      * Sets the banked reward minutes
      */
-    fun setBankedRewardMinutes(minutes: Double) {
-        prefs.edit().putFloat("banked_reward_minutes", minutes.toFloat()).apply()
+    fun setBankedRewardMinutes(minutes: Int) {
+        prefs.edit()
+            .remove("banked_reward_minutes") // Explicitly remove to avoid type conflicts
+            .putInt("banked_reward_minutes", minutes)
+            .apply()
     }
 
     /**
      * Adds stars to the bank and converts to reward minutes
      */
-    fun addStarsToRewardBank(stars: Int): Double {
+    fun addStarsToRewardBank(stars: Int): Int {
         val currentMinutes = getBankedRewardMinutes()
         val newMinutes = currentMinutes + convertStarsToMinutes(stars)
         setBankedRewardMinutes(newMinutes)
@@ -563,13 +578,13 @@ class DailyProgressManager(private val context: Context) {
      * Uses all banked reward minutes and resets them to 0
      * Returns the minutes that were used
      */
-    fun useAllRewardMinutes(): Double {
+    fun useAllRewardMinutes(): Int {
         val currentMinutes = getBankedRewardMinutes()
         if (currentMinutes > 0) {
-            setBankedRewardMinutes(0.0)
+            setBankedRewardMinutes(0)
             return currentMinutes
         }
-        return 0.0
+        return 0
     }
 
     /**
@@ -669,7 +684,7 @@ class DailyProgressManager(private val context: Context) {
             earnedStars = earnedStars,
             totalStars = totalStars,
             completionRate = completionRate,
-            totalTimeMinutes = totalTimeMinutes,
+            totalTimeMinutes = totalTimeMinutes.toInt(),
             gamesPlayed = gamesPlayed,
             videosWatched = videosWatched,
             completedTasks = completedTasks.filter { it.value }.keys.toList(),
@@ -677,9 +692,9 @@ class DailyProgressManager(private val context: Context) {
             gameSessions = gameSessions,
             videoSessions = videoSessions,
             completedGameSessions = completedGameSessions,
-            averageGameTimeMinutes = if (gameSessions.isNotEmpty()) gameSessions.map { it.durationMinutes }.average() else 0.0,
-            averageVideoTimeMinutes = if (videoSessions.isNotEmpty()) videoSessions.map { it.durationMinutes }.average() else 0.0,
-            longestSessionMinutes = todaySummary.sessions.maxOfOrNull { it.durationMinutes } ?: 0.0,
+            averageGameTimeMinutes = if (gameSessions.isNotEmpty()) gameSessions.map { it.durationMinutes }.average().toInt() else 0,
+            averageVideoTimeMinutes = if (videoSessions.isNotEmpty()) videoSessions.map { it.durationMinutes }.average().toInt() else 0,
+            longestSessionMinutes = todaySummary.sessions.maxOfOrNull { it.durationMinutes }?.toInt() ?: 0,
             mostPlayedGame = gameSessions.groupBy { it.activityName }.maxByOrNull { it.value.size }?.key,
             totalSessions = todaySummary.sessions.size
         )

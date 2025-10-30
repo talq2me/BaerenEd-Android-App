@@ -70,39 +70,6 @@
             android:orientation="vertical"
             android:layout_marginBottom="24dp" />
 
-        <!-- Reward Section -->
-        <LinearLayout
-            android:id="@+id/rewardLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="16dp"
-            android:background="@android:drawable/dialog_holo_light_frame"
-            android:padding="16dp"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/rewardTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Reward Time!"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="12dp"
-                android:fontFamily="sans-serif-medium" />
-
-            <TextView
-                android:id="@+id/rewardDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Complete tasks to unlock rewards"
-                android:textSize="20sp"
-                android:textColor="@android:color/darker_gray"
-                android:fontFamily="sans-serif" />
-
-        </LinearLayout>
-
         <!-- Report Button -->
         <Button
             android:id="@+id/sendReportButton"

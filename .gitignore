@@ -22,3 +22,4 @@ gitignore
 # macOS files
 # ===========
 .DS_Store
+/app/src/main/java/com/talq2me/baerened/Baeren.code-workspace
