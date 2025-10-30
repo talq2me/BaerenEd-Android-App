@@ -74,9 +74,9 @@ class YouTubePlayerActivity : AppCompatActivity() {
         val playlistId = intent.getStringExtra(EXTRA_PLAYLIST_ID)
 
         val url: String = if (!videoId.isNullOrEmpty()) {
-            "https://talq2me.github.io/Baeren/BaerenEd/androidPages/singleVideoPlayerForAndroid.html?videoId=$videoId"
+            "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/singleVideoPlayerForAndroid.html?videoId=$videoId"
         } else if (!playlistId.isNullOrEmpty()) {
-            "https://talq2me.github.io/Baeren/BaerenEd/androidPages/playlistVideoPlayerForAndroid.html?playlistId=$playlistId"
+            "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/playlistVideoPlayerForAndroid.html?playlistId=$playlistId"
         } else {
             Toast.makeText(this, "No video or playlist ID provided", Toast.LENGTH_LONG).show()
             finish()

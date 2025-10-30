@@ -1,7 +1,7 @@
 {
   "version": "2025-10-04",
   "title": "Select Your Profile",
-  "icon": "https://talq2me.github.io/Baeren/BaerenEd/images/Baeren-Ed.jpeg",
+  "icon": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/Baeren-Ed.jpeg",
   "buttons": [
     {
       "title": "AM Tasks",

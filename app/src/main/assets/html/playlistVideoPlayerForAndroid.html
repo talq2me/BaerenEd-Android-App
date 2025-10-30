@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Player</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+        #playlistPlayerContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #playlistYTPlayer {
+            width: 100vw;
+            height: 100vh;
+        }
+        #ytOverlayBlocker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+        }
+        #ytCustomControls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            text-align: center;
+            z-index: 3;
+            background: rgba(34, 34, 34, 0.8);
+            border-radius: 16px;
+            padding: 12px;
+            display: inline-block;
+        }
+        #ytCustomControls button {
+            font-size: 2em;
+            margin: 0 0.5em;
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        #closeBtn {
+            position: absolute;
+            top: 18px;
+            right: 28px;
+            z-index: 4;
+            font-size: 2em;
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        #playlist {
+            list-style-type: none;
+            padding: 0;
+        }
+        #playlist li {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        #playlist li:hover {
+            background-color: #f1f1f1;
+        }
+        .close-modal-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="playlistPlayerContainer">
+        <div id="playlistYTPlayer"></div>
+        <div id="ytOverlayBlocker"></div>
+        <div id="ytCustomControls">
+            <button id="ytPrevBtn">⏮️</button>
+            <button id="ytPlayBtn">▶️</button>
+            <button id="ytPauseBtn">⏸️</button>
+            <button id="ytNextBtn">⏭️</button>
+            <button id="showPlaylistBtn">📜</button>
+        </div>
+        <button id="closeBtn">&times;</button>
+    </div>
+
+    <div id="playlistModal" class="modal">
+        <div class="modal-content">
+            <span id="closePlaylistModal" class="close-modal-btn">&times;</span>
+            <h2>Playlist</h2>
+            <ul id="playlist"></ul>
+        </div>
+    </div>
+
+    <script>
+        let player;
+        const playlistModal = document.getElementById('playlistModal');
+
+        function getPlaylistIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('playlistId');
+        }
+
+        function onYouTubeIframeAPIReady() {
+            const playlistId = getPlaylistIdFromUrl();
+            if (!playlistId) {
+                document.getElementById('playlistYTPlayer').innerHTML = '<h2 style="color:white; text-align: center;">No Playlist ID provided.</h2>';
+                return;
+            }
+
+            player = new YT.Player('playlistYTPlayer', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    autoplay: 1, rel: 0, controls: 0, modestbranding: 1, enablejsapi: 1,
+                    listType: 'playlist', list: playlistId
+                },
+                events: { 'onReady': onPlayerReady }
+            });
+        }
+
+        function onPlayerReady(event) {
+            setupCustomControls();
+            setupPlaylistMenu();
+        }
+
+        function setupPlaylistMenu() {
+            const playlistItems = player.getPlaylist();
+            const playlistElement = document.getElementById('playlist');
+            playlistElement.innerHTML = ''; // Clear existing items
+
+            playlistItems.forEach((videoId, index) => {
+                const li = document.createElement('li');
+                li.textContent = `Video ${index + 1}`;
+                li.dataset.index = index;
+                li.onclick = () => {
+                    player.playVideoAt(index);
+                    playlistModal.style.display = 'none';
+                };
+                playlistElement.appendChild(li);
+            });
+        }
+
+        function setupCustomControls() {
+            document.getElementById('ytPrevBtn').onclick = () => player.previousVideo();
+            document.getElementById('ytPlayBtn').onclick = () => player.playVideo();
+            document.getElementById('ytPauseBtn').onclick = () => player.pauseVideo();
+            document.getElementById('ytNextBtn').onclick = () => player.nextVideo();
+            document.getElementById('showPlaylistBtn').onclick = () => {
+                playlistModal.style.display = 'block';
+            };
+            document.getElementById('closePlaylistModal').onclick = () => {
+                playlistModal.style.display = 'none';
+            };
+            document.getElementById('closeBtn').onclick = () => {
+                if (window.Android && typeof window.Android.closeActivity === 'function') {
+                    window.Android.closeActivity();
+                } else {
+                    window.close();
+                    window.parent.postMessage({ type: "closeModal" }, "*");
+                }
+            };
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == playlistModal) {
+                playlistModal.style.display = "none";
+            }
+        }
+
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    </script>
+</body>
+</html>

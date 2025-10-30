@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Video Player</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+        #playerContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #player {
+            width: 100vw;
+            height: 100vh;
+        }
+        #ytOverlayBlocker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+        }
+        #ytCustomControls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            text-align: center;
+            z-index: 3;
+            background: rgba(34, 34, 34, 0.8);
+            border-radius: 16px;
+            padding: 12px;
+            display: inline-block;
+        }
+        #ytCustomControls button {
+            font-size: 2em;
+            margin: 0 1em;
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        #closeBtn {
+            position: absolute;
+            top: 18px;
+            right: 28px;
+            z-index: 4;
+            font-size: 2em;
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="playerContainer">
+        <div id="player"></div>
+        <div id="ytOverlayBlocker"></div>
+        <div id="ytCustomControls">
+            <button id="ytReplayBtn">🔄</button>
+            <button id="ytPlayBtn">▶️</button>
+            <button id="ytPauseBtn">⏸️</button>
+        </div>
+        <button id="closeBtn">&times;</button>
+    </div>
+
+    <script>
+        var player;
+
+        function getVideoId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('videoId');
+        }
+
+        function onYouTubeIframeAPIReady() {
+            const videoId = getVideoId();
+            if (!videoId) {
+                document.getElementById('player').innerHTML = '<h2 style="color:white; text-align: center;">No videoId provided.</h2>';
+                return;
+            }
+
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0, // Disable default controls
+                    'rel': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            setupCustomControls();
+            event.target.playVideo();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.ENDED) {
+                // Call the Android interface to signal video completion and grant rewards
+                if (window.Android && typeof window.Android.finishVideo === 'function') {
+                    window.Android.finishVideo();
+                } else {
+                    // Fallback for non-Android environments or if interface is not ready
+                    window.parent.postMessage({ type: "videoEnded" }, "*");
+                }
+            }
+        }
+
+        function setupCustomControls() {
+            document.getElementById('ytReplayBtn').onclick = () => player.seekTo(0);
+            document.getElementById('ytPlayBtn').onclick = () => player.playVideo();
+            document.getElementById('ytPauseBtn').onclick = () => player.pauseVideo();
+            document.getElementById('closeBtn').onclick = () => {
+                if (window.Android && typeof window.Android.closeActivity === 'function') {
+                    window.Android.closeActivity(); // This will now close the Android activity without rewards
+                } else {
+                    // Fallback for non-Android environments
+                    window.close();
+                    window.parent.postMessage({ type: "closeModal" }, "*");
+                }
+            };
+        }
+
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    </script>
+</body>
+</html>
