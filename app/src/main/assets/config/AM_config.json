@@ -50,10 +50,10 @@
         {
           "title": "French Vowels",
           "launch": "frenchVowels",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
           "stars": 3,
           "webGame": true,
-          "rewardId": "timesTables"
+          "rewardId": "frenchVowels"
         },
         {
           "title": "Money Game",
