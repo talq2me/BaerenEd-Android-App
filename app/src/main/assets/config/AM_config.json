@@ -40,6 +40,14 @@
           "totalQuestions": 5
         },
         {
+          "title": "Times Tables",
+          "launch": "timesTables",
+          "url": "https://talq2me.github.io/Baeren/BaerenEd/androidPages/timesTables.html",
+          "stars": 3,
+          "webGame": true,
+          "rewardId": "timesTables"
+        },
+        {
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
           "stars": 3,
@@ -127,15 +135,5 @@
         { "label": "Practice piano", "stars": 1, "done": false, "id": "am_practice_piano" }
       ]
     }
-  ],
-
-  "reward": {
-    "title": "Reward Time!",
-    "description": "You can unlock a special app when you reach 10 stars.",
-    "unlocked15": false,
-    "unlocked30": false,
-    "unlocked45": false,
-    "unlocked60": false,
-    "action": "unlockReward"
-  }
+  ]
 }
