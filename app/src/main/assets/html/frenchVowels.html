@@ -107,39 +107,39 @@
 </head>
 <body>
 
-    <div class="game-container">
-        <h1>French Vowels</h1>
-        <div class="prompt-text" id="promptText">Listen and click the correct vowel sound!</div>
-        <div class="grid-container" id="gridContainer"></div>
-        <button id="playAgainButton" class="button">Play Sound Again</button>
-    </div>
+<div class="game-container">
+    <h1>French Vowels</h1>
+    <div class="prompt-text" id="promptText">Listen and click the correct vowel sound!</div>
+    <div class="grid-container" id="gridContainer"></div>
+    <button id="playAgainButton" class="button">Play Sound Again</button>
+</div>
 
-    <script>
-        // --- Minimal TTS Function ---
-        window.currentTTSUtterance = null;
-        function readText(text, lang, rate = 0.6, onEndCallback = null) {
-            if ('speechSynthesis' in window) {
-                if (window.currentTTSUtterance) {
-                    window.speechSynthesis.cancel();
-                }
-                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
-                window.currentTTSUtterance.lang = lang;
-                window.currentTTSUtterance.rate = rate;
-                window.currentTTSUtterance.onend = function() {
-                    if (onEndCallback) onEndCallback();
-                    window.currentTTSUtterance = null;
-                };
-                window.speechSynthesis.speak(window.currentTTSUtterance);
-            } else {
-                console.warn("Text-to-speech not supported.");
-                if (onEndCallback) onEndCallback();
+<script>
+    // --- Minimal TTS Function ---
+    window.currentTTSUtterance = null;
+    function readText(text, lang, rate = 0.6, onEndCallback = null) {
+        if ('speechSynthesis' in window) {
+            if (window.currentTTSUtterance) {
+                window.speechSynthesis.cancel();
             }
+            window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+            window.currentTTSUtterance.lang = lang;
+            window.currentTTSUtterance.rate = rate;
+            window.currentTTSUtterance.onend = function() {
+                if (onEndCallback) onEndCallback();
+                window.currentTTSUtterance = null;
+            };
+            window.speechSynthesis.speak(window.currentTTSUtterance);
+        } else {
+            console.warn("Text-to-speech not supported.");
+            if (onEndCallback) onEndCallback();
         }
+    }
 
-        // --- Game Logic ---
-        const gridContainer = document.getElementById('gridContainer');
-        const promptText = document.getElementById('promptText');
-        const playAgainButton = document.getElementById('playAgainButton');
+    // --- Game Logic ---
+    const gridContainer = document.getElementById('gridContainer');
+    const promptText = document.getElementById('promptText');
+    const playAgainButton = document.getElementById('playAgainButton');
 
         const VOWELS_TO_INCLUDE = ['a', 'e', 'é', 'è', 'ê', 'i', 'o', 'u', 'y'];
         const allVowelData = [
@@ -154,112 +154,107 @@
             {"word": "y", "audio": "../audio/en/ee.wav"}
         ];
 
-        let currentVowelCards = [];
-        let activeAudioVowel = null;
-        let solvedCardIds = new Set();
+    let currentVowelCards = [];
+    let activeAudioVowel = null;
+    let solvedCardIds = new Set();
 
-        function initializeGame() {
-            solvedCardIds.clear();
-            generateVowelCards();
-            renderGrid();
-            setTimeout(playRandomVowelSound, 1000);
-            playAgainButton.onclick = () => {
-                if (activeAudioVowel) playAudio(activeAudioVowel.audio);
-            };
+    function initializeGame() {
+        solvedCardIds.clear();
+        generateVowelCards();
+        renderGrid();
+        setTimeout(playRandomVowelSound, 1000);
+        playAgainButton.onclick = () => {
+            if (activeAudioVowel) playAudio(activeAudioVowel.audio);
+        };
+    }
+
+    function generateVowelCards() {
+        currentVowelCards = VOWELS_TO_INCLUDE
+            .map(vowelChar => allVowelData.find(item => item.word === vowelChar))
+            .filter(item => item !== undefined);
+        currentVowelCards.sort(() => 0.5 - Math.random());
+    }
+
+    function renderGrid() {
+        gridContainer.innerHTML = '';
+        currentVowelCards.forEach((vowel, index) => {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.id = index;
+            tile.textContent = vowel.word;
+            if (solvedCardIds.has(index)) {
+                tile.classList.add('solved');
+            }
+            tile.onclick = () => handleTileClick(tile, vowel, index);
+            gridContainer.appendChild(tile);
+        });
+    }
+
+    async function playRandomVowelSound() {
+        const unsolvedCards = currentVowelCards.filter((_, index) => !solvedCardIds.has(index));
+        if (unsolvedCards.length === 0) {
+            endGame();
+            return;
         }
+        activeAudioVowel = unsolvedCards[Math.floor(Math.random() * unsolvedCards.length)];
+        promptText.textContent = 'Listen and click the correct vowel sound!';
+        await playAudio(activeAudioVowel.audio);
+    }
 
-        function generateVowelCards() {
-            currentVowelCards = VOWELS_TO_INCLUDE
-                .map(vowelChar => allVowelData.find(item => item.word === vowelChar))
-                .filter(item => item !== undefined);
-            currentVowelCards.sort(() => 0.5 - Math.random());
-        }
+    function handleTileClick(tile, clickedVowelData, cardId) {
+        if (solvedCardIds.has(cardId)) return;
 
-        function renderGrid() {
-            gridContainer.innerHTML = '';
-            currentVowelCards.forEach((vowel, index) => {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.dataset.id = index;
-                tile.textContent = vowel.word;
-                if (solvedCardIds.has(index)) {
-                    tile.classList.add('solved');
-                }
-                tile.onclick = () => handleTileClick(tile, vowel, index);
-                gridContainer.appendChild(tile);
-            });
-        }
+        const isEquivalent = (v1, v2) =>
+            (v1 === 'è' && v2 === 'ê') || (v1 === 'ê' && v2 === 'è') ||
+            (v1 === 'i' && v2 === 'y') || (v1 === 'y' && v2 === 'i');
 
-        async function playRandomVowelSound() {
-            const unsolvedCards = currentVowelCards.filter((_, index) => !solvedCardIds.has(index));
-            if (unsolvedCards.length === 0) {
+        if (clickedVowelData.word === activeAudioVowel.word || isEquivalent(clickedVowelData.word, activeAudioVowel.word)) {
+            // Mark the clicked tile as solved
+            solvedCardIds.add(cardId);
+            tile.classList.add('solved');
+
+            if (solvedCardIds.size === currentVowelCards.length) {
                 endGame();
-                return;
-            }
-            activeAudioVowel = unsolvedCards[Math.floor(Math.random() * unsolvedCards.length)];
-            promptText.textContent = 'Listen and click the correct vowel sound!';
-            await playAudio(activeAudioVowel.audio);
-        }
-
-        function handleTileClick(tile, clickedVowelData, cardId) {
-            if (solvedCardIds.has(cardId)) return;
-
-            const isEquivalent = (v1, v2) => 
-                (v1 === 'è' && v2 === 'ê') || (v1 === 'ê' && v2 === 'è') ||
-                (v1 === 'i' && v2 === 'y') || (v1 === 'y' && v2 === 'i');
-
-            if (clickedVowelData.word === activeAudioVowel.word || isEquivalent(clickedVowelData.word, activeAudioVowel.word)) {
-                // Mark all equivalent vowels as solved
-                currentVowelCards.forEach((card, index) => {
-                    if (card.word === clickedVowelData.word || isEquivalent(card.word, clickedVowelData.word)) {
-                        solvedCardIds.add(index);
-                        const solvedTile = gridContainer.querySelector(`.tile[data-id='${index}']`);
-                        if (solvedTile) solvedTile.classList.add('solved');
-                    }
-                });
-
-                if (solvedCardIds.size === currentVowelCards.length) {
-                    endGame();
-                } else {
-                    setTimeout(playRandomVowelSound, 1000);
-                }
             } else {
-                tile.classList.add('correct'); // Temporarily show it was incorrect by using 'correct' style
-                tile.style.backgroundColor = '#f44336'; // Red for incorrect
-                setTimeout(() => {
-                    tile.classList.remove('correct');
-                    tile.style.backgroundColor = ''; // Revert color
-                }, 1000);
+                setTimeout(playRandomVowelSound, 1000);
             }
+        } else {
+            tile.classList.add('correct'); // Temporarily show it was incorrect by using 'correct' style
+            tile.style.backgroundColor = '#f44336'; // Red for incorrect
+            setTimeout(() => {
+                tile.classList.remove('correct');
+                tile.style.backgroundColor = ''; // Revert color
+            }, 1000);
         }
+    }
 
-        function playAudio(audioPath) {
-            return new Promise((resolve) => {
-                const audio = new Audio(audioPath);
-                audio.onended = resolve;
-                audio.onerror = (e) => { console.error("Error playing audio:", e); resolve(); };
-                audio.play().catch(e => { console.error("Audio play failed:", e); resolve(); });
-            });
+    function playAudio(audioPath) {
+        return new Promise((resolve) => {
+            const audio = new Audio(audioPath);
+            audio.onended = resolve;
+            audio.onerror = (e) => { console.error("Error playing audio:", e); resolve(); };
+            audio.play().catch(e => { console.error("Audio play failed:", e); resolve(); });
+        });
+    }
+
+    function endGame() {
+        promptText.textContent = "Félicitations!";
+        gridContainer.innerHTML = `<div class="tile correct" style="grid-column: 1 / -1; font-size: 2rem; aspect-ratio: auto; height: 200px;">🎉 Bien joué! 🎉</div>`;
+        readText("Félicitations!", "fr-FR", 0.6);
+
+        // Call the Android interface to signal video completion and grant rewards
+        if (window.Android && typeof window.Android.gameCompleted === 'function') {
+            window.Android.gameCompleted();
+        } else if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'gameCompleted' }, '*');
+            setTimeout(() => window.parent.postMessage({ type: 'closeModal' }, '*'), 3000);
+        } else {
+            setTimeout(() => history.back(), 3000);
         }
+    }
 
-        function endGame() {
-            promptText.textContent = "Félicitations!";
-            gridContainer.innerHTML = `<div class="tile correct" style="grid-column: 1 / -1; font-size: 2rem; aspect-ratio: auto; height: 200px;">🎉 Bien joué! 🎉</div>`;
-            readText("Félicitations!", "fr-FR", 0.6);
-            
-            // Call the Android interface to signal video completion and grant rewards
-            if (window.Android && typeof window.Android.gameCompleted === 'function') {
-                window.Android.gameCompleted();
-            } else if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'gameCompleted' }, '*');
-                setTimeout(() => window.parent.postMessage({ type: 'closeModal' }, '*'), 3000);
-            } else {
-                setTimeout(() => history.back(), 3000);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', initializeGame);
-    </script>
+    document.addEventListener('DOMContentLoaded', initializeGame);
+</script>
 
 </body>
 </html>
