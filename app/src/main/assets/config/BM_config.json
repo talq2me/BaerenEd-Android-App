@@ -40,6 +40,14 @@
           "stars": 3,
           "webGame": true,
           "rewardId": "timesTables"
+        },
+        {
+          "title": "Time Telling",
+          "launch": "timeTelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
+          "stars": 3,
+          "webGame": true,
+          "rewardId": "timeTelling"
         }
       ]
     },

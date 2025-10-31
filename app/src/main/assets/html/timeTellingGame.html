@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Telling Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background-color: #fffcf9;
+        }
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        #starCount {
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .clock-container {
+            margin: 30px auto;
+            width: 300px;
+            height: 300px;
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 50%;
+            border: 8px solid #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .clock-face { width: 100%; height: 100%; position: relative; }
+        .clock-number {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            transform-origin: center;
+        }
+        .hour-hand, .minute-hand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) translateY(-100%);
+        }
+        .hour-hand { width: 6px; height: 80px; background: #333; border-radius: 3px; z-index: 10; }
+        .minute-hand { width: 4px; height: 120px; background: #666; border-radius: 2px; z-index: 11; }
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            background: #333;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 13;
+        }
+        .question { font-size: 24px; margin: 20px 0; color: #333; }
+        #choices { margin-top: 20px; font-size: 24px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .time-input { font-size: 32px; font-weight: bold; color: #2196F3; margin: 20px 0; min-height: 50px; padding: 10px; border: 2px solid #ccc; border-radius: 10px; background: #f8f9fa; }
+        .number-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 300px; margin: 20px auto; }
+        .number-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .number-button:hover { background: #45a049; transform: translateY(-2px); }
+        .number-button:active { transform: translateY(0); }
+        .number-button.clear { background: #f44336; }
+        .number-button.clear:hover { background: #d32f2f; }
+        .number-button.enter { background: #2196F3; }
+        .number-button.enter:hover { background: #1976D2; }
+        #messageContainer { margin-top: 20px; font-size: 24px; }
+        .button, .big-button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 4px 8px 4px 0;
+            color: white;
+        }
+        .button { padding: 20px 40px; font-size: 24px; background-color: #6ac2ff; }
+        .big-button { padding: 20px 40px; font-size: 24px; background-color: #4CAF50; }
+        .button:hover, .big-button:hover { background-color: #ff8c00; transform: scale(1.05); }
+        .button.selected { background: #ffe066 !important; color: #222 !important; border: 2px solid #ff8c00 !important; box-shadow: 0 0 8px #ff8c00; }
+        .correct { background-color: rgb(22, 211, 22) !important; color: white !important; }
+        .incorrect { background-color: red !important; color: white !important; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Time Telling Game</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        <div class="question" id="question">What time is it?</div>
+        <div class="clock-container">
+            <div class="clock-face" id="clockFace"></div>
+            <div class="hour-hand" id="hourHand"></div>
+            <div class="minute-hand" id="minuteHand"></div>
+            <div class="clock-center"></div>
+        </div>
+        <div id="choices"></div>
+        <div id="timeInput" style="display: none;">
+            <div class="time-input" id="timeDisplay">--:--</div>
+            <div class="number-pad" id="numberPad"></div>
+        </div>
+        <div id="messageContainer"></div>
+    </div>
+
+    <script>
+        let correctCount = 0;
+        const maxQuestions = 10;
+        let gameMode = 'easy';
+        let currentTime = { hours: 0, minutes: 0 };
+        let timeInput = '';
+
+        function getModeFromURL() {
+            const mode = new URLSearchParams(window.location.search).get('mode');
+            return ['easy', 'medium', 'hard', 'extreme'].includes(mode) ? mode : 'easy';
+        }
+
+        function initializeClock() {
+            const clockFace = document.getElementById('clockFace');
+            for (let i = 1; i <= 12; i++) {
+                const number = document.createElement('div');
+                number.className = 'clock-number';
+                number.textContent = i;
+                const angle = (i * 30) - 90;
+                const radius = 120;
+                const x = Math.cos(angle * Math.PI / 180) * radius;
+                const y = Math.sin(angle * Math.PI / 180) * radius;
+                number.style.left = `calc(50% + ${x}px)`;
+                number.style.top = `calc(50% + ${y}px)`;
+                number.style.transform = 'translate(-50%, -50%)';
+                clockFace.appendChild(number);
+            }
+        }
+
+        function setClockTime(hours, minutes) {
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const hourAngle = (hours % 12 + minutes / 60) * 30;
+            const minuteAngle = minutes * 6;
+            hourHand.style.transform = `translateX(-50%) translateY(-100%) rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `translateX(-50%) translateY(-100%) rotate(${minuteAngle}deg)`;
+        }
+
+        function generateTime() {
+            const hours = Math.floor(Math.random() * 12) + 1;
+            let minutes;
+            if (gameMode === 'easy') {
+                minutes = [0, 30][Math.floor(Math.random() * 2)];
+            } else if (gameMode === 'medium') {
+                minutes = [0, 15, 30, 45][Math.floor(Math.random() * 4)];
+            } else { // hard or extreme
+                minutes = Math.floor(Math.random() * 60);
+            }
+            return { hours, minutes };
+        }
+
+        function formatTime(hours, minutes) {
+            return `${hours}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        function generateAnswers(correctTime) {
+            const answers = [correctTime];
+            while (answers.length < 4) {
+                const { hours, minutes } = generateTime();
+                const wrongTime = formatTime(hours, minutes);
+                if (!answers.includes(wrongTime)) {
+                    answers.push(wrongTime);
+                }
+            }
+            return answers.sort(() => Math.random() - 0.5);
+        }
+
+        function createNumberPad() {
+            const numberPad = document.getElementById('numberPad');
+            numberPad.innerHTML = '';
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⏎'].forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'number-button';
+                button.textContent = btn;
+                if (btn === 'C') {
+                    button.classList.add('clear');
+                    button.onclick = () => clearTimeInput();
+                } else if (btn === '⏎') {
+                    button.classList.add('enter');
+                    button.onclick = () => submitTimeInput();
+                } else {
+                    button.onclick = () => addToTimeInput(btn);
+                }
+                numberPad.appendChild(button);
+            });
+        }
+
+        function addToTimeInput(digit) {
+            if (timeInput.length < 4) timeInput += digit;
+            updateTimeDisplay();
+        }
+
+        function clearTimeInput() {
+            timeInput = '';
+            updateTimeDisplay();
+        }
+
+        function updateTimeDisplay() {
+            const display = document.getElementById('timeDisplay');
+            let [h1 = '-', h2 = '-', m1 = '-', m2 = '-'] = timeInput;
+            display.textContent = `${h1}${h2}:${m1}${m2}`;
+        }
+
+        function submitTimeInput() {
+            if (timeInput.length < 4) return alert('Please enter a complete time');
+            const hours = parseInt(timeInput.slice(0, 2));
+            const minutes = parseInt(timeInput.slice(2, 4));
+            if (hours < 1 || hours > 12 || minutes > 59) return alert('Please enter a valid time (HH:MM from 01:00 to 12:59)');
+            handleAnswer(formatTime(hours, minutes));
+        }
+
+        function createQuestion() {
+            if (correctCount >= maxQuestions) return endGame();
+            
+            currentTime = generateTime();
+            setClockTime(currentTime.hours, currentTime.minutes);
+            const correctAnswer = formatTime(currentTime.hours, currentTime.minutes);
+
+            document.getElementById('messageContainer').innerHTML = '';
+            document.getElementById('choices').style.pointerEvents = 'auto';
+
+            if (gameMode === 'extreme') {
+                document.getElementById('choices').style.display = 'none';
+                document.getElementById('timeInput').style.display = 'block';
+                clearTimeInput();
+            } else {
+                document.getElementById('choices').style.display = 'flex';
+                document.getElementById('timeInput').style.display = 'none';
+                const answers = generateAnswers(correctAnswer);
+                const choicesDiv = document.getElementById("choices");
+                choicesDiv.innerHTML = '';
+                answers.forEach(choice => {
+                    const btn = document.createElement("button");
+                    btn.innerText = choice;
+                    btn.className = "button";
+                    btn.onclick = () => handleAnswer(choice, btn);
+                    choicesDiv.appendChild(btn);
+                });
+            }
+        }
+        
+        function handleAnswer(selectedAnswer, btn) {
+            const correctAnswer = formatTime(currentTime.hours, currentTime.minutes);
+            const isCorrect = selectedAnswer === correctAnswer;
+            const feedback = document.getElementById('messageContainer');
+            document.getElementById('choices').style.pointerEvents = 'none';
+
+            if (isCorrect) {
+                if(btn) btn.classList.add('correct');
+                feedback.innerHTML = "⭐ Correct!";
+                correctCount++;
+                updateStarCount();
+                setTimeout(createQuestion, 1200);
+            } else {
+                if(btn) btn.classList.add('incorrect');
+                feedback.innerHTML = `☹️ Incorrect! It was <b>${correctAnswer}</b>`;
+                setTimeout(createQuestion, 2200);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').textContent = `Game Complete!`;
+            document.getElementById('choices').innerHTML = '';
+            document.getElementById('timeInput').style.display = 'none';
+            document.getElementById('messageContainer').innerHTML = `Final Score: ${correctCount}/${maxQuestions} ⭐`;
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted' }, '*');
+            }
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            gameMode = getModeFromURL();
+            initializeClock();
+            createNumberPad();
+            
+
+
+            // Start the game
+            correctCount = 0;
+            updateStarCount();
+            createQuestion();
+        });
+    </script>
+</body>
+</html>
