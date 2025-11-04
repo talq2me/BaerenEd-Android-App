@@ -22,14 +22,51 @@
       "description": "Complete all of these first!",
       "tasks": [
         {
-          "title": "Spelling Game",
-          "launch": "spelling",
-          "stars": 2,
-          "totalQuestions": 10
+          "title": "Duological",
+          "launch": "duologicalGame",
+          "stars": 3,
+          "totalQuestions": 7
         },
         {
-          "title": "Sight Words",
-          "launch": "sightWords",
+          "title": "French Stories",
+          "launch": "frenchStories",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Congugation",
+          "launch": "conjugation",
+          "stars": 3,
+          "totalQuestions": 7
+        },
+        {
+          "title": "Fractions",
+          "launch": "gr3fractions",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Math",
+          "launch": "gr3math",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Mixed Math",
+          "launch": "gr3mixedproblems",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Math Word Problems",
+          "launch": "gr3wordproblems",
+          "stars": 3,
+          "totalQuestions": 5,
+          "displayDays": "mon,tue,wed,thu,fri"
+        },
+        {
+          "title": "Algebra",
+          "launch": "gr3algebra",
           "stars": 3,
           "totalQuestions": 5
         },
@@ -48,6 +85,28 @@
           "stars": 3,
           "webGame": true,
           "rewardId": "timeTelling"
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard",
+          "stars": 3,
+          "webGame": true,
+          "rewardId": "engSpelling",
+          "easydays": "mon,tue",
+          "harddays": "wed",
+          "extremedays": "thu,fri"
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard",
+          "stars": 3,
+          "webGame": true,
+          "rewardId": "frSpelling",
+          "easydays": "tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun,mon"
         }
       ]
     },

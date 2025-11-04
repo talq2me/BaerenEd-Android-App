@@ -166,6 +166,45 @@ class DailyProgressManager(private val context: Context) {
             .apply()
     }
 
+    private fun isTaskVisible(showdays: String?, hidedays: String?): Boolean {
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val todayShort = when (today) {
+            Calendar.MONDAY -> "mon"
+            Calendar.TUESDAY -> "tue"
+            Calendar.WEDNESDAY -> "wed"
+            Calendar.THURSDAY -> "thu"
+            Calendar.FRIDAY -> "fri"
+            Calendar.SATURDAY -> "sat"
+            Calendar.SUNDAY -> "sun"
+            else -> ""
+        }
+
+        if (!hidedays.isNullOrEmpty()) {
+            if (hidedays.split(",").contains(todayShort)) {
+                return false // Hide if today is in hidedays
+            }
+        }
+
+        if (!showdays.isNullOrEmpty()) {
+            return showdays.split(",").contains(todayShort) // Show only if today is in showdays
+        }
+
+        return true // Visible by default if no restrictions
+    }
+
+    private fun filterVisibleContent(originalContent: MainContent): MainContent {
+        val filteredSections = originalContent.sections?.map { section ->
+            val filteredTasks = section.tasks?.filter { task ->
+                isTaskVisible(task.showdays, task.hidedays)
+            }
+            val filteredItems = section.items?.filter { item ->
+                isTaskVisible(item.showdays, item.hidedays)
+            }
+            section.copy(tasks = filteredTasks, items = filteredItems)
+        }
+        return originalContent.copy(sections = filteredSections)
+    }
+
     /**
      * Marks a task as completed and returns the stars earned
      * For required/once-per-day tasks: only award once per day
@@ -238,7 +277,9 @@ class DailyProgressManager(private val context: Context) {
         val completedTasks = getCompletedTasks()
         var earnedStars = 0
 
-        config.sections?.forEach { section ->
+        val visibleContent = filterVisibleContent(config) // Filter content for visible items
+
+        visibleContent.sections?.forEach { section ->
             section.tasks?.forEach { task ->
                 val taskId = task.launch ?: "unknown_task"
                 val stars = task.stars ?: 0
@@ -273,7 +314,9 @@ class DailyProgressManager(private val context: Context) {
         var totalCoins = 0
         var totalStars = 0
 
-        config.sections?.forEach { section ->
+        val visibleContent = filterVisibleContent(config) // Filter content for visible items
+
+        visibleContent.sections?.forEach { section ->
             section.tasks?.forEach { task ->
                 val stars = task.stars ?: 0
 
@@ -339,7 +382,9 @@ class DailyProgressManager(private val context: Context) {
         var earnedCoins = 0
         var earnedStars = 0
 
-        config.sections?.forEach { section ->
+        val visibleContent = filterVisibleContent(config) // Filter content for visible items
+
+        visibleContent.sections?.forEach { section ->
             section.tasks?.forEach { task ->
                 val taskId = task.launch ?: "unknown_task"
                 val stars = task.stars ?: 0

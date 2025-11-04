@@ -12,6 +12,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.coroutines.*
+import java.util.Calendar
 
 /**
  * Layout manager class responsible for creating and managing UI layouts
@@ -503,6 +504,70 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
+    private fun getGameModeUrl(originalUrl: String, easydays: String?, harddays: String?, extremedays: String?): String {
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val todayShort = when (today) {
+            Calendar.MONDAY -> "mon"
+            Calendar.TUESDAY -> "tue"
+            Calendar.WEDNESDAY -> "wed"
+            Calendar.THURSDAY -> "thu"
+            Calendar.FRIDAY -> "fri"
+            Calendar.SATURDAY -> "sat"
+            Calendar.SUNDAY -> "sun"
+            else -> ""
+        }
+
+        var mode = "hard" // Default mode
+
+        if (!easydays.isNullOrEmpty() && easydays.split(",").contains(todayShort)) {
+            mode = "easy"
+        } else if (!harddays.isNullOrEmpty() && harddays.split(",").contains(todayShort)) {
+            mode = "hard"
+        } else if (!extremedays.isNullOrEmpty() && extremedays.split(",").contains(todayShort)) {
+            mode = "extreme"
+        }
+
+        // Parse the URL and add/update the 'mode' parameter
+        val uri = android.net.Uri.parse(originalUrl)
+        val builder = uri.buildUpon()
+        builder.clearQuery() // Clear existing query parameters
+
+        // Re-add all original query parameters except 'mode'
+        uri.queryParameterNames.forEach { name ->
+            if (name != "mode") {
+                builder.appendQueryParameter(name, uri.getQueryParameter(name))
+            }
+        }
+        builder.appendQueryParameter("mode", mode) // Add or update 'mode'
+
+        return builder.build().toString()
+    }
+
+    private fun isTaskVisible(showdays: String?, hidedays: String?): Boolean {
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val todayShort = when (today) {
+            Calendar.MONDAY -> "mon"
+            Calendar.TUESDAY -> "tue"
+            Calendar.WEDNESDAY -> "wed"
+            Calendar.THURSDAY -> "thu"
+            Calendar.FRIDAY -> "fri"
+            Calendar.SATURDAY -> "sat"
+            Calendar.SUNDAY -> "sun"
+            else -> ""
+        }
+
+        if (!hidedays.isNullOrEmpty()) {
+            if (hidedays.split(",").contains(todayShort)) {
+                return false // Hide if today is in hidedays
+            }
+        }
+
+        if (!showdays.isNullOrEmpty()) {
+            return showdays.split(",").contains(todayShort) // Show only if today is in showdays
+        }
+
+        return true // Visible by default if no restrictions
+    }
 
     private fun handleVideoSequenceTask(task: Task) {
         val videoSequence = task.videoSequence ?: return
@@ -727,9 +792,12 @@ class Layout(private val activity: MainActivity) {
 
                     for (i in startIndex until endIndex) {
                         val task = tasks[i]
-                        android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
-                        val taskView = createTaskView(task)
-                        rowContainer.addView(taskView)
+                        // Only add task view if it's visible today
+                        if (isTaskVisible(task.showdays, task.hidedays)) {
+                            android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
+                            val taskView = createTaskView(task)
+                            rowContainer.addView(taskView)
+                        }
                     }
 
                     // Add empty views to fill remaining spots if needed
@@ -754,8 +822,11 @@ class Layout(private val activity: MainActivity) {
 
         section.items?.let { items ->
             items.forEach { item ->
-                val itemView = createChecklistItemView(item)
-                sectionLayout.addView(itemView)
+                // Only add checklist item view if it's visible today
+                if (isTaskVisible(item.showdays, item.hidedays)) {
+                    val itemView = createChecklistItemView(item)
+                    sectionLayout.addView(itemView)
+                }
             }
         }
 
@@ -839,7 +910,8 @@ class Layout(private val activity: MainActivity) {
                     if (task.webGame == true && !task.url.isNullOrEmpty()) {
                         android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
                         val intent = Intent(activity, WebGameActivity::class.java).apply {
-                            putExtra(WebGameActivity.EXTRA_GAME_URL, task.url)
+                            val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                            putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
                             putExtra(WebGameActivity.EXTRA_REWARD_ID, task.rewardId ?: task.launch)
                         }
                         activity.webGameCompletionLauncher.launch(intent)

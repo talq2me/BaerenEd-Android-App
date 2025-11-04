@@ -34,6 +34,12 @@
           "totalQuestions": 5
         },
         {
+          "title": "Math",
+          "launch": "jkmath",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
           "title": "Sk Spellings",
           "launch": "skSpelling",
           "stars": 3,

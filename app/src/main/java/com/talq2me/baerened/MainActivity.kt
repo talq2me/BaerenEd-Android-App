@@ -600,14 +600,21 @@ data class Task(
     val blockOutlines: Boolean? = null,
     val webGame: Boolean? = null,
     val url: String? = null,
-    val rewardId: String? = null
+    val rewardId: String? = null,
+    val easydays: String? = null,
+    val harddays: String? = null,
+    val extremedays: String? = null,
+    val showdays: String? = null,
+    val hidedays: String? = null
 )
 
 data class ChecklistItem(
     val label: String? = null,
     val stars: Int? = null,
     val done: Boolean? = null,
-    val id: String? = null
+    val id: String? = null,
+    val showdays: String? = null,
+    val hidedays: String? = null
 )
 
 data class ProfileButton(

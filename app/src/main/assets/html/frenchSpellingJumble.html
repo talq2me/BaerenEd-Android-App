@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>French Spelling Jumble</title>
+    <style>
+        body { font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif; background-color: #fffcf9; text-align: center; }
+        .game-container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; box-sizing: border-box; }
+        #starCount { font-size: 24px; color: #ffcc00; margin-bottom: 20px; }
+        .word-display { font-size: 28px; margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+        .letter-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; min-height: 80px; padding: 15px; background: #f5f5f5; border-radius: 10px; }
+        .letter {
+            background: #4CAF50; color: white; border-radius: 50%; cursor: grab; user-select: none; font-size: 24px; font-weight: bold;
+            transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.2); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+        }
+        .letter:hover { background: #45a049; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .letter.used { background: #ccc; cursor: not-allowed; opacity: 0.6; }
+        .spelled-word { font-size: 32px; font-weight: bold; color: #2196F3; margin: 10px 0; min-height: 50px; }
+        .button-container { margin: 20px 0; display: flex; justify-content: center; gap: 10px; }
+        .practice-container { margin: 20px 0; padding: 20px; background: #fff3cd; border-radius: 10px; border: 2px solid #ffeaa7; }
+        .practice-attempt { margin: 10px 0; padding: 10px; border-radius: 5px; font-size: 20px; }
+        .practice-attempt.correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .practice-attempt.incorrect { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .hidden { display: none; }
+        .keyboard-container { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6; }
+        .keyboard-row { display: flex; justify-content: center; gap: 5px; margin: 5px 0; }
+        .keyboard-key {
+            background: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px 8px; font-size: 16px; font-weight: bold; cursor: pointer; 
+            transition: all 0.2s ease; min-width: 30px; text-align: center; line-height: 1;
+        }
+        .keyboard-key:hover { background: #e9ecef; }
+        .accent-key { background: #fff3cd; border-color: #ffeaa7; }
+        .button, .green-button {
+            font-family: inherit; border: none; border-radius: 15px; cursor: pointer; display: inline-block; text-align: center;
+            transition: background-color 0.3s, transform 0.2s; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); margin: 4px 8px 4px 0;
+            padding: 15px 30px; font-size: 20px; color: white;
+        }
+        .button { background-color: #6ac2ff; }
+        .green-button { background-color: #4CAF50; }
+        .button:hover, .green-button:hover { background-color: #ff8c00; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>French Spelling Jumble</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        <div class="word-display" id="wordDisplay">
+            <button class="button" id="playButton" onclick="playInstruction()">&#9654; Play</button>
+        </div>
+        <div class="spelled-word" id="spelledWord"></div>
+        <div id="messageContainer"></div>
+        <div class="letter-bank" id="letterBank"></div>
+        <div id="keyboardContainer" class="keyboard-container hidden"></div>
+        <div class="button-container">
+            <button id="deleteBtn" class="button" onclick="handleDelete()">⌫ Delete</button>
+            <button id="submitBtn" class="button green-button" onclick="handleSubmit()">Submit</button>
+        </div>
+        <div id="practiceContainer" class="practice-container hidden">
+            <div id="correctWordDisplay"></div>
+            <div id="practiceAttempts"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Minimal TTS Function ---
+        window.currentTTSUtterance = null;
+        function readText(text, lang, rate = 1.0, onEndCallback = null) {
+            if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => { if (onEndCallback) onEndCallback(); window.currentTTSUtterance = null; };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                console.warn("Text-to-speech not supported.");
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        // --- Game Logic ---
+        let words = [];
+        let correctCount = 0;
+        let maxQuestions = 10;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let selectedLetters = [];
+        let gameMode = 'hard';
+        let isInPracticeMode = false;
+        let practiceCorrectAttempts = 0;
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const jsonUrl = urlParams.get('json');
+            gameMode = ['easy', 'hard', 'extreme'].includes(mode) ? mode : 'hard';
+            return jsonUrl;
+        }
+
+        function loadWords(jsonUrl) {
+            const defaultWords = ["chat", "chien", "maison", "soleil", "lune", "étoile", "fleur", "arbre", "oiseau", "livre"].map(w => ({ word: w, sentence: `C'est un ${w}.` }));
+            if (jsonUrl) {
+                fetch(jsonUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                            words = data;
+                        } else if (Array.isArray(data)) {
+                            words = data.map(word => ({ word: word, sentence: "" }));
+                        } else {
+                            words = defaultWords;
+                        }
+                        startGame();
+                    })
+                    .catch(error => {
+                        console.error('Error loading words file:', error);
+                        words = defaultWords;
+                        startGame();
+                    });
+            } else {
+                words = defaultWords;
+                startGame();
+            }
+        }
+
+        function startGame() {
+            maxQuestions = words.length;
+            currentWordIndex = 0;
+            correctCount = 0;
+            updateStarCount();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) return endGame(true);
+            currentWord = words[currentWordIndex];
+            selectedLetters = [];
+            isInPracticeMode = false;
+            document.getElementById('spelledWord').textContent = '';
+            document.getElementById('practiceContainer').classList.add('hidden');
+            document.getElementById('messageContainer').innerHTML = '';
+            document.querySelector('.button-container').style.display = 'flex';
+
+            const letterBank = document.getElementById('letterBank');
+            const keyboardContainer = document.getElementById('keyboardContainer');
+            if (gameMode === 'extreme') {
+                letterBank.style.display = 'none';
+                keyboardContainer.classList.remove('hidden');
+            } else {
+                letterBank.style.display = 'flex';
+                keyboardContainer.classList.add('hidden');
+                createLetterBank();
+            }
+            setTimeout(playInstruction, 500);
+        }
+
+        function playInstruction() {
+            const { word, sentence } = currentWord;
+            const textToRead = sentence ? `Épelez le mot: ${word}. ${sentence}` : `Épelez le mot: ${word}`;
+            readText(textToRead, 'fr-FR', 0.8);
+        }
+
+        function createLetterBank() {
+            const letterBank = document.getElementById('letterBank');
+            letterBank.innerHTML = '';
+            const letters = currentWord.word.split('');
+            let letterPool = letters;
+            if (gameMode === 'hard') {
+                const extra = 'abcdefghijklmnopqrstuvwxyzéèàùç'.split('').sort(() => 0.5 - Math.random()).slice(0, 3);
+                letterPool = [...letters, ...extra];
+            }
+            const shuffledLetters = letterPool.sort(() => Math.random() - 0.5);
+            shuffledLetters.forEach(letter => {
+                const letterElement = document.createElement('div');
+                letterElement.className = 'letter';
+                letterElement.textContent = letter.toUpperCase();
+                letterElement.onclick = () => handleLetterClick(letterElement, letter);
+                letterBank.appendChild(letterElement);
+            });
+        }
+
+        function handleLetterClick(element, letter) {
+            if (element.classList.contains('used')) return;
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            targetArray.push(letter);
+            element.classList.add('used');
+            updateSpelledWord();
+        }
+
+        function addLetter(letter) {
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            targetArray.push(letter);
+            updateSpelledWord();
+        }
+
+        function handleDelete() {
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            if (targetArray.length === 0) return;
+            const lastLetter = targetArray.pop();
+            if (gameMode !== 'extreme' && !isInPracticeMode) {
+                const letterButtons = document.querySelectorAll('#letterBank .letter.used');
+                for (let i = letterButtons.length - 1; i >= 0; i--) {
+                    if (letterButtons[i].textContent.toLowerCase() === lastLetter) {
+                        letterButtons[i].classList.remove('used');
+                        break;
+                    }
+                }
+            }
+            updateSpelledWord();
+        }
+
+        function updateSpelledWord() {
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            document.getElementById('spelledWord').textContent = targetArray.join('').toUpperCase();
+        }
+
+        function handleSubmit() {
+            if (isInPracticeMode) return handlePracticeSubmit();
+            const spelledWord = selectedLetters.join('');
+            if (spelledWord.toLowerCase() === currentWord.word.toLowerCase()) {
+                document.getElementById('messageContainer').innerHTML = `<span style="color: #4CAF50; font-weight: bold;">✓ Correct!</span>`;
+                correctCount++;
+                updateStarCount();
+                setTimeout(nextWord, 1200);
+            } else {
+                startPracticeMode();
+            }
+        }
+
+        function startPracticeMode() {
+            isInPracticeMode = true;
+            practiceCorrectAttempts = 0;
+            practiceSelectedLetters = [];
+            document.getElementById('letterBank').style.display = 'none';
+            document.querySelector('.button-container').style.display = 'none';
+            const practiceContainer = document.getElementById('practiceContainer');
+            practiceContainer.classList.remove('hidden');
+            document.getElementById('correctWordDisplay').innerHTML = `<h4>Correct spelling: <strong>${currentWord.word.toUpperCase()}</strong></h4>`;
+            document.getElementById('keyboardContainer').classList.remove('hidden');
+            document.getElementById('practiceAttempts').innerHTML = '';
+            updateSpelledWord();
+            readText(`Veuillez épeler le mot ${currentWord.word} correctement 3 fois.`, 'fr-FR', 0.8);
+        }
+
+        function handlePracticeSubmit() {
+            const practiceInput = practiceSelectedLetters.join('');
+            const isCorrect = practiceInput.toLowerCase() === currentWord.word.toLowerCase();
+            const attemptsContainer = document.getElementById('practiceAttempts');
+            const attemptDiv = document.createElement('div');
+            attemptDiv.className = `practice-attempt ${isCorrect ? 'correct' : 'incorrect'}`;
+            attemptDiv.innerHTML = `Attempt: <strong>${practiceInput.toUpperCase()}</strong> - ${isCorrect ? '✓ Correct' : '✗ Incorrect'}`;
+            attemptsContainer.appendChild(attemptDiv);
+
+            practiceSelectedLetters = [];
+            updateSpelledWord();
+
+            if (isCorrect) {
+                practiceCorrectAttempts++;
+                if (practiceCorrectAttempts >= 3) {
+                    correctCount++;
+                    updateStarCount();
+                    setTimeout(nextWord, 1500);
+                }
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+        
+        function endGame(completed) {
+            const message = completed ? `<h2>Game Complete!</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>` : `<h2>Exiting Game</h2>`;
+            document.getElementById('wordDisplay').innerHTML = message;
+            document.getElementById('letterBank').innerHTML = '';
+            document.getElementById('keyboardContainer').classList.add('hidden');
+            document.querySelector('.button-container').style.display = 'none';
+            document.getElementById('practiceContainer').classList.add('hidden');
+            if (window.parent && window.parent !== window) {
+                if(completed) window.parent.postMessage({ type: 'gameCompleted' }, '*');
+                setTimeout(() => window.parent.postMessage({ type: 'closeModal' }, '*'), 3000);
+            } else {
+                setTimeout(() => history.back(), 3000);
+            }
+        }
+
+        function createKeyboard() {
+            const keyboardContainer = document.getElementById('keyboardContainer');
+            keyboardContainer.innerHTML = '';
+            const rows = [
+                'azertyuiop',
+                'qsdfghjklm',
+                'wxcvbn',
+                'àâçéèêëîïôûù '
+            ];
+            rows.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'keyboard-row';
+                row.split('').forEach(key => {
+                    const keyBtn = document.createElement('button');
+                    keyBtn.className = 'keyboard-key';
+                    if ('àâçéèêëîïôûù'.includes(key)) keyBtn.classList.add('accent-key');
+                    keyBtn.textContent = key;
+                    keyBtn.onclick = () => addLetter(key);
+                    rowDiv.appendChild(keyBtn);
+                });
+                keyboardContainer.appendChild(rowDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+            createKeyboard();
+        });
+    </script>
+</body>
+</html>
