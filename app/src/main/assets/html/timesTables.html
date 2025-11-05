@@ -322,10 +322,6 @@
             <h2 style="margin:0 0 12px 0;">${title}</h2>
             <input id="numberPadInput" type="text" inputmode="numeric" style="font-size:2em;text-align:center;width:100%;margin-bottom:12px;letter-spacing:0.3em; border: 2px solid #ccc; padding: 5px; border-radius: 5px;" readonly />
             <div id="numberPadButtons" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;"></div>
-            <div style="display:flex;gap:10px;width:100%;justify-content:center;">
-              <button id="numberPadDelete" class="button" style="font-size:1.5em; background-color: #f44336;">⌫</button>
-              <button id="numberPadEnter" class="button green-button" style="font-size:1.5em;">⏎</button>
-            </div>
           </div>
         `;
         document.body.appendChild(modal);
@@ -342,7 +338,7 @@
             }
         });
 
-        const btnOrder = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'C', 0];
+        const btnOrder = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'C', 0, '⏎'];
         btnOrder.forEach(val => {
             const btn = document.createElement('button');
             btn.className = 'button modal-btn';
@@ -350,6 +346,15 @@
             if (val === 'C') {
                 btn.style.backgroundColor = '#ff9800';
                 btn.onclick = () => { input.value = ''; };
+            } else if (val === '⏎') {
+                btn.style.backgroundColor = '#4CAF50';
+                btn.onclick = () => {
+                    const val = input.value;
+                    if (val.length > 0 && (allowZero || parseInt(val, 10) >= 0)) {
+                        document.body.removeChild(modal);
+                        onSubmit(val);
+                    }
+                };
             } else {
                 btn.onclick = () => {
                     if (input.value.length < maxLength) input.value += val;
@@ -358,14 +363,6 @@
             buttons.appendChild(btn);
         });
 
-        deleteBtn.onclick = () => { input.value = input.value.slice(0, -1); };
-        enterBtn.onclick = () => {
-            const val = input.value;
-            if (val.length > 0 && (allowZero || parseInt(val, 10) >= 0)) {
-                document.body.removeChild(modal);
-                onSubmit(val);
-            }
-        };
     }
 
     document.addEventListener('DOMContentLoaded', initializeGame);

@@ -283,9 +283,18 @@
             document.getElementById('choices').innerHTML = '';
             document.getElementById('timeInput').style.display = 'none';
             document.getElementById('messageContainer').innerHTML = `Final Score: ${correctCount}/${maxQuestions} ⭐`;
-            if (window.parent && window.parent !== window) {
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted();
+            } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted' }, '*');
             }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
         }
 
         function updateStarCount() {
