@@ -247,7 +247,7 @@ class Layout(private val activity: MainActivity) {
             // Get actual banked reward minutes (not recalculated from stars)
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - Complete tasks to earn coins and stars!"
+            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - Complete tasks to earn coins and stars!\""
             progressBar.max = totalCoins
             progressBar.progress = earnedCoins
         }
@@ -456,51 +456,25 @@ class Layout(private val activity: MainActivity) {
     }
 
     private fun useRewardMinutes() {
-        val rewardMinutes = progressManager.useAllRewardMinutes()
+        val rewardMinutes = progressManager.getBankedRewardMinutes() // Use banked minutes directly
         if (rewardMinutes > 0) {
-            // Send reward time to BaerenLock app via shared storage
-            sendRewardTimeToBaerenLock(rewardMinutes.toInt())
-
-            // Clear the pending reward data since we've consumed it
-            progressManager.clearPendingRewardData()
+            // Launch RewardSelectionActivity to pick an app and transfer reward minutes
+            val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
+                putExtra("reward_minutes", rewardMinutes.toInt())
+            }
+            activity.startActivity(intent)
 
             // Refresh progress display to update the UI
             refreshProgressDisplay()
 
             // Show confirmation message
-            android.widget.Toast.makeText(activity, "🎮 Started ${rewardMinutes.toInt()} minutes of reward time!", android.widget.Toast.LENGTH_LONG).show()
-        }
-    }
+            android.widget.Toast.makeText(activity, "🎮 Select a reward app! You have ${rewardMinutes.toInt()} minutes!", android.widget.Toast.LENGTH_LONG).show()
 
-    private fun sendRewardTimeToBaerenLock(minutes: Int) {
-        try {
-            val progressManager = DailyProgressManager(activity)
+            // Clear the banked reward minutes from BaerenEd after they have been used
+            progressManager.clearBankedRewardMinutes()
 
-            // First check if there's already pending reward data
-            val existingReward = progressManager.getPendingRewardData()
-
-            if (existingReward != null) {
-                // Add to existing minutes
-                val (existingMinutes, timestamp) = existingReward
-                val totalMinutes = existingMinutes + minutes
-
-                // Update the shared file with new total
-                val sharedFile = progressManager.getSharedRewardFile()
-                sharedFile.writeText("$totalMinutes\n$timestamp")
-
-                android.util.Log.d("Layout", "Added $minutes minutes to existing $existingMinutes minutes, total: $totalMinutes minutes")
-            } else {
-                // Create new reward data
-                val currentTime = System.currentTimeMillis()
-                val sharedFile = progressManager.getSharedRewardFile()
-                sharedFile.writeText("$minutes\n$currentTime")
-
-                android.util.Log.d("Layout", "Created new reward data: $minutes minutes")
-            }
-
-        } catch (e: Exception) {
-            android.util.Log.e("Layout", "Error sending reward time to BaerenLock", e)
-            android.widget.Toast.makeText(activity, "Error starting reward time", android.widget.Toast.LENGTH_SHORT).show()
+        } else {
+            android.widget.Toast.makeText(activity, "No reward minutes to use!", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 

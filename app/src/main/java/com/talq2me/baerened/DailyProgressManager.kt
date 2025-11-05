@@ -94,6 +94,14 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Clears the banked reward minutes.
+     */
+    fun clearBankedRewardMinutes() {
+        prefs.edit().putInt("banked_reward_minutes", 0).apply()
+        Log.d("DailyProgressManager", "Banked reward minutes cleared.")
+    }
+
+    /**
      * Resets video sequence progress for all video files
      */
     private fun resetVideoSequenceProgress() {
