@@ -1,8 +1,7 @@
 [
     {
         "prompt": {
-            "text": "I like to eat apples.",
-            "lang": "en"
+            "text": "I like to eat apples."
         },
         "correctChoices": [
             {
@@ -38,8 +37,7 @@
     },
     {
         "prompt": {
-            "text": "She has a red car.",
-            "lang": "en"
+            "text": "She has a red car."
         },
         "correctChoices": [
             {
@@ -78,8 +76,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the store.",
-            "lang": "en"
+            "text": "We are going to the store."
         },
         "correctChoices": [
             {
@@ -115,8 +112,7 @@
     },
     {
         "prompt": {
-            "text": "He is my friend.",
-            "lang": "en"
+            "text": "He is my friend."
         },
         "correctChoices": [
             {
@@ -152,8 +148,7 @@
     },
     {
         "prompt": {
-            "text": "They are playing soccer.",
-            "lang": "en"
+            "text": "They are playing soccer."
         },
         "correctChoices": [
             {
@@ -186,8 +181,7 @@
     },
     {
         "prompt": {
-            "text": "We love to read books.",
-            "lang": "en"
+            "text": "We love to read books."
         },
         "correctChoices": [
             {
@@ -223,8 +217,7 @@
     },
     {
         "prompt": {
-            "text": "The sun is shining.",
-            "lang": "en"
+            "text": "The sun is shining."
         },
         "correctChoices": [
             {
@@ -257,8 +250,7 @@
     },
     {
         "prompt": {
-            "text": "I want to go to the park.",
-            "lang": "en"
+            "text": "I want to go to the park."
         },
         "correctChoices": [
             {
@@ -297,8 +289,7 @@
     },
     {
         "prompt": {
-            "text": "She likes to dance.",
-            "lang": "en"
+            "text": "She likes to dance."
         },
         "correctChoices": [
             {
@@ -328,8 +319,7 @@
     },
     {
         "prompt": {
-            "text": "The dog is big.",
-            "lang": "en"
+            "text": "The dog is big."
         },
         "correctChoices": [
             {
@@ -362,8 +352,7 @@
     },
     {
         "prompt": {
-            "text": "We eat breakfast in the morning.",
-            "lang": "en"
+            "text": "We eat breakfast in the morning."
         },
         "correctChoices": [
             {
@@ -402,8 +391,7 @@
     },
     {
         "prompt": {
-            "text": "He wears a blue shirt.",
-            "lang": "en"
+            "text": "He wears a blue shirt."
         },
         "correctChoices": [
             {
@@ -439,8 +427,7 @@
     },
     {
         "prompt": {
-            "text": "I have two brothers.",
-            "lang": "en"
+            "text": "I have two brothers."
         },
         "correctChoices": [
             {
@@ -470,8 +457,7 @@
     },
     {
         "prompt": {
-            "text": "The cat sleeps on the chair.",
-            "lang": "en"
+            "text": "The cat sleeps on the chair."
         },
         "correctChoices": [
             {
@@ -510,8 +496,7 @@
     },
     {
         "prompt": {
-            "text": "She drinks cold water.",
-            "lang": "en"
+            "text": "She drinks cold water."
         },
         "correctChoices": [
             {
@@ -547,8 +532,7 @@
     },
     {
         "prompt": {
-            "text": "They play in the garden.",
-            "lang": "en"
+            "text": "They play in the garden."
         },
         "correctChoices": [
             {
@@ -584,8 +568,7 @@
     },
     {
         "prompt": {
-            "text": "I put on my shoes.",
-            "lang": "en"
+            "text": "I put on my shoes."
         },
         "correctChoices": [
             {
@@ -618,8 +601,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher writes on the board.",
-            "lang": "en"
+            "text": "The teacher writes on the board."
         },
         "correctChoices": [
             {
@@ -658,8 +640,7 @@
     },
     {
         "prompt": {
-            "text": "We are watching a movie.",
-            "lang": "en"
+            "text": "We are watching a movie."
         },
         "correctChoices": [
             {
@@ -692,8 +673,7 @@
     },
     {
         "prompt": {
-            "text": "My sister has a pink dress.",
-            "lang": "en"
+            "text": "My sister has a pink dress."
         },
         "correctChoices": [
             {
@@ -732,8 +712,7 @@
     },
     {
         "prompt": {
-            "text": "The baby is sleeping.",
-            "lang": "en"
+            "text": "The baby is sleeping."
         },
         "correctChoices": [
             {
@@ -763,8 +742,7 @@
     },
     {
         "prompt": {
-            "text": "He likes chocolate ice cream.",
-            "lang": "en"
+            "text": "He likes chocolate ice cream."
         },
         "correctChoices": [
             {
@@ -803,8 +781,7 @@
     },
     {
         "prompt": {
-            "text": "I have a new backpack.",
-            "lang": "en"
+            "text": "I have a new backpack."
         },
         "correctChoices": [
             {
@@ -843,8 +820,7 @@
     },
     {
         "prompt": {
-            "text": "The birds sing in the trees.",
-            "lang": "en"
+            "text": "The birds sing in the trees."
         },
         "correctChoices": [
             {
@@ -883,8 +859,7 @@
     },
     {
         "prompt": {
-            "text": "My dad works at the bank.",
-            "lang": "en"
+            "text": "My dad works at the bank."
         },
         "correctChoices": [
             {
@@ -923,8 +898,7 @@
     },
     {
         "prompt": {
-            "text": "She wears a warm coat in winter.",
-            "lang": "en"
+            "text": "She wears a warm coat in winter."
         },
         "correctChoices": [
             {
@@ -966,8 +940,7 @@
     },
     {
         "prompt": {
-            "text": "The cat is sleeping on the bed.",
-            "lang": "en"
+            "text": "The cat is sleeping on the bed."
         },
         "correctChoices": [
             {
@@ -1006,8 +979,7 @@
     },
     {
         "prompt": {
-            "text": "I like to play outside in the garden.",
-            "lang": "en"
+            "text": "I like to play outside in the garden."
         },
         "correctChoices": [
             {
@@ -1046,8 +1018,7 @@
     },
     {
         "prompt": {
-            "text": "My brother is reading a book.",
-            "lang": "en"
+            "text": "My brother is reading a book."
         },
         "correctChoices": [
             {
@@ -1083,8 +1054,7 @@
     },
     {
         "prompt": {
-            "text": "She is writing a letter to her friend.",
-            "lang": "en"
+            "text": "She is writing a letter to her friend."
         },
         "correctChoices": [
             {
@@ -1126,8 +1096,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the beach tomorrow.",
-            "lang": "en"
+            "text": "We are going to the beach tomorrow."
         },
         "correctChoices": [
             {
@@ -1166,8 +1135,7 @@
     },
     {
         "prompt": {
-            "text": "The dog is chasing the ball.",
-            "lang": "en"
+            "text": "The dog is chasing the ball."
         },
         "correctChoices": [
             {
@@ -1203,8 +1171,7 @@
     },
     {
         "prompt": {
-            "text": "He is drawing a picture of a tree.",
-            "lang": "en"
+            "text": "He is drawing a picture of a tree."
         },
         "correctChoices": [
             {
@@ -1243,8 +1210,7 @@
     },
     {
         "prompt": {
-            "text": "I am eating lunch with my friends.",
-            "lang": "en"
+            "text": "I am eating lunch with my friends."
         },
         "correctChoices": [
             {
@@ -1280,8 +1246,7 @@
     },
     {
         "prompt": {
-            "text": "They are riding their bikes in the park.",
-            "lang": "en"
+            "text": "They are riding their bikes in the park."
         },
         "correctChoices": [
             {
@@ -1323,8 +1288,7 @@
     },
     {
         "prompt": {
-            "text": "The children are playing soccer in the yard.",
-            "lang": "en"
+            "text": "The children are playing soccer in the yard."
         },
         "correctChoices": [
             {
@@ -1369,8 +1333,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to watch a movie tonight.",
-            "lang": "en"
+            "text": "We are going to watch a movie tonight."
         },
         "correctChoices": [
             {
@@ -1412,8 +1375,7 @@
     },
     {
         "prompt": {
-            "text": "I like to listen to music while I study.",
-            "lang": "en"
+            "text": "I like to listen to music while I study."
         },
         "correctChoices": [
             {
@@ -1458,8 +1420,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher is explaining the lesson.",
-            "lang": "en"
+            "text": "The teacher is explaining the lesson."
         },
         "correctChoices": [
             {
@@ -1495,8 +1456,7 @@
     },
     {
         "prompt": {
-            "text": "My sister is baking cookies.",
-            "lang": "en"
+            "text": "My sister is baking cookies."
         },
         "correctChoices": [
             {
@@ -1535,8 +1495,7 @@
     },
     {
         "prompt": {
-            "text": "They are painting a big house on the wall.",
-            "lang": "en"
+            "text": "They are painting a big house on the wall."
         },
         "correctChoices": [
             {
@@ -1581,8 +1540,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to the library to read.",
-            "lang": "en"
+            "text": "I am going to the library to read."
         },
         "correctChoices": [
             {
@@ -1624,8 +1582,7 @@
     },
     {
         "prompt": {
-            "text": "The bird is flying in the sky.",
-            "lang": "en"
+            "text": "The bird is flying in the sky."
         },
         "correctChoices": [
             {
@@ -1661,8 +1618,7 @@
     },
     {
         "prompt": {
-            "text": "We are having a picnic at the park.",
-            "lang": "en"
+            "text": "We are having a picnic at the park."
         },
         "correctChoices": [
             {
@@ -1701,8 +1657,7 @@
     },
     {
         "prompt": {
-            "text": "My father is fixing the car.",
-            "lang": "en"
+            "text": "My father is fixing the car."
         },
         "correctChoices": [
             {
@@ -1738,8 +1693,7 @@
     },
     {
         "prompt": {
-            "text": "She is wearing a red dress.",
-            "lang": "en"
+            "text": "She is wearing a red dress."
         },
         "correctChoices": [
             {
@@ -1775,8 +1729,7 @@
     },
     {
         "prompt": {
-            "text": "I am cleaning my room.",
-            "lang": "en"
+            "text": "I am cleaning my room."
         },
         "correctChoices": [
             {
@@ -1809,8 +1762,7 @@
     },
     {
         "prompt": {
-            "text": "We are learning French in school.",
-            "lang": "en"
+            "text": "We are learning French in school."
         },
         "correctChoices": [
             {
@@ -1849,8 +1801,7 @@
     },
     {
         "prompt": {
-            "text": "The baby is crawling on the floor.",
-            "lang": "en"
+            "text": "The baby is crawling on the floor."
         },
         "correctChoices": [
             {
@@ -1889,8 +1840,7 @@
     },
     {
         "prompt": {
-            "text": "My grandmother is knitting a scarf.",
-            "lang": "en"
+            "text": "My grandmother is knitting a scarf."
         },
         "correctChoices": [
             {
@@ -1926,8 +1876,7 @@
     },
     {
         "prompt": {
-            "text": "The sun is shining brightly today.",
-            "lang": "en"
+            "text": "The sun is shining brightly today."
         },
         "correctChoices": [
             {
@@ -1963,8 +1912,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to visit my friend this weekend.",
-            "lang": "en"
+            "text": "I am going to visit my friend this weekend."
         },
         "correctChoices": [
             {
@@ -2006,8 +1954,7 @@
     },
     {
         "prompt": {
-            "text": "The children are playing in the playground.",
-            "lang": "en"
+            "text": "The children are playing in the playground."
         },
         "correctChoices": [
             {
@@ -2052,8 +1999,7 @@
     },
     {
         "prompt": {
-            "text": "My mother is making dinner in the kitchen.",
-            "lang": "en"
+            "text": "My mother is making dinner in the kitchen."
         },
         "correctChoices": [
             {
@@ -2098,8 +2044,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the zoo tomorrow.",
-            "lang": "en"
+            "text": "We are going to the zoo tomorrow."
         },
         "correctChoices": [
             {
@@ -2135,8 +2080,7 @@
     },
     {
         "prompt": {
-            "text": "She is reading a book in the living room.",
-            "lang": "en"
+            "text": "She is reading a book in the living room."
         },
         "correctChoices": [
             {
@@ -2178,8 +2122,7 @@
     },
     {
         "prompt": {
-            "text": "They are swimming in the pool.",
-            "lang": "en"
+            "text": "They are swimming in the pool."
         },
         "correctChoices": [
             {
@@ -2215,8 +2158,7 @@
     },
     {
         "prompt": {
-            "text": "I am studying for my French exam.",
-            "lang": "en"
+            "text": "I am studying for my French exam."
         },
         "correctChoices": [
             {
@@ -2258,8 +2200,7 @@
     },
     {
         "prompt": {
-            "text": "The dog is barking loudly outside.",
-            "lang": "en"
+            "text": "The dog is barking loudly outside."
         },
         "correctChoices": [
             {
@@ -2295,8 +2236,7 @@
     },
     {
         "prompt": {
-            "text": "My friend and I are playing tennis.",
-            "lang": "en"
+            "text": "My friend and I are playing tennis."
         },
         "correctChoices": [
             {
@@ -2338,8 +2278,7 @@
     },
     {
         "prompt": {
-            "text": "We are having a party on Saturday.",
-            "lang": "en"
+            "text": "We are having a party on Saturday."
         },
         "correctChoices": [
             {
@@ -2375,8 +2314,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher is explaining the rules of the game.",
-            "lang": "en"
+            "text": "The teacher is explaining the rules of the game."
         },
         "correctChoices": [
             {
@@ -2418,8 +2356,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to the park with my sister.",
-            "lang": "en"
+            "text": "I am going to the park with my sister."
         },
         "correctChoices": [
             {
@@ -2461,8 +2398,7 @@
     },
     {
         "prompt": {
-            "text": "The birds are singing in the trees.",
-            "lang": "en"
+            "text": "The birds are singing in the trees."
         },
         "correctChoices": [
             {
@@ -2501,8 +2437,7 @@
     },
     {
         "prompt": {
-            "text": "He is cooking dinner for the family.",
-            "lang": "en"
+            "text": "He is cooking dinner for the family."
         },
         "correctChoices": [
             {
@@ -2544,8 +2479,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the beach for a picnic.",
-            "lang": "en"
+            "text": "We are going to the beach for a picnic."
         },
         "correctChoices": [
             {
@@ -2590,8 +2524,7 @@
     },
     {
         "prompt": {
-            "text": "I am drawing a picture of a house.",
-            "lang": "en"
+            "text": "I am drawing a picture of a house."
         },
         "correctChoices": [
             {
@@ -2630,8 +2563,7 @@
     },
     {
         "prompt": {
-            "text": "The flowers are blooming in the garden.",
-            "lang": "en"
+            "text": "The flowers are blooming in the garden."
         },
         "correctChoices": [
             {
@@ -2670,8 +2602,7 @@
     },
     {
         "prompt": {
-            "text": "My dad is fixing the broken fence.",
-            "lang": "en"
+            "text": "My dad is fixing the broken fence."
         },
         "correctChoices": [
             {
@@ -2710,8 +2641,7 @@
     },
     {
         "prompt": {
-            "text": "We are playing chess together.",
-            "lang": "en"
+            "text": "We are playing chess together."
         },
         "correctChoices": [
             {
@@ -2747,8 +2677,7 @@
     },
     {
         "prompt": {
-            "text": "She is wearing a beautiful dress.",
-            "lang": "en"
+            "text": "She is wearing a beautiful dress."
         },
         "correctChoices": [
             {
@@ -2784,8 +2713,7 @@
     },
     {
         "prompt": {
-            "text": "They are building a sandcastle at the beach.",
-            "lang": "en"
+            "text": "They are building a sandcastle at the beach."
         },
         "correctChoices": [
             {
@@ -2833,8 +2761,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to buy some groceries.",
-            "lang": "en"
+            "text": "I am going to buy some groceries."
         },
         "correctChoices": [
             {
@@ -2870,8 +2797,7 @@
     },
     {
         "prompt": {
-            "text": "My cousin is visiting us for the weekend.",
-            "lang": "en"
+            "text": "My cousin is visiting us for the weekend."
         },
         "correctChoices": [
             {
@@ -2916,8 +2842,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to the store to buy some bread.",
-            "lang": "en"
+            "text": "I am going to the store to buy some bread."
         },
         "correctChoices": [
             {
@@ -2959,8 +2884,7 @@
     },
     {
         "prompt": {
-            "text": "The cat is sleeping on the couch.",
-            "lang": "en"
+            "text": "The cat is sleeping on the couch."
         },
         "correctChoices": [
             {
@@ -2999,8 +2923,7 @@
     },
     {
         "prompt": {
-            "text": "She is drinking a glass of water.",
-            "lang": "en"
+            "text": "She is drinking a glass of water."
         },
         "correctChoices": [
             {
@@ -3036,8 +2959,7 @@
     },
     {
         "prompt": {
-            "text": "We are reading a book about history.",
-            "lang": "en"
+            "text": "We are reading a book about history."
         },
         "correctChoices": [
             {
@@ -3076,8 +2998,7 @@
     },
     {
         "prompt": {
-            "text": "They are walking to school together.",
-            "lang": "en"
+            "text": "They are walking to school together."
         },
         "correctChoices": [
             {
@@ -3116,8 +3037,7 @@
     },
     {
         "prompt": {
-            "text": "I am writing a letter to my grandmother.",
-            "lang": "en"
+            "text": "I am writing a letter to my grandmother."
         },
         "correctChoices": [
             {
@@ -3159,8 +3079,7 @@
     },
     {
         "prompt": {
-            "text": "My brother is playing the guitar.",
-            "lang": "en"
+            "text": "My brother is playing the guitar."
         },
         "correctChoices": [
             {
@@ -3199,8 +3118,7 @@
     },
     {
         "prompt": {
-            "text": "The children are learning to swim.",
-            "lang": "en"
+            "text": "The children are learning to swim."
         },
         "correctChoices": [
             {
@@ -3236,8 +3154,7 @@
     },
     {
         "prompt": {
-            "text": "She is making a cake for her birthday.",
-            "lang": "en"
+            "text": "She is making a cake for her birthday."
         },
         "correctChoices": [
             {
@@ -3279,8 +3196,7 @@
     },
     {
         "prompt": {
-            "text": "I need to clean my room today.",
-            "lang": "en"
+            "text": "I need to clean my room today."
         },
         "correctChoices": [
             {
@@ -3322,8 +3238,7 @@
     },
     {
         "prompt": {
-            "text": "We are visiting our grandparents this summer.",
-            "lang": "en"
+            "text": "We are visiting our grandparents this summer."
         },
         "correctChoices": [
             {
@@ -3368,8 +3283,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher is explaining the lesson to the students.",
-            "lang": "en"
+            "text": "The teacher is explaining the lesson to the students."
         },
         "correctChoices": [
             {
@@ -3411,8 +3325,7 @@
     },
     {
         "prompt": {
-            "text": "I want to go to the park with my friends.",
-            "lang": "en"
+            "text": "I want to go to the park with my friends."
         },
         "correctChoices": [
             {
@@ -3457,8 +3370,7 @@
     },
     {
         "prompt": {
-            "text": "He is cleaning the garage this morning.",
-            "lang": "en"
+            "text": "He is cleaning the garage this morning."
         },
         "correctChoices": [
             {
@@ -3497,8 +3409,7 @@
     },
     {
         "prompt": {
-            "text": "We are having lunch in the park today.",
-            "lang": "en"
+            "text": "We are having lunch in the park today."
         },
         "correctChoices": [
             {
@@ -3534,8 +3445,7 @@
     },
     {
         "prompt": {
-            "text": "They are playing video games in the living room.",
-            "lang": "en"
+            "text": "They are playing video games in the living room."
         },
         "correctChoices": [
             {
@@ -3583,8 +3493,7 @@
     },
     {
         "prompt": {
-            "text": "I am taking the bus to work.",
-            "lang": "en"
+            "text": "I am taking the bus to work."
         },
         "correctChoices": [
             {
@@ -3626,8 +3535,7 @@
     },
     {
         "prompt": {
-            "text": "We are watching a movie at the cinema.",
-            "lang": "en"
+            "text": "We are watching a movie at the cinema."
         },
         "correctChoices": [
             {
@@ -3666,8 +3574,7 @@
     },
     {
         "prompt": {
-            "text": "She is talking to her friends on the phone.",
-            "lang": "en"
+            "text": "She is talking to her friends on the phone."
         },
         "correctChoices": [
             {
@@ -3709,8 +3616,7 @@
     },
     {
         "prompt": {
-            "text": "I am buying groceries for the week.",
-            "lang": "en"
+            "text": "I am buying groceries for the week."
         },
         "correctChoices": [
             {
@@ -3752,8 +3658,7 @@
     },
     {
         "prompt": {
-            "text": "They are going on a trip to Paris.",
-            "lang": "en"
+            "text": "They are going on a trip to Paris."
         },
         "correctChoices": [
             {
@@ -3795,8 +3700,7 @@
     },
     {
         "prompt": {
-            "text": "I am playing soccer with my friends.",
-            "lang": "en"
+            "text": "I am playing soccer with my friends."
         },
         "correctChoices": [
             {
@@ -3838,8 +3742,7 @@
     },
     {
         "prompt": {
-            "text": "My parents are going to the restaurant tonight.",
-            "lang": "en"
+            "text": "My parents are going to the restaurant tonight."
         },
         "correctChoices": [
             {
@@ -3881,8 +3784,7 @@
     },
     {
         "prompt": {
-            "text": "I am learning how to ride a bike.",
-            "lang": "en"
+            "text": "I am learning how to ride a bike."
         },
         "correctChoices": [
             {
@@ -3918,8 +3820,7 @@
     },
     {
         "prompt": {
-            "text": "The dog is playing with a ball.",
-            "lang": "en"
+            "text": "The dog is playing with a ball."
         },
         "correctChoices": [
             {
@@ -3958,8 +3859,7 @@
     },
     {
         "prompt": {
-            "text": "She is going to the library to study.",
-            "lang": "en"
+            "text": "She is going to the library to study."
         },
         "correctChoices": [
             {
@@ -4001,8 +3901,7 @@
     },
     {
         "prompt": {
-            "text": "I am cooking dinner for my family.",
-            "lang": "en"
+            "text": "I am cooking dinner for my family."
         },
         "correctChoices": [
             {
@@ -4044,8 +3943,7 @@
     },
     {
         "prompt": {
-            "text": "We are watching a soccer game on TV.",
-            "lang": "en"
+            "text": "We are watching a soccer game on TV."
         },
         "correctChoices": [
             {
@@ -4093,8 +3991,7 @@
     },
     {
         "prompt": {
-            "text": "They are traveling to the mountains for vacation.",
-            "lang": "en"
+            "text": "They are traveling to the mountains for vacation."
         },
         "correctChoices": [
             {
@@ -4136,8 +4033,7 @@
     },
     {
         "prompt": {
-            "text": "The baby is playing with her toys.",
-            "lang": "en"
+            "text": "The baby is playing with her toys."
         },
         "correctChoices": [
             {
@@ -4176,8 +4072,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to the bakery to buy some croissants.",
-            "lang": "en"
+            "text": "I am going to the bakery to buy some croissants."
         },
         "correctChoices": [
             {
@@ -4222,8 +4117,7 @@
     },
     {
         "prompt": {
-            "text": "She is going to the doctor for a checkup.",
-            "lang": "en"
+            "text": "She is going to the doctor for a checkup."
         },
         "correctChoices": [
             {
@@ -4274,8 +4168,7 @@
     },
     {
         "prompt": {
-            "text": "We are playing a board game together.",
-            "lang": "en"
+            "text": "We are playing a board game together."
         },
         "correctChoices": [
             {
@@ -4320,8 +4213,7 @@
     },
     {
         "prompt": {
-            "text": "I need to clean the windows today.",
-            "lang": "en"
+            "text": "I need to clean the windows today."
         },
         "correctChoices": [
             {
@@ -4360,8 +4252,7 @@
     },
     {
         "prompt": {
-            "text": "He is playing basketball with his friends.",
-            "lang": "en"
+            "text": "He is playing basketball with his friends."
         },
         "correctChoices": [
             {
@@ -4403,8 +4294,7 @@
     },
     {
         "prompt": {
-            "text": "The flowers are blooming in the garden.",
-            "lang": "en"
+            "text": "The flowers are blooming in the garden."
         },
         "correctChoices": [
             {
@@ -4443,8 +4333,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the zoo this weekend.",
-            "lang": "en"
+            "text": "We are going to the zoo this weekend."
         },
         "correctChoices": [
             {
@@ -4483,8 +4372,7 @@
     },
     {
         "prompt": {
-            "text": "They are having a party at their house.",
-            "lang": "en"
+            "text": "They are having a party at their house."
         },
         "correctChoices": [
             {
@@ -4523,8 +4411,7 @@
     },
     {
         "prompt": {
-            "text": "I am taking a walk in the park.",
-            "lang": "en"
+            "text": "I am taking a walk in the park."
         },
         "correctChoices": [
             {
@@ -4563,8 +4450,7 @@
     },
     {
         "prompt": {
-            "text": "We are making sandwiches for lunch.",
-            "lang": "en"
+            "text": "We are making sandwiches for lunch."
         },
         "correctChoices": [
             {
@@ -4606,8 +4492,7 @@
     },
     {
         "prompt": {
-            "text": "I am learning to play the piano.",
-            "lang": "en"
+            "text": "I am learning to play the piano."
         },
         "correctChoices": [
             {
@@ -4643,8 +4528,7 @@
     },
     {
         "prompt": {
-            "text": "The birds are singing in the trees.",
-            "lang": "en"
+            "text": "The birds are singing in the trees."
         },
         "correctChoices": [
             {
@@ -4683,8 +4567,7 @@
     },
     {
         "prompt": {
-            "text": "She is helping her mother in the kitchen.",
-            "lang": "en"
+            "text": "She is helping her mother in the kitchen."
         },
         "correctChoices": [
             {
@@ -4726,8 +4609,7 @@
     },
     {
         "prompt": {
-            "text": "We are building a snowman in the yard.",
-            "lang": "en"
+            "text": "We are building a snowman in the yard."
         },
         "correctChoices": [
             {
@@ -4775,8 +4657,7 @@
     },
     {
         "prompt": {
-            "text": "I am looking for my keys.",
-            "lang": "en"
+            "text": "I am looking for my keys."
         },
         "correctChoices": [
             {
@@ -4809,8 +4690,7 @@
     },
     {
         "prompt": {
-            "text": "They are listening to music on the radio.",
-            "lang": "en"
+            "text": "They are listening to music on the radio."
         },
         "correctChoices": [
             {
@@ -4855,8 +4735,7 @@
     },
     {
         "prompt": {
-            "text": "I am drawing a picture of a dog.",
-            "lang": "en"
+            "text": "I am drawing a picture of a dog."
         },
         "correctChoices": [
             {
@@ -4895,8 +4774,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the pool to swim.",
-            "lang": "en"
+            "text": "We are going to the pool to swim."
         },
         "correctChoices": [
             {
@@ -4935,8 +4813,7 @@
     },
     {
         "prompt": {
-            "text": "She is wearing a red dress.",
-            "lang": "en"
+            "text": "She is wearing a red dress."
         },
         "correctChoices": [
             {
@@ -4972,8 +4849,7 @@
     },
     {
         "prompt": {
-            "text": "The children are playing in the playground.",
-            "lang": "en"
+            "text": "The children are playing in the playground."
         },
         "correctChoices": [
             {
@@ -5018,8 +4894,7 @@
     },
     {
         "prompt": {
-            "text": "I am reading a book in the library.",
-            "lang": "en"
+            "text": "I am reading a book in the library."
         },
         "correctChoices": [
             {
@@ -5061,8 +4936,7 @@
     },
     {
         "prompt": {
-            "text": "They are playing cards at the table.",
-            "lang": "en"
+            "text": "They are playing cards at the table."
         },
         "correctChoices": [
             {
@@ -5104,8 +4978,7 @@
     },
     {
         "prompt": {
-            "text": "I am baking cookies in the oven.",
-            "lang": "en"
+            "text": "I am baking cookies in the oven."
         },
         "correctChoices": [
             {
@@ -5147,8 +5020,7 @@
     },
     {
         "prompt": {
-            "text": "We are taking a walk in the park.",
-            "lang": "en"
+            "text": "We are taking a walk in the park."
         },
         "correctChoices": [
             {
@@ -5187,8 +5059,7 @@
     },
     {
         "prompt": {
-            "text": "He is playing the guitar in the living room.",
-            "lang": "en"
+            "text": "He is playing the guitar in the living room."
         },
         "correctChoices": [
             {
@@ -5233,8 +5104,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the cinema to watch a movie.",
-            "lang": "en"
+            "text": "We are going to the cinema to watch a movie."
         },
         "correctChoices": [
             {
@@ -5276,8 +5146,7 @@
     },
     {
         "prompt": {
-            "text": "I am painting the walls of my room.",
-            "lang": "en"
+            "text": "I am painting the walls of my room."
         },
         "correctChoices": [
             {
@@ -5319,8 +5188,7 @@
     },
     {
         "prompt": {
-            "text": "They are playing volleyball at the beach.",
-            "lang": "en"
+            "text": "They are playing volleyball at the beach."
         },
         "correctChoices": [
             {
@@ -5362,8 +5230,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to the store to buy some bread.",
-            "lang": "en"
+            "text": "I am going to the store to buy some bread."
         },
         "correctChoices": [
             {
@@ -5405,8 +5272,7 @@
     },
     {
         "prompt": {
-            "text": "She is playing with her cat.",
-            "lang": "en"
+            "text": "She is playing with her cat."
         },
         "correctChoices": [
             {
@@ -5442,8 +5308,7 @@
     },
     {
         "prompt": {
-            "text": "We are having a barbecue in the backyard.",
-            "lang": "en"
+            "text": "We are having a barbecue in the backyard."
         },
         "correctChoices": [
             {
@@ -5485,8 +5350,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher is giving a lesson to the class.",
-            "lang": "en"
+            "text": "The teacher is giving a lesson to the class."
         },
         "correctChoices": [
             {
@@ -5531,8 +5395,7 @@
     },
     {
         "prompt": {
-            "text": "I am writing a letter to my friend.",
-            "lang": "en"
+            "text": "I am writing a letter to my friend."
         },
         "correctChoices": [
             {
@@ -5571,8 +5434,7 @@
     },
     {
         "prompt": {
-            "text": "They are singing songs in the choir.",
-            "lang": "en"
+            "text": "They are singing songs in the choir."
         },
         "correctChoices": [
             {
@@ -5614,8 +5476,7 @@
     },
     {
         "prompt": {
-            "text": "We are visiting the museum tomorrow.",
-            "lang": "en"
+            "text": "We are visiting the museum tomorrow."
         },
         "correctChoices": [
             {
@@ -5651,8 +5512,7 @@
     },
     {
         "prompt": {
-            "text": "I am cleaning my room this afternoon.",
-            "lang": "en"
+            "text": "I am cleaning my room this afternoon."
         },
         "correctChoices": [
             {
@@ -5691,8 +5551,7 @@
     },
     {
         "prompt": {
-            "text": "The dog is barking loudly in the yard.",
-            "lang": "en"
+            "text": "The dog is barking loudly in the yard."
         },
         "correctChoices": [
             {
@@ -5734,8 +5593,7 @@
     },
     {
         "prompt": {
-            "text": "They are waiting for the bus at the station.",
-            "lang": "en"
+            "text": "They are waiting for the bus at the station."
         },
         "correctChoices": [
             {
@@ -5777,8 +5635,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to eat lunch at the restaurant.",
-            "lang": "en"
+            "text": "We are going to eat lunch at the restaurant."
         },
         "correctChoices": [
             {
@@ -5820,8 +5677,7 @@
     },
     {
         "prompt": {
-            "text": "She is wearing a blue jacket.",
-            "lang": "en"
+            "text": "She is wearing a blue jacket."
         },
         "correctChoices": [
             {
@@ -5857,8 +5713,7 @@
     },
     {
         "prompt": {
-            "text": "I like to play soccer with my friends.",
-            "lang": "en"
+            "text": "I like to play soccer with my friends."
         },
         "correctChoices": [
             {
@@ -5900,8 +5755,7 @@
     },
     {
         "prompt": {
-            "text": "He is studying for the test.",
-            "lang": "en"
+            "text": "He is studying for the test."
         },
         "correctChoices": [
             {
@@ -5937,8 +5791,7 @@
     },
     {
         "prompt": {
-            "text": "They are swimming in the lake.",
-            "lang": "en"
+            "text": "They are swimming in the lake."
         },
         "correctChoices": [
             {
@@ -5974,8 +5827,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher is explaining the lesson.",
-            "lang": "en"
+            "text": "The teacher is explaining the lesson."
         },
         "correctChoices": [
             {
@@ -6011,8 +5863,7 @@
     },
     {
         "prompt": {
-            "text": "We are making a cake for the party.",
-            "lang": "en"
+            "text": "We are making a cake for the party."
         },
         "correctChoices": [
             {
@@ -6054,8 +5905,7 @@
     },
     {
         "prompt": {
-            "text": "I am drawing a picture of the mountain.",
-            "lang": "en"
+            "text": "I am drawing a picture of the mountain."
         },
         "correctChoices": [
             {
@@ -6097,8 +5947,7 @@
     },
     {
         "prompt": {
-            "text": "They are reading a book in the garden.",
-            "lang": "en"
+            "text": "They are reading a book in the garden."
         },
         "correctChoices": [
             {
@@ -6140,8 +5989,7 @@
     },
     {
         "prompt": {
-            "text": "She is playing the piano in the living room.",
-            "lang": "en"
+            "text": "She is playing the piano in the living room."
         },
         "correctChoices": [
             {
@@ -6183,8 +6031,7 @@
     },
     {
         "prompt": {
-            "text": "I am going to buy some apples at the market.",
-            "lang": "en"
+            "text": "I am going to buy some apples at the market."
         },
         "correctChoices": [
             {
@@ -6226,8 +6073,7 @@
     },
     {
         "prompt": {
-            "text": "The bird is flying in the sky.",
-            "lang": "en"
+            "text": "The bird is flying in the sky."
         },
         "correctChoices": [
             {
@@ -6263,8 +6109,7 @@
     },
     {
         "prompt": {
-            "text": "We are cleaning the house today.",
-            "lang": "en"
+            "text": "We are cleaning the house today."
         },
         "correctChoices": [
             {
@@ -6300,8 +6145,7 @@
     },
     {
         "prompt": {
-            "text": "I am reading a magazine in the living room.",
-            "lang": "en"
+            "text": "I am reading a magazine in the living room."
         },
         "correctChoices": [
             {
@@ -6343,8 +6187,7 @@
     },
     {
         "prompt": {
-            "text": "They are building a sandcastle on the beach.",
-            "lang": "en"
+            "text": "They are building a sandcastle on the beach."
         },
         "correctChoices": [
             {
@@ -6392,8 +6235,7 @@
     },
     {
         "prompt": {
-            "text": "I am listening to music in my room.",
-            "lang": "en"
+            "text": "I am listening to music in my room."
         },
         "correctChoices": [
             {
@@ -6435,8 +6277,7 @@
     },
     {
         "prompt": {
-            "text": "She is cooking dinner in the kitchen.",
-            "lang": "en"
+            "text": "She is cooking dinner in the kitchen."
         },
         "correctChoices": [
             {
@@ -6478,8 +6319,7 @@
     },
     {
         "prompt": {
-            "text": "We are visiting the zoo tomorrow.",
-            "lang": "en"
+            "text": "We are visiting the zoo tomorrow."
         },
         "correctChoices": [
             {
@@ -6515,8 +6355,7 @@
     },
     {
         "prompt": {
-            "text": "I am playing video games with my brother.",
-            "lang": "en"
+            "text": "I am playing video games with my brother."
         },
         "correctChoices": [
             {
@@ -6564,8 +6403,7 @@
     },
     {
         "prompt": {
-            "text": "He is painting a picture of the ocean.",
-            "lang": "en"
+            "text": "He is painting a picture of the ocean."
         },
         "correctChoices": [
             {
@@ -6604,8 +6442,7 @@
     },
     {
         "prompt": {
-            "text": "They are dancing at the party.",
-            "lang": "en"
+            "text": "They are dancing at the party."
         },
         "correctChoices": [
             {
@@ -6641,8 +6478,7 @@
     },
     {
         "prompt": {
-            "text": "I am working on my homework in the office.",
-            "lang": "en"
+            "text": "I am working on my homework in the office."
         },
         "correctChoices": [
             {
@@ -6687,8 +6523,7 @@
     },
     {
         "prompt": {
-            "text": "He is playing basketball with his friends.",
-            "lang": "en"
+            "text": "He is playing basketball with his friends."
         },
         "correctChoices": [
             {
@@ -6730,8 +6565,7 @@
     },
     {
         "prompt": {
-            "text": "She is making a sandwich in the kitchen.",
-            "lang": "en"
+            "text": "She is making a sandwich in the kitchen."
         },
         "correctChoices": [
             {
@@ -6773,8 +6607,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to visit the museum tomorrow.",
-            "lang": "en"
+            "text": "We are going to visit the museum tomorrow."
         },
         "correctChoices": [
             {
@@ -6813,8 +6646,7 @@
     },
     {
         "prompt": {
-            "text": "I like to drink hot chocolate in the winter.",
-            "lang": "en"
+            "text": "I like to drink hot chocolate in the winter."
         },
         "correctChoices": [
             {
@@ -6856,8 +6688,7 @@
     },
     {
         "prompt": {
-            "text": "They are going to the park to play.",
-            "lang": "en"
+            "text": "They are going to the park to play."
         },
         "correctChoices": [
             {
@@ -6896,8 +6727,7 @@
     },
     {
         "prompt": {
-            "text": "She is singing a song in front of the class.",
-            "lang": "en"
+            "text": "She is singing a song in front of the class."
         },
         "correctChoices": [
             {
@@ -6939,8 +6769,7 @@
     },
     {
         "prompt": {
-            "text": "I am reading a newspaper in the morning.",
-            "lang": "en"
+            "text": "I am reading a newspaper in the morning."
         },
         "correctChoices": [
             {
@@ -6979,8 +6808,7 @@
     },
     {
         "prompt": {
-            "text": "He is running in the park with his dog.",
-            "lang": "en"
+            "text": "He is running in the park with his dog."
         },
         "correctChoices": [
             {
@@ -7025,8 +6853,7 @@
     },
     {
         "prompt": {
-            "text": "We are watching a movie at the theater.",
-            "lang": "en"
+            "text": "We are watching a movie at the theater."
         },
         "correctChoices": [
             {
@@ -7065,8 +6892,7 @@
     },
     {
         "prompt": {
-            "text": "The children are playing in the garden.",
-            "lang": "en"
+            "text": "The children are playing in the garden."
         },
         "correctChoices": [
             {
@@ -7105,8 +6931,7 @@
     },
     {
         "prompt": {
-            "text": "I am writing a letter to my friend.",
-            "lang": "en"
+            "text": "I am writing a letter to my friend."
         },
         "correctChoices": [
             {
@@ -7145,8 +6970,7 @@
     },
     {
         "prompt": {
-            "text": "She is eating pizza at the restaurant.",
-            "lang": "en"
+            "text": "She is eating pizza at the restaurant."
         },
         "correctChoices": [
             {
@@ -7188,8 +7012,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the beach in the summer.",
-            "lang": "en"
+            "text": "We are going to the beach in the summer."
         },
         "correctChoices": [
             {
@@ -7231,8 +7054,7 @@
     },
     {
         "prompt": {
-            "text": "I am looking at the stars in the night sky.",
-            "lang": "en"
+            "text": "I am looking at the stars in the night sky."
         },
         "correctChoices": [
             {
@@ -7277,8 +7099,7 @@
     },
     {
         "prompt": {
-            "text": "They are riding bikes in the park.",
-            "lang": "en"
+            "text": "They are riding bikes in the park."
         },
         "correctChoices": [
             {
@@ -7320,8 +7141,7 @@
     },
     {
         "prompt": {
-            "text": "She is cooking soup for lunch.",
-            "lang": "en"
+            "text": "She is cooking soup for lunch."
         },
         "correctChoices": [
             {
@@ -7366,8 +7186,7 @@
     },
     {
         "prompt": {
-            "text": "We are playing cards with our grandparents.",
-            "lang": "en"
+            "text": "We are playing cards with our grandparents."
         },
         "correctChoices": [
             {
@@ -7409,8 +7228,7 @@
     },
     {
         "prompt": {
-            "text": "He is fixing the car in the garage.",
-            "lang": "en"
+            "text": "He is fixing the car in the garage."
         },
         "correctChoices": [
             {
@@ -7452,8 +7270,7 @@
     },
     {
         "prompt": {
-            "text": "She is studying English in her room.",
-            "lang": "en"
+            "text": "She is studying English in her room."
         },
         "correctChoices": [
             {
@@ -7492,8 +7309,7 @@
     },
     {
         "prompt": {
-            "text": "They are watching TV in the living room.",
-            "lang": "en"
+            "text": "They are watching TV in the living room."
         },
         "correctChoices": [
             {
@@ -7535,8 +7351,7 @@
     },
     {
         "prompt": {
-            "text": "I am taking a walk in the park.",
-            "lang": "en"
+            "text": "I am taking a walk in the park."
         },
         "correctChoices": [
             {
@@ -7575,8 +7390,7 @@
     },
     {
         "prompt": {
-            "text": "He is playing the guitar in the music room.",
-            "lang": "en"
+            "text": "He is playing the guitar in the music room."
         },
         "correctChoices": [
             {
@@ -7627,8 +7441,7 @@
     },
     {
         "prompt": {
-            "text": "She is reading a book in the library.",
-            "lang": "en"
+            "text": "She is reading a book in the library."
         },
         "correctChoices": [
             {
@@ -7670,8 +7483,7 @@
     },
     {
         "prompt": {
-            "text": "We are having dinner at the restaurant.",
-            "lang": "en"
+            "text": "We are having dinner at the restaurant."
         },
         "correctChoices": [
             {
@@ -7704,8 +7516,7 @@
     },
     {
         "prompt": {
-            "text": "They are playing video games in the living room.",
-            "lang": "en"
+            "text": "They are playing video games in the living room."
         },
         "correctChoices": [
             {
@@ -7750,8 +7561,7 @@
     },
     {
         "prompt": {
-            "text": "I am taking a bus to school.",
-            "lang": "en"
+            "text": "I am taking a bus to school."
         },
         "correctChoices": [
             {
@@ -7790,8 +7600,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to buy bread at the bakery.",
-            "lang": "en"
+            "text": "We are going to buy bread at the bakery."
         },
         "correctChoices": [
             {
@@ -7836,8 +7645,7 @@
     },
     {
         "prompt": {
-            "text": "The teacher is explaining the lesson.",
-            "lang": "en"
+            "text": "The teacher is explaining the lesson."
         },
         "correctChoices": [
             {
@@ -7873,8 +7681,7 @@
     },
     {
         "prompt": {
-            "text": "She is wearing a red dress.",
-            "lang": "en"
+            "text": "She is wearing a red dress."
         },
         "correctChoices": [
             {
@@ -7910,8 +7717,7 @@
     },
     {
         "prompt": {
-            "text": "He is working in the office.",
-            "lang": "en"
+            "text": "He is working in the office."
         },
         "correctChoices": [
             {
@@ -7947,8 +7753,7 @@
     },
     {
         "prompt": {
-            "text": "We are going to the cinema to watch a movie.",
-            "lang": "en"
+            "text": "We are going to the cinema to watch a movie."
         },
         "correctChoices": [
             {
@@ -7993,8 +7798,7 @@
     },
     {
         "prompt": {
-            "text": "She is drawing a picture with colored pencils.",
-            "lang": "en"
+            "text": "She is drawing a picture with colored pencils."
         },
         "correctChoices": [
             {
@@ -8042,8 +7846,7 @@
     },
     {
         "prompt": {
-            "text": "They are singing a song together.",
-            "lang": "en"
+            "text": "They are singing a song together."
         },
         "correctChoices": [
             {
@@ -8079,8 +7882,7 @@
     },
     {
         "prompt": {
-            "text": "I like to play chess with my grandfather.",
-            "lang": "en"
+            "text": "I like to play chess with my grandfather."
         },
         "correctChoices": [
             {
@@ -8122,8 +7924,7 @@
     },
     {
         "prompt": {
-            "text": "We are visiting our cousins this weekend.",
-            "lang": "en"
+            "text": "We are visiting our cousins this weekend."
         },
         "correctChoices": [
             {
@@ -8162,8 +7963,7 @@
     },
     {
         "prompt": {
-            "text": "She is making a cake for her birthday.",
-            "lang": "en"
+            "text": "She is making a cake for her birthday."
         },
         "correctChoices": [
             {
@@ -8205,8 +8005,7 @@
     },
     {
         "prompt": {
-            "text": "He is reading a story to his little sister.",
-            "lang": "en"
+            "text": "He is reading a story to his little sister."
         },
         "correctChoices": [
             {
@@ -8251,8 +8050,7 @@
     },
     {
         "prompt": {
-            "text": "We are walking to the park on this beautiful day.",
-            "lang": "en"
+            "text": "We are walking to the park on this beautiful day."
         },
         "correctChoices": [
             {
@@ -8297,8 +8095,7 @@
     },
     {
         "prompt": {
-            "text": "I am eating a sandwich with cheese and ham.",
-            "lang": "en"
+            "text": "I am eating a sandwich with cheese and ham."
         },
         "correctChoices": [
             {
@@ -8346,8 +8143,7 @@
     },
     {
         "prompt": {
-            "text": "She is riding her bike in the park.",
-            "lang": "en"
+            "text": "She is riding her bike in the park."
         },
         "correctChoices": [
             {
@@ -8389,8 +8185,7 @@
     },
     {
         "prompt": {
-            "text": "They are listening to music in the living room.",
-            "lang": "en"
+            "text": "They are listening to music in the living room."
         },
         "correctChoices": [
             {
@@ -8435,8 +8230,7 @@
     },
     {
         "prompt": {
-            "text": "We are cooking dinner together.",
-            "lang": "en"
+            "text": "We are cooking dinner together."
         },
         "correctChoices": [
             {
@@ -8472,8 +8266,7 @@
     },
     {
         "prompt": {
-            "text": "I am writing in my notebook.",
-            "lang": "en"
+            "text": "I am writing in my notebook."
         },
         "correctChoices": [
             {
@@ -8505,3 +8298,4 @@
         ]
     }
 ]
+
