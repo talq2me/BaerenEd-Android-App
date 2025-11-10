@@ -279,12 +279,18 @@
             document.getElementById('letterBank').innerHTML = '';
             document.getElementById('keyboardContainer').classList.add('hidden');
             document.querySelector('.button-container').style.display = 'none';
-            if (window.parent && window.parent !== window) {
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted();
+            } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted' }, '*');
-                setTimeout(() => window.parent.postMessage({ type: 'closeModal' }, '*'), 3000);
-            } else {
-                setTimeout(() => history.back(), 3000);
             }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
         }
 
         function createKeyboard() {
