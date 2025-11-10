@@ -1,471 +1,2234 @@
 [
-    {
-      "question": "Liam has 24 apples. He buys 17 more apples. How many apples does he have now?",
-      "correctAnswer": "41",
-      "choices": ["39", "40", "41", "42", "43"]
+  {
+    "prompt": {
+      "text": "Liam has 24 apples. He buys 17 more apples. How many apples does he have now?"
     },
-    {
-      "question": "Olivia had 85 marbles. She lost 29 marbles. How many marbles does she have left?",
-      "correctAnswer": "56",
-      "choices": ["55", "56", "57", "58", "59"]
-    },
-    {
-      "question": "There are 7 boxes with 6 toys in each box. How many toys are there in total?",
-      "correctAnswer": "42",
-      "choices": ["40", "41", "42", "43", "44"]
-    },
-    {
-      "question": "96 balloons are shared equally among 8 children. How many balloons does each child get?",
-      "correctAnswer": "12",
-      "choices": ["11", "12", "13", "14", "15"]
-    },
-    {
-      "question": "Emma has 35 stickers. She gives 12 stickers to her friend. How many stickers does Emma have now?",
-      "correctAnswer": "23",
-      "choices": ["22", "23", "24", "25", "26"]
-    },
-    {
-      "question": "Noah found 18 pencils on Monday and 24 pencils on Tuesday. How many pencils did he find in total?",
-      "correctAnswer": "42",
-      "choices": ["41", "42", "43", "44", "45"]
-    },
-    {
-      "question": "Lucas had 60 candies. He ate 15 candies. How many candies are left?",
-      "correctAnswer": "45",
-      "choices": ["44", "45", "46", "47", "48"]
-    },
-    {
-      "question": "A class collected 8 boxes of books with 9 books each. How many books are there?",
-      "correctAnswer": "72",
-      "choices": ["70", "71", "72", "73", "74"]
-    },
-    {
-      "question": "Mason shared 56 cookies equally among 7 friends. How many cookies did each friend get?",
-      "correctAnswer": "8",
-      "choices": ["7", "8", "9", "10", "11"]
-    },
-    {
-      "question": "Ava bought 42 balloons and used 19 for a party. How many balloons does she have left?",
-      "correctAnswer": "23",
-      "choices": ["22", "23", "24", "25", "26"]
-    },
-    {
-        "question": "Sophia picked 45 apples and gave 18 to her friends. How many apples does she have left?",
-        "correctAnswer": "27",
-        "choices": ["26", "27", "28", "29", "30"]
-      },
+    "correctChoices": [
       {
-        "question": "Ethan read 25 pages on Monday and 32 pages on Tuesday. How many pages did he read in total?",
-        "correctAnswer": "57",
-        "choices": ["55", "56", "57", "58", "59"]
-      },
-      {
-        "question": "Mia baked 8 trays of cookies with 12 cookies on each tray. How many cookies did she bake?",
-        "correctAnswer": "96",
-        "choices": ["94", "95", "96", "97", "98"]
-      },
-      {
-        "question": "James has 72 marbles to split equally into 8 jars. How many marbles are in each jar?",
-        "correctAnswer": "9",
-        "choices": ["8", "9", "10", "11", "12"]
+        "text": "41"
       }
-      ,
+    ],
+    "extraChoices": [
       {
-        "question": "Lucas has 38 marbles. He buys 27 more. How many marbles does he have now?",
-        "correctAnswer": "65",
-        "choices": ["63", "64", "65", "66", "67"]
+        "text": "39"
       },
       {
-        "question": "Emma has 90 pencils. She gives 45 to her classmates. How many pencils does she have left?",
-        "correctAnswer": "45",
-        "choices": ["44", "45", "46", "47", "48"]
+        "text": "40"
       },
       {
-        "question": "Noah collected 6 boxes of crayons with 8 crayons in each. How many crayons did he collect?",
-        "correctAnswer": "48",
-        "choices": ["46", "47", "48", "49", "50"]
+        "text": "42"
       },
       {
-        "question": "Olivia read 28 pages on Saturday and 35 pages on Sunday. How many pages did she read in total?",
-        "correctAnswer": "63",
-        "choices": ["61", "62", "63", "64", "65"]
-      },
-      {
-        "question": "Liam baked 96 cookies and shared them equally among 8 friends. How many cookies did each friend get?",
-        "correctAnswer": "12",
-        "choices": ["11", "12", "13", "14", "15"]
-      },
-      {
-        "question": "Sophia planted 48 flowers in 6 rows. How many flowers were in each row?",
-        "correctAnswer": "8",
-        "choices": ["7", "8", "9", "10", "11"]
-      },
-      {
-        "question": "Mason has 72 stickers. He puts them into albums with 9 stickers each. How many albums can he fill?",
-        "correctAnswer": "8",
-        "choices": ["7", "8", "9", "10", "11"]
-      },
-      {
-        "question": "Isabella had 58 balloons. 19 popped. How many balloons does she have left?",
-        "correctAnswer": "39",
-        "choices": ["38", "39", "40", "41", "42"]
-      },
-      {
-        "question": "James bought 4 packs of gum. Each pack has 5 pieces. How many pieces of gum did he buy?",
-        "correctAnswer": "20",
-        "choices": ["19", "20", "21", "22", "23"]
-      },
-      {
-        "question": "Amelia picked 34 apples and her brother picked 46. How many apples did they pick together?",
-        "correctAnswer": "80",
-        "choices": ["78", "79", "80", "81", "82"]
-      },
-      {
-        "question": "Ethan shared 63 marbles equally among 7 friends. How many marbles did each friend get?",
-        "correctAnswer": "9",
-        "choices": ["8", "9", "10", "11", "12"]
-      },
-      {
-        "question": "Ava had 49 candies. She ate 17 of them. How many candies does she have now?",
-        "correctAnswer": "32",
-        "choices": ["31", "32", "33", "34", "35"]
-      },
-      {
-        "question": "Benjamin collected 88 shells. He gave 37 to his friend. How many shells does he have now?",
-        "correctAnswer": "51",
-        "choices": ["50", "51", "52", "53", "54"]
-      },
-      {
-        "question": "Charlotte bought 7 packs of stickers. Each pack had 9 stickers. How many stickers did she buy?",
-        "correctAnswer": "63",
-        "choices": ["61", "62", "63", "64", "65"]
-      },
-      {
-        "question": "Henry has 45 toy cars. He gives 22 to his cousin. How many toy cars does he have left?",
-        "correctAnswer": "23",
-        "choices": ["22", "23", "24", "25", "26"]
-      },
-      {
-        "question": "Harper baked 56 cupcakes and packed them into 7 boxes equally. How many cupcakes in each box?",
-        "correctAnswer": "8",
-        "choices": ["7", "8", "9", "10", "11"]
-      },
-      {
-        "question": "Jack has 18 pencils and buys 27 more. How many pencils does he have in total?",
-        "correctAnswer": "45",
-        "choices": ["44", "45", "46", "47", "48"]
-      },
-      {
-        "question": "Evelyn has 63 crayons. She loses 29. How many crayons does she have now?",
-        "correctAnswer": "34",
-        "choices": ["33", "34", "35", "36", "37"]
-      },
-      {
-        "question": "Alexander baked 84 cookies and divided them into 12 plates. How many cookies per plate?",
-        "correctAnswer": "7",
-        "choices": ["6", "7", "8", "9", "10"]
-      },
-      {
-        "question": "Ella and Mia planted 27 and 35 flowers. How many flowers did they plant altogether?",
-        "correctAnswer": "62",
-        "choices": ["60", "61", "62", "63", "64"]
-      },
-      {
-        "question": "Logan has 120 stickers divided equally into 10 albums. How many stickers per album?",
-        "correctAnswer": "12",
-        "choices": ["11", "12", "13", "14", "15"]
-      },
-      {
-        "question": "Grace had 98 beads. She used 56 beads for bracelets. How many beads remain?",
-        "correctAnswer": "42",
-        "choices": ["41", "42", "43", "44", "45"]
-      },
-      {
-        "question": "Jackson has 64 cookies and shares them among 8 friends. How many cookies each?",
-        "correctAnswer": "8",
-        "choices": ["7", "8", "9", "10", "11"]
-      },
-      {
-        "question": "Victoria collected 74 stamps and gave away 23. How many does she have left?",
-        "correctAnswer": "51",
-        "choices": ["50", "51", "52", "53", "54"]
-      },
-      {
-        "question": "Carter bought 5 boxes of markers. Each box had 10 markers. How many markers total?",
-        "correctAnswer": "50",
-        "choices": ["48", "49", "50", "51", "52"]
-      },
-      {
-        "question": "Penelope saw 37 birds in the morning and 28 birds in the afternoon. How many birds total?",
-        "correctAnswer": "65",
-        "choices": ["63", "64", "65", "66", "67"]
-      },
-      {
-        "question": "Sebastian had 47 balloons. 19 popped. How many balloons left?",
-        "correctAnswer": "28",
-        "choices": ["27", "28", "29", "30", "31"]
-      },
-      {
-        "question": "Madison baked 88 cupcakes divided into 8 trays. How many cupcakes per tray?",
-        "correctAnswer": "11",
-        "choices": ["10", "11", "12", "13", "14"]
-      },
-      {
-        "question": "Matthew has 54 toy dinosaurs. He gives 29 away. How many does he have left?",
-        "correctAnswer": "25",
-        "choices": ["24", "25", "26", "27", "28"]
-      },
-      {
-        "question": "Sofia found 46 seashells. She gave 18 to a friend. How many seashells does she have left?",
-        "correctAnswer": "28",
-        "choices": ["27", "28", "29", "30", "31"]
+        "text": "43"
       }
-      ,
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Olivia had 85 marbles. She lost 29 marbles. How many marbles does she have left?"
+    },
+    "correctChoices": [
       {
-        "question": "Maya had 112 marbles. She gave 45 marbles to her friend. How many marbles does she have left?",
-        "correctAnswer": "67",
-        "choices": ["65", "66", "67", "68", "69"]
-      },
-      {
-        "question": "A box of crayons contains 24 crayons. If there are 7 boxes, how many crayons are there in total?",
-        "correctAnswer": "168",
-        "choices": ["167", "168", "169", "170", "171"]
-      },
-      {
-        "question": "Benjamin has 36 stickers. He buys 45 more. How many stickers does he have now?",
-        "correctAnswer": "81",
-        "choices": ["79", "80", "81", "82", "83"]
-      },
-      {
-        "question": "Lily read 48 pages of a book on Tuesday and 56 pages on Wednesday. How many pages did she read in total?",
-        "correctAnswer": "104",
-        "choices": ["102", "103", "104", "105", "106"]
-      },
-      {
-        "question": "Oliver bought 6 packs of cards. Each pack has 10 cards. How many cards did he buy?",
-        "correctAnswer": "60",
-        "choices": ["58", "59", "60", "61", "62"]
-      },
-      {
-        "question": "Ella is arranging her books on 9 shelves. She has 54 books in total. How many books are on each shelf?",
-        "correctAnswer": "6",
-        "choices": ["5", "6", "7", "8", "9"]
-      },
-      {
-        "question": "Lucas has 52 candies. He gives 19 candies to his friend. How many candies does he have left?",
-        "correctAnswer": "33",
-        "choices": ["31", "32", "33", "34", "35"]
-      },
-      {
-        "question": "Charlotte had 72 cupcakes. She ate 26 of them. How many cupcakes does she have left?",
-        "correctAnswer": "46",
-        "choices": ["45", "46", "47", "48", "49"]
-      },
-      {
-        "question": "James collected 54 shells from the beach. He gave 18 shells to his sister. How many shells does he have left?",
-        "correctAnswer": "36",
-        "choices": ["34", "35", "36", "37", "38"]
-      },
-      {
-        "question": "Mia bought 3 packs of cookies. Each pack has 12 cookies. How many cookies did she buy in total?",
-        "correctAnswer": "36",
-        "choices": ["34", "35", "36", "37", "38"]
-      },
-      {
-        "question": "Ethan has 72 marbles. He gives 24 to his cousin. How many marbles does Ethan have now?",
-        "correctAnswer": "48",
-        "choices": ["46", "47", "48", "49", "50"]
-      },
-      {
-        "question": "Amelia has 98 toy cars. She gives 22 cars to her brother. How many cars does she have now?",
-        "correctAnswer": "76",
-        "choices": ["75", "76", "77", "78", "79"]
-      },
-      {
-        "question": "Noah found 25 seashells. He picked 14 more. How many seashells did he find in total?",
-        "correctAnswer": "39",
-        "choices": ["38", "39", "40", "41", "42"]
-      },
-      {
-        "question": "Jack has 16 balloons. He buys 24 more. How many balloons does he have now?",
-        "correctAnswer": "40",
-        "choices": ["39", "40", "41", "42", "43"]
-      },
-      {
-        "question": "Harper has 60 pieces of candy. She gives 20 to her friend. How many pieces of candy does she have left?",
-        "correctAnswer": "40",
-        "choices": ["39", "40", "41", "42", "43"]
-      },
-      {
-        "question": "Grace has 50 pencils. She buys 30 more. How many pencils does she have now?",
-        "correctAnswer": "80",
-        "choices": ["78", "79", "80", "81", "82"]
-      },
-      {
-        "question": "Sophia has 102 stickers. She gives 34 to her friend. How many stickers does she have left?",
-        "correctAnswer": "68",
-        "choices": ["66", "67", "68", "69", "70"]
-      },
-      {
-        "question": "Logan collects 12 toy trucks. His friend gives him 8 more. How many toy trucks does he have now?",
-        "correctAnswer": "20",
-        "choices": ["19", "20", "21", "22", "23"]
-      },
-      {
-        "question": "Carter bakes 120 cookies. He shares them equally among 12 friends. How many cookies does each friend get?",
-        "correctAnswer": "10",
-        "choices": ["9", "10", "11", "12", "13"]
-      },
-      {
-        "question": "Victoria has 15 pencils. She buys 25 more. How many pencils does she have now?",
-        "correctAnswer": "40",
-        "choices": ["39", "40", "41", "42", "43"]
-      },
-      {
-        "question": "Madison has 64 cupcakes. She gives 24 cupcakes to her friends. How many cupcakes does she have left?",
-        "correctAnswer": "40",
-        "choices": ["39", "40", "41", "42", "43"]
-      },
-      {
-        "question": "Sebastian bakes 90 cookies. He divides them equally into 9 boxes. How many cookies are in each box?",
-        "correctAnswer": "10",
-        "choices": ["9", "10", "11", "12", "13"]
-      },
-      {
-        "question": "Maya bought 56 markers. She uses 32 of them. How many markers does she have left?",
-        "correctAnswer": "24",
-        "choices": ["23", "24", "25", "26", "27"]
-      },
-      {
-        "question": "Benjamin has 50 toys. He gives 18 to his cousin. How many toys does Benjamin have now?",
-        "correctAnswer": "32",
-        "choices": ["31", "32", "33", "34", "35"]
+        "text": "56"
       }
-      ,
+    ],
+    "extraChoices": [
       {
-        "question": "Emily has 82 pencils. She buys 18 more. How many pencils does Emily have now?",
-        "correctAnswer": "100",
-        "choices": ["99", "100", "101", "102", "103"]
+        "text": "55"
       },
       {
-        "question": "Zoe has 40 coins. She gives 12 to her friend. How many coins does she have left?",
-        "correctAnswer": "28",
-        "choices": ["27", "28", "29", "30", "31"]
+        "text": "57"
       },
       {
-        "question": "A box contains 56 chocolate bars. If each pack has 8 bars, how many packs are there?",
-        "correctAnswer": "7",
-        "choices": ["6", "7", "8", "9", "10"]
+        "text": "58"
       },
       {
-        "question": "Olivia has 54 apples. She gives 19 apples to her friend. How many apples does Olivia have now?",
-        "correctAnswer": "35",
-        "choices": ["34", "35", "36", "37", "38"]
-      },
-      {
-        "question": "A farmer has 80 chickens. He sells 45 of them. How many chickens does the farmer have now?",
-        "correctAnswer": "35",
-        "choices": ["34", "35", "36", "37", "38"]
-      },
-      {
-        "question": "Liam has 72 toy cars. He gives 25 cars to his cousin. How many cars does Liam have left?",
-        "correctAnswer": "47",
-        "choices": ["46", "47", "48", "49", "50"]
-      },
-      {
-        "question": "Mason had 150 marbles. He lost 45 marbles. How many marbles does he have left?",
-        "correctAnswer": "105",
-        "choices": ["104", "105", "106", "107", "108"]
-      },
-      {
-        "question": "A baker made 90 muffins. He sold 58 muffins. How many muffins does he have left?",
-        "correctAnswer": "32",
-        "choices": ["31", "32", "33", "34", "35"]
-      },
-      {
-        "question": "Sophie has 150 pages left to read in her book. If she reads 25 pages every day, how many days will it take her to finish the book?",
-        "correctAnswer": "6",
-        "choices": ["5", "6", "7", "8", "9"]
-      },
-      {
-        "question": "Jack has 45 stickers. He gives 12 stickers to his friend. How many stickers does he have now?",
-        "correctAnswer": "33",
-        "choices": ["32", "33", "34", "35", "36"]
-      },
-      {
-        "question": "Lucy is reading a book with 96 pages. She has already read 48 pages. How many pages does she have left to read?",
-        "correctAnswer": "48",
-        "choices": ["47", "48", "49", "50", "51"]
-      },
-      {
-        "question": "There are 120 students in a school. 45 students are absent. How many students are present?",
-        "correctAnswer": "75",
-        "choices": ["74", "75", "76", "77", "78"]
-      },
-      {
-        "question": "Ben has 96 marbles. He gives 48 marbles to his friend. How many marbles does Ben have left?",
-        "correctAnswer": "48",
-        "choices": ["47", "48", "49", "50", "51"]
-      },
-      {
-        "question": "A farmer harvested 225 apples. He sold 90 apples. How many apples does he have left?",
-        "correctAnswer": "135",
-        "choices": ["134", "135", "136", "137", "138"]
-      },
-      {
-        "question": "Daniel had 135 candies. He ate 45 of them. How many candies does Daniel have left?",
-        "correctAnswer": "90",
-        "choices": ["89", "90", "91", "92", "93"]
-      },
-      {
-        "question": "Isabella has 300 pencils. She gives 120 pencils to her classmates. How many pencils does she have left?",
-        "correctAnswer": "180",
-        "choices": ["179", "180", "181", "182", "183"]
-      },
-      {
-        "question": "Lucas wants to divide 96 apples into 8 baskets. How many apples will be in each basket?",
-        "correctAnswer": "12",
-        "choices": ["11", "12", "13", "14", "15"]
-      },
-      {
-        "question": "Maggie had 150 dollars. She spent 85 dollars. How much money does she have now?",
-        "correctAnswer": "65",
-        "choices": ["64", "65", "66", "67", "68"]
-      },
-      {
-        "question": "Noah bought 36 packs of crayons. Each pack contains 6 crayons. How many crayons did Noah buy?",
-        "correctAnswer": "216",
-        "choices": ["215", "216", "217", "218", "219"]
-      },
-      {
-        "question": "A school has 400 students. 150 students are in the 3rd grade. How many students are not in the 3rd grade?",
-        "correctAnswer": "250",
-        "choices": ["249", "250", "251", "252", "253"]
-      },
-      {
-        "question": "Ella has 72 candies. She wants to divide them equally among 8 friends. How many candies will each friend get?",
-        "correctAnswer": "9",
-        "choices": ["8", "9", "10", "11", "12"]
-      },
-      {
-        "question": "Sophia bought 5 boxes of chocolates. Each box has 12 chocolates. How many chocolates does she have in total?",
-        "correctAnswer": "60",
-        "choices": ["59", "60", "61", "62", "63"]
-      },
-      {
-        "question": "A box contains 150 cookies. If each pack has 30 cookies, how many packs are there?",
-        "correctAnswer": "5",
-        "choices": ["4", "5", "6", "7", "8"]
-      },
-      {
-        "question": "Jason bought 72 pens. He gives 28 pens to his friend. How many pens does he have left?",
-        "correctAnswer": "44",
-        "choices": ["43", "44", "45", "46", "47"]
-      },
-      {
-        "question": "A farmer has 120 liters of milk. He sells 45 liters of milk. How much milk does he have left?",
-        "correctAnswer": "75",
-        "choices": ["74", "75", "76", "77", "78"]
+        "text": "59"
       }
-  ]
-  
+    ]
+  },
+  {
+    "prompt": {
+      "text": "There are 7 boxes with 6 toys in each box. How many toys are there in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "42"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "40"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "43"
+      },
+      {
+        "text": "44"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "96 balloons are shared equally among 8 children. How many balloons does each child get?"
+    },
+    "correctChoices": [
+      {
+        "text": "12"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "11"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "14"
+      },
+      {
+        "text": "15"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Emma has 35 stickers. She gives 12 stickers to her friend. How many stickers does Emma have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "23"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "22"
+      },
+      {
+        "text": "24"
+      },
+      {
+        "text": "25"
+      },
+      {
+        "text": "26"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Noah found 18 pencils on Monday and 24 pencils on Tuesday. How many pencils did he find in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "42"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "41"
+      },
+      {
+        "text": "43"
+      },
+      {
+        "text": "44"
+      },
+      {
+        "text": "45"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Lucas had 60 candies. He ate 15 candies. How many candies are left?"
+    },
+    "correctChoices": [
+      {
+        "text": "45"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "44"
+      },
+      {
+        "text": "46"
+      },
+      {
+        "text": "47"
+      },
+      {
+        "text": "48"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A class collected 8 boxes of books with 9 books each. How many books are there?"
+    },
+    "correctChoices": [
+      {
+        "text": "72"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "70"
+      },
+      {
+        "text": "71"
+      },
+      {
+        "text": "73"
+      },
+      {
+        "text": "74"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mason shared 56 cookies equally among 7 friends. How many cookies did each friend get?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ava bought 42 balloons and used 19 for a party. How many balloons does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "23"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "22"
+      },
+      {
+        "text": "24"
+      },
+      {
+        "text": "25"
+      },
+      {
+        "text": "26"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sophia picked 45 apples and gave 18 to her friends. How many apples does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "27"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "26"
+      },
+      {
+        "text": "28"
+      },
+      {
+        "text": "29"
+      },
+      {
+        "text": "30"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ethan read 25 pages on Monday and 32 pages on Tuesday. How many pages did he read in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "57"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "55"
+      },
+      {
+        "text": "56"
+      },
+      {
+        "text": "58"
+      },
+      {
+        "text": "59"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mia baked 8 trays of cookies with 12 cookies on each tray. How many cookies did she bake?"
+    },
+    "correctChoices": [
+      {
+        "text": "96"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "94"
+      },
+      {
+        "text": "95"
+      },
+      {
+        "text": "97"
+      },
+      {
+        "text": "98"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "James has 72 marbles to split equally into 8 jars. How many marbles are in each jar?"
+    },
+    "correctChoices": [
+      {
+        "text": "9"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "8"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      },
+      {
+        "text": "12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Lucas has 38 marbles. He buys 27 more. How many marbles does he have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "65"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "63"
+      },
+      {
+        "text": "64"
+      },
+      {
+        "text": "66"
+      },
+      {
+        "text": "67"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Emma has 90 pencils. She gives 45 to her classmates. How many pencils does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "45"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "44"
+      },
+      {
+        "text": "46"
+      },
+      {
+        "text": "47"
+      },
+      {
+        "text": "48"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Noah collected 6 boxes of crayons with 8 crayons in each. How many crayons did he collect?"
+    },
+    "correctChoices": [
+      {
+        "text": "48"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "46"
+      },
+      {
+        "text": "47"
+      },
+      {
+        "text": "49"
+      },
+      {
+        "text": "50"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Olivia read 28 pages on Saturday and 35 pages on Sunday. How many pages did she read in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "63"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "61"
+      },
+      {
+        "text": "62"
+      },
+      {
+        "text": "64"
+      },
+      {
+        "text": "65"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Liam baked 96 cookies and shared them equally among 8 friends. How many cookies did each friend get?"
+    },
+    "correctChoices": [
+      {
+        "text": "12"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "11"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "14"
+      },
+      {
+        "text": "15"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sophia planted 48 flowers in 6 rows. How many flowers were in each row?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mason has 72 stickers. He puts them into albums with 9 stickers each. How many albums can he fill?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Isabella had 58 balloons. 19 popped. How many balloons does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "39"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "38"
+      },
+      {
+        "text": "40"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "42"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "James bought 4 packs of gum. Each pack has 5 pieces. How many pieces of gum did he buy?"
+    },
+    "correctChoices": [
+      {
+        "text": "20"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "19"
+      },
+      {
+        "text": "21"
+      },
+      {
+        "text": "22"
+      },
+      {
+        "text": "23"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Amelia picked 34 apples and her brother picked 46. How many apples did they pick together?"
+    },
+    "correctChoices": [
+      {
+        "text": "80"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "78"
+      },
+      {
+        "text": "79"
+      },
+      {
+        "text": "81"
+      },
+      {
+        "text": "82"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ethan shared 63 marbles equally among 7 friends. How many marbles did each friend get?"
+    },
+    "correctChoices": [
+      {
+        "text": "9"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "8"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      },
+      {
+        "text": "12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ava had 49 candies. She ate 17 of them. How many candies does she have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "32"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "31"
+      },
+      {
+        "text": "33"
+      },
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Benjamin collected 88 shells. He gave 37 to his friend. How many shells does he have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "51"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "50"
+      },
+      {
+        "text": "52"
+      },
+      {
+        "text": "53"
+      },
+      {
+        "text": "54"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Charlotte bought 7 packs of stickers. Each pack had 9 stickers. How many stickers did she buy?"
+    },
+    "correctChoices": [
+      {
+        "text": "63"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "61"
+      },
+      {
+        "text": "62"
+      },
+      {
+        "text": "64"
+      },
+      {
+        "text": "65"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Henry has 45 toy cars. He gives 22 to his cousin. How many toy cars does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "23"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "22"
+      },
+      {
+        "text": "24"
+      },
+      {
+        "text": "25"
+      },
+      {
+        "text": "26"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Harper baked 56 cupcakes and packed them into 7 boxes equally. How many cupcakes in each box?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Jack has 18 pencils and buys 27 more. How many pencils does he have in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "45"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "44"
+      },
+      {
+        "text": "46"
+      },
+      {
+        "text": "47"
+      },
+      {
+        "text": "48"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Evelyn has 63 crayons. She loses 29. How many crayons does she have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "34"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "33"
+      },
+      {
+        "text": "35"
+      },
+      {
+        "text": "36"
+      },
+      {
+        "text": "37"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Alexander baked 84 cookies and divided them into 12 plates. How many cookies per plate?"
+    },
+    "correctChoices": [
+      {
+        "text": "7"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "6"
+      },
+      {
+        "text": "8"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ella and Mia planted 27 and 35 flowers. How many flowers did they plant altogether?"
+    },
+    "correctChoices": [
+      {
+        "text": "62"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "60"
+      },
+      {
+        "text": "61"
+      },
+      {
+        "text": "63"
+      },
+      {
+        "text": "64"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Logan has 120 stickers divided equally into 10 albums. How many stickers per album?"
+    },
+    "correctChoices": [
+      {
+        "text": "12"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "11"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "14"
+      },
+      {
+        "text": "15"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Grace had 98 beads. She used 56 beads for bracelets. How many beads remain?"
+    },
+    "correctChoices": [
+      {
+        "text": "42"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "41"
+      },
+      {
+        "text": "43"
+      },
+      {
+        "text": "44"
+      },
+      {
+        "text": "45"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Jackson has 64 cookies and shares them among 8 friends. How many cookies each?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Victoria collected 74 stamps and gave away 23. How many does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "51"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "50"
+      },
+      {
+        "text": "52"
+      },
+      {
+        "text": "53"
+      },
+      {
+        "text": "54"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Carter bought 5 boxes of markers. Each box had 10 markers. How many markers total?"
+    },
+    "correctChoices": [
+      {
+        "text": "50"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "48"
+      },
+      {
+        "text": "49"
+      },
+      {
+        "text": "51"
+      },
+      {
+        "text": "52"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Penelope saw 37 birds in the morning and 28 birds in the afternoon. How many birds total?"
+    },
+    "correctChoices": [
+      {
+        "text": "65"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "63"
+      },
+      {
+        "text": "64"
+      },
+      {
+        "text": "66"
+      },
+      {
+        "text": "67"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sebastian had 47 balloons. 19 popped. How many balloons left?"
+    },
+    "correctChoices": [
+      {
+        "text": "28"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "27"
+      },
+      {
+        "text": "29"
+      },
+      {
+        "text": "30"
+      },
+      {
+        "text": "31"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Madison baked 88 cupcakes divided into 8 trays. How many cupcakes per tray?"
+    },
+    "correctChoices": [
+      {
+        "text": "11"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "10"
+      },
+      {
+        "text": "12"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "14"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Matthew has 54 toy dinosaurs. He gives 29 away. How many does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "25"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "24"
+      },
+      {
+        "text": "26"
+      },
+      {
+        "text": "27"
+      },
+      {
+        "text": "28"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sofia found 46 seashells. She gave 18 to a friend. How many seashells does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "28"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "27"
+      },
+      {
+        "text": "29"
+      },
+      {
+        "text": "30"
+      },
+      {
+        "text": "31"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Maya had 112 marbles. She gave 45 marbles to her friend. How many marbles does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "67"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "65"
+      },
+      {
+        "text": "66"
+      },
+      {
+        "text": "68"
+      },
+      {
+        "text": "69"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A box of crayons contains 24 crayons. If there are 7 boxes, how many crayons are there in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "168"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "167"
+      },
+      {
+        "text": "169"
+      },
+      {
+        "text": "170"
+      },
+      {
+        "text": "171"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Benjamin has 36 stickers. He buys 45 more. How many stickers does he have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "81"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "79"
+      },
+      {
+        "text": "80"
+      },
+      {
+        "text": "82"
+      },
+      {
+        "text": "83"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Lily read 48 pages of a book on Tuesday and 56 pages on Wednesday. How many pages did she read in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "104"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "102"
+      },
+      {
+        "text": "103"
+      },
+      {
+        "text": "105"
+      },
+      {
+        "text": "106"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Oliver bought 6 packs of cards. Each pack has 10 cards. How many cards did he buy?"
+    },
+    "correctChoices": [
+      {
+        "text": "60"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "58"
+      },
+      {
+        "text": "59"
+      },
+      {
+        "text": "61"
+      },
+      {
+        "text": "62"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ella is arranging her books on 9 shelves. She has 54 books in total. How many books are on each shelf?"
+    },
+    "correctChoices": [
+      {
+        "text": "6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5"
+      },
+      {
+        "text": "7"
+      },
+      {
+        "text": "8"
+      },
+      {
+        "text": "9"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Lucas has 52 candies. He gives 19 candies to his friend. How many candies does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "33"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "31"
+      },
+      {
+        "text": "32"
+      },
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Charlotte had 72 cupcakes. She ate 26 of them. How many cupcakes does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "46"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "45"
+      },
+      {
+        "text": "47"
+      },
+      {
+        "text": "48"
+      },
+      {
+        "text": "49"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "James collected 54 shells from the beach. He gave 18 shells to his sister. How many shells does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "36"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      },
+      {
+        "text": "37"
+      },
+      {
+        "text": "38"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mia bought 3 packs of cookies. Each pack has 12 cookies. How many cookies did she buy in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "36"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      },
+      {
+        "text": "37"
+      },
+      {
+        "text": "38"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ethan has 72 marbles. He gives 24 to his cousin. How many marbles does Ethan have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "48"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "46"
+      },
+      {
+        "text": "47"
+      },
+      {
+        "text": "49"
+      },
+      {
+        "text": "50"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Amelia has 98 toy cars. She gives 22 cars to her brother. How many cars does she have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "76"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "75"
+      },
+      {
+        "text": "77"
+      },
+      {
+        "text": "78"
+      },
+      {
+        "text": "79"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Noah found 25 seashells. He picked 14 more. How many seashells did he find in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "39"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "38"
+      },
+      {
+        "text": "40"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "42"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Jack has 16 balloons. He buys 24 more. How many balloons does he have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "40"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "39"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "42"
+      },
+      {
+        "text": "43"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Harper has 60 pieces of candy. She gives 20 to her friend. How many pieces of candy does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "40"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "39"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "42"
+      },
+      {
+        "text": "43"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Grace has 50 pencils. She buys 30 more. How many pencils does she have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "80"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "78"
+      },
+      {
+        "text": "79"
+      },
+      {
+        "text": "81"
+      },
+      {
+        "text": "82"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sophia has 102 stickers. She gives 34 to her friend. How many stickers does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "68"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "66"
+      },
+      {
+        "text": "67"
+      },
+      {
+        "text": "69"
+      },
+      {
+        "text": "70"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Logan collects 12 toy trucks. His friend gives him 8 more. How many toy trucks does he have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "20"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "19"
+      },
+      {
+        "text": "21"
+      },
+      {
+        "text": "22"
+      },
+      {
+        "text": "23"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Carter bakes 120 cookies. He shares them equally among 12 friends. How many cookies does each friend get?"
+    },
+    "correctChoices": [
+      {
+        "text": "10"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "9"
+      },
+      {
+        "text": "11"
+      },
+      {
+        "text": "12"
+      },
+      {
+        "text": "13"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Victoria has 15 pencils. She buys 25 more. How many pencils does she have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "40"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "39"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "42"
+      },
+      {
+        "text": "43"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Madison has 64 cupcakes. She gives 24 cupcakes to her friends. How many cupcakes does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "40"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "39"
+      },
+      {
+        "text": "41"
+      },
+      {
+        "text": "42"
+      },
+      {
+        "text": "43"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sebastian bakes 90 cookies. He divides them equally into 9 boxes. How many cookies are in each box?"
+    },
+    "correctChoices": [
+      {
+        "text": "10"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "9"
+      },
+      {
+        "text": "11"
+      },
+      {
+        "text": "12"
+      },
+      {
+        "text": "13"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Maya bought 56 markers. She uses 32 of them. How many markers does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "24"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "23"
+      },
+      {
+        "text": "25"
+      },
+      {
+        "text": "26"
+      },
+      {
+        "text": "27"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Benjamin has 50 toys. He gives 18 to his cousin. How many toys does Benjamin have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "32"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "31"
+      },
+      {
+        "text": "33"
+      },
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Emily has 82 pencils. She buys 18 more. How many pencils does Emily have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "100"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "99"
+      },
+      {
+        "text": "101"
+      },
+      {
+        "text": "102"
+      },
+      {
+        "text": "103"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Zoe has 40 coins. She gives 12 to her friend. How many coins does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "28"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "27"
+      },
+      {
+        "text": "29"
+      },
+      {
+        "text": "30"
+      },
+      {
+        "text": "31"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A box contains 56 chocolate bars. If each pack has 8 bars, how many packs are there?"
+    },
+    "correctChoices": [
+      {
+        "text": "7"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "6"
+      },
+      {
+        "text": "8"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "10"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Olivia has 54 apples. She gives 19 apples to her friend. How many apples does Olivia have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "35"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "34"
+      },
+      {
+        "text": "36"
+      },
+      {
+        "text": "37"
+      },
+      {
+        "text": "38"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A farmer has 80 chickens. He sells 45 of them. How many chickens does the farmer have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "35"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "34"
+      },
+      {
+        "text": "36"
+      },
+      {
+        "text": "37"
+      },
+      {
+        "text": "38"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Liam has 72 toy cars. He gives 25 cars to his cousin. How many cars does Liam have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "47"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "46"
+      },
+      {
+        "text": "48"
+      },
+      {
+        "text": "49"
+      },
+      {
+        "text": "50"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mason had 150 marbles. He lost 45 marbles. How many marbles does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "105"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "104"
+      },
+      {
+        "text": "106"
+      },
+      {
+        "text": "107"
+      },
+      {
+        "text": "108"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A baker made 90 muffins. He sold 58 muffins. How many muffins does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "32"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "31"
+      },
+      {
+        "text": "33"
+      },
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sophie has 150 pages left to read in her book. If she reads 25 pages every day, how many days will it take her to finish the book?"
+    },
+    "correctChoices": [
+      {
+        "text": "6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5"
+      },
+      {
+        "text": "7"
+      },
+      {
+        "text": "8"
+      },
+      {
+        "text": "9"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Jack has 45 stickers. He gives 12 stickers to his friend. How many stickers does he have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "33"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "32"
+      },
+      {
+        "text": "34"
+      },
+      {
+        "text": "35"
+      },
+      {
+        "text": "36"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Lucy is reading a book with 96 pages. She has already read 48 pages. How many pages does she have left to read?"
+    },
+    "correctChoices": [
+      {
+        "text": "48"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "47"
+      },
+      {
+        "text": "49"
+      },
+      {
+        "text": "50"
+      },
+      {
+        "text": "51"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "There are 120 students in a school. 45 students are absent. How many students are present?"
+    },
+    "correctChoices": [
+      {
+        "text": "75"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "74"
+      },
+      {
+        "text": "76"
+      },
+      {
+        "text": "77"
+      },
+      {
+        "text": "78"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ben has 96 marbles. He gives 48 marbles to his friend. How many marbles does Ben have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "48"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "47"
+      },
+      {
+        "text": "49"
+      },
+      {
+        "text": "50"
+      },
+      {
+        "text": "51"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A farmer harvested 225 apples. He sold 90 apples. How many apples does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "135"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "134"
+      },
+      {
+        "text": "136"
+      },
+      {
+        "text": "137"
+      },
+      {
+        "text": "138"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Daniel had 135 candies. He ate 45 of them. How many candies does Daniel have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "90"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "89"
+      },
+      {
+        "text": "91"
+      },
+      {
+        "text": "92"
+      },
+      {
+        "text": "93"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Isabella has 300 pencils. She gives 120 pencils to her classmates. How many pencils does she have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "180"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "179"
+      },
+      {
+        "text": "181"
+      },
+      {
+        "text": "182"
+      },
+      {
+        "text": "183"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Lucas wants to divide 96 apples into 8 baskets. How many apples will be in each basket?"
+    },
+    "correctChoices": [
+      {
+        "text": "12"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "11"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "14"
+      },
+      {
+        "text": "15"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Maggie had 150 dollars. She spent 85 dollars. How much money does she have now?"
+    },
+    "correctChoices": [
+      {
+        "text": "65"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "64"
+      },
+      {
+        "text": "66"
+      },
+      {
+        "text": "67"
+      },
+      {
+        "text": "68"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Noah bought 36 packs of crayons. Each pack contains 6 crayons. How many crayons did Noah buy?"
+    },
+    "correctChoices": [
+      {
+        "text": "216"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "215"
+      },
+      {
+        "text": "217"
+      },
+      {
+        "text": "218"
+      },
+      {
+        "text": "219"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A school has 400 students. 150 students are in the 3rd grade. How many students are not in the 3rd grade?"
+    },
+    "correctChoices": [
+      {
+        "text": "250"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "249"
+      },
+      {
+        "text": "251"
+      },
+      {
+        "text": "252"
+      },
+      {
+        "text": "253"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ella has 72 candies. She wants to divide them equally among 8 friends. How many candies will each friend get?"
+    },
+    "correctChoices": [
+      {
+        "text": "9"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "8"
+      },
+      {
+        "text": "10"
+      },
+      {
+        "text": "11"
+      },
+      {
+        "text": "12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Sophia bought 5 boxes of chocolates. Each box has 12 chocolates. How many chocolates does she have in total?"
+    },
+    "correctChoices": [
+      {
+        "text": "60"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "59"
+      },
+      {
+        "text": "61"
+      },
+      {
+        "text": "62"
+      },
+      {
+        "text": "63"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A box contains 150 cookies. If each pack has 30 cookies, how many packs are there?"
+    },
+    "correctChoices": [
+      {
+        "text": "5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "4"
+      },
+      {
+        "text": "6"
+      },
+      {
+        "text": "7"
+      },
+      {
+        "text": "8"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Jason bought 72 pens. He gives 28 pens to his friend. How many pens does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "44"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "43"
+      },
+      {
+        "text": "45"
+      },
+      {
+        "text": "46"
+      },
+      {
+        "text": "47"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "A farmer has 120 liters of milk. He sells 45 liters of milk. How much milk does he have left?"
+    },
+    "correctChoices": [
+      {
+        "text": "75"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "74"
+      },
+      {
+        "text": "76"
+      },
+      {
+        "text": "77"
+      },
+      {
+        "text": "78"
+      }
+    ]
+  }
+]

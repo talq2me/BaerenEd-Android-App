@@ -1,914 +1,1994 @@
 [
-    {
-      "question": "1/2 - 1/2 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "2/1",
-        "1/3",
-        "0/1",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "5/12 - 1/4 = ?",
-      "correctAnswer": "1/6",
-      "choices": [
-        "1/6",
-        "7/6",
-        "5/6",
-        "1/2",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/3 + 1/3 = ?",
-      "correctAnswer": "2/3",
-      "choices": [
-        "2/1",
-        "4/3",
-        "0/1",
-        "1/1",
-        "2/3"
-      ]
-    },
-    {
-      "question": "1/4 + 3/4 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "3/4",
-        "1/4",
-        "0/1",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "1/6 + 1/3 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "3/2",
-        "1/2",
-        "13/12",
-        "23/12",
-        "5/3"
-      ]
-    },
-    {
-      "question": "2/3 + 5/6 = ?",
-      "correctAnswer": "3/2",
-      "choices": [
-        "3/2",
-        "7/6",
-        "5/6",
-        "2/3",
-        "1/6"
-      ]
-    },
-    {
-      "question": "2/3 - 2/3 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "2/1",
-        "1/3",
-        "4/3",
-        "0/1",
-        "2/3"
-      ]
-    },
-    {
-      "question": "3/4 + 1/2 = ?",
-      "correctAnswer": "5/4",
-      "choices": [
-        "3/4",
-        "1/4",
-        "0/1",
-        "1/1",
-        "5/4"
-      ]
-    },
-    {
-      "question": "2/3 - 1/3 = ?",
-      "correctAnswer": "1/3",
-      "choices": [
-        "2/1",
-        "1/3",
-        "4/3",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "2/3 + 1/3 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "0/1",
-        "11/6",
-        "1/1",
-        "1/6"
-      ]
-    },
-    {
-      "question": "3/8 + 7/8 = ?",
-      "correctAnswer": "5/4",
-      "choices": [
-        "0/1",
-        "9/8",
-        "7/4",
-        "5/4",
-        "7/8"
-      ]
-    },
-    {
-      "question": "7/8 - 1/4 = ?",
-      "correctAnswer": "5/8",
-      "choices": [
-        "5/8",
-        "3/4",
-        "1/4",
-        "7/4",
-        "11/8"
-      ]
-    },
-    {
-      "question": "2/3 - 1/3 = ?",
-      "correctAnswer": "1/3",
-      "choices": [
-        "1/3",
-        "4/3",
-        "0/1",
-        "1/1",
-        "5/3"
-      ]
-    },
-    {
-      "question": "9/10 - 3/10 = ?",
-      "correctAnswer": "3/5",
-      "choices": [
-        "3/5",
-        "9/10",
-        "11/10",
-        "7/5",
-        "1/1"
-      ]
-    },
-    {
-      "question": "2/5 + 1/5 = ?",
-      "correctAnswer": "3/5",
-      "choices": [
-        "6/5",
-        "3/5",
-        "7/5",
-        "4/5",
-        "8/5"
-      ]
-    },
-    {
-      "question": "1/2 - 1/4 = ?",
-      "correctAnswer": "1/4",
-      "choices": [
-        "2/1",
-        "1/4",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "3/4 - 1/2 = ?",
-      "correctAnswer": "1/4",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/4",
-        "7/4",
-        "5/4"
-      ]
-    },
-    {
-      "question": "2/3 - 1/2 = ?",
-      "correctAnswer": "1/6",
-      "choices": [
-        "2/1",
-        "1/6",
-        "5/6",
-        "11/6",
-        "5/3"
-      ]
-    },
-    {
-      "question": "2/3 + 5/6 = ?",
-      "correctAnswer": "3/2",
-      "choices": [
-        "3/2",
-        "5/6",
-        "0/1",
-        "11/6",
-        "2/3"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "1/2 - 1/2 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "5/12 + 1/2 = ?",
-      "correctAnswer": "11/12",
-      "choices": [
-        "2/1",
-        "1/3",
-        "3/2",
-        "11/12",
-        "2/3"
-      ]
-    },
-    {
-      "question": "3/4 + 3/4 = ?",
-      "correctAnswer": "3/2",
-      "choices": [
-        "3/2",
-        "1/4",
-        "0/1",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "1/3 + 2/3 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "3/2",
-        "4/3",
-        "17/12",
-        "1/1",
-        "23/12"
-      ]
-    },
-    {
-      "question": "2/5 + 1/5 = ?",
-      "correctAnswer": "3/5",
-      "choices": [
-        "6/5",
-        "3/5",
-        "2/5",
-        "7/5",
-        "4/5"
-      ]
-    },
-    {
-      "question": "3/4 - 1/2 = ?",
-      "correctAnswer": "1/4",
-      "choices": [
-        "1/4",
-        "1/2",
-        "0/1",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "3/4 - 1/4 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "3/4",
-        "1/2",
-        "0/1",
-        "7/4",
-        "5/4"
-      ]
-    },
-    {
-      "question": "2/3 - 1/3 = ?",
-      "correctAnswer": "1/3",
-      "choices": [
-        "1/3",
-        "4/3",
-        "0/1",
-        "1/1",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "1/4 + 1/2 = ?",
-      "correctAnswer": "3/4",
-      "choices": [
-        "3/2",
-        "3/4",
-        "1/4",
-        "7/4",
-        "5/4"
-      ]
-    },
-    {
-      "question": "3/5 - 2/5 = ?",
-      "correctAnswer": "1/5",
-      "choices": [
-        "2/1",
-        "2/5",
-        "1/5",
-        "4/5",
-        "8/5"
-      ]
-    },
-    {
-      "question": "1/2 - 1/2 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "3/4 - 1/2 = ?",
-      "correctAnswer": "1/4",
-      "choices": [
-        "3/4",
-        "1/4",
-        "17/12",
-        "0/1",
-        "5/4"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "4/5 - 3/5 = ?",
-      "correctAnswer": "1/5",
-      "choices": [
-        "2/1",
-        "3/5",
-        "2/5",
-        "1/5",
-        "7/5"
-      ]
-    },
-    {
-      "question": "1/2 - 1/4 = ?",
-      "correctAnswer": "1/4",
-      "choices": [
-        "2/1",
-        "3/2",
-        "3/4",
-        "1/4",
-        "0/1"
-      ]
-    },
-    {
-      "question": "1/3 + 1/3 = ?",
-      "correctAnswer": "2/3",
-      "choices": [
-        "1/3",
-        "0/1",
-        "1/1",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/3 + 2/3 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "0/1",
-        "1/1",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "3/4 - 3/4 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "2/1",
-        "1/4",
-        "0/1",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "2/3 - 2/3 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "1/3",
-        "4/3",
-        "0/1",
-        "1/1",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/3 - 1/3 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "1/3",
-        "4/3",
-        "0/1",
-        "1/1",
-        "2/3"
-      ]
-    },
-    {
-      "question": "1/3 - 1/6 = ?",
-      "correctAnswer": "1/6",
-      "choices": [
-        "1/3",
-        "7/6",
-        "5/6",
-        "2/3",
-        "1/6"
-      ]
-    },
-    {
-      "question": "3/8 + 5/8 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "5/8",
-        "13/8",
-        "15/8",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "5/6 + 2/3 = ?",
-      "correctAnswer": "3/2",
-      "choices": [
-        "2/1",
-        "3/2",
-        "4/3",
-        "1/2",
-        "0/1"
-      ]
-    },
-    {
-      "question": "2/3 + 2/3 = ?",
-      "correctAnswer": "4/3",
-      "choices": [
-        "2/1",
-        "1/3",
-        "4/3",
-        "1/1",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/2 + 1/2 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "5/6 + 1/2 = ?",
-      "correctAnswer": "4/3",
-      "choices": [
-        "1/3",
-        "4/3",
-        "1/1",
-        "2/3",
-        "5/4"
-      ]
-    },
-    {
-      "question": "7/12 + 1/4 = ?",
-      "correctAnswer": "5/6",
-      "choices": [
-        "7/6",
-        "5/6",
-        "1/2",
-        "0/1",
-        "5/12"
-      ]
-    },
-    {
-      "question": "4/5 - 2/5 = ?",
-      "correctAnswer": "2/5",
-      "choices": [
-        "6/5",
-        "2/5",
-        "1/5",
-        "1/1",
-        "4/5"
-      ]
-    },
-    {
-      "question": "1/5 - 1/10 = ?",
-      "correctAnswer": "1/10",
-      "choices": [
-        "3/5",
-        "13/10",
-        "1/10",
-        "17/10",
-        "3/10"
-      ]
-    },
-    {
-      "question": "1/4 + 3/8 = ?",
-      "correctAnswer": "5/8",
-      "choices": [
-        "3/8",
-        "5/8",
-        "0/1",
-        "15/8",
-        "7/4"
-      ]
-    },
-    {
-      "question": "1/3 + 1/3 = ?",
-      "correctAnswer": "2/3",
-      "choices": [
-        "1/3",
-        "4/3",
-        "0/1",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "2/3 + 7/12 = ?",
-      "correctAnswer": "5/4",
-      "choices": [
-        "5/6",
-        "1/2",
-        "17/12",
-        "19/12",
-        "5/4"
-      ]
-    },
-    {
-      "question": "3/8 - 3/8 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "5/8",
-        "13/8",
-        "0/1",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "1/3 + 1/6 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/3",
-        "4/3",
-        "1/2",
-        "0/1",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/2 - 1/2 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "2/1",
-        "3/2",
-        "1/2",
-        "0/1",
-        "1/1"
-      ]
-    },
-    {
-      "question": "1/2 - 2/5 = ?",
-      "correctAnswer": "1/10",
-      "choices": [
-        "19/10",
-        "0/1",
-        "4/5",
-        "1/10",
-        "8/5"
-      ]
-    },
-    {
-      "question": "2/5 - 1/5 = ?",
-      "correctAnswer": "1/5",
-      "choices": [
-        "0/1",
-        "1/5",
-        "4/5",
-        "9/5",
-        "17/10"
-      ]
-    },
-    {
-      "question": "1/2 + 1/3 = ?",
-      "correctAnswer": "5/6",
-      "choices": [
-        "1/3",
-        "5/6",
-        "11/6",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/3 + 5/6 = ?",
-      "correctAnswer": "7/6",
-      "choices": [
-        "5/6",
-        "5/12",
-        "7/6",
-        "23/12",
-        "1/6"
-      ]
-    },
-    {
-      "question": "1/2 - 1/3 = ?",
-      "correctAnswer": "1/6",
-      "choices": [
-        "1/6",
-        "1/3",
-        "7/6",
-        "2/3",
-        "5/3"
-      ]
-    },
-    {
-      "question": "11/12 - 5/6 = ?",
-      "correctAnswer": "1/12",
-      "choices": [
-        "3/2",
-        "7/6",
-        "1/4",
-        "1/12",
-        "7/12"
-      ]
-    },   {
-      "question": "1/2 + 1/4 = ?",
-      "correctAnswer": "3/4",
-      "choices": [
-        "1/2",
-        "3/4",
-        "2/4",
-        "1/4",
-        "1/1"
-      ]
-    },
-    {
-      "question": "5/6 - 1/2 = ?",
-      "correctAnswer": "1/3",
-      "choices": [
-        "1/3",
-        "1/2",
-        "2/3",
-        "5/6",
-        "1/6"
-      ]
-    },
-    {
-      "question": "2/5 + 2/5 = ?",
-      "correctAnswer": "4/5",
-      "choices": [
-        "2/5",
-        "4/5",
-        "1/5",
-        "3/5",
-        "5/5"
-      ]
-    },
-    {
-      "question": "3/4 - 1/4 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/2",
-        "1/4",
-        "2/4",
-        "3/4",
-        "0/1"
-      ]
-    },
-    {
-      "question": "1/3 + 1/6 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/2",
-        "1/3",
-        "2/3",
-        "1/6",
-        "5/6"
-      ]
-    },
-    {
-      "question": "7/8 - 3/8 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/2",
-        "4/8",
-        "3/8",
-        "7/8",
-        "5/8"
-      ]
-    },
-    {
-      "question": "2/3 + 1/6 = ?",
-      "correctAnswer": "5/6",
-      "choices": [
-        "5/6",
-        "1/2",
-        "2/3",
-        "1/3",
-        "7/6"
-      ]
-    },
-    {
-      "question": "3/5 + 1/5 = ?",
-      "correctAnswer": "4/5",
-      "choices": [
-        "4/5",
-        "3/5",
-        "2/5",
-        "1/5",
-        "5/5"
-      ]
-    },
-    {
-      "question": "4/7 + 2/7 = ?",
-      "correctAnswer": "6/7",
-      "choices": [
-        "6/7",
-        "4/7",
-        "2/7",
-        "1/7",
-        "7/7"
-      ]
-    },
-    {
-      "question": "5/8 - 1/8 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/2",
-        "4/8",
-        "5/8",
-        "3/8",
-        "1/8"
-      ]
-    },
-    {
-      "question": "3/4 + 1/8 = ?",
-      "correctAnswer": "7/8",
-      "choices": [
-        "7/8",
-        "3/4",
-        "1/8",
-        "5/8",
-        "1/2"
-      ]
-    },
-    {
-      "question": "2/3 - 1/6 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/2",
-        "1/3",
-        "2/3",
-        "1/6",
-        "5/6"
-      ]
-    },
-    {
-      "question": "2/3 + 1/3 = ?",
-      "correctAnswer": "1/1",
-      "choices": [
-        "1/3",
-        "4/3",
-        "0/1",
-        "1/1",
-        "5/3"
-      ]
-    },
-    {
-      "question": "1/2 - 1/2 = ?",
-      "correctAnswer": "0/1",
-      "choices": [
-        "1/2",
-        "1/4",
-        "0/1",
-        "1/1",
-        "7/4"
-      ]
-    },
-    {
-      "question": "1/3 + 1/6 = ?",
-      "correctAnswer": "1/2",
-      "choices": [
-        "1/3",
-        "3/4",
-        "1/2",
-        "11/6",
-        "23/12"
-      ]
-    },
-    {
-      "question": "5/6 + 2/3 = ?",
-      "correctAnswer": "3/2",
-      "choices": [
-        "3/2",
-        "1/2",
-        "11/6",
-        "1/1",
-        "1/6"
-      ]
-    },
-    {
-      "question": "4/5 - 3/5 = ?",
-      "correctAnswer": "1/5",
-      "choices": [
-        "19/10",
-        "3/5",
-        "13/10",
-        "1/5",
-        "9/5"
-      ]
-    },
-    {
-      "question": "5/6 + 1/3 = ?",
-      "correctAnswer": "7/6",
-      "choices": [
-        "1/3",
-        "4/3",
-        "7/6",
-        "1/1",
-        "5/3"
-      ]
-    }
-  ]
+  {
+    "prompt": {
+      "text": "1/2 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/12 - 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7/6"
+      },
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "2/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/4 + 3/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/6 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "13/12"
+      },
+      {
+        "text": "23/12"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 5/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7/6"
+      },
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "1/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "2/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "1/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/8 + 7/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "9/8"
+      },
+      {
+        "text": "7/4"
+      },
+      {
+        "text": "7/8"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "7/8 - 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "7/4"
+      },
+      {
+        "text": "11/8"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "9/10 - 3/10 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "9/10"
+      },
+      {
+        "text": "11/10"
+      },
+      {
+        "text": "7/5"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/5 + 1/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "6/5"
+      },
+      {
+        "text": "7/5"
+      },
+      {
+        "text": "4/5"
+      },
+      {
+        "text": "8/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "7/4"
+      },
+      {
+        "text": "5/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 5/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "2/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/12 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "11/12"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "2/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 + 3/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "17/12"
+      },
+      {
+        "text": "23/12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/5 + 1/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "6/5"
+      },
+      {
+        "text": "2/5"
+      },
+      {
+        "text": "7/5"
+      },
+      {
+        "text": "4/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 - 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "7/4"
+      },
+      {
+        "text": "5/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/4 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "7/4"
+      },
+      {
+        "text": "5/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/5 - 2/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "2/5"
+      },
+      {
+        "text": "4/5"
+      },
+      {
+        "text": "8/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "17/12"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "5/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "4/5 - 3/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/5"
+      },
+      {
+        "text": "2/5"
+      },
+      {
+        "text": "7/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "2/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 - 3/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 - 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "2/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 - 1/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "7/6"
+      },
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "2/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/8 + 5/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5/8"
+      },
+      {
+        "text": "13/8"
+      },
+      {
+        "text": "15/8"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/6 + 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "4/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/6 + 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "4/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "7/12 + 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7/6"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "5/12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "4/5 - 2/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "2/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "6/5"
+      },
+      {
+        "text": "1/5"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "4/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/5 - 1/10 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/10"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/5"
+      },
+      {
+        "text": "13/10"
+      },
+      {
+        "text": "17/10"
+      },
+      {
+        "text": "3/10"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/4 + 3/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/8"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "15/8"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "2/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 7/12 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "17/12"
+      },
+      {
+        "text": "19/12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/8 - 3/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5/8"
+      },
+      {
+        "text": "13/8"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 1/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/1"
+      },
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 2/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/10"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "19/10"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "4/5"
+      },
+      {
+        "text": "8/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/5 - 1/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "4/5"
+      },
+      {
+        "text": "9/5"
+      },
+      {
+        "text": "17/10"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 5/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "7/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "5/12"
+      },
+      {
+        "text": "23/12"
+      },
+      {
+        "text": "1/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "7/6"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "11/12 - 5/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/12"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/2"
+      },
+      {
+        "text": "7/6"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "7/12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 + 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/4"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "2/4"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "1/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/6 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/3"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "5/6"
+      },
+      {
+        "text": "1/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/5 + 2/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "4/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "2/5"
+      },
+      {
+        "text": "1/5"
+      },
+      {
+        "text": "3/5"
+      },
+      {
+        "text": "5/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 - 1/4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "2/4"
+      },
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "0/1"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 1/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "23/12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "7/8 - 3/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "4/8"
+      },
+      {
+        "text": "3/8"
+      },
+      {
+        "text": "7/8"
+      },
+      {
+        "text": "5/8"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 1/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "5/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "7/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/5 + 1/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "4/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/5"
+      },
+      {
+        "text": "2/5"
+      },
+      {
+        "text": "1/5"
+      },
+      {
+        "text": "5/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "4/7 + 2/7 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "6/7"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "4/7"
+      },
+      {
+        "text": "2/7"
+      },
+      {
+        "text": "1/7"
+      },
+      {
+        "text": "7/7"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/8 - 1/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "4/8"
+      },
+      {
+        "text": "5/8"
+      },
+      {
+        "text": "3/8"
+      },
+      {
+        "text": "1/8"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3/4 + 1/8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "7/8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "1/8"
+      },
+      {
+        "text": "5/8"
+      },
+      {
+        "text": "1/2"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 - 1/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "2/3"
+      },
+      {
+        "text": "1/6"
+      },
+      {
+        "text": "5/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "2/3 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "0/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/2 - 1/2 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "0/1"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "1/4"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "7/4"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "1/3 + 1/6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "3/4"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "23/12"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/6 + 2/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "3/2"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/2"
+      },
+      {
+        "text": "11/6"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "1/6"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "4/5 - 3/5 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "1/5"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "19/10"
+      },
+      {
+        "text": "3/5"
+      },
+      {
+        "text": "13/10"
+      },
+      {
+        "text": "9/5"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "5/6 + 1/3 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "7/6"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "1/3"
+      },
+      {
+        "text": "4/3"
+      },
+      {
+        "text": "1/1"
+      },
+      {
+        "text": "5/3"
+      }
+    ]
+  }
+]
