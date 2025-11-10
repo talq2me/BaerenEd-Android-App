@@ -5,75 +5,25 @@
       "lang": "fr",
       "displayText": true
     },
-    "questions": [
+    "question": {
+      "text": "De quelle couleur est le chat de Marie ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
       {
-        "question": {
-          "text": "De quelle couleur est le chat de Marie ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Gris"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Noir"
-          },
-          {
-            "text": "Blanc"
-          },
-          {
-            "text": "Marron"
-          }
-        ]
+        "text": "Gris"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Noir"
       },
       {
-        "question": {
-          "text": "Que fait Marie chaque matin ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Elle donne du lait à son chat."
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Elle va à l'école."
-          },
-          {
-            "text": "Elle joue avec son frère."
-          },
-          {
-            "text": "Elle lit un livre."
-          }
-        ]
+        "text": "Blanc"
       },
       {
-        "question": {
-          "text": "Où le chat aime-t-il jouer ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Dans le jardin"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Dans la maison"
-          },
-          {
-            "text": "Dans la rue"
-          },
-          {
-            "text": "Dans la cuisine"
-          }
-        ]
+        "text": "Marron"
       }
     ]
   },
@@ -83,75 +33,25 @@
       "lang": "fr",
       "displayText": true
     },
-    "questions": [
+    "question": {
+      "text": "Comment Paul va-t-il à l'école ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
       {
-        "question": {
-          "text": "Comment Paul va-t-il à l'école ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "À pied"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "En bus"
-          },
-          {
-            "text": "En voiture"
-          },
-          {
-            "text": "À vélo"
-          }
-        ]
+        "text": "À pied"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "En bus"
       },
       {
-        "question": {
-          "text": "De quelle couleur est le sac à dos de Paul ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Bleu"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Rouge"
-          },
-          {
-            "text": "Vert"
-          },
-          {
-            "text": "Noir"
-          }
-        ]
+        "text": "En voiture"
       },
       {
-        "question": {
-          "text": "Que fait Paul à l'école ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Il apprend de nouvelles choses."
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Il dort."
-          },
-          {
-            "text": "Il cuisine."
-          },
-          {
-            "text": "Il regarde la télévision."
-          }
-        ]
+        "text": "À vélo"
       }
     ]
   },
@@ -161,75 +61,25 @@
       "lang": "fr",
       "displayText": true
     },
-    "questions": [
+    "question": {
+      "text": "Comment s'appelle le chien de Tom ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
       {
-        "question": {
-          "text": "Comment s'appelle le chien de Tom ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Max"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Milo"
-          },
-          {
-            "text": "Oscar"
-          },
-          {
-            "text": "Léo"
-          }
-        ]
+        "text": "Max"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Milo"
       },
       {
-        "question": {
-          "text": "Où Tom promène-t-il son chien ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Dans le parc"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "À la maison"
-          },
-          {
-            "text": "À l'école"
-          },
-          {
-            "text": "Au marché"
-          }
-        ]
+        "text": "Oscar"
       },
       {
-        "question": {
-          "text": "Avec qui Max aime-t-il jouer ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Les autres chiens"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Les chats"
-          },
-          {
-            "text": "Les oiseaux"
-          },
-          {
-            "text": "Les enfants"
-          }
-        ]
+        "text": "Léo"
       }
     ]
   },
@@ -239,75 +89,25 @@
       "lang": "fr",
       "displayText": true
     },
-    "questions": [
+    "question": {
+      "text": "Qu'est-ce que Julie aime ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
       {
-        "question": {
-          "text": "Qu'est-ce que Julie aime ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Les fleurs"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Les voitures"
-          },
-          {
-            "text": "Les poissons"
-          },
-          {
-            "text": "Les livres"
-          }
-        ]
+        "text": "Les fleurs"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Les voitures"
       },
       {
-        "question": {
-          "text": "Quelles fleurs Julie plante-t-elle ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Roses et tulipes"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Marguerites et lys"
-          },
-          {
-            "text": "Orchidées et pivoines"
-          },
-          {
-            "text": "Violettes et jonquilles"
-          }
-        ]
+        "text": "Les poissons"
       },
       {
-        "question": {
-          "text": "Quand Julie arrose-t-elle ses fleurs ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Le matin"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Le soir"
-          },
-          {
-            "text": "À midi"
-          },
-          {
-            "text": "La nuit"
-          }
-        ]
+        "text": "Les livres"
       }
     ]
   },
@@ -317,75 +117,25 @@
       "lang": "fr",
       "displayText": true
     },
-    "questions": [
+    "question": {
+      "text": "Où Léo va-t-il le samedi ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
       {
-        "question": {
-          "text": "Où Léo va-t-il le samedi ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "À la piscine"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Au cinéma"
-          },
-          {
-            "text": "À l'école"
-          },
-          {
-            "text": "Au zoo"
-          }
-        ]
+        "text": "À la piscine"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Au cinéma"
       },
       {
-        "question": {
-          "text": "Avec qui Léo va-t-il à la piscine ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Son papa"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Sa maman"
-          },
-          {
-            "text": "Son frère"
-          },
-          {
-            "text": "Sa sœur"
-          }
-        ]
+        "text": "À l'école"
       },
       {
-        "question": {
-          "text": "Que mangent-ils après la baignade ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Une glace"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Un gâteau"
-          },
-          {
-            "text": "Une pomme"
-          },
-          {
-            "text": "Un sandwich"
-          }
-        ]
+        "text": "Au zoo"
       }
     ]
   },
@@ -395,75 +145,697 @@
       "lang": "fr",
       "displayText": true
     },
-    "questions": [
+    "question": {
+      "text": "Où Anna aime-t-elle aller ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
       {
-        "question": {
-          "text": "Où Anna aime-t-elle aller ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "À la bibliothèque"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Au parc"
-          },
-          {
-            "text": "À la piscine"
-          },
-          {
-            "text": "Au marché"
-          }
-        ]
+        "text": "À la bibliothèque"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Au parc"
       },
       {
-        "question": {
-          "text": "Qu'est-ce qu'Anna fait à la bibliothèque ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "Elle lit un livre"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "Elle joue au ballon"
-          },
-          {
-            "text": "Elle mange une glace"
-          },
-          {
-            "text": "Elle dessine"
-          }
-        ]
+        "text": "À la piscine"
       },
       {
-        "question": {
-          "text": "À qui Anna lit-elle parfois des histoires ?",
-          "lang": "fr",
-          "displayText": true
-        },
-        "correctChoices": [
-          {
-            "text": "À son petit frère"
-          }
-        ],
-        "extraChoices": [
-          {
-            "text": "À sa maman"
-          },
-          {
-            "text": "À son chat"
-          },
-          {
-            "text": "À son amie"
-          }
-        ]
+        "text": "Au marché"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "C'est l'anniversaire de Sophie. Ses amis viennent à sa maison. Ils mangent du gâteau au chocolat et jouent avec des ballons colorés.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qu'est-ce qu'ils mangent à la fête ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Du gâteau"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "De la pizza"
+      },
+      {
+        "text": "De la salade"
+      },
+      {
+        "text": "De la soupe"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Aujourd'hui, il neige beaucoup. Lucas met son manteau chaud et sort dehors. Il fait un grand bonhomme de neige avec une carotte pour le nez.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qu'est-ce que Lucas fait dehors ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Un bonhomme de neige"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Un château de sable"
+      },
+      {
+        "text": "Du vélo"
+      },
+      {
+        "text": "Une promenade"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Pendant le week-end, Clara visite la ferme de son grand-père. Elle voit des vaches qui mangent de l'herbe et des poules qui picorent des graines.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quels animaux Clara voit-elle à la ferme ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Des vaches et des poules"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Des lions et des tigres"
+      },
+      {
+        "text": "Des poissons et des canards"
+      },
+      {
+        "text": "Des singes et des éléphants"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ce soir, maman prépare une bonne soupe aux légumes. Il y a des carottes, des pommes de terre et des pois. Toute la famille aime la soupe de maman.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quels légumes y a-t-il dans la soupe ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Des carottes et des pommes de terre"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Des bananes et des fraises"
+      },
+      {
+        "text": "Du chocolat et des biscuits"
+      },
+      {
+        "text": "Du fromage et du pain"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Samedi matin, David va au marché avec sa mère. Ils achètent des pommes rouges et des bananes jaunes. Pour le souper, ils cuisineront du poulet.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qu'est-ce que David achète au marché ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Des pommes et des bananes"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Du pain et du fromage"
+      },
+      {
+        "text": "Des carottes et des oignons"
+      },
+      {
+        "text": "Du poisson et des oeufs"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "L'après-midi, Émilie joue au soccer avec son équipe. Elle court vite et marque un but. Son équipe gagne le match.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quel sport joue Émilie ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Le soccer"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Le basketball"
+      },
+      {
+        "text": "Le tennis"
+      },
+      {
+        "text": "La natation"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Le dimanche, Noah aide son père à faire un gâteau. Il mélange la farine et le sucre dans un grand bol. Le gâteau sent très bon dans le four.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qu'est-ce que Noah prépare avec son père ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Un gâteau"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Une pizza"
+      },
+      {
+        "text": "Une salade"
+      },
+      {
+        "text": "Une soupe"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Chloé a un nouveau vélo rouge. Elle aime faire du vélo dans le parc avec son casque. Elle est très prudente et regarde toujours avant de traverser la rue.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "De quelle couleur est le vélo de Chloé ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Rouge"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Bleu"
+      },
+      {
+        "text": "Vert"
+      },
+      {
+        "text": "Jaune"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "En été, Alex va à la plage avec sa famille. Il construit des châteaux de sable et nage dans la mer. Il mange des sandwichs pour le déjeuner.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Que fait Alex à la plage ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Il construit des châteaux de sable"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Il fait du ski"
+      },
+      {
+        "text": "Il lit un livre"
+      },
+      {
+        "text": "Il regarde la télévision"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "C'est l'automne. Les feuilles des arbres deviennent jaunes, rouges et oranges. Thomas aime sauter dans les tas de feuilles mortes.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quelle est la saison décrite ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "L'automne"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "L'hiver"
+      },
+      {
+        "text": "L'été"
+      },
+      {
+        "text": "Le printemps"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mia prend des cours de piano chaque mardi après l'école. Elle pratique tous les jours pour devenir une bonne musicienne. Sa chanson préférée est 'Frère Jacques'.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quel instrument de musique Mia apprend-elle ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Le piano"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "La guitare"
+      },
+      {
+        "text": "Le violon"
+      },
+      {
+        "text": "La flûte"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "La classe de Madame Martin visite le zoo aujourd'hui. Les élèves voient des singes qui grimpent, des lions qui dorment et des éléphants qui boivent de l'eau.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Où va la classe de Madame Martin ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Au zoo"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Au musée"
+      },
+      {
+        "text": "Au parc"
+      },
+      {
+        "text": "À la bibliothèque"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Le soir, avant de dormir, le papa de Léo lui lit une histoire. L'histoire parle d'un dragon courageux qui sauve une princesse. Léo s'endort en rêvant de dragons.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "De quoi parle l'histoire que le papa de Léo lit ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "D'un dragon"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "D'un chat"
+      },
+      {
+        "text": "D'une voiture"
+      },
+      {
+        "text": "D'une fleur"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Je vais à l'épicerie avec ma mère. Nous achetons du lait, du pain et des fruits. J'aime pousser le panier.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Où vais-je avec ma mère ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "À l'épicerie"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "À l'école"
+      },
+      {
+        "text": "Au parc"
+      },
+      {
+        "text": "À la maison"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Aujourd'hui, nous faisons des biscuits. Maman mélange le beurre et le sucre. Je rajoute les brisures de chocolat. Ça sent bon dans la cuisine.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qu'est-ce que nous faisons aujourd'hui ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Des biscuits"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Un gâteau"
+      },
+      {
+        "text": "Une pizza"
+      },
+      {
+        "text": "De la soupe"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Il pleut dehors. Je ne peux pas jouer au parc. Alors, je dessine un arc-en-ciel avec mes crayons de couleur. J'utilise le rouge, le bleu et le jaune.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qu'est-ce que je dessine ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Un arc-en-ciel"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Une maison"
+      },
+      {
+        "text": "Un chat"
+      },
+      {
+        "text": "Un arbre"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Ce week-end, nous rendons visite à mes grands-parents. Grand-mère nous fait des crêpes et grand-père nous raconte des histoires amusantes.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qui nous fait des crêpes ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Grand-mère"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Grand-père"
+      },
+      {
+        "text": "Maman"
+      },
+      {
+        "text": "Papa"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Il y a un nid d'oiseau dans l'arbre de notre jardin. Il y a trois petits œufs bleus à l'intérieur. La maman oiseau reste près du nid.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Combien d'œufs y a-t-il dans le nid ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Trois"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Deux"
+      },
+      {
+        "text": "Quatre"
+      },
+      {
+        "text": "Cinq"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Le pompier conduit un grand camion rouge. Il utilise une longue échelle pour sauver un chat dans un arbre. Le pompier est très courageux.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "De quelle couleur est le camion du pompier ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Rouge"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Bleu"
+      },
+      {
+        "text": "Jaune"
+      },
+      {
+        "text": "Vert"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "À l'aéroport, on peut voir de gros avions décoller. Les gens voyagent vers des pays lointains. Les valises sont sur un tapis roulant.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Que peut-on voir décoller à l'aéroport ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Des avions"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Des voitures"
+      },
+      {
+        "text": "Des bateaux"
+      },
+      {
+        "text": "Des trains"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Dans la forêt, il y a beaucoup d'arbres. On peut entendre le chant des oiseaux. Parfois, on peut voir un écureuil qui cherche des noisettes.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quel animal cherche des noisettes ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Un écureuil"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Un oiseau"
+      },
+      {
+        "text": "Un lion"
+      },
+      {
+        "text": "Un poisson"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Pour le petit-déjeuner, je mange des céréales avec du lait. J'ajoute aussi des morceaux de banane. C'est délicieux et ça me donne de l'énergie.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quel fruit est-ce que j'ajoute à mes céréales ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "De la banane"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "De la pomme"
+      },
+      {
+        "text": "De l'orange"
+      },
+      {
+        "text": "Du raisin"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Mon cours de natation est le mercredi. Je saute dans l'eau et je fais des longueurs. J'apprends à nager sur le dos. J'adore l'eau.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Quel jour est mon cours de natation ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Le mercredi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Le lundi"
+      },
+      {
+        "text": "Le vendredi"
+      },
+      {
+        "text": "Le dimanche"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Le facteur arrive sur son vélo jaune. Il met une lettre dans notre boîte aux lettres. La lettre vient de ma grand-mère qui habite loin.",
+      "lang": "fr",
+      "displayText": true
+    },
+    "question": {
+      "text": "Qui envoie la lettre ?",
+      "lang": "fr",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "Ma grand-mère"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "Le facteur"
+      },
+      {
+        "text": "Mon ami"
+      },
+      {
+        "text": "Mon oncle"
       }
     ]
   }
