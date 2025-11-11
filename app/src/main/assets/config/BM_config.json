@@ -113,6 +113,14 @@
           "easydays": "tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun,mon"
+        },
+        {
+          "title": "Je Lis",
+          "launch": "jeLis",
+          "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
+          "stars": 3,
+          "chromePage": true,
+          "rewardId": "JeLis"
         }
       ]
     },
