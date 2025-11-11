@@ -95,7 +95,7 @@
         {
           "title": "Eng Spelling",
           "launch": "engSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&json=englishWordsGr4.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=../data/englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
           "rewardId": "engSpelling",
@@ -106,7 +106,7 @@
         {
           "title": "Fr Spelling",
           "launch": "frSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&json=frenchWordsGr4.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=../data/frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
           "rewardId": "frSpelling",
