@@ -10,8 +10,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
     }
 }
 
 rootProject.name = "BaerenEd"
 include(":app")
+include(":BaerenSettingsProvider")
+project(":BaerenSettingsProvider").projectDir = File(settingsDir, "../BaerenSettingsProvider")
+

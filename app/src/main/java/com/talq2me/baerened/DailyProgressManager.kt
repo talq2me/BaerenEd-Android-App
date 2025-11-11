@@ -487,8 +487,7 @@ class DailyProgressManager(private val context: Context) {
      * Gets the current kid identifier (A or B)
      */
     fun getCurrentKid(): String {
-        return context.getSharedPreferences("child_profile", Context.MODE_PRIVATE)
-            .getString("profile", "A") ?: "A"
+        return SettingsManager.readProfile(context) ?: "A"
     }
 
     /**

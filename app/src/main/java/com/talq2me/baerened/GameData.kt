@@ -11,13 +11,15 @@ data class GameData(
 data class Prompt(
     val text: String,
     val lang: String,
-    val tts: Boolean = true
+    val tts: Boolean = true,
+    val displayText: Boolean = false
 )
 
 data class Question(
     val text: String?,
     val lang: String?,
-    val media: Media? = null
+    val media: Media? = null,
+    val displayText: Boolean = false
 )
 
 data class Choice(

@@ -1,5 +1,6 @@
 package com.talq2me.baerened
 
+import android.content.ContentValues
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,14 +12,18 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import androidx.lifecycle.lifecycleScope
 import java.util.*
 
 // Import GameData for JSON parsing
 import android.content.Intent
+import android.text.InputType
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.talq2me.baerened.GameData
+import com.talq2me.contract.SettingsContract
+
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -100,20 +105,143 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (result.resultCode == RESULT_OK && result.data != null) {
                 val rewardId = result.data?.getStringExtra(WebGameActivity.EXTRA_REWARD_ID)
                 android.util.Log.d("MainActivity", "Web game completed, rewardId: $rewardId")
-                layout.handleWebGameCompletion(rewardId)
+                lifecycleScope.launch(Dispatchers.Main) {
+                    layout.handleWebGameCompletion(rewardId)
+                }
             } else {
                 android.util.Log.d("MainActivity", "Web game completion failed or cancelled: resultCode=${result.resultCode}")
             }
         }
 
-        // Check for child profile selection
-        checkChildProfile()
+        if (getOrCreateProfile() != null) {
+            loadMainContent()
+        }
 
         // Clean up any stale reward data on app start
         cleanupStaleRewardData()
 
         // Reset reward data for new day if needed
         resetRewardDataForNewDay()
+    }
+
+    private fun getOrCreateProfile(): String? {
+        SettingsManager.readProfile(this)?.let { return it }
+
+        val profiles = arrayOf("Profile A", "Profile B")
+        AlertDialog.Builder(this)
+            .setTitle("Select User Profile")
+            .setCancelable(false)
+            .setItems(profiles) { _, which ->
+                val selectedProfile = if (which == 0) "A" else "B"
+                SettingsManager.writeProfile(this, selectedProfile)
+                finishAffinity()
+                startActivity(Intent(this, MainActivity::class.java))
+            }
+            .show()
+        return null
+    }
+
+    private fun showChangeProfileDialog() {
+        val profiles = arrayOf("Profile A", "Profile B")
+        val currentProfile = SettingsManager.readProfile(this)
+        AlertDialog.Builder(this)
+            .setTitle("Select User Profile")
+            .setItems(profiles) { _, which ->
+                val selectedProfile = if (which == 0) "A" else "B"
+                if (currentProfile != selectedProfile) {
+                    SettingsManager.writeProfile(this, selectedProfile)
+                    finishAffinity()
+                    startActivity(Intent(this, MainActivity::class.java))
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showChangePinDialog() {
+        val dialogLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 50, 50, 50)
+        }
+
+        val currentPinInput = EditText(this).apply {
+            hint = "Enter current PIN"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        }
+        dialogLayout.addView(currentPinInput)
+
+        val newPinInput = EditText(this).apply {
+            hint = "Enter new PIN"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        }
+        dialogLayout.addView(newPinInput)
+
+        val confirmPinInput = EditText(this).apply {
+            hint = "Confirm new PIN"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        }
+        dialogLayout.addView(confirmPinInput)
+
+        AlertDialog.Builder(this)
+            .setTitle("Change PIN")
+            .setView(dialogLayout)
+            .setPositiveButton("Save") { _, _ ->
+                val currentPin = currentPinInput.text.toString()
+                val newPin = newPinInput.text.toString()
+                val confirmPin = confirmPinInput.text.toString()
+
+                val correctPin = SettingsManager.readPin(this) ?: "1981"
+                if (currentPin != correctPin) {
+                    Toast.makeText(this, "Current PIN is incorrect!", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                if (newPin.isEmpty() || newPin != confirmPin) {
+                    Toast.makeText(this, "New PINs do not match or are empty", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                if (newPin.length < 4) {
+                    Toast.makeText(this, "PIN must be at least 4 digits!", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                // All checks passed, save the new PIN
+                SettingsManager.writePin(this, newPin)
+                Toast.makeText(this, "PIN changed successfully", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+
+    private fun showChangeEmailDialog() {
+        val currentEmail = SettingsManager.readEmail(this) ?: ""
+        val input = EditText(this).apply {
+            hint = "Parent Email Address"
+            setText(currentEmail)
+            inputType = InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        }
+
+        val container = FrameLayout(this).apply {
+            setPadding(50, 20, 50, 20)
+            addView(input)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Change Parent Email")
+            .setView(container)
+            .setPositiveButton("Save") { _, _ ->
+                val newEmail = input.text.toString().trim()
+                if (newEmail.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
+                    SettingsManager.writeEmail(this, newEmail)
+                    Toast.makeText(this, "Email saved successfully", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun cleanupStaleRewardData() {
@@ -175,32 +303,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun checkChildProfile() {
-        val prefs = getSharedPreferences("child_profile", MODE_PRIVATE)
-        val child = prefs.getString("profile", null)
-
-        if (child == null) {
-            Handler(Looper.getMainLooper()).post {
-                AlertDialog.Builder(this)
-                    .setTitle("Who's using this tablet?")
-                    .setMessage("Please select the child assigned to this device.")
-                    .setPositiveButton("Child A") { _, _ ->
-                        prefs.edit().putString("profile", "A").apply()
-                        loadMainContent()
-                    }
-                    .setNegativeButton("Child B") { _, _ ->
-                        prefs.edit().putString("profile", "B").apply()
-                        loadMainContent()
-                    }
-                    .setCancelable(false)
-                    .show()
-            }
-        } else {
-            loadMainContent()
-        }
-    }
-
-
     private fun loadMainContent() {
         loadingProgressBar.visibility = View.VISIBLE
         titleText.text = "Loading..."
@@ -246,9 +348,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         when (action) {
             "goBack" -> finish()
             "goHome" -> {
-                // Reset to main screen
-                val prefs = getSharedPreferences("child_profile", MODE_PRIVATE)
-                prefs.edit().remove("profile").apply()
+                // Reset to main screen - this should probably not reset the profile,
+                // but reload the content for the current profile
                 loadMainContent()
             }
             "refreshPage" -> loadMainContent()
@@ -265,66 +366,45 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     fun openSettings() {
-        Log.d(TAG, "Opening settings")
+        val pinInput = EditText(this).apply {
+            hint = "Enter Admin PIN"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            setPadding(50, 50, 50, 50)
+        }
 
-        // Create a simple settings dialog
-        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
-
-        // Initialize the progress manager
-        val progressManager = DailyProgressManager(this)
-
-        val currentPinEditText = dialogView.findViewById<EditText>(R.id.currentPinInput)
-        val newPinEditText = dialogView.findViewById<EditText>(R.id.newPinInput)
-        val confirmPinEditText = dialogView.findViewById<EditText>(R.id.confirmPinInput)
-        val statusText = dialogView.findViewById<TextView>(R.id.settingsStatus)
-
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Settings")
-            .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val currentPin = currentPinEditText.text.toString()
-                val newPin = newPinEditText.text.toString()
-                val confirmPin = confirmPinEditText.text.toString()
-
-                // Validate current PIN
-                if (!progressManager.validateAdminPin(currentPin)) {
-                    statusText.text = "Current PIN is incorrect!"
-                    return@setPositiveButton
+        AlertDialog.Builder(this)
+            .setTitle("Admin Access")
+            .setMessage("Please enter the PIN to access settings.")
+            .setView(pinInput)
+            .setPositiveButton("Enter") { _, _ ->
+                val enteredPin = pinInput.text.toString()
+                val correctPin = SettingsManager.readPin(this) ?: "1981" // Use default if not set
+                if (enteredPin == correctPin) {
+                    showSettingsListDialog()
+                } else {
+                    Toast.makeText(this, "Incorrect PIN", Toast.LENGTH_SHORT).show()
                 }
-
-                // Validate new PIN
-                if (newPin.isEmpty()) {
-                    statusText.text = "New PIN cannot be empty!"
-                    return@setPositiveButton
-                }
-
-                if (newPin != confirmPin) {
-                    statusText.text = "New PIN and confirmation don't match!"
-                    return@setPositiveButton
-                }
-
-                if (newPin.length < 4) {
-                    statusText.text = "PIN must be at least 4 digits!"
-                    return@setPositiveButton
-                }
-
-                // Save new PIN
-                progressManager.setAdminPin(newPin)
-                statusText.text = "PIN updated successfully!"
-                statusText.setTextColor(resources.getColor(android.R.color.holo_green_dark))
-
-                // Clear inputs after successful save
-                currentPinEditText.text.clear()
-                newPinEditText.text.clear()
-                confirmPinEditText.text.clear()
             }
-            .setNegativeButton("Cancel") { _, _ ->
-                // Do nothing
-            }
-            .create()
-
-        dialog.show()
+            .setNegativeButton("Cancel", null)
+            .show()
     }
+
+    private fun showSettingsListDialog() {
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email")
+
+        AlertDialog.Builder(this)
+            .setTitle("Settings")
+            .setItems(settingsOptions) { _, which ->
+                when (which) {
+                    0 -> showChangeProfileDialog()
+                    1 -> showChangePinDialog()
+                    2 -> showChangeEmailDialog()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
 
     /**
      * Sends daily progress report via email
@@ -392,18 +472,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-
-
-
-
-
-
-
     private fun displayProfileSelection(content: MainContent) {
         layout.displayProfileSelection(content)
     }
-
-
 
     override fun onDestroy() {
         if (::tts.isInitialized) {
@@ -451,15 +522,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         Log.d(TAG, "Selecting profile with config URL: $configUrl")
 
-        val prefs = getSharedPreferences("child_profile", MODE_PRIVATE)
-
         when {
             configUrl.contains("AM_config.json") -> {
-                prefs.edit().putString("profile", "A").apply()
+                SettingsManager.writeProfile(this, "A")
                 Toast.makeText(this, "Selected AM profile", Toast.LENGTH_SHORT).show()
             }
             configUrl.contains("BM_config.json") -> {
-                prefs.edit().putString("profile", "B").apply()
+                SettingsManager.writeProfile(this, "B")
                 Toast.makeText(this, "Selected BM profile", Toast.LENGTH_SHORT).show()
             }
             else -> {
@@ -467,6 +536,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return
             }
         }
+
+        // Clear cache to ensure fresh content for new profile
+        contentUpdateService.clearCache(this)
 
         // Reload content with the selected profile
         loadMainContent()

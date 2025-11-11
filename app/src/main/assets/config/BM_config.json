@@ -28,6 +28,12 @@
           "totalQuestions": 7
         },
         {
+          "title": "Translation",
+          "launch": "translation",
+          "stars": 3,
+          "totalQuestions": 7
+        },
+        {
           "title": "French Stories",
           "launch": "frenchStories",
           "stars": 3,

@@ -103,14 +103,12 @@ class GameActivity : AppCompatActivity() {
                     }
 
                     override fun onDone(utteranceId: String?) {
-                        // TTS completed, play audio clips after a short delay to ensure all TTS is done
+                        // This is called when the entire queue is finished.
                         runOnUiThread {
                             if (!audioClipsPlayedForCurrentQuestion) {
                                 currentQuestion?.let { question ->
-                                    android.os.Handler().postDelayed({
-                                        playQuestionAudioClips(question)
-                                        audioClipsPlayedForCurrentQuestion = true
-                                    }, 500) // Small delay to ensure all TTS utterances complete
+                                    playQuestionAudioClips(question)
+                                    audioClipsPlayedForCurrentQuestion = true
                                 }
                             }
                         }
@@ -121,10 +119,8 @@ class GameActivity : AppCompatActivity() {
                         runOnUiThread {
                             if (!audioClipsPlayedForCurrentQuestion) {
                                 currentQuestion?.let { question ->
-                                    android.os.Handler().postDelayed({
-                                        playQuestionAudioClips(question)
-                                        audioClipsPlayedForCurrentQuestion = true
-                                    }, 500)
+                                    playQuestionAudioClips(question)
+                                    audioClipsPlayedForCurrentQuestion = true
                                 }
                             }
                         }
@@ -244,48 +240,37 @@ class GameActivity : AppCompatActivity() {
                 speakSequentially(question)
                 // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
             }
-            // Clear message area when replaying (but don't clear user answers)
-            // findViewById<TextView>(R.id.messageArea).text = ""
-        }
-    }
-
-    private fun speakText(text: String, lang: String, utteranceId: String = "default") {
-        if (text.isNotEmpty() && ttsReady) {
-            val locale = when (lang.lowercase()) {
-                "eng", "en" -> Locale.US
-                "fr", "fra" -> Locale.FRENCH
-                "es", "spa" -> Locale("es", "ES")
-                "de", "ger" -> Locale.GERMAN
-                else -> Locale.US // Default to English
-            }
-
-            tts.language = locale
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
         }
     }
 
     private fun speakSequentially(question: GameData) {
         if (!ttsReady) return
 
-        var totalDelay = 0L
-        val questionId = System.currentTimeMillis().toString() // Unique ID for this question
+        val questionId = System.currentTimeMillis().toString()
 
-        // Speak prompt first if it exists
-        if (question.prompt?.text != null && question.prompt.text.isNotEmpty() && question.prompt.lang != null) {
-            speakTextWithDelay(question.prompt.text, question.prompt.lang, totalDelay, "$questionId-prompt")
-            totalDelay += 2000L // 2 second delay between prompt and question
+        // Set language for the whole sequence based on prompt, assuming question is the same.
+        val locale = when (question.prompt?.lang?.lowercase()) {
+            "eng", "en" -> Locale.US
+            "fr", "fra" -> Locale.FRENCH
+            "es", "spa" -> Locale("es", "ES")
+            "de", "ger" -> Locale.GERMAN
+            else -> Locale.US // Default to English
+        }
+        tts.language = locale
+
+        // Speak prompt first, flushing any previous audio.
+        question.prompt?.text?.let {
+            if (it.isNotEmpty()) {
+                tts.speak(it, TextToSpeech.QUEUE_FLUSH, null, "${questionId}-prompt")
+            }
         }
 
-        // Speak question if it exists
-        if (question.question?.text != null && question.question.text.isNotEmpty() && question.question.lang != null) {
-            speakTextWithDelay(question.question.text, question.question.lang, totalDelay, "$questionId-content")
+        // Speak question, adding it to the queue to play after the prompt.
+        question.question?.text?.let {
+            if (it.isNotEmpty()) {
+                tts.speak(it, TextToSpeech.QUEUE_ADD, null, "${questionId}-question")
+            }
         }
-    }
-
-    private fun speakTextWithDelay(text: String, lang: String, delayMs: Long, utteranceId: String = "default") {
-        android.os.Handler().postDelayed({
-            speakText(text, lang, utteranceId)
-        }, delayMs)
     }
 
     private fun playQuestionAudioClips(question: GameData) {
@@ -353,28 +338,38 @@ class GameActivity : AppCompatActivity() {
         // Initialize empty dashed blocks for blockOutlines games
         updateMessage()
 
-        // Handle prompt display/TTS based on lang property
         val promptTextView = findViewById<TextView>(R.id.promptText)
         val replayButton = findViewById<Button>(R.id.replayButton)
 
-        if (q.prompt?.lang != null || q.question?.lang != null) {
-            // Has TTS content - show replay button and speak sequentially
-            replayButton.visibility = View.VISIBLE
-            promptTextView.text = ""
+        // Always speak if lang is present, but only display if displayText is true
+        if (q.prompt?.lang != null) {
             speakSequentially(q)
+            replayButton.visibility = View.VISIBLE
         } else {
-            // No TTS content - hide replay button and display visually
             replayButton.visibility = View.GONE
-            promptTextView.text = q.prompt?.text ?: ""
+        }
+
+        if (q.prompt?.displayText == true) {
+            promptTextView.text = q.prompt.text
+        } else {
+            promptTextView.text = ""
         }
 
         // Question images/text
         val container = findViewById<LinearLayout>(R.id.questionContainer)
         container.removeAllViews()
 
-        // Hide question text if it has TTS or audio clips (since those provide the question content)
-        if (q.question?.lang == null && q.question?.media?.audioclips == null) {
-            // No TTS or audio clips - display question text visually
+        // Display question text if displayText is true
+        if (q.question?.displayText == true) {
+            q.question.text?.let {
+                val tv = TextView(this)
+                tv.text = it
+                tv.textSize = 24f
+                tv.setTextColor(resources.getColor(android.R.color.darker_gray))
+                container.addView(tv)
+            }
+        } else if (q.question?.lang == null && q.question?.media?.audioclips == null) {
+            // Fallback to display text if no audio/TTS is available and displayText is not explicitly set to true
             q.question?.text?.let {
                 val tv = TextView(this)
                 tv.text = it
@@ -417,13 +412,14 @@ class GameActivity : AppCompatActivity() {
             container.addView(imageContainer)
         }
 
-        // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
-
         // Choices
         val grid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
         grid.removeAllViews()
 
-        val allChoices = (q.correctChoices + q.extraChoices).shuffled()
+        val correctChoices = q.correctChoices ?: emptyList()
+        val extraChoices = q.extraChoices ?: emptyList()
+        val allChoices = (correctChoices + extraChoices).shuffled()
+
         for (choice in allChoices) {
             val btn = Button(this)
             btn.text = choice.text

@@ -34,8 +34,7 @@ class ContentUpdateService : Service() {
     }
 
     private fun getContentUrlForChild(context: Context): String {
-        val childPrefs = context.getSharedPreferences("child_profile", MODE_PRIVATE)
-        val child = childPrefs.getString("profile", "A") ?: "A"
+        val child = SettingsManager.readProfile(context) ?: "A"
 
         return when (child) {
             "A" -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/AM_config.json"
@@ -46,60 +45,17 @@ class ContentUpdateService : Service() {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "ContentUpdateService started")
+        Log.d(TAG, "ContentUpdateService started for background update.")
 
-        // Update content in background
+        // Update content in background. This will attempt to fetch from network and update cache.
         CoroutineScope(Dispatchers.IO).launch {
-            updateAllContent()
+            fetchMainContent(this@ContentUpdateService)
         }
 
         return START_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    private suspend fun updateAllContent() {
-        try {
-            Log.d(TAG, "Starting content update...")
-
-            // Update main content
-            updateMainContent()
-
-            Log.d(TAG, "Content update completed")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating content", e)
-        }
-    }
-
-    private suspend fun updateMainContent() {
-        try {
-            val request = Request.Builder()
-                .url(getContentUrlForChild(this@ContentUpdateService))
-                .build()
-
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val json = response.body?.string()
-                if (json != null) {
-                    // Save to cache
-                    saveMainContentToCache(this@ContentUpdateService, json)
-
-                    // Check if content is newer than cached version
-                    val currentVersion = getCachedMainContentVersion()
-                    val newContent = Gson().fromJson(json, MainContent::class.java)
-
-                    if (newContent.version != currentVersion) {
-                        Log.d(TAG, "New main content version: ${newContent.version}")
-                        // Could broadcast update to activities here
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating main content", e)
-        }
-    }
-
 
     fun saveMainContentToCache(context: Context, json: String) {
         try {
@@ -167,7 +123,7 @@ class ContentUpdateService : Service() {
                 Log.w(TAG, "Game content fetch failed with code: ${response.code}. Trying cache.")
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Network error fetching game content: ${e.message}. Trying cache.")
+            Log.w(TAG, "Network error fetching game content: ${e.message}. Trying cache.")
         }
 
         // 2. Network failed, try loading from Cache
@@ -227,7 +183,7 @@ class ContentUpdateService : Service() {
                 Log.w(TAG, "GitHub fetch failed with code: ${response.code}. Trying cache.")
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Network error fetching content: ${e.message}. Trying cache.")
+            Log.w(TAG, "Network error fetching content: ${e.message}. Trying cache.")
         }
 
         // 2. Network failed, try loading from Cache
@@ -243,14 +199,16 @@ class ContentUpdateService : Service() {
 
         // 3. Cache failed or doesn't exist, fall back to bundled Assets
         try {
-            Log.d(TAG, "Loading from bundled asset: $cacheFileName")
-            context.assets.open(cacheFileName).use { inputStream ->
+            val assetPath = "config/$cacheFileName"
+            Log.d(TAG, "Loading from bundled asset: $assetPath")
+            context.assets.open(assetPath).use { inputStream ->
                 InputStreamReader(inputStream).use { reader ->
                     return Gson().fromJson(reader, MainContent::class.java)
                 }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Could not find or read asset file: $cacheFileName", e)
+            val assetPath = "config/$cacheFileName"
+            Log.e(TAG, "Could not find or read asset file: $assetPath", e)
             return null // Final failure
         }
     }
@@ -295,4 +253,3 @@ class ContentUpdateService : Service() {
         private const val TAG = "ContentUpdateService"
     }
 }
-

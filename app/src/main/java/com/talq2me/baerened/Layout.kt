@@ -11,7 +11,13 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.google.gson.Gson
+import com.talq2me.baerened.ProfileButton
 import kotlinx.coroutines.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.Calendar
 
 /**
@@ -260,6 +266,31 @@ class Layout(private val activity: MainActivity) {
         updateProgressDisplay()
     }
 
+    private suspend fun fetchJsonFromUrl(urlString: String): String? = withContext(Dispatchers.IO) {
+        var connection: HttpURLConnection? = null
+        var reader: BufferedReader? = null
+        try {
+            val url = URL(urlString)
+            connection = url.openConnection() as HttpURLConnection
+            connection.connect()
+
+            val stream = connection.inputStream
+            reader = BufferedReader(InputStreamReader(stream))
+            val buffer = StringBuffer()
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                buffer.append(line)
+            }
+            buffer.toString()
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error fetching JSON from URL: $urlString", e)
+            null
+        } finally {
+            connection?.disconnect()
+            reader?.close()
+        }
+    }
+
     /**
      * Refreshes the header buttons (for when Pokemon are unlocked)
      */
@@ -325,8 +356,8 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    fun handleWebGameCompletion(rewardId: String?) {
-        android.util.Log.d("Layout", "handleWebGameCompletion called with rewardId: $rewardId")
+    suspend fun handleWebGameCompletion(rewardId: String?) {
+        android.util.Log.d(TAG, "handleWebGameCompletion called with rewardId: $rewardId")
 
         if (!rewardId.isNullOrEmpty()) {
             // In a real application, you would use the rewardId to look up the actual reward (e.g., stars, coins)
@@ -334,8 +365,27 @@ class Layout(private val activity: MainActivity) {
             // You'll need to adapt this logic to your specific reward system.
 
             val progressManager = DailyProgressManager(activity)
-            // For demonstration, let's assume a web game always awards 5 stars if a rewardId is present
-            val starsToAward = 5
+
+            val childProfile = SettingsManager.readProfile(activity) ?: "A"
+
+            val configFileName = if (childProfile == "A") "AM_config.json" else "BM_config.json"
+            val configUrl = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/$configFileName"
+
+            var starsToAward = 5 // Default to 5 stars
+
+            val jsonString = fetchJsonFromUrl(configUrl)
+            if (jsonString != null) {
+                try {
+                    val configData = Gson().fromJson(jsonString, ConfigData::class.java)
+                    starsToAward = configData.webGameStars ?: 5
+                    android.util.Log.d(TAG, "Fetched webGameStars: $starsToAward from $configFileName")
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "Error parsing config JSON from $configFileName", e)
+                }
+            } else {
+                android.util.Log.e(TAG, "Failed to fetch config JSON from $configUrl")
+            }
+
             val taskTitle = "Web Game: $rewardId"
 
             val earnedStars = progressManager.markTaskCompletedWithName(rewardId, taskTitle, starsToAward, false)
@@ -634,8 +684,7 @@ class Layout(private val activity: MainActivity) {
 
             // Get the last played video index for this file and profile
             val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
-            val currentKid = activity.getSharedPreferences("child_profile", Context.MODE_PRIVATE)
-                .getString("profile", "A") ?: "A"
+            val currentKid = SettingsManager.readProfile(activity) ?: "A"
             val lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", 0)
 
             // Get next video (wrap around if at end)
@@ -1106,6 +1155,10 @@ class Layout(private val activity: MainActivity) {
         }
     }
 }
+
+data class ConfigData(
+    val webGameStars: Int? = null
+)
 
 // Extension function to convert dp to pixels
 private fun Int.dpToPx(): Int {

@@ -5,11 +5,11 @@ plugins {
 
 android {
     namespace = "com.talq2me.baerened"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.talq2me.baerened"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.cardview)
+    implementation("com.talq2me.baeren:settings-contract:1.0.0")
 
     // HTTP client for JSON downloading
     implementation(libs.okhttp)
@@ -55,4 +56,3 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
-
