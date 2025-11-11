@@ -129,9 +129,9 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const mode = urlParams.get('mode');
-            const jsonUrl = urlParams.get('json');
+            const file = urlParams.get('file');
             gameMode = ['easy', 'hard', 'extreme'].includes(mode) ? mode : 'hard';
-            return jsonUrl;
+            return file ? `../data/${file}` : null;
         }
 
         function loadWords(jsonUrl) {
