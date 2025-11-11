@@ -3,6 +3,7 @@ package com.talq2me.baerened
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -11,8 +12,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.util.Locale
 
-class WebGameActivity : AppCompatActivity() {
+class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
         const val EXTRA_GAME_URL = "game_url"
@@ -20,6 +22,7 @@ class WebGameActivity : AppCompatActivity() {
     }
 
     private lateinit var webView: WebView
+    private lateinit var tts: TextToSpeech
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +68,8 @@ class WebGameActivity : AppCompatActivity() {
             }
         }
 
+        tts = TextToSpeech(this, this)
+
         if (!gameUrl.isNullOrEmpty()) {
             android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
             webView.addJavascriptInterface(WebGameInterface(rewardId), "Android")
@@ -108,9 +113,24 @@ class WebGameActivity : AppCompatActivity() {
                 finish()
             }
         }
+
+        @JavascriptInterface
+        fun readText(text: String, lang: String) {
+            val locale = if (lang.equals("fr", ignoreCase = true)) Locale.FRENCH else Locale.US
+            tts.language = locale
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+    }
+
+    override fun onInit(status: Int) {
+        if (status != TextToSpeech.SUCCESS) {
+            android.util.Log.e("WebGameActivity", "TTS initialization failed")
+        }
     }
 
     override fun onDestroy() {
+        tts.stop()
+        tts.shutdown()
         webView.removeJavascriptInterface("Android")
         webView.destroy()
         super.onDestroy()

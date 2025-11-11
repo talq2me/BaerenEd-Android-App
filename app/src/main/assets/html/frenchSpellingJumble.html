@@ -63,10 +63,14 @@
     </div>
 
     <script>
-        // --- Minimal TTS Function ---
-        window.currentTTSUtterance = null;
         function readText(text, lang, rate = 1.0, onEndCallback = null) {
-            if ('speechSynthesis' in window) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                // The native side doesn't have a reliable onEnd callback, so we simulate it
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000); // Assume a reasonable delay
+            } else if ('speechSynthesis' in window) {
                 if (window.currentTTSUtterance) window.speechSynthesis.cancel();
                 window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
                 window.currentTTSUtterance.lang = lang;
