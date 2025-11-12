@@ -33,11 +33,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
 
-    // Activity result launcher for video completion
+    // Activity result launchers
     lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
-
-    // Activity result launcher for web game completion
     lateinit var webGameCompletionLauncher: ActivityResultLauncher<Intent>
+    lateinit var chromePageLauncher: ActivityResultLauncher<Intent>
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -72,45 +71,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initialize layout manager
         layout = Layout(this)
 
-        // Initialize activity result launcher for video completion
-        videoCompletionLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            android.util.Log.d("MainActivity", "Activity result received: resultCode=${result.resultCode}")
-
-            if (result.resultCode == RESULT_OK && result.data != null) {
-                val taskId = result.data?.getStringExtra("TASK_ID")
-                val taskTitle = result.data?.getStringExtra("TASK_TITLE")
-                val stars = result.data?.getIntExtra("TASK_STARS", 0) ?: 0
-
-                android.util.Log.d("MainActivity", "Video completed: taskId=$taskId, taskTitle=$taskTitle, stars=$stars")
-
-                if (taskId != null && taskTitle != null) {
-                    // Handle video completion and grant rewards
-                    layout.handleVideoCompletion(taskId, taskTitle, stars)
-                } else {
-                    android.util.Log.e("MainActivity", "Task data is null: taskId=$taskId, taskTitle=$taskTitle")
-                }
-            } else {
-                android.util.Log.d("MainActivity", "Video completion failed or cancelled: resultCode=${result.resultCode}")
-            }
+        // Initialize activity result launchers
+        videoCompletionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            handleVideoCompletion(result)
         }
 
-        // Initialize activity result launcher for web game completion
-        webGameCompletionLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            android.util.Log.d("MainActivity", "WebGameActivity result received: resultCode=${result.resultCode}")
+        webGameCompletionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            handleWebGameCompletion(result)
+        }
 
-            if (result.resultCode == RESULT_OK && result.data != null) {
-                val rewardId = result.data?.getStringExtra(WebGameActivity.EXTRA_REWARD_ID)
-                android.util.Log.d("MainActivity", "Web game completed, rewardId: $rewardId")
-                lifecycleScope.launch(Dispatchers.Main) {
-                    layout.handleWebGameCompletion(rewardId)
-                }
-            } else {
-                android.util.Log.d("MainActivity", "Web game completion failed or cancelled: resultCode=${result.resultCode}")
-            }
+        chromePageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            handleChromePageCompletion(result)
         }
 
         if (getOrCreateProfile() != null) {
@@ -122,6 +93,45 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Reset reward data for new day if needed
         resetRewardDataForNewDay()
+    }
+
+    private fun handleVideoCompletion(result: ActivityResult) {
+        android.util.Log.d("MainActivity", "Video result received: resultCode=${result.resultCode}")
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val taskId = result.data?.getStringExtra("TASK_ID")
+            val taskTitle = result.data?.getStringExtra("TASK_TITLE")
+            val stars = result.data?.getIntExtra("TASK_STARS", 0) ?: 0
+
+            if (taskId != null && taskTitle != null) {
+                layout.handleVideoCompletion(taskId, taskTitle, stars)
+            }
+        }
+    }
+
+    private fun handleWebGameCompletion(result: ActivityResult) {
+        android.util.Log.d("MainActivity", "WebGame result received: resultCode=${result.resultCode}")
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val rewardId = result.data?.getStringExtra(WebGameActivity.EXTRA_REWARD_ID)
+            lifecycleScope.launch(Dispatchers.Main) {
+                layout.handleWebGameCompletion(rewardId)
+            }
+        }
+    }
+
+    private fun handleChromePageCompletion(result: ActivityResult) {
+        android.util.Log.d("MainActivity", "ChromePage result received: resultCode=${result.resultCode}")
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val rewardId = result.data?.getStringExtra(ChromePageActivity.EXTRA_REWARD_ID)
+            val taskId = result.data?.getStringExtra(ChromePageActivity.EXTRA_TASK_ID)  // Use task ID for completion tracking
+            val taskTitle = result.data?.getStringExtra(ChromePageActivity.EXTRA_TASK_TITLE)
+            val stars = result.data?.getIntExtra(ChromePageActivity.EXTRA_STARS, 0) ?: 0
+
+            // Use taskId (launch field) for completion tracking, fallback to rewardId if not available
+            val completionTaskId = taskId ?: rewardId
+            if (completionTaskId != null && taskTitle != null) {
+                layout.handleChromePageCompletion(completionTaskId, taskTitle, stars)
+            }
+        }
     }
 
     private fun getOrCreateProfile(): String? {
@@ -254,7 +264,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val currentTime = System.currentTimeMillis()
                 val oneHourInMillis = 60 * 60 * 1000L
 
-                // Clear reward data if it's older than 1 hour
                 if (currentTime - timestamp > oneHourInMillis) {
                     progressManager.clearPendingRewardData()
                     android.util.Log.d("MainActivity", "Cleaned up stale reward data: $minutes minutes from ${java.util.Date(timestamp)}")
@@ -269,12 +278,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         try {
             val progressManager = DailyProgressManager(this)
 
-            // Check if we need to reset for a new day
             val lastResetDate = progressManager.getLastResetDate()
             val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
 
             if (lastResetDate != currentDate) {
-                // Clear any existing reward data for the new day
                 progressManager.clearPendingRewardData()
                 android.util.Log.d("MainActivity", "Reset reward data for new day: $currentDate")
             }
@@ -285,10 +292,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
-        // Refresh progress display and sections when returning to main screen
         layout.refreshProgressDisplay()
         layout.refreshHeaderButtons()
-        // Also refresh the sections to update completion states
         currentMainContent?.let { content ->
             layout.displayContent(content)
         }
@@ -348,8 +353,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         when (action) {
             "goBack" -> finish()
             "goHome" -> {
-                // Reset to main screen - this should probably not reset the profile,
-                // but reload the content for the current profile
                 loadMainContent()
             }
             "refreshPage" -> loadMainContent()
@@ -406,27 +409,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
 
-    /**
-     * Sends daily progress report via email
-     */
     fun sendProgressReport(view: android.view.View) {
         try {
             val progressManager = DailyProgressManager(this)
             val timeTracker = TimeTracker(this)
             val reportGenerator = ReportGenerator(this)
 
-            // Get main content for progress calculation (needed for progress calculation but not for task names)
             val mainContent = getCurrentMainContent() ?: MainContent()
 
             val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
 
-            // Get current child profile (A or B) and convert to AM or BM
             val currentKid = progressManager.getCurrentKid()
             val childName = if (currentKid == "A") "AM" else "BM"
 
             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.TEXT)
 
-            // Create email intent to Tiffany
             val emailIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
@@ -434,36 +431,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 putExtra(android.content.Intent.EXTRA_TEXT, report)
             }
 
-            // Try to open Gmail directly using mailto URI (like the web app)
-            val gmailIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                data = android.net.Uri.parse("mailto:")
-                putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
-                putExtra(android.content.Intent.EXTRA_TEXT, report)
-                setPackage("com.google.android.gm") // Gmail package name
-            }
-
             try {
-                // Try to open Gmail directly
-                startActivity(gmailIntent)
+                startActivity(Intent.createChooser(emailIntent, "Share Progress Report"))
             } catch (e: Exception) {
-                // If Gmail isn't available, try other email apps using ACTION_SENDTO
-                try {
-                    val fallbackIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                        data = android.net.Uri.parse("mailto:")
-                        putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
-                        putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
-                        putExtra(android.content.Intent.EXTRA_TEXT, report)
-                    }
-                    startActivity(fallbackIntent)
-                } catch (e2: Exception) {
-                    // Final fallback - use chooser with generic share
-                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(android.content.Intent.EXTRA_TEXT, report)
-                    }
-                    startActivity(android.content.Intent.createChooser(shareIntent, "Share Progress Report"))
-                }
+                Toast.makeText(this, "Error generating report", Toast.LENGTH_SHORT).show()
             }
 
         } catch (e: Exception) {
@@ -495,15 +466,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             "profile_selection" -> {
                 selectProfile(game.id)
             }
-            // Handle video sequences
             else -> {
                 if (game.requiresRewardTime && !hasAvailableRewardTime()) {
                     showRewardTimeDialog()
                     return
                 }
 
-                // Check if this is a video sequence task by looking at the game object
-                // We need to access the original task data, but for now we'll handle it in the calling code
                 if (gameContent != null) {
                     launchGameActivity(game, gameContent)
                 } else {
@@ -537,16 +505,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        // Clear cache to ensure fresh content for new profile
         contentUpdateService.clearCache(this)
 
-        // Reload content with the selected profile
         loadMainContent()
     }
 
     private fun hasAvailableRewardTime(): Boolean {
-        // This is a placeholder. In a real app, you'd check a database or file
-        // for available reward time. For now, assume it's always available.
         return true
     }
 
@@ -554,57 +518,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         AlertDialog.Builder(this)
             .setTitle("Reward Time Required")
             .setMessage("You need to earn more stars to unlock this game. Complete more tasks!")
-            .setPositiveButton("OK") { _, _ ->
-                // User clicked OK, do nothing or navigate back to main
-            }
+            .setPositiveButton("OK") { _, _ -> }
             .setCancelable(false)
             .show()
     }
 
-    private fun startQuizGame(game: Game, gameContent: String?) {
-        Log.d(TAG, "Starting quiz game: ${game.title}")
-        if (gameContent != null) {
-            launchGameActivity(game, gameContent)
-        } else {
-            Toast.makeText(this, "Quiz game content not available", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun startMemoryGame(game: Game, gameContent: String?) {
-        Log.d(TAG, "Starting memory game: ${game.title}")
-        if (gameContent != null) {
-            launchGameActivity(game, gameContent)
-        } else {
-            Toast.makeText(this, "Memory game content not available", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun startWordGame(game: Game, gameContent: String?) {
-        Log.d(TAG, "Starting word game: ${game.title}")
-        if (gameContent != null) {
-            launchGameActivity(game, gameContent)
-        } else {
-            Toast.makeText(this, "Word game content not available", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun startMathGame(game: Game, gameContent: String?) {
-        Log.d(TAG, "Starting math game: ${game.title}")
-        if (gameContent != null) {
-            launchGameActivity(game, gameContent)
-        } else {
-            Toast.makeText(this, "Math game content not available", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun launchGameActivity(game: Game, gameContent: String) {
         try {
-            // Parse the content to get the actual number of questions
             val gson = Gson()
             val questions = gson.fromJson(gameContent, Array<GameData>::class.java)
             val totalQuestions = game.totalQuestions ?: questions.size
 
-            // Determine if this is a required game
             val currentContent = getCurrentMainContent()
             val isRequired = currentContent?.sections?.any { section ->
                 section.id == "required" && section.tasks?.any { it.launch == game.type } == true
@@ -615,7 +539,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 putExtra("GAME_TYPE", game.type)
                 putExtra("GAME_TITLE", game.title)
                 putExtra("TOTAL_QUESTIONS", totalQuestions)
-                putExtra("GAME_STARS", game.estimatedTime) // Use estimatedTime as stars
+                putExtra("GAME_STARS", game.estimatedTime)
                 putExtra("IS_REQUIRED_GAME", isRequired)
                 putExtra("BLOCK_OUTLINES", game.blockOutlines)
             }
@@ -628,7 +552,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
 }
 
-// Simple data class to hold the JSON content
 data class MainContent(
     val version: String? = null,
     val title: String? = null,
@@ -666,11 +589,12 @@ data class Task(
     val launch: String? = null,
     val stars: Int? = null,
     val totalQuestions: Int? = null,
-    val videoSequence: String? = null, // "exact", "sequential", or "playlist"
-    val video: String? = null, // specific video name for "exact" mode
-    val playlistId: String? = null, // playlist ID for "playlist" mode
+    val videoSequence: String? = null,
+    val video: String? = null,
+    val playlistId: String? = null,
     val blockOutlines: Boolean? = null,
     val webGame: Boolean? = null,
+    val chromePage: Boolean? = null,
     val url: String? = null,
     val rewardId: String? = null,
     val easydays: String? = null,

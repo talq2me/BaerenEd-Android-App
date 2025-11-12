@@ -415,6 +415,29 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
+    fun handleChromePageCompletion(rewardId: String, taskTitle: String, stars: Int) {
+        android.util.Log.d(TAG, "handleChromePageCompletion: rewardId=$rewardId, taskTitle=$taskTitle, stars=$stars")
+
+        val progressManager = DailyProgressManager(activity)
+        val earnedStars = progressManager.markTaskCompletedWithName(rewardId, taskTitle, stars, false)
+
+        if (earnedStars > 0) {
+            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+            android.util.Log.d(TAG, "Chrome page completed, earned $earnedStars stars, total reward minutes: $totalRewardMinutes")
+            Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+        } else {
+            android.util.Log.d(TAG, "Chrome page task $rewardId already completed today or no stars to award")
+            Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
+        }
+
+        val currentContent = activity.getCurrentMainContent()
+        if (currentContent != null) {
+            android.util.Log.d(TAG, "Refreshing content after Chrome page completion")
+            displayContent(currentContent)
+        }
+        refreshProgressDisplay()
+    }
+
     private fun addPokemonButtonToProgressLayout() {
         // Check if Pokemon button already exists
         if (progressLayout.findViewWithTag<View>("pokemon_button") != null) {
@@ -929,8 +952,25 @@ class Layout(private val activity: MainActivity) {
                     val gameType = task.launch ?: "unknown"
                     val gameTitle = task.title ?: "Task"
 
+                    // Check if this is a Chrome page task
+                    if (task.chromePage == true) {
+                        val pageUrl = task.url
+                        if (pageUrl.isNullOrBlank()) {
+                            Toast.makeText(activity, "No page configured for this task.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val taskLaunchId = task.launch ?: "unknown"
+                            val rewardId = task.rewardId ?: taskLaunchId
+                            val intent = Intent(activity, ChromePageActivity::class.java).apply {
+                                putExtra(ChromePageActivity.EXTRA_URL, pageUrl)
+                                putExtra(ChromePageActivity.EXTRA_REWARD_ID, rewardId)
+                                putExtra(ChromePageActivity.EXTRA_TASK_ID, taskLaunchId)  // Pass launch ID for completion tracking
+                                putExtra(ChromePageActivity.EXTRA_STARS, task.stars ?: 0)
+                                putExtra(ChromePageActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
+                            }
+                            activity.chromePageLauncher.launch(intent)
+                        }
                     // Check if this is a web game task
-                    if (task.webGame == true && !task.url.isNullOrEmpty()) {
+                    } else if (task.webGame == true && !task.url.isNullOrEmpty()) {
                         android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
                         val intent = Intent(activity, WebGameActivity::class.java).apply {
                             val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)

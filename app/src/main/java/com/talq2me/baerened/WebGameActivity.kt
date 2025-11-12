@@ -83,8 +83,6 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun finishGameWithResult(rewardId: String?) {
         android.util.Log.d("WebGameActivity", "Finishing game activity with success result for reward: $rewardId")
 
-        // In a real application, you would integrate your reward system here
-        // For now, we'll just return the rewardId
         val resultIntent = Intent().apply {
             putExtra(EXTRA_REWARD_ID, rewardId ?: "")
         }
@@ -116,7 +114,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         @JavascriptInterface
         fun readText(text: String, lang: String) {
-            val locale = if (lang.equals("fr", ignoreCase = true)) Locale.FRENCH else Locale.US
+            val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
             tts.language = locale
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
         }

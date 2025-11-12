@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.cardview)
     implementation("com.talq2me.baeren:settings-contract:1.0.0")
+    implementation("androidx.browser:browser:1.8.0")
 
     // HTTP client for JSON downloading
     implementation(libs.okhttp)
