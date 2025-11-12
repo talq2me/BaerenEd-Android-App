@@ -68,9 +68,12 @@ class Layout(private val activity: MainActivity) {
             progressManager.calculateTotalsFromConfig(content)
         }
 
-        // Display sections (tasks and buttons)
+        // Display sections (tasks and buttons) - defer heavy view creation to avoid blocking
         sectionsContainer.visibility = View.VISIBLE
-        setupSections(content.sections ?: emptyList())
+        // Use post() to defer view creation to next frame, allowing UI to render first
+        sectionsContainer.post {
+            setupSections(content.sections ?: emptyList())
+        }
 
         android.util.Log.d("Layout", "displayContent completed")
     }
@@ -750,16 +753,19 @@ class Layout(private val activity: MainActivity) {
         android.util.Log.d("Layout", "setupSections called with ${sections.size} sections")
         sectionsContainer.removeAllViews()
 
+        // Pre-load all completed task statuses in one batch to avoid multiple SharedPreferences reads
+        val completedTasksMap = progressManager.getCompletedTasksMap()
+
         sections.forEach { section ->
             android.util.Log.d("Layout", "Creating section: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
-            val sectionView = createSectionView(section)
+            val sectionView = createSectionView(section, completedTasksMap)
             sectionsContainer.addView(sectionView)
         }
 
         android.util.Log.d("Layout", "setupSections completed")
     }
 
-    private fun createSectionView(section: Section): View {
+    private fun createSectionView(section: Section, completedTasksMap: Map<String, Boolean>): View {
         val sectionLayout = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, 12, 0, 12) // Reduced for compact layout
@@ -845,7 +851,7 @@ class Layout(private val activity: MainActivity) {
                         // Only add task view if it's visible today
                         if (isTaskVisible(task.showdays, task.hidedays)) {
                             android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
-                            val taskView = createTaskView(task)
+                            val taskView = createTaskView(task, completedTasksMap)
                             rowContainer.addView(taskView)
                         }
                     }
@@ -874,7 +880,7 @@ class Layout(private val activity: MainActivity) {
             items.forEach { item ->
                 // Only add checklist item view if it's visible today
                 if (isTaskVisible(item.showdays, item.hidedays)) {
-                    val itemView = createChecklistItemView(item)
+                    val itemView = createChecklistItemView(item, completedTasksMap)
                     sectionLayout.addView(itemView)
                 }
             }
@@ -883,14 +889,14 @@ class Layout(private val activity: MainActivity) {
         return sectionLayout
     }
 
-    private fun createTaskView(task: Task): View {
+    private fun createTaskView(task: Task, completedTasksMap: Map<String, Boolean>): View {
         val density = activity.resources.displayMetrics.density
         // Use 70dp height to match nav buttons for compact layout
         val tileHeight = (70 * density).toInt()
 
-        // Check if this task is completed today
+        // Check if this task is completed today (using pre-loaded map to avoid SharedPreferences read)
         val taskIdForCheck = task.launch ?: "unknown_task"
-        val isCompleted = progressManager.isTaskCompleted(taskIdForCheck)
+        val isCompleted = completedTasksMap[taskIdForCheck] == true
         android.util.Log.d("Layout", "Task UI check: taskId=$taskIdForCheck, taskTitle=${task.title}, isCompleted=$isCompleted")
 
         // Use a RelativeLayout for more precise positioning of children
@@ -1042,15 +1048,15 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun createChecklistItemView(item: ChecklistItem): View {
+    private fun createChecklistItemView(item: ChecklistItem, completedTasksMap: Map<String, Boolean>): View {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(16, 8, 16, 8)
             background = activity.getDrawable(R.drawable.game_item_background)
 
-            // Check if this item is completed
+            // Check if this item is completed (using pre-loaded map to avoid SharedPreferences read)
             val itemId = item.id ?: "checkbox_${item.label}"
-            val isCompleted = progressManager.isTaskCompleted(itemId)
+            val isCompleted = completedTasksMap[itemId] == true
 
             // Create a container for label + stars
             val labelStarsContainer = LinearLayout(activity).apply {

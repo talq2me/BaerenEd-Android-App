@@ -141,6 +141,13 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Gets the completion status map for today (public method for batch reads)
+     */
+    fun getCompletedTasksMap(): Map<String, Boolean> {
+        return getCompletedTasks()
+    }
+
+    /**
      * Saves the completion status map
      */
     private fun saveCompletedTasks(completedTasks: Map<String, Boolean>) {

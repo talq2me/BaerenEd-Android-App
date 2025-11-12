@@ -88,11 +88,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             loadMainContent()
         }
 
-        // Clean up any stale reward data on app start
-        cleanupStaleRewardData()
-
-        // Reset reward data for new day if needed
-        resetRewardDataForNewDay()
+        // Clean up any stale reward data on app start (on background thread to avoid blocking UI)
+        lifecycleScope.launch(Dispatchers.IO) {
+            cleanupStaleRewardData()
+            resetRewardDataForNewDay()
+        }
     }
 
     private fun handleVideoCompletion(result: ActivityResult) {
