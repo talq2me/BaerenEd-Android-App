@@ -4,7 +4,9 @@
     "buttons": [
       {"label": "Back", "action": "goBack"},
       {"label": "Home", "action": "goHome"},
-      {"label": "Refresh", "action": "refreshPage"}
+      {"label": "Refresh", "action": "refreshPage"},
+      {"label": "My Pokedex", "action": "openPokedex"},
+      {"label": "Ask for Time", "action": "askForTime"}
     ]
   },
   "title": "Daily Homework Dashboard BM",
