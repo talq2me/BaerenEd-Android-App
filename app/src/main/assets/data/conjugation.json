@@ -1,1800 +1,1800 @@
 [
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elles ______ dans le parc."},
     "correctChoices": [{ "text": "marchent" }],
     "extraChoices": [{ "text": "marches" }, { "text": "marcher" }, { "text": "marche" }, { "text": "marchait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous ______ le bus."},
     "correctChoices": [{ "text": "attendons" }],
     "extraChoices": [{ "text": "attendait" }, { "text": "attendez" }, { "text": "attendent" }, { "text": "attendre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Il ______ ses devoirs chaque soir."},
     "correctChoices": [{ "text": "fait" }],
     "extraChoices": [{ "text": "fais" }, { "text": "font" }, { "text": "faisait" }, { "text": "faire" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ le bus."},
     "correctChoices": [{ "text": "attendons" }],
     "extraChoices": [{ "text": "attendait" }, { "text": "attendez" }, { "text": "attendent" }, { "text": "attendre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ le bus."},
     "correctChoices": [{ "text": "attendons" }],
     "extraChoices": [{ "text": "attendait" }, { "text": "attendez" }, { "text": "attendent" }, { "text": "attendre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ le bus."},
     "correctChoices": [{ "text": "attendons" }],
     "extraChoices": [{ "text": "attendait" }, { "text": "attendez" }, { "text": "attendent" }, { "text": "attendre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ le bus."},
     "correctChoices": [{ "text": "attendons" }],
     "extraChoices": [{ "text": "attendait" }, { "text": "attendez" }, { "text": "attendent" }, { "text": "attendre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elles ______ dans le parc."},
     "correctChoices": [{ "text": "marchent" }],
     "extraChoices": [{ "text": "marches" }, { "text": "marcher" }, { "text": "marche" }, { "text": "marchait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ ses devoirs chaque soir."},
     "correctChoices": [{ "text": "fait" }],
     "extraChoices": [{ "text": "fais" }, { "text": "font" }, { "text": "faisait" }, { "text": "faire" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ ses devoirs chaque soir."},
     "correctChoices": [{ "text": "fait" }],
     "extraChoices": [{ "text": "fais" }, { "text": "font" }, { "text": "faisait" }, { "text": "faire" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ ses devoirs chaque soir."},
     "correctChoices": [{ "text": "fait" }],
     "extraChoices": [{ "text": "fais" }, { "text": "font" }, { "text": "faisait" }, { "text": "faire" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elles ______ dans le parc."},
     "correctChoices": [{ "text": "marchent" }],
     "extraChoices": [{ "text": "marches" }, { "text": "marcher" }, { "text": "marche" }, { "text": "marchait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ ses devoirs chaque soir."},
     "correctChoices": [{ "text": "fait" }],
     "extraChoices": [{ "text": "fais" }, { "text": "font" }, { "text": "faisait" }, { "text": "faire" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elle-même, elle ______ toujours les tests."},
     "correctChoices": [{ "text": "réussit" }],
     "extraChoices": [{ "text": "réussis" }, { "text": "réussissait" }, { "text": "réussissent" }, { "text": "réussir" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elles ______ dans le parc."},
     "correctChoices": [{ "text": "marchent" }],
     "extraChoices": [{ "text": "marches" }, { "text": "marcher" }, { "text": "marche" }, { "text": "marchait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à la question."},
     "correctChoices": [{ "text": "réponds" }],
     "extraChoices": [{ "text": "répondre" }, { "text": "répond" }, { "text": "répondait" }, { "text": "répondent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Elles ______ dans le parc."},
     "correctChoices": [{ "text": "marchent" }],
     "extraChoices": [{ "text": "marches" }, { "text": "marcher" }, { "text": "marche" }, { "text": "marchait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ à l’école à pied."},
     "correctChoices": [{ "text": "vais" }],
     "extraChoices": [{ "text": "aller" }, { "text": "allais" }, { "text": "vas" }, { "text": "va" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ la musique forte."},
     "correctChoices": [{ "text": "écoutez" }],
     "extraChoices": [{ "text": "écoutent" }, { "text": "écouter" }, { "text": "écoutons" }, { "text": "écoutait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ une chanson joyeuse."},
     "correctChoices": [{ "text": "chantons" }],
     "extraChoices": [{ "text": "chantez" }, { "text": "chantent" }, { "text": "chanter" }, { "text": "chantait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ un bruit étrange."},
     "correctChoices": [{ "text": "entendent" }],
     "extraChoices": [{ "text": "entends" }, { "text": "entendre" }, { "text": "entend" }, { "text": "entendait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ français en classe."},
     "correctChoices": [{ "text": "parlons" }],
     "extraChoices": [{ "text": "parlez" }, { "text": "parler" }, { "text": "parlais" }, { "text": "parlent" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ ses devoirs chaque soir."},
     "correctChoices": [{ "text": "fait" }],
     "extraChoices": [{ "text": "fais" }, { "text": "font" }, { "text": "faisait" }, { "text": "faire" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ mon verre d’eau."},
     "correctChoices": [{ "text": "remplis" }],
     "extraChoices": [{ "text": "remplissent" }, { "text": "remplir" }, { "text": "remplit" }, { "text": "remplissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Vous-mêmes, vous ______ au cinéma ce soir."},
     "correctChoices": [{ "text": "allez" }],
     "extraChoices": [{ "text": "alliez" }, { "text": "vont" }, { "text": "allons" }, { "text": "aller" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ un dessin animé."},
     "correctChoices": [{ "text": "regarde" }],
     "extraChoices": [{ "text": "regardent" }, { "text": "regardait" }, { "text": "regardes" }, { "text": "regarder" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ souvent tes clés."},
     "correctChoices": [{ "text": "perds" }],
     "extraChoices": [{ "text": "perdent" }, { "text": "perdait" }, { "text": "perd" }, { "text": "perdre" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ un cadeau à son ami."},
     "correctChoices": [{ "text": "donne" }],
     "extraChoices": [{ "text": "donnent" }, { "text": "donner" }, { "text": "donnes" }, { "text": "donnait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ content aujourd’hui."},
     "correctChoices": [{ "text": "suis" }],
     "extraChoices": [{ "text": "es" }, { "text": "être" }, { "text": "est" }, { "text": "étais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Eux, ils ______ trois chiens."},
     "correctChoices": [{ "text": "ont" }],
     "extraChoices": [{ "text": "avoir" }, { "text": "avaient" }, { "text": "as" }, { "text": "a" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Moi, je ______ la porte."},
     "correctChoices": [{ "text": "ferme" }],
     "extraChoices": [{ "text": "fermait" }, { "text": "fermer" }, { "text": "ferment" }, { "text": "fermes" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ un livre intéressant."},
     "correctChoices": [{ "text": "choisis" }],
     "extraChoices": [{ "text": "choisir" }, { "text": "choisissent" }, { "text": "choisit" }, { "text": "choisissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ les animaux."},
     "correctChoices": [{ "text": "aimes" }],
     "extraChoices": [{ "text": "aimait" }, { "text": "aimer" }, { "text": "aimaient" }, { "text": "aime" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ au ballon."},
     "correctChoices": [{ "text": "joue" }],
     "extraChoices": [{ "text": "jouer" }, { "text": "jouait" }, { "text": "jouent" }, { "text": "joues" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Les enfants ______ vite."},
     "correctChoices": [{ "text": "grandissent" }],
     "extraChoices": [{ "text": "grandissait" }, { "text": "grandis" }, { "text": "grandir" }, { "text": "grandit" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Lui, il ______ des fruits au marché."},
     "correctChoices": [{ "text": "vend" }],
     "extraChoices": [{ "text": "vendait" }, { "text": "vendent" }, { "text": "vendre" }, { "text": "vends" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ bien à l’école."},
     "correctChoices": [{ "text": "travailles" }],
     "extraChoices": [{ "text": "travaille" }, { "text": "travaillent" }, { "text": "travaillait" }, { "text": "travailler" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ nos devoirs."},
     "correctChoices": [{ "text": "finissons" }],
     "extraChoices": [{ "text": "finissent" }, { "text": "finis" }, { "text": "finir" }, { "text": "finissait" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ un gâteau."},
     "correctChoices": [{ "text": "faisons" }],
     "extraChoices": [{ "text": "faites" }, { "text": "faire" }, { "text": "faisaient" }, { "text": "font" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Nous tous, nous ______ prêts pour partir."},
     "correctChoices": [{ "text": "sommes" }],
     "extraChoices": [{ "text": "étions" }, { "text": "sont" }, { "text": "êtes" }, { "text": "être" }]
   },
   {
-    "prompt": { "text": "Fill in the blank", "lang": "eng" },
+    "prompt": { "text": "Fill in the blank", "lang": "fr" },
     "question": { "text": "Toi, tu ______ une belle bicyclette."},
     "correctChoices": [{ "text": "as" }],
     "extraChoices": [{ "text": "a" }, { "text": "avoir" }, { "text": "ai" }, { "text": "avais" }]

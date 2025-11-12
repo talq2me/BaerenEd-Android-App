@@ -662,7 +662,8 @@ data class Task(
     val harddays: String? = null,
     val extremedays: String? = null,
     val showdays: String? = null,
-    val hidedays: String? = null
+    val hidedays: String? = null,
+    val displayDays: String? = null
 )
 
 data class ChecklistItem(

@@ -597,7 +597,7 @@ class Layout(private val activity: MainActivity) {
         return builder.build().toString()
     }
 
-    private fun isTaskVisible(showdays: String?, hidedays: String?): Boolean {
+    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null): Boolean {
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         val todayShort = when (today) {
             Calendar.MONDAY -> "mon"
@@ -614,6 +614,11 @@ class Layout(private val activity: MainActivity) {
             if (hidedays.split(",").contains(todayShort)) {
                 return false // Hide if today is in hidedays
             }
+        }
+
+        // Check displayDays first (if set, only show on those days)
+        if (!displayDays.isNullOrEmpty()) {
+            return displayDays.split(",").contains(todayShort) // Show only if today is in displayDays
         }
 
         if (!showdays.isNullOrEmpty()) {
@@ -849,7 +854,7 @@ class Layout(private val activity: MainActivity) {
                     for (i in startIndex until endIndex) {
                         val task = tasks[i]
                         // Only add task view if it's visible today
-                        if (isTaskVisible(task.showdays, task.hidedays)) {
+                        if (isTaskVisible(task.showdays, task.hidedays, task.displayDays)) {
                             android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
                             val taskView = createTaskView(task, completedTasksMap)
                             rowContainer.addView(taskView)

@@ -27,7 +27,8 @@
           "title": "Duological",
           "launch": "duologicalGame",
           "stars": 3,
-          "totalQuestions": 7
+          "totalQuestions": 7,
+          "blockOutlines": true
         },
         {
           "title": "Translation",

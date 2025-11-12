@@ -181,7 +181,7 @@ class DailyProgressManager(private val context: Context) {
             .apply()
     }
 
-    private fun isTaskVisible(showdays: String?, hidedays: String?): Boolean {
+    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null): Boolean {
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         val todayShort = when (today) {
             Calendar.MONDAY -> "mon"
@@ -200,6 +200,11 @@ class DailyProgressManager(private val context: Context) {
             }
         }
 
+        // Check displayDays first (if set, only show on those days)
+        if (!displayDays.isNullOrEmpty()) {
+            return displayDays.split(",").contains(todayShort) // Show only if today is in displayDays
+        }
+
         if (!showdays.isNullOrEmpty()) {
             return showdays.split(",").contains(todayShort) // Show only if today is in showdays
         }
@@ -210,7 +215,7 @@ class DailyProgressManager(private val context: Context) {
     private fun filterVisibleContent(originalContent: MainContent): MainContent {
         val filteredSections = originalContent.sections?.map { section ->
             val filteredTasks = section.tasks?.filter { task ->
-                isTaskVisible(task.showdays, task.hidedays)
+                isTaskVisible(task.showdays, task.hidedays, task.displayDays)
             }
             val filteredItems = section.items?.filter { item ->
                 isTaskVisible(item.showdays, item.hidedays)
