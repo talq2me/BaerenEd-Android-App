@@ -31,12 +31,17 @@ class DailyProgressManager(private val context: Context) {
         val completedTaskNames: Map<String, String>, // taskId -> taskName mapping
         val gameSessions: List<TimeTracker.ActivitySession>,
         val videoSessions: List<TimeTracker.ActivitySession>,
+        val webGameSessions: List<TimeTracker.ActivitySession>,
+        val chromePageSessions: List<TimeTracker.ActivitySession>,
         val completedGameSessions: List<TimeTracker.ActivitySession>,
         val averageGameTimeMinutes: Int,
         val averageVideoTimeMinutes: Int,
         val longestSessionMinutes: Int,
         val mostPlayedGame: String?,
-        val totalSessions: Int
+        val totalSessions: Int,
+        val totalCorrectAnswers: Int,
+        val totalIncorrectAnswers: Int,
+        val config: MainContent? = null // Config for task matching
     )
 
     companion object {
@@ -750,7 +755,13 @@ class DailyProgressManager(private val context: Context) {
         // Get detailed session information
         val gameSessions = todaySummary.gameSessions
         val videoSessions = todaySummary.sessions.filter { it.activityType in listOf("video", "youtube") }
+        val webGameSessions = todaySummary.sessions.filter { it.activityType == "webgame" }
+        val chromePageSessions = todaySummary.sessions.filter { it.activityType == "chromepage" }
         val completedGameSessions = todaySummary.completedGameSessions
+
+        // Calculate total correct and incorrect answers across all game sessions (including web games)
+        val totalCorrectAnswers = (gameSessions + webGameSessions).sumOf { it.correctAnswers }
+        val totalIncorrectAnswers = (gameSessions + webGameSessions).sumOf { it.incorrectAnswers }
 
         return ComprehensiveProgressReport(
             date = getCurrentDateString(),
@@ -766,12 +777,17 @@ class DailyProgressManager(private val context: Context) {
             completedTaskNames = completedTaskNames,
             gameSessions = gameSessions,
             videoSessions = videoSessions,
+            webGameSessions = webGameSessions,
+            chromePageSessions = chromePageSessions,
             completedGameSessions = completedGameSessions,
             averageGameTimeMinutes = if (gameSessions.isNotEmpty()) gameSessions.map { it.durationMinutes }.average().toInt() else 0,
             averageVideoTimeMinutes = if (videoSessions.isNotEmpty()) videoSessions.map { it.durationMinutes }.average().toInt() else 0,
             longestSessionMinutes = todaySummary.sessions.maxOfOrNull { it.durationMinutes }?.toInt() ?: 0,
             mostPlayedGame = gameSessions.groupBy { it.activityName }.maxByOrNull { it.value.size }?.key,
-            totalSessions = todaySummary.sessions.size
+            totalSessions = todaySummary.sessions.size,
+            totalCorrectAnswers = totalCorrectAnswers,
+            totalIncorrectAnswers = totalIncorrectAnswers,
+            config = config
         )
     }
 

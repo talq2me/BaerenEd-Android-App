@@ -23,6 +23,9 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var webView: WebView
     private lateinit var tts: TextToSpeech
+    private lateinit var timeTracker: TimeTracker
+    private var gameCompleted = false
+    private var rewardId: String? = null
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +35,14 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         webView = findViewById(R.id.game_webview)
 
         val gameUrl = intent.getStringExtra(EXTRA_GAME_URL)
-        val rewardId = intent.getStringExtra(EXTRA_REWARD_ID)
+        rewardId = intent.getStringExtra(EXTRA_REWARD_ID)
+
+        // Initialize time tracker
+        timeTracker = TimeTracker(this)
+        
+        // Start tracking time for this web game
+        val gameName = rewardId ?: "Web Game"
+        timeTracker.startActivity(rewardId ?: "webgame", "webgame", gameName)
 
         val ws: WebSettings = webView.settings
         ws.javaScriptEnabled = true
@@ -82,6 +92,11 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun finishGameWithResult(rewardId: String?) {
         android.util.Log.d("WebGameActivity", "Finishing game activity with success result for reward: $rewardId")
+        
+        // Mark game as completed and end time tracking
+        gameCompleted = true
+        timeTracker.endActivity("webgame")
+        // Note: The session is automatically marked as completed when endActivity is called
 
         val resultIntent = Intent().apply {
             putExtra(EXTRA_REWARD_ID, rewardId ?: "")
@@ -92,14 +107,18 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onBackPressed() {
         android.util.Log.d("WebGameActivity", "Back button pressed, finishing without completion")
+        // End time tracking (game not completed)
+        timeTracker.endActivity("webgame")
         setResult(RESULT_CANCELED)
         super.onBackPressed()
     }
 
     inner class WebGameInterface(private val rewardId: String?) {
         @JavascriptInterface
-        fun gameCompleted() {
-            android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted()")
+        fun gameCompleted(correctAnswers: Int = 0, incorrectAnswers: Int = 0) {
+            android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted() with correct: $correctAnswers, incorrect: $incorrectAnswers")
+            // Update answer counts before finishing
+            timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
             finishGameWithResult(rewardId)
         }
 
@@ -127,6 +146,11 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
+        // End time tracking if not already ended
+        if (!gameCompleted) {
+            timeTracker.endActivity("webgame")
+        }
+        
         tts.stop()
         tts.shutdown()
         webView.removeJavascriptInterface("Android")

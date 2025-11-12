@@ -28,6 +28,8 @@ class ChromePageActivity : AppCompatActivity() {
     private var customTabsSession: CustomTabsSession? = null
     private var customTabsClient: CustomTabsClient? = null
     private var customTabsServiceConnection: CustomTabsServiceConnection? = null
+    private lateinit var timeTracker: TimeTracker
+    private var pageVisited = false
 
     companion object {
         const val EXTRA_URL = "url"
@@ -54,6 +56,13 @@ class ChromePageActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        // Initialize time tracker
+        timeTracker = TimeTracker(this)
+        
+        // Start tracking time for this page visit
+        val pageName = taskTitle ?: url ?: "Web Page"
+        timeTracker.startActivity(taskId ?: rewardId ?: "chromepage", "chromepage", pageName)
 
         val targetUri = Uri.parse(url)
 
@@ -155,6 +164,12 @@ class ChromePageActivity : AppCompatActivity() {
         Log.d(TAG, "User returned from Chrome. Elapsed time: ${elapsedSeconds} seconds (required: $MIN_TIME_SECONDS)")
 
         if (elapsedSeconds >= MIN_TIME_SECONDS) {
+            // Mark page as visited and end time tracking
+            pageVisited = true
+            timeTracker.endActivity("chromepage")
+            // Update stars earned for the completed session
+            timeTracker.updateStarsEarned("chromepage", stars)
+            
             val resultIntent = Intent().apply {
                 rewardId?.let { putExtra(EXTRA_REWARD_ID, it) }
                 taskId?.let { putExtra(EXTRA_TASK_ID, it) }  // Pass task ID for completion tracking
@@ -164,6 +179,9 @@ class ChromePageActivity : AppCompatActivity() {
             setResult(RESULT_OK, resultIntent)
             Log.d(TAG, "Task completed successfully, granting reward")
         } else {
+            // End time tracking even if not completed (user didn't spend enough time)
+            timeTracker.endActivity("chromepage")
+            
             val remainingSeconds = MIN_TIME_SECONDS - elapsedSeconds.toInt()
             Toast.makeText(
                 this, 
@@ -177,6 +195,11 @@ class ChromePageActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // End time tracking if not already ended
+        if (!pageVisited) {
+            timeTracker.endActivity("chromepage")
+        }
+        
         super.onDestroy()
         customTabsServiceConnection?.let {
             unbindService(it)

@@ -395,7 +395,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email")
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report")
 
         AlertDialog.Builder(this)
             .setTitle("Settings")
@@ -404,6 +404,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     0 -> showChangeProfileDialog()
                     1 -> showChangePinDialog()
                     2 -> showChangeEmailDialog()
+                    3 -> sendProgressReportInternal()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -471,6 +472,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
 
     fun sendProgressReport(view: android.view.View) {
+        sendProgressReportInternal()
+    }
+
+    /**
+     * Sends progress report programmatically (can be called without a View)
+     */
+    fun sendProgressReportInternal() {
         try {
             val progressManager = DailyProgressManager(this)
             val timeTracker = TimeTracker(this)
@@ -483,19 +491,42 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentKid = progressManager.getCurrentKid()
             val childName = if (currentKid == "A") "AM" else "BM"
 
-            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.TEXT)
+            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
 
-            val emailIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf("tiffany.quinlan@gmail.com"))
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
-                putExtra(android.content.Intent.EXTRA_TEXT, report)
+            // Get parent email from settings
+            val parentEmail = SettingsManager.readEmail(this)
+            
+            if (parentEmail.isNullOrBlank()) {
+                Toast.makeText(this, "Please set parent email in settings first", Toast.LENGTH_LONG).show()
+                return
+            }
+
+            // Use mailto: URI to open Gmail directly
+            val emailUri = android.net.Uri.parse("mailto:$parentEmail").buildUpon()
+                .appendQueryParameter("subject", "Daily Progress Report - $childName - ${progressReport.date}")
+                .appendQueryParameter("body", report)
+                .build()
+
+            val emailIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                data = emailUri
             }
 
             try {
-                startActivity(Intent.createChooser(emailIntent, "Share Progress Report"))
+                if (emailIntent.resolveActivity(packageManager) != null) {
+                    startActivity(emailIntent)
+                } else {
+                    // Fallback to generic email chooser if mailto: doesn't work
+                    val fallbackIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                        putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
+                        putExtra(android.content.Intent.EXTRA_TEXT, report)
+                    }
+                    startActivity(Intent.createChooser(fallbackIntent, "Share Progress Report"))
+                }
             } catch (e: Exception) {
-                Toast.makeText(this, "Error generating report", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error opening email: ${e.message}", Toast.LENGTH_SHORT).show()
+                android.util.Log.e("MainActivity", "Error opening email", e)
             }
 
         } catch (e: Exception) {

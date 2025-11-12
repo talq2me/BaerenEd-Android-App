@@ -23,6 +23,74 @@ class ReportGenerator(private val context: Context) {
     }
 
     /**
+     * Task details with time and answer counts
+     */
+    data class TaskDetails(
+        val taskId: String,
+        val taskName: String,
+        val isRequired: Boolean,
+        val isCompleted: Boolean,
+        val timeSpentSeconds: Long,
+        val correctAnswers: Int,
+        val incorrectAnswers: Int
+    ) {
+        val timeSpentFormatted: String
+            get() {
+                val minutes = (timeSpentSeconds / 60).toInt()
+                val seconds = (timeSpentSeconds % 60).toInt()
+                return if (minutes > 0) "${minutes}m${seconds}s" else "${seconds}s"
+            }
+    }
+
+    /**
+     * Matches tasks from config with sessions and calculates details
+     */
+    private fun getTaskDetails(report: DailyProgressManager.ComprehensiveProgressReport): List<TaskDetails> {
+        val config = report.config ?: return emptyList()
+        val allSessions = report.gameSessions + report.webGameSessions + report.videoSessions + 
+                         report.chromePageSessions + report.completedGameSessions
+        
+        val taskDetails = mutableListOf<TaskDetails>()
+        
+        config.sections?.forEach { section ->
+            val isRequired = section.id == "required"
+            section.tasks?.forEach { task ->
+                val taskId = task.launch ?: return@forEach
+                val taskName = task.title ?: taskId
+                val isCompleted = report.completedTasks.contains(taskId)
+                
+                // Match sessions by activityId
+                // For regular games: activityId matches task.launch
+                // For web games: activityId might match task.rewardId or task.launch
+                // For chrome pages: activityId matches task.launch
+                val matchingSessions = allSessions.filter { session ->
+                    session.activityId == taskId || 
+                    (task.webGame == true && session.activityId == (task.rewardId ?: taskId)) ||
+                    (task.chromePage == true && session.activityId == taskId)
+                }
+                
+                val totalTimeSeconds = matchingSessions.sumOf { it.durationSeconds }
+                val totalCorrect = matchingSessions.sumOf { it.correctAnswers }
+                val totalIncorrect = matchingSessions.sumOf { it.incorrectAnswers }
+                
+                taskDetails.add(
+                    TaskDetails(
+                        taskId = taskId,
+                        taskName = taskName,
+                        isRequired = isRequired,
+                        isCompleted = isCompleted,
+                        timeSpentSeconds = totalTimeSeconds,
+                        correctAnswers = totalCorrect,
+                        incorrectAnswers = totalIncorrect
+                    )
+                )
+            }
+        }
+        
+        return taskDetails
+    }
+
+    /**
      * Generates a comprehensive daily progress report
      */
     fun generateDailyReport(
@@ -59,7 +127,14 @@ class ReportGenerator(private val context: Context) {
             appendLine("-".repeat(30))
             appendLine("Stars Earned: ${report.earnedStars}/${report.totalStars} (${"%.1f".format(report.completionRate)}%)")
             appendLine("Coins Earned: ${report.earnedCoins}/${report.totalCoins}")
-            appendLine("Total Time: ${"%.1f".format(report.totalTimeMinutes)} minutes")
+            appendLine("Total Time: ${report.totalTimeMinutes} minutes")
+            
+            // Count required incomplete tasks
+            val taskDetails = getTaskDetails(report)
+            val requiredIncompleteCount = taskDetails.count { it.isRequired && !it.isCompleted }
+            if (requiredIncompleteCount > 0) {
+                appendLine("Required Tasks Incomplete: $requiredIncompleteCount")
+            }
             appendLine()
 
             appendLine("🎮 ACTIVITY SUMMARY")
@@ -67,6 +142,7 @@ class ReportGenerator(private val context: Context) {
             appendLine("Games Played: ${report.gamesPlayed}")
             appendLine("Videos Watched: ${report.videosWatched}")
             appendLine("Total Sessions: ${report.totalSessions}")
+            appendLine("Questions Answered: ${report.totalCorrectAnswers} correct, ${report.totalIncorrectAnswers} incorrect")
             appendLine()
 
             if (report.completedGameSessions.isNotEmpty()) {
@@ -75,7 +151,12 @@ class ReportGenerator(private val context: Context) {
                 appendLine("Games completed today:")
                 report.completedGameSessions.forEach { session ->
                     val status = if (session.completed) "Completed" else "In Progress"
-                    appendLine("  ${session.activityName} ${session.formattedDuration} $status")
+                    val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
+                        " (${session.correctAnswers} correct, ${session.incorrectAnswers} incorrect)"
+                    } else {
+                        ""
+                    }
+                    appendLine("  ${session.activityName} ${session.formattedDuration} $status$answerInfo")
                 }
                 appendLine()
             }
@@ -83,7 +164,7 @@ class ReportGenerator(private val context: Context) {
             if (report.gamesPlayed > 0) {
                 appendLine("🎮 ALL GAME SESSIONS")
                 appendLine("-".repeat(30))
-                appendLine("Average Game Time: ${"%.1f".format(report.averageGameTimeMinutes)} minutes")
+                appendLine("Average Game Time: ${report.averageGameTimeMinutes} minutes")
                 if (report.mostPlayedGame != null) {
                     appendLine("Most Played Game: ${report.mostPlayedGame}")
                 }
@@ -92,7 +173,12 @@ class ReportGenerator(private val context: Context) {
                 appendLine("All Game Sessions:")
                 report.gameSessions.forEach { session ->
                     val status = if (session.completed) "Completed" else "In Progress"
-                    appendLine("  ${session.activityName} ${session.formattedDuration} $status")
+                    val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
+                        " (${session.correctAnswers} correct, ${session.incorrectAnswers} incorrect)"
+                    } else {
+                        ""
+                    }
+                    appendLine("  ${session.activityName} ${session.formattedDuration} $status$answerInfo")
                 }
                 appendLine()
             }
@@ -100,7 +186,7 @@ class ReportGenerator(private val context: Context) {
             if (report.videosWatched > 0) {
                 appendLine("📺 VIDEO DETAILS")
                 appendLine("-".repeat(30))
-                appendLine("Average Video Time: ${"%.1f".format(report.averageVideoTimeMinutes)} minutes")
+                appendLine("Average Video Time: ${report.averageVideoTimeMinutes} minutes")
                 appendLine()
 
                 appendLine("Video Sessions:")
@@ -110,16 +196,68 @@ class ReportGenerator(private val context: Context) {
                 appendLine()
             }
 
-            appendLine("✅ COMPLETED TASKS")
-            appendLine("-".repeat(30))
-            if (report.completedTaskNames.isNotEmpty()) {
-                report.completedTaskNames.forEach { (taskId, taskName) ->
-                    appendLine("  ✓ $taskName")
+            if (report.webGameSessions.isNotEmpty()) {
+                appendLine("🌐 WEB GAMES")
+                appendLine("-".repeat(30))
+                appendLine("Web games played:")
+                report.webGameSessions.forEach { session ->
+                    val status = if (session.completed) "Completed" else "In Progress"
+                    val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
+                        " (${session.correctAnswers} correct, ${session.incorrectAnswers} incorrect)"
+                    } else {
+                        ""
+                    }
+                    appendLine("  • ${session.activityName}: ${session.formattedDuration} ($status)$answerInfo")
                 }
-            } else {
-                appendLine("  No tasks completed today")
+                appendLine()
             }
-            appendLine()
+
+            if (report.chromePageSessions.isNotEmpty()) {
+                appendLine("🌍 WEB PAGES VISITED")
+                appendLine("-".repeat(30))
+                appendLine("Pages visited:")
+                report.chromePageSessions.forEach { session ->
+                    val status = if (session.completed) "Visited" else "In Progress"
+                    appendLine("  • ${session.activityName}: ${session.formattedDuration} ($status)")
+                }
+                appendLine()
+            }
+
+            // Completed Required Tasks
+            val completedRequiredTasks = taskDetails.filter { it.isRequired && it.isCompleted }
+            if (completedRequiredTasks.isNotEmpty()) {
+                appendLine("✅ COMPLETED REQUIRED TASKS")
+                appendLine("-".repeat(30))
+                completedRequiredTasks.forEach { task ->
+                    appendLine("  ${task.taskName}: ${task.timeSpentFormatted}   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}")
+                }
+                appendLine()
+            }
+            
+            // Incomplete Required Tasks
+            val incompleteRequiredTasks = taskDetails.filter { it.isRequired && !it.isCompleted }
+            if (incompleteRequiredTasks.isNotEmpty()) {
+                appendLine("⏳ INCOMPLETE REQUIRED TASKS")
+                appendLine("-".repeat(30))
+                incompleteRequiredTasks.forEach { task ->
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    appendLine("  ${task.taskName}: $timeInfo   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}")
+                }
+                appendLine()
+            }
+            
+            // Extra Practice Tasks (optional tasks, both completed and incomplete)
+            val extraPracticeTasks = taskDetails.filter { !it.isRequired }
+            if (extraPracticeTasks.isNotEmpty()) {
+                appendLine("🎯 EXTRA PRACTICE TASKS")
+                appendLine("-".repeat(30))
+                extraPracticeTasks.forEach { task ->
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val status = if (task.isCompleted) "✓" else ""
+                    appendLine("  $status ${task.taskName}: $timeInfo   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}")
+                }
+                appendLine()
+            }
 
             appendLine("🏆 ACHIEVEMENTS")
             appendLine("-".repeat(30))
@@ -130,7 +268,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("  ⏰ Over 1 hour of learning time!")
             }
             if (report.longestSessionMinutes > 30) {
-                appendLine("  🎯 Longest session: ${"%.1f".format(report.longestSessionMinutes)} minutes")
+                appendLine("  🎯 Longest session: ${report.longestSessionMinutes} minutes")
             }
             appendLine()
 
@@ -202,9 +340,19 @@ class ReportGenerator(private val context: Context) {
                         <div class="metric-label">Stars Earned</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-value">${"%.1f".format(report.totalTimeMinutes)}</div>
+                        <div class="metric-value">${report.totalTimeMinutes}</div>
                         <div class="metric-label">Minutes</div>
                     </div>
+                    ${run {
+                        val taskDetails = getTaskDetails(report)
+                        val requiredIncompleteCount = taskDetails.count { it.isRequired && !it.isCompleted }
+                        if (requiredIncompleteCount > 0) {
+                            """<div class="metric">
+                                <div class="metric-value">$requiredIncompleteCount</div>
+                                <div class="metric-label">Required Tasks Incomplete</div>
+                            </div>"""
+                        } else ""
+                    }}
                     <div style="margin-top: 20px;">
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${report.completionRate}%"></div>
@@ -220,7 +368,7 @@ class ReportGenerator(private val context: Context) {
                         <tr><td>Games Played</td><td>${report.gamesPlayed}</td></tr>
                         <tr><td>Videos Watched</td><td>${report.videosWatched}</td></tr>
                         <tr><td>Total Sessions</td><td>${report.totalSessions}</td></tr>
-                        <tr><td>Total Time</td><td>${"%.1f".format(report.totalTimeMinutes)} minutes</td></tr>
+                        <tr><td>Total Time</td><td>${report.totalTimeMinutes} minutes</td></tr>
                     </table>
                 </div>
 
@@ -261,14 +409,50 @@ class ReportGenerator(private val context: Context) {
                 </div>
                 """ else ""}
 
-                <div class="section">
-                    <h3>✅ Completed Tasks</h3>
-                    <ul class="task-list">
-                        ${if (report.completedTaskNames.isNotEmpty())
-                            report.completedTaskNames.values.joinToString("") { "<li class=\"task-item\">$it</li>" }
-                        else "<li class=\"task-item\">No tasks completed today</li>"}
-                    </ul>
-                </div>
+                ${run {
+                    val taskDetails = getTaskDetails(report)
+                    val completedRequiredTasks = taskDetails.filter { it.isRequired && it.isCompleted }
+                    val incompleteRequiredTasks = taskDetails.filter { it.isRequired && !it.isCompleted }
+                    val extraPracticeTasks = taskDetails.filter { !it.isRequired }
+                    
+                    buildString {
+                        if (completedRequiredTasks.isNotEmpty()) {
+                            append("""<div class="section">
+                                <h3>✅ Completed Required Tasks</h3>
+                                <ul class="task-list">""")
+                            completedRequiredTasks.forEach { task ->
+                                append("""<li class="task-item">${task.taskName}: ${task.timeSpentFormatted}   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}</li>""")
+                            }
+                            append("""</ul>
+                            </div>""")
+                        }
+                        
+                        if (incompleteRequiredTasks.isNotEmpty()) {
+                            append("""<div class="section">
+                                <h3>⏳ Incomplete Required Tasks</h3>
+                                <ul class="task-list">""")
+                            incompleteRequiredTasks.forEach { task ->
+                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                                append("""<li class="task-item">${task.taskName}: $timeInfo   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}</li>""")
+                            }
+                            append("""</ul>
+                            </div>""")
+                        }
+                        
+                        if (extraPracticeTasks.isNotEmpty()) {
+                            append("""<div class="section">
+                                <h3>🎯 Extra Practice Tasks</h3>
+                                <ul class="task-list">""")
+                            extraPracticeTasks.forEach { task ->
+                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                                val status = if (task.isCompleted) "✓" else ""
+                                append("""<li class="task-item">$status ${task.taskName}: $timeInfo   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}</li>""")
+                            }
+                            append("""</ul>
+                            </div>""")
+                        }
+                    }
+                }}
 
                 <div class="section">
                     <h3>🏆 Achievements & Insights</h3>
@@ -302,7 +486,7 @@ class ReportGenerator(private val context: Context) {
             appendLine("Metric,Value")
             appendLine("Completion Rate,${"%.1f".format(report.completionRate)}%")
             appendLine("Stars Earned,${report.earnedStars}/${report.totalStars}")
-            appendLine("Total Time Minutes,${"%.1f".format(report.totalTimeMinutes)}")
+            appendLine("Total Time Minutes,${report.totalTimeMinutes}")
             appendLine("Games Played,${report.gamesPlayed}")
             appendLine("Videos Watched,${report.videosWatched}")
             appendLine("Total Sessions,${report.totalSessions}")
@@ -336,10 +520,38 @@ class ReportGenerator(private val context: Context) {
                 appendLine()
             }
 
-            appendLine("Completed Tasks")
-            appendLine("Task")
-            report.completedTaskNames.forEach { (taskId, taskName) ->
-                appendLine(taskName)
+            val taskDetails = getTaskDetails(report)
+            val completedRequiredTasks = taskDetails.filter { it.isRequired && it.isCompleted }
+            val incompleteRequiredTasks = taskDetails.filter { it.isRequired && !it.isCompleted }
+            val extraPracticeTasks = taskDetails.filter { !it.isRequired }
+            
+            if (completedRequiredTasks.isNotEmpty()) {
+                appendLine("Completed Required Tasks")
+                appendLine("Task,Duration,Correct,Incorrect")
+                completedRequiredTasks.forEach { task ->
+                    appendLine("${task.taskName},${task.timeSpentFormatted},${task.correctAnswers},${task.incorrectAnswers}")
+                }
+                appendLine()
+            }
+            
+            if (incompleteRequiredTasks.isNotEmpty()) {
+                appendLine("Incomplete Required Tasks")
+                appendLine("Task,Duration,Correct,Incorrect")
+                incompleteRequiredTasks.forEach { task ->
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    appendLine("${task.taskName},$timeInfo,${task.correctAnswers},${task.incorrectAnswers}")
+                }
+                appendLine()
+            }
+            
+            if (extraPracticeTasks.isNotEmpty()) {
+                appendLine("Extra Practice Tasks")
+                appendLine("Task,Status,Duration,Correct,Incorrect")
+                extraPracticeTasks.forEach { task ->
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val status = if (task.isCompleted) "Completed" else "Incomplete"
+                    appendLine("${task.taskName},$status,$timeInfo,${task.correctAnswers},${task.incorrectAnswers}")
+                }
             }
         }
     }
@@ -351,6 +563,11 @@ class ReportGenerator(private val context: Context) {
         report: DailyProgressManager.ComprehensiveProgressReport,
         childName: String
     ): String {
+        val taskDetails = getTaskDetails(report)
+        val requiredIncompleteCount = taskDetails.count { it.isRequired && !it.isCompleted }
+        val completedTasks = taskDetails.filter { it.isCompleted }
+        val incompleteTasks = taskDetails.filter { !it.isCompleted }
+        
         return """
             📊 DAILY PROGRESS REPORT - ${report.date}
 
@@ -361,14 +578,48 @@ class ReportGenerator(private val context: Context) {
             🎯 OVERALL PROGRESS:
             • Completion Rate: ${"%.1f".format(report.completionRate)}%
             • Stars Earned: ${report.earnedStars}/${report.totalStars}
-            • Total Learning Time: ${"%.1f".format(report.totalTimeMinutes)} minutes
+            • Total Learning Time: ${report.totalTimeMinutes} minutes
             • Games Played: ${report.gamesPlayed}
             • Videos Watched: ${report.videosWatched}
+            • Questions Answered: ${report.totalCorrectAnswers} correct, ${report.totalIncorrectAnswers} incorrect
+            ${if (report.webGameSessions.isNotEmpty()) "• Web Games Played: ${report.webGameSessions.size}" else ""}
+            ${if (report.chromePageSessions.isNotEmpty()) "• Web Pages Visited: ${report.chromePageSessions.size}" else ""}
+            ${if (requiredIncompleteCount > 0) "• Required Tasks Incomplete: $requiredIncompleteCount" else ""}
 
-            ✅ COMPLETED TASKS:
-            ${if (report.completedTaskNames.isNotEmpty())
-                report.completedTaskNames.values.joinToString("\n            ") { "• $it" }
-            else "No tasks completed today"}
+            ${run {
+                val completedRequiredTasks = taskDetails.filter { it.isRequired && it.isCompleted }
+                val incompleteRequiredTasks = taskDetails.filter { it.isRequired && !it.isCompleted }
+                val extraPracticeTasks = taskDetails.filter { !it.isRequired }
+                
+                buildString {
+                    if (completedRequiredTasks.isNotEmpty()) {
+                        append("✅ COMPLETED REQUIRED TASKS:\n            ")
+                        append(completedRequiredTasks.joinToString("\n            ") { 
+                            "• ${it.taskName}: ${it.timeSpentFormatted}   #correct: ${it.correctAnswers}   #incorrect: ${it.incorrectAnswers}" 
+                        })
+                        append("\n\n            ")
+                    }
+                    
+                    if (incompleteRequiredTasks.isNotEmpty()) {
+                        append("⏳ INCOMPLETE REQUIRED TASKS:\n            ")
+                        append(incompleteRequiredTasks.joinToString("\n            ") { task ->
+                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                            "• ${task.taskName}: $timeInfo   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}"
+                        })
+                        append("\n\n            ")
+                    }
+                    
+                    if (extraPracticeTasks.isNotEmpty()) {
+                        append("🎯 EXTRA PRACTICE TASKS:\n            ")
+                        append(extraPracticeTasks.joinToString("\n            ") { task ->
+                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                            val status = if (task.isCompleted) "✓" else ""
+                            "$status ${task.taskName}: $timeInfo   #correct: ${task.correctAnswers}   #incorrect: ${task.incorrectAnswers}"
+                        })
+                        append("\n\n            ")
+                    }
+                }
+            }}
 
             🏆 ACHIEVEMENTS:
             ${when {

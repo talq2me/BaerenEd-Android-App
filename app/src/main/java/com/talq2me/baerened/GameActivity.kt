@@ -157,6 +157,9 @@ class GameActivity : AppCompatActivity() {
         findViewById<Button>(R.id.submitButton).setOnClickListener {
             val correct = gameEngine.submitAnswer(userAnswers)
 
+            // Update answer counts in time tracker
+            timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
+
             // Clear blocks and reset choice buttons immediately when answer is submitted
             findViewById<TextView>(R.id.messageArea).text = ""
             val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
@@ -177,6 +180,9 @@ class GameActivity : AppCompatActivity() {
                         // Update time tracker with stars earned
                         timeTracker.updateStarsEarned("game", earnedStars)
                     }
+
+                    // Final update of answer counts before finishing
+                    timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
 
                     // Navigate back to profile screen after delay
                     android.os.Handler().postDelayed({
@@ -424,8 +430,9 @@ class GameActivity : AppCompatActivity() {
         if (isTranslationGame) {
             grid.columnCount = 2 // Use 2 columns for translation game
         } else {
-            // Reset to auto-calculate for other games (0 means auto-calculate)
-            grid.columnCount = 0
+            // For other games, use a reasonable default column count
+            // GridLayout with columnCount = 0 can cause issues, so set a default
+            grid.columnCount = 3 // Default to 3 columns for non-translation games
         }
 
         val correctChoices = q.correctChoices ?: emptyList()

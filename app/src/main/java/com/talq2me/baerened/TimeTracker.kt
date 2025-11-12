@@ -35,7 +35,9 @@ class TimeTracker(private val context: Context) {
         val durationSeconds: Long = 0,
         val date: String,
         val completed: Boolean = false,
-        val starsEarned: Int = 0
+        val starsEarned: Int = 0,
+        val correctAnswers: Int = 0,
+        val incorrectAnswers: Int = 0
     ) {
         val durationMinutes: Double
             get() = durationSeconds / 60.0
@@ -136,7 +138,9 @@ class TimeTracker(private val context: Context) {
             durationSeconds = 0,
             date = getCurrentDateString(),
             completed = false,
-            starsEarned = 0
+            starsEarned = 0,
+            correctAnswers = 0,
+            incorrectAnswers = 0
         )
 
         sessions.add(session)
@@ -197,6 +201,31 @@ class TimeTracker(private val context: Context) {
             }
 
             Log.d("TimeTracker", "Updated stars for $activityType: $starsEarned")
+        }
+    }
+
+    /**
+     * Updates the answer counts for the most recent session of an activity
+     */
+    fun updateAnswerCounts(activityType: String, correctAnswers: Int, incorrectAnswers: Int) {
+        val sessions = getTodaySessions()
+
+        // Find the most recent session of this type (could be running or recently ended)
+        val recentSession = sessions.lastOrNull { it.activityType == activityType }
+
+        if (recentSession != null) {
+            val updatedSession = recentSession.copy(
+                correctAnswers = correctAnswers,
+                incorrectAnswers = incorrectAnswers
+            )
+
+            val index = sessions.indexOf(recentSession)
+            if (index >= 0) {
+                sessions[index] = updatedSession
+                saveTodaySessions(sessions)
+            }
+
+            Log.d("TimeTracker", "Updated answer counts for $activityType: $correctAnswers correct, $incorrectAnswers incorrect")
         }
     }
 
