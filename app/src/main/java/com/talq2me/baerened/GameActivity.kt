@@ -351,6 +351,9 @@ class GameActivity : AppCompatActivity() {
 
         if (q.prompt?.displayText == true) {
             promptTextView.text = q.prompt.text
+        } else if (q.prompt?.lang == null) {
+            // Fallback to display text if no TTS is available and displayText is not explicitly set to true
+            promptTextView.text = q.prompt?.text ?: ""
         } else {
             promptTextView.text = ""
         }
@@ -416,6 +419,15 @@ class GameActivity : AppCompatActivity() {
         val grid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
         grid.removeAllViews()
 
+        // For translation game, use fewer columns to allow wider buttons with text wrapping
+        val isTranslationGame = gameType == "translation"
+        if (isTranslationGame) {
+            grid.columnCount = 2 // Use 2 columns for translation game
+        } else {
+            // Reset to auto-calculate for other games (0 means auto-calculate)
+            grid.columnCount = 0
+        }
+
         val correctChoices = q.correctChoices ?: emptyList()
         val extraChoices = q.extraChoices ?: emptyList()
         val allChoices = (correctChoices + extraChoices).shuffled()
@@ -429,8 +441,28 @@ class GameActivity : AppCompatActivity() {
 
             // Set button layout parameters - wrap content width, auto-fit to screen
             val params = androidx.gridlayout.widget.GridLayout.LayoutParams()
-            params.width = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
-            params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
+            
+            if (isTranslationGame) {
+                // For translation game, allow text wrapping with max width
+                // Account for: root padding (24dp * 2), grid padding (12dp * 2), button margins (12dp * 2)
+                val displayMetrics = resources.displayMetrics
+                val density = displayMetrics.density
+                val rootPadding = (24 * density).toInt() * 2 // 24dp on each side
+                val gridPadding = (12 * density).toInt() * 2 // 12dp on each side
+                val buttonMargin = (12 * density).toInt() * 2 // 12dp margin on each side
+                val screenWidth = displayMetrics.widthPixels
+                // Available width per column: (screen - root padding - grid padding) / 2 - button margins
+                val maxButtonWidth = ((screenWidth - rootPadding - gridPadding) / 2) - buttonMargin
+                params.width = maxButtonWidth
+                params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
+                // Enable text wrapping
+                btn.maxLines = 0 // Unlimited lines
+                btn.isSingleLine = false
+            } else {
+                params.width = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
+                params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
+            }
+            
             params.setMargins(12, 12, 12, 12) // Equal margins around each button
             btn.layoutParams = params
 
