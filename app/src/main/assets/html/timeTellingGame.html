@@ -120,6 +120,7 @@
 
     <script>
         let correctCount = 0;
+        let incorrectCount = 0;
         const maxQuestions = 10;
         let gameMode = 'easy';
         let currentTime = { hours: 0, minutes: 0 };
@@ -226,8 +227,10 @@
             const hours = parseInt(timeInput.slice(0, 2));
             const minutes = parseInt(timeInput.slice(2, 4));
             if (hours < 1 || hours > 12 || minutes > 59) return alert('Please enter a valid time (HH:MM from 01:00 to 12:59)');
-            handleAnswer(formatTime(hours, minutes));
+            handleAnswer(formatTime(hours, minutes), null);
         }
+
+        let isFirstAttempt = true;
 
         function createQuestion() {
             if (correctCount >= maxQuestions) return endGame();
@@ -235,6 +238,7 @@
             currentTime = generateTime();
             setClockTime(currentTime.hours, currentTime.minutes);
             const correctAnswer = formatTime(currentTime.hours, currentTime.minutes);
+            isFirstAttempt = true; // Reset for new question
 
             document.getElementById('messageContainer').innerHTML = '';
             document.getElementById('choices').style.pointerEvents = 'auto';
@@ -268,12 +272,18 @@
             if (isCorrect) {
                 if(btn) btn.classList.add('correct');
                 feedback.innerHTML = "⭐ Correct!";
-                correctCount++;
-                updateStarCount();
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
                 setTimeout(createQuestion, 1200);
             } else {
                 if(btn) btn.classList.add('incorrect');
                 feedback.innerHTML = `☹️ Incorrect! It was <b>${correctAnswer}</b>`;
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false; // Mark that we've had the first attempt
+                }
                 setTimeout(createQuestion, 2200);
             }
         }
@@ -284,9 +294,9 @@
             document.getElementById('timeInput').style.display = 'none';
             document.getElementById('messageContainer').innerHTML = `Final Score: ${correctCount}/${maxQuestions} ⭐`;
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
-                window.Android.gameCompleted();
+                window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'gameCompleted' }, '*');
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
@@ -310,6 +320,7 @@
 
             // Start the game
             correctCount = 0;
+            incorrectCount = 0;
             updateStarCount();
             createQuestion();
         });

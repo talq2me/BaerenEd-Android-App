@@ -168,6 +168,8 @@
     let questions = [];
     let solvedCount = 0;
     let activeTile = null;
+    let correctCount = 0;
+    let incorrectCount = 0;
 
     function initializeGame() {
         setupSelectorModal();
@@ -192,6 +194,8 @@
         currentTimesTable = num;
         solvedCount = 0;
         activeTile = null;
+        correctCount = 0;
+        incorrectCount = 0;
         generateQuestions();
         renderGrid();
         setTimeout(revealRandomTile, 800);
@@ -254,6 +258,9 @@
     function handleCorrectAnswer(tile, question) {
         question.solved = true;
         solvedCount++;
+        if (currentQuestionFirstAttempt) {
+            correctCount++;
+        }
         tile.classList.add('correct');
         tile.querySelector('.tile-front').innerHTML = `${question.multiplicand} &times; ${question.multiplier} = ${question.answer}`;
         readText("Correct!", "en-US");
@@ -264,7 +271,13 @@
         }
     }
 
+    let currentQuestionFirstAttempt = true;
+
     function handleIncorrectAnswer(tile, question) {
+        if (currentQuestionFirstAttempt) {
+            incorrectCount++;
+            currentQuestionFirstAttempt = false; // Mark that we've had the first attempt
+        }
         question.revealed = false;
         tile.classList.add('flipped');
         readText("Oops, try another one.", "en-US");
@@ -285,6 +298,7 @@
 
         const randomQuestion = unsolvedQuestions[Math.floor(Math.random() * unsolvedQuestions.length)];
         randomQuestion.revealed = true;
+        currentQuestionFirstAttempt = true; // Reset for new question
         const tileToReveal = gridContainer.querySelector(`.tile[data-id='${randomQuestion.id}']`);
         if (tileToReveal) {
             activeTile = tileToReveal;
@@ -296,9 +310,9 @@
         gridContainer.innerHTML = `<div class="tile correct" style="grid-column: 1 / -1; font-size: 2rem; aspect-ratio: auto; height: 200px;">🎉 Well Done! 🎉</div>`;
         readText("Great job! You're a multiplying master'!", "en-US");
         if (window.Android && typeof window.Android.gameCompleted === 'function') {
-            window.Android.gameCompleted();
+            window.Android.gameCompleted(correctCount, incorrectCount);
         } else if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: 'gameCompleted' }, '*');
+            window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
         }
         setTimeout(() => {
             if (window.parent && window.parent !== window) {

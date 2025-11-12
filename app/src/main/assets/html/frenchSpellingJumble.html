@@ -86,6 +86,7 @@
         // --- Game Logic ---
         let words = [];
         let correctCount = 0;
+        let incorrectCount = 0;
         let maxQuestions = 10;
         let currentWordIndex = 0;
         let currentWord = {};
@@ -132,15 +133,19 @@
             maxQuestions = words.length;
             currentWordIndex = 0;
             correctCount = 0;
+            incorrectCount = 0;
             updateStarCount();
             loadWord();
         }
+
+        let isFirstAttempt = true;
 
         function loadWord() {
             if (currentWordIndex >= maxQuestions) return endGame(true);
             currentWord = words[currentWordIndex];
             selectedLetters = [];
             isInPracticeMode = false;
+            isFirstAttempt = true; // Reset for new word
             document.getElementById('spelledWord').textContent = '';
             document.getElementById('practiceContainer').classList.add('hidden');
             document.getElementById('messageContainer').innerHTML = '';
@@ -224,10 +229,16 @@
             const spelledWord = selectedLetters.join('');
             if (spelledWord.toLowerCase() === currentWord.word.toLowerCase()) {
                 document.getElementById('messageContainer').innerHTML = `<span style="color: #4CAF50; font-weight: bold;">✓ Correct!</span>`;
-                correctCount++;
-                updateStarCount();
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
                 setTimeout(nextWord, 1200);
             } else {
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false; // Mark that we've had the first attempt
+                }
                 startPracticeMode();
             }
         }
@@ -262,11 +273,11 @@
             if (isCorrect) {
                 practiceCorrectAttempts++;
                 if (practiceCorrectAttempts >= 3) {
-                    correctCount++;
-                    updateStarCount();
+                    // Don't increment correctCount here - it was already counted as wrong on first attempt
                     setTimeout(nextWord, 1500);
                 }
             }
+            // Don't increment incorrectCount here - practice mode attempts don't count
         }
 
         function nextWord() {
@@ -286,9 +297,9 @@
             document.querySelector('.button-container').style.display = 'none';
             document.getElementById('practiceContainer').classList.add('hidden');
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
-                window.Android.gameCompleted();
+                window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
-                window.parent.postMessage({ type: 'gameCompleted' }, '*');
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {

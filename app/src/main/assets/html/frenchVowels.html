@@ -157,9 +157,15 @@
     let currentVowelCards = [];
     let activeAudioVowel = null;
     let solvedCardIds = new Set();
+    let correctCount = 0;
+    let incorrectCount = 0;
+
+    let currentQuestionFirstAttempt = true;
 
     function initializeGame() {
         solvedCardIds.clear();
+        correctCount = 0;
+        incorrectCount = 0;
         generateVowelCards();
         renderGrid();
         setTimeout(playRandomVowelSound, 1000);
@@ -197,6 +203,7 @@
             return;
         }
         activeAudioVowel = unsolvedCards[Math.floor(Math.random() * unsolvedCards.length)];
+        currentQuestionFirstAttempt = true; // Reset for new question
         promptText.textContent = 'Listen and click the correct vowel sound!';
         await playAudio(activeAudioVowel.audio);
     }
@@ -212,6 +219,9 @@
             // Mark the clicked tile as solved
             solvedCardIds.add(cardId);
             tile.classList.add('solved');
+            if (currentQuestionFirstAttempt) {
+                correctCount++;
+            }
 
             if (solvedCardIds.size === currentVowelCards.length) {
                 endGame();
@@ -219,6 +229,10 @@
                 setTimeout(playRandomVowelSound, 1000);
             }
         } else {
+            if (currentQuestionFirstAttempt) {
+                incorrectCount++;
+                currentQuestionFirstAttempt = false; // Mark that we've had the first attempt
+            }
             tile.classList.add('correct'); // Temporarily show it was incorrect by using 'correct' style
             tile.style.backgroundColor = '#f44336'; // Red for incorrect
             setTimeout(() => {
@@ -244,9 +258,9 @@
 
         // Call the Android interface to signal video completion and grant rewards
         if (window.Android && typeof window.Android.gameCompleted === 'function') {
-            window.Android.gameCompleted();
+            window.Android.gameCompleted(correctCount, incorrectCount);
         } else if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: 'gameCompleted' }, '*');
+            window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             setTimeout(() => window.parent.postMessage({ type: 'closeModal' }, '*'), 3000);
         } else {
             setTimeout(() => history.back(), 3000);
