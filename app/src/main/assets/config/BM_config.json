@@ -6,7 +6,8 @@
       {"label": "Home", "action": "goHome"},
       {"label": "Refresh", "action": "refreshPage"},
       {"label": "My Pokedex", "action": "openPokedex"},
-      {"label": "Ask for Time", "action": "askForTime"}
+      {"label": "Ask for Time", "action": "askForTime"},
+      {"label": "Settings", "action": "settings"}
     ]
   },
   "title": "Daily Homework Dashboard BM",
