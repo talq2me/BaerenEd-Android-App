@@ -46,9 +46,13 @@ class Layout(private val activity: MainActivity) {
         android.util.Log.d("Layout", "displayContent called with content: ${content.title}")
         android.util.Log.d("Layout", "Content sections count: ${content.sections?.size ?: 0}")
 
-        // Display header buttons - always show default navigation buttons
+        // Display header buttons - use config buttons if available, otherwise use default
         headerLayout.visibility = View.VISIBLE
-        setupDefaultHeaderButtons()
+        if (content.header?.buttons != null && content.header.buttons.isNotEmpty()) {
+            setupHeaderButtons(content.header.buttons)
+        } else {
+            setupDefaultHeaderButtons()
+        }
 
         // Display title
         titleText.text = content.title ?: "BaerenEd"
@@ -94,25 +98,30 @@ class Layout(private val activity: MainActivity) {
                 setTextColor(activity.resources.getColor(android.R.color.white))
                 setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
 
-                // Set text with consistent symbols
+                // Set text with consistent symbols for standard actions
                 when (button.action) {
-                    "back" -> {
+                    "goBack", "back" -> {
                         text = "< Back"
                     }
-                    "home" -> {
+                    "goHome", "home" -> {
                         text = "⌂ Home"
                     }
-                    "refresh" -> {
+                    "refreshPage", "refresh" -> {
                         text = "⟳ Refresh"
                     }
+                    "settings" -> {
+                        text = "⚙ Settings"
+                    }
+                    "openPokedex" -> {
+                        text = "📱 My Pokedex"
+                    }
+                    "askForTime" -> {
+                        text = "⏰ Ask for Time"
+                    }
+                    // Otherwise use the label from config
                 }
             }
             headerLayout.addView(btn)
-        }
-
-        // Add "My Pokedex" button if user has unlocked Pokemon
-        if (progressManager.getUnlockedPokemonCount() > 0) {
-            addMyPokedexButton()
         }
     }
 
@@ -121,9 +130,9 @@ class Layout(private val activity: MainActivity) {
 
         // Create default navigation buttons
         val defaultButtons = listOf(
-            Button("< Back", "back"),
-            Button("⌂ Home", "home"),
-            Button("⟳ Refresh", "refresh"),
+            Button("< Back", "goBack"),
+            Button("⌂ Home", "goHome"),
+            Button("⟳ Refresh", "refreshPage"),
             Button("⚙ Settings", "settings")
         )
 
@@ -148,11 +157,6 @@ class Layout(private val activity: MainActivity) {
                 setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
             }
             headerLayout.addView(btn)
-        }
-
-        // Add "My Pokedex" button if user has unlocked Pokemon
-        if (progressManager.getUnlockedPokemonCount() > 0) {
-            addMyPokedexButton()
         }
     }
 

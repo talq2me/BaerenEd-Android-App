@@ -357,6 +357,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             "refreshPage" -> loadMainContent()
             "settings" -> openSettings()
+            "openPokedex" -> openPokemonCollection()
+            "askForTime" -> showAskForTimeDialog()
             null -> Log.w(TAG, "Header button action is null")
             else -> Log.d(TAG, "Unknown header button action: $action")
         }
@@ -402,6 +404,65 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     0 -> showChangeProfileDialog()
                     1 -> showChangePinDialog()
                     2 -> showChangeEmailDialog()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showAskForTimeDialog() {
+        // First, show PIN prompt
+        val pinInput = EditText(this).apply {
+            hint = "Enter Admin PIN"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            setPadding(50, 50, 50, 50)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Admin Access")
+            .setMessage("Please enter the PIN to grant reward minutes.")
+            .setView(pinInput)
+            .setPositiveButton("Enter") { _, _ ->
+                val enteredPin = pinInput.text.toString()
+                val correctPin = SettingsManager.readPin(this) ?: "1981" // Use default if not set
+                if (enteredPin == correctPin) {
+                    // PIN is correct, show minutes input dialog
+                    showRewardMinutesInputDialog()
+                } else {
+                    Toast.makeText(this, "Incorrect PIN", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showRewardMinutesInputDialog() {
+        val minutesInput = EditText(this).apply {
+            hint = "Reward Minutes to Grant"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            setPadding(50, 50, 50, 50)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Grant Reward Minutes")
+            .setMessage("Enter the number of minutes to add to the reward bank:")
+            .setView(minutesInput)
+            .setPositiveButton("Submit") { _, _ ->
+                val minutesText = minutesInput.text.toString()
+                val minutes = minutesText.toIntOrNull()
+                
+                if (minutes != null && minutes > 0) {
+                    // Add minutes to reward bank
+                    val progressManager = DailyProgressManager(this)
+                    val newTotal = progressManager.addRewardMinutes(minutes)
+                    
+                    // Refresh progress display
+                    layout.refreshProgressDisplay()
+                    
+                    Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "Granted $minutes reward minutes. New total: $newTotal minutes")
+                } else {
+                    Toast.makeText(this, "Please enter a valid number of minutes", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)

@@ -627,6 +627,17 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Adds minutes directly to the banked reward minutes
+     */
+    fun addRewardMinutes(minutes: Int): Int {
+        val currentMinutes = getBankedRewardMinutes()
+        val newMinutes = currentMinutes + minutes
+        setBankedRewardMinutes(newMinutes)
+        Log.d("DailyProgressManager", "Added $minutes minutes to reward bank. New total: $newMinutes minutes")
+        return newMinutes
+    }
+
+    /**
      * Uses all banked reward minutes and resets them to 0
      * Returns the minutes that were used
      */

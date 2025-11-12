@@ -298,31 +298,82 @@ class PokemonActivity : AppCompatActivity() {
         val unlockCountInput = dialogView.findViewById<EditText>(R.id.unlockCountInput)
         val adminMessage = dialogView.findViewById<TextView>(R.id.adminMessage)
 
+        // Clear any previous error message
+        adminMessage.text = ""
+        adminMessage.visibility = android.view.View.GONE
+
         val dialog = AlertDialog.Builder(this)
             .setTitle("Admin Restore")
             .setView(dialogView)
-            .setPositiveButton("Restore") { _, _ ->
-                val pin = pinInput.text.toString()
-                val countString = unlockCountInput.text.toString()
-
-                if (progressManager.validateAdminPin(pin)) {
-                    val count = countString.toIntOrNull()
-                    if (count != null && count > 0) {
-                        progressManager.unlockPokemon(count)
-                        updateRecentlyUnlocked()
-                        loadPokemonData()
-                        Toast.makeText(this, "Unlocked $count Pokemon!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        adminMessage.text = "Enter a valid number!"
-                    }
-                } else {
-                    adminMessage.text = "Incorrect PIN!"
-                }
-            }
+            .setPositiveButton("Restore", null) // Set to null initially to prevent auto-close
             .setNegativeButton("Cancel") { _, _ ->
                 // Do nothing
             }
             .create()
+
+        // Set up click listener after dialog is created to prevent auto-close
+        dialog.setOnShowListener {
+            val restoreButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            restoreButton.setOnClickListener {
+                val pin = pinInput.text.toString().trim()
+                val countString = unlockCountInput.text.toString().trim()
+
+                // Clear any previous error message
+                adminMessage.text = ""
+                adminMessage.visibility = android.view.View.GONE
+
+                // Use SettingsManager.readPin() to match the rest of the app
+                val correctPin = SettingsManager.readPin(this) ?: "1981" // Use default if not set
+                Log.d(TAG, "Validating PIN. Entered: '$pin', Expected: '$correctPin'")
+                
+                if (pin.isEmpty()) {
+                    adminMessage.text = "Please enter a PIN!"
+                    adminMessage.visibility = android.view.View.VISIBLE
+                    return@setOnClickListener
+                }
+                
+                if (pin != correctPin) {
+                    adminMessage.text = "Incorrect PIN! Please try again."
+                    adminMessage.visibility = android.view.View.VISIBLE
+                    pinInput.text.clear()
+                    pinInput.requestFocus()
+                    return@setOnClickListener
+                }
+                
+                // PIN is correct, now validate count
+                if (countString.isEmpty()) {
+                    adminMessage.text = "Please enter the number of Pokemon to unlock!"
+                    adminMessage.visibility = android.view.View.VISIBLE
+                    unlockCountInput.requestFocus()
+                    return@setOnClickListener
+                }
+                
+                val count = countString.toIntOrNull()
+                if (count == null || count <= 0) {
+                    adminMessage.text = "Please enter a valid number greater than 0!"
+                    adminMessage.visibility = android.view.View.VISIBLE
+                    unlockCountInput.requestFocus()
+                    return@setOnClickListener
+                }
+                
+                // Both PIN and count are valid
+                val previousCount = progressManager.getUnlockedPokemonCount()
+                progressManager.unlockPokemon(count)
+                val newCount = progressManager.getUnlockedPokemonCount()
+                
+                Log.d(TAG, "Unlocked $count Pokemon via admin modal. Previous: $previousCount, New total: $newCount")
+                
+                // Refresh the UI
+                updateRecentlyUnlocked()
+                loadPokemonData()
+                
+                // Show success message
+                Toast.makeText(this, "Unlocked $count Pokemon! Total: $newCount", Toast.LENGTH_LONG).show()
+                
+                // Close the dialog
+                dialog.dismiss()
+            }
+        }
 
         dialog.show()
     }
