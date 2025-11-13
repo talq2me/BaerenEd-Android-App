@@ -274,11 +274,13 @@ class DailyProgressManager(private val context: Context) {
         // Generate unique task ID that includes section information
         val uniqueTaskId = getUniqueTaskId(taskId, sectionId)
 
-        // Determine if this is actually a required task (if config provided, verify)
-        val actualIsRequired = if (config != null) {
-            isTaskFromRequiredSection(taskId, config)
-        } else {
-            isRequiredTask
+        // Determine if this is actually a required task based on the section ID first
+        // If sectionId is explicitly provided, use that (sectionId == "required" means it's required)
+        // Otherwise, fall back to checking config or the flag
+        val actualIsRequired = when {
+            sectionId != null -> sectionId == "required"  // Explicit section ID takes precedence
+            config != null -> isTaskFromRequiredSection(taskId, config)  // Check config if no sectionId
+            else -> isRequiredTask  // Fall back to flag
         }
 
         Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, uniqueTaskId=$uniqueTaskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, actualIsRequired=$actualIsRequired, sectionId=$sectionId")
@@ -297,14 +299,15 @@ class DailyProgressManager(private val context: Context) {
             Log.d("DailyProgressManager", "Required task $taskId already completed today")
             return 0
         } else {
-            // Optional tasks: award each time completed, banks reward time but doesn't affect progress
+            // Optional tasks: ALWAYS award stars each time completed, banks reward time but doesn't affect progress
             // Use uniqueTaskId so optional tasks are tracked separately from required tasks
-            // Optional tasks can always be completed again (they always award stars for reward time)
+            // Optional tasks can be completed multiple times and always award stars for reward time
+            // We still track completion for UI purposes, but it doesn't prevent future completions
             completedTasks[uniqueTaskId] = true
             saveCompletedTasks(completedTasks)
             saveCompletedTaskName(uniqueTaskId, taskName)
-            Log.d("DailyProgressManager", "Optional task $uniqueTaskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress)")
-            return stars
+            Log.d("DailyProgressManager", "Optional task $uniqueTaskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time")
+            return stars  // Always return stars for optional tasks, regardless of previous completions
         }
     }
 
