@@ -62,7 +62,8 @@
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
           "stars": 3,
-          "webGame": true
+          "webGame": true,
+          "displayDays": "thu"
         },
         {
           "title": "Eng Spelling",
