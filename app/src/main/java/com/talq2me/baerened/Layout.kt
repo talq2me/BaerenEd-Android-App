@@ -384,13 +384,14 @@ class Layout(private val activity: MainActivity) {
             // Determine if task is required based on section ID
             val isRequiredTask = sectionId == "required"
             
-            // Pass config to markTaskCompletedWithName so it can verify if task is actually required
+            // Pass config and sectionId to markTaskCompletedWithName so it can track tasks separately per section
             val earnedStars = progressManager.markTaskCompletedWithName(
                 taskId, 
                 displayTitle, 
                 stars, 
                 isRequiredTask,
-                currentContent  // Pass config to verify section
+                currentContent,  // Pass config to verify section
+                sectionId  // Pass section ID to create unique task IDs
             )
 
             if (earnedStars > 0) {
@@ -426,13 +427,14 @@ class Layout(private val activity: MainActivity) {
         // Determine if task is required based on section ID
         val isRequiredTask = sectionId == "required"
         
-        // Pass config to markTaskCompletedWithName so it can verify if task is actually required
+        // Pass config and sectionId to markTaskCompletedWithName so it can track tasks separately per section
         val earnedStars = progressManager.markTaskCompletedWithName(
             taskId, 
             taskTitle, 
             stars, 
             isRequiredTask,
-            currentContent  // Pass config to verify section
+            currentContent,  // Pass config to verify section
+            sectionId  // Pass section ID to create unique task IDs
         )
 
         if (earnedStars > 0) {
@@ -916,9 +918,22 @@ class Layout(private val activity: MainActivity) {
         val tileHeight = (70 * density).toInt()
 
         // Check if this task is completed today (using pre-loaded map to avoid SharedPreferences read)
-        val taskIdForCheck = task.launch ?: "unknown_task"
-        val isCompleted = completedTasksMap[taskIdForCheck] == true
-        android.util.Log.d("Layout", "Task UI check: taskId=$taskIdForCheck, taskTitle=${task.title}, isCompleted=$isCompleted")
+        // Use unique task ID that includes section for optional/bonus tasks
+        val taskLaunchId = task.launch ?: "unknown_task"
+        val taskIdForCheck = if (sectionId != "required") {
+            // For optional/bonus sections, use section-prefixed ID to track separately
+            "${sectionId}_$taskLaunchId"
+        } else {
+            // For required tasks, use just the launch ID
+            taskLaunchId
+        }
+        // For optional/bonus tasks, don't grey them out - they can be played multiple times
+        val isCompleted = if (sectionId != "required") {
+            false  // Optional/bonus tasks are never "completed" in UI sense - always available
+        } else {
+            completedTasksMap[taskIdForCheck] == true
+        }
+        android.util.Log.d("Layout", "Task UI check: taskId=$taskIdForCheck, taskLaunchId=$taskLaunchId, sectionId=$sectionId, taskTitle=${task.title}, isCompleted=$isCompleted")
 
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
@@ -1039,7 +1054,7 @@ class Layout(private val activity: MainActivity) {
                                         totalQuestions = task.totalQuestions,
                                         blockOutlines = task.blockOutlines ?: false
                                     )
-                                    activity.startGame(game, gameContent)
+                                    activity.startGame(game, gameContent, sectionId)
                                 }
                             } catch (e: Exception) {
                                 android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
@@ -1058,7 +1073,7 @@ class Layout(private val activity: MainActivity) {
                                         totalQuestions = task.totalQuestions,
                                         blockOutlines = task.blockOutlines ?: false
                                     )
-                                    activity.startGame(game, null)
+                                    activity.startGame(game, null, sectionId)
                                 }
                             }
                         }

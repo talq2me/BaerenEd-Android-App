@@ -136,59 +136,52 @@
           "title": "Sight Words",
           "launch": "sightWords",
           "stars": 3,
-          "totalQuestions": 5
+          "totalQuestions": 1
         },
         {
           "title": "Math",
           "launch": "jkmath",
           "stars": 3,
-          "totalQuestions": 5
+          "totalQuestions": 1
         },
         {
           "title": "Sk Spellings",
           "launch": "skSpelling",
           "stars": 3,
-          "totalQuestions": 5
-        },
-        {
-          "title": "Times Tables",
-          "launch": "timesTables",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
-          "stars": 3,
-          "webGame": true
+          "totalQuestions": 1
         },
         {
           "title": "French Vowels",
           "launch": "frenchVowels",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
-          "stars": 3,
+          "stars": 9,
           "webGame": true
         },
         {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
-          "stars": 3,
+          "stars": 8,
           "webGame": true
         },
         {
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
           "stars": 3,
-          "totalQuestions": 5
+          "totalQuestions": 1
         },
         {
           "title": "Sentence Builder",
           "launch": "englishSentences",
           "stars": 3,
-          "totalQuestions": 3,
+          "totalQuestions": 1,
           "blockOutlines": true
         },
         {
           "title": "UFLI Words",
           "launch": "ufliLessonData",
           "stars": 3,
-          "totalQuestions": 5,
+          "totalQuestions": 1,
           "blockOutlines": true
         }
       ]

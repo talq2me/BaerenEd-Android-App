@@ -41,6 +41,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var gameTitle: String
     private var gameStars: Int = 1
     private var isRequiredGame: Boolean = false
+    private var sectionId: String? = null
     private var blockOutlines: Boolean = false
     private val selectedChoices = mutableSetOf<String>()
 
@@ -55,7 +56,8 @@ class GameActivity : AppCompatActivity() {
         gameTitle = intent.getStringExtra("GAME_TITLE") ?: "Game"
         val totalQuestions = intent.getIntExtra("TOTAL_QUESTIONS", 5) // Default to 5 if not provided
         gameStars = intent.getIntExtra("GAME_STARS", 1) // Default to 1 star if not provided
-        val isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
+        isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
+        sectionId = intent.getStringExtra("SECTION_ID")
         blockOutlines = intent.getBooleanExtra("BLOCK_OUTLINES", false)
 
         if (gameContent == null) {
@@ -171,7 +173,7 @@ class GameActivity : AppCompatActivity() {
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
                     // Game completed successfully - award stars to reward bank
-                    val earnedStars = progressManager.markTaskCompletedWithName(gameType, gameTitle, gameStars, isRequiredGame)
+                    val earnedStars = progressManager.markTaskCompletedWithName(gameType, gameTitle, gameStars, isRequiredGame, null, sectionId)
                     if (earnedStars > 0) {
                         // Add stars to reward bank and convert to minutes
                         val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)

@@ -217,7 +217,7 @@ class DailyProgressManager(private val context: Context) {
         return true // Visible by default if no restrictions
     }
 
-    private fun filterVisibleContent(originalContent: MainContent): MainContent {
+    fun filterVisibleContent(originalContent: MainContent): MainContent {
         val filteredSections = originalContent.sections?.map { section ->
             val filteredTasks = section.tasks?.filter { task ->
                 isTaskVisible(task.showdays, task.hidedays, task.displayDays)
@@ -250,12 +250,29 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
+     * Generates a unique task ID that includes section information
+     * This allows the same task (same launch ID) to be tracked separately in different sections
+     */
+    fun getUniqueTaskId(taskId: String, sectionId: String?): String {
+        return if (sectionId != null && sectionId != "required") {
+            // For optional/bonus sections, include section ID to make it unique
+            // Required tasks use just the taskId for backward compatibility and progress tracking
+            "${sectionId}_$taskId"
+        } else {
+            taskId
+        }
+    }
+
+    /**
      * Marks a task as completed with a display name and returns the stars earned
      * For required tasks: counts toward progress and coins, only award once per day
      * For optional tasks: only banks reward time, doesn't affect progress, can be completed multiple times
      */
-    fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false, config: MainContent? = null): Int {
+    fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false, config: MainContent? = null, sectionId: String? = null): Int {
         val completedTasks = getCompletedTasks()
+
+        // Generate unique task ID that includes section information
+        val uniqueTaskId = getUniqueTaskId(taskId, sectionId)
 
         // Determine if this is actually a required task (if config provided, verify)
         val actualIsRequired = if (config != null) {
@@ -264,11 +281,12 @@ class DailyProgressManager(private val context: Context) {
             isRequiredTask
         }
 
-        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, actualIsRequired=$actualIsRequired")
+        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, uniqueTaskId=$uniqueTaskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, actualIsRequired=$actualIsRequired, sectionId=$sectionId")
         Log.d("DailyProgressManager", "Current completed tasks: ${completedTasks.keys}")
 
         if (actualIsRequired) {
             // Required tasks: only award once per day, counts toward progress
+            // Use original taskId for required tasks (not uniqueTaskId) so progress tracking works correctly
             if (completedTasks[taskId] != true) {
                 completedTasks[taskId] = true
                 saveCompletedTasks(completedTasks)
@@ -280,18 +298,13 @@ class DailyProgressManager(private val context: Context) {
             return 0
         } else {
             // Optional tasks: award each time completed, banks reward time but doesn't affect progress
-            // We still track completion status for UI display
-            if (completedTasks[taskId] != true) {
-                completedTasks[taskId] = true
-                saveCompletedTasks(completedTasks)
-                saveCompletedTaskName(taskId, taskName)
-                Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress)")
-                return stars
-            } else {
-                // For optional tasks that are already completed today, still award stars (banks more reward time)
-                Log.d("DailyProgressManager", "Optional task $taskId already completed today, but awarding $stars stars again (banks more reward time)")
-                return stars
-            }
+            // Use uniqueTaskId so optional tasks are tracked separately from required tasks
+            // Optional tasks can always be completed again (they always award stars for reward time)
+            completedTasks[uniqueTaskId] = true
+            saveCompletedTasks(completedTasks)
+            saveCompletedTaskName(uniqueTaskId, taskName)
+            Log.d("DailyProgressManager", "Optional task $uniqueTaskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress)")
+            return stars
         }
     }
 

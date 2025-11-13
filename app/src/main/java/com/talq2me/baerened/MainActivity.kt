@@ -552,7 +552,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val TAG = "MainActivity"
     }
 
-    fun startGame(game: Game, gameContent: String? = null) {
+    fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
         Log.d(TAG, "Starting game: ${game.title}")
 
         when (game.type) {
@@ -566,7 +566,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
 
                 if (gameContent != null) {
-                    launchGameActivity(game, gameContent)
+                    launchGameActivity(game, gameContent, sectionId)
                 } else {
                     Toast.makeText(this, "${game.type} content not available", Toast.LENGTH_SHORT).show()
                 }
@@ -616,7 +616,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .show()
     }
 
-    private fun launchGameActivity(game: Game, gameContent: String) {
+    private fun launchGameActivity(game: Game, gameContent: String, sectionId: String? = null) {
         try {
             val gson = Gson()
             val questions = gson.fromJson(gameContent, Array<GameData>::class.java)
@@ -635,6 +635,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 putExtra("GAME_STARS", game.estimatedTime)
                 putExtra("IS_REQUIRED_GAME", isRequired)
                 putExtra("BLOCK_OUTLINES", game.blockOutlines)
+                sectionId?.let { putExtra("SECTION_ID", it) }
             }
             startActivity(intent)
         } catch (e: Exception) {
