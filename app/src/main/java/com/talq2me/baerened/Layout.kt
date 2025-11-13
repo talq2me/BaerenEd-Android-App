@@ -872,7 +872,7 @@ class Layout(private val activity: MainActivity) {
                         // Only add task view if it's visible today
                         if (isTaskVisible(task.showdays, task.hidedays, task.displayDays)) {
                             android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
-                            val taskView = createTaskView(task, section.id, completedTasksMap)
+                            val taskView = createTaskView(task, section.id ?: "unknown", completedTasksMap)
                             rowContainer.addView(taskView)
                         }
                     }

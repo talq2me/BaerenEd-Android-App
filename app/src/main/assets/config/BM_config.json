@@ -143,6 +143,16 @@
       ]
     },
     {
+      "id": "checklist",
+      "title": "Checklist",
+      "description": "Mark each one when done",
+      "items": [
+        { "label": "Practice Kung Fu", "stars": 1, "done": false, "id": "bm_practice_kung_fu" },
+        { "label": "Push Ups", "stars": 1, "done": false, "id": "bm_push_ups" },
+        { "label": "Practice piano", "stars": 1, "done": false, "id": "bm_practice_piano" }
+      ]
+    },
+    {
       "id": "optional",
       "title": "Extra Practice",
       "description": "Optional tasks for more stars and reward time",
@@ -302,17 +312,6 @@
           "launch": "PLPRHyuvWJ00aY9ADp6BllXvnTFxBT7YI8",
           "videoSequence": "playlist"
         }
-
-      ]
-    },
-    {
-      "id": "checklist",
-      "title": "Checklist",
-      "description": "Mark each one when done",
-      "items": [
-        { "label": "Practice Kung Fu", "stars": 1, "done": false, "id": "bm_practice_kung_fu" },
-        { "label": "Push Ups", "stars": 1, "done": false, "id": "bm_push_ups" },
-        { "label": "Practice piano", "stars": 1, "done": false, "id": "bm_practice_piano" }
       ]
     }
   ]
