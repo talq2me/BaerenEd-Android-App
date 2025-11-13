@@ -111,9 +111,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun handleWebGameCompletion(result: ActivityResult) {
         android.util.Log.d("MainActivity", "WebGame result received: resultCode=${result.resultCode}")
         if (result.resultCode == RESULT_OK && result.data != null) {
-            val rewardId = result.data?.getStringExtra(WebGameActivity.EXTRA_REWARD_ID)
+            val taskId = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_ID)
+            val sectionId = result.data?.getStringExtra(WebGameActivity.EXTRA_SECTION_ID)
+            val stars = result.data?.getIntExtra(WebGameActivity.EXTRA_STARS, 0) ?: 0
+            val taskTitle = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
             lifecycleScope.launch(Dispatchers.Main) {
-                layout.handleWebGameCompletion(rewardId)
+                layout.handleWebGameCompletion(taskId, sectionId, stars, taskTitle)
             }
         }
     }
@@ -121,15 +124,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun handleChromePageCompletion(result: ActivityResult) {
         android.util.Log.d("MainActivity", "ChromePage result received: resultCode=${result.resultCode}")
         if (result.resultCode == RESULT_OK && result.data != null) {
-            val rewardId = result.data?.getStringExtra(ChromePageActivity.EXTRA_REWARD_ID)
             val taskId = result.data?.getStringExtra(ChromePageActivity.EXTRA_TASK_ID)  // Use task ID for completion tracking
+            val sectionId = result.data?.getStringExtra(ChromePageActivity.EXTRA_SECTION_ID)
             val taskTitle = result.data?.getStringExtra(ChromePageActivity.EXTRA_TASK_TITLE)
             val stars = result.data?.getIntExtra(ChromePageActivity.EXTRA_STARS, 0) ?: 0
 
-            // Use taskId (launch field) for completion tracking, fallback to rewardId if not available
-            val completionTaskId = taskId ?: rewardId
-            if (completionTaskId != null && taskTitle != null) {
-                layout.handleChromePageCompletion(completionTaskId, taskTitle, stars)
+            if (taskId != null && taskTitle != null) {
+                layout.handleChromePageCompletion(taskId, taskTitle, stars, sectionId)
             }
         }
     }

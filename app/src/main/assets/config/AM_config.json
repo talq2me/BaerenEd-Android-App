@@ -53,24 +53,21 @@
           "launch": "timesTables",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
           "stars": 3,
-          "webGame": true,
-          "rewardId": "timesTables"
+          "webGame": true
         },
         {
           "title": "French Vowels",
           "launch": "frenchVowels",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
           "stars": 3,
-          "webGame": true,
-          "rewardId": "frenchVowels"
+          "webGame": true
         },
         {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
           "stars": 3,
-          "webGame": true,
-          "rewardId": "timeTelling"
+          "webGame": true
         },
         {
           "title": "Money Game",
@@ -125,16 +122,63 @@
       "description": "Optional tasks for more stars",
       "tasks": [
         {
-          "title": "Math Challenge",
-          "launch": "math",
-          "stars": 1,
-          "totalQuestions": 10
+          "title": "Sight Words",
+          "launch": "sightWords",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Math",
+          "launch": "jkmath",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Sk Spellings",
+          "launch": "skSpelling",
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Times Tables",
+          "launch": "timesTables",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "French Vowels",
+          "launch": "frenchVowels",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Time Telling",
+          "launch": "timeTelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Money Game",
+          "launch": "canadianMoneyEasy",
+          "stars": 3,
+          "totalQuestions": 5
         },
         {
           "title": "Sentence Builder",
-          "launch": "sentences",
-          "stars": 1,
-          "totalQuestions": 5
+          "launch": "englishSentences",
+          "stars": 3,
+          "totalQuestions": 3,
+          "blockOutlines": true
+        },
+        {
+          "title": "UFLI Words",
+          "launch": "ufliLessonData",
+          "stars": 3,
+          "totalQuestions": 5,
+          "blockOutlines": true
         }
       ]
     },
@@ -144,8 +188,73 @@
       "description": "Just for fun!",
       "tasks": [
         {
+          "title": "Mia Prep Gr 2 Reading",
+          "launch": "PLvJNSf-7NfrO21IXNGcDvHnSLUCq2nW9g",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Mia Prep Gr 2 Math",
+          "launch": "PLvJNSf-7NfrMwOT3dPTb2zXmcRAYzl9rX",
+          "videoSequence": "playlist"
+        },
+        {
           "title": "Bluey",
           "launch": "PL8QD6oFoDT8ZgR8vqV0LzSqWMD4HuZmnV",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "PJ Mask",
+          "launch": "PL32Hee-K_Qi9lT_5veXubI_FFJBDcvIP3",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Caillou",
+          "launch": "PLW1D29VIaBLihdWAChnj6pHDsnqp-w_-J",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Peppa Pig",
+          "launch": "PLwQp67ldSPkTHZ64YTCCbsHjhfbUnimpU",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Pokemon",
+          "launch": "PLVXmcWvDTic8tklSxa-yjywytmHrRVwxj",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Smurfs",
+          "launch": "PLEMKcYFLxBRCGy1HOTeh2z-4kHINkecy_",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Simon",
+          "launch": "PL5Y2erQEGaocoKEoCkI5uvrS1bmuId2tx",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Number Blocks",
+          "launch": "PLf7phGIMEHXqyT3mujiBxrZxA84_Zdk7L",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S1-2",
+          "launch": "PLPRHyuvWJ00a0gANRvcKGKL3i7GkqTfC8",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S3",
+          "launch": "PLPRHyuvWJ00aJ_8mB8conTRfmhooujIRt",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S4",
+          "launch": "PLPRHyuvWJ00YlKSWfJnX3pd21VvTJdU6h",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S5",
+          "launch": "PLPRHyuvWJ00aY9ADp6BllXvnTFxBT7YI8",
           "videoSequence": "playlist"
         }
       ]
@@ -155,8 +264,9 @@
       "title": "Checklist",
       "description": "Mark each one when done",
       "items": [
-        { "label": "Read for 15 minutes", "stars": 1, "done": false, "id": "am_read_15_min" },
-        { "label": "Clean up toys", "stars": 1, "done": false, "id": "am_clean_toys" },
+        { "label": "Printing", "stars": 1, "done": false, "id": "am_printing" },
+        { "label": "Push ups", "stars": 1, "done": false, "id": "am_push_ups" },
+        { "label": "Practice Kung Fu", "stars": 1, "done": false, "id": "am_practice_kung_fu" },
         { "label": "Practice piano", "stars": 1, "done": false, "id": "am_practice_piano" }
       ]
     }

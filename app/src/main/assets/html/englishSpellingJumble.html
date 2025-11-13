@@ -130,6 +130,9 @@
         let currentWord = {};
         let selectedLetters = [];
         let gameMode = 'hard';
+        let isInPracticeMode = false;
+        let practiceCorrectAttempts = 0;
+        let practiceSelectedLetters = [];
 
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -180,10 +183,14 @@
             if (currentWordIndex >= maxQuestions) return endGame();
             currentWord = words[currentWordIndex];
             selectedLetters = [];
+            isInPracticeMode = false;
             isFirstAttempt = true; // Reset for new word
             document.getElementById('spelledWord').textContent = '';
             document.getElementById('practiceContainer').classList.add('hidden');
             document.getElementById('messageContainer').innerHTML = '';
+            document.querySelector('.button-container').style.display = 'flex';
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+            document.getElementById('submitBtn').style.display = 'inline-block';
             
             const letterBank = document.getElementById('letterBank');
             const keyboardContainer = document.getElementById('keyboardContainer');
@@ -225,20 +232,23 @@
 
         function handleLetterClick(element, letter) {
             if (element.classList.contains('used')) return;
-            selectedLetters.push(letter);
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            targetArray.push(letter);
             element.classList.add('used');
             updateSpelledWord();
         }
 
         function addLetter(letter) {
-            selectedLetters.push(letter);
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            targetArray.push(letter);
             updateSpelledWord();
         }
 
         function handleDelete() {
-            if (selectedLetters.length === 0) return;
-            const lastLetter = selectedLetters.pop();
-            if (gameMode !== 'extreme') {
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            if (targetArray.length === 0) return;
+            const lastLetter = targetArray.pop();
+            if (gameMode !== 'extreme' && !isInPracticeMode) {
                 const letterButtons = document.querySelectorAll('#letterBank .letter.used');
                 for (let i = letterButtons.length - 1; i >= 0; i--) {
                     if (letterButtons[i].textContent.toLowerCase() === lastLetter) {
@@ -251,12 +261,14 @@
         }
 
         function updateSpelledWord() {
-            document.getElementById('spelledWord').textContent = selectedLetters.join('').toUpperCase();
+            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
+            document.getElementById('spelledWord').textContent = targetArray.join('').toUpperCase();
         }
 
         function handleSubmit() {
+            if (isInPracticeMode) return handlePracticeSubmit();
             const spelledWord = selectedLetters.join('');
-            if (spelledWord === currentWord.word) {
+            if (spelledWord.toLowerCase() === currentWord.word.toLowerCase()) {
                 document.getElementById('messageContainer').innerHTML = `<span style="color: #4CAF50; font-weight: bold;">✓ Correct!</span>`;
                 if (isFirstAttempt) {
                     correctCount++;
@@ -268,16 +280,46 @@
                     incorrectCount++;
                     isFirstAttempt = false; // Mark that we've had the first attempt
                 }
-                document.getElementById('messageContainer').innerHTML = `<span style="color: #f44336; font-weight: bold;">✗ Try again!</span>`;
-                setTimeout(() => {
-                    selectedLetters = [];
-                    updateSpelledWord();
-                    if (gameMode !== 'extreme') {
-                        document.querySelectorAll('#letterBank .letter.used').forEach(el => el.classList.remove('used'));
-                    }
-                    document.getElementById('messageContainer').innerHTML = '';
-                }, 1500);
+                startPracticeMode();
             }
+        }
+
+        function startPracticeMode() {
+            isInPracticeMode = true;
+            practiceCorrectAttempts = 0;
+            practiceSelectedLetters = [];
+            document.getElementById('letterBank').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'inline-block';
+            const practiceContainer = document.getElementById('practiceContainer');
+            practiceContainer.classList.remove('hidden');
+            document.getElementById('correctWordDisplay').innerHTML = `<h4>Correct spelling: <strong>${currentWord.word.toUpperCase()}</strong></h4>`;
+            document.getElementById('keyboardContainer').classList.remove('hidden');
+            document.getElementById('practiceAttempts').innerHTML = '';
+            updateSpelledWord();
+            readText(`Please spell the word ${currentWord.word} correctly 3 times.`, 'en-US', 0.8);
+        }
+
+        function handlePracticeSubmit() {
+            const practiceInput = practiceSelectedLetters.join('');
+            const isCorrect = practiceInput.toLowerCase() === currentWord.word.toLowerCase();
+            const attemptsContainer = document.getElementById('practiceAttempts');
+            const attemptDiv = document.createElement('div');
+            attemptDiv.className = `practice-attempt ${isCorrect ? 'correct' : 'incorrect'}`;
+            attemptDiv.innerHTML = `Attempt: <strong>${practiceInput.toUpperCase()}</strong> - ${isCorrect ? '✓ Correct' : '✗ Incorrect'}`;
+            attemptsContainer.appendChild(attemptDiv);
+
+            practiceSelectedLetters = [];
+            updateSpelledWord();
+
+            if (isCorrect) {
+                practiceCorrectAttempts++;
+                if (practiceCorrectAttempts >= 3) {
+                    // Don't increment correctCount here - it was already counted as wrong on first attempt
+                    setTimeout(nextWord, 1500);
+                }
+            }
+            // Don't increment incorrectCount here - practice mode attempts don't count
         }
 
         function nextWord() {
@@ -294,6 +336,7 @@
             document.getElementById('letterBank').innerHTML = '';
             document.getElementById('keyboardContainer').classList.add('hidden');
             document.querySelector('.button-container').style.display = 'none';
+            document.getElementById('practiceContainer').classList.add('hidden');
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
@@ -329,7 +372,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const jsonUrl = getGameConfig();
             loadWords(jsonUrl);
-            if (gameMode === 'extreme') createKeyboard();
+            createKeyboard();
         });
     </script>
 </body>

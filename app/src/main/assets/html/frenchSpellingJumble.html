@@ -150,6 +150,8 @@
             document.getElementById('practiceContainer').classList.add('hidden');
             document.getElementById('messageContainer').innerHTML = '';
             document.querySelector('.button-container').style.display = 'flex';
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+            document.getElementById('submitBtn').style.display = 'inline-block';
 
             const letterBank = document.getElementById('letterBank');
             const keyboardContainer = document.getElementById('keyboardContainer');
@@ -248,7 +250,8 @@
             practiceCorrectAttempts = 0;
             practiceSelectedLetters = [];
             document.getElementById('letterBank').style.display = 'none';
-            document.querySelector('.button-container').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'inline-block';
             const practiceContainer = document.getElementById('practiceContainer');
             practiceContainer.classList.remove('hidden');
             document.getElementById('correctWordDisplay').innerHTML = `<h4>Correct spelling: <strong>${currentWord.word.toUpperCase()}</strong></h4>`;

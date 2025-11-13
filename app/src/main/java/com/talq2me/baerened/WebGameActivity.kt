@@ -18,14 +18,20 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
         const val EXTRA_GAME_URL = "game_url"
-        const val EXTRA_REWARD_ID = "reward_id"
+        const val EXTRA_TASK_ID = "task_id"
+        const val EXTRA_SECTION_ID = "section_id"
+        const val EXTRA_STARS = "stars"
+        const val EXTRA_TASK_TITLE = "task_title"
     }
 
     private lateinit var webView: WebView
     private lateinit var tts: TextToSpeech
     private lateinit var timeTracker: TimeTracker
     private var gameCompleted = false
-    private var rewardId: String? = null
+    private var taskId: String? = null
+    private var sectionId: String? = null
+    private var stars: Int = 0
+    private var taskTitle: String? = null
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,14 +41,17 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         webView = findViewById(R.id.game_webview)
 
         val gameUrl = intent.getStringExtra(EXTRA_GAME_URL)
-        rewardId = intent.getStringExtra(EXTRA_REWARD_ID)
+        taskId = intent.getStringExtra(EXTRA_TASK_ID)
+        sectionId = intent.getStringExtra(EXTRA_SECTION_ID)
+        stars = intent.getIntExtra(EXTRA_STARS, 0)
+        taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE)
 
         // Initialize time tracker
         timeTracker = TimeTracker(this)
         
         // Start tracking time for this web game
-        val gameName = rewardId ?: "Web Game"
-        timeTracker.startActivity(rewardId ?: "webgame", "webgame", gameName)
+        val gameName = taskTitle ?: taskId ?: "Web Game"
+        timeTracker.startActivity(taskId ?: "webgame", "webgame", gameName)
 
         val ws: WebSettings = webView.settings
         ws.javaScriptEnabled = true
@@ -82,7 +91,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         if (!gameUrl.isNullOrEmpty()) {
             android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
-            webView.addJavascriptInterface(WebGameInterface(rewardId), "Android")
+            webView.addJavascriptInterface(WebGameInterface(taskId), "Android")
             webView.loadUrl(gameUrl)
         } else {
             Toast.makeText(this, "No game URL provided", Toast.LENGTH_LONG).show()
@@ -90,8 +99,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun finishGameWithResult(rewardId: String?) {
-        android.util.Log.d("WebGameActivity", "Finishing game activity with success result for reward: $rewardId")
+    private fun finishGameWithResult(taskId: String?) {
+        android.util.Log.d("WebGameActivity", "Finishing game activity with success result for taskId: $taskId")
         
         // Mark game as completed and end time tracking
         gameCompleted = true
@@ -99,7 +108,10 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Note: The session is automatically marked as completed when endActivity is called
 
         val resultIntent = Intent().apply {
-            putExtra(EXTRA_REWARD_ID, rewardId ?: "")
+            putExtra(EXTRA_TASK_ID, taskId ?: "")
+            sectionId?.let { putExtra(EXTRA_SECTION_ID, it) }
+            putExtra(EXTRA_STARS, stars)
+            taskTitle?.let { putExtra(EXTRA_TASK_TITLE, it) }
         }
         setResult(RESULT_OK, resultIntent)
         finish()
@@ -113,13 +125,13 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onBackPressed()
     }
 
-    inner class WebGameInterface(private val rewardId: String?) {
+    inner class WebGameInterface(private val taskId: String?) {
         @JavascriptInterface
         fun gameCompleted(correctAnswers: Int = 0, incorrectAnswers: Int = 0) {
             android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted() with correct: $correctAnswers, incorrect: $incorrectAnswers")
             // Update answer counts before finishing
             timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
-            finishGameWithResult(rewardId)
+            finishGameWithResult(taskId)
         }
 
         @JavascriptInterface

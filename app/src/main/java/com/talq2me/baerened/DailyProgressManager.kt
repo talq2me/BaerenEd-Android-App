@@ -240,37 +240,56 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Marks a task as completed with a display name and returns the stars earned
+     * Checks if a task is from the required section
      */
-    fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false): Int {
+    fun isTaskFromRequiredSection(taskId: String, config: MainContent): Boolean {
+        val visibleContent = filterVisibleContent(config)
+        return visibleContent.sections?.any { section ->
+            section.id == "required" && section.tasks?.any { (it.launch ?: "unknown_task") == taskId } == true
+        } ?: false
+    }
+
+    /**
+     * Marks a task as completed with a display name and returns the stars earned
+     * For required tasks: counts toward progress and coins, only award once per day
+     * For optional tasks: only banks reward time, doesn't affect progress, can be completed multiple times
+     */
+    fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false, config: MainContent? = null): Int {
         val completedTasks = getCompletedTasks()
 
-        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask")
+        // Determine if this is actually a required task (if config provided, verify)
+        val actualIsRequired = if (config != null) {
+            isTaskFromRequiredSection(taskId, config)
+        } else {
+            isRequiredTask
+        }
+
+        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, actualIsRequired=$actualIsRequired")
         Log.d("DailyProgressManager", "Current completed tasks: ${completedTasks.keys}")
 
-        if (isRequiredTask) {
-            // Required tasks: only award once per day
+        if (actualIsRequired) {
+            // Required tasks: only award once per day, counts toward progress
             if (completedTasks[taskId] != true) {
                 completedTasks[taskId] = true
                 saveCompletedTasks(completedTasks)
                 saveCompletedTaskName(taskId, taskName)
-                Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars")
+                Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress)")
                 return stars
             }
             Log.d("DailyProgressManager", "Required task $taskId already completed today")
             return 0
         } else {
-            // Optional tasks: award each time completed, but still track for progress calculation
-            // We track completion status for all tasks to enable proper progress calculation
+            // Optional tasks: award each time completed, banks reward time but doesn't affect progress
+            // We still track completion status for UI display
             if (completedTasks[taskId] != true) {
                 completedTasks[taskId] = true
                 saveCompletedTasks(completedTasks)
                 saveCompletedTaskName(taskId, taskName)
-                Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars")
+                Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress)")
                 return stars
             } else {
-                // For optional tasks that are already completed today, still award stars
-                Log.d("DailyProgressManager", "Optional task $taskId already completed today, but awarding $stars stars again")
+                // For optional tasks that are already completed today, still award stars (banks more reward time)
+                Log.d("DailyProgressManager", "Optional task $taskId already completed today, but awarding $stars stars again (banks more reward time)")
                 return stars
             }
         }
@@ -297,6 +316,7 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Gets current progress with actual star values from config
+     * Only counts required section tasks for progress
      */
     fun getCurrentProgressWithActualStars(config: MainContent): Pair<Int, Int> {
         val completedTasks = getCompletedTasks()
@@ -305,16 +325,19 @@ class DailyProgressManager(private val context: Context) {
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
 
         visibleContent.sections?.forEach { section ->
-            section.tasks?.forEach { task ->
-                val taskId = task.launch ?: "unknown_task"
-                val stars = task.stars ?: 0
+            // Only count required section tasks for progress
+            if (section.id == "required") {
+                section.tasks?.forEach { task ->
+                    val taskId = task.launch ?: "unknown_task"
+                    val stars = task.stars ?: 0
 
-                // All tasks contribute to total stars in config
-                // For progress tracking, count if completed today (required tasks only once, optional could be multiple but we track once per day for now)
-                if (completedTasks[taskId] == true && stars > 0) {
-                    earnedStars += stars
+                    // Only required tasks contribute to progress
+                    if (completedTasks[taskId] == true && stars > 0) {
+                        earnedStars += stars
+                    }
                 }
             }
+            // Note: Optional section tasks are not counted for progress, but they still bank reward time
 
             section.items?.forEach { item ->
                 val itemId = item.id ?: "checkbox_${item.label}"
@@ -334,6 +357,7 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Calculates total possible coins and stars from config
+     * Only counts required section tasks for totals
      */
     fun calculateTotalsFromConfig(config: MainContent): Pair<Int, Int> {
         var totalCoins = 0
@@ -342,25 +366,24 @@ class DailyProgressManager(private val context: Context) {
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
 
         visibleContent.sections?.forEach { section ->
-            section.tasks?.forEach { task ->
-                val stars = task.stars ?: 0
-
-                // Required tasks award coins equal to their stars
-                if (section.id == "required") {
+            // Only count required section tasks for totals
+            if (section.id == "required") {
+                section.tasks?.forEach { task ->
+                    val stars = task.stars ?: 0
+                    // Required tasks award coins equal to their stars
                     totalCoins += stars
-                }
-
-                // All tasks with stars contribute to total stars
-                if (stars > 0) {
-                    totalStars += stars
+                    // Only required tasks contribute to total stars
+                    if (stars > 0) {
+                        totalStars += stars
+                    }
                 }
             }
+            // Note: Optional section tasks are not counted in totals
 
             // Check for checklist items if they have stars
             section.items?.forEach { item ->
                 val stars = item.stars ?: 0
-
-                // ALL checklist items award coins equal to their stars (not just required ones)
+                // ALL checklist items award coins equal to their stars
                 if (stars > 0) {
                     totalCoins += stars
                     totalStars += stars
@@ -374,7 +397,7 @@ class DailyProgressManager(private val context: Context) {
             .putInt(KEY_TOTAL_POSSIBLE_STARS, totalStars)
             .apply()
 
-        Log.d("DailyProgressManager", "Calculated totals from config - Coins: $totalCoins, Stars: $totalStars")
+        Log.d("DailyProgressManager", "Calculated totals from config - Coins: $totalCoins, Stars: $totalStars (required section only)")
         return Pair(totalCoins, totalStars)
     }
 
@@ -401,6 +424,7 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Gets current progress with both coins and stars using actual values
+     * Only counts required section tasks for progress
      */
     fun getCurrentProgressWithCoinsAndStars(config: MainContent): Pair<Pair<Int, Int>, Pair<Int, Int>> {
         val completedTasks = getCompletedTasks()
@@ -410,19 +434,19 @@ class DailyProgressManager(private val context: Context) {
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
 
         visibleContent.sections?.forEach { section ->
-            section.tasks?.forEach { task ->
-                val taskId = task.launch ?: "unknown_task"
-                val stars = task.stars ?: 0
+            // Only count required section tasks for progress
+            if (section.id == "required") {
+                section.tasks?.forEach { task ->
+                    val taskId = task.launch ?: "unknown_task"
+                    val stars = task.stars ?: 0
 
-                if (completedTasks[taskId] == true && stars > 0) {
-                    earnedStars += stars
-
-                    // Required tasks award coins equal to their stars
-                    if (section.id == "required") {
-                        earnedCoins += stars
+                    if (completedTasks[taskId] == true && stars > 0) {
+                        earnedStars += stars
+                        earnedCoins += stars // Required tasks award coins equal to their stars
                     }
                 }
             }
+            // Note: Optional section tasks are not counted for progress, but they still bank reward time
 
             section.items?.forEach { item ->
                 val itemId = item.id ?: "checkbox_${item.label}"

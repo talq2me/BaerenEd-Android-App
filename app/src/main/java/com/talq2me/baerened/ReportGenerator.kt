@@ -60,13 +60,9 @@ class ReportGenerator(private val context: Context) {
                 val isCompleted = report.completedTasks.contains(taskId)
                 
                 // Match sessions by activityId
-                // For regular games: activityId matches task.launch
-                // For web games: activityId might match task.rewardId or task.launch
-                // For chrome pages: activityId matches task.launch
+                // For all tasks: activityId matches task.launch (no longer using rewardId)
                 val matchingSessions = allSessions.filter { session ->
-                    session.activityId == taskId || 
-                    (task.webGame == true && session.activityId == (task.rewardId ?: taskId)) ||
-                    (task.chromePage == true && session.activityId == taskId)
+                    session.activityId == taskId
                 }
                 
                 val totalTimeSeconds = matchingSessions.sumOf { it.durationSeconds }

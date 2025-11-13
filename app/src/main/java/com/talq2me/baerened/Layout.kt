@@ -327,7 +327,15 @@ class Layout(private val activity: MainActivity) {
         // The video activities will only call this on actual completion
         if (stars > 0) {
             val progressManager = DailyProgressManager(activity)
-            val earnedStars = progressManager.markTaskCompletedWithName(taskId, taskTitle, stars, false)
+            val currentContent = activity.getCurrentMainContent()
+            // Videos are typically in required section, but pass config to verify
+            val earnedStars = progressManager.markTaskCompletedWithName(
+                taskId, 
+                taskTitle, 
+                stars, 
+                false,  // Default to optional, config will verify
+                currentContent  // Pass config to verify section
+            )
 
             android.util.Log.d("Layout", "markTaskCompletedWithName returned: $earnedStars stars")
 
@@ -363,48 +371,35 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    suspend fun handleWebGameCompletion(rewardId: String?) {
-        android.util.Log.d(TAG, "handleWebGameCompletion called with rewardId: $rewardId")
+    suspend fun handleWebGameCompletion(taskId: String?, sectionId: String?, stars: Int, taskTitle: String?) {
+        android.util.Log.d(TAG, "handleWebGameCompletion called with taskId: $taskId, sectionId: $sectionId, stars: $stars")
 
-        if (!rewardId.isNullOrEmpty()) {
-            // In a real application, you would use the rewardId to look up the actual reward (e.g., stars, coins)
-            // For now, let's assume the rewardId directly corresponds to a task ID and we award a fixed number of stars.
-            // You'll need to adapt this logic to your specific reward system.
-
+        if (!taskId.isNullOrEmpty()) {
             val progressManager = DailyProgressManager(activity)
-
-            val childProfile = SettingsManager.readProfile(activity) ?: "A"
-
-            val configFileName = if (childProfile == "A") "AM_config.json" else "BM_config.json"
-            val configUrl = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/$configFileName"
-
-            var starsToAward = 5 // Default to 5 stars
-
-            val jsonString = fetchJsonFromUrl(configUrl)
-            if (jsonString != null) {
-                try {
-                    val configData = Gson().fromJson(jsonString, ConfigData::class.java)
-                    starsToAward = configData.webGameStars ?: 5
-                    android.util.Log.d(TAG, "Fetched webGameStars: $starsToAward from $configFileName")
-                } catch (e: Exception) {
-                    android.util.Log.e(TAG, "Error parsing config JSON from $configFileName", e)
-                }
-            } else {
-                android.util.Log.e(TAG, "Failed to fetch config JSON from $configUrl")
-            }
-
-            val taskTitle = "Web Game: $rewardId"
-
-            val earnedStars = progressManager.markTaskCompletedWithName(rewardId, taskTitle, starsToAward, false)
+            val currentContent = activity.getCurrentMainContent()
+            
+            // Use task title from parameter or create default
+            val displayTitle = taskTitle ?: "Web Game: $taskId"
+            
+            // Determine if task is required based on section ID
+            val isRequiredTask = sectionId == "required"
+            
+            // Pass config to markTaskCompletedWithName so it can verify if task is actually required
+            val earnedStars = progressManager.markTaskCompletedWithName(
+                taskId, 
+                displayTitle, 
+                stars, 
+                isRequiredTask,
+                currentContent  // Pass config to verify section
+            )
 
             if (earnedStars > 0) {
                 val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
 
-                android.util.Log.d("Layout", "Web game completed ($rewardId), earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
+                android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
 
                 Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
 
-                val currentContent = activity.getCurrentMainContent()
                 if (currentContent != null) {
                     android.util.Log.d("Layout", "Re-displaying content to update task completion state")
                     displayContent(currentContent)
@@ -413,31 +408,42 @@ class Layout(private val activity: MainActivity) {
                 }
                 refreshProgressDisplay()
             } else {
-                android.util.Log.d("Layout", "Web game task $rewardId was already completed today, no additional stars awarded")
+                android.util.Log.d("Layout", "Web game task $taskId was already completed today, no additional stars awarded")
                 Toast.makeText(activity, "Web game already completed today", Toast.LENGTH_SHORT).show()
             }
         } else {
-            android.util.Log.d("Layout", "No rewardId provided for web game completion.")
+            android.util.Log.d("Layout", "No taskId provided for web game completion.")
             Toast.makeText(activity, "Web game completed, but no reward was issued.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun handleChromePageCompletion(rewardId: String, taskTitle: String, stars: Int) {
-        android.util.Log.d(TAG, "handleChromePageCompletion: rewardId=$rewardId, taskTitle=$taskTitle, stars=$stars")
+    fun handleChromePageCompletion(taskId: String, taskTitle: String, stars: Int, sectionId: String?) {
+        android.util.Log.d(TAG, "handleChromePageCompletion: taskId=$taskId, taskTitle=$taskTitle, stars=$stars, sectionId=$sectionId")
 
         val progressManager = DailyProgressManager(activity)
-        val earnedStars = progressManager.markTaskCompletedWithName(rewardId, taskTitle, stars, false)
+        val currentContent = activity.getCurrentMainContent()
+        
+        // Determine if task is required based on section ID
+        val isRequiredTask = sectionId == "required"
+        
+        // Pass config to markTaskCompletedWithName so it can verify if task is actually required
+        val earnedStars = progressManager.markTaskCompletedWithName(
+            taskId, 
+            taskTitle, 
+            stars, 
+            isRequiredTask,
+            currentContent  // Pass config to verify section
+        )
 
         if (earnedStars > 0) {
             val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-            android.util.Log.d(TAG, "Chrome page completed, earned $earnedStars stars, total reward minutes: $totalRewardMinutes")
+            android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars, total reward minutes: $totalRewardMinutes")
             Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
         } else {
-            android.util.Log.d(TAG, "Chrome page task $rewardId already completed today or no stars to award")
+            android.util.Log.d(TAG, "Chrome page task $taskId already completed today or no stars to award")
             Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
         }
 
-        val currentContent = activity.getCurrentMainContent()
         if (currentContent != null) {
             android.util.Log.d(TAG, "Refreshing content after Chrome page completion")
             displayContent(currentContent)
@@ -866,7 +872,7 @@ class Layout(private val activity: MainActivity) {
                         // Only add task view if it's visible today
                         if (isTaskVisible(task.showdays, task.hidedays, task.displayDays)) {
                             android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
-                            val taskView = createTaskView(task, completedTasksMap)
+                            val taskView = createTaskView(task, section.id, completedTasksMap)
                             rowContainer.addView(taskView)
                         }
                     }
@@ -904,7 +910,7 @@ class Layout(private val activity: MainActivity) {
         return sectionLayout
     }
 
-    private fun createTaskView(task: Task, completedTasksMap: Map<String, Boolean>): View {
+    private fun createTaskView(task: Task, sectionId: String, completedTasksMap: Map<String, Boolean>): View {
         val density = activity.resources.displayMetrics.density
         // Use 70dp height to match nav buttons for compact layout
         val tileHeight = (70 * density).toInt()
@@ -984,23 +990,26 @@ class Layout(private val activity: MainActivity) {
                             Toast.makeText(activity, "No page configured for this task.", Toast.LENGTH_SHORT).show()
                         } else {
                             val taskLaunchId = task.launch ?: "unknown"
-                            val rewardId = task.rewardId ?: taskLaunchId
                             val intent = Intent(activity, ChromePageActivity::class.java).apply {
                                 putExtra(ChromePageActivity.EXTRA_URL, pageUrl)
-                                putExtra(ChromePageActivity.EXTRA_REWARD_ID, rewardId)
-                                putExtra(ChromePageActivity.EXTRA_TASK_ID, taskLaunchId)  // Pass launch ID for completion tracking
+                                putExtra(ChromePageActivity.EXTRA_TASK_ID, taskLaunchId)  // Use launch ID instead of rewardId
                                 putExtra(ChromePageActivity.EXTRA_STARS, task.stars ?: 0)
                                 putExtra(ChromePageActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
+                                putExtra(ChromePageActivity.EXTRA_SECTION_ID, sectionId)  // Pass section ID
                             }
                             activity.chromePageLauncher.launch(intent)
                         }
                     // Check if this is a web game task
                     } else if (task.webGame == true && !task.url.isNullOrEmpty()) {
                         android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
+                        val taskLaunchId = task.launch ?: "unknown"
                         val intent = Intent(activity, WebGameActivity::class.java).apply {
                             val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
                             putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
-                            putExtra(WebGameActivity.EXTRA_REWARD_ID, task.rewardId ?: task.launch)
+                            putExtra(WebGameActivity.EXTRA_TASK_ID, taskLaunchId)  // Use launch ID instead of rewardId
+                            putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)  // Pass section ID
+                            putExtra(WebGameActivity.EXTRA_STARS, task.stars ?: 0)  // Pass stars from config
+                            putExtra(WebGameActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
                         }
                         activity.webGameCompletionLauncher.launch(intent)
                     } else if (task.videoSequence != null) {
@@ -1119,11 +1128,13 @@ class Layout(private val activity: MainActivity) {
                     if (isChecked && !isCompleted && item.stars != null && item.stars!! > 0) {
                         // Award stars to reward bank when checkbox is checked (only if not already completed)
                         // ALL checklist items give coins and should only be completed once per day
+                        val currentContent = activity.getCurrentMainContent()
                         val earnedStars = progressManager.markTaskCompletedWithName(
                             itemId,
                             item.label ?: itemId,
                             item.stars!!,
-                            true  // isRequired parameter - checklist items behave like required tasks
+                            true,  // isRequired parameter - checklist items behave like required tasks
+                            currentContent  // Pass config to verify
                         )
                         if (earnedStars > 0) {
                             // Add stars to reward bank

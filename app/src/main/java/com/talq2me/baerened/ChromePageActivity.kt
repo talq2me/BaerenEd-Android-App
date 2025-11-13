@@ -18,8 +18,8 @@ class ChromePageActivity : AppCompatActivity() {
 
     private var startTime: Long = 0
     private var url: String? = null
-    private var rewardId: String? = null
     private var taskId: String? = null  // The task launch ID for completion tracking
+    private var sectionId: String? = null  // The section ID (required/optional)
     private var stars: Int = 0
     private var taskTitle: String? = null
     private var hasLaunchedCustomTab = false
@@ -33,8 +33,8 @@ class ChromePageActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_URL = "url"
-        const val EXTRA_REWARD_ID = "reward_id"
         const val EXTRA_TASK_ID = "task_id"  // The task launch ID for completion tracking
+        const val EXTRA_SECTION_ID = "section_id"  // The section ID (required/optional)
         const val EXTRA_STARS = "stars"
         const val EXTRA_TASK_TITLE = "task_title"
         private const val MIN_TIME_SECONDS = 60
@@ -46,8 +46,8 @@ class ChromePageActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         url = intent.getStringExtra(EXTRA_URL)
-        rewardId = intent.getStringExtra(EXTRA_REWARD_ID)
         taskId = intent.getStringExtra(EXTRA_TASK_ID)
+        sectionId = intent.getStringExtra(EXTRA_SECTION_ID)
         stars = intent.getIntExtra(EXTRA_STARS, 0)
         taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE)
 
@@ -61,8 +61,8 @@ class ChromePageActivity : AppCompatActivity() {
         timeTracker = TimeTracker(this)
         
         // Start tracking time for this page visit
-        val pageName = taskTitle ?: url ?: "Web Page"
-        timeTracker.startActivity(taskId ?: rewardId ?: "chromepage", "chromepage", pageName)
+        val pageName = taskTitle ?: taskId ?: url ?: "Web Page"
+        timeTracker.startActivity(taskId ?: "chromepage", "chromepage", pageName)
 
         val targetUri = Uri.parse(url)
 
@@ -171,8 +171,8 @@ class ChromePageActivity : AppCompatActivity() {
             timeTracker.updateStarsEarned("chromepage", stars)
             
             val resultIntent = Intent().apply {
-                rewardId?.let { putExtra(EXTRA_REWARD_ID, it) }
                 taskId?.let { putExtra(EXTRA_TASK_ID, it) }  // Pass task ID for completion tracking
+                sectionId?.let { putExtra(EXTRA_SECTION_ID, it) }  // Pass section ID
                 putExtra(EXTRA_STARS, stars)
                 taskTitle?.let { putExtra(EXTRA_TASK_TITLE, it) }
             }
