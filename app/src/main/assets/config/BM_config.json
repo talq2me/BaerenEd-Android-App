@@ -51,8 +51,42 @@
           "totalQuestions": 7
         },
         {
+          "title": "Times Tables",
+          "launch": "timesTables",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Time Telling",
+          "launch": "timeTelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "mon,tue",
+          "harddays": "wed",
+          "extremedays": "thu,fri"
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun,mon"
+        },
+        {
           "title": "Kung Fu Form",
-          "launch": "intermediateKungFuVideos",
+          "launch": "advancedKungFuVideos",
           "stars": 1,
           "video": "FerrociousFist",
           "videoSequence": "exact"
@@ -97,40 +131,6 @@
           "stars": 3,
           "totalQuestions": 5,
           "displayDays": "sun"
-        },
-        {
-          "title": "Times Tables",
-          "launch": "timesTables",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
-          "stars": 3,
-          "webGame": true
-        },
-        {
-          "title": "Time Telling",
-          "launch": "timeTelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
-          "stars": 3,
-          "webGame": true
-        },
-        {
-          "title": "Eng Spelling",
-          "launch": "engSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "easydays": "mon,tue",
-          "harddays": "wed",
-          "extremedays": "thu,fri"
-        },
-        {
-          "title": "Fr Spelling",
-          "launch": "frSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "easydays": "tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun,mon"
         },
         {
           "title": "Je Lis",
