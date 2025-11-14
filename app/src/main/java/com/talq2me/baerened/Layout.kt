@@ -577,6 +577,27 @@ class Layout(private val activity: MainActivity) {
     }
 
     private fun getGameModeUrl(originalUrl: String, easydays: String?, harddays: String?, extremedays: String?): String {
+        // Parse the original URL first to get the existing mode if present
+        val uri = android.net.Uri.parse(originalUrl)
+        val originalMode = uri.getQueryParameter("mode")
+        
+        // If no day fields are specified, preserve the original mode from the URL
+        val hasDayFields = !easydays.isNullOrEmpty() || !harddays.isNullOrEmpty() || !extremedays.isNullOrEmpty()
+        if (!hasDayFields) {
+            // No day fields specified, preserve original URL mode or default to "hard"
+            val mode = originalMode ?: "hard"
+            val builder = uri.buildUpon()
+            builder.clearQuery()
+            uri.queryParameterNames.forEach { name ->
+                if (name != "mode") {
+                    builder.appendQueryParameter(name, uri.getQueryParameter(name))
+                }
+            }
+            builder.appendQueryParameter("mode", mode)
+            return builder.build().toString()
+        }
+
+        // Day fields are specified, determine mode based on today
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         val todayShort = when (today) {
             Calendar.MONDAY -> "mon"
@@ -589,7 +610,7 @@ class Layout(private val activity: MainActivity) {
             else -> ""
         }
 
-        var mode = "hard" // Default mode
+        var mode = originalMode ?: "hard" // Use original mode as default if day doesn't match
 
         if (!easydays.isNullOrEmpty() && easydays.split(",").contains(todayShort)) {
             mode = "easy"
@@ -600,7 +621,6 @@ class Layout(private val activity: MainActivity) {
         }
 
         // Parse the URL and add/update the 'mode' parameter
-        val uri = android.net.Uri.parse(originalUrl)
         val builder = uri.buildUpon()
         builder.clearQuery() // Clear existing query parameters
 
@@ -777,15 +797,118 @@ class Layout(private val activity: MainActivity) {
         sectionsContainer.removeAllViews()
 
         // Pre-load all completed task statuses in one batch to avoid multiple SharedPreferences reads
+        // This is a light operation as it just reads from memory (DailyProgressManager caches the map)
         val completedTasksMap = progressManager.getCompletedTasksMap()
 
-        sections.forEach { section ->
-            android.util.Log.d("Layout", "Creating section: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
-            val sectionView = createSectionView(section, completedTasksMap)
-            sectionsContainer.addView(sectionView)
+        // Create sections incrementally across multiple frames to avoid blocking the main thread
+        // This prevents Choreographer warnings about skipped frames
+        createSectionsIncrementally(sections, completedTasksMap, 0)
+    }
+
+    private fun createSectionsIncrementally(
+        sections: List<Section>,
+        completedTasksMap: Map<String, Boolean>,
+        index: Int
+    ) {
+        if (index >= sections.size) {
+            android.util.Log.d("Layout", "setupSections completed")
+            return
         }
 
-        android.util.Log.d("Layout", "setupSections completed")
+        // Create one section per frame to avoid blocking
+        sectionsContainer.post {
+            val section = sections[index]
+            android.util.Log.d("Layout", "Creating section ${index + 1}/${sections.size}: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
+            val sectionView = createSectionView(section, completedTasksMap)
+            sectionsContainer.addView(sectionView)
+            
+            // Continue with next section on next frame
+            createSectionsIncrementally(sections, completedTasksMap, index + 1)
+        }
+    }
+
+    private fun createTaskRow(
+        visibleTasks: List<Task>,
+        rowIndex: Int,
+        buttonsPerRow: Int,
+        sectionId: String,
+        completedTasksMap: Map<String, Boolean>,
+        density: Float
+    ): LinearLayout {
+        val rowContainer = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(0, 0, 0, 0)
+            weightSum = buttonsPerRow.toFloat()
+        }
+
+        val startIndex = rowIndex * buttonsPerRow
+        val endIndex = minOf(startIndex + buttonsPerRow, visibleTasks.size)
+
+        for (i in startIndex until endIndex) {
+            val task = visibleTasks[i]
+            android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
+            val taskView = createTaskView(task, sectionId, completedTasksMap)
+            rowContainer.addView(taskView)
+        }
+
+        // Add empty views to fill remaining spots if needed
+        while (rowContainer.childCount < buttonsPerRow) {
+            val emptyView = View(activity).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    (70 * density).toInt(),
+                    1f
+                ).apply {
+                    setMargins((6 * density).toInt(), 0, (6 * density).toInt(), 0)
+                }
+            }
+            rowContainer.addView(emptyView)
+        }
+
+        return rowContainer
+    }
+
+    private fun createTaskRowsIncrementally(
+        visibleTasks: List<Task>,
+        sectionId: String,
+        completedTasksMap: Map<String, Boolean>,
+        tasksContainer: LinearLayout,
+        buttonsPerRow: Int,
+        density: Float,
+        rowIndex: Int
+    ) {
+        val rows = (visibleTasks.size + buttonsPerRow - 1) / buttonsPerRow
+        if (rowIndex >= rows) {
+            return
+        }
+
+        // Create one row per frame
+        tasksContainer.post {
+            val rowContainer = createTaskRow(
+                visibleTasks,
+                rowIndex,
+                buttonsPerRow,
+                sectionId,
+                completedTasksMap,
+                density
+            )
+            tasksContainer.addView(rowContainer)
+            
+            // Continue with next row on next frame
+            createTaskRowsIncrementally(
+                visibleTasks,
+                sectionId,
+                completedTasksMap,
+                tasksContainer,
+                buttonsPerRow,
+                density,
+                rowIndex + 1
+            )
+        }
     }
 
     private fun createSectionView(section: Section, completedTasksMap: Map<String, Boolean>): View {
@@ -850,50 +973,22 @@ class Layout(private val activity: MainActivity) {
                     setPadding(0, 0, 0, 0)
                 }
 
-                // Create rows of tasks
-                val rows = (tasks.size + buttonsPerRow - 1) / buttonsPerRow // Ceiling division
-
-                for (rowIndex in 0 until rows) {
-                    // Create a horizontal row container
-                    val rowContainer = LinearLayout(activity).apply {
-                        orientation = LinearLayout.HORIZONTAL
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                        setPadding(0, 0, 0, 0)
-                        weightSum = buttonsPerRow.toFloat()
+                // Filter visible tasks and defer to next frame to avoid blocking
+                sectionLayout.post {
+                    val visibleTasks = tasks.filter { task -> 
+                        isTaskVisible(task.showdays, task.hidedays, task.displayDays) 
                     }
-
-                    // Add tasks to this row
-                    val startIndex = rowIndex * buttonsPerRow
-                    val endIndex = minOf(startIndex + buttonsPerRow, tasks.size)
-
-                    for (i in startIndex until endIndex) {
-                        val task = tasks[i]
-                        // Only add task view if it's visible today
-                        if (isTaskVisible(task.showdays, task.hidedays, task.displayDays)) {
-                            android.util.Log.d("Layout", "Creating task view: ${task.title}, launch=${task.launch}, stars=${task.stars}")
-                            val taskView = createTaskView(task, section.id ?: "unknown", completedTasksMap)
-                            rowContainer.addView(taskView)
-                        }
-                    }
-
-                    // Add empty views to fill remaining spots if needed
-                    while (rowContainer.childCount < buttonsPerRow) {
-                        val emptyView = View(activity).apply {
-                            layoutParams = LinearLayout.LayoutParams(
-                                0,
-                                (70 * density).toInt(),
-                                1f
-                            ).apply {
-                                setMargins((6 * density).toInt(), 0, (6 * density).toInt(), 0)
-                            }
-                        }
-                        rowContainer.addView(emptyView)
-                    }
-
-                    tasksContainer.addView(rowContainer)
+                    
+                    // Always create incrementally, one row per frame
+                    createTaskRowsIncrementally(
+                        visibleTasks, 
+                        section.id ?: "unknown", 
+                        completedTasksMap, 
+                        tasksContainer, 
+                        buttonsPerRow, 
+                        density, 
+                        0
+                    )
                 }
 
                 sectionLayout.addView(tasksContainer)

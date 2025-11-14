@@ -435,23 +435,101 @@ class GameActivity : AppCompatActivity() {
             container.addView(imageContainer)
         }
 
-        // Choices
+        // Choices - use dynamic layout that fits as many buttons as possible per row
         val grid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
         grid.removeAllViews()
-
-        // For translation game, use fewer columns to allow wider buttons with text wrapping
-        val isTranslationGame = gameType == "translation"
-        if (isTranslationGame) {
-            grid.columnCount = 2 // Use 2 columns for translation game
-        } else {
-            // For other games, use a reasonable default column count
-            // GridLayout with columnCount = 0 can cause issues, so set a default
-            grid.columnCount = 3 // Default to 3 columns for non-translation games
-        }
 
         val correctChoices = q.correctChoices ?: emptyList()
         val extraChoices = q.extraChoices ?: emptyList()
         val allChoices = (correctChoices + extraChoices).shuffled()
+
+        // Calculate dynamic column count based on screen width and button size
+        val displayMetrics = resources.displayMetrics
+        val density = displayMetrics.density
+        val screenWidth = displayMetrics.widthPixels
+        
+        // Calculate available width (account for root padding and grid padding)
+        val rootPadding = (24 * density).toInt() * 2 // 24dp on each side
+        val gridPadding = grid.paddingLeft + grid.paddingRight // Actual grid padding
+        val availableWidth = screenWidth - rootPadding - gridPadding
+        
+        // Measure text widths accurately using Paint to determine optimal column count
+        val paint = android.graphics.Paint()
+        paint.textSize = 24f * density // 24sp text size in pixels
+        paint.typeface = android.graphics.Typeface.DEFAULT
+        
+        // Calculate button dimensions constants
+        val buttonPadding = (10 * density).toInt() * 2 // 10dp padding on each side (left + right)
+        val buttonMargin = (6 * density).toInt() * 2 // 6dp margin on each side (left + right)
+        val minButtonWidth = (80 * density).toInt() // Minimum button width in pixels
+        
+        // Measure all text widths to find optimal button sizing
+        val textWidths = allChoices.map { choice ->
+            paint.measureText(choice.text).toInt()
+        }
+        val maxTextWidth = if (textWidths.isNotEmpty()) textWidths.maxOrNull() ?: 0 else 0
+        val avgTextWidth = if (textWidths.isNotEmpty()) {
+            textWidths.average().toInt()
+        } else {
+            0
+        }
+        
+        // For games with short words (like sentence builder), use average width to fit more buttons
+        // For games with long text, use max width to ensure all buttons fit
+        // Use average if it's significantly shorter than max (more than 30% difference)
+        val useAverageWidth = maxTextWidth > 0 && avgTextWidth > 0 && 
+                              avgTextWidth < maxTextWidth * 0.7
+        
+        // Calculate base button width based on text length characteristics
+        val baseTextWidth = if (useAverageWidth && avgTextWidth > 0) {
+            // Use average for short words to allow more columns
+            avgTextWidth
+        } else {
+            // Use max for long text to ensure all buttons fit
+            maxTextWidth
+        }
+        
+        // Calculate required button width: max of min width or text width + padding
+        // For short words, allow smaller minimum width to fit more buttons
+        val effectiveMinWidth = if (useAverageWidth) {
+            (60 * density).toInt() // Smaller min for short words
+        } else {
+            minButtonWidth // Normal min for longer text
+        }
+        val requiredButtonWidth = maxOf(effectiveMinWidth, baseTextWidth + buttonPadding)
+        
+        // Calculate how many buttons can fit per row
+        // Formula: availableWidth = columnCount * buttonWidth + (columnCount - 1) * buttonMargin
+        // Solving for columnCount: columnCount = (availableWidth + buttonMargin) / (buttonWidth + buttonMargin)
+        val buttonWidthWithMargin = requiredButtonWidth + buttonMargin
+        val calculatedColumns = if (buttonWidthWithMargin > 0) {
+            maxOf(1, (availableWidth + buttonMargin) / buttonWidthWithMargin)
+        } else {
+            3 // Fallback
+        }
+        
+        // Limit to reasonable range: between 2 and 12 columns (allowing more for short words)
+        var columnCount = maxOf(2, minOf(calculatedColumns, 12))
+        
+        // Recalculate actual button width to fill available space evenly
+        var totalMarginWidth = (columnCount - 1) * buttonMargin
+        var evenButtonWidth = (availableWidth - totalMarginWidth) / columnCount
+        
+        // Final check: ensure button width accommodates the longest text
+        // If even distribution makes buttons too narrow for longest text, reduce columns
+        val maxRequiredWidth = maxTextWidth + buttonPadding
+        if (evenButtonWidth < maxRequiredWidth && columnCount > 2) {
+            // Recalculate with fewer columns to ensure longest text fits
+            columnCount = maxOf(2, (availableWidth + buttonMargin) / (maxRequiredWidth + buttonMargin))
+            totalMarginWidth = (columnCount - 1) * buttonMargin
+            evenButtonWidth = (availableWidth - totalMarginWidth) / columnCount
+        }
+        
+        // Final button width: ensure it's at least minimum, but use calculated width otherwise
+        val finalButtonWidth = maxOf(effectiveMinWidth, evenButtonWidth)
+        
+        grid.columnCount = columnCount
+        android.util.Log.d("GameActivity", "Dynamic grid: screenWidth=$screenWidth, availableWidth=$availableWidth, maxTextWidth=$maxTextWidth, requiredButtonWidth=$requiredButtonWidth, calculatedColumns=$calculatedColumns, columnCount=$columnCount, finalButtonWidth=$finalButtonWidth")
 
         for (choice in allChoices) {
             val btn = Button(this)
@@ -460,37 +538,26 @@ class GameActivity : AppCompatActivity() {
             // Ensure text displays exactly as in JSON (no auto-capitalization)
             btn.transformationMethod = null
 
-            // Set button layout parameters - wrap content width, auto-fit to screen
+            // Set button layout parameters - use calculated even button width
             val params = androidx.gridlayout.widget.GridLayout.LayoutParams()
             
-            if (isTranslationGame) {
-                // For translation game, allow text wrapping with max width
-                // Account for: root padding (24dp * 2), grid padding (12dp * 2), button margins (12dp * 2)
-                val displayMetrics = resources.displayMetrics
-                val density = displayMetrics.density
-                val rootPadding = (24 * density).toInt() * 2 // 24dp on each side
-                val gridPadding = (12 * density).toInt() * 2 // 12dp on each side
-                val buttonMargin = (12 * density).toInt() * 2 // 12dp margin on each side
-                val screenWidth = displayMetrics.widthPixels
-                // Available width per column: (screen - root padding - grid padding) / 2 - button margins
-                val maxButtonWidth = ((screenWidth - rootPadding - gridPadding) / 2) - buttonMargin
-                params.width = maxButtonWidth
-                params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
-                // Enable text wrapping
-                btn.maxLines = 0 // Unlimited lines
-                btn.isSingleLine = false
-            } else {
-                params.width = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
-                params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
-            }
+            // Use the pre-calculated final button width to fill available space
+            params.width = finalButtonWidth
+            params.height = androidx.gridlayout.widget.GridLayout.LayoutParams.WRAP_CONTENT
             
-            params.setMargins(12, 12, 12, 12) // Equal margins around each button
+            // Enable text wrapping for long text (will wrap if text is longer than button width)
+            btn.maxLines = 0 // Unlimited lines
+            btn.isSingleLine = false
+            btn.gravity = android.view.Gravity.CENTER
+            
+            // Set margins (smaller horizontal margin, normal vertical margin)
+            params.setMargins((3 * density).toInt(), (6 * density).toInt(), (3 * density).toInt(), (6 * density).toInt())
             btn.layoutParams = params
 
             // Make button more prominent with rounded corners and equal padding
             btn.background = resources.getDrawable(R.drawable.button_rounded_choice)
-            btn.setPadding(20, 20, 20, 20) // Equal horizontal and vertical padding
-            btn.minHeight = 140 // Minimum height for finger tapping
+            btn.setPadding((10 * density).toInt(), (10 * density).toInt(), (10 * density).toInt(), (10 * density).toInt())
+            btn.minHeight = (60 * density).toInt() // Minimum height for finger tapping
 
             btn.setOnClickListener {
                 if (!selectedChoices.contains(choice.text)) {
