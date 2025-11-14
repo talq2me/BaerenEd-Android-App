@@ -10,7 +10,7 @@
             background-color: #fffcf9;
             text-align: center;
         }
-        .game-container { width: 100%; margin: 0 auto; padding: 20px; text-align: center; }
+        .game-container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; box-sizing: border-box; }
         #starCount { font-size: 24px; color: #ffcc00; margin-bottom: 20px; }
         .word-display { font-size: 28px; margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
         .letter-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; min-height: 80px; padding: 15px; background: #f5f5f5; border-radius: 10px; }
@@ -42,8 +42,8 @@
         .practice-attempt.correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .practice-attempt.incorrect { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         .hidden { display: none; }
-        .keyboard-container { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6; }
-        .keyboard-row { display: flex; justify-content: center; gap: 8px; margin: 8px 0; flex-wrap: nowrap; }
+        .keyboard-container { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 2px solid #dee2e6; max-width: 100%; box-sizing: border-box; }
+        .keyboard-row { display: flex; justify-content: center; gap: 8px; margin: 8px 0; flex-wrap: nowrap; max-width: 100%; }
         .keyboard-key {
             background: #ffffff;
             border: 2px solid #dee2e6;
@@ -58,12 +58,15 @@
             text-align: center;
             flex: 1 1 0; /* Equal width buttons */
             display: flex; align-items: center; justify-content: center;
+            max-width: 100%; /* Prevent buttons from overflowing */
+            box-sizing: border-box;
         }
         .keyboard-key:hover { background: #e9ecef; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .keyboard-key:active { background: #dee2e6; transform: translateY(0); }
         .space-key { 
             flex: 3 1 0; /* Space key takes 3x the width of a regular key */
             max-width: 300px;
+            box-sizing: border-box;
         }
         .button, .green-button {
             font-family: inherit;
