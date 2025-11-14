@@ -254,10 +254,22 @@ class GameActivity : AppCompatActivity() {
     private fun speakSequentially(question: GameData) {
         if (!ttsReady) return
 
+        // Only use TTS if lang is explicitly present in prompt or question
+        // If lang is not present, skip TTS (text is display-only)
+        val promptLang = question.prompt?.lang
+        val questionLang = question.question?.lang
+        val hasLang = !promptLang.isNullOrEmpty() || !questionLang.isNullOrEmpty()
+        
+        if (!hasLang) {
+            // No lang field present, skip TTS but still play audio clips if available
+            playQuestionAudioClips(question)
+            return
+        }
+
         val questionId = System.currentTimeMillis().toString()
 
-        // Set language for the whole sequence based on prompt, assuming question is the same.
-        val locale = when (question.prompt?.lang?.lowercase()) {
+        // Set language for the whole sequence based on prompt or question lang
+        val locale = when (promptLang?.lowercase() ?: questionLang?.lowercase()) {
             "eng", "en" -> Locale.US
             "fr", "fra" -> Locale.FRENCH
             "es", "spa" -> Locale("es", "ES")
@@ -266,17 +278,17 @@ class GameActivity : AppCompatActivity() {
         }
         tts.language = locale
 
-        // Speak prompt first, flushing any previous audio.
-        question.prompt?.text?.let {
-            if (it.isNotEmpty()) {
-                tts.speak(it, TextToSpeech.QUEUE_FLUSH, null, "${questionId}-prompt")
+        // Speak prompt first, flushing any previous audio (only if lang is present)
+        question.prompt?.text?.let { promptText ->
+            if (promptText.isNotEmpty() && !promptLang.isNullOrEmpty()) {
+                tts.speak(promptText, TextToSpeech.QUEUE_FLUSH, null, "${questionId}-prompt")
             }
         }
 
-        // Speak question, adding it to the queue to play after the prompt.
-        question.question?.text?.let {
-            if (it.isNotEmpty()) {
-                tts.speak(it, TextToSpeech.QUEUE_ADD, null, "${questionId}-question")
+        // Speak question, adding it to the queue to play after the prompt (only if lang is present)
+        question.question?.text?.let { questionText ->
+            if (questionText.isNotEmpty() && !questionLang.isNullOrEmpty()) {
+                tts.speak(questionText, TextToSpeech.QUEUE_ADD, null, "${questionId}-question")
             }
         }
     }

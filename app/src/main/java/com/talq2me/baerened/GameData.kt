@@ -10,7 +10,7 @@ data class GameData(
 
 data class Prompt(
     val text: String,
-    val lang: String,
+    val lang: String? = null,
     val tts: Boolean = true,
     val displayText: Boolean = false
 )
