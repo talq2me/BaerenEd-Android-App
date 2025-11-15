@@ -25,6 +25,12 @@
       "description": "Complete all of these first!",
       "tasks": [
         {
+          "title": "Google Read Along",
+          "launch": "googleReadAlong",
+          "stars": 3,
+          "readAlong": true
+        },
+        {
           "title": "French Sounds",
           "launch": "frenchLetterSounds",
           "stars": 1,
