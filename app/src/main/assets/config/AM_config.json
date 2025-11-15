@@ -120,6 +120,12 @@
           "stars": 3,
           "chromePage": true,
           "displayDays": "tue,fri"
+        },
+        {
+          "title": "Ufli Home Videos",
+          "launch": "PLkXkUkhFdQbr_0-ha_r_A5pHtJ2_64Vhv",
+          "videoSequence": "playlist",
+          "playlistStartIndex": 36
         }
       ]
     },
