@@ -123,9 +123,15 @@
         },
         {
           "title": "Ufli Home Videos",
-          "launch": "PLkXkUkhFdQbr_0-ha_r_A5pHtJ2_64Vhv",
-          "videoSequence": "playlist",
-          "playlistStartIndex": 35
+          "launch": "uflivideos",
+          "stars": 3,
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "French UFLI",
+          "launch": "frenchUFLI",
+          "stars": 3,
+          "videoSequence": "sequential"
         }
       ]
     },
