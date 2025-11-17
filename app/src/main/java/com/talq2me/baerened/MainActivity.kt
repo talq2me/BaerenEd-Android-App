@@ -24,6 +24,18 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.talq2me.baerened.GameData
 import com.talq2me.contract.SettingsContract
 
+//Update Checker
+import android.app.AlertDialog
+import android.app.DownloadManager
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.os.Environment
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -32,6 +44,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var contentUpdateService: ContentUpdateService
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
+
+    private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
+
 
     // Activity result launchers
     lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
@@ -50,6 +65,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Check for updates to app
+        checkForUpdateIfOnline()
 
         // Initialize TTS
         tts = TextToSpeech(this, this)
@@ -93,6 +111,78 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             cleanupStaleRewardData()
             resetRewardDataForNewDay()
         }
+    }
+
+    private fun checkForUpdateIfOnline() {
+        if (!isOnline()) {
+            // no internet → skip check
+            return
+        }
+
+        checkForUpdates()
+    }
+
+    private fun isOnline(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val nw = cm.activeNetwork ?: return false
+        val actNw = cm.getNetworkCapabilities(nw) ?: return false
+
+        return actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+               actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+               actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+    }
+
+    private fun checkForUpdates() {
+        Thread {
+            try {
+                val client = OkHttpClient()
+                val req = Request.Builder().url(updateJsonUrl).build()
+                val res = client.newCall(req).execute()
+                val json = JSONObject(res.body!!.string())
+
+                val latest = json.getInt("latestVersionCode")
+                val apkUrl = json.getString("apkUrl")
+                val current = packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
+
+                if (latest > current) {
+                    runOnUiThread { forceUpdateDialog(apkUrl) }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }.start()
+    }
+
+    private fun forceUpdateDialog(apkUrl: String) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("update required")
+            .setMessage("a new version of this app is available. please install it to continue.")
+            .setCancelable(false)   // cannot dismiss
+            .setPositiveButton("update now") { _, _ ->
+                downloadAndInstall(apkUrl)
+            }
+            .create()
+
+        dialog.show()
+    }
+
+    private fun downloadAndInstall(url: String) {
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setTitle("downloading update…")
+            .setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                "myapp-update.apk"
+            )
+            .setNotificationVisibility(
+                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            )
+
+        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        dm.enqueue(request)
+
+        // user taps the downloaded apk from Downloads to install.
+        // (android does not allow a full silent install for security reasons.)
     }
 
     private fun handleVideoCompletion(result: ActivityResult) {

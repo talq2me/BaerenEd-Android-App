@@ -11,8 +11,8 @@ android {
         applicationId = "com.talq2me.baerened"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation("com.talq2me.baeren:settings-contract:1.0.0")
     implementation("androidx.browser:browser:1.8.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
     // HTTP client for JSON downloading
     implementation(libs.okhttp)
