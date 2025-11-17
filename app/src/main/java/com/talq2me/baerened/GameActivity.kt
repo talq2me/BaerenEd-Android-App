@@ -1,6 +1,5 @@
 package com.talq2me.baerened
 
-import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.os.Build
@@ -9,7 +8,6 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -18,9 +16,9 @@ import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.gridlayout.widget.GridLayout
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.gson.Gson
 import com.talq2me.baerened.GameData
-import com.talq2me.baerened.Media
 import kotlinx.coroutines.*
 import java.util.Locale
 
@@ -44,11 +42,14 @@ class GameActivity : AppCompatActivity() {
     private var sectionId: String? = null
     private var blockOutlines: Boolean = false
     private val selectedChoices = mutableSetOf<String>()
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+
+        swipeRefreshLayout = findViewById(R.id.gameSwipeRefresh)
 
         // Get game content and config from intent extras
         val gameContent = intent.getStringExtra("GAME_CONTENT")
@@ -140,7 +141,8 @@ class GameActivity : AppCompatActivity() {
         // Set up click listeners after views are initialized
         setupClickListeners()
 
-        setupHeaderButtons()
+        setupReplayButton()
+        setupPullToRefresh()
     }
 
     private fun setupClickListeners() {
@@ -219,28 +221,7 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupHeaderButtons() {
-        findViewById<Button>(R.id.gameBackButton).setOnClickListener {
-            // Go back to main screen
-            finish()
-        }
-
-        findViewById<Button>(R.id.gameHomeButton).setOnClickListener {
-            // Go back to main screen (same as back)
-            finish()
-        }
-
-        findViewById<Button>(R.id.gameRefreshButton).setOnClickListener {
-            // Reset the game state but keep progress
-            userAnswers.clear()
-            selectedChoices.clear()
-            reEnableAllChoiceButtons()
-            findViewById<TextView>(R.id.messageArea).text = ""
-            val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
-            blocksContainer.removeAllViews()
-            showNextQuestion()
-        }
-
+    private fun setupReplayButton() {
         findViewById<Button>(R.id.replayButton).setOnClickListener {
             // Replay the TTS content for current question and audio clips
             currentQuestion?.let { question ->
@@ -249,6 +230,23 @@ class GameActivity : AppCompatActivity() {
                 // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
             }
         }
+    }
+
+    private fun setupPullToRefresh() {
+        swipeRefreshLayout.setOnRefreshListener {
+            resetForRefresh()
+        }
+    }
+
+    private fun resetForRefresh() {
+        userAnswers.clear()
+        selectedChoices.clear()
+        reEnableAllChoiceButtons()
+        findViewById<TextView>(R.id.messageArea).text = ""
+        val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
+        blocksContainer.removeAllViews()
+        showNextQuestion()
+        swipeRefreshLayout.isRefreshing = false
     }
 
     private fun speakSequentially(question: GameData) {
@@ -340,6 +338,9 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun showNextQuestion() {
+        if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
+            swipeRefreshLayout.isRefreshing = false
+        }
         currentQuestion = gameEngine.getCurrentQuestion()
         val q = currentQuestion!!
         userAnswers.clear()

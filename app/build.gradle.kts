@@ -52,6 +52,7 @@ dependencies {
     // JSON parsing
     implementation(libs.gson)
     implementation(libs.androidx.gridlayout)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
