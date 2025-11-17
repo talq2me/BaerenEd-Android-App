@@ -8,8 +8,8 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import androidx.lifecycle.lifecycleScope
@@ -25,7 +25,6 @@ import com.talq2me.baerened.GameData
 import com.talq2me.contract.SettingsContract
 
 //Update Checker
-import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.net.ConnectivityManager

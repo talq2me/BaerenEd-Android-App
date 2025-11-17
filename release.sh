@@ -6,7 +6,7 @@ KEYSTORE_PATH="C:/Users/talqu/keystore1"   # your keystore
 KEY_ALIAS="key1"
 
 VERSION_JSON="app/src/main/assets/config/version.json"
-GRADLE_FILE="app/build.gradle"
+GRADLE_FILE="app/build.gradle.kts"
 APK_SOURCE="app/release/app-release.apk"
 
 # This is the folder inside THE SAME repo that is served by GitHub Pages
@@ -25,7 +25,9 @@ echo "Current version: $CURRENT_VERSION"
 echo "New version: $NEW_VERSION"
 
 ### --- UPDATE build.gradle --- ###
-sed -i "s/versionCode .*/versionCode $NEW_VERSION/" "$GRADLE_FILE"
+sed -i "s/versionCode\s*=.*/versionCode = $NEW_VERSION/" "$GRADLE_FILE"
+sed -i "s/versionName\s*=.*/versionName = \"$NEW_VERSION\"/" "$GRADLE_FILE"
+
 
 ### --- UPDATE version.json --- ###
 # Replace "latestVersionCode": X with new version
