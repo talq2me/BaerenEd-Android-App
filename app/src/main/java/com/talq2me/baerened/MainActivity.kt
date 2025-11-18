@@ -504,6 +504,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return currentMainContent
     }
 
+    fun getAppVersion(): String {
+        return try {
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            packageInfo.versionName ?: packageInfo.longVersionCode.toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting app version", e)
+            "?"
+        }
+    }
+
     fun handleHeaderButtonClick(action: String?) {
         when (action) {
             "goBack" -> finish()

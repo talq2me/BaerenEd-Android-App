@@ -54,8 +54,21 @@ class Layout(private val activity: MainActivity) {
             setupDefaultHeaderButtons()
         }
 
-        // Display title
-        titleText.text = content.title ?: "BaerenEd"
+        // Display title with version and profile
+        val baseTitle = content.title ?: "BaerenEd"
+        val version = activity.getAppVersion()
+        val profile = SettingsManager.readProfile(activity) ?: "A"
+        val profileDisplay = if (profile == "A") "AM" else "BM"
+        
+        // Format: "Daily Homework Dashboard v# - AM" (or BM)
+        // Extract base title if it already includes profile, otherwise use as-is
+        val titleWithoutProfile = if (baseTitle.endsWith(" AM") || baseTitle.endsWith(" BM")) {
+            baseTitle.substring(0, baseTitle.length - 3).trim()
+        } else {
+            baseTitle
+        }
+        
+        titleText.text = "$titleWithoutProfile v$version - $profileDisplay"
         titleText.visibility = View.VISIBLE
 
         // Setup progress with dynamic calculation

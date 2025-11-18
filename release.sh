@@ -7,7 +7,7 @@ KEY_ALIAS="key1"
 
 VERSION_JSON="app/src/main/assets/config/version.json"
 GRADLE_FILE="app/build.gradle.kts"
-APK_SOURCE="app/release/app-release.apk"
+APK_SOURCE="app/build/outputs/apk/release/app-release.apk"
 
 # This is the folder inside THE SAME repo that is served by GitHub Pages
 PAGES_APK_PATH="app/release/app-release.apk"
@@ -44,7 +44,7 @@ echo "Building signed APK..."
 echo "APK built."
 
 ### --- COPY APK TO GITHUB PAGES FOLDER --- ###
-#cp "$APK_SOURCE" "$PAGES_APK_PATH"
+cp "$APK_SOURCE" "$PAGES_APK_PATH"
 
 ### --- GIT COMMIT + TAG + PUSH --- ###
 git add .
