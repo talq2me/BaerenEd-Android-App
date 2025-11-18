@@ -23,3 +23,6 @@ gitignore
 # ===========
 .DS_Store
 /app/src/main/java/com/talq2me/baerened/Baeren.code-workspace
+app/release/baselineProfiles/0/app-release.dm
+app/release/output-metadata.json
+app/release/baselineProfiles/1/app-release.dm

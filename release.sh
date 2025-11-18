@@ -44,10 +44,10 @@ echo "Building signed APK..."
 echo "APK built."
 
 ### --- COPY APK TO GITHUB PAGES FOLDER --- ###
-cp "$APK_SOURCE" "$PAGES_APK_PATH"
+#cp "$APK_SOURCE" "$PAGES_APK_PATH"
 
 ### --- GIT COMMIT + TAG + PUSH --- ###
-git add "$GRADLE_FILE" "$VERSION_JSON" "$PAGES_APK_PATH"
+git add .
 
 git commit -m "Release version $NEW_VERSION"
 git tag "v$NEW_VERSION"

@@ -27,8 +27,7 @@
         {
           "title": "Google Read Along",
           "launch": "googleReadAlong",
-          "stars": 3,
-          "readAlong": true
+          "stars": 3
         },
         {
           "title": "French Sounds",

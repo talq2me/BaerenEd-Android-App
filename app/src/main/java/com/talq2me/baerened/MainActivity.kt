@@ -26,7 +26,9 @@ import com.talq2me.contract.SettingsContract
 
 //Update Checker
 import android.app.DownloadManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -45,7 +47,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentMainContent: MainContent? = null
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
-
+    private var downloadId: Long = -1
+    private lateinit var downloadReceiver: BroadcastReceiver
 
     // Activity result launchers
     lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
@@ -110,6 +113,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             cleanupStaleRewardData()
             resetRewardDataForNewDay()
         }
+
+        // Register download completion receiver
+        downloadReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                if (id == downloadId && id != -1L) {
+                    handleDownloadComplete()
+                }
+            }
+        }
+        registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
     private fun checkForUpdateIfOnline() {
@@ -178,10 +192,61 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             )
 
         val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        dm.enqueue(request)
+        downloadId = dm.enqueue(request)
+    }
 
-        // user taps the downloaded apk from Downloads to install.
-        // (android does not allow a full silent install for security reasons.)
+    private fun handleDownloadComplete() {
+        if (isDestroyed || isFinishing) {
+            return
+        }
+        
+        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val query = DownloadManager.Query().setFilterById(downloadId)
+        val cursor = dm.query(query)
+        
+        if (cursor.moveToFirst()) {
+            val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+            if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                val uriString = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                cursor.close()
+                runOnUiThread { 
+                    if (!isDestroyed && !isFinishing) {
+                        showInstallDialog(Uri.parse(uriString))
+                    }
+                }
+            } else {
+                cursor.close()
+            }
+        } else {
+            cursor.close()
+        }
+    }
+
+    private fun showInstallDialog(apkUri: Uri) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("install update")
+            .setMessage("the update has been downloaded. please install it now to continue.")
+            .setCancelable(false)
+            .setPositiveButton("install now") { _, _ ->
+                installApk(apkUri)
+            }
+            .create()
+        
+        dialog.show()
+    }
+
+    private fun installApk(apkUri: Uri) {
+        try {
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+            }
+            
+            startActivity(installIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error installing APK", e)
+            Toast.makeText(this, "Error installing update: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun handleVideoCompletion(result: ActivityResult) {
@@ -633,6 +698,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (::tts.isInitialized) {
             tts.stop()
             tts.shutdown()
+        }
+        if (::downloadReceiver.isInitialized) {
+            try {
+                unregisterReceiver(downloadReceiver)
+            } catch (e: Exception) {
+                // Receiver may not be registered
+            }
         }
         super.onDestroy()
     }

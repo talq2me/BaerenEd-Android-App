@@ -1129,6 +1129,21 @@ class Layout(private val activity: MainActivity) {
                         // Handle playlist task with playlistId field (no rewards for playlists)
                         android.util.Log.d("Layout", "Handling direct playlist task with playlistId: ${task.playlistId}")
                         playYouTubePlaylist(task.playlistId, task.title ?: "Playlist")
+                    } else if (task.launch == "googleReadAlong") {
+                        // Handle Google Read Along app launch
+                        android.util.Log.d("Layout", "Handling Google Read Along task")
+                        try {
+                            val intent = activity.packageManager.getLaunchIntentForPackage("com.google.android.apps.seekh")
+                            if (intent != null) {
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                activity.startActivity(intent)
+                            } else {
+                                Toast.makeText(activity, "Google Read Along app is not installed", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("Layout", "Error launching Google Read Along", e)
+                            Toast.makeText(activity, "Error launching Google Read Along: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
                         // Handle regular game content
                         // Fetch game content asynchronously
