@@ -32,10 +32,13 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import androidx.core.content.FileProvider
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.io.File
 
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -239,7 +242,27 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         try {
             val installIntent = Intent(Intent.ACTION_VIEW).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                
+                // For Android 7.0+ (API 24+), we need to use FileProvider
+                val finalUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // Convert file:// URI to content:// URI using FileProvider
+                    if (apkUri.scheme == "file") {
+                        val file = File(apkUri.path ?: "")
+                        FileProvider.getUriForFile(
+                            this@MainActivity,
+                            "${packageName}.fileprovider",
+                            file
+                        )
+                    } else {
+                        // Already a content:// URI, use as-is
+                        apkUri
+                    }
+                } else {
+                    // For older Android versions, file:// URI is fine
+                    apkUri
+                }
+                
+                setDataAndType(finalUri, "application/vnd.android.package-archive")
             }
             
             startActivity(installIntent)
