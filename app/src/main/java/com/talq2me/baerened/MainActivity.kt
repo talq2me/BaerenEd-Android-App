@@ -36,6 +36,7 @@ import android.os.Build
 import android.os.Environment
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -66,6 +67,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var progressText: TextView
     lateinit var progressBar: ProgressBar
     lateinit var sectionsContainer: LinearLayout
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,12 +90,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         progressText = findViewById(R.id.progressText)
         progressBar = findViewById(R.id.progressBar)
         sectionsContainer = findViewById(R.id.sectionsContainer)
+        swipeRefreshLayout = findViewById(R.id.mainSwipeRefresh)
 
         // Initialize content update service
         contentUpdateService = ContentUpdateService()
 
         // Initialize layout manager
         layout = Layout(this)
+
+        // Setup pull-to-refresh
+        setupPullToRefresh()
 
         // Initialize activity result launchers
         videoCompletionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -503,11 +509,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     withContext(Dispatchers.Main) {
                         displayContent(content)
                         loadingProgressBar.visibility = View.GONE
+                        // Stop refresh indicator if it's showing
+                        if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
+                            swipeRefreshLayout.isRefreshing = false
+                        }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
                         titleText.text = "Failed to load content. Please check your connection."
                         loadingProgressBar.visibility = View.GONE
+                        // Stop refresh indicator if it's showing
+                        if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
+                            swipeRefreshLayout.isRefreshing = false
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -515,8 +529,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 withContext(Dispatchers.Main) {
                     titleText.text = "Error loading content: ${e.message}"
                     loadingProgressBar.visibility = View.GONE
+                    // Stop refresh indicator if it's showing
+                    if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
+                        swipeRefreshLayout.isRefreshing = false
+                    }
                 }
             }
+        }
+    }
+
+    private fun setupPullToRefresh() {
+        swipeRefreshLayout.setOnRefreshListener {
+            loadMainContent()
         }
     }
 
@@ -542,11 +566,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     fun handleHeaderButtonClick(action: String?) {
         when (action) {
-            "goBack" -> finish()
-            "goHome" -> {
-                loadMainContent()
-            }
-            "refreshPage" -> loadMainContent()
             "settings" -> openSettings()
             "openPokedex" -> openPokemonCollection()
             "askForTime" -> showAskForTimeDialog()

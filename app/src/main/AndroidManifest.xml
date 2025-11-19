@@ -39,7 +39,8 @@
         <activity
             android:name=".GameActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
             android:name=".RewardSelectionActivity"
@@ -59,7 +60,8 @@
         <activity
             android:name=".WebGameActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
             android:name=".ChromePageActivity"

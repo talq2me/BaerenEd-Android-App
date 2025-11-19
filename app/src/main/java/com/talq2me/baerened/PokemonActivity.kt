@@ -66,54 +66,7 @@ class PokemonActivity : AppCompatActivity() {
 
     private fun setupHeaderButtons() {
         headerLayout.removeAllViews()
-
-        // Create navigation buttons similar to MainActivity
-        val backButton = createHeaderButton("< Back", "back")
-        val homeButton = createHeaderButton("⌂ Home", "home")
-        val refreshButton = createHeaderButton("⟳ Refresh", "refresh")
-
-        headerLayout.addView(backButton)
-        headerLayout.addView(homeButton)
-        headerLayout.addView(refreshButton)
-    }
-
-    private fun createHeaderButton(text: String, action: String): android.widget.Button {
-        return android.widget.Button(this).apply {
-            this.text = text
-            textSize = 18f
-            setOnClickListener {
-                handleHeaderButtonClick(action)
-            }
-
-            // Style buttons to match MainActivity
-            layoutParams = LinearLayout.LayoutParams(
-                140.dpToPx(), // 140dp width
-                70.dpToPx()  // 70dp height
-            ).apply {
-                marginEnd = 12.dpToPx()
-            }
-
-            background = resources.getDrawable(R.drawable.button_rounded)
-            setTextColor(resources.getColor(android.R.color.white))
-            setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
-        }
-    }
-
-    private fun handleHeaderButtonClick(action: String) {
-        when (action) {
-            "back" -> finish()
-            "home" -> {
-                // Navigate to main screen (home)
-                val intent = android.content.Intent(this, MainActivity::class.java)
-                intent.flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
-                finish()
-            }
-            "refresh" -> {
-                // Refresh the Pokemon data
-                loadPokemonData()
-            }
-        }
+        // No default header buttons needed for PokemonActivity
     }
 
     private fun setupRecyclerView() {

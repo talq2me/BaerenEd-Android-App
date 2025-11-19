@@ -2,9 +2,6 @@
   "version": "2025-10-04",
   "header": {
     "buttons": [
-      {"label": "Back", "action": "goBack"},
-      {"label": "Home", "action": "goHome"},
-      {"label": "Refresh", "action": "refreshPage"},
       {"label": "My Pokedex", "action": "openPokedex"},
       {"label": "Ask for Time", "action": "askForTime"},
       {"label": "Settings", "action": "settings"}

@@ -116,15 +116,6 @@ class Layout(private val activity: MainActivity) {
 
                 // Set text with consistent symbols for standard actions
                 when (button.action) {
-                    "goBack", "back" -> {
-                        text = "< Back"
-                    }
-                    "goHome", "home" -> {
-                        text = "⌂ Home"
-                    }
-                    "refreshPage", "refresh" -> {
-                        text = "⟳ Refresh"
-                    }
                     "settings" -> {
                         text = "⚙ Settings"
                     }
@@ -146,9 +137,6 @@ class Layout(private val activity: MainActivity) {
 
         // Create default navigation buttons
         val defaultButtons = listOf(
-            Button("< Back", "goBack"),
-            Button("⌂ Home", "goHome"),
-            Button("⟳ Refresh", "refreshPage"),
             Button("⚙ Settings", "settings")
         )
 
