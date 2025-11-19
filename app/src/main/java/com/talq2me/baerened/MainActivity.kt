@@ -50,6 +50,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var contentUpdateService: ContentUpdateService
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
+    private var readAlongLaunchTime: Long? = null
+    private var pendingReadAlongReward: PendingReadAlongReward? = null
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
@@ -232,6 +234,41 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } else {
             cursor.close()
         }
+    }
+
+    private fun handleReadAlongReturnIfNeeded() {
+        val startTime = readAlongLaunchTime
+        val pendingReward = pendingReadAlongReward
+        if (startTime == null || pendingReward == null) {
+            return
+        }
+
+        val elapsed = System.currentTimeMillis() - startTime
+        val secondsSpent = elapsed / 1000
+
+        if (elapsed >= MIN_READ_ALONG_DURATION_MS) {
+            layout.handleManualTaskCompletion(
+                pendingReward.taskId,
+                pendingReward.taskTitle,
+                pendingReward.stars,
+                pendingReward.sectionId,
+                "📚 Google Read Along completed! Great job reading!"
+            )
+            Toast.makeText(
+                this,
+                "Great reading! You spent ${secondsSpent}s in Read Along.",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            Toast.makeText(
+                this,
+                "Stay in Google Read Along for at least 60s to earn rewards (only ${secondsSpent}s).",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
+        readAlongLaunchTime = null
+        pendingReadAlongReward = null
     }
 
     private fun showInstallDialog(apkUri: Uri) {
@@ -479,6 +516,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
+        handleReadAlongReturnIfNeeded()
         layout.refreshProgressDisplay()
         layout.refreshHeaderButtons()
         currentMainContent?.let { content ->
@@ -571,6 +609,31 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             "askForTime" -> showAskForTimeDialog()
             null -> Log.w(TAG, "Header button action is null")
             else -> Log.d(TAG, "Unknown header button action: $action")
+        }
+    }
+
+    fun launchGoogleReadAlong(task: Task, sectionId: String?) {
+        android.util.Log.d(TAG, "Launching Google Read Along for task: ${task.title}")
+        try {
+            val intent = packageManager.getLaunchIntentForPackage("com.google.android.apps.seekh")
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                readAlongLaunchTime = System.currentTimeMillis()
+                pendingReadAlongReward = PendingReadAlongReward(
+                    taskId = task.launch ?: "googleReadAlong",
+                    taskTitle = task.title ?: "Google Read Along",
+                    stars = task.stars ?: 0,
+                    sectionId = sectionId
+                )
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Google Read Along app is not installed", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error launching Google Read Along", e)
+            Toast.makeText(this, "Error launching Google Read Along: ${e.message}", Toast.LENGTH_SHORT).show()
+            readAlongLaunchTime = null
+            pendingReadAlongReward = null
         }
     }
 
@@ -766,6 +829,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val MIN_READ_ALONG_DURATION_MS = 60_000L
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
@@ -941,4 +1005,11 @@ data class Game(
     val estimatedTime: Int,
     val totalQuestions: Int? = null,
     val blockOutlines: Boolean = false
+)
+
+data class PendingReadAlongReward(
+    val taskId: String,
+    val taskTitle: String,
+    val stars: Int,
+    val sectionId: String?
 )

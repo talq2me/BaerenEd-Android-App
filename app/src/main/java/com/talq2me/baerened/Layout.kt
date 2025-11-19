@@ -454,6 +454,41 @@ class Layout(private val activity: MainActivity) {
         refreshProgressDisplay()
     }
 
+    fun handleManualTaskCompletion(
+        taskId: String,
+        taskTitle: String,
+        stars: Int,
+        sectionId: String?,
+        completionMessage: String = "Task completed!"
+    ) {
+        android.util.Log.d(TAG, "handleManualTaskCompletion: taskId=$taskId, sectionId=$sectionId, stars=$stars")
+        val currentContent = activity.getCurrentMainContent()
+        val isRequiredTask = sectionId == "required"
+        val earnedStars = progressManager.markTaskCompletedWithName(
+            taskId,
+            taskTitle,
+            stars,
+            isRequiredTask,
+            currentContent,
+            sectionId
+        )
+
+        if (earnedStars > 0) {
+            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+            android.util.Log.d(
+                TAG,
+                "Manual task completion awarded $earnedStars stars (${progressManager.convertStarsToMinutes(earnedStars)} mins). Total bank: $totalRewardMinutes"
+            )
+            Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
+        } else {
+            android.util.Log.d(TAG, "Manual task $taskId already completed today")
+            Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
+        }
+
+        currentContent?.let { displayContent(it) }
+        refreshProgressDisplay()
+    }
+
     private fun addPokemonButtonToProgressLayout() {
         // Check if Pokemon button already exists
         if (progressLayout.findViewWithTag<View>("pokemon_button") != null) {
@@ -1131,20 +1166,8 @@ class Layout(private val activity: MainActivity) {
                         android.util.Log.d("Layout", "Handling direct playlist task with playlistId: ${task.playlistId}")
                         playYouTubePlaylist(task.playlistId, task.title ?: "Playlist")
                     } else if (task.launch == "googleReadAlong") {
-                        // Handle Google Read Along app launch
-                        android.util.Log.d("Layout", "Handling Google Read Along task")
-                        try {
-                            val intent = activity.packageManager.getLaunchIntentForPackage("com.google.android.apps.seekh")
-                            if (intent != null) {
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                activity.startActivity(intent)
-                            } else {
-                                Toast.makeText(activity, "Google Read Along app is not installed", Toast.LENGTH_SHORT).show()
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("Layout", "Error launching Google Read Along", e)
-                            Toast.makeText(activity, "Error launching Google Read Along: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
+                        android.util.Log.d("Layout", "Launching Google Read Along with tracking")
+                        activity.launchGoogleReadAlong(task, sectionId)
                     } else {
                         // Handle regular game content
                         // Fetch game content asynchronously
