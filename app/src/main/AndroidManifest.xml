@@ -10,6 +10,9 @@
 
     <queries>
         <provider android:authorities="com.talq2me.baeren.settingsprovider" />
+        <!-- Declare visibility for Google Read Along -->
+        <package android:name="com.google.android.apps.seekh" />
+
     </queries>
 
     <application
