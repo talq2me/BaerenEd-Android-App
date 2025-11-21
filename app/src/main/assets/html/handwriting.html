@@ -111,7 +111,7 @@
             text-align: center;
             position: relative;
             z-index: 1;
-            margin-top: -10px;
+            margin-top: calc(-10px + 2mm);
             width: 100%;
             white-space: nowrap;
             overflow-x: auto;
@@ -281,11 +281,22 @@
             doneButton.disabled = true;
             doneButton.textContent = "Completed!";
 
+            // Call the Android interface to signal game completion and grant rewards
+            // Handwriting doesn't have correct/incorrect answers, so pass 0 for both
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
-                window.Android.gameCompleted();
+                window.Android.gameCompleted(0, 0);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: 0, incorrect: 0 }, '*');
+                setTimeout(() => {
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({ type: 'closeModal' }, '*');
+                    } else {
+                        history.back();
+                    }
+                }, 500);
             } else {
                 console.log("Not in Android app, navigating back.");
-                setTimeout(() => history.back(), 1000);
+                setTimeout(() => history.back(), 500);
             }
         }
 
