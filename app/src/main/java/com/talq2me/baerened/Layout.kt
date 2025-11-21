@@ -582,29 +582,40 @@ class Layout(private val activity: MainActivity) {
     private fun useRewardMinutes() {
         val rewardMinutes = progressManager.getBankedRewardMinutes() // Use banked minutes directly
         if (rewardMinutes > 0) {
-            // Send progress report in the background before using reward time
+            // Send progress report using the launcher - this will show the email app first,
+            // and then launch reward selection after the user returns from email
             try {
                 if (activity is MainActivity) {
-                    (activity as MainActivity).sendProgressReportInternal()
+                    (activity as MainActivity).sendProgressReportForRewardTime(rewardMinutes.toInt())
+                } else {
+                    // Fallback if not MainActivity (shouldn't happen, but just in case)
+                    val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
+                        putExtra("reward_minutes", rewardMinutes.toInt())
+                    }
+                    activity.startActivity(intent)
                 }
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error sending progress report when using reward time", e)
-                // Don't show error to user, just log it
+                // If there's an error, still try to launch reward selection
+                try {
+                    val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
+                        putExtra("reward_minutes", rewardMinutes.toInt())
+                    }
+                    activity.startActivity(intent)
+                } catch (e2: Exception) {
+                    android.util.Log.e("Layout", "Error launching reward selection", e2)
+                }
             }
-
-            // Launch RewardSelectionActivity to pick an app and transfer reward minutes
-            val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
-                putExtra("reward_minutes", rewardMinutes.toInt())
-            }
-            activity.startActivity(intent)
 
             // Refresh progress display to update the UI
             refreshProgressDisplay()
 
             // Show confirmation message
-            android.widget.Toast.makeText(activity, "🎮 Select a reward app! You have ${rewardMinutes.toInt()} minutes!", android.widget.Toast.LENGTH_LONG).show()
+            android.widget.Toast.makeText(activity, "📧 Sending progress report, then select a reward app! You have ${rewardMinutes.toInt()} minutes!", android.widget.Toast.LENGTH_LONG).show()
 
             // Clear the banked reward minutes from BaerenEd after they have been used
+            // Note: This happens before reward selection, but that's okay since we've already
+            // stored the minutes in the intent
             progressManager.clearBankedRewardMinutes()
 
         } else {

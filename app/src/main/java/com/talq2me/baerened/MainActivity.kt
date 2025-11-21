@@ -56,11 +56,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
     private lateinit var downloadReceiver: BroadcastReceiver
+    private val downloadCheckHandler = Handler(Looper.getMainLooper())
+    private var downloadCheckRunnable: Runnable? = null
 
     // Activity result launchers
     lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
     lateinit var webGameCompletionLauncher: ActivityResultLauncher<Intent>
     lateinit var chromePageLauncher: ActivityResultLauncher<Intent>
+    lateinit var emailReportLauncher: ActivityResultLauncher<Intent>
+    
+    // Store pending reward minutes to launch after email is sent
+    private var pendingRewardMinutes: Int? = null
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -78,6 +84,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Check for updates to app
         checkForUpdateIfOnline()
+        
+        // Check if there's a completed download waiting to be installed
+        checkForCompletedDownload()
 
         // Initialize TTS
         tts = TextToSpeech(this, this)
@@ -116,6 +125,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handleChromePageCompletion(result)
         }
 
+        emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            // After email activity finishes (or is cancelled), launch reward selection if pending
+            pendingRewardMinutes?.let { minutes ->
+                pendingRewardMinutes = null
+                launchRewardSelectionActivity(minutes)
+            }
+        }
+
         if (getOrCreateProfile() != null) {
             loadMainContent()
         }
@@ -129,9 +146,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Register download completion receiver
         downloadReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                if (id == downloadId && id != -1L) {
-                    handleDownloadComplete()
+                val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) ?: -1L
+                Log.d(TAG, "Download broadcast received: id=$id, stored downloadId=$downloadId")
+                if (id != -1L) {
+                    // Check if this is our download or if downloadId matches
+                    if (id == downloadId || downloadId == -1L) {
+                        downloadId = id // Update in case it was lost
+                        handleDownloadComplete()
+                    }
                 }
             }
         }
@@ -207,10 +229,117 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         downloadId = dm.enqueue(request)
+        Log.d(TAG, "Download started with ID: $downloadId")
+        
+        // Start polling for download completion as backup to broadcast receiver
+        startDownloadStatusPolling()
+    }
+    
+    private fun startDownloadStatusPolling() {
+        // Stop any existing polling
+        stopDownloadStatusPolling()
+        
+        downloadCheckRunnable = object : Runnable {
+            override fun run() {
+                if (downloadId == -1L) {
+                    return
+                }
+                
+                val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                val query = DownloadManager.Query().setFilterById(downloadId)
+                val cursor = dm.query(query)
+                
+                try {
+                    if (cursor.moveToFirst()) {
+                        val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                        Log.d(TAG, "Polling download status: $status for ID: $downloadId")
+                        
+                        when (status) {
+                            DownloadManager.STATUS_SUCCESSFUL -> {
+                                Log.d(TAG, "Download completed via polling")
+                                val uriString = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                                stopDownloadStatusPolling()
+                                handleDownloadComplete()
+                            }
+                            DownloadManager.STATUS_FAILED -> {
+                                Log.d(TAG, "Download failed")
+                                stopDownloadStatusPolling()
+                            }
+                            DownloadManager.STATUS_PAUSED -> {
+                                Log.d(TAG, "Download paused")
+                            }
+                            DownloadManager.STATUS_PENDING -> {
+                                Log.d(TAG, "Download pending")
+                            }
+                            DownloadManager.STATUS_RUNNING -> {
+                                Log.d(TAG, "Download running")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error polling download status", e)
+                } finally {
+                    cursor.close()
+                }
+                
+                // Continue polling if download is still in progress
+                if (downloadId != -1L && downloadCheckRunnable != null) {
+                    downloadCheckHandler.postDelayed(this, 1000) // Check every second
+                }
+            }
+        }
+        
+        // Start polling after a short delay
+        downloadCheckHandler.postDelayed(downloadCheckRunnable!!, 1000)
+    }
+    
+    private fun stopDownloadStatusPolling() {
+        downloadCheckRunnable?.let {
+            downloadCheckHandler.removeCallbacks(it)
+            downloadCheckRunnable = null
+        }
+    }
+    
+    private fun checkForCompletedDownload() {
+        // Check if there's a completed download of our APK file
+        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val query = DownloadManager.Query()
+            .setFilterByStatus(DownloadManager.STATUS_SUCCESSFUL)
+        
+        val cursor = dm.query(query)
+        try {
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
+                val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                val title = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TITLE))
+                
+                // Check if this is our update APK
+                if (localUri.contains("myapp-update.apk") || title.contains("downloading update")) {
+                    Log.d(TAG, "Found completed download: id=$id, uri=$localUri")
+                    downloadId = id
+                    handleDownloadComplete()
+                    break
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking for completed downloads", e)
+        } finally {
+            cursor.close()
+        }
     }
 
     private fun handleDownloadComplete() {
+        // Prevent multiple dialogs from showing
+        if (downloadId == -1L) {
+            Log.w(TAG, "Download ID is -1, cannot handle download completion")
+            return
+        }
+        
+        // Stop polling since we're handling completion
+        stopDownloadStatusPolling()
+        
         if (isDestroyed || isFinishing) {
+            Log.d(TAG, "Activity destroyed or finishing, skipping install dialog")
             return
         }
         
@@ -218,20 +347,40 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val query = DownloadManager.Query().setFilterById(downloadId)
         val cursor = dm.query(query)
         
-        if (cursor.moveToFirst()) {
-            val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-            if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                val uriString = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
-                cursor.close()
-                runOnUiThread { 
-                    if (!isDestroyed && !isFinishing) {
-                        showInstallDialog(Uri.parse(uriString))
+        try {
+            if (cursor.moveToFirst()) {
+                val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                Log.d(TAG, "Download status: $status")
+                if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                    val uriString = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                    Log.d(TAG, "Download successful, showing install dialog for: $uriString")
+                    
+                    // Use runOnUiThread to ensure we're on the main thread
+                    if (Looper.myLooper() == Looper.getMainLooper()) {
+                        // Already on main thread
+                        if (!isDestroyed && !isFinishing) {
+                            showInstallDialog(Uri.parse(uriString))
+                        } else {
+                            Log.w(TAG, "Activity state changed, cannot show dialog")
+                        }
+                    } else {
+                        runOnUiThread { 
+                            if (!isDestroyed && !isFinishing) {
+                                showInstallDialog(Uri.parse(uriString))
+                            } else {
+                                Log.w(TAG, "Activity state changed, cannot show dialog")
+                            }
+                        }
                     }
+                } else {
+                    Log.d(TAG, "Download not successful, status: $status")
                 }
             } else {
-                cursor.close()
+                Log.w(TAG, "No download found with ID: $downloadId")
             }
-        } else {
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling download completion", e)
+        } finally {
             cursor.close()
         }
     }
@@ -808,6 +957,86 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    /**
+     * Sends progress report using ActivityResultLauncher (for reward time flow)
+     * This ensures the email app is shown and the user can send the email before
+     * the reward selection activity is launched
+     */
+    fun sendProgressReportForRewardTime(rewardMinutes: Int) {
+        try {
+            val progressManager = DailyProgressManager(this)
+            val timeTracker = TimeTracker(this)
+            val reportGenerator = ReportGenerator(this)
+
+            val mainContent = getCurrentMainContent() ?: MainContent()
+
+            val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
+
+            val currentKid = progressManager.getCurrentKid()
+            val childName = if (currentKid == "A") "AM" else "BM"
+
+            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
+
+            // Get parent email from settings
+            val parentEmail = SettingsManager.readEmail(this)
+            
+            if (parentEmail.isNullOrBlank()) {
+                // If no email is set, just launch reward selection directly
+                launchRewardSelectionActivity(rewardMinutes)
+                return
+            }
+
+            // Store reward minutes to launch after email activity finishes
+            pendingRewardMinutes = rewardMinutes
+
+            // Use mailto: URI to open Gmail directly
+            val emailUri = android.net.Uri.parse("mailto:$parentEmail").buildUpon()
+                .appendQueryParameter("subject", "Daily Progress Report - $childName - ${progressReport.date}")
+                .appendQueryParameter("body", report)
+                .build()
+
+            val emailIntent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                data = emailUri
+            }
+
+            try {
+                if (emailIntent.resolveActivity(packageManager) != null) {
+                    emailReportLauncher.launch(emailIntent)
+                } else {
+                    // Fallback to generic email chooser if mailto: doesn't work
+                    val fallbackIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                        putExtra(android.content.Intent.EXTRA_SUBJECT, "Daily Progress Report - $childName - ${progressReport.date}")
+                        putExtra(android.content.Intent.EXTRA_TEXT, report)
+                    }
+                    emailReportLauncher.launch(Intent.createChooser(fallbackIntent, "Share Progress Report"))
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Error opening email", e)
+                // If email fails, still launch reward selection
+                pendingRewardMinutes = null
+                launchRewardSelectionActivity(rewardMinutes)
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error sending progress report for reward time", e)
+            // If report generation fails, still launch reward selection
+            pendingRewardMinutes = null
+            launchRewardSelectionActivity(rewardMinutes)
+        }
+    }
+
+    /**
+     * Launches the RewardSelectionActivity with the specified reward minutes
+     */
+    private fun launchRewardSelectionActivity(rewardMinutes: Int) {
+        val intent = Intent(this, RewardSelectionActivity::class.java).apply {
+            putExtra("reward_minutes", rewardMinutes)
+        }
+        startActivity(intent)
+    }
+
     private fun displayProfileSelection(content: MainContent) {
         layout.displayProfileSelection(content)
     }
@@ -824,6 +1053,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // Receiver may not be registered
             }
         }
+        stopDownloadStatusPolling()
         super.onDestroy()
     }
 

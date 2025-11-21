@@ -179,82 +179,82 @@
         {
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Duological",
           "launch": "duologicalGame",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1,
           "blockOutlines": true
         },
         {
           "title": "Translation",
           "launch": "translation",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "French Stories",
           "launch": "frenchStories",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Congugation",
           "launch": "conjugation",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Fractions",
           "launch": "gr3fractions",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Math",
           "launch": "gr3math",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Mixed Math",
           "launch": "gr3mixedproblems",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Math Word Problems",
           "launch": "gr3wordproblems",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Algebra",
           "launch": "gr3algebra",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         },
         {
           "title": "Times Tables",
           "launch": "timesTables",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html",
-          "stars": 9,
+          "stars": 3,
           "webGame": true
         },
         {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
-          "stars": 8,
+          "stars": 3,
           "webGame": true
         },
         {
           "title": "Money Game",
           "launch": "canadianMoneyHard",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 1
         }
       ]

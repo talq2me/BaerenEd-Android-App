@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Handwriting Practice</title>
+    <style>
+        :root {
+            --button-bg: #007bff;
+            --button-hover-bg: #ff8c00;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background-color: #f4f7f6;
+            text-align: center;
+            margin: 0;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 36px;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        .game-container {
+            padding: 0;
+            text-align: center;
+            background-color: #ffffff;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 15px;
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: var(--button-bg);
+            color: white;
+        }
+        .button:hover {
+            background-color: var(--button-hover-bg);
+            transform: scale(1.05);
+        }
+        .lined-paper {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px 0;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+        }
+        .paper-lines {
+            position: relative;
+            min-height: 120px;
+            width: 100%;
+        }
+        .paper-lines::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(to bottom, 
+                    transparent 0%, 
+                    transparent 8px, 
+                    #1e90ff 8px, #1e90ff 9px, 
+                    transparent 9px, 
+                    /* First inner blue line */
+                    transparent 24px, 
+                    #87ceeb 24px, #87ceeb 25px, 
+                    transparent 25px, 
+                    /* Second inner blue line */
+                    transparent 44px, 
+                    #87ceeb 44px, #87ceeb 45px, 
+                    transparent 45px, 
+                    /* Bottom blue line */
+                    transparent 56px, 
+                    #1e90ff 56px, #1e90ff 57px, 
+                    transparent 57px
+                );
+            pointer-events: none;
+            z-index: 0;
+        }
+        .sentence-container {
+            position: relative;
+            z-index: 1;
+            padding: 0;
+            width: 100%;
+            overflow-x: auto;
+        }
+        .sentence-text {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            font-size: 40px;
+            line-height: 60px;
+            color: #333;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            margin-top: -10px;
+            width: 100%;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+        .sentence-text span {
+            vertical-align: baseline;
+        }
+        .legend {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .legend-item {
+            display: block;
+            margin: 5px 15px;
+            text-align: left;
+        }
+        .close-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Handwriting Practice</h1>
+        
+        <div class="legend">
+            <span class="legend-item">
+                <span class="legend-tall">Tall letters</span> (b, d, f, h, k, l, t) - go from top line to second line from bottom
+            </span>
+            <span class="legend-item">
+                <span class="legend-normal">Normal letters</span> (a, c, e, i, m, n, o, r, s, u, v, w, x, z) - go between the two middle lines
+            </span>
+            <span class="legend-item">
+                <span class="legend-descender">Descender letters</span> (g, j, p, q, y) - go from bottom line to second line from top
+            </span>
+        </div>
+        
+        <div class="lined-paper">
+            <div class="paper-lines">
+                <div class="sentence-container">
+                    <div class="sentence-text" id="sentenceText">
+                        <!-- Sentence will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="close-button">
+            <button id="doneButton" class="button">I'm Done Writing</button>
+        </div>
+    </div>
+
+    <script>
+        const sentenceText = document.getElementById('sentenceText');
+        const doneButton = document.getElementById('doneButton');
+
+        const sentences = [
+            "The quick brown fox jumps over the lazy dog.",
+            "Pack my box with five dozen liquor jugs.",
+            "Jackdaws love my big sphinx of quartz.",
+            "The five boxing wizards jump quickly.",
+            "How vexingly quick daft zebras jump!",
+            "Bright vixens jump; dozy fowl quack.",
+            "Quick wafting zephyrs vex bold Jim.",
+            "Sphinx of black quartz, judge my vow.",
+            "Two driven jocks help fax my big quiz.",
+            "Five quacking zephyrs jolt my wax bed.",
+            "The jay, pig, fox, zebra, and my wolves quack!",
+            "A wizard’s job is to vex chumps quickly in fog.",
+            "Brown jars prevented the mixture from freezing too quickly.",
+            "Cozy lummox gives smart squid who asks for job pen.",
+            "Grumpy wizards make toxic brew for the evil Queen and Jack.",
+            "Heavy boxes perform quick waltzes and jigs.",
+            "Just keep examining every low bid quoted for zinc etchings.",
+            "My girl wove six dozen plaid jackets before she quit.",
+            "Playing jazz vibe chords quickly excites my wife.",
+            "The quick onyx goblin jumps over the lazy dwarf.",
+            "The wizard quickly jinxed the gnomes before they vaporized.",
+            "Sixty zippers were quickly picked from the woven jute bag.",
+            "A large fawn jumped quickly over white zinc boxes.",
+            "My grandfather picks up quartz and valuable onyx jewels.",
+            "Six crazy kings vowed to abolish my quite pitiful jousts.",
+            "The vixen jumped quickly on her foe barking with zeal.",
+            "A quick movement of the enemy will jeopardize six gunboats.",
+            "All questions asked by five watch experts amazed the judge.",
+            "Big July earthquakes confound zany experimental vow.",
+            "Crazy Fredericka bought many very exquisite opal jewels.",
+            "Sixty-five wildly panting zebras jumped over the next fence.",
+            "We have just quoted on nine dozen boxes of gray lamp wicks.",
+            "My help squeezed back in, having lost the jukebox key.",
+            "The quick brown fox jumps over the lazy dog.",
+            "A big, happy family went to the zoo.",
+            "My fuzzy cat sleeps on a soft, warm rug.",
+            "I love to eat pizza with extra cheese.",
+            "We saw five little ducks swim in the pond.",
+            "The yellow sun shines brightly in the blue sky.",
+            "A friendly frog jumped on a big green leaf.",
+            "He quietly reads a book about brave knights.",
+            "My mom packed a yummy lunch for me to take.",
+            "A playful puppy wags its tail with joy.",
+            "Six colorful kites flew high above the park.",
+            "A quiet mouse hides from the big, scary cat.",
+            "I can write my name with a brand new pencil.",
+            "The happy kids love to play outside in the garden.",
+            "A big red truck makes a very loud noise.",
+            "We can build a giant sandcastle on the beach.",
+            "The queen has a very beautiful, shiny crown.",
+            "A zebra has black and white stripes on its body.",
+            "My dad helps me fly my kite way up high.",
+            "I like to watch funny cartoons on Saturday morning.",
+            "The owl quietly flew over the dark forest at night.",
+            "My friend gave me a pretty quartz rock.",
+            "We can play a fun game with a big, bouncy ball.",
+            "The mailman put a letter in our mailbox.",
+            "I have a quiz in my math class tomorrow.",
+            "The farmer drives a big green tractor on his farm.",
+            "A jet plane can fly very high and fast in the sky.",
+            "My mom bakes the best cookies with chocolate chips.",
+            "I can see a big ship sailing on the ocean.",
+            "We are excited to go on a fun vacation.",
+            "A small bird made a cozy nest in the tall tree.",
+            "I like to help my dad fix things with his tools.",
+            "The clown at the party was very funny and silly.",
+            "We can see many bright stars when we look up at night.",
+            "My dog loves to fetch the ball when I throw it."
+
+        ];
+
+        function initializeGame() {
+            displaySentence();
+            doneButton.onclick = endGame;
+        }
+
+        function displaySentence() {
+            const sentence = getDailySentence();
+            sentenceText.innerHTML = formatSentenceWithSizing(sentence);
+        }
+
+        function getDailySentence() {
+            const today = new Date();
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const sentenceIndex = dayOfYear % sentences.length;
+            return sentences[sentenceIndex];
+        }
+
+        function formatSentenceWithSizing(sentence) {
+            const tallLetters = ['b', 'd', 'f', 'h', 'k', 'l', 't'];
+            const descenderLetters = ['g', 'j', 'p', 'q', 'y'];
+            let formattedSentence = '';
+            for (let char of sentence) {
+                const lowerChar = char.toLowerCase();
+                if (tallLetters.includes(lowerChar)) {
+                    formattedSentence += `<span class="tall-letter">${char}</span>`;
+                } else if (descenderLetters.includes(lowerChar)) {
+                    formattedSentence += `<span class="descender">${char}</span>`;
+                } else {
+                    formattedSentence += `<span>${char}</span>`;
+                }
+            }
+            return formattedSentence;
+        }
+
+        function endGame() {
+            doneButton.disabled = true;
+            doneButton.textContent = "Completed!";
+
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted();
+            } else {
+                console.log("Not in Android app, navigating back.");
+                setTimeout(() => history.back(), 1000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
+</html>
