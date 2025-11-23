@@ -60,9 +60,19 @@ class ChromePageActivity : AppCompatActivity() {
         // Initialize time tracker
         timeTracker = TimeTracker(this)
         
+        // Use unique task ID that includes section info to track separately for required vs optional
+        val progressManager = DailyProgressManager(this)
+        val currentTaskId = taskId
+        val currentSectionId = sectionId
+        val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
+            progressManager.getUniqueTaskId(currentTaskId, currentSectionId)
+        } else {
+            currentTaskId ?: "chromepage"
+        }
+        
         // Start tracking time for this page visit
         val pageName = taskTitle ?: taskId ?: url ?: "Web Page"
-        timeTracker.startActivity(taskId ?: "chromepage", "chromepage", pageName)
+        timeTracker.startActivity(uniqueTaskId, "chromepage", pageName)
 
         val targetUri = Uri.parse(url)
 

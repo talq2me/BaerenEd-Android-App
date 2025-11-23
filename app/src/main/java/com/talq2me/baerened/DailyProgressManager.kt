@@ -108,11 +108,13 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Resets video sequence progress for all video files
+     * NOTE: Sequential videos should NOT reset daily - they continue across days
      */
     private fun resetVideoSequenceProgress() {
-        val videoPrefs = context.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
-        videoPrefs.edit().clear().apply()
-        Log.d("DailyProgressManager", "Reset video sequence progress for new day")
+        // Do NOT reset video sequence progress - videos should continue across days
+        // val videoPrefs = context.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
+        // videoPrefs.edit().clear().apply()
+        Log.d("DailyProgressManager", "Video sequence progress is persistent across days (not reset)")
     }
 
     /**
@@ -186,7 +188,54 @@ class DailyProgressManager(private val context: Context) {
             .apply()
     }
 
-    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null): Boolean {
+    /**
+     * Parses a date string in format "Nov 24, 2025" and returns a Calendar instance
+     * Returns null if parsing fails
+     */
+    private fun parseDisableDate(dateString: String?): Calendar? {
+        if (dateString.isNullOrEmpty()) return null
+        
+        return try {
+            // Try parsing format like "Nov 24, 2025"
+            val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+            val date = formatter.parse(dateString.trim())
+            if (date != null) {
+                Calendar.getInstance().apply {
+                    time = date
+                    // Set time to start of day for accurate comparison
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e("DailyProgressManager", "Error parsing disable date: $dateString", e)
+            null
+        }
+    }
+
+    /**
+     * Checks if a task should be visible based on day restrictions and disable date
+     */
+    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null, disable: String? = null): Boolean {
+        // Check disable date first - if current date is before disable date, hide the task
+        if (!disable.isNullOrEmpty()) {
+            val disableDate = parseDisableDate(disable)
+            if (disableDate != null) {
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                // If today is before the disable date, task is disabled (not visible)
+                if (today.before(disableDate)) {
+                    return false
+                }
+            }
+        }
+
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         val todayShort = when (today) {
             Calendar.MONDAY -> "mon"
@@ -220,7 +269,7 @@ class DailyProgressManager(private val context: Context) {
     fun filterVisibleContent(originalContent: MainContent): MainContent {
         val filteredSections = originalContent.sections?.map { section ->
             val filteredTasks = section.tasks?.filter { task ->
-                isTaskVisible(task.showdays, task.hidedays, task.displayDays)
+                isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
             }
             val filteredItems = section.items?.filter { item ->
                 isTaskVisible(item.showdays, item.hidedays)

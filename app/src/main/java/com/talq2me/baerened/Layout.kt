@@ -19,6 +19,8 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * Layout manager class responsible for creating and managing UI layouts
@@ -321,8 +323,16 @@ class Layout(private val activity: MainActivity) {
     /**
      * Handles video completion and grants rewards if the video was watched to completion
      */
-    fun handleVideoCompletion(taskId: String, taskTitle: String, stars: Int) {
-        android.util.Log.d("Layout", "handleVideoCompletion called: taskId=$taskId, taskTitle=$taskTitle, stars=$stars")
+    fun handleVideoCompletion(taskId: String, taskTitle: String, stars: Int, videoFile: String? = null, videoIndex: Int? = null) {
+        android.util.Log.d("Layout", "handleVideoCompletion called: taskId=$taskId, taskTitle=$taskTitle, stars=$stars, videoFile=$videoFile, videoIndex=$videoIndex")
+
+        // If this is a sequential video that completed, update the video index now
+        if (videoFile != null && videoIndex != null) {
+            val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
+            val currentKid = SettingsManager.readProfile(activity) ?: "A"
+            prefs.edit().putInt("${currentKid}_${videoFile}_index", videoIndex).apply()
+            android.util.Log.d("Layout", "Updated sequential video index: ${currentKid}_${videoFile}_index = $videoIndex")
+        }
 
         // Only grant rewards if this is a legitimate completion (not manual exit)
         // The video activities will only call this on actual completion
@@ -682,7 +692,51 @@ class Layout(private val activity: MainActivity) {
         return builder.build().toString()
     }
 
-    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null): Boolean {
+    /**
+     * Parses a date string in format "Nov 24, 2025" and returns a Calendar instance
+     * Returns null if parsing fails
+     */
+    private fun parseDisableDate(dateString: String?): Calendar? {
+        if (dateString.isNullOrEmpty()) return null
+        
+        return try {
+            // Try parsing format like "Nov 24, 2025"
+            val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+            val date = formatter.parse(dateString.trim())
+            if (date != null) {
+                Calendar.getInstance().apply {
+                    time = date
+                    // Set time to start of day for accurate comparison
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+            } else null
+        } catch (e: Exception) {
+            android.util.Log.e("Layout", "Error parsing disable date: $dateString", e)
+            null
+        }
+    }
+
+    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null, disable: String? = null): Boolean {
+        // Check disable date first - if current date is before disable date, hide the task
+        if (!disable.isNullOrEmpty()) {
+            val disableDate = parseDisableDate(disable)
+            if (disableDate != null) {
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                // If today is before the disable date, task is disabled (not visible)
+                if (today.before(disableDate)) {
+                    return false
+                }
+            }
+        }
+
         val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
         val todayShort = when (today) {
             Calendar.MONDAY -> "mon"
@@ -713,7 +767,7 @@ class Layout(private val activity: MainActivity) {
         return true // Visible by default if no restrictions
     }
 
-    private fun handleVideoSequenceTask(task: Task) {
+    private fun handleVideoSequenceTask(task: Task, sectionId: String?) {
         val videoSequence = task.videoSequence ?: return
 
         when (videoSequence) {
@@ -744,11 +798,11 @@ class Layout(private val activity: MainActivity) {
                                 "exact" -> {
                                     // Play specific video
                                     val videoName = task.video ?: return@withContext
-                                    playYouTubeVideo(videoJson, videoName, task)
+                                    playYouTubeVideo(videoJson, videoName, task, sectionId)
                                 }
                                 "sequential" -> {
                                     // Play next video in sequence
-                                    playNextVideoInSequence(videoJson, videoFile, task)
+                                    playNextVideoInSequence(videoJson, videoFile, task, sectionId)
                                 }
                                 else -> {
                                     // Unknown video sequence type
@@ -767,7 +821,7 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun playYouTubeVideo(videoJson: String, videoName: String, task: Task) {
+    private fun playYouTubeVideo(videoJson: String, videoName: String, task: Task, sectionId: String? = null) {
         try {
             val gson = com.google.gson.Gson()
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
@@ -783,8 +837,9 @@ class Layout(private val activity: MainActivity) {
                     putExtra("TASK_ID", task.launch ?: "unknown")
                     putExtra("TASK_TITLE", task.title ?: "Video Task")
                     putExtra("TASK_STARS", task.stars ?: 0)
+                    sectionId?.let { putExtra("SECTION_ID", it) }
                 }
-                android.util.Log.d("Layout", "Starting YouTube player with videoId: $videoId, videoName: $videoName")
+                android.util.Log.d("Layout", "Starting YouTube player with videoId: $videoId, videoName: $videoName, sectionId: $sectionId")
                 activity.videoCompletionLauncher.launch(intent)
             } else {
                 android.util.Log.e("Layout", "Video not found: $videoName in JSON: $videoJson")
@@ -796,7 +851,7 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun playNextVideoInSequence(videoJson: String, videoFile: String, task: Task) {
+    private fun playNextVideoInSequence(videoJson: String, videoFile: String, task: Task, sectionId: String? = null) {
         try {
             val gson = com.google.gson.Gson()
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
@@ -805,21 +860,57 @@ class Layout(private val activity: MainActivity) {
             // Get the last played video index for this file and profile
             val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
             val currentKid = SettingsManager.readProfile(activity) ?: "A"
-            val lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", 0)
+            val lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", -1)
 
-            // Get next video (wrap around if at end)
-            val nextIndex = (lastVideoIndex + 1) % videoList.size
+            // Get next video index (start at 0 if never played, otherwise next in sequence)
+            // Wrap around if at end
+            val nextIndex = if (lastVideoIndex == -1) {
+                0 // Start from beginning if never played
+            } else {
+                (lastVideoIndex + 1) % videoList.size
+            }
             val nextVideoName = videoList[nextIndex]
 
             // Play the video using the activity result launcher
-            playYouTubeVideo(videoJson, nextVideoName, task)
-
-            // Update the last played index
-            prefs.edit().putInt("${currentKid}_${videoFile}_index", nextIndex).apply()
+            // Pass the video file and index info through the intent so we can update after completion
+            playYouTubeVideoForSequence(videoJson, nextVideoName, task, videoFile, nextIndex, sectionId)
 
         } catch (e: Exception) {
             android.util.Log.e("Layout", "Error handling sequential video", e)
             Toast.makeText(activity, "Error playing video sequence", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun playYouTubeVideoForSequence(videoJson: String, videoName: String, task: Task, videoFile: String, videoIndex: Int, sectionId: String? = null) {
+        try {
+            val gson = com.google.gson.Gson()
+            val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
+            val videoId = videoMap[videoName]
+
+            android.util.Log.d("Layout", "Playing sequential video: $videoName (index: $videoIndex) from file: $videoFile")
+
+            if (videoId != null) {
+                // Launch YouTube player activity with sequence tracking info
+                val intent = Intent(activity, YouTubePlayerActivity::class.java).apply {
+                    putExtra(YouTubePlayerActivity.EXTRA_VIDEO_ID, videoId)
+                    putExtra(YouTubePlayerActivity.EXTRA_VIDEO_TITLE, videoName)
+                    putExtra("TASK_ID", task.launch ?: "unknown")
+                    putExtra("TASK_TITLE", task.title ?: "Video Task")
+                    putExtra("TASK_STARS", task.stars ?: 0)
+                    sectionId?.let { putExtra("SECTION_ID", it) }
+                    putExtra("VIDEO_FILE", videoFile) // Store for index update after completion
+                    putExtra("VIDEO_INDEX", videoIndex) // Store for index update after completion
+                    putExtra("IS_SEQUENTIAL", true) // Flag to indicate this is a sequential video
+                }
+                android.util.Log.d("Layout", "Starting YouTube player with videoId: $videoId, videoName: $videoName, index: $videoIndex")
+                activity.videoCompletionLauncher.launch(intent)
+            } else {
+                android.util.Log.e("Layout", "Video not found: $videoName in JSON")
+                Toast.makeText(activity, "Video not found: $videoName", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("Layout", "Error parsing video JSON for sequence", e)
+            Toast.makeText(activity, "Error playing video", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1023,7 +1114,7 @@ class Layout(private val activity: MainActivity) {
                 // Filter visible tasks and defer to next frame to avoid blocking
                 sectionLayout.post {
                     val visibleTasks = tasks.filter { task -> 
-                        isTaskVisible(task.showdays, task.hidedays, task.displayDays) 
+                        isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable) 
                     }
                     
                     // Always create incrementally, one row per frame
@@ -1171,7 +1262,7 @@ class Layout(private val activity: MainActivity) {
                         activity.webGameCompletionLauncher.launch(intent)
                     } else if (task.videoSequence != null) {
                         android.util.Log.d("Layout", "Handling video sequence task: ${task.videoSequence}, launch: ${task.launch}, playlistId: ${task.playlistId}")
-                        handleVideoSequenceTask(task)
+                        handleVideoSequenceTask(task, sectionId)
                     } else if (task.playlistId != null) {
                         // Handle playlist task with playlistId field (no rewards for playlists)
                         android.util.Log.d("Layout", "Handling direct playlist task with playlistId: ${task.playlistId}")

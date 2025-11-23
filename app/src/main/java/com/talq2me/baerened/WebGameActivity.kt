@@ -49,9 +49,19 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initialize time tracker
         timeTracker = TimeTracker(this)
         
+        // Use unique task ID that includes section info to track separately for required vs optional
+        val progressManager = DailyProgressManager(this)
+        val currentTaskId = taskId
+        val currentSectionId = sectionId
+        val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
+            progressManager.getUniqueTaskId(currentTaskId, currentSectionId)
+        } else {
+            currentTaskId ?: "webgame"
+        }
+        
         // Start tracking time for this web game
         val gameName = taskTitle ?: taskId ?: "Web Game"
-        timeTracker.startActivity(taskId ?: "webgame", "webgame", gameName)
+        timeTracker.startActivity(uniqueTaskId, "webgame", gameName)
 
         val ws: WebSettings = webView.settings
         ws.javaScriptEnabled = true

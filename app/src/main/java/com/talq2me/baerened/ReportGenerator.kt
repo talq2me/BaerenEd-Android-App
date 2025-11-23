@@ -49,7 +49,8 @@ class ReportGenerator(private val context: Context) {
                 if (isVideoTask || isChromePageTask) {
                     return ""
                 }
-                return "   #correct: $correctAnswers   #incorrect: $incorrectAnswers"
+                // Use shorter format: # with green check and # with red X
+                return "   $correctAnswers ✅   $incorrectAnswers ❌"
             }
     }
 
@@ -74,12 +75,20 @@ class ReportGenerator(private val context: Context) {
             section.tasks?.forEach { task ->
                 val taskId = task.launch ?: return@forEach
                 val taskName = task.title ?: taskId
-                val isCompleted = report.completedTasks.contains(taskId)
                 
-                // Match sessions by activityId
-                // For all tasks: activityId matches task.launch (no longer using rewardId)
+                // Use unique task ID to match sessions (includes section info for optional tasks)
+                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, section.id ?: "unknown")
+                
+                // Check completion status using the appropriate task ID
+                val isCompleted = if (isRequired) {
+                    report.completedTasks.contains(taskId)
+                } else {
+                    report.completedTasks.contains(uniqueTaskId)
+                }
+                
+                // Match sessions by unique activityId (which includes section info for optional tasks)
                 val matchingSessions = allSessions.filter { session ->
-                    session.activityId == taskId
+                    session.activityId == uniqueTaskId
                 }
                 
                 val totalTimeSeconds = matchingSessions.sumOf { it.durationSeconds }

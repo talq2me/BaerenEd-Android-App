@@ -21,6 +21,11 @@ class YouTubePlayerActivity : AppCompatActivity() {
     }
 
     private lateinit var webView: WebView
+    private lateinit var timeTracker: TimeTracker
+    private var taskId: String? = null
+    private var sectionId: String? = null
+    private var taskTitle: String? = null
+    private var videoCompleted = false
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +33,28 @@ class YouTubePlayerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_youtube_player)
 
         webView = findViewById(R.id.yt_webview)
+        
+        // Get task information
+        taskId = intent.getStringExtra("TASK_ID")
+        taskTitle = intent.getStringExtra("TASK_TITLE")
+        sectionId = intent.getStringExtra("SECTION_ID")
+        
+        // Initialize time tracker
+        timeTracker = TimeTracker(this)
+        
+        // Use unique task ID that includes section info to track separately for required vs optional
+        val progressManager = DailyProgressManager(this)
+        val currentTaskId = taskId
+        val currentSectionId = sectionId
+        val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
+            progressManager.getUniqueTaskId(currentTaskId, currentSectionId)
+        } else {
+            currentTaskId ?: "video"
+        }
+        
+        // Start tracking time for this video
+        val videoName = taskTitle ?: "Video"
+        timeTracker.startActivity(uniqueTaskId, "video", videoName)
 
         // read extras for single video
         val videoId = intent.getStringExtra(EXTRA_VIDEO_ID)
@@ -78,6 +105,10 @@ class YouTubePlayerActivity : AppCompatActivity() {
         } else if (!playlistId.isNullOrEmpty()) {
             "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/playlistVideoPlayerForAndroid.html?playlistId=$playlistId"
         } else {
+            // End time tracking if we're finishing early
+            if (::timeTracker.isInitialized) {
+                timeTracker.endActivity("video")
+            }
             Toast.makeText(this, "No video or playlist ID provided", Toast.LENGTH_LONG).show()
             finish()
             return
@@ -98,18 +129,30 @@ class YouTubePlayerActivity : AppCompatActivity() {
     private fun finishVideoWithResult() {
         android.util.Log.d("YouTubePlayerActivity", "Finishing video activity with success result")
 
-        // Get the task information from the intent
-        val taskId = intent.getStringExtra("TASK_ID")
-        val taskTitle = intent.getStringExtra("TASK_TITLE")
-        val taskStars = intent.getIntExtra("TASK_STARS", 0)
+        // Mark video as completed and end time tracking
+        videoCompleted = true
+        if (::timeTracker.isInitialized) {
+            timeTracker.endActivity("video")
+        }
 
-        android.util.Log.d("YouTubePlayerActivity", "Task info - ID: $taskId, Title: $taskTitle, Stars: $taskStars")
+        // Get the task information from the intent
+        val taskStars = intent.getIntExtra("TASK_STARS", 0)
+        val videoFile = intent.getStringExtra("VIDEO_FILE")
+        val videoIndex = intent.getIntExtra("VIDEO_INDEX", -1)
+        val isSequential = intent.getBooleanExtra("IS_SEQUENTIAL", false)
+
+        android.util.Log.d("YouTubePlayerActivity", "Task info - ID: $taskId, Title: $taskTitle, Stars: $taskStars, Sequential: $isSequential, VideoFile: $videoFile, Index: $videoIndex")
 
         // Set result with task completion data
         val resultIntent = Intent().apply {
             putExtra("TASK_ID", taskId ?: "")
             putExtra("TASK_TITLE", taskTitle ?: "")
             putExtra("TASK_STARS", taskStars)
+            sectionId?.let { putExtra("SECTION_ID", it) }
+            if (isSequential && videoFile != null && videoIndex != -1) {
+                putExtra("VIDEO_FILE", videoFile)
+                putExtra("VIDEO_INDEX", videoIndex)
+            }
         }
 
         setResult(RESULT_OK, resultIntent)
@@ -118,6 +161,10 @@ class YouTubePlayerActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         android.util.Log.d("YouTubePlayerActivity", "Back button pressed, finishing without completion")
+        // End time tracking (video not completed)
+        if (::timeTracker.isInitialized && !videoCompleted) {
+            timeTracker.endActivity("video")
+        }
         // When user manually exits, don't treat it as completion
         setResult(RESULT_CANCELED)
         super.onBackPressed()
@@ -141,8 +188,15 @@ class YouTubePlayerActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        webView.removeJavascriptInterface("Android")
-        webView.destroy()
+        // End time tracking if not already ended
+        if (::timeTracker.isInitialized && !videoCompleted) {
+            timeTracker.endActivity("video")
+        }
+        
+        if (::webView.isInitialized) {
+            webView.removeJavascriptInterface("Android")
+            webView.destroy()
+        }
         super.onDestroy()
     }
 }

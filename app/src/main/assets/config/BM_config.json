@@ -75,7 +75,7 @@
           "webGame": true,
           "easydays": "mon,tue",
           "harddays": "wed",
-          "extremedays": "thu,fri"
+          "extremedays": "thu"
         },
         {
           "title": "Fr Spelling",
@@ -83,6 +83,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Nov 24, 2025",
           "easydays": "tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun,mon"

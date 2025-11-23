@@ -32,6 +32,10 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.app.PendingIntent
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.pm.PackageInstaller
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.ContextCompat
@@ -41,6 +45,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -409,9 +415,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-            Toast.makeText(
+                Toast.makeText(
                 this,
-                "Stay in Google Read Along for at least 60s to earn rewards (only ${secondsSpent}s).",
+                "Stay in Google Read Along for at least 30s to earn rewards (only ${secondsSpent}s).",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -435,35 +441,122 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun installApk(apkUri: Uri) {
         try {
+            Log.d(TAG, "Installing APK from URI: $apkUri, scheme: ${apkUri.scheme}")
+            
+            // Get the actual file path
+            val file = when (apkUri.scheme) {
+                "file" -> File(apkUri.path ?: "")
+                "content" -> {
+                    // Try to get file path from content URI
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    File(downloadsDir, "myapp-update.apk")
+                }
+                else -> {
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    File(downloadsDir, "myapp-update.apk")
+                }
+            }
+            
+            if (!file.exists()) {
+                Log.e(TAG, "APK file does not exist at path: ${file.absolutePath}")
+                Toast.makeText(this, "APK file not found", Toast.LENGTH_LONG).show()
+                return
+            }
+            
+            // Check if we're device owner (can install silently without Play Protect prompt)
+            if (isDeviceOwner()) {
+                Log.d(TAG, "Device owner detected, attempting silent install")
+                if (installSilentlyAsDeviceOwner(file)) {
+                    return // Successfully installed silently
+                }
+                // Fall through to regular install if silent install fails
+            }
+            
+            // Regular install method (will show Play Protect prompt)
             val installIntent = Intent(Intent.ACTION_VIEW).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 
                 // For Android 7.0+ (API 24+), we need to use FileProvider
                 val finalUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    // Convert file:// URI to content:// URI using FileProvider
-                    if (apkUri.scheme == "file") {
-                        val file = File(apkUri.path ?: "")
-                        FileProvider.getUriForFile(
+                    try {
+                        val contentUri = FileProvider.getUriForFile(
                             this@MainActivity,
                             "${packageName}.fileprovider",
                             file
                         )
-                    } else {
-                        // Already a content:// URI, use as-is
-                        apkUri
+                        Log.d(TAG, "FileProvider URI created: $contentUri")
+                        contentUri
+                    } catch (e: IllegalArgumentException) {
+                        Log.e(TAG, "FileProvider error: ${e.message}")
+                        throw e
                     }
                 } else {
                     // For older Android versions, file:// URI is fine
-                    apkUri
+                    Log.d(TAG, "Android < 7.0, using file:// URI directly")
+                    Uri.fromFile(file)
                 }
                 
                 setDataAndType(finalUri, "application/vnd.android.package-archive")
             }
             
+            Log.d(TAG, "Starting install intent with URI: ${installIntent.data}")
             startActivity(installIntent)
         } catch (e: Exception) {
             Log.e(TAG, "Error installing APK", e)
             Toast.makeText(this, "Error installing update: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun isDeviceOwner(): Boolean {
+        return try {
+            val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            devicePolicyManager.isDeviceOwnerApp(packageName)
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    private fun installSilentlyAsDeviceOwner(file: File): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Use PackageInstaller for Android 8.0+
+                val packageInstaller = packageManager.packageInstaller
+                val sessionParams = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+                val sessionId = packageInstaller.createSession(sessionParams)
+                val session = packageInstaller.openSession(sessionId)
+                
+                val inputStream = FileInputStream(file)
+                val outputStream = session.openWrite("package", 0, -1)
+                
+                inputStream.copyTo(outputStream)
+                session.fsync(outputStream)
+                inputStream.close()
+                outputStream.close()
+                
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    action = "INSTALL_COMPLETE"
+                }
+                val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                
+                session.commit(pendingIntent.intentSender)
+                session.close()
+                
+                Log.d(TAG, "Silent install initiated via PackageInstaller")
+                true
+            } else {
+                // For Android < 8.0, try DevicePolicyManager
+                val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    // This requires special permissions and setup
+                    Log.d(TAG, "Device owner install not fully supported on Android < 8.0")
+                    false
+                } else {
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in silent install", e)
+            false
         }
     }
 
@@ -473,9 +566,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val taskId = result.data?.getStringExtra("TASK_ID")
             val taskTitle = result.data?.getStringExtra("TASK_TITLE")
             val stars = result.data?.getIntExtra("TASK_STARS", 0) ?: 0
+            val videoFile = result.data?.getStringExtra("VIDEO_FILE")
+            val videoIndex = result.data?.getIntExtra("VIDEO_INDEX", -1)
 
             if (taskId != null && taskTitle != null) {
-                layout.handleVideoCompletion(taskId, taskTitle, stars)
+                val indexToPass = if (videoIndex != -1) videoIndex else null
+                layout.handleVideoCompletion(taskId, taskTitle, stars, videoFile, indexToPass)
             }
         }
     }
@@ -1059,7 +1155,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
         private const val TAG = "MainActivity"
-        private const val MIN_READ_ALONG_DURATION_MS = 60_000L
+        private const val MIN_READ_ALONG_DURATION_MS = 30_000L
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
@@ -1206,7 +1302,8 @@ data class Task(
     val extremedays: String? = null,
     val showdays: String? = null,
     val hidedays: String? = null,
-    val displayDays: String? = null
+    val displayDays: String? = null,
+    val disable: String? = null
 )
 
 data class ChecklistItem(

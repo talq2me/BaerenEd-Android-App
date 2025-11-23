@@ -90,9 +90,16 @@ class GameActivity : AppCompatActivity() {
 
         // Initialize time tracker
         timeTracker = TimeTracker(this)
+        
+        // Use unique task ID that includes section info to track separately for required vs optional
+        val uniqueTaskId = if (sectionId != null) {
+            progressManager.getUniqueTaskId(gameType, sectionId)
+        } else {
+            gameType
+        }
 
         // Start time tracking for this game
-        timeTracker.startActivity(gameType, "game", gameTitle)
+        timeTracker.startActivity(uniqueTaskId, "game", gameTitle)
 
         // TTS Init
         tts = TextToSpeech(this) { status ->
