@@ -74,11 +74,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var webGameCompletionLauncher: ActivityResultLauncher<Intent>
     lateinit var chromePageLauncher: ActivityResultLauncher<Intent>
     lateinit var emailReportLauncher: ActivityResultLauncher<Intent>
+    private lateinit var installPackagePermissionLauncher: ActivityResultLauncher<Intent>
     
     // Store pending reward minutes to launch after email is sent
     private var pendingRewardMinutes: Int? = null
     private var emailLaunchTime: Long = 0
     private var rewardEmailInFlight = false
+    private var pendingApkInstall: DownloadedApk? = null
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -147,6 +149,29 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         chromePageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             handleChromePageCompletion(result)
+        }
+
+        installPackagePermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            // After user returns from settings, try to install
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (packageManager.canRequestPackageInstalls()) {
+                    pendingApkInstall?.let { apk ->
+                        pendingApkInstall = null
+                        performInstall(apk)
+                    }
+                } else {
+                    pendingApkInstall = null
+                    Toast.makeText(this, "Install permission not granted. Cannot install update automatically.", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                // Android < 8.0, just try to install
+                pendingApkInstall?.let { apk ->
+                    pendingApkInstall = null
+                    performInstall(apk)
+                }
+            }
         }
 
         emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -858,6 +883,29 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun installApk(downloadedApk: DownloadedApk) {
+        // Check and request install permission on Android 8.0+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!packageManager.canRequestPackageInstalls()) {
+                Log.d(TAG, "Requesting install package permission")
+                pendingApkInstall = downloadedApk
+                try {
+                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                        data = android.net.Uri.parse("package:$packageName")
+                    }
+                    installPackagePermissionLauncher.launch(intent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error opening install permission settings", e)
+                    Toast.makeText(this, "Please enable 'Install unknown apps' for this app in Settings > Apps > Special app access", Toast.LENGTH_LONG).show()
+                    pendingApkInstall = null
+                }
+                return
+            }
+        }
+        
+        performInstall(downloadedApk)
+    }
+    
+    private fun performInstall(downloadedApk: DownloadedApk) {
         try {
             val apkFile = downloadedApk.file
             val hasLocalFile = apkFile != null && apkFile.exists()
@@ -876,39 +924,53 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val finalUri = when {
                 hasLocalFile && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
                     try {
-                        FileProvider.getUriForFile(
+                        val uri = FileProvider.getUriForFile(
                             this@MainActivity,
                             "${packageName}.fileprovider",
                             apkFile!!
                         )
+                        Log.d(TAG, "FileProvider URI created: $uri")
+                        uri
                     } catch (e: IllegalArgumentException) {
-                        Log.e(TAG, "FileProvider error: ${e.message}")
+                        Log.e(TAG, "FileProvider error: ${e.message}", e)
                         throw e
                     }
                 }
-                hasLocalFile -> Uri.fromFile(apkFile)
-                else -> downloadedApk.uri
+                hasLocalFile -> {
+                    Log.d(TAG, "Using file:// URI for Android < N: ${apkFile!!.absolutePath}")
+                    Uri.fromFile(apkFile)
+                }
+                else -> {
+                    Log.d(TAG, "Using downloaded URI: ${downloadedApk.uri}")
+                    downloadedApk.uri
+                }
             }
             
             val installIntent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(finalUri, "application/vnd.android.package-archive")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                // Grant permission to package installer
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
             }
             
-            Log.d(TAG, "Starting install intent with URI: $finalUri")
+            Log.d(TAG, "Starting install intent with URI: $finalUri, scheme: ${finalUri.scheme}")
             
             // Check if intent can be resolved before launching
-            if (installIntent.resolveActivity(packageManager) != null) {
+            val resolver = packageManager.resolveActivity(installIntent, 0)
+            if (resolver != null) {
+                Log.d(TAG, "Package installer found, starting install activity")
                 startActivity(installIntent)
             } else {
-                throw IllegalStateException("No app can handle APK install. URI: $finalUri")
+                Log.e(TAG, "No app can handle APK install. URI: $finalUri")
+                throw IllegalStateException("No app can handle APK install. Please enable 'Install unknown apps' for this app in settings.")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error installing APK", e)
-            Toast.makeText(this, "Error installing update: ${e.message}", Toast.LENGTH_LONG).show()
+            val errorMsg = "Error installing update: ${e.message}\n\nPlease try installing manually from Downloads folder."
+            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
         }
     }
     
