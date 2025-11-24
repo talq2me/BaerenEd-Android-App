@@ -12,17 +12,30 @@ APK_SOURCE="app/build/outputs/apk/release/app-release.apk"
 # This is the folder inside THE SAME repo that is served by GitHub Pages
 PAGES_APK_PATH="app/release/app-release.apk"
 
-### --- GET PASSWORD --- ###
-echo -n "Enter keystore password: "
-read -s STOREPASS
-echo ""
-
 ### --- READ CURRENT VERSION --- ###
 CURRENT_VERSION=$(grep "versionCode" -i "$GRADLE_FILE" | grep -o "[0-9]*")
 NEW_VERSION=$((CURRENT_VERSION + 1))
 
 echo "Current version: $CURRENT_VERSION"
 echo "New version: $NEW_VERSION"
+
+### --- PRE-BUILD CHECK --- ###
+echo "Running pre-build check to verify compilation..."
+echo "This ensures the build will succeed before we update version numbers."
+
+./gradlew clean compileReleaseKotlin
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Pre-build check failed! Fix compilation errors before releasing."
+    exit 1
+fi
+
+echo "Pre-build check passed! Proceeding with release..."
+
+### --- GET PASSWORD --- ###
+echo -n "Enter keystore password: "
+read -s STOREPASS
+echo ""
 
 ### --- UPDATE build.gradle --- ###
 sed -i "s/versionCode\s*=.*/versionCode = $NEW_VERSION/" "$GRADLE_FILE"

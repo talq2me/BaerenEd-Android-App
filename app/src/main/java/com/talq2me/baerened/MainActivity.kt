@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var downloadReceiver: BroadcastReceiver
     private val downloadCheckHandler = Handler(Looper.getMainLooper())
     private var downloadCheckRunnable: Runnable? = null
+    private var downloadProgressDialog: AlertDialog? = null
     private val updatePrefs by lazy { getSharedPreferences(UPDATE_PREFS_NAME, Context.MODE_PRIVATE) }
     private val rewardPrefs by lazy { getSharedPreferences(REWARD_PREFS_NAME, Context.MODE_PRIVATE) }
 
@@ -95,11 +96,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Remove any leftover downloads that already match the installed build
         cleanupDownloadedUpdatesIfAlreadyInstalled()
 
+        // Restore download ID from preferences if we have an active download
+        restoreDownloadState()
+
         // Check for updates to app
         checkForUpdateIfOnline()
         
         // Check if there's a completed download waiting to be installed
         checkForCompletedDownload()
+        
+        // If we have an active download, start monitoring it
+        if (downloadId != -1L) {
+            startDownloadStatusPolling()
+            showDownloadProgressDialog()
+        }
 
         // Initialize TTS
         tts = TextToSpeech(this, this)
@@ -244,6 +254,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun downloadAndInstall(targetVersion: Int, url: String) {
+        // Check if this version is already downloaded
+        val existingFile = findDownloadedApkForVersion(targetVersion)
+        if (existingFile != null && existingFile.exists()) {
+            Log.d(TAG, "APK for version $targetVersion already downloaded, showing install dialog")
+            val downloadedApk = DownloadedApk(uri = Uri.fromFile(existingFile), file = existingFile)
+            showInstallDialog(downloadedApk)
+            return
+        }
+
         val targetFileName = getApkFileName(targetVersion)
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (!downloadsDir.exists()) {
@@ -274,17 +293,87 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .putLong(KEY_PENDING_DOWNLOAD_ID, downloadId)
             .apply()
         
-        // Start polling for download completion as backup to broadcast receiver
+        // Show progress dialog and start polling
+        showDownloadProgressDialog()
         startDownloadStatusPolling()
+    }
+    
+    private fun restoreDownloadState() {
+        val savedDownloadId = updatePrefs.getLong(KEY_PENDING_DOWNLOAD_ID, -1L)
+        if (savedDownloadId != -1L) {
+            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val query = DownloadManager.Query().setFilterById(savedDownloadId)
+            val cursor = dm.query(query)
+            try {
+                if (cursor.moveToFirst()) {
+                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                    when (status) {
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            // Download already completed, handle it
+                            downloadId = savedDownloadId
+                            handleDownloadComplete()
+                        }
+                        DownloadManager.STATUS_RUNNING,
+                        DownloadManager.STATUS_PENDING,
+                        DownloadManager.STATUS_PAUSED -> {
+                            // Download still in progress, resume monitoring
+                            downloadId = savedDownloadId
+                        }
+                        else -> {
+                            // Download failed or cancelled, clear state
+                            clearPendingUpdateState()
+                        }
+                    }
+                } else {
+                    // Download no longer exists in DownloadManager
+                    clearPendingUpdateState()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error restoring download state", e)
+                clearPendingUpdateState()
+            } finally {
+                cursor.close()
+            }
+        }
+    }
+    
+    private fun showDownloadProgressDialog() {
+        // Dismiss existing dialog if any
+        downloadProgressDialog?.dismiss()
+        
+        val progressBar = ProgressBar(this).apply {
+            isIndeterminate = true
+        }
+        
+        downloadProgressDialog = AlertDialog.Builder(this)
+            .setTitle("downloading update…")
+            .setMessage("please wait while the update downloads")
+            .setView(progressBar)
+            .setCancelable(false)
+            .create()
+        
+        downloadProgressDialog?.show()
+    }
+    
+    private fun dismissDownloadProgressDialog() {
+        downloadProgressDialog?.dismiss()
+        downloadProgressDialog = null
     }
     
     private fun startDownloadStatusPolling() {
         // Stop any existing polling
         stopDownloadStatusPolling()
         
+        // Show progress dialog if not already shown
+        if (downloadProgressDialog == null || !downloadProgressDialog!!.isShowing) {
+            showDownloadProgressDialog()
+        }
+        
         downloadCheckRunnable = object : Runnable {
             override fun run() {
                 if (downloadId == -1L) {
+                    stopDownloadStatusPolling()
+                    dismissDownloadProgressDialog()
                     return
                 }
                 
@@ -295,18 +384,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 try {
                     if (cursor.moveToFirst()) {
                         val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                        Log.d(TAG, "Polling download status: $status for ID: $downloadId")
                         
                         when (status) {
                             DownloadManager.STATUS_SUCCESSFUL -> {
                                 Log.d(TAG, "Download completed via polling")
-                                val uriString = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
                                 stopDownloadStatusPolling()
+                                dismissDownloadProgressDialog()
                                 handleDownloadComplete()
+                                return
                             }
                             DownloadManager.STATUS_FAILED -> {
                                 Log.d(TAG, "Download failed")
                                 stopDownloadStatusPolling()
+                                dismissDownloadProgressDialog()
+                                Toast.makeText(this@MainActivity, "Download failed. Please try again.", Toast.LENGTH_LONG).show()
+                                clearPendingUpdateState()
+                                return
                             }
                             DownloadManager.STATUS_PAUSED -> {
                                 Log.d(TAG, "Download paused")
@@ -315,9 +408,26 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 Log.d(TAG, "Download pending")
                             }
                             DownloadManager.STATUS_RUNNING -> {
-                                Log.d(TAG, "Download running")
+                                // Try to get progress if available
+                                try {
+                                    val bytesDownloaded = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                                    val totalSize = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                                    if (totalSize > 0 && downloadProgressDialog != null && downloadProgressDialog!!.isShowing) {
+                                        val progress = (bytesDownloaded * 100 / totalSize).toInt()
+                                        Log.d(TAG, "Download progress: $progress% ($bytesDownloaded / $totalSize)")
+                                    }
+                                } catch (e: Exception) {
+                                    // Progress columns might not be available, ignore
+                                }
                             }
                         }
+                    } else {
+                        // Download ID not found - might have been cleared
+                        Log.w(TAG, "Download ID $downloadId not found in DownloadManager")
+                        stopDownloadStatusPolling()
+                        dismissDownloadProgressDialog()
+                        clearPendingUpdateState()
+                        return
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error polling download status", e)
@@ -327,13 +437,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 
                 // Continue polling if download is still in progress
                 if (downloadId != -1L && downloadCheckRunnable != null) {
-                    downloadCheckHandler.postDelayed(this, 1000) // Check every second
+                    downloadCheckHandler.postDelayed(this, 500) // Check every 500ms for more responsive UI
+                } else {
+                    stopDownloadStatusPolling()
+                    dismissDownloadProgressDialog()
                 }
             }
         }
         
-        // Start polling after a short delay
-        downloadCheckHandler.postDelayed(downloadCheckRunnable!!, 1000)
+        // Start polling immediately
+        downloadCheckHandler.post(downloadCheckRunnable!!)
     }
     
     private fun stopDownloadStatusPolling() {
@@ -583,6 +696,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         stopDownloadStatusPolling()
+        dismissDownloadProgressDialog()
 
         val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val query = DownloadManager.Query().setFilterById(downloadId)
@@ -1420,6 +1534,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
         stopDownloadStatusPolling()
+        dismissDownloadProgressDialog()
         super.onDestroy()
     }
 
