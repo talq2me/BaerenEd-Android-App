@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val downloadCheckHandler = Handler(Looper.getMainLooper())
     private var downloadCheckRunnable: Runnable? = null
     private val updatePrefs by lazy { getSharedPreferences(UPDATE_PREFS_NAME, Context.MODE_PRIVATE) }
+    private val rewardPrefs by lazy { getSharedPreferences(REWARD_PREFS_NAME, Context.MODE_PRIVATE) }
 
     // Activity result launchers
     lateinit var videoCompletionLauncher: ActivityResultLauncher<Intent>
@@ -75,6 +76,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     
     // Store pending reward minutes to launch after email is sent
     private var pendingRewardMinutes: Int? = null
+    private var rewardEmailInFlight = false
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -136,12 +138,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handleChromePageCompletion(result)
         }
 
-        emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             // After email activity finishes (or is cancelled), launch reward selection if pending
-            pendingRewardMinutes?.let { minutes ->
-                pendingRewardMinutes = null
-                launchRewardSelectionActivity(minutes)
-            }
+            rewardEmailInFlight = false
+            triggerPendingRewardLaunch(force = true)
         }
 
         if (getOrCreateProfile() != null) {
@@ -961,6 +961,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onResume() {
         super.onResume()
         handleReadAlongReturnIfNeeded()
+        if (!rewardEmailInFlight) {
+            triggerPendingRewardLaunch()
+        }
         layout.refreshProgressDisplay()
         layout.refreshHeaderButtons()
         currentMainContent?.let { content ->
@@ -1267,8 +1270,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return
             }
 
-            // Store reward minutes to launch after email activity finishes
-            pendingRewardMinutes = rewardMinutes
+            storePendingRewardMinutes(rewardMinutes)
+            rewardEmailInFlight = true
 
             val subject = "Daily Progress Report - $childName - ${progressReport.date}"
             val emailIntent = buildEmailIntent(parentEmail, subject, report)
@@ -1281,16 +1284,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error opening email", e)
+                rewardEmailInFlight = false
                 // If email fails, still launch reward selection
-                pendingRewardMinutes = null
-                launchRewardSelectionActivity(rewardMinutes)
+                triggerPendingRewardLaunch(force = true)
             }
 
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error sending progress report for reward time", e)
+            rewardEmailInFlight = false
             // If report generation fails, still launch reward selection
-            pendingRewardMinutes = null
-            launchRewardSelectionActivity(rewardMinutes)
+            triggerPendingRewardLaunch(force = true)
         }
     }
 
@@ -1304,30 +1307,56 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         startActivity(intent)
     }
 
-    private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        val emailUri = android.net.Uri.parse("mailto:$parentEmail").buildUpon()
-            .appendQueryParameter("subject", subject)
-            .appendQueryParameter("body", body)
-            .build()
+    private fun storePendingRewardMinutes(minutes: Int) {
+        pendingRewardMinutes = minutes
+        rewardPrefs.edit().putInt(KEY_PENDING_REWARD_MINUTES, minutes).apply()
+    }
 
-        // Prefer Gmail if installed
-        val gmailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = emailUri
+    private fun clearPendingRewardState() {
+        pendingRewardMinutes = null
+        rewardPrefs.edit().remove(KEY_PENDING_REWARD_MINUTES).apply()
+    }
+
+    private fun getPendingRewardMinutes(): Int? {
+        val inMemory = pendingRewardMinutes
+        if (inMemory != null && inMemory > 0) return inMemory
+        val persisted = rewardPrefs.getInt(KEY_PENDING_REWARD_MINUTES, 0)
+        return if (persisted > 0) persisted else null
+    }
+
+    private fun triggerPendingRewardLaunch(force: Boolean = false) {
+        if (!force && rewardEmailInFlight) {
+            return
+        }
+        val minutes = getPendingRewardMinutes() ?: return
+        clearPendingRewardState()
+        launchRewardSelectionActivity(minutes)
+    }
+
+    private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
+        // Prefer Gmail compose with ACTION_SEND so we can pass extras directly
+        val gmailIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "message/rfc822"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
             `package` = "com.google.android.gm"
         }
         if (gmailIntent.resolveActivity(packageManager) != null) {
             return gmailIntent
         }
 
-        // Fall back to any app that can handle mailto:
-        val defaultEmailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = emailUri
-        }
-        if (defaultEmailIntent.resolveActivity(packageManager) != null) {
-            return defaultEmailIntent
+        // Fall back to any app that understands mailto:
+        val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
+            .appendQueryParameter("subject", subject)
+            .appendQueryParameter("body", body)
+            .build()
+        val sendToIntent = Intent(Intent.ACTION_SENDTO, mailtoUri)
+        if (sendToIntent.resolveActivity(packageManager) != null) {
+            return sendToIntent
         }
 
-        // Final fallback: generic chooser
+        // Final fallback: plain ACTION_SEND chooser
         val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
@@ -1366,6 +1395,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val KEY_PENDING_FILE_NAME = "pending_file_name"
         private const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
         private const val APK_FILE_PREFIX = "myapp-update"
+        private const val REWARD_PREFS_NAME = "reward_manager"
+        private const val KEY_PENDING_REWARD_MINUTES = "pending_reward_minutes"
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
