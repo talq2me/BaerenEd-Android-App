@@ -680,18 +680,40 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun resolveDownloadedApk(dm: DownloadManager, cursor: Cursor): DownloadedApk? {
         return try {
             val id = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
-            val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
-            val uri = when {
-                !localUri.isNullOrBlank() -> Uri.parse(localUri)
-                else -> dm.getUriForDownloadedFile(id)
+            
+            // First try to get URI from DownloadManager (most reliable)
+            var uri: Uri? = null
+            try {
+                uri = dm.getUriForDownloadedFile(id)
+                Log.d(TAG, "Got URI from DownloadManager.getUriForDownloadedFile($id): $uri")
+            } catch (e: Exception) {
+                Log.w(TAG, "getUriForDownloadedFile failed, trying local URI: ${e.message}")
             }
+            
+            // Fallback to local URI from cursor
             if (uri == null) {
-                Log.w(TAG, "Unable to resolve URI for download id=$id")
-                null
-            } else {
-                val file = resolveFileFromCursor(cursor)?.takeIf { it.exists() }
-                DownloadedApk(uri = uri, file = file)
+                val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                if (!localUri.isNullOrBlank()) {
+                    uri = Uri.parse(localUri)
+                    Log.d(TAG, "Using local URI from cursor: $uri")
+                }
             }
+            
+            if (uri == null) {
+                Log.e(TAG, "Unable to resolve URI for download id=$id")
+                return null
+            }
+            
+            // Try to resolve file path - but don't fail if we can't
+            val file = try {
+                resolveFileFromCursor(cursor)?.takeIf { it.exists() }
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not resolve file path, will use URI only: ${e.message}")
+                null
+            }
+            
+            Log.d(TAG, "Resolved downloaded APK: uri=$uri, file=${file?.absolutePath}")
+            DownloadedApk(uri = uri, file = file)
         } catch (e: Exception) {
             Log.e(TAG, "Unable to resolve downloaded APK", e)
             null
@@ -852,13 +874,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 pendingReward.sectionId,
                 "📚 Google Read Along completed! Great job reading!"
             )
+            // Explicitly refresh sections to ensure UI updates
+            layout.refreshSections()
             Toast.makeText(
                 this,
                 "Great reading! You spent ${secondsSpent}s in Read Along.",
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-                Toast.makeText(
+            Toast.makeText(
                 this,
                 "Stay in Google Read Along for at least 30s to earn rewards (only ${secondsSpent}s).",
                 Toast.LENGTH_LONG
@@ -932,8 +956,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         Log.d(TAG, "FileProvider URI created: $uri")
                         uri
                     } catch (e: IllegalArgumentException) {
-                        Log.e(TAG, "FileProvider error: ${e.message}", e)
-                        throw e
+                        Log.e(TAG, "FileProvider error: ${e.message}, falling back to DownloadManager URI", e)
+                        // Fallback to DownloadManager URI if FileProvider fails
+                        downloadedApk.uri
                     }
                 }
                 hasLocalFile -> {
@@ -953,10 +978,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // Grant permission to package installer
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
                 }
             }
             
             Log.d(TAG, "Starting install intent with URI: $finalUri, scheme: ${finalUri.scheme}")
+            
+            // Grant URI permissions to package installer
+            val packageInstallerPackage = "com.android.packageinstaller"
+            try {
+                grantUriPermission(packageInstallerPackage, finalUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not grant permission to package installer: ${e.message}")
+            }
             
             // Check if intent can be resolved before launching
             val resolver = packageManager.resolveActivity(installIntent, 0)
@@ -1620,40 +1654,75 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Use mailto: URI - this is the most reliable way and avoids permission issues
-        // It will open the default email app (usually Gmail) directly
+        // Try to find default email app
+        val defaultEmailApp = findDefaultEmailApp()
+        
+        // First try: Use ACTION_SEND with specific email app if found (avoids chooser)
+        if (defaultEmailApp != null) {
+            try {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "message/rfc822"
+                    `package` = defaultEmailApp.activityInfo.packageName
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                    putExtra(Intent.EXTRA_SUBJECT, subject)
+                    putExtra(Intent.EXTRA_TEXT, body)
+                }
+                if (intent.resolveActivity(packageManager) != null) {
+                    Log.d(TAG, "Using default email app: ${defaultEmailApp.loadLabel(packageManager)}")
+                    return intent
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to use default email app, trying mailto: ${e.message}")
+            }
+        }
+        
+        // Second try: Use mailto: URI (opens default email app directly)
         val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
             .appendQueryParameter("subject", subject)
             .appendQueryParameter("body", body)
             .build()
         
         val sendToIntent = Intent(Intent.ACTION_SENDTO, mailtoUri)
-        
-        // Check if mailto: can be handled
-        return try {
-            if (sendToIntent.resolveActivity(packageManager) != null) {
-                sendToIntent
-            } else {
-                // Fallback to ACTION_SEND chooser if mailto: doesn't work
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-                    putExtra(Intent.EXTRA_SUBJECT, subject)
-                    putExtra(Intent.EXTRA_TEXT, body)
-                }
-                Intent.createChooser(shareIntent, "Send Progress Report")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error creating email intent: ${e.message}", e)
-            // Final fallback
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-                putExtra(Intent.EXTRA_SUBJECT, subject)
-                putExtra(Intent.EXTRA_TEXT, body)
-            }
-            Intent.createChooser(shareIntent, "Send Progress Report")
+        if (sendToIntent.resolveActivity(packageManager) != null) {
+            Log.d(TAG, "Using mailto: URI")
+            return sendToIntent
         }
+        
+        // Final fallback: ACTION_SEND chooser (user must pick)
+        Log.d(TAG, "No default email app found, showing chooser")
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "message/rfc822"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
+        }
+        return Intent.createChooser(shareIntent, "Send Progress Report")
+    }
+    
+    private fun findDefaultEmailApp(): android.content.pm.ResolveInfo? {
+        // Try to get default handler for mailto: scheme
+        val mailtoIntent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
+        val possibleApps = packageManager.queryIntentActivities(mailtoIntent, 0)
+        
+        // Look for common email apps first (Gmail, Outlook, etc.)
+        val preferredPackages = listOf(
+            "com.google.android.gm",      // Gmail
+            "com.microsoft.office.outlook", // Outlook
+            "com.android.email"            // AOSP Email
+        )
+        
+        // Check if any preferred app is installed
+        for (preferredPackage in preferredPackages) {
+            val found = possibleApps.firstOrNull { 
+                it.activityInfo.packageName == preferredPackage 
+            }
+            if (found != null) {
+                return found
+            }
+        }
+        
+        // Return first available email app
+        return possibleApps.firstOrNull()
     }
 
     private fun displayProfileSelection(content: MainContent) {
@@ -1875,3 +1944,4 @@ data class PendingReadAlongReward(
     val stars: Int,
     val sectionId: String?
 )
+
