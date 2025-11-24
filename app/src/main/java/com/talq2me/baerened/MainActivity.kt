@@ -149,9 +149,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            // After email activity finishes (or is cancelled), launch reward selection if pending
-            rewardEmailInFlight = false
-            triggerPendingRewardLaunch(force = true)
+            // Not used for reward flow - we launch email directly and handle return in onResume
         }
 
         if (getOrCreateProfile() != null) {
@@ -824,30 +822,39 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             
             // Regular install method (will show Play Protect prompt)
-            val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                
-                val finalUri = when {
-                    hasLocalFile && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
-                        try {
-                            FileProvider.getUriForFile(
-                                this@MainActivity,
-                                "${packageName}.fileprovider",
-                                apkFile!!
-                            )
-                        } catch (e: IllegalArgumentException) {
-                            Log.e(TAG, "FileProvider error: ${e.message}")
-                            throw e
-                        }
+            val finalUri = when {
+                hasLocalFile && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
+                    try {
+                        FileProvider.getUriForFile(
+                            this@MainActivity,
+                            "${packageName}.fileprovider",
+                            apkFile!!
+                        )
+                    } catch (e: IllegalArgumentException) {
+                        Log.e(TAG, "FileProvider error: ${e.message}")
+                        throw e
                     }
-                    hasLocalFile -> Uri.fromFile(apkFile)
-                    else -> downloadedApk.uri
                 }
-                setDataAndType(finalUri, "application/vnd.android.package-archive")
+                hasLocalFile -> Uri.fromFile(apkFile)
+                else -> downloadedApk.uri
             }
             
-            Log.d(TAG, "Starting install intent with URI: ${installIntent.data}")
-            startActivity(installIntent)
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(finalUri, "application/vnd.android.package-archive")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            
+            Log.d(TAG, "Starting install intent with URI: $finalUri")
+            
+            // Check if intent can be resolved before launching
+            if (installIntent.resolveActivity(packageManager) != null) {
+                startActivity(installIntent)
+            } else {
+                throw IllegalStateException("No app can handle APK install. URI: $finalUri")
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error installing APK", e)
             Toast.makeText(this, "Error installing update: ${e.message}", Toast.LENGTH_LONG).show()
@@ -1112,9 +1119,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onResume() {
         super.onResume()
         handleReadAlongReturnIfNeeded()
-        if (!rewardEmailInFlight) {
+        
+        // Check if we have pending rewards and email was in flight (user came back from Gmail)
+        if (rewardEmailInFlight && getPendingRewardMinutes() != null) {
+            // User returned from Gmail, now launch BaerenLock
+            rewardEmailInFlight = false
+            triggerPendingRewardLaunch(force = true)
+        } else if (!rewardEmailInFlight) {
+            // Normal resume, check for any other pending rewards
             triggerPendingRewardLaunch()
         }
+        
         layout.refreshProgressDisplay()
         layout.refreshHeaderButtons()
         currentMainContent?.let { content ->
@@ -1429,15 +1444,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             try {
                 if (emailIntent != null) {
-                    emailReportLauncher.launch(emailIntent)
+                    // Launch email directly (not using launcher) so user can send email
+                    // We'll detect when they return in onResume
+                    Log.d(TAG, "Launching Gmail for parent report before reward time")
+                    startActivity(emailIntent)
                 } else {
                     throw IllegalStateException("No email apps available")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error opening email", e)
                 rewardEmailInFlight = false
+                clearPendingRewardState()
                 // If email fails, still launch reward selection
-                triggerPendingRewardLaunch(force = true)
+                launchRewardSelectionActivity(rewardMinutes)
             }
 
         } catch (e: Exception) {
