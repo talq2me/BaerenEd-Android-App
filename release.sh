@@ -34,11 +34,19 @@ echo "Pre-build check passed! Proceeding with release..."
 
 ### --- GET PASSWORD --- ###
 # Use environment variable if set, otherwise prompt
-# Check both KEYSTORE_PASSWORD and export KEYSTORE_PASSWORD (for Windows/Git Bash compatibility)
+# In Git Bash/Windows, you may need to export the variable in the same session:
+#   export KEYSTORE_PASSWORD='your_password'
+#   ./release.sh
+
 if [ -n "${KEYSTORE_PASSWORD:-}" ]; then
     STOREPASS="$KEYSTORE_PASSWORD"
     echo "Using password from KEYSTORE_PASSWORD environment variable"
 else
+    echo ""
+    echo "Note: To skip password prompt, set KEYSTORE_PASSWORD environment variable:"
+    echo "  export KEYSTORE_PASSWORD='your_password'"
+    echo "  ./release.sh"
+    echo ""
     echo -n "Enter keystore password: "
     read -s STOREPASS
     echo ""
