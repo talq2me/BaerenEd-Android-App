@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     
     // Store pending reward minutes to launch after email is sent
     private var pendingRewardMinutes: Int? = null
+    private var emailLaunchTime: Long = 0
     private var rewardEmailInFlight = false
 
     // UI elements for structured layout
@@ -150,10 +151,55 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             // After email activity finishes (user sent email or cancelled), launch reward selection if pending
-            Log.d(TAG, "Email activity finished, result code: ${result.resultCode}")
-            if (rewardEmailInFlight) {
+            val timeSinceEmailLaunch = System.currentTimeMillis() - emailLaunchTime
+            Log.d(TAG, "Email activity finished, result code: ${result.resultCode}, rewardEmailInFlight=$rewardEmailInFlight, timeSinceLaunch=${timeSinceEmailLaunch}ms")
+            
+            // Only process if we actually launched email (not just a quick return)
+            // If callback fires too quickly (< 500ms), something went wrong
+            if (rewardEmailInFlight && timeSinceEmailLaunch > 500) {
                 rewardEmailInFlight = false
-                triggerPendingRewardLaunch(force = true)
+                val minutes = getPendingRewardMinutes()
+                Log.d(TAG, "After email completed, pending reward minutes: $minutes")
+                if (minutes != null && minutes > 0) {
+                    clearPendingRewardState()
+                    // Launch BaerenLock with reward minutes
+                    launchRewardSelectionActivity(minutes)
+                }
+            } else if (timeSinceEmailLaunch <= 500) {
+                Log.w(TAG, "Email callback fired too quickly (${timeSinceEmailLaunch}ms), email may not have opened. Retrying...")
+                // Email didn't actually open, try again or show error
+                rewardEmailInFlight = false
+                val minutes = getPendingRewardMinutes()
+                if (minutes != null && minutes > 0) {
+                    // Still try to show email one more time
+                    val parentEmail = SettingsManager.readEmail(this)
+                    if (!parentEmail.isNullOrBlank()) {
+                        try {
+                            val progressManager = DailyProgressManager(this)
+                            val timeTracker = TimeTracker(this)
+                            val reportGenerator = ReportGenerator(this)
+                            val mainContent = getCurrentMainContent() ?: MainContent()
+                            val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
+                            val currentKid = progressManager.getCurrentKid()
+                            val childName = if (currentKid == "A") "AM" else "BM"
+                            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
+                            val subject = "Daily Progress Report - $childName - ${progressReport.date}"
+                            val emailIntent = buildEmailIntent(parentEmail, subject, report)
+                            if (emailIntent != null) {
+                                storePendingRewardMinutes(minutes)
+                                rewardEmailInFlight = true
+                                emailLaunchTime = System.currentTimeMillis()
+                                emailReportLauncher.launch(emailIntent)
+                                return@registerForActivityResult
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error retrying email", e)
+                        }
+                    }
+                    // If retry fails, just launch BaerenLock
+                    clearPendingRewardState()
+                    launchRewardSelectionActivity(minutes)
+                }
             }
         }
 
@@ -1125,10 +1171,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onResume()
         handleReadAlongReturnIfNeeded()
         
-        // Don't trigger reward launch here - wait for ActivityResult callback
+        // Don't trigger reward launch here when email is in flight - wait for ActivityResult callback
         // Only check for other pending rewards if email is not in flight
         if (!rewardEmailInFlight) {
             triggerPendingRewardLaunch()
+        } else {
+            Log.d(TAG, "onResume: Email is in flight, waiting for ActivityResult callback before launching BaerenLock")
         }
         
         layout.refreshProgressDisplay()
@@ -1437,24 +1485,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return
             }
 
-            storePendingRewardMinutes(rewardMinutes)
-            rewardEmailInFlight = true
-
             val subject = "Daily Progress Report - $childName - ${progressReport.date}"
             val emailIntent = buildEmailIntent(parentEmail, subject, report)
 
             try {
                 if (emailIntent != null) {
+                    // Store pending minutes and set flag BEFORE launching email
+                    // This ensures they're saved even if the activity is killed
+                    storePendingRewardMinutes(rewardMinutes)
+                    rewardEmailInFlight = true
+                    emailLaunchTime = System.currentTimeMillis()
+                    
+                    Log.d(TAG, "Launching Gmail for parent report. Reward minutes pending: $rewardMinutes, emailIntent: ${emailIntent.action}")
                     // Use launcher to wait for email activity to finish before launching BaerenLock
-                    Log.d(TAG, "Launching email chooser for parent report before reward time")
                     emailReportLauncher.launch(emailIntent)
+                    Log.d(TAG, "Email launcher called, waiting for result...")
                 } else {
+                    Log.e(TAG, "buildEmailIntent returned null - no email apps available")
                     throw IllegalStateException("No email apps available")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error opening email", e)
                 rewardEmailInFlight = false
                 clearPendingRewardState()
+                Toast.makeText(this, "Error opening email: ${e.message}. Launching reward selection anyway.", Toast.LENGTH_LONG).show()
                 // If email fails, still launch reward selection
                 launchRewardSelectionActivity(rewardMinutes)
             }
@@ -1505,12 +1559,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
         // Try Gmail directly using ACTION_SEND with explicit package
+        // Don't use FLAG_ACTIVITY_NEW_TASK so ActivityResultLauncher can wait for result
         val gmailIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
             `package` = GMAIL_PACKAGE
+            // Remove FLAG_ACTIVITY_NEW_TASK so launcher can track the activity properly
         }
         if (gmailIntent.resolveActivity(packageManager) != null) {
             return gmailIntent
