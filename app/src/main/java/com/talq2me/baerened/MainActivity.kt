@@ -219,9 +219,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun handleUpdateAvailability(latestVersion: Int, apkUrl: String) {
         val downloadedFile = findDownloadedApkForVersion(latestVersion)
         if (downloadedFile != null && downloadedFile.exists()) {
+            val apk = DownloadedApk(uri = Uri.fromFile(downloadedFile), file = downloadedFile)
             runOnUiThread {
                 if (!isDestroyed && !isFinishing) {
-                    showInstallDialog(downloadedFile)
+                    showInstallDialog(apk)
                 }
             }
         } else {
@@ -254,7 +255,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle("downloading update…")
+            .setTitle(getDownloadNotificationTitle(targetVersion))
             .setDestinationInExternalPublicDir(
                 Environment.DIRECTORY_DOWNLOADS,
                 targetFileName
@@ -455,6 +456,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun getApkFileName(version: Int): String = "${APK_FILE_PREFIX}-v$version.apk"
 
+    private fun getDownloadNotificationTitle(version: Int): String = "BaerenEd update v$version"
+
     private fun isUpdateDownloadEntry(localUri: String?, title: String?): Boolean {
         val normalizedTitle = title?.lowercase(Locale.getDefault()) ?: ""
         val normalizedUri = localUri?.lowercase(Locale.getDefault()) ?: ""
@@ -486,6 +489,46 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             null
         }
     }
+
+    private fun resolveDownloadedApk(dm: DownloadManager, cursor: Cursor): DownloadedApk? {
+        return try {
+            val id = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
+            val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+            val uri = when {
+                !localUri.isNullOrBlank() -> Uri.parse(localUri)
+                else -> dm.getUriForDownloadedFile(id)
+            }
+            if (uri == null) {
+                Log.w(TAG, "Unable to resolve URI for download id=$id")
+                null
+            } else {
+                val file = resolveFileFromCursor(cursor)?.takeIf { it.exists() }
+                DownloadedApk(uri = uri, file = file)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to resolve downloaded APK", e)
+            null
+        }
+    }
+
+    private fun determineDownloadedVersion(apkFile: File?, uri: Uri?, title: String? = null): Int? {
+        val candidates = listOfNotNull(
+            apkFile?.let { getApkVersionCode(it) },
+            apkFile?.name?.let { parseVersionFromName(it) },
+            uri?.lastPathSegment?.let { parseVersionFromName(it) },
+            title?.let { parseVersionFromName(it) },
+            updatePrefs.getInt(KEY_PENDING_VERSION, -1).takeIf { it != -1 }
+        )
+        return candidates.firstOrNull()
+    }
+
+    private fun parseVersionFromName(raw: String?): Int? {
+        if (raw.isNullOrBlank()) return null
+        val match = VERSION_IN_NAME_REGEX.find(raw)
+        return match?.groupValues?.getOrNull(1)?.toIntOrNull()
+    }
+
+    private data class DownloadedApk(val uri: Uri, val file: File?)
     
     private fun checkForCompletedDownload() {
         // Check if there's a completed download of our APK file
@@ -502,30 +545,27 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (!isUpdateDownloadEntry(localUri, title)) {
                     continue
                 }
-                val apkFile = resolveFileFromCursor(cursor)
-                if (apkFile == null || !apkFile.exists()) {
-                    dm.remove(id)
-                    continue
-                }
-                val downloadedVersion = getApkVersionCode(apkFile)
+                val downloadedApk = resolveDownloadedApk(dm, cursor) ?: continue
+                val apkFile = downloadedApk.file
+                val downloadedVersion = determineDownloadedVersion(apkFile, downloadedApk.uri, title)
                 val currentVersion = getCurrentAppVersionCode()
                 if (downloadedVersion != null && currentVersion != -1 && downloadedVersion <= currentVersion) {
-                    Log.d(TAG, "Skipping stale download ${apkFile.name} (version $downloadedVersion)")
-                    apkFile.delete()
+                    Log.d(TAG, "Skipping stale download (version $downloadedVersion already installed)")
+                    apkFile?.delete()
                     dm.remove(id)
                     continue
                 }
                 downloadId = id
                 if (downloadedVersion != null) {
-                    updatePrefs.edit()
-                        .putInt(KEY_PENDING_VERSION, downloadedVersion)
-                        .putString(KEY_PENDING_FILE_NAME, apkFile.name)
-                        .putLong(KEY_PENDING_DOWNLOAD_ID, id)
-                        .apply()
+                    val editor = updatePrefs.edit()
+                    editor.putInt(KEY_PENDING_VERSION, downloadedVersion)
+                    apkFile?.name?.let { editor.putString(KEY_PENDING_FILE_NAME, it) }
+                    editor.putLong(KEY_PENDING_DOWNLOAD_ID, id)
+                    editor.apply()
                 }
-                Log.d(TAG, "Found completed download: id=$id, file=${apkFile.absolutePath}")
+                Log.d(TAG, "Found completed download: id=$id, uri=${downloadedApk.uri}")
                 if (!isDestroyed && !isFinishing) {
-                    showInstallDialog(apkFile)
+                    showInstallDialog(downloadedApk)
                 }
                 break
             }
@@ -560,24 +600,26 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 return
             }
 
-            val apkFile = resolveFileFromCursor(cursor)
-            if (apkFile == null || !apkFile.exists()) {
-                Log.w(TAG, "Downloaded file missing for ID: $downloadId")
+            val downloadedApk = resolveDownloadedApk(dm, cursor)
+            if (downloadedApk == null) {
+                Log.w(TAG, "Downloaded file reference missing for ID: $downloadId")
                 dm.remove(downloadId)
                 return
             }
 
-            val downloadedVersion = getApkVersionCode(apkFile)
+            val apkFile = downloadedApk.file
+            val title = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TITLE))
+            val downloadedVersion = determineDownloadedVersion(apkFile, downloadedApk.uri, title)
             val currentVersion = getCurrentAppVersionCode()
             if (downloadedVersion != null) {
-                updatePrefs.edit()
-                    .putInt(KEY_PENDING_VERSION, downloadedVersion)
-                    .putString(KEY_PENDING_FILE_NAME, apkFile.name)
-                    .putLong(KEY_PENDING_DOWNLOAD_ID, downloadId)
-                    .apply()
+                val editor = updatePrefs.edit()
+                editor.putInt(KEY_PENDING_VERSION, downloadedVersion)
+                apkFile?.name?.let { editor.putString(KEY_PENDING_FILE_NAME, it) }
+                editor.putLong(KEY_PENDING_DOWNLOAD_ID, downloadId)
+                editor.apply()
                 if (currentVersion != -1 && downloadedVersion <= currentVersion) {
                     Log.d(TAG, "Downloaded version ($downloadedVersion) already installed ($currentVersion)")
-                    apkFile.delete()
+                    apkFile?.delete()
                     dm.remove(downloadId)
                     clearPendingUpdateState()
                     return
@@ -586,7 +628,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             val showDialogAction = {
                 if (!isDestroyed && !isFinishing) {
-                    showInstallDialog(apkFile)
+                    showInstallDialog(downloadedApk)
                 } else {
                     Log.w(TAG, "Activity state changed, cannot show dialog")
                 }
@@ -639,31 +681,27 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         pendingReadAlongReward = null
     }
 
-    private fun showInstallDialog(apkFile: File) {
+    private fun showInstallDialog(downloadedApk: DownloadedApk) {
         val dialog = AlertDialog.Builder(this)
             .setTitle("install update")
             .setMessage("the update has been downloaded. please install it now to continue.")
             .setCancelable(false)
             .setPositiveButton("install now") { _, _ ->
-                installApk(apkFile)
+                installApk(downloadedApk)
             }
             .create()
         
         dialog.show()
     }
 
-    private fun installApk(apkFile: File) {
+    private fun installApk(downloadedApk: DownloadedApk) {
         try {
-            Log.d(TAG, "Installing APK from path: ${apkFile.absolutePath}")
-
-            if (!apkFile.exists()) {
-                Log.e(TAG, "APK file does not exist at path: ${apkFile.absolutePath}")
-                Toast.makeText(this, "APK file not found", Toast.LENGTH_LONG).show()
-                return
-            }
+            val apkFile = downloadedApk.file
+            val hasLocalFile = apkFile != null && apkFile.exists()
+            Log.d(TAG, "Installing APK. hasLocalFile=$hasLocalFile, uri=${downloadedApk.uri}")
             
             // Check if we're device owner (can install silently without Play Protect prompt)
-            if (isDeviceOwner()) {
+            if (hasLocalFile && isDeviceOwner()) {
                 Log.d(TAG, "Device owner detected, attempting silent install")
                 if (installSilentlyAsDeviceOwner(apkFile)) {
                     return // Successfully installed silently
@@ -675,26 +713,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val installIntent = Intent(Intent.ACTION_VIEW).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
                 
-                // For Android 7.0+ (API 24+), we need to use FileProvider
-                val finalUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    try {
-                        val contentUri = FileProvider.getUriForFile(
-                            this@MainActivity,
-                            "${packageName}.fileprovider",
-                            apkFile
-                        )
-                        Log.d(TAG, "FileProvider URI created: $contentUri")
-                        contentUri
-                    } catch (e: IllegalArgumentException) {
-                        Log.e(TAG, "FileProvider error: ${e.message}")
-                        throw e
+                val finalUri = when {
+                    hasLocalFile && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
+                        try {
+                            FileProvider.getUriForFile(
+                                this@MainActivity,
+                                "${packageName}.fileprovider",
+                                apkFile!!
+                            )
+                        } catch (e: IllegalArgumentException) {
+                            Log.e(TAG, "FileProvider error: ${e.message}")
+                            throw e
+                        }
                     }
-                } else {
-                    // For older Android versions, file:// URI is fine
-                    Log.d(TAG, "Android < 7.0, using file:// URI directly")
-                    Uri.fromFile(apkFile)
+                    hasLocalFile -> Uri.fromFile(apkFile)
+                    else -> downloadedApk.uri
                 }
-                
                 setDataAndType(finalUri, "application/vnd.android.package-archive")
             }
             
@@ -715,7 +749,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
     
-    private fun installSilentlyAsDeviceOwner(file: File): Boolean {
+    private fun installSilentlyAsDeviceOwner(file: File?): Boolean {
+        if (file == null || !file.exists()) {
+            return false
+        }
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // Use PackageInstaller for Android 8.0+
@@ -1397,6 +1434,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val APK_FILE_PREFIX = "myapp-update"
         private const val REWARD_PREFS_NAME = "reward_manager"
         private const val KEY_PENDING_REWARD_MINUTES = "pending_reward_minutes"
+        private val VERSION_IN_NAME_REGEX = Regex("v(\\d+)")
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
