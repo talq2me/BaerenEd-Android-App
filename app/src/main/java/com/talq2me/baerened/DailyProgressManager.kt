@@ -820,6 +820,7 @@ class DailyProgressManager(private val context: Context) {
         return java.io.File(sharedDir, "baeren_reward_data.txt")
     }
 
+
     /**
      * Gets comprehensive progress report including time tracking
      */

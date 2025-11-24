@@ -623,11 +623,6 @@ class Layout(private val activity: MainActivity) {
             // Show confirmation message
             android.widget.Toast.makeText(activity, "📧 Sending progress report, then select a reward app! You have ${rewardMinutes.toInt()} minutes!", android.widget.Toast.LENGTH_LONG).show()
 
-            // Clear the banked reward minutes from BaerenEd after they have been used
-            // Note: This happens before reward selection, but that's okay since we've already
-            // stored the minutes in the intent
-            progressManager.clearBankedRewardMinutes()
-
         } else {
             android.widget.Toast.makeText(activity, "No reward minutes to use!", android.widget.Toast.LENGTH_SHORT).show()
         }

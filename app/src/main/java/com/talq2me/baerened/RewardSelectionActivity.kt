@@ -48,6 +48,9 @@ class RewardSelectionActivity : AppCompatActivity() {
         homeIntent.putExtra("reward_minutes", minutes)
         startActivity(homeIntent)
         Log.d(TAG, "Launched BaerenLock via Home Intent with $minutes minutes.")
+
+        // Now that BaerenLock has been launched with the reward minutes, clear them from BaerenEd
+        DailyProgressManager(this).clearBankedRewardMinutes()
     }
 
     companion object {
