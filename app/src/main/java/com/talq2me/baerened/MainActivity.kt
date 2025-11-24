@@ -1558,50 +1558,40 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Try Gmail directly using ACTION_SEND with explicit package
-        // Don't use FLAG_ACTIVITY_NEW_TASK so ActivityResultLauncher can wait for result
-        val gmailIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-            `package` = GMAIL_PACKAGE
-            // Remove FLAG_ACTIVITY_NEW_TASK so launcher can track the activity properly
-        }
-        if (gmailIntent.resolveActivity(packageManager) != null) {
-            return gmailIntent
-        }
-
-        // Some devices require the exact compose activity name
-        val gmailComposeIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-            setClassName(GMAIL_PACKAGE, GMAIL_COMPOSE_CLASS)
-        }
-        if (gmailComposeIntent.resolveActivity(packageManager) != null) {
-            return gmailComposeIntent
-        }
-
-        // Fall back to mailto: URI if Gmail not available
+        // Use mailto: URI - this is the most reliable way and avoids permission issues
+        // It will open the default email app (usually Gmail) directly
         val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
             .appendQueryParameter("subject", subject)
             .appendQueryParameter("body", body)
             .build()
+        
         val sendToIntent = Intent(Intent.ACTION_SENDTO, mailtoUri)
-        if (sendToIntent.resolveActivity(packageManager) != null) {
-            return sendToIntent
+        
+        // Check if mailto: can be handled
+        return try {
+            if (sendToIntent.resolveActivity(packageManager) != null) {
+                sendToIntent
+            } else {
+                // Fallback to ACTION_SEND chooser if mailto: doesn't work
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                    putExtra(Intent.EXTRA_SUBJECT, subject)
+                    putExtra(Intent.EXTRA_TEXT, body)
+                }
+                Intent.createChooser(shareIntent, "Send Progress Report")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating email intent: ${e.message}", e)
+            // Final fallback
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
+            }
+            Intent.createChooser(shareIntent, "Send Progress Report")
         }
-
-        // Final fallback: generic chooser (shouldn't happen if Gmail is installed)
-        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-        }
-        return Intent.createChooser(fallbackIntent, "Send Progress Report")
     }
 
     private fun displayProfileSelection(content: MainContent) {

@@ -33,9 +33,14 @@ fi
 echo "Pre-build check passed! Proceeding with release..."
 
 ### --- GET PASSWORD --- ###
-echo -n "Enter keystore password: "
-read -s STOREPASS
-echo ""
+# Use environment variable if set, otherwise prompt
+if [ -n "$KEYSTORE_PASSWORD" ]; then
+    STOREPASS="$KEYSTORE_PASSWORD"
+else
+    echo -n "Enter keystore password: "
+    read -s STOREPASS
+    echo ""
+fi
 
 ### --- UPDATE build.gradle --- ###
 sed -i "s/versionCode\s*=.*/versionCode = $NEW_VERSION/" "$GRADLE_FILE"
