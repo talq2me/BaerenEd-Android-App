@@ -65,8 +65,8 @@ class ReportGenerator(private val context: Context) {
         val progressManager = DailyProgressManager(context)
         val visibleConfig = progressManager.filterVisibleContent(config)
         
-        val allSessions = report.gameSessions + report.webGameSessions + report.videoSessions + 
-                         report.chromePageSessions + report.completedGameSessions
+        val allSessions = (report.gameSessions + report.webGameSessions + report.videoSessions +
+                report.chromePageSessions).distinctBy { "${it.activityType}_${it.activityId}_${it.startTime}" }
         
         val taskDetails = mutableListOf<TaskDetails>()
         
@@ -166,7 +166,7 @@ class ReportGenerator(private val context: Context) {
             appendLine("Games Played: ${report.gamesPlayed}")
             appendLine("Videos Watched: ${report.videosWatched}")
             appendLine("Total Sessions: ${report.totalSessions}")
-            appendLine("Questions Answered: ${report.totalCorrectAnswers} correct, ${report.totalIncorrectAnswers} incorrect")
+            appendLine("Questions Answered: ${report.totalCorrectAnswers} ✅ , ${report.totalIncorrectAnswers} ❌")
             appendLine()
 
             if (report.completedGameSessions.isNotEmpty()) {
@@ -265,7 +265,8 @@ class ReportGenerator(private val context: Context) {
                 appendLine("✅ COMPLETED REQUIRED TASKS")
                 appendLine("-".repeat(30))
                 completedRequiredTasks.forEach { task ->
-                    appendLine("  ${task.taskName}: ${task.timeSpentFormatted}${task.answerInfo}")
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
                 }
                 // Add completed checklist items
                 val completedChecklistItems = checklistItems.filter { it.second }

@@ -1485,16 +1485,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Prefer Gmail compose with ACTION_SEND so we can pass extras directly
+        // Try Gmail directly using ACTION_SEND with explicit package
         val gmailIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"
+            type = "text/plain"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
-            `package` = "com.google.android.gm"
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            `package` = GMAIL_PACKAGE
         }
         if (gmailIntent.resolveActivity(packageManager) != null) {
             return gmailIntent
+        }
+
+        // Some devices require the exact compose activity name
+        val gmailComposeIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            setClassName(GMAIL_PACKAGE, GMAIL_COMPOSE_CLASS)
+        }
+        if (gmailComposeIntent.resolveActivity(packageManager) != null) {
+            return gmailComposeIntent
         }
 
         // Fall back to any app that understands mailto:
@@ -1550,6 +1564,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val REWARD_PREFS_NAME = "reward_manager"
         private const val KEY_PENDING_REWARD_MINUTES = "pending_reward_minutes"
         private val VERSION_IN_NAME_REGEX = Regex("v(\\d+)")
+        private const val GMAIL_PACKAGE = "com.google.android.gm"
+        private const val GMAIL_COMPOSE_CLASS = "com.google.android.gm.ComposeActivityGmail"
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
