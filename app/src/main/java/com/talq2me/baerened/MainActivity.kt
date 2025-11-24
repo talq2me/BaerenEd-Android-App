@@ -148,8 +148,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handleChromePageCompletion(result)
         }
 
-        emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            // Not used for reward flow - we launch email directly and handle return in onResume
+        emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            // After email activity finishes (user sent email or cancelled), launch reward selection if pending
+            Log.d(TAG, "Email activity finished, result code: ${result.resultCode}")
+            if (rewardEmailInFlight) {
+                rewardEmailInFlight = false
+                triggerPendingRewardLaunch(force = true)
+            }
         }
 
         if (getOrCreateProfile() != null) {
@@ -1120,13 +1125,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onResume()
         handleReadAlongReturnIfNeeded()
         
-        // Check if we have pending rewards and email was in flight (user came back from Gmail)
-        if (rewardEmailInFlight && getPendingRewardMinutes() != null) {
-            // User returned from Gmail, now launch BaerenLock
-            rewardEmailInFlight = false
-            triggerPendingRewardLaunch(force = true)
-        } else if (!rewardEmailInFlight) {
-            // Normal resume, check for any other pending rewards
+        // Don't trigger reward launch here - wait for ActivityResult callback
+        // Only check for other pending rewards if email is not in flight
+        if (!rewardEmailInFlight) {
             triggerPendingRewardLaunch()
         }
         
@@ -1444,10 +1445,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             try {
                 if (emailIntent != null) {
-                    // Launch email directly (not using launcher) so user can send email
-                    // We'll detect when they return in onResume
-                    Log.d(TAG, "Launching Gmail for parent report before reward time")
-                    startActivity(emailIntent)
+                    // Use launcher to wait for email activity to finish before launching BaerenLock
+                    Log.d(TAG, "Launching email chooser for parent report before reward time")
+                    emailReportLauncher.launch(emailIntent)
                 } else {
                     throw IllegalStateException("No email apps available")
                 }
@@ -1510,7 +1510,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             `package` = GMAIL_PACKAGE
         }
         if (gmailIntent.resolveActivity(packageManager) != null) {
@@ -1523,14 +1522,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             setClassName(GMAIL_PACKAGE, GMAIL_COMPOSE_CLASS)
         }
         if (gmailComposeIntent.resolveActivity(packageManager) != null) {
             return gmailComposeIntent
         }
 
-        // Fall back to any app that understands mailto:
+        // Fall back to mailto: URI if Gmail not available
         val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
             .appendQueryParameter("subject", subject)
             .appendQueryParameter("body", body)
@@ -1540,14 +1538,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             return sendToIntent
         }
 
-        // Final fallback: plain ACTION_SEND chooser
+        // Final fallback: generic chooser (shouldn't happen if Gmail is installed)
         val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
         }
-        return Intent.createChooser(fallbackIntent, "Share Progress Report")
+        return Intent.createChooser(fallbackIntent, "Send Progress Report")
     }
 
     private fun displayProfileSelection(content: MainContent) {
