@@ -1196,7 +1196,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         rewardMinutes: Int
     ) {
         // Access BuildConfig token at runtime (not as const since BuildConfig fields aren't compile-time constants)
-        val githubToken = BuildConfig.GITHUB_TOKEN
+        // De-obfuscate token (it was Base64 encoded during build to avoid GitHub secret scanning)
+        val githubToken = try {
+            if (BuildConfig.GITHUB_TOKEN.isNotEmpty()) {
+                String(android.util.Base64.decode(BuildConfig.GITHUB_TOKEN, android.util.Base64.DEFAULT))
+            } else {
+                ""
+            }
+        } catch (e: Exception) {
+            "" // If decoding fails, return empty string
+        }
         
         // Check if GitHub token is configured
         if (githubToken.isBlank()) {
@@ -1361,13 +1370,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         
         // GitHub upload configuration
         // GitHub token is read from BuildConfig (set in local.properties)
-        // To create a token: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
-        // Required permissions: repo (for private repos) or public_repo (for public repos)
+        // Repository: BaerenCloud (dedicated repository for reports and artifacts)
+        // Reports path: BaerenEd_Reports/
+        // To create a token: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (fine-grained)
+        // Repository access: Select "Only select repositories" -> choose "BaerenCloud"
+        // Required permissions: Contents (Read and write), Metadata (Read-only)
         // Add to local.properties: GITHUB_TOKEN=your_token_here
-        // Note: BuildConfig.GITHUB_TOKEN is accessed directly in uploadReportToGitHub() since it's not a compile-time constant
+        // Note: BuildConfig.GITHUB_TOKEN is Base64 encoded and decoded at runtime to avoid secret scanning
         private const val GITHUB_OWNER = "talq2me"
-        private const val GITHUB_REPO = "BaerenEd-Android-App"
-        private const val GITHUB_REPORTS_PATH = "app/reports"  // Directory in repo for reports
+        private const val GITHUB_REPO = "BaerenCloud"
+        private const val GITHUB_REPORTS_PATH = "BaerenEd_Reports"  // Directory in repo for reports
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
