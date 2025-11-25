@@ -1178,25 +1178,28 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Try to send via Gmail directly (exact same approach as other app)
-        // Check if Gmail is installed first
+        // Check if Gmail is installed
         val isGmailInstalled = try {
             packageManager.getPackageInfo("com.google.android.gm", 0)
             true
         } catch (e: Exception) {
+            Log.d(TAG, "Gmail not installed")
             false
         }
         
         if (isGmailInstalled) {
-            val gmailIntent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:")
+            // Use ACTION_SEND (not ACTION_SENDTO) because extras only work with ACTION_SEND
+            // And setPackage to force Gmail without chooser
+            val gmailIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "message/rfc822"  // Email MIME type
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(Intent.EXTRA_TEXT, body)
-                setPackage("com.google.android.gm")
+                setPackage("com.google.android.gm")  // Force Gmail
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK  // Prevent chooser
             }
             
-            Log.d(TAG, "Gmail installed, trying Gmail intent")
+            Log.d(TAG, "Gmail installed, returning Gmail intent with ACTION_SEND")
             return gmailIntent
         }
         
