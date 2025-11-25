@@ -1195,11 +1195,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         childName: String,
         rewardMinutes: Int
     ) {
+        // Access BuildConfig token at runtime (not as const since BuildConfig fields aren't compile-time constants)
+        val githubToken = BuildConfig.GITHUB_TOKEN
+        
         // Check if GitHub token is configured
-        if (GITHUB_TOKEN.isBlank()) {
-            Log.w(TAG, "GitHub token not configured. Report not uploaded.")
-            // Fail gracefully - just proceed to reward selection
-            // You can set the token in the companion object above
+        if (githubToken.isBlank()) {
             Toast.makeText(this, "Report upload not configured. Contact administrator.", Toast.LENGTH_SHORT).show()
             launchRewardSelectionActivity(rewardMinutes)
             return
@@ -1237,7 +1237,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 try {
                     val checkRequest = Request.Builder()
                         .url(apiUrl)
-                        .addHeader("Authorization", "token $GITHUB_TOKEN")
+                        .addHeader("Authorization", "token $githubToken")
                         .addHeader("Accept", "application/vnd.github.v3+json")
                         .get()
                         .build()
@@ -1278,7 +1278,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 
                 val request = Request.Builder()
                     .url(apiUrl)
-                    .addHeader("Authorization", "token $GITHUB_TOKEN")
+                    .addHeader("Authorization", "token $githubToken")
                     .addHeader("Accept", "application/vnd.github.v3+json")
                     .put(body)
                     .build()
@@ -1364,7 +1364,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // To create a token: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
         // Required permissions: repo (for private repos) or public_repo (for public repos)
         // Add to local.properties: GITHUB_TOKEN=your_token_here
-        private const val GITHUB_TOKEN = BuildConfig.GITHUB_TOKEN
+        // Note: BuildConfig.GITHUB_TOKEN is accessed directly in uploadReportToGitHub() since it's not a compile-time constant
         private const val GITHUB_OWNER = "talq2me"
         private const val GITHUB_REPO = "BaerenEd-Android-App"
         private const val GITHUB_REPORTS_PATH = "app/reports"  // Directory in repo for reports
