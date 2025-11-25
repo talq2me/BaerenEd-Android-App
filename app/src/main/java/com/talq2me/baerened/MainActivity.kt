@@ -42,12 +42,18 @@ import android.os.Environment
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import android.util.Base64
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -1097,58 +1103,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
             val subject = "Daily Progress Report - $childName - ${progressReport.date}"
             
-            // Get parent email from settings
-            val parentEmail = SettingsManager.readEmail(this)
-            
-            // Store pending minutes BEFORE showing dialog
+            // Store pending minutes BEFORE uploading
             storePendingRewardMinutes(rewardMinutes)
             
-            // Build dialog with buttons instead of items list
-            val dialogBuilder = AlertDialog.Builder(this)
-                .setTitle("Send Progress Report")
-                .setMessage("How would you like to send the progress report?")
-            
-            // Always add SMS button
-            dialogBuilder.setNeutralButton("SMS/Text") { _, _ ->
-                rewardEmailInFlight = true
-                emailLaunchTime = System.currentTimeMillis()
-                val smsMessage = "$subject\n\n$report"
-                val smsIntent = buildSMSIntent(smsMessage)
-                if (smsIntent != null) {
-                    emailReportLauncher.launch(smsIntent)
-                } else {
-                    Toast.makeText(this, "No SMS app available", Toast.LENGTH_SHORT).show()
-                    rewardEmailInFlight = false
-                    launchRewardSelectionActivity(rewardMinutes)
-                }
-            }
-            
-            // Add email button if email is set
-            if (!parentEmail.isNullOrBlank()) {
-                dialogBuilder.setPositiveButton("Email") { _, _ ->
-                    rewardEmailInFlight = true
-                    emailLaunchTime = System.currentTimeMillis()
-                    val emailIntent = buildEmailIntent(parentEmail, subject, report)
-                    if (emailIntent != null) {
-                        emailReportLauncher.launch(emailIntent)
-                    } else {
-                        Toast.makeText(this, "No email app available", Toast.LENGTH_SHORT).show()
-                        rewardEmailInFlight = false
-                        launchRewardSelectionActivity(rewardMinutes)
-                    }
-                }
-            }
-            
-            dialogBuilder
-                .setNegativeButton("Cancel") { _, _ ->
-                    clearPendingRewardState()
-                    launchRewardSelectionActivity(rewardMinutes)
-                }
-                .setOnCancelListener {
-                    clearPendingRewardState()
-                    launchRewardSelectionActivity(rewardMinutes)
-                }
-                .show()
+            // Automatically upload to GitHub - no user interaction needed!
+            uploadReportToGitHub(report, subject, childName, rewardMinutes)
 
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error sending progress report for reward time", e)
@@ -1225,6 +1184,141 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         return Intent.createChooser(fallbackIntent, "Send Progress Report via SMS")
     }
+    
+    /**
+     * Automatically uploads the progress report to GitHub as a text file
+     * No user interaction required - fully automated for young children
+     */
+    private fun uploadReportToGitHub(
+        report: String,
+        subject: String,
+        childName: String,
+        rewardMinutes: Int
+    ) {
+        // Check if GitHub token is configured
+        if (GITHUB_TOKEN.isBlank()) {
+            Log.w(TAG, "GitHub token not configured. Report not uploaded.")
+            // Fail gracefully - just proceed to reward selection
+            // You can set the token in the companion object above
+            Toast.makeText(this, "Report upload not configured. Contact administrator.", Toast.LENGTH_SHORT).show()
+            launchRewardSelectionActivity(rewardMinutes)
+            return
+        }
+        
+        // Show progress (optional, for feedback)
+        val progressDialog = AlertDialog.Builder(this)
+            .setTitle("Uploading Report")
+            .setMessage("Please wait...")
+            .setCancelable(false)
+            .create()
+        progressDialog.show()
+        
+        lifecycleScope.launch(Dispatchers.IO) {
+            val client = OkHttpClient()
+            try {
+                // Create filename with timestamp
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val timestamp = SimpleDateFormat("HHmmss", Locale.getDefault()).format(Date())
+                val fileName = "${childName}_${date}_${timestamp}.txt"
+                val filePath = "$GITHUB_REPORTS_PATH/$fileName"
+                
+                // Full report content (subject + report)
+                val fullReport = "$subject\n\n$report"
+                
+                // Base64 encode the content (GitHub API requirement)
+                val contentBytes = fullReport.toByteArray(Charsets.UTF_8)
+                val base64Content = Base64.encodeToString(contentBytes, Base64.NO_WRAP)
+                
+                // GitHub API endpoint
+                val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$filePath"
+                
+                // Try to check if file exists first (to get SHA for update)
+                // If file doesn't exist, GitHub API will create it
+                var existingSha: String? = null
+                try {
+                    val checkRequest = Request.Builder()
+                        .url(apiUrl)
+                        .addHeader("Authorization", "token $GITHUB_TOKEN")
+                        .addHeader("Accept", "application/vnd.github.v3+json")
+                        .get()
+                        .build()
+                    client.newCall(checkRequest).execute().use { checkResponse ->
+                        if (checkResponse.isSuccessful) {
+                            val checkBody = checkResponse.body?.string()
+                            if (!checkBody.isNullOrEmpty()) {
+                                val fileInfo = JSONObject(checkBody)
+                                existingSha = fileInfo.optString("sha", null)
+                                Log.d(TAG, "File exists, will update. SHA: $existingSha")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    // File doesn't exist, will create new - this is fine
+                    Log.d(TAG, "File doesn't exist yet, will create new file")
+                }
+                
+                // Create JSON payload for GitHub API
+                val json = JSONObject().apply {
+                    put("message", "Auto-upload progress report: $fileName")
+                    put("content", base64Content)
+                    put("branch", "main")  // Change to "master" if your repo uses that
+                    if (existingSha != null) {
+                        put("sha", existingSha)  // Required for updates
+                    }
+                }
+                
+                // Create request
+                val mediaType = "application/json; charset=utf-8".toMediaType()
+                val body = json.toString().toRequestBody(mediaType)
+                
+                val request = Request.Builder()
+                    .url(apiUrl)
+                    .addHeader("Authorization", "token $GITHUB_TOKEN")
+                    .addHeader("Accept", "application/vnd.github.v3+json")
+                    .put(body)
+                    .build()
+                
+                // Execute request
+                client.newCall(request).execute().use { response ->
+                    val responseBody = response.body?.string()
+                    withContext(Dispatchers.Main) {
+                        progressDialog.dismiss()
+                        
+                        if (response.isSuccessful) {
+                            Log.d(TAG, "Report uploaded successfully to GitHub: $filePath")
+                            Toast.makeText(this@MainActivity, "Report uploaded!", Toast.LENGTH_SHORT).show()
+                            
+                            // Successfully uploaded, immediately grant reward
+                            rewardEmailInFlight = false
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                triggerPendingRewardLaunch(force = true)
+                            }, 500)
+                        } else {
+                            Log.e(TAG, "GitHub upload failed: ${response.code} - $responseBody")
+                            val errorMsg = try {
+                                val errorJson = JSONObject(responseBody ?: "{}")
+                                errorJson.optString("message", "Upload failed")
+                            } catch (e: Exception) {
+                                "Upload failed: ${response.code}"
+                            }
+                            
+                            Toast.makeText(this@MainActivity, "Upload failed: $errorMsg", Toast.LENGTH_LONG).show()
+                            rewardEmailInFlight = false
+                            launchRewardSelectionActivity(rewardMinutes)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error uploading report to GitHub", e)
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    Toast.makeText(this@MainActivity, "Upload error: ${e.message}", Toast.LENGTH_LONG).show()
+                    rewardEmailInFlight = false
+                    launchRewardSelectionActivity(rewardMinutes)
+                }
+            }
+        }
+    }
 
     private fun displayProfileSelection(content: MainContent) {
         layout.displayProfileSelection(content)
@@ -1259,6 +1353,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private val VERSION_IN_NAME_REGEX = Regex("v(\\d+)")
         private const val GMAIL_PACKAGE = "com.google.android.gm"
         private const val GMAIL_COMPOSE_CLASS = "com.google.android.gm.ComposeActivityGmail"
+        
+        // GitHub upload configuration
+        // GitHub token is read from BuildConfig (set in local.properties)
+        // To create a token: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
+        // Required permissions: repo (for private repos) or public_repo (for public repos)
+        // Add to local.properties: GITHUB_TOKEN=your_token_here
+        private const val GITHUB_TOKEN = BuildConfig.GITHUB_TOKEN
+        private const val GITHUB_OWNER = "talq2me"
+        private const val GITHUB_REPO = "BaerenEd-Android-App"
+        private const val GITHUB_REPORTS_PATH = "app/reports"  // Directory in repo for reports
     }
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
