@@ -8,16 +8,8 @@ fun getLocalProperty(key: String, defaultValue: String = ""): String {
     val localPropertiesFile = rootProject.file("local.properties")
     if (localPropertiesFile.exists()) {
         localPropertiesFile.readLines().forEach { line ->
-            // Skip comments and empty lines
-            val trimmedLine = line.trim()
-            if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
-                return@forEach
-            }
-            // Check if line contains the key followed by =
-            if (trimmedLine.startsWith("$key=")) {
-                val value = trimmedLine.substringAfter("=").trim()
-                // Remove quotes if present
-                return value.removeSurrounding("\"").removeSurrounding("'")
+            if (line.startsWith("$key=")) {
+                return line.substringAfter("=").trim()
             }
         }
     }
