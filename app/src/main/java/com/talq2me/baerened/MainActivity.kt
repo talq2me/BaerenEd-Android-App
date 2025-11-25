@@ -1100,41 +1100,52 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // Get parent email from settings
             val parentEmail = SettingsManager.readEmail(this)
             
-            // Show dialog to choose Email or SMS
-            val options = mutableListOf<String>()
-            if (!parentEmail.isNullOrBlank()) {
-                options.add("Email")
-            }
-            options.add("SMS/Text")
+            // Store pending minutes BEFORE showing dialog
+            storePendingRewardMinutes(rewardMinutes)
             
-            AlertDialog.Builder(this)
+            // Build dialog with buttons instead of items list
+            val dialogBuilder = AlertDialog.Builder(this)
                 .setTitle("Send Progress Report")
                 .setMessage("How would you like to send the progress report?")
-                .setItems(options.toTypedArray()) { _, which ->
-                    val selected = options[which]
-                    
-                    // Store pending minutes BEFORE launching
-                    storePendingRewardMinutes(rewardMinutes)
+            
+            // Always add SMS button
+            dialogBuilder.setNeutralButton("SMS/Text") { _, _ ->
+                rewardEmailInFlight = true
+                emailLaunchTime = System.currentTimeMillis()
+                val smsMessage = "$subject\n\n$report"
+                val smsIntent = buildSMSIntent(smsMessage)
+                if (smsIntent != null) {
+                    emailReportLauncher.launch(smsIntent)
+                } else {
+                    Toast.makeText(this, "No SMS app available", Toast.LENGTH_SHORT).show()
+                    rewardEmailInFlight = false
+                    launchRewardSelectionActivity(rewardMinutes)
+                }
+            }
+            
+            // Add email button if email is set
+            if (!parentEmail.isNullOrBlank()) {
+                dialogBuilder.setPositiveButton("Email") { _, _ ->
                     rewardEmailInFlight = true
                     emailLaunchTime = System.currentTimeMillis()
-                    
-                    if (selected == "Email" && !parentEmail.isNullOrBlank()) {
-                        val emailIntent = buildEmailIntent(parentEmail, subject, report)
-                        if (emailIntent != null) {
-                            emailReportLauncher.launch(emailIntent)
-                        }
-                    } else if (selected == "SMS/Text") {
-                        val smsMessage = "$subject\n\n$report"
-                        val smsIntent = buildSMSIntent(smsMessage)
-                        if (smsIntent != null) {
-                            emailReportLauncher.launch(smsIntent)
-                        }
+                    val emailIntent = buildEmailIntent(parentEmail, subject, report)
+                    if (emailIntent != null) {
+                        emailReportLauncher.launch(emailIntent)
+                    } else {
+                        Toast.makeText(this, "No email app available", Toast.LENGTH_SHORT).show()
+                        rewardEmailInFlight = false
+                        launchRewardSelectionActivity(rewardMinutes)
                     }
                 }
+            }
+            
+            dialogBuilder
                 .setNegativeButton("Cancel") { _, _ ->
+                    clearPendingRewardState()
                     launchRewardSelectionActivity(rewardMinutes)
                 }
                 .setOnCancelListener {
+                    clearPendingRewardState()
                     launchRewardSelectionActivity(rewardMinutes)
                 }
                 .show()
