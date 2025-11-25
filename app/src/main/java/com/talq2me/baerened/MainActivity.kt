@@ -1178,7 +1178,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // First try: Use mailto: URI with query parameters (Gmail handles this directly)
+        // First try: Use mailto: URI with query parameters and setPackage to Gmail
         val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
             .appendQueryParameter("subject", subject)
             .appendQueryParameter("body", body)
@@ -1188,32 +1188,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             setPackage("com.google.android.gm")
         }
         
-        if (mailtoIntent.resolveActivity(packageManager) != null) {
-            Log.d(TAG, "Using Gmail with mailto: URI")
-            return mailtoIntent
-        }
-        
-        // Second try: Use ACTION_SEND with explicit Gmail component
         try {
-            val gmailComponent = android.content.ComponentName(GMAIL_PACKAGE, "com.google.android.gm.ComposeActivityGmail")
-            val gmailIntent = Intent(Intent.ACTION_SEND).apply {
-                component = gmailComponent
-                type = "message/rfc822"
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-                putExtra(Intent.EXTRA_SUBJECT, subject)
-                putExtra(Intent.EXTRA_TEXT, body)
-            }
-            
-            if (gmailIntent.resolveActivity(packageManager) != null) {
-                Log.d(TAG, "Using Gmail with explicit component")
-                return gmailIntent
+            if (mailtoIntent.resolveActivity(packageManager) != null) {
+                Log.d(TAG, "Using Gmail with mailto: URI")
+                return mailtoIntent
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to use explicit Gmail component: ${e.message}")
+            Log.w(TAG, "Gmail mailto: approach failed: ${e.message}")
         }
         
-        // Third try: ACTION_SEND with package set
-        val gmailIntent2 = Intent(Intent.ACTION_SEND).apply {
+        // Second try: ACTION_SEND with package set (but don't use explicit component)
+        val gmailIntent = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
@@ -1222,12 +1207,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
         
         try {
-            if (packageManager.queryIntentActivities(gmailIntent2, 0).isNotEmpty()) {
-                Log.d(TAG, "Using Gmail with package set")
-                return gmailIntent2
+            // Check if Gmail can handle this intent
+            val resolveInfo = packageManager.resolveActivity(gmailIntent, 0)
+            if (resolveInfo != null && resolveInfo.activityInfo.packageName == "com.google.android.gm") {
+                Log.d(TAG, "Using Gmail with ACTION_SEND and package set")
+                return gmailIntent
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to query Gmail intent: ${e.message}")
+            Log.w(TAG, "Gmail ACTION_SEND approach failed: ${e.message}")
         }
         
         // Fallback: show share sheet
