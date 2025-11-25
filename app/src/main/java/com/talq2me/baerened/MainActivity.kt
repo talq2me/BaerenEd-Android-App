@@ -1095,49 +1095,55 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val childName = if (currentKid == "A") "AM" else "BM"
 
             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
-
+            val subject = "Daily Progress Report - $childName - ${progressReport.date}"
+            
             // Get parent email from settings
             val parentEmail = SettingsManager.readEmail(this)
             
-            if (parentEmail.isNullOrBlank()) {
-                // If no email is set, just launch reward selection directly
-                launchRewardSelectionActivity(rewardMinutes)
-                return
+            // Show dialog to choose Email or SMS
+            val options = mutableListOf<String>()
+            if (!parentEmail.isNullOrBlank()) {
+                options.add("Email")
             }
-
-            val subject = "Daily Progress Report - $childName - ${progressReport.date}"
-            val emailIntent = buildEmailIntent(parentEmail, subject, report)
-
-            try {
-                if (emailIntent != null) {
-                    // Store pending minutes and set flag BEFORE launching email
-                    // This ensures they're saved even if the activity is killed
+            options.add("SMS/Text")
+            
+            AlertDialog.Builder(this)
+                .setTitle("Send Progress Report")
+                .setMessage("How would you like to send the progress report?")
+                .setItems(options.toTypedArray()) { _, which ->
+                    val selected = options[which]
+                    
+                    // Store pending minutes BEFORE launching
                     storePendingRewardMinutes(rewardMinutes)
                     rewardEmailInFlight = true
                     emailLaunchTime = System.currentTimeMillis()
                     
-                    Log.d(TAG, "Launching Gmail for parent report. Reward minutes pending: $rewardMinutes, emailIntent: ${emailIntent.action}")
-                    // Use launcher to wait for email activity to finish before launching BaerenLock
-                    emailReportLauncher.launch(emailIntent)
-                    Log.d(TAG, "Email launcher called, waiting for result...")
-                } else {
-                    Log.e(TAG, "buildEmailIntent returned null - no email apps available")
-                    throw IllegalStateException("No email apps available")
+                    if (selected == "Email" && !parentEmail.isNullOrBlank()) {
+                        val emailIntent = buildEmailIntent(parentEmail, subject, report)
+                        if (emailIntent != null) {
+                            emailReportLauncher.launch(emailIntent)
+                        }
+                    } else if (selected == "SMS/Text") {
+                        val smsMessage = "$subject\n\n$report"
+                        val smsIntent = buildSMSIntent(smsMessage)
+                        if (smsIntent != null) {
+                            emailReportLauncher.launch(smsIntent)
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "Error opening email", e)
-                rewardEmailInFlight = false
-                clearPendingRewardState()
-                Toast.makeText(this, "Error opening email: ${e.message}. Launching reward selection anyway.", Toast.LENGTH_LONG).show()
-                // If email fails, still launch reward selection
-                launchRewardSelectionActivity(rewardMinutes)
-            }
+                .setNegativeButton("Cancel") { _, _ ->
+                    launchRewardSelectionActivity(rewardMinutes)
+                }
+                .setOnCancelListener {
+                    launchRewardSelectionActivity(rewardMinutes)
+                }
+                .show()
 
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error sending progress report for reward time", e)
             rewardEmailInFlight = false
             // If report generation fails, still launch reward selection
-            triggerPendingRewardLaunch(force = true)
+            launchRewardSelectionActivity(rewardMinutes)
         }
     }
 
@@ -1178,40 +1184,35 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Check if Gmail is installed
-        val isGmailInstalled = try {
-            packageManager.getPackageInfo("com.google.android.gm", 0)
-            true
-        } catch (e: Exception) {
-            Log.d(TAG, "Gmail not installed")
-            false
-        }
-        
-        if (isGmailInstalled) {
-            // Use ACTION_SEND (not ACTION_SENDTO) because extras only work with ACTION_SEND
-            // And setPackage to force Gmail without chooser
-            val gmailIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "message/rfc822"  // Email MIME type
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-                putExtra(Intent.EXTRA_SUBJECT, subject)
-                putExtra(Intent.EXTRA_TEXT, body)
-                setPackage("com.google.android.gm")  // Force Gmail
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK  // Prevent chooser
-            }
-            
-            Log.d(TAG, "Gmail installed, returning Gmail intent with ACTION_SEND")
-            return gmailIntent
-        }
-        
-        // Fallback: show share sheet
-        Log.d(TAG, "Gmail not installed, using chooser")
-        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
+        // Use message/rfc822 type which filters chooser to email apps only (Gmail, Outlook, etc.)
+        // This way the chooser only shows email apps, not all share options
+        val emailIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "message/rfc822"  // Email MIME type - limits to email apps
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
         }
-        return Intent.createChooser(fallbackIntent, "Share Progress Report")
+        // Create chooser with email apps only - user picks their preferred email app once
+        return Intent.createChooser(emailIntent, "Send Progress Report via Email")
+    }
+    
+    private fun buildSMSIntent(message: String): Intent? {
+        // Open SMS app with message body - user can enter phone number
+        val smsIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("smsto:")  // Empty recipient - user enters phone number
+            putExtra("sms_body", message)
+        }
+        
+        if (smsIntent.resolveActivity(packageManager) != null) {
+            return smsIntent
+        }
+        
+        // Fallback: use ACTION_SEND for SMS
+        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, message)
+        }
+        return Intent.createChooser(fallbackIntent, "Send Progress Report via SMS")
     }
 
     private fun displayProfileSelection(content: MainContent) {
