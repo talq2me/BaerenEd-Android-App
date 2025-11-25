@@ -8,8 +8,16 @@ fun getLocalProperty(key: String, defaultValue: String = ""): String {
     val localPropertiesFile = rootProject.file("local.properties")
     if (localPropertiesFile.exists()) {
         localPropertiesFile.readLines().forEach { line ->
-            if (line.startsWith("$key=")) {
-                return line.substringAfter("=").trim()
+            // Skip comments and empty lines
+            val trimmedLine = line.trim()
+            if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
+                return@forEach
+            }
+            // Check if line contains the key followed by =
+            if (trimmedLine.startsWith("$key=")) {
+                val value = trimmedLine.substringAfter("=").trim()
+                // Remove quotes if present
+                return value.removeSurrounding("\"").removeSurrounding("'")
             }
         }
     }
@@ -24,8 +32,8 @@ android {
         applicationId = "com.talq2me.baerened"
         minSdk = 23
         targetSdk = 35
-        versionCode = 56
-        versionName = "56"
+        versionCode = 57
+        versionName = "57"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

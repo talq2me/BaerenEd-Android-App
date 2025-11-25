@@ -1195,8 +1195,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         childName: String,
         rewardMinutes: Int
     ) {
-        // Get token from BuildConfig
-        val githubToken = getGitHubToken()
+        // Access BuildConfig token directly
+        val githubToken = BuildConfig.GITHUB_TOKEN
         
         // Check if GitHub token is configured
         if (githubToken.isBlank()) {
@@ -1208,7 +1208,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Show token status via toast for debugging
         val tokenLength = githubToken.length
         if (tokenLength < 10) {
-            Toast.makeText(this, "ERROR: GitHub token appears invalid (too short). Upload disabled.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "ERROR: GitHub token appears invalid (too short: $tokenLength chars). Upload disabled.", Toast.LENGTH_LONG).show()
             launchRewardSelectionActivity(rewardMinutes)
             return
         }
@@ -1418,14 +1418,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // To create a token: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
         // Required permissions: repo (for private repos) or public_repo (for public repos)
         // Add to local.properties: GITHUB_TOKEN=your_token_here
-        // Note: BuildConfig fields are not compile-time constants, so we access them directly
         private const val GITHUB_OWNER = "talq2me"
         private const val GITHUB_REPO = "BaerenEd-Android-App"
         private const val GITHUB_REPORTS_PATH = "app/reports"  // Directory in repo for reports
     }
-    
-    // Access BuildConfig token at runtime (not as const since BuildConfig fields aren't compile-time constants)
-    private fun getGitHubToken(): String = BuildConfig.GITHUB_TOKEN
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
         Log.d(TAG, "Starting game: ${game.title}")
