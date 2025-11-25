@@ -27,3 +27,4 @@ app/release/baselineProfiles/0/app-release.dm
 app/release/output-metadata.json
 app/release/baselineProfiles/1/app-release.dm
 local.properties
+commitMessage.txt

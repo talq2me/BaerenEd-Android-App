@@ -74,6 +74,14 @@ echo "APK built."
 ### --- COPY APK TO GITHUB PAGES FOLDER --- ###
 cp "$APK_SOURCE" "$PAGES_APK_PATH"
 
+### --- PULL LATEST CHANGES --- ###
+# Pull/rebase to get latest changes (e.g., report uploads from the app)
+echo "Pulling latest changes from remote..."
+git pull --rebase origin main || {
+    echo "Warning: Pull/rebase failed. Continuing anyway..."
+    git pull --no-rebase origin main || true
+}
+
 ### --- GIT COMMIT + TAG + PUSH --- ###
 # Add all files except local.properties (which contains secrets and should not be committed)
 git add app/build.gradle.kts
@@ -83,7 +91,30 @@ git add app/src/main/java/com/talq2me/baerened/MainActivity.kt
 # Explicitly exclude local.properties if it was tracked before
 git restore --staged local.properties 2>/dev/null || true
 
-git commit -m "Release version $NEW_VERSION"
+# Use commitMessage.txt if it exists, otherwise use default message
+COMMIT_MESSAGE="Release version $NEW_VERSION"
+if [ -f "commitMessage.txt" ]; then
+    COMMIT_MESSAGE=$(cat commitMessage.txt)
+    echo "Using commit message from commitMessage.txt"
+else
+    echo "Using default commit message (commitMessage.txt not found)"
+fi
+
+git commit -m "$COMMIT_MESSAGE"
+
+# Verify commit doesn't contain local.properties before tagging
+if git diff --cached --name-only | grep -q "local.properties"; then
+    echo "ERROR: local.properties is staged! Removing from commit..."
+    git restore --staged local.properties
+    git commit --amend --no-edit
+fi
+
+# Verify commit doesn't contain secrets
+if git diff HEAD~1 HEAD --name-only | grep -q "local.properties"; then
+    echo "ERROR: local.properties was committed! Aborting tag creation."
+    exit 1
+fi
+
 git tag "v$NEW_VERSION"
 
 git push
