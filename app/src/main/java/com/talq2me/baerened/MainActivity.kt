@@ -1178,43 +1178,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Check if Gmail is installed
+        // Try to send via Gmail directly (exact same approach as other app)
+        // Check if Gmail is installed first
         val isGmailInstalled = try {
             packageManager.getPackageInfo("com.google.android.gm", 0)
             true
         } catch (e: Exception) {
-            Log.d(TAG, "Gmail not installed")
             false
         }
         
         if (isGmailInstalled) {
-            // Try to find Gmail's activity that can handle email
-            val emailIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "message/rfc822"
+            val gmailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:")
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(Intent.EXTRA_TEXT, body)
+                setPackage("com.google.android.gm")
             }
             
-            // Find Gmail specifically in the list of apps that can handle this
-            val gmailResolveInfo = packageManager.queryIntentActivities(emailIntent, 0)
-                .firstOrNull { it.activityInfo.packageName == "com.google.android.gm" }
-            
-            if (gmailResolveInfo != null) {
-                // Create intent targeting Gmail's specific activity
-                val gmailIntent = Intent(emailIntent).apply {
-                    setClassName(
-                        gmailResolveInfo.activityInfo.packageName,
-                        gmailResolveInfo.activityInfo.name
-                    )
-                }
-                Log.d(TAG, "Using Gmail directly with activity: ${gmailResolveInfo.activityInfo.name}")
-                return gmailIntent
-            }
+            Log.d(TAG, "Gmail installed, trying Gmail intent")
+            return gmailIntent
         }
         
-        // Fallback: show share sheet (or mailto: chooser)
-        Log.d(TAG, "Gmail not available or not found, showing chooser")
+        // Fallback: show share sheet
+        Log.d(TAG, "Gmail not installed, using chooser")
         val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
