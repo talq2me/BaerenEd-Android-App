@@ -74,13 +74,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var webGameCompletionLauncher: ActivityResultLauncher<Intent>
     lateinit var chromePageLauncher: ActivityResultLauncher<Intent>
     lateinit var emailReportLauncher: ActivityResultLauncher<Intent>
-    private lateinit var installPackagePermissionLauncher: ActivityResultLauncher<Intent>
     
     // Store pending reward minutes to launch after email is sent
     private var pendingRewardMinutes: Int? = null
     private var emailLaunchTime: Long = 0
     private var rewardEmailInFlight = false
-    private var pendingApkInstall: DownloadedApk? = null
 
     // UI elements for structured layout
     lateinit var headerLayout: LinearLayout
@@ -99,20 +97,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Remove any leftover downloads that already match the installed build
         cleanupDownloadedUpdatesIfAlreadyInstalled()
 
-        // Restore download ID from preferences if we have an active download
-        restoreDownloadState()
-
-        // Check for updates to app
+        // Check for updates to app (but don't check for completed downloads - let user install from notifications)
         checkForUpdateIfOnline()
-        
-        // Check if there's a completed download waiting to be installed
-        checkForCompletedDownload()
-        
-        // If we have an active download, start monitoring it
-        if (downloadId != -1L) {
-            startDownloadStatusPolling()
-            showDownloadProgressDialog()
-        }
 
         // Initialize TTS
         tts = TextToSpeech(this, this)
@@ -151,28 +137,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handleChromePageCompletion(result)
         }
 
-        installPackagePermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            // After user returns from settings, try to install
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (packageManager.canRequestPackageInstalls()) {
-                    pendingApkInstall?.let { apk ->
-                        pendingApkInstall = null
-                        performInstall(apk)
-                    }
-                } else {
-                    pendingApkInstall = null
-                    Toast.makeText(this, "Install permission not granted. Cannot install update automatically.", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                // Android < 8.0, just try to install
-                pendingApkInstall?.let { apk ->
-                    pendingApkInstall = null
-                    performInstall(apk)
-                }
-            }
-        }
 
         emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             // After email activity finishes (user sent email or cancelled), launch reward selection if pending
@@ -238,18 +202,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             resetRewardDataForNewDay()
         }
 
-        // Register download completion receiver
+        // Register download completion receiver (just for logging, no install prompts)
         downloadReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) ?: -1L
-                Log.d(TAG, "Download broadcast received: id=$id, stored downloadId=$downloadId")
-                if (id != -1L) {
-                    // Check if this is our download or if downloadId matches
-                    if (id == downloadId || downloadId == -1L) {
-                        downloadId = id // Update in case it was lost
-                        handleDownloadComplete()
-                    }
-                }
+                Log.d(TAG, "Download completed: id=$id. User can install from notification.")
             }
         }
         ContextCompat.registerReceiver(this, downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
@@ -301,16 +258,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun handleUpdateAvailability(latestVersion: Int, apkUrl: String) {
+        // Check if this version is already downloaded
         val downloadedFile = findDownloadedApkForVersion(latestVersion)
         if (downloadedFile != null && downloadedFile.exists()) {
-            val apk = DownloadedApk(uri = Uri.fromFile(downloadedFile), file = downloadedFile)
-            runOnUiThread {
-                if (!isDestroyed && !isFinishing) {
-                    showInstallDialog(apk)
-                }
+            Log.d(TAG, "Update version $latestVersion already downloaded. User can install from Downloads/notifications.")
+            return // Don't prompt, user can install manually
+        }
+        
+        // Show dialog to download
+        runOnUiThread { 
+            if (!isDestroyed && !isFinishing) {
+                forceUpdateDialog(latestVersion, apkUrl)
             }
-        } else {
-            runOnUiThread { forceUpdateDialog(latestVersion, apkUrl) }
         }
     }
 
@@ -331,9 +290,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Check if this version is already downloaded
         val existingFile = findDownloadedApkForVersion(targetVersion)
         if (existingFile != null && existingFile.exists()) {
-            Log.d(TAG, "APK for version $targetVersion already downloaded, showing install dialog")
-            val downloadedApk = DownloadedApk(uri = Uri.fromFile(existingFile), file = existingFile)
-            showInstallDialog(downloadedApk)
+            Log.d(TAG, "APK for version $targetVersion already downloaded")
+            Toast.makeText(this, "Update already downloaded. Install it from your Downloads folder or notifications.", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -349,6 +307,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         val request = DownloadManager.Request(Uri.parse(url))
             .setTitle(getDownloadNotificationTitle(targetVersion))
+            .setDescription("Tap the notification when download completes to install")
             .setDestinationInExternalPublicDir(
                 Environment.DIRECTORY_DOWNLOADS,
                 targetFileName
@@ -367,169 +326,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .putLong(KEY_PENDING_DOWNLOAD_ID, downloadId)
             .apply()
         
-        // Show progress dialog and start polling
-        showDownloadProgressDialog()
-        startDownloadStatusPolling()
+        // Show toast telling user to install from notification
+        Toast.makeText(this, "Download started! Install from the notification when it completes.", Toast.LENGTH_LONG).show()
     }
     
-    private fun restoreDownloadState() {
-        val savedDownloadId = updatePrefs.getLong(KEY_PENDING_DOWNLOAD_ID, -1L)
-        if (savedDownloadId != -1L) {
-            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val query = DownloadManager.Query().setFilterById(savedDownloadId)
-            val cursor = dm.query(query)
-            try {
-                if (cursor.moveToFirst()) {
-                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                    when (status) {
-                        DownloadManager.STATUS_SUCCESSFUL -> {
-                            // Download already completed, handle it
-                            downloadId = savedDownloadId
-                            handleDownloadComplete()
-                        }
-                        DownloadManager.STATUS_RUNNING,
-                        DownloadManager.STATUS_PENDING,
-                        DownloadManager.STATUS_PAUSED -> {
-                            // Download still in progress, resume monitoring
-                            downloadId = savedDownloadId
-                        }
-                        else -> {
-                            // Download failed or cancelled, clear state
-                            clearPendingUpdateState()
-                        }
-                    }
-                } else {
-                    // Download no longer exists in DownloadManager
-                    clearPendingUpdateState()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error restoring download state", e)
-                clearPendingUpdateState()
-            } finally {
-                cursor.close()
-            }
-        }
-    }
-    
-    private fun showDownloadProgressDialog() {
-        // Dismiss existing dialog if any
-        downloadProgressDialog?.dismiss()
-        
-        val progressBar = ProgressBar(this).apply {
-            isIndeterminate = true
-        }
-        
-        downloadProgressDialog = AlertDialog.Builder(this)
-            .setTitle("downloading update…")
-            .setMessage("please wait while the update downloads")
-            .setView(progressBar)
-            .setCancelable(false)
-            .create()
-        
-        downloadProgressDialog?.show()
-    }
-    
-    private fun dismissDownloadProgressDialog() {
-        downloadProgressDialog?.dismiss()
-        downloadProgressDialog = null
-    }
-    
-    private fun startDownloadStatusPolling() {
-        // Stop any existing polling
-        stopDownloadStatusPolling()
-        
-        // Show progress dialog if not already shown
-        if (downloadProgressDialog == null || !downloadProgressDialog!!.isShowing) {
-            showDownloadProgressDialog()
-        }
-        
-        downloadCheckRunnable = object : Runnable {
-            override fun run() {
-                if (downloadId == -1L) {
-                    stopDownloadStatusPolling()
-                    dismissDownloadProgressDialog()
-                    return
-                }
-                
-                val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                val query = DownloadManager.Query().setFilterById(downloadId)
-                val cursor = dm.query(query)
-                
-                try {
-                    if (cursor.moveToFirst()) {
-                        val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                        
-                        when (status) {
-                            DownloadManager.STATUS_SUCCESSFUL -> {
-                                Log.d(TAG, "Download completed via polling")
-                                stopDownloadStatusPolling()
-                                dismissDownloadProgressDialog()
-                                handleDownloadComplete()
-                                return
-                            }
-                            DownloadManager.STATUS_FAILED -> {
-                                Log.d(TAG, "Download failed")
-                                stopDownloadStatusPolling()
-                                dismissDownloadProgressDialog()
-                                Toast.makeText(this@MainActivity, "Download failed. Please try again.", Toast.LENGTH_LONG).show()
-                                clearPendingUpdateState()
-                                return
-                            }
-                            DownloadManager.STATUS_PAUSED -> {
-                                Log.d(TAG, "Download paused")
-                            }
-                            DownloadManager.STATUS_PENDING -> {
-                                Log.d(TAG, "Download pending")
-                            }
-                            DownloadManager.STATUS_RUNNING -> {
-                                // Try to get progress if available
-                                try {
-                                    val bytesDownloaded = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                                    val totalSize = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-                                    if (totalSize > 0 && downloadProgressDialog != null && downloadProgressDialog!!.isShowing) {
-                                        val progress = (bytesDownloaded * 100 / totalSize).toInt()
-                                        Log.d(TAG, "Download progress: $progress% ($bytesDownloaded / $totalSize)")
-                                    }
-                                } catch (e: Exception) {
-                                    // Progress columns might not be available, ignore
-                                }
-                            }
-                        }
-                    } else {
-                        // Download ID not found - might have been cleared
-                        Log.w(TAG, "Download ID $downloadId not found in DownloadManager")
-                        stopDownloadStatusPolling()
-                        dismissDownloadProgressDialog()
-                        clearPendingUpdateState()
-                        return
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error polling download status", e)
-                } finally {
-                    cursor.close()
-                }
-                
-                // Continue polling if download is still in progress
-                if (downloadId != -1L && downloadCheckRunnable != null) {
-                    downloadCheckHandler.postDelayed(this, 500) // Check every 500ms for more responsive UI
-                } else {
-                    stopDownloadStatusPolling()
-                    dismissDownloadProgressDialog()
-                }
-            }
-        }
-        
-        // Start polling immediately
-        downloadCheckHandler.post(downloadCheckRunnable!!)
-    }
-    
-    private fun stopDownloadStatusPolling() {
-        downloadCheckRunnable?.let {
-            downloadCheckHandler.removeCallbacks(it)
-            downloadCheckRunnable = null
-        }
-    }
-
     private fun cleanupDownloadedUpdatesIfAlreadyInstalled() {
         val currentVersion = getCurrentAppVersionCode()
         if (currentVersion == -1) {
@@ -677,49 +477,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun resolveDownloadedApk(dm: DownloadManager, cursor: Cursor): DownloadedApk? {
-        return try {
-            val id = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
-            
-            // First try to get URI from DownloadManager (most reliable)
-            var uri: Uri? = null
-            try {
-                uri = dm.getUriForDownloadedFile(id)
-                Log.d(TAG, "Got URI from DownloadManager.getUriForDownloadedFile($id): $uri")
-            } catch (e: Exception) {
-                Log.w(TAG, "getUriForDownloadedFile failed, trying local URI: ${e.message}")
-            }
-            
-            // Fallback to local URI from cursor
-            if (uri == null) {
-                val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
-                if (!localUri.isNullOrBlank()) {
-                    uri = Uri.parse(localUri)
-                    Log.d(TAG, "Using local URI from cursor: $uri")
-                }
-            }
-            
-            if (uri == null) {
-                Log.e(TAG, "Unable to resolve URI for download id=$id")
-                return null
-            }
-            
-            // Try to resolve file path - but don't fail if we can't
-            val file = try {
-                resolveFileFromCursor(cursor)?.takeIf { it.exists() }
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not resolve file path, will use URI only: ${e.message}")
-                null
-            }
-            
-            Log.d(TAG, "Resolved downloaded APK: uri=$uri, file=${file?.absolutePath}")
-            DownloadedApk(uri = uri, file = file)
-        } catch (e: Exception) {
-            Log.e(TAG, "Unable to resolve downloaded APK", e)
-            null
-        }
-    }
-
     private fun determineDownloadedVersion(apkFile: File?, uri: Uri?, title: String? = null): Int? {
         val candidates = listOfNotNull(
             apkFile?.let { getApkVersionCode(it) },
@@ -735,125 +492,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (raw.isNullOrBlank()) return null
         val match = VERSION_IN_NAME_REGEX.find(raw)
         return match?.groupValues?.getOrNull(1)?.toIntOrNull()
-    }
-
-    private data class DownloadedApk(val uri: Uri, val file: File?)
-    
-    private fun checkForCompletedDownload() {
-        // Check if there's a completed download of our APK file
-        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val query = DownloadManager.Query()
-            .setFilterByStatus(DownloadManager.STATUS_SUCCESSFUL)
-        
-        val cursor = dm.query(query)
-        try {
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
-                val localUri = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
-                val title = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TITLE))
-                if (!isUpdateDownloadEntry(localUri, title)) {
-                    continue
-                }
-                val downloadedApk = resolveDownloadedApk(dm, cursor) ?: continue
-                val apkFile = downloadedApk.file
-                val downloadedVersion = determineDownloadedVersion(apkFile, downloadedApk.uri, title)
-                val currentVersion = getCurrentAppVersionCode()
-                if (downloadedVersion != null && currentVersion != -1 && downloadedVersion <= currentVersion) {
-                    Log.d(TAG, "Skipping stale download (version $downloadedVersion already installed)")
-                    apkFile?.delete()
-                    dm.remove(id)
-                    continue
-                }
-                downloadId = id
-                if (downloadedVersion != null) {
-                    val editor = updatePrefs.edit()
-                    editor.putInt(KEY_PENDING_VERSION, downloadedVersion)
-                    apkFile?.name?.let { editor.putString(KEY_PENDING_FILE_NAME, it) }
-                    editor.putLong(KEY_PENDING_DOWNLOAD_ID, id)
-                    editor.apply()
-                }
-                Log.d(TAG, "Found completed download: id=$id, uri=${downloadedApk.uri}")
-                if (!isDestroyed && !isFinishing) {
-                    showInstallDialog(downloadedApk)
-                }
-                break
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking for completed downloads", e)
-        } finally {
-            cursor.close()
-        }
-    }
-
-    private fun handleDownloadComplete() {
-        if (downloadId == -1L) {
-            Log.w(TAG, "Download ID is -1, cannot handle download completion")
-            return
-        }
-
-        stopDownloadStatusPolling()
-        dismissDownloadProgressDialog()
-
-        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val query = DownloadManager.Query().setFilterById(downloadId)
-        val cursor = dm.query(query)
-
-        try {
-            if (!cursor.moveToFirst()) {
-                Log.w(TAG, "No download found with ID: $downloadId")
-                return
-            }
-            val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-            Log.d(TAG, "Download status: $status")
-            if (status != DownloadManager.STATUS_SUCCESSFUL) {
-                Log.d(TAG, "Download not successful, status: $status")
-                return
-            }
-
-            val downloadedApk = resolveDownloadedApk(dm, cursor)
-            if (downloadedApk == null) {
-                Log.w(TAG, "Downloaded file reference missing for ID: $downloadId")
-                dm.remove(downloadId)
-                return
-            }
-
-            val apkFile = downloadedApk.file
-            val title = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TITLE))
-            val downloadedVersion = determineDownloadedVersion(apkFile, downloadedApk.uri, title)
-            val currentVersion = getCurrentAppVersionCode()
-            if (downloadedVersion != null) {
-                val editor = updatePrefs.edit()
-                editor.putInt(KEY_PENDING_VERSION, downloadedVersion)
-                apkFile?.name?.let { editor.putString(KEY_PENDING_FILE_NAME, it) }
-                editor.putLong(KEY_PENDING_DOWNLOAD_ID, downloadId)
-                editor.apply()
-                if (currentVersion != -1 && downloadedVersion <= currentVersion) {
-                    Log.d(TAG, "Downloaded version ($downloadedVersion) already installed ($currentVersion)")
-                    apkFile?.delete()
-                    dm.remove(downloadId)
-                    clearPendingUpdateState()
-                    return
-                }
-            }
-
-            val showDialogAction = {
-                if (!isDestroyed && !isFinishing) {
-                    showInstallDialog(downloadedApk)
-                } else {
-                    Log.w(TAG, "Activity state changed, cannot show dialog")
-                }
-            }
-
-            if (Looper.myLooper() == Looper.getMainLooper()) {
-                showDialogAction()
-            } else {
-                runOnUiThread { showDialogAction() }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error handling download completion", e)
-        } finally {
-            cursor.close()
-        }
     }
 
     private fun handleReadAlongReturnIfNeeded() {
@@ -893,121 +531,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         pendingReadAlongReward = null
     }
 
-    private fun showInstallDialog(downloadedApk: DownloadedApk) {
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("install update")
-            .setMessage("the update has been downloaded. please install it now to continue.")
-            .setCancelable(false)
-            .setPositiveButton("install now") { _, _ ->
-                installApk(downloadedApk)
-            }
-            .create()
-        
-        dialog.show()
-    }
-
-    private fun installApk(downloadedApk: DownloadedApk) {
-        // Check and request install permission on Android 8.0+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (!packageManager.canRequestPackageInstalls()) {
-                Log.d(TAG, "Requesting install package permission")
-                pendingApkInstall = downloadedApk
-                try {
-                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                        data = android.net.Uri.parse("package:$packageName")
-                    }
-                    installPackagePermissionLauncher.launch(intent)
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error opening install permission settings", e)
-                    Toast.makeText(this, "Please enable 'Install unknown apps' for this app in Settings > Apps > Special app access", Toast.LENGTH_LONG).show()
-                    pendingApkInstall = null
-                }
-                return
-            }
-        }
-        
-        performInstall(downloadedApk)
-    }
-    
-    private fun performInstall(downloadedApk: DownloadedApk) {
-        try {
-            val apkFile = downloadedApk.file
-            val hasLocalFile = apkFile != null && apkFile.exists()
-            Log.d(TAG, "Installing APK. hasLocalFile=$hasLocalFile, uri=${downloadedApk.uri}")
-            
-            // Check if we're device owner (can install silently without Play Protect prompt)
-            if (hasLocalFile && isDeviceOwner()) {
-                Log.d(TAG, "Device owner detected, attempting silent install")
-                if (installSilentlyAsDeviceOwner(apkFile)) {
-                    return // Successfully installed silently
-                }
-                // Fall through to regular install if silent install fails
-            }
-            
-            // Regular install method (will show Play Protect prompt)
-            val finalUri = when {
-                hasLocalFile && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
-                    try {
-                        val uri = FileProvider.getUriForFile(
-                            this@MainActivity,
-                            "${packageName}.fileprovider",
-                            apkFile!!
-                        )
-                        Log.d(TAG, "FileProvider URI created: $uri")
-                        uri
-                    } catch (e: IllegalArgumentException) {
-                        Log.e(TAG, "FileProvider error: ${e.message}, falling back to DownloadManager URI", e)
-                        // Fallback to DownloadManager URI if FileProvider fails
-                        downloadedApk.uri
-                    }
-                }
-                hasLocalFile -> {
-                    Log.d(TAG, "Using file:// URI for Android < N: ${apkFile!!.absolutePath}")
-                    Uri.fromFile(apkFile)
-                }
-                else -> {
-                    Log.d(TAG, "Using downloaded URI: ${downloadedApk.uri}")
-                    downloadedApk.uri
-                }
-            }
-            
-            val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(finalUri, "application/vnd.android.package-archive")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or 
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                // Grant permission to package installer
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                }
-            }
-            
-            Log.d(TAG, "Starting install intent with URI: $finalUri, scheme: ${finalUri.scheme}")
-            
-            // Grant URI permissions to package installer
-            val packageInstallerPackage = "com.android.packageinstaller"
-            try {
-                grantUriPermission(packageInstallerPackage, finalUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not grant permission to package installer: ${e.message}")
-            }
-            
-            // Check if intent can be resolved before launching
-            val resolver = packageManager.resolveActivity(installIntent, 0)
-            if (resolver != null) {
-                Log.d(TAG, "Package installer found, starting install activity")
-                startActivity(installIntent)
-            } else {
-                Log.e(TAG, "No app can handle APK install. URI: $finalUri")
-                throw IllegalStateException("No app can handle APK install. Please enable 'Install unknown apps' for this app in settings.")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error installing APK", e)
-            val errorMsg = "Error installing update: ${e.message}\n\nPlease try installing manually from Downloads folder."
-            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
-        }
-    }
-    
     private fun isDeviceOwner(): Boolean {
         return try {
             val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
@@ -1017,6 +540,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
     
+    @Suppress("UNUSED")
     private fun installSilentlyAsDeviceOwner(file: File?): Boolean {
         if (file == null || !file.exists()) {
             return false
@@ -1654,75 +1178,29 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Try to find default email app
-        val defaultEmailApp = findDefaultEmailApp()
-        
-        // First try: Use ACTION_SEND with specific email app if found (avoids chooser)
-        if (defaultEmailApp != null) {
-            try {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "message/rfc822"
-                    `package` = defaultEmailApp.activityInfo.packageName
-                    putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-                    putExtra(Intent.EXTRA_SUBJECT, subject)
-                    putExtra(Intent.EXTRA_TEXT, body)
-                }
-                if (intent.resolveActivity(packageManager) != null) {
-                    Log.d(TAG, "Using default email app: ${defaultEmailApp.loadLabel(packageManager)}")
-                    return intent
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to use default email app, trying mailto: ${e.message}")
-            }
-        }
-        
-        // Second try: Use mailto: URI (opens default email app directly)
-        val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
-            .appendQueryParameter("subject", subject)
-            .appendQueryParameter("body", body)
-            .build()
-        
-        val sendToIntent = Intent(Intent.ACTION_SENDTO, mailtoUri)
-        if (sendToIntent.resolveActivity(packageManager) != null) {
-            Log.d(TAG, "Using mailto: URI")
-            return sendToIntent
-        }
-        
-        // Final fallback: ACTION_SEND chooser (user must pick)
-        Log.d(TAG, "No default email app found, showing chooser")
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        // Try to send via Gmail directly using ACTION_SEND (which supports extras)
+        val gmailIntent = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
-        }
-        return Intent.createChooser(shareIntent, "Send Progress Report")
-    }
-    
-    private fun findDefaultEmailApp(): android.content.pm.ResolveInfo? {
-        // Try to get default handler for mailto: scheme
-        val mailtoIntent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"))
-        val possibleApps = packageManager.queryIntentActivities(mailtoIntent, 0)
-        
-        // Look for common email apps first (Gmail, Outlook, etc.)
-        val preferredPackages = listOf(
-            "com.google.android.gm",      // Gmail
-            "com.microsoft.office.outlook", // Outlook
-            "com.android.email"            // AOSP Email
-        )
-        
-        // Check if any preferred app is installed
-        for (preferredPackage in preferredPackages) {
-            val found = possibleApps.firstOrNull { 
-                it.activityInfo.packageName == preferredPackage 
-            }
-            if (found != null) {
-                return found
-            }
+            setPackage("com.google.android.gm")
         }
         
-        // Return first available email app
-        return possibleApps.firstOrNull()
+        if (gmailIntent.resolveActivity(packageManager) != null) {
+            Log.d(TAG, "Using Gmail directly")
+            return gmailIntent
+        } else {
+            // Fallback: show share sheet
+            Log.d(TAG, "Gmail not available, showing chooser")
+            val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
+            }
+            return Intent.createChooser(fallbackIntent, "Share Progress Report")
+        }
     }
 
     private fun displayProfileSelection(content: MainContent) {
@@ -1741,8 +1219,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // Receiver may not be registered
             }
         }
-        stopDownloadStatusPolling()
-        dismissDownloadProgressDialog()
         super.onDestroy()
     }
 
