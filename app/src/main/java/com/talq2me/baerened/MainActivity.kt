@@ -1216,10 +1216,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         lifecycleScope.launch(Dispatchers.IO) {
             val client = OkHttpClient()
             try {
-                // Create filename with timestamp
-                val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                val timestamp = SimpleDateFormat("HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "${childName}_${date}_${timestamp}.txt"
+                // Create simple filename - one file per kid, always overwrite
+                val fileName = "$childName.txt"
                 val filePath = "$GITHUB_REPORTS_PATH/$fileName"
                 
                 // Full report content (subject + report)
@@ -1232,9 +1230,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // GitHub API endpoint
                 val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$filePath"
                 
-                // Try to check if file exists first (to get SHA for update)
-                // If file doesn't exist, GitHub API will create it
+                // Check if file exists first (to get SHA for update)
+                // If file doesn't exist, GitHub API will create it; if it exists, we'll overwrite it
                 var existingSha: String? = null
+                var isUpdate = false
                 try {
                     val checkRequest = Request.Builder()
                         .url(apiUrl)
@@ -1248,7 +1247,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             if (!checkBody.isNullOrEmpty()) {
                                 val fileInfo = JSONObject(checkBody)
                                 existingSha = fileInfo.optString("sha", null)
-                                Log.d(TAG, "File exists, will update. SHA: $existingSha")
+                                isUpdate = true
+                                Log.d(TAG, "File exists, will overwrite. SHA: $existingSha")
                             }
                         }
                     }
@@ -1258,12 +1258,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
                 
                 // Create JSON payload for GitHub API
+                val commitMessage = if (isUpdate) {
+                    "Update progress report for $childName"
+                } else {
+                    "Create progress report for $childName"
+                }
                 val json = JSONObject().apply {
-                    put("message", "Auto-upload progress report: $fileName")
+                    put("message", commitMessage)
                     put("content", base64Content)
                     put("branch", "main")  // Change to "master" if your repo uses that
                     if (existingSha != null) {
-                        put("sha", existingSha)  // Required for updates
+                        put("sha", existingSha)  // Required for updates/overwrites
                     }
                 }
                 
