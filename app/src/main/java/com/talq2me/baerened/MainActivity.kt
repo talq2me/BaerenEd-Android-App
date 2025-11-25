@@ -1178,47 +1178,43 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // First try: Use mailto: URI with query parameters and setPackage to Gmail
-        val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
-            .appendQueryParameter("subject", subject)
-            .appendQueryParameter("body", body)
-            .build()
-        
-        val mailtoIntent = Intent(Intent.ACTION_SENDTO, mailtoUri).apply {
-            setPackage("com.google.android.gm")
-        }
-        
-        try {
-            if (mailtoIntent.resolveActivity(packageManager) != null) {
-                Log.d(TAG, "Using Gmail with mailto: URI")
-                return mailtoIntent
-            }
+        // Check if Gmail is installed
+        val isGmailInstalled = try {
+            packageManager.getPackageInfo("com.google.android.gm", 0)
+            true
         } catch (e: Exception) {
-            Log.w(TAG, "Gmail mailto: approach failed: ${e.message}")
+            Log.d(TAG, "Gmail not installed")
+            false
         }
         
-        // Second try: ACTION_SEND with package set (but don't use explicit component)
-        val gmailIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-            setPackage("com.google.android.gm")
-        }
-        
-        try {
-            // Check if Gmail can handle this intent
-            val resolveInfo = packageManager.resolveActivity(gmailIntent, 0)
-            if (resolveInfo != null && resolveInfo.activityInfo.packageName == "com.google.android.gm") {
-                Log.d(TAG, "Using Gmail with ACTION_SEND and package set")
+        if (isGmailInstalled) {
+            // Try to find Gmail's activity that can handle email
+            val emailIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "message/rfc822"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
+            }
+            
+            // Find Gmail specifically in the list of apps that can handle this
+            val gmailResolveInfo = packageManager.queryIntentActivities(emailIntent, 0)
+                .firstOrNull { it.activityInfo.packageName == "com.google.android.gm" }
+            
+            if (gmailResolveInfo != null) {
+                // Create intent targeting Gmail's specific activity
+                val gmailIntent = Intent(emailIntent).apply {
+                    setClassName(
+                        gmailResolveInfo.activityInfo.packageName,
+                        gmailResolveInfo.activityInfo.name
+                    )
+                }
+                Log.d(TAG, "Using Gmail directly with activity: ${gmailResolveInfo.activityInfo.name}")
                 return gmailIntent
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Gmail ACTION_SEND approach failed: ${e.message}")
         }
         
-        // Fallback: show share sheet
-        Log.d(TAG, "Gmail not available, showing chooser")
+        // Fallback: show share sheet (or mailto: chooser)
+        Log.d(TAG, "Gmail not available or not found, showing chooser")
         val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
