@@ -1195,15 +1195,25 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         childName: String,
         rewardMinutes: Int
     ) {
+        // Get token from BuildConfig
+        val githubToken = getGitHubToken()
+        
         // Check if GitHub token is configured
-        if (GITHUB_TOKEN.isBlank()) {
-            Log.w(TAG, "GitHub token not configured. Report not uploaded.")
-            // Fail gracefully - just proceed to reward selection
-            // You can set the token in the companion object above
-            Toast.makeText(this, "Report upload not configured. Contact administrator.", Toast.LENGTH_SHORT).show()
+        if (githubToken.isBlank()) {
+            Toast.makeText(this, "ERROR: GitHub token not configured. Report upload disabled.", Toast.LENGTH_LONG).show()
             launchRewardSelectionActivity(rewardMinutes)
             return
         }
+        
+        // Show token status via toast for debugging
+        val tokenLength = githubToken.length
+        if (tokenLength < 10) {
+            Toast.makeText(this, "ERROR: GitHub token appears invalid (too short). Upload disabled.", Toast.LENGTH_LONG).show()
+            launchRewardSelectionActivity(rewardMinutes)
+            return
+        }
+        
+        Toast.makeText(this, "Token loaded (length: $tokenLength). Starting upload...", Toast.LENGTH_SHORT).show()
         
         // Show progress (optional, for feedback)
         val progressDialog = AlertDialog.Builder(this)
@@ -1212,6 +1222,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setCancelable(false)
             .create()
         progressDialog.show()
+        
+        Toast.makeText(this, "Starting upload (token length: $tokenLength)...", Toast.LENGTH_SHORT).show()
         
         lifecycleScope.launch(Dispatchers.IO) {
             val client = OkHttpClient()
@@ -1237,11 +1249,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 try {
                     val checkRequest = Request.Builder()
                         .url(apiUrl)
-                        .addHeader("Authorization", "token $GITHUB_TOKEN")
+                        .addHeader("Authorization", "token $githubToken")
                         .addHeader("Accept", "application/vnd.github.v3+json")
                         .get()
                         .build()
                     client.newCall(checkRequest).execute().use { checkResponse ->
+                        val checkResponseCode = checkResponse.code
                         if (checkResponse.isSuccessful) {
                             val checkBody = checkResponse.body?.string()
                             if (!checkBody.isNullOrEmpty()) {
@@ -1249,12 +1262,28 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 existingSha = fileInfo.optString("sha", null)
                                 isUpdate = true
                                 Log.d(TAG, "File exists, will overwrite. SHA: $existingSha")
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(this@MainActivity, "File exists, will update...", Toast.LENGTH_SHORT).show()
+                                }
                             }
+                        } else if (checkResponseCode == 401) {
+                            // Authentication failed - don't continue
+                            throw Exception("Authentication failed (401). Check token.")
+                        } else if (checkResponseCode == 404) {
+                            // File doesn't exist - this is fine, will create new
+                            Log.d(TAG, "File doesn't exist yet, will create new file")
+                        } else {
+                            // Other error - log but continue
+                            Log.w(TAG, "Check file request returned code: $checkResponseCode")
                         }
                     }
                 } catch (e: Exception) {
+                    // If it's an auth error, rethrow it
+                    if (e.message?.contains("Authentication failed") == true) {
+                        throw e
+                    }
                     // File doesn't exist, will create new - this is fine
-                    Log.d(TAG, "File doesn't exist yet, will create new file")
+                    Log.d(TAG, "File doesn't exist yet, will create new file: ${e.message}")
                 }
                 
                 // Create JSON payload for GitHub API
@@ -1278,7 +1307,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 
                 val request = Request.Builder()
                     .url(apiUrl)
-                    .addHeader("Authorization", "token $GITHUB_TOKEN")
+                    .addHeader("Authorization", "token $githubToken")
                     .addHeader("Accept", "application/vnd.github.v3+json")
                     .put(body)
                     .build()
@@ -1289,9 +1318,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     withContext(Dispatchers.Main) {
                         progressDialog.dismiss()
                         
+                        val responseCode = response.code
                         if (response.isSuccessful) {
-                            Log.d(TAG, "Report uploaded successfully to GitHub: $filePath")
-                            Toast.makeText(this@MainActivity, "Report uploaded!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "✓ Report uploaded successfully!", Toast.LENGTH_SHORT).show()
                             
                             // Successfully uploaded, immediately grant reward
                             rewardEmailInFlight = false
@@ -1299,25 +1328,50 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 triggerPendingRewardLaunch(force = true)
                             }, 500)
                         } else {
-                            Log.e(TAG, "GitHub upload failed: ${response.code} - $responseBody")
                             val errorMsg = try {
                                 val errorJson = JSONObject(responseBody ?: "{}")
-                                errorJson.optString("message", "Upload failed")
+                                val apiError = errorJson.optString("message", "Upload failed")
+                                
+                                // Check for specific error types
+                                when (responseCode) {
+                                    401 -> {
+                                        "ERROR: Bad credentials (401). Token may be invalid. Contact admin."
+                                    }
+                                    403 -> {
+                                        "ERROR: Permission denied (403). Token may lack repo permissions."
+                                    }
+                                    404 -> {
+                                        "ERROR: Repository or path not found (404). Check repo settings."
+                                    }
+                                    else -> {
+                                        "Upload failed (code $responseCode): $apiError"
+                                    }
+                                }
                             } catch (e: Exception) {
-                                "Upload failed: ${response.code}"
+                                "Upload failed with code: $responseCode"
                             }
                             
-                            Toast.makeText(this@MainActivity, "Upload failed: $errorMsg", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
                             rewardEmailInFlight = false
                             launchRewardSelectionActivity(rewardMinutes)
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error uploading report to GitHub", e)
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
-                    Toast.makeText(this@MainActivity, "Upload error: ${e.message}", Toast.LENGTH_LONG).show()
+                    val errorMsg = when {
+                        e.message?.contains("Authentication failed") == true -> {
+                            "ERROR: Authentication failed. Check GitHub token configuration."
+                        }
+                        e.message?.contains("401") == true -> {
+                            "ERROR: Bad credentials (401). Token may be invalid or revoked."
+                        }
+                        else -> {
+                            "Upload error: ${e.message ?: "Unknown error"}"
+                        }
+                    }
+                    Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
                     rewardEmailInFlight = false
                     launchRewardSelectionActivity(rewardMinutes)
                 }
@@ -1364,11 +1418,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // To create a token: GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
         // Required permissions: repo (for private repos) or public_repo (for public repos)
         // Add to local.properties: GITHUB_TOKEN=your_token_here
-        private const val GITHUB_TOKEN = BuildConfig.GITHUB_TOKEN
+        // Note: BuildConfig fields are not compile-time constants, so we access them directly
         private const val GITHUB_OWNER = "talq2me"
         private const val GITHUB_REPO = "BaerenEd-Android-App"
         private const val GITHUB_REPORTS_PATH = "app/reports"  // Directory in repo for reports
     }
+    
+    // Access BuildConfig token at runtime (not as const since BuildConfig fields aren't compile-time constants)
+    private fun getGitHubToken(): String = BuildConfig.GITHUB_TOKEN
 
     fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
         Log.d(TAG, "Starting game: ${game.title}")
