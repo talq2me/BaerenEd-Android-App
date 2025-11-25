@@ -75,7 +75,13 @@ echo "APK built."
 cp "$APK_SOURCE" "$PAGES_APK_PATH"
 
 ### --- GIT COMMIT + TAG + PUSH --- ###
-git add .
+# Add all files except local.properties (which contains secrets and should not be committed)
+git add app/build.gradle.kts
+git add app/release/app-release.apk
+git add app/src/main/assets/config/version.json
+git add app/src/main/java/com/talq2me/baerened/MainActivity.kt
+# Explicitly exclude local.properties if it was tracked before
+git restore --staged local.properties 2>/dev/null || true
 
 git commit -m "Release version $NEW_VERSION"
 git tag "v$NEW_VERSION"
