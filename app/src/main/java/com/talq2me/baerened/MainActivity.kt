@@ -1178,8 +1178,42 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Try to send via Gmail directly using ACTION_SEND (which supports extras)
-        val gmailIntent = Intent(Intent.ACTION_SEND).apply {
+        // First try: Use mailto: URI with query parameters (Gmail handles this directly)
+        val mailtoUri = Uri.parse("mailto:$parentEmail").buildUpon()
+            .appendQueryParameter("subject", subject)
+            .appendQueryParameter("body", body)
+            .build()
+        
+        val mailtoIntent = Intent(Intent.ACTION_SENDTO, mailtoUri).apply {
+            setPackage("com.google.android.gm")
+        }
+        
+        if (mailtoIntent.resolveActivity(packageManager) != null) {
+            Log.d(TAG, "Using Gmail with mailto: URI")
+            return mailtoIntent
+        }
+        
+        // Second try: Use ACTION_SEND with explicit Gmail component
+        try {
+            val gmailComponent = android.content.ComponentName(GMAIL_PACKAGE, "com.google.android.gm.ComposeActivityGmail")
+            val gmailIntent = Intent(Intent.ACTION_SEND).apply {
+                component = gmailComponent
+                type = "message/rfc822"
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT, body)
+            }
+            
+            if (gmailIntent.resolveActivity(packageManager) != null) {
+                Log.d(TAG, "Using Gmail with explicit component")
+                return gmailIntent
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to use explicit Gmail component: ${e.message}")
+        }
+        
+        // Third try: ACTION_SEND with package set
+        val gmailIntent2 = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
             putExtra(Intent.EXTRA_SUBJECT, subject)
@@ -1187,20 +1221,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             setPackage("com.google.android.gm")
         }
         
-        if (gmailIntent.resolveActivity(packageManager) != null) {
-            Log.d(TAG, "Using Gmail directly")
-            return gmailIntent
-        } else {
-            // Fallback: show share sheet
-            Log.d(TAG, "Gmail not available, showing chooser")
-            val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-                putExtra(Intent.EXTRA_SUBJECT, subject)
-                putExtra(Intent.EXTRA_TEXT, body)
+        try {
+            if (packageManager.queryIntentActivities(gmailIntent2, 0).isNotEmpty()) {
+                Log.d(TAG, "Using Gmail with package set")
+                return gmailIntent2
             }
-            return Intent.createChooser(fallbackIntent, "Share Progress Report")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to query Gmail intent: ${e.message}")
         }
+        
+        // Fallback: show share sheet
+        Log.d(TAG, "Gmail not available, showing chooser")
+        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
+        }
+        return Intent.createChooser(fallbackIntent, "Share Progress Report")
     }
 
     private fun displayProfileSelection(content: MainContent) {
