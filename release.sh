@@ -75,12 +75,36 @@ echo "APK built."
 cp "$APK_SOURCE" "$PAGES_APK_PATH"
 
 ### --- PULL LATEST CHANGES --- ###
-# Pull/rebase to get latest changes (e.g., report uploads from the app)
+# Pull latest changes (e.g., report uploads from the app)
+# Use merge with 'theirs' strategy to automatically resolve conflicts
+# Report uploads won't conflict with release files, so this is safe
 echo "Pulling latest changes from remote..."
-git pull --rebase origin main || {
-    echo "Warning: Pull/rebase failed. Continuing anyway..."
-    git pull --no-rebase origin main || true
-}
+git fetch origin main
+
+# Check if there are remote changes
+if git rev-list --count HEAD..origin/main > /dev/null 2>&1; then
+    REMOTE_COUNT=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo "0")
+    if [ "$REMOTE_COUNT" -gt 0 ]; then
+        echo "Remote has $REMOTE_COUNT new commit(s). Merging automatically..."
+        # Use merge with 'theirs' strategy to automatically accept remote changes
+        # This is safe since report uploads don't conflict with our release files
+        # Set GIT_MERGE_AUTOEDIT=no to prevent editor from opening
+        GIT_MERGE_AUTOEDIT=no git merge origin/main -X theirs -m "Merge remote changes (report uploads)" --no-edit || {
+            # If merge fails, try rebase with autostash
+            echo "Merge failed, trying rebase with autostash..."
+            git merge --abort 2>/dev/null || true
+            git pull --rebase --autostash origin main || {
+                # Last resort: just pull without rebase
+                echo "Rebase failed, pulling without rebase..."
+                git pull --no-edit origin main || true
+            }
+        }
+    else
+        echo "No remote changes to pull."
+    fi
+else
+    echo "Already up to date with remote."
+fi
 
 ### --- GIT COMMIT + TAG + PUSH --- ###
 # Add all files except local.properties (which contains secrets and should not be committed)
