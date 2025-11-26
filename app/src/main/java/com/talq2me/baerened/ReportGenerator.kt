@@ -166,7 +166,7 @@ class ReportGenerator(private val context: Context) {
             appendLine("Games Played: ${report.gamesPlayed}")
             appendLine("Videos Watched: ${report.videosWatched}")
             appendLine("Total Sessions: ${report.totalSessions}")
-            appendLine("Questions Answered: ${report.totalCorrectAnswers} ✅ , ${report.totalIncorrectAnswers} ❌")
+            appendLine("Questions Answered:   ${report.totalCorrectAnswers}✅   ${report.totalIncorrectAnswers}❌")
             appendLine()
 
             if (report.completedGameSessions.isNotEmpty()) {
@@ -265,7 +265,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("✅ COMPLETED REQUIRED TASKS")
                 appendLine("-".repeat(30))
                 completedRequiredTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
                 }
                 // Add completed checklist items
@@ -284,7 +284,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("⏳ INCOMPLETE REQUIRED TASKS")
                 appendLine("-".repeat(30))
                 incompleteRequiredTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
                 }
                 // Add incomplete checklist items
@@ -310,7 +310,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("🎯 EXTRA PRACTICE TASKS")
                 appendLine("-".repeat(30))
                 optionalTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
                 }
                 appendLine()
@@ -321,7 +321,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("🎮 BONUS TASKS")
                 appendLine("-".repeat(30))
                 bonusTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
                 }
                 appendLine()
@@ -524,7 +524,7 @@ class ReportGenerator(private val context: Context) {
                                 <h3>⏳ Incomplete Required Tasks</h3>
                                 <ul class="task-list">""")
                             incompleteRequiredTasks.forEach { task ->
-                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                                 append("""<li class="task-item">${task.taskName}: $timeInfo${task.answerInfo}</li>""")
                             }
                             // Add incomplete checklist items
@@ -541,7 +541,7 @@ class ReportGenerator(private val context: Context) {
                                 <h3>🎯 Extra Practice Tasks</h3>
                                 <ul class="task-list">""")
                             optionalTasks.forEach { task ->
-                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                                 append("""<li class="task-item">${task.taskName}: $timeInfo${task.answerInfo}</li>""")
                             }
                             append("""</ul>
@@ -553,7 +553,7 @@ class ReportGenerator(private val context: Context) {
                                 <h3>🎮 Bonus Tasks</h3>
                                 <ul class="task-list">""")
                             bonusTasks.forEach { task ->
-                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                                val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                                 append("""<li class="task-item">${task.taskName}: $timeInfo${task.answerInfo}</li>""")
                             }
                             append("""</ul>
@@ -671,7 +671,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("Incomplete Required Tasks")
                 appendLine("Task,Duration,Correct,Incorrect")
                 incompleteRequiredTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     val correctInfo = if (task.isVideoTask || task.isChromePageTask) "" else ",${task.correctAnswers},${task.incorrectAnswers}"
                     appendLine("${task.taskName},$timeInfo$correctInfo")
                 }
@@ -687,7 +687,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("Extra Practice Tasks")
                 appendLine("Task,Status,Duration,Correct,Incorrect")
                 optionalTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     val status = if (task.isCompleted) "Completed" else "Incomplete"
                     val correctInfo = if (task.isVideoTask || task.isChromePageTask) "" else ",${task.correctAnswers},${task.incorrectAnswers}"
                     appendLine("${task.taskName},$status,$timeInfo$correctInfo")
@@ -699,7 +699,7 @@ class ReportGenerator(private val context: Context) {
                 appendLine("Bonus Tasks")
                 appendLine("Task,Status,Duration,Correct,Incorrect")
                 bonusTasks.forEach { task ->
-                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                    val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     val status = if (task.isCompleted) "Completed" else "Incomplete"
                     val correctInfo = if (task.isVideoTask || task.isChromePageTask) "" else ",${task.correctAnswers},${task.incorrectAnswers}"
                     appendLine("${task.taskName},$status,$timeInfo$correctInfo")
@@ -733,7 +733,7 @@ class ReportGenerator(private val context: Context) {
             • Total Learning Time: ${report.totalTimeMinutes} minutes
             • Games Played: ${report.gamesPlayed}
             • Videos Watched: ${report.videosWatched}
-            • Questions Answered: ${report.totalCorrectAnswers} correct, ${report.totalIncorrectAnswers} incorrect
+            • Questions Answered:   ${report.totalCorrectAnswers}✅   ${report.totalIncorrectAnswers}❌
             ${if (report.webGameSessions.isNotEmpty()) "• Web Games Played: ${report.webGameSessions.size}" else ""}${if (report.chromePageSessions.isNotEmpty()) "\n            • Web Pages Visited: ${report.chromePageSessions.size}" else ""}${if (requiredIncompleteCount > 0) "\n            • Required Tasks Incomplete: $requiredIncompleteCount" else ""}
 
             ${run {
@@ -777,7 +777,7 @@ class ReportGenerator(private val context: Context) {
                     if (incompleteRequiredTasks.isNotEmpty()) {
                         append("⏳ INCOMPLETE REQUIRED TASKS:\n            ")
                         append(incompleteRequiredTasks.joinToString("\n            ") { task ->
-                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                             "• ${task.taskName}: $timeInfo${task.answerInfo}"
                         })
                             // Add incomplete checklist items
@@ -793,7 +793,7 @@ class ReportGenerator(private val context: Context) {
                     if (optionalTasks.isNotEmpty()) {
                         append("🎯 EXTRA PRACTICE TASKS:\n            ")
                         append(optionalTasks.joinToString("\n            ") { task ->
-                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                             "• ${task.taskName}: $timeInfo${task.answerInfo}"
                         })
                         append("\n\n            ")
@@ -802,7 +802,7 @@ class ReportGenerator(private val context: Context) {
                     if (bonusTasks.isNotEmpty()) {
                         append("🎮 BONUS TASKS:\n            ")
                         append(bonusTasks.joinToString("\n            ") { task ->
-                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "No time spent"
+                            val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                             "• ${task.taskName}: $timeInfo${task.answerInfo}"
                         })
                         append("\n\n            ")

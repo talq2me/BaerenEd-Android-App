@@ -133,12 +133,7 @@ fi
 
 ### --- GIT COMMIT + TAG + PUSH --- ###
 # Add all files except local.properties (which contains secrets and should not be committed)
-git add app/build.gradle.kts
-git add app/release/app-release.apk
-git add app/src/main/assets/config/version.json
-git add app/src/main/java/com/talq2me/baerened/MainActivity.kt
-git add release.sh
-git add .gitignore
+git add -A
 # Explicitly exclude local.properties if it was tracked before
 git restore --staged local.properties 2>/dev/null || true
 

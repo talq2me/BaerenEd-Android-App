@@ -15,8 +15,9 @@ class GameEngine(
     private var incorrectCount = 0
 
     fun getCurrentQuestion(): GameData {
-        if (currentIndex >= questions.size) currentIndex = 0
-        return questions[currentIndex]
+        // Use modulo to wrap around, but keep the index so we continue from where we left off
+        val wrappedIndex = currentIndex % questions.size
+        return questions[wrappedIndex]
     }
 
     fun submitAnswer(userAnswers: List<String>): Boolean {
@@ -26,9 +27,12 @@ class GameEngine(
         if (isCorrect) {
             correctCount++
             currentIndex++
+            // Save the next index so we continue from there next time
             progress.saveIndex(currentIndex)
         } else {
             incorrectCount++
+            // Still save current index so we stay on the same question if they restart
+            progress.saveIndex(currentIndex)
         }
 
         return isCorrect

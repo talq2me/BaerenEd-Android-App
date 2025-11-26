@@ -40,6 +40,9 @@ class Layout(private val activity: MainActivity) {
 
     // Progress management
     private val progressManager = DailyProgressManager(activity)
+    
+    // Runnable for pending section setup to prevent duplicates
+    private var pendingSectionsSetup: Runnable? = null
 
     /**
      * Display the main content by setting up all UI components
@@ -85,10 +88,15 @@ class Layout(private val activity: MainActivity) {
 
         // Display sections (tasks and buttons) - defer heavy view creation to avoid blocking
         sectionsContainer.visibility = View.VISIBLE
-        // Use post() to defer view creation to next frame, allowing UI to render first
-        sectionsContainer.post {
+        // Cancel any pending section setup to prevent duplicate sections
+        pendingSectionsSetup?.let { sectionsContainer.removeCallbacks(it) }
+        // Create new runnable and store it
+        pendingSectionsSetup = Runnable {
             setupSections(content.sections ?: emptyList())
+            pendingSectionsSetup = null
         }
+        // Use post() to defer view creation to next frame, allowing UI to render first
+        sectionsContainer.post(pendingSectionsSetup!!)
 
         android.util.Log.d("Layout", "displayContent completed")
     }
@@ -315,6 +323,9 @@ class Layout(private val activity: MainActivity) {
     fun refreshSections() {
         val currentContent = activity.getCurrentMainContent()
         if (currentContent != null) {
+            // Cancel any pending section setup to prevent duplicate sections
+            pendingSectionsSetup?.let { sectionsContainer.removeCallbacks(it) }
+            pendingSectionsSetup = null
             // Re-setup sections to update task completion states
             setupSections(currentContent.sections ?: emptyList())
         }
@@ -326,12 +337,15 @@ class Layout(private val activity: MainActivity) {
     fun handleVideoCompletion(taskId: String, taskTitle: String, stars: Int, videoFile: String? = null, videoIndex: Int? = null) {
         android.util.Log.d("Layout", "handleVideoCompletion called: taskId=$taskId, taskTitle=$taskTitle, stars=$stars, videoFile=$videoFile, videoIndex=$videoIndex")
 
-        // If this is a sequential video that completed, update the video index now
+        // If this is a sequential video that completed, save the video index
+        // This allows the next play from this video list to advance to the next video
         if (videoFile != null && videoIndex != null) {
             val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
             val currentKid = SettingsManager.readProfile(activity) ?: "A"
-            prefs.edit().putInt("${currentKid}_${videoFile}_index", videoIndex).apply()
-            android.util.Log.d("Layout", "Updated sequential video index: ${currentKid}_${videoFile}_index = $videoIndex")
+            prefs.edit()
+                .putInt("${currentKid}_${videoFile}_index", videoIndex)
+                .apply()
+            android.util.Log.d("Layout", "Saved sequential video progress: ${currentKid}_${videoFile}_index = $videoIndex")
         }
 
         // Only grant rewards if this is a legitimate completion (not manual exit)
@@ -852,23 +866,27 @@ class Layout(private val activity: MainActivity) {
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
             val videoList = videoMap.keys.toList()
 
-            // Get the last played video index for this file and profile
+            // Get the last played video index for this kid and video file
             val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
             val currentKid = SettingsManager.readProfile(activity) ?: "A"
             val lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", -1)
-
-            // Get next video index (start at 0 if never played, otherwise next in sequence)
-            // Wrap around if at end
-            val nextIndex = if (lastVideoIndex == -1) {
-                0 // Start from beginning if never played
+            
+            // Determine which video to play - always advance to next video
+            val videoIndexToPlay: Int = if (lastVideoIndex == -1) {
+                // First time playing - start at beginning
+                0
             } else {
+                // Play next video in sequence (wraps around if at end)
                 (lastVideoIndex + 1) % videoList.size
             }
-            val nextVideoName = videoList[nextIndex]
+            
+            android.util.Log.d("Layout", "Sequential video selection for ${currentKid}_${videoFile} - Last index: $lastVideoIndex, Playing index: $videoIndexToPlay")
+            
+            val videoNameToPlay = videoList[videoIndexToPlay]
 
             // Play the video using the activity result launcher
-            // Pass the video file and index info through the intent so we can update after completion
-            playYouTubeVideoForSequence(videoJson, nextVideoName, task, videoFile, nextIndex, sectionId)
+            // Pass the video file and index info through the intent so we can save after completion
+            playYouTubeVideoForSequence(videoJson, videoNameToPlay, task, videoFile, videoIndexToPlay, sectionId)
 
         } catch (e: Exception) {
             android.util.Log.e("Layout", "Error handling sequential video", e)
