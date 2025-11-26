@@ -201,6 +201,12 @@
           "blockOutlines": true
         },
         {
+          "title": "Ufli Home Videos",
+          "launch": "uflivideos",
+          "stars": 3,
+          "videoSequence": "sequential"
+        },
+        {
           "title": "UFLI Words",
           "launch": "ufliLessonData",
           "stars": 1,
