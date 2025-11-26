@@ -1207,7 +1207,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             
             // Hardcoded decryption key - this is safe to commit (it's not the token, just a key)
             // This key decrypts the token that's stored in BuildConfig.ENCRYPTED_GITHUB_TOKEN
-            val encryptionKeyB64 = "KCcPFWkmVC8/S4H9rxkxt9URW22CEHglGsauohl8nq4="  // Base64 encoded 32-byte key
+            val encryptionKeyB64 = "MOBRoFYjmXL0ZwELC/CcQXgWm2xThNJlTSElwRhReZI="  // Base64 encoded 32-byte key
             
             // Decode Base64 encrypted data and key
             val encryptedBytes = Base64.decode(encryptedToken, Base64.DEFAULT)
