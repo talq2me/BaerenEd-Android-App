@@ -1002,7 +1002,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report")
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report", "Reset All Progress")
 
         AlertDialog.Builder(this)
             .setTitle("Settings")
@@ -1012,6 +1012,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     1 -> showChangePinDialog()
                     2 -> showChangeEmailDialog()
                     3 -> sendProgressReportInternal()
+                    4 -> showResetProgressConfirmationDialog()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -1077,6 +1078,41 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .show()
     }
 
+    private fun showResetProgressConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Reset All Progress")
+            .setMessage("Are you sure you want to reset today's progress? This will clear:\n\n" +
+                    "• All completed tasks\n" +
+                    "• All time tracking data\n" +
+                    "• All reward minutes\n\n" +
+                    "This is the same as the daily reset. Game progress, Pokemon unlocks, and video progress will be preserved.")
+            .setPositiveButton("Reset All") { _, _ ->
+                resetAllProgress()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun resetAllProgress() {
+        try {
+            // Just trigger the same reset that happens daily
+            val progressManager = DailyProgressManager(this)
+            progressManager.resetAllProgress()
+            
+            // Also reset TimeTracker (it resets daily too)
+            TimeTracker(this).clearAllData()
+            
+            // Refresh the UI
+            layout.refreshProgressDisplay()
+            layout.refreshSections()
+            
+            Toast.makeText(this, "Progress has been reset", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Progress reset completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resetting progress", e)
+            Toast.makeText(this, "Error resetting progress: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     fun sendProgressReport(view: android.view.View) {
         sendProgressReportInternal()
