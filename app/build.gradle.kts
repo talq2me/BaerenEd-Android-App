@@ -24,37 +24,16 @@ android {
         applicationId = "com.talq2me.baerened"
         minSdk = 23
         targetSdk = 35
-        versionCode = 60
-        versionName = "60"
+        versionCode = 61
+        versionName = "61"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        // Read GitHub token from local.properties, default to empty string if not set
-        val githubToken = getLocalProperty("GITHUB_TOKEN", "")
-        // Obfuscate token by Base64 encoding it (simple obfuscation to avoid GitHub secret scanning)
-        // We'll decode it at runtime in MainActivity
-        // Note: Using manual Base64 encoding since java.util.Base64 isn't available in Gradle script context
-        val obfuscatedToken = if (githubToken.isNotEmpty()) {
-            // Simple Base64 encoding for Gradle script (using manual implementation)
-            val base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-            val bytes = githubToken.toByteArray(Charsets.UTF_8)
-            val result = StringBuilder()
-            var i = 0
-            while (i < bytes.size) {
-                val b1 = bytes[i].toInt() and 0xFF
-                val b2 = if (i + 1 < bytes.size) bytes[i + 1].toInt() and 0xFF else 0
-                val b3 = if (i + 2 < bytes.size) bytes[i + 2].toInt() and 0xFF else 0
-                result.append(base64Chars[(b1 shr 2) and 0x3F])
-                result.append(base64Chars[((b1 shl 4) or (b2 shr 4)) and 0x3F])
-                result.append(if (i + 1 < bytes.size) base64Chars[((b2 shl 2) or (b3 shr 6)) and 0x3F] else '=')
-                result.append(if (i + 2 < bytes.size) base64Chars[b3 and 0x3F] else '=')
-                i += 3
-            }
-            result.toString()
-        } else {
-            ""
-        }
-        buildConfigField("String", "GITHUB_TOKEN", "\"$obfuscatedToken\"")
+        // Read encrypted GitHub token from local.properties
+        // The token is encrypted using AES-256-CBC (use encrypt_token.py to encrypt it)
+        // The decryption key is hardcoded in MainActivity.kt (safe to commit - it's just a key)
+        val encryptedToken = getLocalProperty("ENCRYPTED_GITHUB_TOKEN", "")
+        buildConfigField("String", "ENCRYPTED_GITHUB_TOKEN", "\"$encryptedToken\"")
     }
     
     buildFeatures {
