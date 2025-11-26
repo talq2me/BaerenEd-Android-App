@@ -68,6 +68,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var currentMainContent: MainContent? = null
     private var readAlongLaunchTime: Long? = null
     private var pendingReadAlongReward: PendingReadAlongReward? = null
+    private var readAlongStartTime: Long = 0
+    private var readAlongHasBeenPaused: Boolean = false
+    private lateinit var readAlongTimeTracker: TimeTracker
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
@@ -504,16 +507,27 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun handleReadAlongReturnIfNeeded() {
-        val startTime = readAlongLaunchTime
         val pendingReward = pendingReadAlongReward
-        if (startTime == null || pendingReward == null) {
+        if (pendingReward == null || !::readAlongTimeTracker.isInitialized) {
             return
         }
 
-        val elapsed = System.currentTimeMillis() - startTime
-        val secondsSpent = elapsed / 1000
+        // Only process if we've actually been paused (Read Along was active)
+        if (!readAlongHasBeenPaused) {
+            return
+        }
 
-        if (elapsed >= MIN_READ_ALONG_DURATION_MS) {
+        // End time tracking and get duration
+        val session = readAlongTimeTracker.endActivity("readalong")
+        val secondsSpent = session?.durationSeconds ?: 0
+        val MIN_READ_ALONG_DURATION_SECONDS = 30L
+
+        Log.d(TAG, "Google Read Along session ended. Time spent: ${secondsSpent}s (required: ${MIN_READ_ALONG_DURATION_SECONDS}s)")
+
+        if (secondsSpent >= MIN_READ_ALONG_DURATION_SECONDS) {
+            // Update stars earned for the completed session
+            readAlongTimeTracker.updateStarsEarned("readalong", pendingReward.stars)
+            
             layout.handleManualTaskCompletion(
                 pendingReward.taskId,
                 pendingReward.taskTitle,
@@ -531,13 +545,29 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } else {
             Toast.makeText(
                 this,
-                "Stay in Google Read Along for at least 30s to earn rewards (only ${secondsSpent}s).",
+                "Stay in Google Read Along for at least ${MIN_READ_ALONG_DURATION_SECONDS}s to earn rewards (only ${secondsSpent}s).",
                 Toast.LENGTH_LONG
             ).show()
         }
 
-        readAlongLaunchTime = null
         pendingReadAlongReward = null
+        readAlongHasBeenPaused = false
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Mark that we've been paused (Google Read Along or other app is now active)
+        if (pendingReadAlongReward != null) {
+            readAlongHasBeenPaused = true
+            readAlongStartTime = android.os.SystemClock.elapsedRealtime()
+            Log.d(TAG, "MainActivity paused - Read Along is now active")
+        }
+        // Mark that we've been paused (Google Read Along or other app is now active)
+        if (pendingReadAlongReward != null) {
+            readAlongHasBeenPaused = true
+            readAlongStartTime = android.os.SystemClock.elapsedRealtime()
+            Log.d(TAG, "MainActivity paused - Read Along is now active")
+        }
     }
 
     private fun isDeviceOwner(): Boolean {
@@ -909,13 +939,27 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val intent = packageManager.getLaunchIntentForPackage("com.google.android.apps.seekh")
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                readAlongLaunchTime = System.currentTimeMillis()
+                
+                // Initialize time tracker
+                readAlongTimeTracker = TimeTracker(this)
+                
+                // Use unique task ID that includes section info to track separately for required vs optional
+                val progressManager = DailyProgressManager(this)
+                val taskId = task.launch ?: "googleReadAlong"
+                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, sectionId ?: "unknown")
+                
+                // Start tracking time
+                val taskTitle = task.title ?: "Google Read Along"
+                readAlongTimeTracker.startActivity(uniqueTaskId, "readalong", taskTitle)
+                
                 pendingReadAlongReward = PendingReadAlongReward(
-                    taskId = task.launch ?: "googleReadAlong",
-                    taskTitle = task.title ?: "Google Read Along",
+                    taskId = taskId,
+                    taskTitle = taskTitle,
                     stars = task.stars ?: 0,
                     sectionId = sectionId
                 )
+                
+                readAlongHasBeenPaused = false
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "Google Read Along app is not installed", Toast.LENGTH_SHORT).show()
@@ -923,7 +967,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } catch (e: Exception) {
             Log.e(TAG, "Error launching Google Read Along", e)
             Toast.makeText(this, "Error launching Google Read Along: ${e.message}", Toast.LENGTH_SHORT).show()
-            readAlongLaunchTime = null
             pendingReadAlongReward = null
         }
     }
