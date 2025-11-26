@@ -19,6 +19,11 @@ gitignore
 # Native C++ build cache
 .cxx/
 
+# Ignore APK files (they contain embedded tokens)
+# NOTE: If you need to distribute APKs via GitHub Pages, 
+# consider using GitHub Releases instead of committing APKs
+#app/release/*.apk
+
 # macOS files
 # ===========
 .DS_Store

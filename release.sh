@@ -12,6 +12,29 @@ APK_SOURCE="app/build/outputs/apk/release/app-release.apk"
 # This is the folder inside THE SAME repo that is served by GitHub Pages
 PAGES_APK_PATH="app/release/app-release.apk"
 
+### --- HELPER FUNCTION --- ###
+# Read property from local.properties file
+getLocalProperty() {
+    local key=$1
+    local defaultValue=$2
+    local propertiesFile="local.properties"
+    
+    if [ ! -f "$propertiesFile" ]; then
+        echo "$defaultValue"
+        return
+    fi
+    
+    # Use grep to find the line, then extract the value
+    # This approach is more reliable than regex matching
+    local value=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$propertiesFile" 2>/dev/null | head -1 | sed "s/^[^=]*=[[:space:]]*//" | sed "s/[[:space:]]*$//" | sed "s/^['\"]//;s/['\"]$//")
+    
+    if [ -n "$value" ]; then
+        echo "$value"
+    else
+        echo "$defaultValue"
+    fi
+}
+
 ### --- READ CURRENT VERSION --- ###
 CURRENT_VERSION=$(grep "versionCode" -i "$GRADLE_FILE" | grep -o "[0-9]*")
 NEW_VERSION=$((CURRENT_VERSION + 1))
@@ -33,19 +56,21 @@ fi
 echo "Pre-build check passed! Proceeding with release..."
 
 ### --- GET PASSWORD --- ###
-# Use environment variable if set, otherwise prompt
-# In Git Bash/Windows, you may need to export the variable in the same session:
-#   export KEYSTORE_PASSWORD='your_password'
-#   ./release.sh
+# Try to get password from local.properties, then environment variable, then prompt
+STOREPASS=""
+STOREPASS=$(getLocalProperty "KEYSTORE_PASSWORD" "")
 
-if [ -n "${KEYSTORE_PASSWORD:-}" ]; then
+# Debug: Check if password was found (without showing it)
+if [ -n "$STOREPASS" ]; then
+    echo "✓ Found KEYSTORE_PASSWORD in local.properties (length: ${#STOREPASS})"
+elif [ -n "${KEYSTORE_PASSWORD:-}" ]; then
     STOREPASS="$KEYSTORE_PASSWORD"
     echo "Using password from KEYSTORE_PASSWORD environment variable"
 else
     echo ""
-    echo "Note: To skip password prompt, set KEYSTORE_PASSWORD environment variable:"
-    echo "  export KEYSTORE_PASSWORD='your_password'"
-    echo "  ./release.sh"
+    echo "Note: To skip password prompt, add to local.properties:"
+    echo "  KEYSTORE_PASSWORD=your_password"
+    echo "  Or set environment variable: export KEYSTORE_PASSWORD='your_password'"
     echo ""
     echo -n "Enter keystore password: "
     read -s STOREPASS
@@ -112,6 +137,8 @@ git add app/build.gradle.kts
 git add app/release/app-release.apk
 git add app/src/main/assets/config/version.json
 git add app/src/main/java/com/talq2me/baerened/MainActivity.kt
+git add release.sh
+git add .gitignore
 # Explicitly exclude local.properties if it was tracked before
 git restore --staged local.properties 2>/dev/null || true
 
@@ -139,6 +166,23 @@ if git diff HEAD~1 HEAD --name-only | grep -q "local.properties"; then
     exit 1
 fi
 
+# Delete existing tags (local and remote) before creating fresh tag
+echo "Checking for existing tag v$NEW_VERSION..."
+
+# Delete remote tag first (if it exists)
+if git ls-remote --tags origin "v$NEW_VERSION" 2>/dev/null | grep -q "v$NEW_VERSION"; then
+    echo "Tag v$NEW_VERSION exists on remote. Deleting..."
+    git push origin ":refs/tags/v$NEW_VERSION" 2>/dev/null || true
+fi
+
+# Delete local tag (if it exists)
+if git rev-parse "v$NEW_VERSION" >/dev/null 2>&1; then
+    echo "Tag v$NEW_VERSION exists locally. Deleting..."
+    git tag -d "v$NEW_VERSION" 2>/dev/null || true
+fi
+
+# Create the tag
+echo "Creating tag v$NEW_VERSION..."
 git tag "v$NEW_VERSION"
 
 git push
