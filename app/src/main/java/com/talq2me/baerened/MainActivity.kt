@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var readAlongStartTime: Long = 0
     private var readAlongHasBeenPaused: Boolean = false
     private lateinit var readAlongTimeTracker: TimeTracker
+    private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
@@ -507,26 +508,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun handleReadAlongReturnIfNeeded() {
-        val pendingReward = pendingReadAlongReward
-        if (pendingReward == null || !::readAlongTimeTracker.isInitialized) {
+        val pendingReward = pendingReadAlongReward ?: return
+
+        val wasPaused = readAlongHasBeenPaused || readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
+        if (!wasPaused) {
             return
         }
 
-        // Only process if we've actually been paused (Read Along was active)
-        if (!readAlongHasBeenPaused) {
-            return
-        }
-
-        // End time tracking and get duration
-        val session = readAlongTimeTracker.endActivity("readalong")
-        val secondsSpent = session?.durationSeconds ?: 0
         val MIN_READ_ALONG_DURATION_SECONDS = 30L
+        var session: TimeTracker.ActivitySession? = null
+        var secondsSpent = 0L
+
+        if (::readAlongTimeTracker.isInitialized) {
+            session = readAlongTimeTracker.endActivity("readalong")
+            secondsSpent = session?.durationSeconds ?: 0
+        }
+
+        if (secondsSpent <= 0L) {
+            secondsSpent = getStoredReadAlongDurationSeconds()
+        }
 
         Log.d(TAG, "Google Read Along session ended. Time spent: ${secondsSpent}s (required: ${MIN_READ_ALONG_DURATION_SECONDS}s)")
 
         if (secondsSpent >= MIN_READ_ALONG_DURATION_SECONDS) {
-            // Update stars earned for the completed session
-            readAlongTimeTracker.updateStarsEarned("readalong", pendingReward.stars)
+            if (::readAlongTimeTracker.isInitialized && session != null) {
+                readAlongTimeTracker.updateStarsEarned("readalong", pendingReward.stars)
+            }
             
             layout.handleManualTaskCompletion(
                 pendingReward.taskId,
@@ -550,22 +557,67 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ).show()
         }
 
+        clearPendingReadAlongState()
+    }
+
+    private fun persistPendingReadAlongState(reward: PendingReadAlongReward, startTimeMs: Long) {
+        readAlongPrefs.edit()
+            .putString(KEY_READ_ALONG_TASK_ID, reward.taskId)
+            .putString(KEY_READ_ALONG_TASK_TITLE, reward.taskTitle)
+            .putInt(KEY_READ_ALONG_STARS, reward.stars)
+            .putString(KEY_READ_ALONG_SECTION_ID, reward.sectionId ?: "")
+            .putLong(KEY_READ_ALONG_START_TIME, startTimeMs)
+            .putBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
+            .apply()
+    }
+
+    private fun restorePendingReadAlongStateIfNeeded() {
+        if (pendingReadAlongReward != null) {
+            return
+        }
+
+        val taskId = readAlongPrefs.getString(KEY_READ_ALONG_TASK_ID, null) ?: return
+        val taskTitle = readAlongPrefs.getString(KEY_READ_ALONG_TASK_TITLE, taskId) ?: taskId
+        val stars = readAlongPrefs.getInt(KEY_READ_ALONG_STARS, 0)
+        val sectionId = readAlongPrefs.getString(KEY_READ_ALONG_SECTION_ID, null)?.takeIf { it.isNotBlank() }
+
+        pendingReadAlongReward = PendingReadAlongReward(
+            taskId = taskId,
+            taskTitle = taskTitle,
+            stars = stars,
+            sectionId = sectionId
+        )
+        readAlongHasBeenPaused = readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
+    }
+
+    private fun clearPendingReadAlongState() {
         pendingReadAlongReward = null
         readAlongHasBeenPaused = false
+        readAlongPrefs.edit().clear().apply()
+    }
+
+    private fun hasPendingReadAlongSession(): Boolean {
+        return pendingReadAlongReward != null || readAlongPrefs.contains(KEY_READ_ALONG_TASK_ID)
+    }
+
+    private fun getStoredReadAlongDurationSeconds(): Long {
+        val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
+        if (startTimeMs <= 0L) {
+            return 0
+        }
+        val elapsedMs = System.currentTimeMillis() - startTimeMs
+        return if (elapsedMs > 0) elapsedMs / 1000 else 0
     }
     
     override fun onPause() {
         super.onPause()
-        // Mark that we've been paused (Google Read Along or other app is now active)
-        if (pendingReadAlongReward != null) {
+        if (hasPendingReadAlongSession()) {
             readAlongHasBeenPaused = true
             readAlongStartTime = android.os.SystemClock.elapsedRealtime()
-            Log.d(TAG, "MainActivity paused - Read Along is now active")
-        }
-        // Mark that we've been paused (Google Read Along or other app is now active)
-        if (pendingReadAlongReward != null) {
-            readAlongHasBeenPaused = true
-            readAlongStartTime = android.os.SystemClock.elapsedRealtime()
+            readAlongPrefs.edit().putBoolean(KEY_READ_ALONG_HAS_PAUSED, true).apply()
+            if (readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L) <= 0L) {
+                readAlongPrefs.edit().putLong(KEY_READ_ALONG_START_TIME, System.currentTimeMillis()).apply()
+            }
             Log.d(TAG, "MainActivity paused - Read Along is now active")
         }
     }
@@ -828,6 +880,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
+        restorePendingReadAlongStateIfNeeded()
         handleReadAlongReturnIfNeeded()
         
         // Don't trigger reward launch here when email is in flight - wait for ActivityResult callback
@@ -951,15 +1004,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // Start tracking time
                 val taskTitle = task.title ?: "Google Read Along"
                 readAlongTimeTracker.startActivity(uniqueTaskId, "readalong", taskTitle)
-                
-                pendingReadAlongReward = PendingReadAlongReward(
+                val reward = PendingReadAlongReward(
                     taskId = taskId,
                     taskTitle = taskTitle,
                     stars = task.stars ?: 0,
                     sectionId = sectionId
                 )
-                
+                pendingReadAlongReward = reward
                 readAlongHasBeenPaused = false
+                readAlongStartTime = android.os.SystemClock.elapsedRealtime()
+                persistPendingReadAlongState(reward, System.currentTimeMillis())
+                
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "Google Read Along app is not installed", Toast.LENGTH_SHORT).show()
@@ -968,6 +1023,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.e(TAG, "Error launching Google Read Along", e)
             Toast.makeText(this, "Error launching Google Read Along: ${e.message}", Toast.LENGTH_SHORT).show()
             pendingReadAlongReward = null
+            clearPendingReadAlongState()
         }
     }
 
@@ -1493,6 +1549,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private val VERSION_IN_NAME_REGEX = Regex("v(\\d+)")
         private const val GMAIL_PACKAGE = "com.google.android.gm"
         private const val GMAIL_COMPOSE_CLASS = "com.google.android.gm.ComposeActivityGmail"
+        private const val READ_ALONG_PREFS_NAME = "read_along_session"
+        private const val KEY_READ_ALONG_TASK_ID = "read_along_task_id"
+        private const val KEY_READ_ALONG_TASK_TITLE = "read_along_task_title"
+        private const val KEY_READ_ALONG_STARS = "read_along_stars"
+        private const val KEY_READ_ALONG_SECTION_ID = "read_along_section_id"
+        private const val KEY_READ_ALONG_START_TIME = "read_along_start_time"
+        private const val KEY_READ_ALONG_HAS_PAUSED = "read_along_has_paused"
         
         // GitHub upload configuration
         // GitHub token is encrypted using AES-256-CBC and stored in BuildConfig
