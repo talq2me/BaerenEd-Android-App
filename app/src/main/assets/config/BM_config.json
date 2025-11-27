@@ -159,10 +159,10 @@
       "title": "Checklist",
       "description": "Mark each one when done",
       "items": [
-        { "label": "Laundry", "stars": 1, "done": false, "id": "bm_laundry" },
-        { "label": "Practice Kung Fu", "stars": 1, "done": false, "id": "bm_practice_kung_fu" },
-        { "label": "Push Ups: Pushes 22 reg & 5 knuckle", "stars": 1, "done": false, "id": "bm_push_ups" },
-        { "label": "Practice piano", "stars": 1, "done": false, "id": "bm_practice_piano" }
+        { "label": "Laundry", "stars": 0, "done": false, "id": "bm_laundry" },
+        { "label": "Practice Kung Fu", "stars": 0, "done": false, "id": "bm_practice_kung_fu" },
+        { "label": "Push Ups: Pushes 22 reg & 5 knuckle", "stars": 0, "done": false, "id": "bm_push_ups" },
+        { "label": "Practice piano", "stars": 0, "done": false, "id": "bm_practice_piano" }
       ]
     },
     {
