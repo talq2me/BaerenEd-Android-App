@@ -152,6 +152,66 @@ class ContentUpdateService : Service() {
     }
 
     /**
+     * Fetch video content with comprehensive fallback strategy:
+     * 1. Try network first and cache result
+     * 2. If network fails, try cache
+     * 3. If cache fails, try assets as final fallback
+     */
+    suspend fun fetchVideoContent(context: Context, videoFile: String): String? {
+        val videoFileName = "${videoFile}.json"
+        val cacheFile = File(context.cacheDir, "videos_$videoFileName")
+
+        // 1. Try fetching from Network
+        try {
+            val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/videos/$videoFileName"
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    if (body != null) {
+                        Log.d(TAG, "Successfully fetched video content from network: $videoFile")
+                        // Save to cache for offline use
+                        try {
+                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
+                            Log.d(TAG, "Saved video content to cache: $videoFileName")
+                        } catch (e: IOException) {
+                            Log.e(TAG, "Error writing video content to cache", e)
+                        }
+                        return body
+                    }
+                }
+                Log.w(TAG, "Video content fetch failed with code: ${response.code}. Trying cache.")
+            }
+        } catch (e: IOException) {
+            Log.w(TAG, "Network error fetching video content: ${e.message}. Trying cache.")
+        }
+
+        // 2. Network failed, try loading from Cache
+        if (cacheFile.exists()) {
+            try {
+                val cachedContent = cacheFile.readText()
+                Log.d(TAG, "Successfully loaded video content from cache: $videoFileName")
+                return cachedContent
+            } catch (e: Exception) {
+                Log.e(TAG, "Error reading video content from cache. Trying assets.", e)
+            }
+        }
+
+        // 3. Cache failed or doesn't exist, fall back to bundled Assets
+        try {
+            Log.d(TAG, "Loading video content from bundled asset: $videoFileName")
+            context.assets.open("videos/$videoFileName").use { inputStream ->
+                InputStreamReader(inputStream).use { reader ->
+                    return reader.readText()
+                }
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "Could not find or read video asset file: videos/$videoFileName", e)
+            return null // Final failure
+        }
+    }
+
+    /**
      * Fetch main content with comprehensive fallback strategy:
      * 1. Try network first and cache result
      * 2. If network fails, try cache
@@ -216,6 +276,7 @@ class ContentUpdateService : Service() {
 
     fun clearCache(context: Context) {
         try {
+            // Clear main content cache
             val filesDir = context.filesDir
             filesDir.listFiles()?.forEach { file ->
                 if (file.name.startsWith("main_content.json")) {
@@ -223,9 +284,17 @@ class ContentUpdateService : Service() {
                 }
             }
 
+            // Clear video and game content cache from cacheDir
+            val cacheDir = context.cacheDir
+            cacheDir.listFiles()?.forEach { file ->
+                if (file.name.startsWith("videos_") || file.name.endsWith(".json")) {
+                    file.delete()
+                }
+            }
+
             prefs.edit().clear().apply()
 
-            Log.d(TAG, "Cache cleared")
+            Log.d(TAG, "Cache cleared (including video and game caches)")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error clearing cache", e)

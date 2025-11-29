@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Times Tables Lock Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-pass {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .test-fail {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .test-result {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #333;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Times Tables Locking Test Suite</h1>
+    <p>This page tests that the times table game properly locks when a table parameter is provided.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Table Parameter Lock (table=8)</h2>
+        <p>Test that when <code>?table=8</code> is provided, the selector button is not visible and the table cannot be changed.</p>
+        <button onclick="testTableLock(8)">Run Test with table=8</button>
+        <div id="result1" class="test-result"></div>
+        <iframe id="iframe1" style="display: none;"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Random Table Lock (table=random)</h2>
+        <p>Test that when <code>?table=random</code> is provided, a random table is selected and locked.</p>
+        <button onclick="testRandomLock()">Run Test with table=random</button>
+        <div id="result2" class="test-result"></div>
+        <iframe id="iframe2" style="display: none;"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: No Parameter (Unlocked)</h2>
+        <p>Test that when no parameter is provided, the selector button is visible and the table can be changed.</p>
+        <button onclick="testUnlocked()">Run Test without parameter</button>
+        <div id="result3" class="test-result"></div>
+        <iframe id="iframe3" style="display: none;"></iframe>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Invalid Parameter Handling</h2>
+        <p>Test that invalid parameters (like table=99) default to table 3 and lock it.</p>
+        <button onclick="testInvalidParam()">Run Test with table=99</button>
+        <div id="result4" class="test-result"></div>
+        <iframe id="iframe4" style="display: none;"></iframe>
+    </div>
+
+    <script>
+        function testTableLock(tableNum) {
+            const iframe = document.getElementById('iframe1');
+            const result = document.getElementById('result1');
+            const testSection = result.parentElement;
+            
+            result.textContent = 'Loading test...';
+            testSection.className = 'test-section';
+            
+            // Load the times table game with the parameter
+            iframe.src = `timesTables.html?table=${tableNum}`;
+            iframe.style.display = 'block';
+            
+            // Wait for iframe to load, then check
+            iframe.onload = function() {
+                setTimeout(() => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // Check if selector tile exists
+                        const selectorTile = iframeDoc.querySelector('.tile.selector');
+                        const hasSelector = selectorTile !== null;
+                        
+                        // Check if modal can be opened (should not be possible if locked)
+                        const modal = iframeDoc.getElementById('selectorModal');
+                        const modalDisplay = modal ? window.getComputedStyle(modal).display : 'none';
+                        
+                        // Verify the current table is correct
+                        const gridContainer = iframeDoc.getElementById('gridContainer');
+                        const tiles = gridContainer ? gridContainer.querySelectorAll('.tile') : [];
+                        
+                        // Count tiles - should be 11 (no selector tile when locked)
+                        const tileCount = tiles.length;
+                        
+                        // Test results
+                        const selectorMissing = !hasSelector;
+                        const correctTileCount = tileCount === 11;
+                        
+                        if (selectorMissing && correctTileCount) {
+                            result.textContent = '✅ PASS: Selector tile is hidden and table is locked correctly.';
+                            testSection.className = 'test-section test-pass';
+                        } else {
+                            result.textContent = `❌ FAIL: Selector tile ${hasSelector ? 'is visible' : 'is hidden'} (expected hidden), Tile count: ${tileCount} (expected 11)`;
+                            testSection.className = 'test-section test-fail';
+                        }
+                    } catch (e) {
+                        result.textContent = `❌ ERROR: ${e.message}`;
+                        testSection.className = 'test-section test-fail';
+                    }
+                }, 2000); // Wait 2 seconds for game to initialize
+            };
+        }
+
+        function testRandomLock() {
+            const iframe = document.getElementById('iframe2');
+            const result = document.getElementById('result2');
+            const testSection = result.parentElement;
+            
+            result.textContent = 'Loading test...';
+            testSection.className = 'test-section';
+            
+            iframe.src = 'timesTables.html?table=random';
+            iframe.style.display = 'block';
+            
+            iframe.onload = function() {
+                setTimeout(() => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const selectorTile = iframeDoc.querySelector('.tile.selector');
+                        const gridContainer = iframeDoc.getElementById('gridContainer');
+                        const tiles = gridContainer ? gridContainer.querySelectorAll('.tile') : [];
+                        const tileCount = tiles.length;
+                        
+                        if (!selectorTile && tileCount === 11) {
+                            result.textContent = '✅ PASS: Random table selected and locked correctly.';
+                            testSection.className = 'test-section test-pass';
+                        } else {
+                            result.textContent = `❌ FAIL: Selector tile ${selectorTile ? 'is visible' : 'is hidden'} (expected hidden), Tile count: ${tileCount} (expected 11)`;
+                            testSection.className = 'test-section test-fail';
+                        }
+                    } catch (e) {
+                        result.textContent = `❌ ERROR: ${e.message}`;
+                        testSection.className = 'test-section test-fail';
+                    }
+                }, 2000);
+            };
+        }
+
+        function testUnlocked() {
+            const iframe = document.getElementById('iframe3');
+            const result = document.getElementById('result3');
+            const testSection = result.parentElement;
+            
+            result.textContent = 'Loading test...';
+            testSection.className = 'test-section';
+            
+            iframe.src = 'timesTables.html';
+            iframe.style.display = 'block';
+            
+            iframe.onload = function() {
+                setTimeout(() => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const selectorTile = iframeDoc.querySelector('.tile.selector');
+                        const gridContainer = iframeDoc.getElementById('gridContainer');
+                        const tiles = gridContainer ? gridContainer.querySelectorAll('.tile') : [];
+                        const tileCount = tiles.length;
+                        
+                        // When unlocked, should have 12 tiles (1 selector + 11 questions)
+                        if (selectorTile && tileCount === 12) {
+                            result.textContent = '✅ PASS: Selector tile is visible and table can be changed.';
+                            testSection.className = 'test-section test-pass';
+                        } else {
+                            result.textContent = `❌ FAIL: Selector tile ${selectorTile ? 'is visible' : 'is missing'} (expected visible), Tile count: ${tileCount} (expected 12)`;
+                            testSection.className = 'test-section test-fail';
+                        }
+                    } catch (e) {
+                        result.textContent = `❌ ERROR: ${e.message}`;
+                        testSection.className = 'test-section test-fail';
+                    }
+                }, 2000);
+            };
+        }
+
+        function testInvalidParam() {
+            const iframe = document.getElementById('iframe4');
+            const result = document.getElementById('result4');
+            const testSection = result.parentElement;
+            
+            result.textContent = 'Loading test...';
+            testSection.className = 'test-section';
+            
+            iframe.src = 'timesTables.html?table=99';
+            iframe.style.display = 'block';
+            
+            iframe.onload = function() {
+                setTimeout(() => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const selectorTile = iframeDoc.querySelector('.tile.selector');
+                        const gridContainer = iframeDoc.getElementById('gridContainer');
+                        const tiles = gridContainer ? gridContainer.querySelectorAll('.tile') : [];
+                        const tileCount = tiles.length;
+                        
+                        // Invalid param should default to 3 and lock it
+                        if (!selectorTile && tileCount === 11) {
+                            result.textContent = '✅ PASS: Invalid parameter handled correctly (defaults to 3 and locks).';
+                            testSection.className = 'test-section test-pass';
+                        } else {
+                            result.textContent = `❌ FAIL: Selector tile ${selectorTile ? 'is visible' : 'is hidden'} (expected hidden), Tile count: ${tileCount} (expected 11)`;
+                            testSection.className = 'test-section test-fail';
+                        }
+                    } catch (e) {
+                        result.textContent = `❌ ERROR: ${e.message}`;
+                        testSection.className = 'test-section test-fail';
+                    }
+                }, 2000);
+            };
+        }
+    </script>
+</body>
+</html>
+

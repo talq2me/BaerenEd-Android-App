@@ -164,7 +164,25 @@
     const selectorModal = document.getElementById('selectorModal');
     const selectorGrid = document.getElementById('selectorGrid');
 
-    let currentTimesTable = 3;
+    // Check URL parameters for table parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableParam = urlParams.get('table');
+    const isLocked = tableParam !== null; // Lock if table parameter is provided
+
+    let currentTimesTable = 3; // Default
+    if (tableParam) {
+        if (tableParam.toLowerCase() === 'random') {
+            // Pick a random table from 0-10
+            currentTimesTable = Math.floor(Math.random() * 11);
+        } else {
+            // Try to parse as number
+            const parsed = parseInt(tableParam, 10);
+            if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+                currentTimesTable = parsed;
+            }
+        }
+    }
+
     let questions = [];
     let solvedCount = 0;
     let activeTile = null;
@@ -178,19 +196,31 @@
 
     function setupSelectorModal() {
         selectorGrid.innerHTML = '';
+        
+        // If locked, don't set up the modal buttons at all
+        if (isLocked) {
+            return;
+        }
+        
         for (let i = 0; i <= 10; i++) {
             const btn = document.createElement('button');
             btn.className = 'button modal-btn';
             btn.textContent = i;
             btn.onclick = () => {
-                setTimesTable(i);
-                selectorModal.style.display = 'none';
+                if (!isLocked) {
+                    setTimesTable(i);
+                    selectorModal.style.display = 'none';
+                }
             };
             selectorGrid.appendChild(btn);
         }
     }
 
     function setTimesTable(num) {
+        // Prevent changing table if locked
+        if (isLocked) {
+            return;
+        }
         currentTimesTable = num;
         solvedCount = 0;
         activeTile = null;
@@ -217,11 +247,26 @@
 
     function renderGrid() {
         gridContainer.innerHTML = '';
-        const selectorTile = document.createElement('div');
-        selectorTile.className = 'tile selector';
-        selectorTile.innerHTML = `<div class="tile-face tile-front">${currentTimesTable} times table</div>`;
-        selectorTile.onclick = () => { selectorModal.style.display = 'flex'; };
-        gridContainer.appendChild(selectorTile);
+        
+        // Only show selector tile if not locked
+        if (!isLocked) {
+            const selectorTile = document.createElement('div');
+            selectorTile.className = 'tile selector';
+            selectorTile.innerHTML = `<div class="tile-face tile-front">${currentTimesTable} times table</div>`;
+            selectorTile.onclick = () => { 
+                if (!isLocked) {
+                    selectorModal.style.display = 'flex'; 
+                }
+            };
+            gridContainer.appendChild(selectorTile);
+        } else {
+            // When locked, ensure modal cannot be opened
+            if (selectorModal) {
+                selectorModal.style.display = 'none';
+                // Remove any existing click handlers
+                selectorModal.onclick = null;
+            }
+        }
 
         questions.forEach(q => {
             const tile = document.createElement('div');

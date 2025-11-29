@@ -1238,7 +1238,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentKid = progressManager.getCurrentKid()
             val childName = if (currentKid == "A") "AM" else "BM"
 
-            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
+            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL, rewardMinutes)
             val subject = "Daily Progress Report - $childName - ${progressReport.date}"
             
             // Store pending minutes BEFORE uploading

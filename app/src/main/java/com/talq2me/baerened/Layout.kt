@@ -799,8 +799,15 @@ class Layout(private val activity: MainActivity) {
 
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
-                        // Load the video JSON file from assets
-                        val videoJson = activity.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
+                        // Load the video JSON file (fetch from GitHub first, then cache, then assets)
+                        val videoJson = activity.contentUpdateService.fetchVideoContent(activity, videoFile)
+
+                        if (videoJson == null) {
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
+                            }
+                            return@launch
+                        }
 
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             when (videoSequence) {
@@ -866,10 +873,26 @@ class Layout(private val activity: MainActivity) {
             val videoMap = gson.fromJson(videoJson, Map::class.java) as Map<String, String>
             val videoList = videoMap.keys.toList()
 
+            // Safety check: ensure we have videos to play
+            if (videoList.isEmpty()) {
+                android.util.Log.e("Layout", "No videos found in $videoFile.json")
+                Toast.makeText(activity, "No videos available", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             // Get the last played video index for this kid and video file
             val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
             val currentKid = SettingsManager.readProfile(activity) ?: "A"
-            val lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", -1)
+            var lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", -1)
+            
+            // Validate that the saved index is still valid for the current video list
+            // If videos were removed, the saved index might be out of bounds or point to wrong video
+            if (lastVideoIndex >= videoList.size) {
+                android.util.Log.d("Layout", "Saved index $lastVideoIndex is out of bounds for list size ${videoList.size}, resetting to 0")
+                lastVideoIndex = -1 // Reset to start from beginning
+                // Clear the invalid saved index
+                prefs.edit().putInt("${currentKid}_${videoFile}_index", -1).apply()
+            }
             
             // Determine which video to play - always advance to next video
             val videoIndexToPlay: Int = if (lastVideoIndex == -1) {
@@ -880,7 +903,7 @@ class Layout(private val activity: MainActivity) {
                 (lastVideoIndex + 1) % videoList.size
             }
             
-            android.util.Log.d("Layout", "Sequential video selection for ${currentKid}_${videoFile} - Last index: $lastVideoIndex, Playing index: $videoIndexToPlay")
+            android.util.Log.d("Layout", "Sequential video selection for ${currentKid}_${videoFile} - Last index: $lastVideoIndex, Playing index: $videoIndexToPlay, List size: ${videoList.size}")
             
             val videoNameToPlay = videoList[videoIndexToPlay]
 

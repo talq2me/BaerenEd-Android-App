@@ -120,13 +120,14 @@ class ReportGenerator(private val context: Context) {
     fun generateDailyReport(
         progressReport: DailyProgressManager.ComprehensiveProgressReport,
         childName: String = "Child",
-        format: ReportFormat = ReportFormat.TEXT
+        format: ReportFormat = ReportFormat.TEXT,
+        rewardMinutesUsed: Int = 0
     ): String {
         return when (format) {
-            ReportFormat.TEXT -> generateTextReport(progressReport, childName)
-            ReportFormat.HTML -> generateHtmlReport(progressReport, childName)
-            ReportFormat.CSV -> generateCsvReport(progressReport, childName)
-            ReportFormat.EMAIL -> generateEmailReport(progressReport, childName)
+            ReportFormat.TEXT -> generateTextReport(progressReport, childName, rewardMinutesUsed)
+            ReportFormat.HTML -> generateHtmlReport(progressReport, childName, rewardMinutesUsed)
+            ReportFormat.CSV -> generateCsvReport(progressReport, childName, rewardMinutesUsed)
+            ReportFormat.EMAIL -> generateEmailReport(progressReport, childName, rewardMinutesUsed)
         }
     }
 
@@ -135,7 +136,8 @@ class ReportGenerator(private val context: Context) {
      */
     private fun generateTextReport(
         report: DailyProgressManager.ComprehensiveProgressReport,
-        childName: String
+        childName: String,
+        rewardMinutesUsed: Int = 0
     ): String {
         val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
         val formattedDate = dateFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(report.date)!!)
@@ -145,6 +147,9 @@ class ReportGenerator(private val context: Context) {
             appendLine("=".repeat(50))
             appendLine("Child: $childName")
             appendLine("Date: $formattedDate")
+            if (rewardMinutesUsed > 0) {
+                appendLine("🎮 Reward Time Used: $rewardMinutesUsed minutes")
+            }
             appendLine()
 
             appendLine("🎯 OVERALL PROGRESS")
@@ -362,7 +367,8 @@ class ReportGenerator(private val context: Context) {
      */
     private fun generateHtmlReport(
         report: DailyProgressManager.ComprehensiveProgressReport,
-        childName: String
+        childName: String,
+        rewardMinutesUsed: Int = 0
     ): String {
         val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
         val formattedDate = dateFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(report.date)!!)
@@ -395,6 +401,7 @@ class ReportGenerator(private val context: Context) {
                     <h1>📊 Daily Progress Report</h1>
                     <h2>$childName</h2>
                     <p>$formattedDate</p>
+                    ${if (rewardMinutesUsed > 0) "<p>🎮 Reward Time Used: $rewardMinutesUsed minutes</p>" else ""}
                 </div>
 
                 <div class="section">
@@ -583,11 +590,15 @@ class ReportGenerator(private val context: Context) {
      */
     private fun generateCsvReport(
         report: DailyProgressManager.ComprehensiveProgressReport,
-        childName: String
+        childName: String,
+        rewardMinutesUsed: Int = 0
     ): String {
         return buildString {
             appendLine("Daily Progress Report for $childName")
             appendLine("Date: ${report.date}")
+            if (rewardMinutesUsed > 0) {
+                appendLine("Reward Time Used: $rewardMinutesUsed minutes")
+            }
             appendLine()
 
             appendLine("Summary Metrics")
@@ -713,7 +724,8 @@ class ReportGenerator(private val context: Context) {
      */
     private fun generateEmailReport(
         report: DailyProgressManager.ComprehensiveProgressReport,
-        childName: String
+        childName: String,
+        rewardMinutesUsed: Int = 0
     ): String {
         val taskDetails = getTaskDetails(report)
         val requiredIncompleteCount = taskDetails.count { it.isRequired && !it.isCompleted }
@@ -726,6 +738,7 @@ class ReportGenerator(private val context: Context) {
             Dear Parent/Guardian,
 
             Here's ${childName}'s learning progress report for today:
+            ${if (rewardMinutesUsed > 0) "\n            🎮 Reward Time Used: $rewardMinutesUsed minutes\n" else ""}
 
             🎯 OVERALL PROGRESS:
             • Completion Rate: ${"%.1f".format(report.completionRate)}%
