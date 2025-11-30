@@ -130,6 +130,7 @@ Tests that verify UI elements and user interactions using Espresso.
 - Reward accumulation
 - Report generation from progress data
 - Time tracking integration
+- Reward time Intent passing to BaerenLock
 
 ✅ **UI Tests**
 - MainActivity basic structure

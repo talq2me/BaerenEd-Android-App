@@ -66,7 +66,13 @@ class ContentUpdateService : Service() {
 
             // Save version for comparison
             val content = Gson().fromJson(json, MainContent::class.java)
-            prefs.edit().putString("main_content_version", content.version).apply()
+            // Use context.getSharedPreferences directly to handle cases where prefs isn't initialized (e.g., in tests)
+            val sharedPrefs = if (::prefs.isInitialized) {
+                prefs
+            } else {
+                context.getSharedPreferences("content_cache", Context.MODE_PRIVATE)
+            }
+            sharedPrefs.edit().putString("main_content_version", content.version).apply()
 
             Log.d(TAG, "Main content cached: ${content.version}")
 
@@ -292,7 +298,13 @@ class ContentUpdateService : Service() {
                 }
             }
 
-            prefs.edit().clear().apply()
+            // Use context.getSharedPreferences directly to handle cases where prefs isn't initialized (e.g., in tests)
+            val sharedPrefs = if (::prefs.isInitialized) {
+                prefs
+            } else {
+                context.getSharedPreferences("content_cache", Context.MODE_PRIVATE)
+            }
+            sharedPrefs.edit().clear().apply()
 
             Log.d(TAG, "Cache cleared (including video and game caches)")
 

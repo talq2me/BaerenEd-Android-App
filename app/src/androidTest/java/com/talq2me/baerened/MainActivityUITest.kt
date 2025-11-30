@@ -38,7 +38,7 @@ class MainActivityUITest {
     }
 
     @Test
-    fun `main activity displays title`() {
+    fun testMainActivityDisplaysTitle() {
         // Given: MainActivity is launched
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
@@ -48,7 +48,7 @@ class MainActivityUITest {
     }
 
     @Test
-    fun `main activity has progress section`() {
+    fun testMainActivityHasProgressSection() {
         // Given: MainActivity is launched
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
@@ -66,7 +66,7 @@ class MainActivityUITest {
     }
 
     @Test
-    fun `main activity has sections container`() {
+    fun testMainActivityHasSectionsContainer() {
         // Given: MainActivity is launched
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
@@ -76,7 +76,7 @@ class MainActivityUITest {
     }
 
     @Test
-    fun `main activity has header layout`() {
+    fun testMainActivityHasHeaderLayout() {
         // Given: MainActivity is launched
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
@@ -86,7 +86,7 @@ class MainActivityUITest {
     }
 
     @Test
-    fun `main activity has swipe refresh layout`() {
+    fun testMainActivityHasSwipeRefreshLayout() {
         // Given: MainActivity is launched
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
@@ -96,7 +96,7 @@ class MainActivityUITest {
     }
 
     @Test
-    fun `loading progress bar exists`() {
+    fun testLoadingProgressBarExists() {
         // Given: MainActivity is launched
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 

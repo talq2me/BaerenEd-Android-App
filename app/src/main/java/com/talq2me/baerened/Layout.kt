@@ -605,16 +605,18 @@ class Layout(private val activity: MainActivity) {
 
     private fun useRewardMinutes() {
         val rewardMinutes = progressManager.getBankedRewardMinutes() // Use banked minutes directly
+        android.util.Log.d("Layout", "useRewardMinutes: Retrieved $rewardMinutes banked reward minutes")
         if (rewardMinutes > 0) {
             // Send progress report using the launcher - this will show the email app first,
             // and then launch reward selection after the user returns from email
             try {
                 if (activity is MainActivity) {
+                    android.util.Log.d("Layout", "Sending report with $rewardMinutes minutes (will match BaerenLock Intent)")
                     (activity as MainActivity).sendProgressReportForRewardTime(rewardMinutes.toInt())
                 } else {
                     // Fallback if not MainActivity (shouldn't happen, but just in case)
                     val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
-                        putExtra("reward_minutes", rewardMinutes.toInt())
+                        putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes.toInt())
                     }
                     activity.startActivity(intent)
                 }
@@ -623,7 +625,7 @@ class Layout(private val activity: MainActivity) {
                 // If there's an error, still try to launch reward selection
                 try {
                     val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
-                        putExtra("reward_minutes", rewardMinutes.toInt())
+                        putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes.toInt())
                     }
                     activity.startActivity(intent)
                 } catch (e2: Exception) {
@@ -798,18 +800,35 @@ class Layout(private val activity: MainActivity) {
                 val videoFile = task.launch ?: return
 
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    var videoJson: String? = null
                     try {
                         // Load the video JSON file (fetch from GitHub first, then cache, then assets)
-                        val videoJson = activity.contentUpdateService.fetchVideoContent(activity, videoFile)
+                        videoJson = activity.contentUpdateService.fetchVideoContent(activity, videoFile)
+                        android.util.Log.d("Layout", "Fetched video content for $videoFile: ${if (videoJson != null) "success" else "null"}")
+                    } catch (e: Exception) {
+                        android.util.Log.e("Layout", "Error fetching video content for $videoFile", e)
+                    }
 
-                        if (videoJson == null) {
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
-                            }
-                            return@launch
+                    // If fetchVideoContent failed, try loading directly from assets as fallback
+                    if (videoJson == null) {
+                        try {
+                            android.util.Log.d("Layout", "Trying to load video content directly from assets")
+                            videoJson = activity.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
+                            android.util.Log.d("Layout", "Successfully loaded video content from assets")
+                        } catch (e: Exception) {
+                            android.util.Log.e("Layout", "Error loading video content from assets for $videoFile", e)
                         }
+                    }
 
+                    if (videoJson == null) {
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
+
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        try {
                             when (videoSequence) {
                                 "exact" -> {
                                     // Play specific video
@@ -825,11 +844,9 @@ class Layout(private val activity: MainActivity) {
                                     Toast.makeText(activity, "Unknown video sequence type", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e("Layout", "Error loading video content for $videoFile", e)
-                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            Toast.makeText(activity, "Error loading video content", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            android.util.Log.e("Layout", "Error playing video", e)
+                            Toast.makeText(activity, "Error playing video", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }

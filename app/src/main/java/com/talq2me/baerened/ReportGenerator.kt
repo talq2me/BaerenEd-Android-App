@@ -123,6 +123,9 @@ class ReportGenerator(private val context: Context) {
         format: ReportFormat = ReportFormat.TEXT,
         rewardMinutesUsed: Int = 0
     ): String {
+        // Log the reward minutes being included in the report
+        android.util.Log.d("ReportGenerator", "Generating $format report with reward minutes: $rewardMinutesUsed")
+        
         return when (format) {
             ReportFormat.TEXT -> generateTextReport(progressReport, childName, rewardMinutesUsed)
             ReportFormat.HTML -> generateHtmlReport(progressReport, childName, rewardMinutesUsed)
@@ -148,7 +151,7 @@ class ReportGenerator(private val context: Context) {
             appendLine("Child: $childName")
             appendLine("Date: $formattedDate")
             if (rewardMinutesUsed > 0) {
-                appendLine("🎮 Reward Time Used: $rewardMinutesUsed minutes")
+                appendLine("🎮 Reward Time Earned: $rewardMinutesUsed minutes")
             }
             appendLine()
 
@@ -401,7 +404,7 @@ class ReportGenerator(private val context: Context) {
                     <h1>📊 Daily Progress Report</h1>
                     <h2>$childName</h2>
                     <p>$formattedDate</p>
-                    ${if (rewardMinutesUsed > 0) "<p>🎮 Reward Time Used: $rewardMinutesUsed minutes</p>" else ""}
+                    ${if (rewardMinutesUsed > 0) "<p>🎮 Reward Time Earned: $rewardMinutesUsed minutes</p>" else ""}
                 </div>
 
                 <div class="section">
@@ -597,7 +600,7 @@ class ReportGenerator(private val context: Context) {
             appendLine("Daily Progress Report for $childName")
             appendLine("Date: ${report.date}")
             if (rewardMinutesUsed > 0) {
-                appendLine("Reward Time Used: $rewardMinutesUsed minutes")
+                appendLine("Reward Time Earned: $rewardMinutesUsed minutes")
             }
             appendLine()
 
@@ -738,7 +741,7 @@ class ReportGenerator(private val context: Context) {
             Dear Parent/Guardian,
 
             Here's ${childName}'s learning progress report for today:
-            ${if (rewardMinutesUsed > 0) "\n            🎮 Reward Time Used: $rewardMinutesUsed minutes\n" else ""}
+            ${if (rewardMinutesUsed > 0) "\n            🎮 Reward Time Earned: $rewardMinutesUsed minutes\n" else ""}
 
             🎯 OVERALL PROGRESS:
             • Completion Rate: ${"%.1f".format(report.completionRate)}%

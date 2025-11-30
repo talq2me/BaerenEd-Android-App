@@ -1238,6 +1238,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val currentKid = progressManager.getCurrentKid()
             val childName = if (currentKid == "A") "AM" else "BM"
 
+            // Log the reward minutes being used for the report (should match what's sent to BaerenLock)
+            Log.d(TAG, "Generating report with reward minutes: $rewardMinutes (will be sent to BaerenLock)")
+            
             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL, rewardMinutes)
             val subject = "Daily Progress Report - $childName - ${progressReport.date}"
             
@@ -1260,7 +1263,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      */
     private fun launchRewardSelectionActivity(rewardMinutes: Int) {
         val intent = Intent(this, RewardSelectionActivity::class.java).apply {
-            putExtra("reward_minutes", rewardMinutes)
+            putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes)
         }
         startActivity(intent)
     }

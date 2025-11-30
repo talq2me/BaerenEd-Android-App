@@ -43,7 +43,7 @@ class ReportGenerationIntegrationTest {
     }
 
     @Test
-    fun `generate report from completed tasks and sessions`() {
+    fun testGenerateReportFromCompletedTasksAndSessions() {
         // Given: Some completed tasks and time tracking
         val config = MainContent(
             sections = listOf(
@@ -83,7 +83,7 @@ class ReportGenerationIntegrationTest {
     }
 
     @Test
-    fun `report includes correct answer counts`() {
+    fun testReportIncludesCorrectAnswerCounts() {
         // Given: A completed game with answers
         val config = MainContent(
             sections = listOf(
@@ -118,7 +118,7 @@ class ReportGenerationIntegrationTest {
     }
 
     @Test
-    fun `report formats correctly in all formats`() {
+    fun testReportFormatsCorrectlyInAllFormats() {
         // Given: Some progress
         val config = MainContent(
             sections = listOf(
@@ -174,7 +174,7 @@ class ReportGenerationIntegrationTest {
     }
 
     @Test
-    fun `report includes reward minutes when provided`() {
+    fun testReportIncludesRewardMinutesWhenProvided() {
         // Given: Some progress
         val config = MainContent(
             sections = listOf(

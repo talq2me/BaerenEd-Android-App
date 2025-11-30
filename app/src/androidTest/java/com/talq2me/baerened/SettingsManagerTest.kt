@@ -21,7 +21,7 @@ class SettingsManagerTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     @Test
-    fun `readProfile can be called without crashing`() {
+    fun testReadProfileCanBeCalledWithoutCrashing() {
         // Given: A context
         // When: Reading profile
         val profile = SettingsManager.readProfile(context)
@@ -33,7 +33,7 @@ class SettingsManagerTest {
     }
 
     @Test
-    fun `writeProfile can be called without crashing`() {
+    fun testWriteProfileCanBeCalledWithoutCrashing() {
         // Given: A context
         // When: Writing profile
         // Note: This may fail if ContentProvider isn't set up, but shouldn't crash
@@ -48,7 +48,7 @@ class SettingsManagerTest {
     }
 
     @Test
-    fun `readPin can be called without crashing`() {
+    fun testReadPinCanBeCalledWithoutCrashing() {
         // Given: A context
         // When: Reading PIN
         val pin = SettingsManager.readPin(context)
@@ -58,7 +58,7 @@ class SettingsManagerTest {
     }
 
     @Test
-    fun `writePin can be called without crashing`() {
+    fun testWritePinCanBeCalledWithoutCrashing() {
         // Given: A context
         // When: Writing PIN
         try {
@@ -71,7 +71,7 @@ class SettingsManagerTest {
     }
 
     @Test
-    fun `readEmail can be called without crashing`() {
+    fun testReadEmailCanBeCalledWithoutCrashing() {
         // Given: A context
         // When: Reading email
         val email = SettingsManager.readEmail(context)
@@ -81,7 +81,7 @@ class SettingsManagerTest {
     }
 
     @Test
-    fun `writeEmail can be called without crashing`() {
+    fun testWriteEmailCanBeCalledWithoutCrashing() {
         // Given: A context
         // When: Writing email
         try {

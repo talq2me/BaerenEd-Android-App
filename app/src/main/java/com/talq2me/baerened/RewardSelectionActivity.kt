@@ -8,13 +8,20 @@ import androidx.appcompat.app.AppCompatActivity
 
 class RewardSelectionActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "RewardSelectionActivity"
+        // Intent extra key for reward minutes - must match what BaerenLock expects
+        const val EXTRA_REWARD_MINUTES = "reward_minutes"
+    }
+
     private var remainingMinutes: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Get reward time from intent
-        remainingMinutes = intent.getIntExtra("reward_minutes", 0)
+        remainingMinutes = intent.getIntExtra(EXTRA_REWARD_MINUTES, 0)
+        Log.d(TAG, "RewardSelectionActivity: Received $remainingMinutes minutes from Intent (should match report value)")
 
         if (remainingMinutes <= 0) {
             Toast.makeText(this, "No reward time available", Toast.LENGTH_SHORT).show()
@@ -24,6 +31,7 @@ class RewardSelectionActivity : AppCompatActivity() {
 
         try {
             // Grant access for the specified time, which also launches BaerenLock
+            Log.d(TAG, "Sending $remainingMinutes minutes to BaerenLock via Intent (should match report)")
             grantRewardAccess("com.talq2me.baerenlock", remainingMinutes) // Package name is arbitrary here as it's not used by BaerenLock for app-specific rewards
 
             // Close this activity after granting access and launching BaerenLock
@@ -45,16 +53,12 @@ class RewardSelectionActivity : AppCompatActivity() {
         homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
 
         // Add reward minutes as an extra to the Intent
-        homeIntent.putExtra("reward_minutes", minutes)
+        homeIntent.putExtra(EXTRA_REWARD_MINUTES, minutes)
         startActivity(homeIntent)
         Log.d(TAG, "Launched BaerenLock via Home Intent with $minutes minutes.")
 
         // Now that BaerenLock has been launched with the reward minutes, clear them from BaerenEd
         DailyProgressManager(this).clearBankedRewardMinutes()
-    }
-
-    companion object {
-        private const val TAG = "RewardSelectionActivity"
     }
 }
 
