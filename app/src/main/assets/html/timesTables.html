@@ -191,7 +191,8 @@
 
     function initializeGame() {
         setupSelectorModal();
-        setTimesTable(currentTimesTable);
+        // Allow initialization even if locked (to generate questions and render grid)
+        setTimesTable(currentTimesTable, true);
     }
 
     function setupSelectorModal() {
@@ -216,9 +217,9 @@
         }
     }
 
-    function setTimesTable(num) {
-        // Prevent changing table if locked
-        if (isLocked) {
+    function setTimesTable(num, force = false) {
+        // Prevent changing table if locked (unless forced during initialization)
+        if (isLocked && !force) {
             return;
         }
         currentTimesTable = num;

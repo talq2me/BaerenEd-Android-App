@@ -142,11 +142,13 @@ Tests that verify UI elements and user interactions using Espresso.
 - Random table selection (`?table=random` picks random and locks)
 - Selector button visibility (hidden when locked)
 - Table change prevention when locked
+- **Fixed Bug**: When `table=` parameter is provided, tiles now render correctly (was showing 0 tiles before)
 
 **Test File:** `https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables_test.html`
 - Open in browser to run interactive tests
 - Tests verify selector button is hidden when locked
 - Tests verify table cannot be changed when parameter is provided
+- Tests verify all 10 tiles render when `table=` parameter is provided
 
 ### Not Yet Tested (Future Work)
 
