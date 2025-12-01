@@ -47,7 +47,7 @@ class RewardSelectionActivity : AppCompatActivity() {
     private fun grantRewardAccess(packageName: String, minutes: Int) {
         Log.d(TAG, "Granting $minutes minutes to BaerenLock via Intent.")
 
-        // Create an Intent to launch the home screen (BaerenLock)
+        // Primary method: Create an Intent to launch the home screen (BaerenLock)
         val homeIntent = Intent(Intent.ACTION_MAIN)
         homeIntent.addCategory(Intent.CATEGORY_HOME)
         homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -57,8 +57,30 @@ class RewardSelectionActivity : AppCompatActivity() {
         startActivity(homeIntent)
         Log.d(TAG, "Launched BaerenLock via Home Intent with $minutes minutes.")
 
+        // Fallback method: Send broadcast in case Intent delivery fails
+        // This ensures BaerenLock receives the reward time even if it's already running
+        sendRewardTimeBroadcast(minutes)
+
         // Now that BaerenLock has been launched with the reward minutes, clear them from BaerenEd
         DailyProgressManager(this).clearBankedRewardMinutes()
+    }
+
+    /**
+     * Sends a broadcast to BaerenLock with reward time as a fallback mechanism.
+     * This ensures BaerenLock receives reward time even if Intent delivery via HOME action fails.
+     */
+    private fun sendRewardTimeBroadcast(minutes: Int) {
+        try {
+            val broadcastIntent = Intent("com.talq2me.baerenlock.ACTION_ADD_REWARD_TIME").apply {
+                putExtra("reward_minutes", minutes)
+                setPackage("com.talq2me.baerenlock") // Explicitly target BaerenLock
+            }
+            sendBroadcast(broadcastIntent)
+            Log.d(TAG, "Sent broadcast to BaerenLock with $minutes minutes (fallback mechanism)")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending reward time broadcast (fallback)", e)
+            // Don't fail the whole operation if broadcast fails
+        }
     }
 }
 
