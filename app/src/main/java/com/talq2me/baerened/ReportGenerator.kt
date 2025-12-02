@@ -55,6 +55,45 @@ class ReportGenerator(private val context: Context) {
     }
 
     /**
+     * Separates completed game sessions into required and optional sections
+     */
+    private fun getSeparatedCompletedGames(
+        report: DailyProgressManager.ComprehensiveProgressReport
+    ): Pair<List<TimeTracker.ActivitySession>, List<TimeTracker.ActivitySession>> {
+        val progressManager = DailyProgressManager(context)
+        val visibleConfig = report.config?.let { progressManager.filterVisibleContent(it) } ?: return Pair(emptyList(), emptyList())
+        
+        val completedRequiredGameSessions = mutableListOf<TimeTracker.ActivitySession>()
+        val completedOptionalGameSessions = mutableListOf<TimeTracker.ActivitySession>()
+        
+        visibleConfig.sections?.forEach { section ->
+            val isRequired = section.id == "required"
+            section.tasks?.forEach { task ->
+                val taskId = task.launch ?: return@forEach
+                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, section.id ?: "unknown")
+                
+                // Find matching completed game sessions
+                report.completedGameSessions.forEach { session ->
+                    if (session.activityId == uniqueTaskId && session.activityType == "game") {
+                        val sessionKey = "${session.activityId}_${session.startTime}"
+                        if (isRequired) {
+                            if (!completedRequiredGameSessions.any { "${it.activityId}_${it.startTime}" == sessionKey }) {
+                                completedRequiredGameSessions.add(session)
+                            }
+                        } else {
+                            if (!completedOptionalGameSessions.any { "${it.activityId}_${it.startTime}" == sessionKey }) {
+                                completedOptionalGameSessions.add(session)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return Pair(completedRequiredGameSessions, completedOptionalGameSessions)
+    }
+
+    /**
      * Matches tasks from config with sessions and calculates details
      * Only includes tasks that are visible today
      */
@@ -177,18 +216,33 @@ class ReportGenerator(private val context: Context) {
             appendLine("Questions Answered:   ${report.totalCorrectAnswers}✅   ${report.totalIncorrectAnswers}❌")
             appendLine()
 
-            if (report.completedGameSessions.isNotEmpty()) {
-                appendLine("🎯 COMPLETED GAMES")
+            // Show completed games separately for required and optional sections
+            val (completedRequiredGameSessions, completedOptionalGameSessions) = getSeparatedCompletedGames(report)
+            
+            if (completedRequiredGameSessions.isNotEmpty()) {
+                appendLine("🎯 COMPLETED GAMES (REQUIRED)")
                 appendLine("-".repeat(30))
-                appendLine("Games completed today:")
-                report.completedGameSessions.forEach { session ->
-                    val status = if (session.completed) "Completed" else "In Progress"
+                completedRequiredGameSessions.forEach { session ->
                     val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
                         " (${session.correctAnswers} correct, ${session.incorrectAnswers} incorrect)"
                     } else {
                         ""
                     }
-                    appendLine("  ${session.activityName} ${session.formattedDuration} $status$answerInfo")
+                    appendLine("  ${session.activityName} ${session.formattedDuration} Completed$answerInfo")
+                }
+                appendLine()
+            }
+            
+            if (completedOptionalGameSessions.isNotEmpty()) {
+                appendLine("🎯 COMPLETED GAMES (EXTRA PRACTICE)")
+                appendLine("-".repeat(30))
+                completedOptionalGameSessions.forEach { session ->
+                    val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
+                        " (${session.correctAnswers} correct, ${session.incorrectAnswers} incorrect)"
+                    } else {
+                        ""
+                    }
+                    appendLine("  ${session.activityName} ${session.formattedDuration} Completed$answerInfo")
                 }
                 appendLine()
             }
@@ -450,17 +504,43 @@ class ReportGenerator(private val context: Context) {
                     </table>
                 </div>
 
-                ${if (report.completedGameSessions.isNotEmpty()) """
-                <div class="section">
-                    <h3>🎯 Completed Games</h3>
-                    <table>
-                        <tr><th>Game</th><th>Duration</th><th>Status</th></tr>
-                        ${report.completedGameSessions.joinToString("") { session ->
-                            "<tr><td>${session.activityName}</td><td>${session.formattedDuration}</td><td>Completed</td></tr>"
-                        }}
-                    </table>
-                </div>
-                """ else ""}
+                ${run {
+                    val (completedRequiredGameSessions, completedOptionalGameSessions) = getSeparatedCompletedGames(report)
+                    buildString {
+                        if (completedRequiredGameSessions.isNotEmpty()) {
+                            append("""<div class="section">
+                                <h3>🎯 Completed Games (Required)</h3>
+                                <table>
+                                    <tr><th>Game</th><th>Duration</th><th>Status</th><th>Answers</th></tr>
+                                    ${completedRequiredGameSessions.joinToString("") { session ->
+                                        val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
+                                            "${session.correctAnswers}✅ ${session.incorrectAnswers}❌"
+                                        } else {
+                                            ""
+                                        }
+                                        "<tr><td>${session.activityName}</td><td>${session.formattedDuration}</td><td>Completed</td><td>$answerInfo</td></tr>"
+                                    }}
+                                </table>
+                            </div>""")
+                        }
+                        if (completedOptionalGameSessions.isNotEmpty()) {
+                            append("""<div class="section">
+                                <h3>🎯 Completed Games (Extra Practice)</h3>
+                                <table>
+                                    <tr><th>Game</th><th>Duration</th><th>Status</th><th>Answers</th></tr>
+                                    ${completedOptionalGameSessions.joinToString("") { session ->
+                                        val answerInfo = if (session.correctAnswers > 0 || session.incorrectAnswers > 0) {
+                                            "${session.correctAnswers}✅ ${session.incorrectAnswers}❌"
+                                        } else {
+                                            ""
+                                        }
+                                        "<tr><td>${session.activityName}</td><td>${session.formattedDuration}</td><td>Completed</td><td>$answerInfo</td></tr>"
+                                    }}
+                                </table>
+                            </div>""")
+                        }
+                    }
+                }}
 
                 ${if (report.gameSessions.isNotEmpty()) """
                 <div class="section">
@@ -614,11 +694,22 @@ class ReportGenerator(private val context: Context) {
             appendLine("Total Sessions,${report.totalSessions}")
             appendLine()
 
-            if (report.completedGameSessions.isNotEmpty()) {
-                appendLine("Completed Game Sessions")
-                appendLine("Game,Duration,Status")
-                report.completedGameSessions.forEach { session ->
-                    appendLine("${session.activityName},${session.formattedDuration},Completed")
+            val (completedRequiredGameSessions, completedOptionalGameSessions) = getSeparatedCompletedGames(report)
+            
+            if (completedRequiredGameSessions.isNotEmpty()) {
+                appendLine("Completed Game Sessions (Required)")
+                appendLine("Game,Duration,Status,Correct,Incorrect")
+                completedRequiredGameSessions.forEach { session ->
+                    appendLine("${session.activityName},${session.formattedDuration},Completed,${session.correctAnswers},${session.incorrectAnswers}")
+                }
+                appendLine()
+            }
+            
+            if (completedOptionalGameSessions.isNotEmpty()) {
+                appendLine("Completed Game Sessions (Extra Practice)")
+                appendLine("Game,Duration,Status,Correct,Incorrect")
+                completedOptionalGameSessions.forEach { session ->
+                    appendLine("${session.activityName},${session.formattedDuration},Completed,${session.correctAnswers},${session.incorrectAnswers}")
                 }
                 appendLine()
             }

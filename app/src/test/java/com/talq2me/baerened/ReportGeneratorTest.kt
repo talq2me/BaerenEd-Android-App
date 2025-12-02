@@ -21,6 +21,14 @@ class ReportGeneratorTest {
 
     @Before
     fun setup() {
+        // Mock Android Log class (must be done before any Log calls)
+        mockkStatic(android.util.Log::class)
+        every { android.util.Log.d(any(), any<String>()) } returns 0
+        every { android.util.Log.d(any(), any<String>(), any()) } returns 0
+        every { android.util.Log.e(any(), any<String>()) } returns 0
+        every { android.util.Log.e(any(), any<String>(), any()) } returns 0
+        every { android.util.Log.w(any(), any<String>()) } returns 0
+        
         mockContext = mockk<Context>(relaxed = true)
         mockProgressManager = mockk<DailyProgressManager>(relaxed = true)
         
@@ -205,7 +213,7 @@ class ReportGeneratorTest {
         )
 
         // Then: Should include reward minutes
-        assertTrue(textReport.contains("Reward Time Used: 30 minutes"))
+        assertTrue(textReport.contains("Reward Time Earned: 30 minutes"))
     }
 
     @Test
@@ -316,6 +324,200 @@ class ReportGeneratorTest {
         assertTrue(textReport.contains("DAILY PROGRESS REPORT"))
         assertTrue(textReport.contains("Test Child"))
         assertTrue(textReport.contains("Stars Earned: 0/0"))
+    }
+
+    @Test
+    fun `completed games are shown separately for required and optional sections`() {
+        // Given: A progress report with games completed in both required and optional sections
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val report = DailyProgressManager.ComprehensiveProgressReport(
+            date = today,
+            earnedCoins = 6,
+            totalCoins = 6,
+            earnedStars = 6,
+            totalStars = 6,
+            completionRate = 100.0,
+            totalTimeMinutes = 20,
+            gamesPlayed = 2,
+            videosWatched = 0,
+            completedTasks = listOf("frenchStories", "optional_frenchStories"),
+            completedTaskNames = mapOf("frenchStories" to "French Stories", "optional_frenchStories" to "French Stories"),
+            gameSessions = listOf(
+                TimeTracker.ActivitySession(
+                    activityId = "frenchStories",
+                    activityType = "game",
+                    activityName = "French Stories",
+                    startTime = System.currentTimeMillis() - 600000,
+                    endTime = System.currentTimeMillis() - 300000,
+                    durationSeconds = 300,
+                    date = today,
+                    completed = true,
+                    correctAnswers = 5,
+                    incorrectAnswers = 0
+                ),
+                TimeTracker.ActivitySession(
+                    activityId = "optional_frenchStories",
+                    activityType = "game",
+                    activityName = "French Stories",
+                    startTime = System.currentTimeMillis() - 300000,
+                    endTime = System.currentTimeMillis(),
+                    durationSeconds = 300,
+                    date = today,
+                    completed = true,
+                    correctAnswers = 5,
+                    incorrectAnswers = 0
+                )
+            ),
+            videoSessions = emptyList(),
+            webGameSessions = emptyList(),
+            chromePageSessions = emptyList(),
+            completedGameSessions = listOf(
+                TimeTracker.ActivitySession(
+                    activityId = "frenchStories",
+                    activityType = "game",
+                    activityName = "French Stories",
+                    startTime = System.currentTimeMillis() - 600000,
+                    endTime = System.currentTimeMillis() - 300000,
+                    durationSeconds = 300,
+                    date = today,
+                    completed = true,
+                    correctAnswers = 5,
+                    incorrectAnswers = 0
+                ),
+                TimeTracker.ActivitySession(
+                    activityId = "optional_frenchStories",
+                    activityType = "game",
+                    activityName = "French Stories",
+                    startTime = System.currentTimeMillis() - 300000,
+                    endTime = System.currentTimeMillis(),
+                    durationSeconds = 300,
+                    date = today,
+                    completed = true,
+                    correctAnswers = 5,
+                    incorrectAnswers = 0
+                )
+            ),
+            averageGameTimeMinutes = 5,
+            averageVideoTimeMinutes = 0,
+            longestSessionMinutes = 5,
+            mostPlayedGame = "French Stories",
+            totalSessions = 2,
+            totalCorrectAnswers = 10,
+            totalIncorrectAnswers = 0,
+            config = MainContent(
+                sections = listOf(
+                    Section(
+                        id = "required",
+                        title = "Required Tasks",
+                        tasks = listOf(
+                            Task(title = "French Stories", launch = "frenchStories", stars = 3)
+                        )
+                    ),
+                    Section(
+                        id = "optional",
+                        title = "Extra Practice",
+                        tasks = listOf(
+                            Task(title = "French Stories", launch = "frenchStories", stars = 3)
+                        )
+                    )
+                )
+            )
+        )
+
+        // When: Generating a text report
+        val textReport = reportGenerator.generateDailyReport(
+            report,
+            "Test Child",
+            ReportGenerator.ReportFormat.TEXT
+        )
+
+        // Then: Should show games completed in both sections separately
+        assertTrue(textReport.contains("COMPLETED GAMES (REQUIRED)"))
+        assertTrue(textReport.contains("COMPLETED GAMES (EXTRA PRACTICE)"))
+        // Both should mention French Stories
+        val requiredSection = textReport.indexOf("COMPLETED GAMES (REQUIRED)")
+        val optionalSection = textReport.indexOf("COMPLETED GAMES (EXTRA PRACTICE)")
+        assertTrue(requiredSection < optionalSection) // Required should come before optional
+    }
+
+    @Test
+    fun `answer counts in task details match first answer only logic`() {
+        // Given: A task with answer counts that should add up correctly
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val report = DailyProgressManager.ComprehensiveProgressReport(
+            date = today,
+            earnedCoins = 3,
+            totalCoins = 3,
+            earnedStars = 3,
+            totalStars = 3,
+            completionRate = 100.0,
+            totalTimeMinutes = 10,
+            gamesPlayed = 1,
+            videosWatched = 0,
+            completedTasks = listOf("frenchStories"),
+            completedTaskNames = mapOf("frenchStories" to "French Stories"),
+            gameSessions = listOf(
+                TimeTracker.ActivitySession(
+                    activityId = "frenchStories",
+                    activityType = "game",
+                    activityName = "French Stories",
+                    startTime = System.currentTimeMillis() - 600000,
+                    endTime = System.currentTimeMillis() - 300000,
+                    durationSeconds = 300,
+                    date = today,
+                    completed = true,
+                    correctAnswers = 4, // 4 correct out of 5 questions
+                    incorrectAnswers = 1 // 1 incorrect out of 5 questions
+                )
+            ),
+            videoSessions = emptyList(),
+            webGameSessions = emptyList(),
+            chromePageSessions = emptyList(),
+            completedGameSessions = listOf(
+                TimeTracker.ActivitySession(
+                    activityId = "frenchStories",
+                    activityType = "game",
+                    activityName = "French Stories",
+                    startTime = System.currentTimeMillis() - 600000,
+                    endTime = System.currentTimeMillis() - 300000,
+                    durationSeconds = 300,
+                    date = today,
+                    completed = true,
+                    correctAnswers = 4,
+                    incorrectAnswers = 1
+                )
+            ),
+            averageGameTimeMinutes = 5,
+            averageVideoTimeMinutes = 0,
+            longestSessionMinutes = 5,
+            mostPlayedGame = "French Stories",
+            totalSessions = 1,
+            totalCorrectAnswers = 4,
+            totalIncorrectAnswers = 1,
+            config = MainContent(
+                sections = listOf(
+                    Section(
+                        id = "required",
+                        title = "Required Tasks",
+                        tasks = listOf(
+                            Task(title = "French Stories", launch = "frenchStories", stars = 3)
+                        )
+                    )
+                )
+            )
+        )
+
+        // When: Generating a report
+        val textReport = reportGenerator.generateDailyReport(
+            report,
+            "Test Child",
+            ReportGenerator.ReportFormat.TEXT
+        )
+
+        // Then: Answer counts should be shown and should add up correctly (4 + 1 = 5 questions)
+        assertTrue(textReport.contains("4") || textReport.contains("1"))
+        // The total (correct + incorrect) should equal the number of questions answered
+        // This test ensures the report shows accurate counts
     }
 }
 

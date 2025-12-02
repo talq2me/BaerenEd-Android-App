@@ -241,7 +241,8 @@
                 multiplier: i,
                 answer: currentTimesTable * i,
                 solved: false,
-                revealed: false
+                revealed: false,
+                firstAnswerCounted: false // Track if first answer has been counted for this question
             });
         }
     }
@@ -304,8 +305,10 @@
     function handleCorrectAnswer(tile, question) {
         question.solved = true;
         solvedCount++;
-        if (currentQuestionFirstAttempt) {
+        // Only count as correct if this is the first answer attempt for this question
+        if (!question.firstAnswerCounted) {
             correctCount++;
+            question.firstAnswerCounted = true; // Mark that we've counted the first answer
         }
         tile.classList.add('correct');
         tile.querySelector('.tile-front').innerHTML = `${question.multiplicand} &times; ${question.multiplier} = ${question.answer}`;
@@ -317,12 +320,11 @@
         }
     }
 
-    let currentQuestionFirstAttempt = true;
-
     function handleIncorrectAnswer(tile, question) {
-        if (currentQuestionFirstAttempt) {
+        // Only count as incorrect if this is the first answer attempt for this question
+        if (!question.firstAnswerCounted) {
             incorrectCount++;
-            currentQuestionFirstAttempt = false; // Mark that we've had the first attempt
+            question.firstAnswerCounted = true; // Mark that we've counted the first answer
         }
         question.revealed = false;
         tile.classList.add('flipped');
@@ -344,7 +346,7 @@
 
         const randomQuestion = unsolvedQuestions[Math.floor(Math.random() * unsolvedQuestions.length)];
         randomQuestion.revealed = true;
-        currentQuestionFirstAttempt = true; // Reset for new question
+        // Note: We don't reset firstAnswerCounted here - it's tracked per question
         const tileToReveal = gridContainer.querySelector(`.tile[data-id='${randomQuestion.id}']`);
         if (tileToReveal) {
             activeTile = tileToReveal;
