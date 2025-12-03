@@ -73,6 +73,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Dec 8, 2025",
           "easydays": "mon,tue",
           "harddays": "wed",
           "extremedays": "thu"
@@ -83,7 +84,6 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Nov 24, 2025",
           "easydays": "tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun,mon"

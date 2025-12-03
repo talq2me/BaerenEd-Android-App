@@ -27,28 +27,30 @@
           "stars": 3
         },
         {
-          "title": "French Sounds",
-          "launch": "frenchLetterSounds",
-          "stars": 3,
-          "totalQuestions": 10
-        },
-        {
-          "title": "Sight Words",
-          "launch": "sightWords",
-          "stars": 3,
-          "totalQuestions": 5
-        },
-        {
           "title": "Math",
           "launch": "jkmath",
           "stars": 3,
           "totalQuestions": 5
         },
         {
-          "title": "Sk Spellings",
-          "launch": "skSpelling",
+          "title": "Eng Spelling",
+          "launch": "engSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
           "stars": 3,
-          "totalQuestions": 5
+          "webGame": true,
+          "easydays": "mon,tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun"
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "mon,tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun"
         },
         {
           "title": "French Vowels",

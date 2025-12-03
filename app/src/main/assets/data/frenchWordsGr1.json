@@ -1,62 +1,35 @@
 [
-  {
-    "word": "les",
-    "sentence": "Les enfants sont petits."
-  },
-  {
-    "word": "des",
-    "sentence": "J'ai acheté des pommes."
-  },
-  {
-    "word": "est-ce que",
-    "sentence": "Est-ce que tu viens ce soir ?"
-  },
-  {
-    "word": "c’est",
-    "sentence": "C’est une belle journée."
-  },
-  {
-    "word": "suis",
-    "sentence": "Je suis fatigué."
-  },
-  {
-    "word": "pas",
-    "sentence": "Je ne veux pas y aller."
-  },
-  {
-    "word": "avec",
-    "sentence": "Je vais au parc avec mes amis."
-  },
+
   {
     "word": "oui",
     "sentence": "Oui, je suis d'accord."
   },
   {
-    "word": "une",
-    "sentence": "J'ai une idée."
+    "word": "texte",
+    "sentence": "Je lis un texte à l'école."
   },
   {
-    "word": "à",
-    "sentence": "Je vais à l'école."
+    "word": "tuba",
+    "sentence": "Le tuba fait de la musique."
   },
   {
-    "word": "dans",
-    "sentence": "Le chat est dans la boîte."
+    "word": "robot",
+    "sentence": "Le robot marche tout seul."
   },
   {
-    "word": "fait",
-    "sentence": "Il fait beau aujourd'hui."
+    "word": "max",
+    "sentence": "Max est mon ami."
   },
   {
-    "word": "j’ai",
-    "sentence": "J'ai un frère."
+    "word": "maxi",
+    "sentence": "J'ai un maxi gâteau."
   },
   {
-    "word": "et",
-    "sentence": "J'aime le chocolat et la vanille."
+    "word": "taxi",
+    "sentence": "Le taxi est jaune."
   },
   {
-    "word": "au",
-    "sentence": "Je vais au cinéma."
+    "word": "taxe",
+    "sentence": "La taxe est sur le prix."
   }
 ]
