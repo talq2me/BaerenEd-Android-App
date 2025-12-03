@@ -200,7 +200,7 @@ class ReportGenerationIntegrationTest {
         )
 
         // Then: Should include reward minutes
-        assertTrue(report.contains("Reward Time Used: 30 minutes"))
+        assertTrue("Report should contain reward time earned text", report.contains("🎮 Reward Time Earned: 30 minutes"))
     }
 }
 

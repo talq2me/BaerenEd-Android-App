@@ -51,21 +51,33 @@ class RewardSelectionActivity : AppCompatActivity() {
         // This ID is used by both Intent and Broadcast, so BaerenLock can deduplicate
         val transactionId = System.currentTimeMillis()
 
-        // Primary method: Create an Intent to launch the home screen (BaerenLock)
-        val homeIntent = Intent(Intent.ACTION_MAIN)
-        homeIntent.addCategory(Intent.CATEGORY_HOME)
-        homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-
-        // Add reward minutes and transaction ID as extras to the Intent
-        homeIntent.putExtra(EXTRA_REWARD_MINUTES, minutes)
-        homeIntent.putExtra("reward_transaction_id", transactionId)
-        startActivity(homeIntent)
-        Log.d(TAG, "Launched BaerenLock via Home Intent with $minutes minutes (transaction ID: $transactionId).")
-
-        // Fallback method: Send broadcast in case Intent delivery fails
+        // Primary method: Send broadcast first (most reliable)
         // This ensures BaerenLock receives the reward time even if it's already running
-        // Use the same transaction ID so BaerenLock knows it's the same reward
         sendRewardTimeBroadcast(minutes, transactionId)
+
+        // Secondary method: Try to launch BaerenLock's LauncherActivity directly with explicit Intent
+        // This is more reliable than using ACTION_MAIN + CATEGORY_HOME which may not preserve extras
+        try {
+            val launcherIntent = Intent().apply {
+                setClassName("com.talq2me.baerenlock", "com.talq2me.baerenlock.LauncherActivity")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(EXTRA_REWARD_MINUTES, minutes)
+                putExtra("reward_transaction_id", transactionId)
+            }
+            startActivity(launcherIntent)
+            Log.d(TAG, "Launched BaerenLock LauncherActivity directly with $minutes minutes (transaction ID: $transactionId).")
+        } catch (e: Exception) {
+            // Fallback: Use HOME intent if direct launch fails
+            Log.w(TAG, "Failed to launch BaerenLock directly, trying HOME intent: ${e.message}")
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(EXTRA_REWARD_MINUTES, minutes)
+                putExtra("reward_transaction_id", transactionId)
+            }
+            startActivity(homeIntent)
+            Log.d(TAG, "Launched BaerenLock via Home Intent with $minutes minutes (transaction ID: $transactionId).")
+        }
 
         // Now that BaerenLock has been launched with the reward minutes, clear them from BaerenEd
         DailyProgressManager(this).clearBankedRewardMinutes()
