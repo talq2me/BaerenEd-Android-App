@@ -1,0 +1,53 @@
+[
+  {
+    "story": "The cat sat on the mat. Then it saw a mouse. The cat ran after the mouse. The mouse ran away. The cat went back to the mat.",
+    "sentences": [
+      "The cat sat on the mat.",
+      "Then it saw a mouse.",
+      "The cat ran after the mouse.",
+      "The mouse ran away.",
+      "The cat went back to the mat."
+    ]
+  },
+  {
+    "story": "Sam woke up early. He brushed his teeth. He ate breakfast. He put on his backpack. He went to school.",
+    "sentences": [
+      "Sam woke up early.",
+      "He brushed his teeth.",
+      "He ate breakfast.",
+      "He put on his backpack.",
+      "He went to school."
+    ]
+  },
+  {
+    "story": "The sun was shining. The birds were singing. The flowers were blooming. It was a beautiful day. Everyone was happy.",
+    "sentences": [
+      "The sun was shining.",
+      "The birds were singing.",
+      "The flowers were blooming.",
+      "It was a beautiful day.",
+      "Everyone was happy."
+    ]
+  },
+  {
+    "story": "The dog found a ball. It picked up the ball. It ran to the park. It played with the ball. It was very happy.",
+    "sentences": [
+      "The dog found a ball.",
+      "It picked up the ball.",
+      "It ran to the park.",
+      "It played with the ball.",
+      "It was very happy."
+    ]
+  },
+  {
+    "story": "Mom made cookies. The cookies smelled good. We waited for them to cool. Then we ate the cookies. They were delicious!",
+    "sentences": [
+      "Mom made cookies.",
+      "The cookies smelled good.",
+      "We waited for them to cool.",
+      "Then we ate the cookies.",
+      "They were delicious!"
+    ]
+  }
+]
+

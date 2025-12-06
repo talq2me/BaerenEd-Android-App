@@ -181,14 +181,14 @@
         {
           "title": "Story Sequence",
           "launch": "storySequence",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html?file=storySequence.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Step-by-Step",
           "launch": "stepByStepChecklist",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/stepByStepChecklist.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/stepByStepChecklist.html?file=stepByStepTasks.json",
           "stars": 3,
           "webGame": true
         },
@@ -223,42 +223,42 @@
         {
           "title": "Character Trait Hunter",
           "launch": "characterTraitHunter",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/characterTraitHunter.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/characterTraitHunter.html?file=characterTraits.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "What Happens Next?",
           "launch": "whatHappensNext",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/whatHappensNext.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/whatHappensNext.html?file=whatHappensNext.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Recipe Builder",
           "launch": "recipeBuilder",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/recipeBuilder.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/recipeBuilder.html?file=recipes.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Treasure Map Quest",
           "launch": "treasureMapQuest",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/treasureMapQuest.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/treasureMapQuest.html?file=treasureQuests.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Build a Robot",
           "launch": "buildARobot",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/buildARobot.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/buildARobot.html?file=robots.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Construction Site",
           "launch": "constructionSite",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/constructionSite.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/constructionSite.html?file=structures.json",
           "stars": 3,
           "webGame": true
         },

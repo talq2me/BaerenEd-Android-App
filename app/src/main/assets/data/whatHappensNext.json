@@ -1,0 +1,53 @@
+[
+  {
+    "story": "It was a sunny day at the park. Sarah was playing on the swings when she noticed a small puppy sitting alone near the bench. The puppy looked sad and lost.",
+    "options": [
+      "Sarah kept swinging and ignored the puppy.",
+      "Sarah went to find the puppy's owner to help.",
+      "Sarah went home because it was getting late.",
+      "Sarah started playing with her friends instead."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Tom was building a tall tower with blocks. He had stacked them very high, almost to the ceiling. The tower was starting to wobble a little bit.",
+    "options": [
+      "Tom added more blocks to make it even taller.",
+      "Tom carefully added a support block to make it stable.",
+      "Tom knocked it down and started over.",
+      "Tom walked away and left the tower."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Emma was reading her favorite book when she heard a loud crash from the kitchen. She put down her book and ran to see what happened.",
+    "options": [
+      "Emma went back to reading her book.",
+      "Emma found a broken plate on the floor and helped clean it up.",
+      "Emma decided to go outside and play.",
+      "Emma went to her room to get a new book."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "The rain started falling heavily outside. Jake was about to go to the playground with his friends, but now the ground was getting wet and muddy.",
+    "options": [
+      "Jake went outside anyway and got very wet.",
+      "Jake and his friends decided to play board games inside instead.",
+      "Jake went to bed because he was tired.",
+      "Jake forgot about his friends and watched TV alone."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Lily was helping her mom bake cookies. They had mixed all the ingredients and put the cookies in the oven. The timer went off, and the cookies smelled delicious.",
+    "options": [
+      "Lily opened the oven and ate the cookies right away.",
+      "Lily waited for the cookies to cool down before eating one.",
+      "Lily went to play outside and forgot about the cookies.",
+      "Lily turned off the oven and left the cookies inside."
+    ],
+    "correct": 1
+  }
+]
+

@@ -1,0 +1,53 @@
+[
+  {
+    "title": "Make a Sandwich",
+    "steps": [
+      "Get two slices of bread",
+      "Put peanut butter on one slice",
+      "Put jelly on the other slice",
+      "Put the slices together",
+      "Cut the sandwich in half"
+    ]
+  },
+  {
+    "title": "Make Lemonade",
+    "steps": [
+      "Squeeze lemons to get juice",
+      "Add sugar to the juice",
+      "Add water and mix",
+      "Add ice cubes",
+      "Pour into a glass"
+    ]
+  },
+  {
+    "title": "Make a Paper Airplane",
+    "steps": [
+      "Fold the paper in half",
+      "Fold the corners to the center",
+      "Fold the sides to the center",
+      "Fold the wings down",
+      "Throw it and watch it fly"
+    ]
+  },
+  {
+    "title": "Plant a Seed",
+    "steps": [
+      "Get a pot and soil",
+      "Put soil in the pot",
+      "Make a hole in the soil",
+      "Put the seed in the hole",
+      "Water the seed"
+    ]
+  },
+  {
+    "title": "Make Your Bed",
+    "steps": [
+      "Remove all the pillows",
+      "Smooth out the bottom sheet",
+      "Pull up the top sheet",
+      "Put the pillows back",
+      "Smooth out the blanket"
+    ]
+  }
+]
+

@@ -293,7 +293,16 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+            // Check if running in Android WebView
+            const isAndroid = window.Android !== undefined;
+            if (isAndroid) {
+                // Use Android asset path
+                const fileName = file || 'englishWordsGr1.json';
+                return `file:///android_asset/data/${fileName}`;
+            } else {
+                // Use relative path for web
+                return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+            }
         }
 
         function loadWords(jsonUrl) {

@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Basic Bot",
+    "steps": [
+      { "part": "body", "label": "Add Body", "emoji": "⬜" },
+      { "part": "head", "label": "Add Head", "emoji": "⭕" },
+      { "part": "eyes", "label": "Add Eyes", "emoji": "👀" },
+      { "part": "leftArm", "label": "Add Left Arm", "emoji": "🤚" },
+      { "part": "rightArm", "label": "Add Right Arm", "emoji": "✋" },
+      { "part": "leftLeg", "label": "Add Left Leg", "emoji": "🦵" },
+      { "part": "rightLeg", "label": "Add Right Leg", "emoji": "🦵" }
+    ]
+  },
+  {
+    "name": "Simple Bot",
+    "steps": [
+      { "part": "body", "label": "Add Body", "emoji": "⬜" },
+      { "part": "head", "label": "Add Head", "emoji": "⭕" },
+      { "part": "eyes", "label": "Add Eyes", "emoji": "👀" },
+      { "part": "leftArm", "label": "Add Left Arm", "emoji": "🤚" },
+      { "part": "rightArm", "label": "Add Right Arm", "emoji": "✋" },
+      { "part": "leftLeg", "label": "Add Left Leg", "emoji": "🦵" },
+      { "part": "rightLeg", "label": "Add Right Leg", "emoji": "🦵" }
+    ]
+  },
+  {
+    "name": "Friendly Bot",
+    "steps": [
+      { "part": "body", "label": "Add Body", "emoji": "⬜" },
+      { "part": "head", "label": "Add Head", "emoji": "⭕" },
+      { "part": "eyes", "label": "Add Eyes", "emoji": "👀" },
+      { "part": "leftArm", "label": "Add Left Arm", "emoji": "🤚" },
+      { "part": "rightArm", "label": "Add Right Arm", "emoji": "✋" },
+      { "part": "leftLeg", "label": "Add Left Leg", "emoji": "🦵" },
+      { "part": "rightLeg", "label": "Add Right Leg", "emoji": "🦵" }
+    ]
+  },
+  {
+    "name": "Helper Bot",
+    "steps": [
+      { "part": "body", "label": "Add Body", "emoji": "⬜" },
+      { "part": "head", "label": "Add Head", "emoji": "⭕" },
+      { "part": "eyes", "label": "Add Eyes", "emoji": "👀" },
+      { "part": "leftArm", "label": "Add Left Arm", "emoji": "🤚" },
+      { "part": "rightArm", "label": "Add Right Arm", "emoji": "✋" },
+      { "part": "leftLeg", "label": "Add Left Leg", "emoji": "🦵" },
+      { "part": "rightLeg", "label": "Add Right Leg", "emoji": "🦵" }
+    ]
+  },
+  {
+    "name": "Super Bot",
+    "steps": [
+      { "part": "body", "label": "Add Body", "emoji": "⬜" },
+      { "part": "head", "label": "Add Head", "emoji": "⭕" },
+      { "part": "eyes", "label": "Add Eyes", "emoji": "👀" },
+      { "part": "leftArm", "label": "Add Left Arm", "emoji": "🤚" },
+      { "part": "rightArm", "label": "Add Right Arm", "emoji": "✋" },
+      { "part": "leftLeg", "label": "Add Left Leg", "emoji": "🦵" },
+      { "part": "rightLeg", "label": "Add Right Leg", "emoji": "🦵" }
+    ]
+  }
+]
+

@@ -1,0 +1,49 @@
+[
+  {
+    "story": "Emma loved to help others. Every day after school, she would help her little brother with his homework. She also helped her mom set the table for dinner. When her friend was sad, Emma always tried to make them feel better.",
+    "traits": ["helpful", "kind", "caring", "brave", "shy"],
+    "correctTraits": ["helpful", "kind", "caring"],
+    "evidence": {
+      "helpful": "helped her little brother with his homework",
+      "kind": "tried to make them feel better",
+      "caring": "helped her mom set the table"
+    }
+  },
+  {
+    "story": "Jake was very brave. When he saw a big dog, he wasn't scared. He stood up for his friend when someone was being mean. Jake also tried new foods even when they looked strange.",
+    "traits": ["brave", "scared", "mean", "curious", "lazy"],
+    "correctTraits": ["brave", "curious"],
+    "evidence": {
+      "brave": "stood up for his friend when someone was being mean",
+      "curious": "tried new foods even when they looked strange"
+    }
+  },
+  {
+    "story": "Maya was always happy and cheerful. She smiled at everyone she met. Maya loved to play games and make people laugh. Her friends always felt better when they were around her.",
+    "traits": ["happy", "sad", "angry", "cheerful", "tired"],
+    "correctTraits": ["happy", "cheerful"],
+    "evidence": {
+      "happy": "smiled at everyone she met",
+      "cheerful": "loved to play games and make people laugh"
+    }
+  },
+  {
+    "story": "Sam worked very hard on his school project. He spent hours reading books and drawing pictures. Sam didn't give up even when it was difficult. His teacher was proud of his effort.",
+    "traits": ["hardworking", "lazy", "smart", "patient", "impatient"],
+    "correctTraits": ["hardworking", "patient"],
+    "evidence": {
+      "hardworking": "spent hours reading books and drawing pictures",
+      "patient": "didn't give up even when it was difficult"
+    }
+  },
+  {
+    "story": "Lily was very creative. She loved to paint and draw. She made up stories and songs. Lily always had new ideas for games to play with her friends.",
+    "traits": ["creative", "boring", "artistic", "fun", "serious"],
+    "correctTraits": ["creative", "artistic"],
+    "evidence": {
+      "creative": "made up stories and songs",
+      "artistic": "loved to paint and draw"
+    }
+  }
+]
+

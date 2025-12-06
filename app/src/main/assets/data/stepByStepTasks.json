@@ -1,0 +1,53 @@
+[
+  {
+    "task": "Make a Sandwich",
+    "steps": [
+      "Get two slices of bread",
+      "Put peanut butter on one slice",
+      "Put jelly on the other slice",
+      "Put the slices together",
+      "Cut the sandwich in half"
+    ]
+  },
+  {
+    "task": "Get Ready for School",
+    "steps": [
+      "Wake up",
+      "Brush your teeth",
+      "Put on your clothes",
+      "Eat breakfast",
+      "Pack your backpack"
+    ]
+  },
+  {
+    "task": "Plant a Seed",
+    "steps": [
+      "Get a pot and soil",
+      "Put soil in the pot",
+      "Make a hole in the soil",
+      "Put the seed in the hole",
+      "Water the seed"
+    ]
+  },
+  {
+    "task": "Clean Your Room",
+    "steps": [
+      "Put toys in the toy box",
+      "Put books on the shelf",
+      "Put clothes in the hamper",
+      "Make your bed",
+      "Put trash in the trash can"
+    ]
+  },
+  {
+    "task": "Make a Card",
+    "steps": [
+      "Get paper and crayons",
+      "Fold the paper in half",
+      "Draw a picture on the front",
+      "Write a message inside",
+      "Sign your name"
+    ]
+  }
+]
+

@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Simple House",
+    "steps": [
+      { "part": "foundation", "label": "Build Foundation", "emoji": "⬜" },
+      { "part": "wall", "label": "Build Walls", "emoji": "🧱" },
+      { "part": "door", "label": "Add Door", "emoji": "🚪" },
+      { "part": "window", "label": "Add Windows", "emoji": "🪟" },
+      { "part": "roof", "label": "Build Roof", "emoji": "🏠" }
+    ]
+  },
+  {
+    "name": "Cozy House",
+    "steps": [
+      { "part": "foundation", "label": "Build Foundation", "emoji": "⬜" },
+      { "part": "wall", "label": "Build Walls", "emoji": "🧱" },
+      { "part": "door", "label": "Add Door", "emoji": "🚪" },
+      { "part": "window", "label": "Add Windows", "emoji": "🪟" },
+      { "part": "roof", "label": "Build Roof", "emoji": "🏠" }
+    ]
+  },
+  {
+    "name": "Small House",
+    "steps": [
+      { "part": "foundation", "label": "Build Foundation", "emoji": "⬜" },
+      { "part": "wall", "label": "Build Walls", "emoji": "🧱" },
+      { "part": "door", "label": "Add Door", "emoji": "🚪" },
+      { "part": "window", "label": "Add Windows", "emoji": "🪟" },
+      { "part": "roof", "label": "Build Roof", "emoji": "🏠" }
+    ]
+  },
+  {
+    "name": "Family House",
+    "steps": [
+      { "part": "foundation", "label": "Build Foundation", "emoji": "⬜" },
+      { "part": "wall", "label": "Build Walls", "emoji": "🧱" },
+      { "part": "door", "label": "Add Door", "emoji": "🚪" },
+      { "part": "window", "label": "Add Windows", "emoji": "🪟" },
+      { "part": "roof", "label": "Build Roof", "emoji": "🏠" }
+    ]
+  },
+  {
+    "name": "Dream House",
+    "steps": [
+      { "part": "foundation", "label": "Build Foundation", "emoji": "⬜" },
+      { "part": "wall", "label": "Build Walls", "emoji": "🧱" },
+      { "part": "door", "label": "Add Door", "emoji": "🚪" },
+      { "part": "window", "label": "Add Windows", "emoji": "🪟" },
+      { "part": "roof", "label": "Build Roof", "emoji": "🏠" }
+    ]
+  }
+]
+

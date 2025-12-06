@@ -1,0 +1,27 @@
+[
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 50, "y": 30, "name": "Bridge", "problem": { "question": "You need to cross a bridge. Count the planks: 3 + 4 = ?", "options": ["5", "6", "7", "8"], "correct": 2 } },
+      { "x": 80, "y": 50, "name": "Cave", "problem": { "question": "In the cave, you find 5 coins. You already have 3. How many total?", "options": ["6", "7", "8", "9"], "correct": 2 } },
+      { "x": 60, "y": 80, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 40, "name": "Forest", "problem": { "question": "You see 6 birds. 2 fly away. How many are left?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 70, "y": 60, "name": "River", "problem": { "question": "You need 10 stones to cross. You have 4. How many more?", "options": ["4", "5", "6", "7"], "correct": 2 } },
+      { "x": 50, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 30, "y": 50, "name": "Mountain", "problem": { "question": "You climb 8 steps. Then 3 more. How many total steps?", "options": ["10", "11", "12", "13"], "correct": 1 } },
+      { "x": 70, "y": 70, "name": "Valley", "problem": { "question": "You find 9 gems. You give away 2. How many do you keep?", "options": ["5", "6", "7", "8"], "correct": 2 } },
+      { "x": 80, "y": 30, "name": "Treasure", "problem": null }
+    ]
+  }
+]
+

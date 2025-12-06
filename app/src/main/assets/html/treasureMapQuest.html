@@ -254,8 +254,24 @@
             }
         ];
 
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            // Check if running in Android WebView
+            const isAndroid = window.Android !== undefined;
+            if (isAndroid) {
+                // Use Android asset path
+                const fileName = file || 'treasureQuests.json';
+                return `file:///android_asset/data/${fileName}`;
+            } else {
+                // Use relative path for web
+                return file ? `../data/${file}` : '../data/treasureQuests.json';
+            }
+        }
+
         function loadQuests() {
-            fetch('../data/treasureQuests.json')
+            const jsonUrl = getGameConfig();
+            fetch(jsonUrl)
                 .then(response => {
                     if (response.ok) return response.json();
                     throw new Error('File not found');

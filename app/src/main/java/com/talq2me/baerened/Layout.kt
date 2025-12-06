@@ -1305,7 +1305,13 @@ class Layout(private val activity: MainActivity) {
                         android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
                         val taskLaunchId = task.launch ?: "unknown"
                         val intent = Intent(activity, WebGameActivity::class.java).apply {
-                            val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                            var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                            // Convert GitHub Pages URL to local asset URL for Android
+                            if (gameUrl.contains("talq2me.github.io") && gameUrl.contains("/html/")) {
+                                val fileName = gameUrl.substringAfterLast("/")
+                                gameUrl = "file:///android_asset/html/$fileName"
+                                android.util.Log.d("Layout", "Converted to local asset URL: $gameUrl")
+                            }
                             putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
                             putExtra(WebGameActivity.EXTRA_TASK_ID, taskLaunchId)  // Use launch ID instead of rewardId
                             putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)  // Pass section ID
