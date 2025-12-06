@@ -366,6 +366,7 @@
                 // Drag and drop handlers
                 plot.addEventListener('dragover', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     e.dataTransfer.dropEffect = 'move';
                     plot.classList.add('drag-over');
                 });
@@ -376,14 +377,20 @@
                 
                 plot.addEventListener('drop', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     plot.classList.remove('drag-over');
                     const letter = e.dataTransfer.getData('text/plain');
                     if (letter) {
                         const letterItem = document.querySelector(`.letter-item[data-letter="${letter}"]`);
                         if (letterItem && !letterItem.classList.contains('used')) {
-                            plantLetterOnPlot(letterItem, letter, i);
+                            const success = plantLetterOnPlot(letterItem, letter, i);
+                            if (success) {
+                                // Prevent dragend from interfering
+                                e.dataTransfer.dropEffect = 'move';
+                            }
                         }
                     }
+                    return false;
                 });
                 
                 // Click to remove
@@ -411,6 +418,17 @@
             const letterBank = document.getElementById('letterBank');
             letterBank.innerHTML = '';
             
+            // Prevent letter bank from accepting drops
+            letterBank.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            
+            letterBank.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            
             const letters = currentWord.word.split('');
             // Add some extra letters for difficulty
             const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
@@ -428,10 +446,11 @@
                 // Drag handlers
                 letterItem.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', letter.toLowerCase());
+                    e.dataTransfer.effectAllowed = 'move';
                     letterItem.classList.add('dragging');
                 });
                 
-                letterItem.addEventListener('dragend', () => {
+                letterItem.addEventListener('dragend', (e) => {
                     letterItem.classList.remove('dragging');
                 });
                 
@@ -441,17 +460,17 @@
 
         function plantLetterOnPlot(letterItem, letter, plotIndex) {
             if (letterItem.classList.contains('used')) {
-                return;
+                return false;
             }
             
             // Check if plot is already filled
             if (plantedLetters[plotIndex]) {
-                return;
+                return false;
             }
             
             const plot = document.querySelector(`.garden-plot[data-index="${plotIndex}"]`);
             if (!plot) {
-                return;
+                return false;
             }
             
             // Create seed
@@ -465,6 +484,7 @@
             letterItem.style.opacity = '0.3';
             letterItem.style.cursor = 'not-allowed';
             letterItem.draggable = false;
+            letterItem.classList.remove('dragging');
             
             // Add water animation
             const water = document.createElement('div');
@@ -475,6 +495,8 @@
             // Update plot appearance
             plot.classList.add('filled');
             plot.style.background = '#5d4037';
+            
+            return true;
         }
 
         function returnLetterToBank(letter) {
