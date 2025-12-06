@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Builder</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #f5576c;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .recipe-title {
+            text-align: center;
+            font-size: 1.8em;
+            color: #f5576c;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .steps-bank {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        .step-item {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: grab;
+            user-select: none;
+            font-size: 1.1em;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .step-item:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .step-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        .step-item.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #ccc;
+        }
+        .recipe-slots {
+            background: #e8f5e9;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        .recipe-slot {
+            background: white;
+            border: 3px dashed #9e9e9e;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .recipe-slot::before {
+            content: attr(data-number);
+            position: absolute;
+            left: 15px;
+            background: #f5576c;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .recipe-slot.filled {
+            border: 3px solid #4CAF50;
+            background: #c8e6c9;
+        }
+        .recipe-slot.drag-over {
+            border: 3px solid #ff9800;
+            background: #ffe0b2;
+            transform: scale(1.02);
+        }
+        .slot-content {
+            margin-left: 50px;
+            flex: 1;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #f5576c;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🍳 Recipe Builder 🍳</h1>
+        <div id="starCount">⭐ 0 / 5</div>
+        
+        <div class="recipe-title" id="recipeTitle">Loading recipe...</div>
+        
+        <div class="instructions" style="text-align: center; color: #f5576c; font-size: 1.2em; margin: 15px 0; font-weight: bold;">
+            Drag the steps into the correct order!
+        </div>
+        
+        <div class="recipe-slots" id="recipeSlots"></div>
+        
+        <div class="steps-bank" id="stepsBank"></div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="button-container">
+            <button class="button" id="checkButton" onclick="checkRecipe()">✓ Check Recipe</button>
+            <button class="button hidden" id="nextButton" onclick="nextRecipe()">Next Recipe →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let recipes = [];
+        let currentRecipeIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 5;
+        let currentRecipe = null;
+        let draggedElement = null;
+
+        const defaultRecipes = [
+            {
+                title: "Make a Sandwich",
+                steps: [
+                    "Get two slices of bread",
+                    "Put peanut butter on one slice",
+                    "Put jelly on the other slice",
+                    "Put the slices together",
+                    "Cut the sandwich in half"
+                ]
+            },
+            {
+                title: "Make Lemonade",
+                steps: [
+                    "Squeeze lemons to get juice",
+                    "Add sugar to the juice",
+                    "Add water and mix",
+                    "Add ice cubes",
+                    "Pour into a glass"
+                ]
+            },
+            {
+                title: "Make a Paper Airplane",
+                steps: [
+                    "Fold the paper in half",
+                    "Fold the corners to the center",
+                    "Fold the sides to the center",
+                    "Fold the wings down",
+                    "Throw it and watch it fly"
+                ]
+            },
+            {
+                title: "Plant a Seed",
+                steps: [
+                    "Get a pot and soil",
+                    "Put soil in the pot",
+                    "Make a hole in the soil",
+                    "Put the seed in the hole",
+                    "Water the seed"
+                ]
+            },
+            {
+                title: "Make Your Bed",
+                steps: [
+                    "Remove all the pillows",
+                    "Smooth out the bottom sheet",
+                    "Pull up the top sheet",
+                    "Put the pillows back",
+                    "Smooth out the blanket"
+                ]
+            }
+        ];
+
+        function loadRecipes() {
+            fetch('../data/recipes.json')
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('File not found');
+                })
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        recipes = data;
+                    } else {
+                        recipes = defaultRecipes;
+                    }
+                    maxQuestions = Math.min(recipes.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.log('Using default recipes');
+                    recipes = defaultRecipes;
+                    maxQuestions = Math.min(recipes.length, maxQuestions);
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentRecipeIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadRecipe();
+        }
+
+        function loadRecipe() {
+            if (currentRecipeIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+
+            currentRecipe = recipes[currentRecipeIndex];
+            document.getElementById('recipeTitle').textContent = `Recipe: ${currentRecipe.title}`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('checkButton').disabled = false;
+            document.getElementById('nextButton').classList.add('hidden');
+
+            // Shuffle steps
+            const shuffled = [...currentRecipe.steps].sort(() => Math.random() - 0.5);
+            
+            // Create slots
+            const slotsContainer = document.getElementById('recipeSlots');
+            slotsContainer.innerHTML = '';
+            shuffled.forEach((step, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'recipe-slot';
+                slot.dataset.number = index + 1;
+                slot.dataset.expected = currentRecipe.steps.indexOf(step);
+                slot.innerHTML = '<div class="slot-content"></div>';
+                
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slot.addEventListener('dragleave', handleDragLeave);
+                
+                slotsContainer.appendChild(slot);
+            });
+
+            // Create step bank
+            const bankContainer = document.getElementById('stepsBank');
+            bankContainer.innerHTML = '';
+            shuffled.forEach((step, index) => {
+                const item = document.createElement('div');
+                item.className = 'step-item';
+                item.textContent = step;
+                item.draggable = true;
+                item.dataset.step = step;
+                item.dataset.index = index;
+                
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                
+                bankContainer.appendChild(item);
+            });
+
+            setTimeout(() => {
+                readText(`Build this recipe step by step: ${currentRecipe.title}`, 'en-US', 0.7);
+            }, 500);
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const slot = e.currentTarget;
+            const step = draggedElement.dataset.step;
+            
+            // Remove from previous slot if any
+            const previousSlot = document.querySelector(`.recipe-slot[data-actual="${draggedElement.dataset.index}"]`);
+            if (previousSlot && previousSlot !== slot) {
+                previousSlot.querySelector('.slot-content').textContent = '';
+                previousSlot.classList.remove('filled');
+                previousSlot.dataset.actual = -1;
+            }
+            
+            // Add to new slot
+            slot.querySelector('.slot-content').textContent = step;
+            slot.classList.add('filled');
+            slot.dataset.actual = draggedElement.dataset.index;
+            
+            // Mark step as used
+            draggedElement.classList.add('used');
+            draggedElement.draggable = false;
+        }
+
+        function checkRecipe() {
+            const slots = Array.from(document.querySelectorAll('.recipe-slot'));
+            let isCorrect = true;
+            
+            slots.forEach((slot, index) => {
+                const expectedIndex = parseInt(slot.dataset.expected);
+                const actualIndex = parseInt(slot.dataset.actual);
+                const step = slot.querySelector('.slot-content').textContent;
+                
+                if (expectedIndex !== index || !step) {
+                    isCorrect = false;
+                }
+            });
+
+            const feedback = document.getElementById('feedbackContainer');
+            if (isCorrect) {
+                feedback.innerHTML = '<div class="feedback correct">✓ Perfect recipe! Great job! 🎉</div>';
+                correctCount++;
+                updateStarCount();
+                document.getElementById('checkButton').disabled = true;
+                document.getElementById('nextButton').classList.remove('hidden');
+                
+                slots.forEach(slot => {
+                    slot.style.border = '3px solid #4CAF50';
+                    slot.style.background = '#c8e6c9';
+                });
+            } else {
+                feedback.innerHTML = '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
+                incorrectCount++;
+                
+                setTimeout(() => {
+                    feedback.innerHTML = '';
+                }, 2000);
+            }
+        }
+
+        function nextRecipe() {
+            currentRecipeIndex++;
+            loadRecipe();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('recipeTitle').innerHTML = 
+                `<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('recipeSlots').innerHTML = '';
+            document.getElementById('stepsBank').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRecipes);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Building Blocks</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .word-display {
+            text-align: center;
+            font-size: 1.5em;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .block-tower {
+            background: #f5f5f5;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .block {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid #4a5568;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+        .block:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+        .block.placed {
+            animation: stackBlock 0.5s ease;
+        }
+        @keyframes stackBlock {
+            0% {
+                transform: translateY(-100px) rotate(-180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(-50px) rotate(-90deg);
+            }
+            100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        .block-bank {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 100px;
+        }
+        .block-item {
+            width: 70px;
+            height: 70px;
+            background: #4CAF50;
+            border: 3px solid #2e7d32;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .block-item:hover {
+            background: #45a049;
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .block-item.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #ccc;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧱 Word Building Blocks 🧱</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        
+        <div class="word-display" id="wordDisplay">
+            <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
+        </div>
+        
+        <div class="block-tower" id="blockTower"></div>
+        
+        <div class="block-bank" id="blockBank"></div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="button-container">
+            <button class="button" id="checkButton" onclick="checkWord()">✓ Check Word</button>
+            <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let words = [];
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let stackedLetters = [];
+        let isFirstAttempt = true;
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+        }
+
+        function loadWords(jsonUrl) {
+            fetch(jsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = [];
+                    }
+                    maxQuestions = Math.min(words.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.error('Error loading words file:', error);
+                    words = [];
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentWordIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentWord = words[currentWordIndex];
+            stackedLetters = [];
+            isFirstAttempt = true;
+            document.getElementById('wordDisplay').innerHTML = 
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('checkButton').disabled = false;
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            createBlockTower();
+            createBlockBank();
+            
+            setTimeout(playInstruction, 500);
+        }
+
+        function playInstruction() {
+            const { word, sentence } = currentWord;
+            const textToRead = sentence ? `Stack blocks to spell: ${word}. ${sentence}` : `Stack blocks to spell: ${word}`;
+            readText(textToRead, 'en-US', 0.8);
+        }
+
+        function createBlockTower() {
+            const tower = document.getElementById('blockTower');
+            tower.innerHTML = '';
+            
+            // Create empty slots for each letter
+            for (let i = 0; i < currentWord.word.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'block';
+                slot.dataset.index = i;
+                slot.dataset.expected = currentWord.word[i].toLowerCase();
+                slot.textContent = '';
+                tower.appendChild(slot);
+            }
+        }
+
+        function createBlockBank() {
+            const bank = document.getElementById('blockBank');
+            bank.innerHTML = '';
+            
+            const letters = currentWord.word.split('');
+            const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 4);
+            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+            
+            letterPool.forEach(letter => {
+                const block = document.createElement('div');
+                block.className = 'block-item';
+                block.textContent = letter.toUpperCase();
+                block.dataset.letter = letter.toLowerCase();
+                block.onclick = () => stackBlock(block, letter.toLowerCase());
+                bank.appendChild(block);
+            });
+        }
+
+        function stackBlock(blockElement, letter) {
+            if (blockElement.classList.contains('used') || stackedLetters.length >= currentWord.word.length) return;
+            
+            // Find first empty slot
+            const emptySlot = document.querySelector(`.block[data-index="${stackedLetters.length}"]`);
+            if (!emptySlot) return;
+            
+            // Add block to tower
+            emptySlot.textContent = letter.toUpperCase();
+            emptySlot.classList.add('placed');
+            stackedLetters.push(letter);
+            
+            // Mark block as used
+            blockElement.classList.add('used');
+        }
+
+        function checkWord() {
+            const spelledWord = stackedLetters.join('');
+            const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
+            
+            if (isCorrect) {
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback correct">✓ Perfect tower! You spelled it correctly! 🧱🎉</div>';
+                
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
+                
+                document.getElementById('checkButton').disabled = true;
+                setTimeout(() => {
+                    document.getElementById('nextButton').classList.remove('hidden');
+                }, 2000);
+            } else {
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false;
+                }
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback incorrect">✗ Not quite right. Try stacking different blocks!</div>';
+                
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                    // Reset
+                    stackedLetters = [];
+                    document.querySelectorAll('.block').forEach(block => {
+                        block.textContent = '';
+                        block.classList.remove('placed');
+                    });
+                    document.querySelectorAll('.block-item').forEach(block => block.classList.remove('used'));
+                }, 2000);
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('wordDisplay').innerHTML = 
+                `<h2>🎉 Building Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('blockTower').innerHTML = '';
+            document.getElementById('blockBank').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+        });
+    </script>
+</body>
+</html>
+

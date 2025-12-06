@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Garden</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .word-display {
+            text-align: center;
+            font-size: 1.5em;
+            color: #2e7d32;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .garden-container {
+            background: #e8f5e9;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            min-height: 300px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
+        .garden-plot {
+            width: 100px;
+            height: 120px;
+            background: #8d6e63;
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .garden-plot.filled {
+            background: #5d4037;
+        }
+        .garden-plot:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .letter-seed {
+            position: absolute;
+            top: 10px;
+            width: 50px;
+            height: 50px;
+            background: #ffc107;
+            border: 3px solid #ff8f00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        .letter-seed:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .letter-seed.planted {
+            cursor: default;
+            opacity: 0.7;
+        }
+        .flower {
+            position: absolute;
+            bottom: 20px;
+            font-size: 3em;
+            animation: growFlower 0.8s ease-out;
+            z-index: 1;
+        }
+        @keyframes growFlower {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+        .letter-bank {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 100px;
+        }
+        .letter-item {
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .letter-item:hover {
+            background: #45a049;
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .letter-item.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #ccc;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #4CAF50;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+        .water-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(33, 150, 243, 0.3);
+            border-radius: 10px;
+            animation: water 0.5s ease;
+            pointer-events: none;
+        }
+        @keyframes water {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🌻 Word Garden 🌻</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        
+        <div class="word-display" id="wordDisplay">
+            <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
+        </div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="garden-container" id="gardenContainer"></div>
+        
+        <div class="letter-bank" id="letterBank"></div>
+        
+        <div class="button-container">
+            <button class="button" id="checkButton" onclick="checkWord()">🌱 Check Word</button>
+            <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let words = [];
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let plantedLetters = [];
+        let isFirstAttempt = true;
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+        }
+
+        function loadWords(jsonUrl) {
+            fetch(jsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = [];
+                    }
+                    maxQuestions = Math.min(words.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.error('Error loading words file:', error);
+                    words = [];
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentWordIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentWord = words[currentWordIndex];
+            plantedLetters = [];
+            isFirstAttempt = true;
+            document.getElementById('wordDisplay').innerHTML = 
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('checkButton').disabled = false;
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            createGarden();
+            createLetterBank();
+            
+            setTimeout(playInstruction, 500);
+        }
+
+        function playInstruction() {
+            const { word, sentence } = currentWord;
+            const textToRead = sentence ? `Spell the word: ${word}. ${sentence}` : `Spell the word: ${word}`;
+            readText(textToRead, 'en-US', 0.8);
+        }
+
+        function createGarden() {
+            const gardenContainer = document.getElementById('gardenContainer');
+            gardenContainer.innerHTML = '';
+            
+            const wordLength = currentWord.word.length;
+            
+            for (let i = 0; i < wordLength; i++) {
+                const plot = document.createElement('div');
+                plot.className = 'garden-plot';
+                plot.dataset.index = i;
+                plot.dataset.expectedLetter = currentWord.word[i].toLowerCase();
+                
+                plot.addEventListener('click', () => {
+                    if (plantedLetters[i]) {
+                        // Remove letter from plot
+                        const seed = plot.querySelector('.letter-seed');
+                        if (seed) {
+                            const letter = seed.textContent.toLowerCase();
+                            seed.remove();
+                            plantedLetters[i] = null;
+                            // Return letter to bank
+                            returnLetterToBank(letter);
+                        }
+                    }
+                });
+                
+                gardenContainer.appendChild(plot);
+            }
+        }
+
+        function createLetterBank() {
+            const letterBank = document.getElementById('letterBank');
+            letterBank.innerHTML = '';
+            
+            const letters = currentWord.word.split('');
+            // Add some extra letters for difficulty
+            const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+            
+            letterPool.forEach(letter => {
+                const letterItem = document.createElement('div');
+                letterItem.className = 'letter-item';
+                letterItem.textContent = letter.toUpperCase();
+                letterItem.dataset.letter = letter.toLowerCase();
+                letterItem.onclick = () => plantLetter(letterItem, letter.toLowerCase());
+                letterBank.appendChild(letterItem);
+            });
+        }
+
+        function plantLetter(letterItem, letter) {
+            if (letterItem.classList.contains('used')) return;
+            
+            // Find first empty plot
+            const emptyPlotIndex = plantedLetters.findIndex(l => !l);
+            if (emptyPlotIndex === -1) return;
+            
+            const plot = document.querySelector(`.garden-plot[data-index="${emptyPlotIndex}"]`);
+            if (!plot) return;
+            
+            // Create seed
+            const seed = document.createElement('div');
+            seed.className = 'letter-seed planted';
+            seed.textContent = letter.toUpperCase();
+            plot.appendChild(seed);
+            
+            plantedLetters[emptyPlotIndex] = letter;
+            letterItem.classList.add('used');
+            
+            // Add water animation
+            const water = document.createElement('div');
+            water.className = 'water-animation';
+            plot.appendChild(water);
+            setTimeout(() => water.remove(), 500);
+        }
+
+        function returnLetterToBank(letter) {
+            const letterItems = document.querySelectorAll('.letter-item');
+            for (let item of letterItems) {
+                if (item.dataset.letter === letter && item.classList.contains('used')) {
+                    item.classList.remove('used');
+                    break;
+                }
+            }
+        }
+
+        function checkWord() {
+            const spelledWord = plantedLetters.join('');
+            const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
+            
+            if (isCorrect) {
+                // Grow flowers!
+                const plots = document.querySelectorAll('.garden-plot');
+                plots.forEach((plot, index) => {
+                    setTimeout(() => {
+                        const flower = document.createElement('div');
+                        flower.className = 'flower';
+                        const flowers = ['🌻', '🌷', '🌺', '🌸', '🌼', '🌹', '💐'];
+                        flower.textContent = flowers[index % flowers.length];
+                        plot.appendChild(flower);
+                    }, index * 200);
+                });
+                
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback correct">✓ Beautiful! Your word garden is blooming! 🌸</div>';
+                
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
+                
+                document.getElementById('checkButton').disabled = true;
+                setTimeout(() => {
+                    document.getElementById('nextButton').classList.remove('hidden');
+                }, 2000);
+            } else {
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false;
+                }
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback" style="background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb;">✗ Not quite right. Try again!</div>';
+                
+                // Clear and reset
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                    // Clear all planted letters
+                    plantedLetters.forEach((letter, index) => {
+                        if (letter) {
+                            const plot = document.querySelector(`.garden-plot[data-index="${index}"]`);
+                            const seed = plot.querySelector('.letter-seed');
+                            if (seed) {
+                                returnLetterToBank(letter);
+                                seed.remove();
+                                plantedLetters[index] = null;
+                            }
+                        }
+                    });
+                }, 2000);
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('wordDisplay').innerHTML = 
+                `<h2>🎉 Garden Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('gardenContainer').innerHTML = '';
+            document.getElementById('letterBank').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build a Robot</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.2em;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .robot-workspace {
+            background: #f5f5f5;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 20px 0;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            position: relative;
+        }
+        .robot {
+            position: relative;
+            width: 200px;
+            height: 300px;
+        }
+        .robot-part {
+            position: absolute;
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+        .robot-part.added {
+            opacity: 1;
+            animation: attachPart 0.5s ease;
+        }
+        @keyframes attachPart {
+            0% { transform: scale(0) rotate(-180deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .robot-body {
+            width: 120px;
+            height: 150px;
+            background: #9e9e9e;
+            border-radius: 20px;
+            left: 40px;
+            top: 100px;
+            border: 3px solid #616161;
+        }
+        .robot-head {
+            width: 100px;
+            height: 100px;
+            background: #9e9e9e;
+            border-radius: 50%;
+            left: 50px;
+            top: 0;
+            border: 3px solid #616161;
+        }
+        .robot-eye {
+            width: 20px;
+            height: 20px;
+            background: #00ff00;
+            border-radius: 50%;
+            position: absolute;
+            top: 30px;
+        }
+        .robot-eye.left {
+            left: 25px;
+        }
+        .robot-eye.right {
+            right: 25px;
+        }
+        .robot-arm {
+            width: 30px;
+            height: 80px;
+            background: #9e9e9e;
+            border-radius: 15px;
+            border: 3px solid #616161;
+        }
+        .robot-arm.left {
+            left: 10px;
+            top: 120px;
+            transform: rotate(-20deg);
+        }
+        .robot-arm.right {
+            right: 10px;
+            top: 120px;
+            transform: rotate(20deg);
+        }
+        .robot-leg {
+            width: 40px;
+            height: 80px;
+            background: #9e9e9e;
+            border-radius: 20px;
+            border: 3px solid #616161;
+            top: 250px;
+        }
+        .robot-leg.left {
+            left: 50px;
+        }
+        .robot-leg.right {
+            right: 50px;
+        }
+        .parts-shelf {
+            background: #fff3cd;
+            border: 2px dashed #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 120px;
+        }
+        .part-item {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .part-item:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .part-item.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: scale(0.8);
+        }
+        .part-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.5em;
+            color: #333;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        .steps-display {
+            background: #e8f5e9;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step-item {
+            background: white;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+        }
+        .step-item::before {
+            content: '📋';
+            margin-right: 10px;
+            font-size: 1.5em;
+        }
+        .step-item.complete {
+            background: #c8e6c9;
+        }
+        .step-item.complete::before {
+            content: '✓';
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🤖 Build a Robot 🤖</h1>
+        <div id="starCount">⭐ 0 / 5</div>
+        
+        <div class="instructions" id="instructions">
+            Follow the steps to build your robot!
+        </div>
+        
+        <div class="steps-display" id="stepsDisplay"></div>
+        
+        <div class="robot-workspace">
+            <div class="robot" id="robotContainer"></div>
+        </div>
+        
+        <div class="parts-shelf" id="partsShelf"></div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="button-container">
+            <button class="button hidden" id="nextButton" onclick="nextRobot()">Next Robot →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let robots = [];
+        let currentRobotIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 5;
+        let currentRobot = null;
+        let currentStepIndex = 0;
+        let addedParts = [];
+
+        const defaultRobots = [
+            {
+                name: "Basic Bot",
+                steps: [
+                    { part: "body", label: "Add Body", emoji: "⬜" },
+                    { part: "head", label: "Add Head", emoji: "⭕" },
+                    { part: "eyes", label: "Add Eyes", emoji: "👀" },
+                    { part: "leftArm", label: "Add Left Arm", emoji: "🤚" },
+                    { part: "rightArm", label: "Add Right Arm", emoji: "✋" },
+                    { part: "leftLeg", label: "Add Left Leg", emoji: "🦵" },
+                    { part: "rightLeg", label: "Add Right Leg", emoji: "🦵" }
+                ]
+            },
+            {
+                name: "Simple Bot",
+                steps: [
+                    { part: "body", label: "Add Body", emoji: "⬜" },
+                    { part: "head", label: "Add Head", emoji: "⭕" },
+                    { part: "eyes", label: "Add Eyes", emoji: "👀" },
+                    { part: "leftArm", label: "Add Left Arm", emoji: "🤚" },
+                    { part: "rightArm", label: "Add Right Arm", emoji: "✋" },
+                    { part: "leftLeg", label: "Add Left Leg", emoji: "🦵" },
+                    { part: "rightLeg", label: "Add Right Leg", emoji: "🦵" }
+                ]
+            },
+            {
+                name: "Friendly Bot",
+                steps: [
+                    { part: "body", label: "Add Body", emoji: "⬜" },
+                    { part: "head", label: "Add Head", emoji: "⭕" },
+                    { part: "eyes", label: "Add Eyes", emoji: "👀" },
+                    { part: "leftArm", label: "Add Left Arm", emoji: "🤚" },
+                    { part: "rightArm", label: "Add Right Arm", emoji: "✋" },
+                    { part: "leftLeg", label: "Add Left Leg", emoji: "🦵" },
+                    { part: "rightLeg", label: "Add Right Leg", emoji: "🦵" }
+                ]
+            },
+            {
+                name: "Helper Bot",
+                steps: [
+                    { part: "body", label: "Add Body", emoji: "⬜" },
+                    { part: "head", label: "Add Head", emoji: "⭕" },
+                    { part: "eyes", label: "Add Eyes", emoji: "👀" },
+                    { part: "leftArm", label: "Add Left Arm", emoji: "🤚" },
+                    { part: "rightArm", label: "Add Right Arm", emoji: "✋" },
+                    { part: "leftLeg", label: "Add Left Leg", emoji: "🦵" },
+                    { part: "rightLeg", label: "Add Right Leg", emoji: "🦵" }
+                ]
+            },
+            {
+                name: "Super Bot",
+                steps: [
+                    { part: "body", label: "Add Body", emoji: "⬜" },
+                    { part: "head", label: "Add Head", emoji: "⭕" },
+                    { part: "eyes", label: "Add Eyes", emoji: "👀" },
+                    { part: "leftArm", label: "Add Left Arm", emoji: "🤚" },
+                    { part: "rightArm", label: "Add Right Arm", emoji: "✋" },
+                    { part: "leftLeg", label: "Add Left Leg", emoji: "🦵" },
+                    { part: "rightLeg", label: "Add Right Leg", emoji: "🦵" }
+                ]
+            }
+        ];
+
+        function loadRobots() {
+            fetch('../data/robots.json')
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('File not found');
+                })
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        robots = data;
+                    } else {
+                        robots = defaultRobots;
+                    }
+                    maxQuestions = Math.min(robots.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.log('Using default robots');
+                    robots = defaultRobots;
+                    maxQuestions = Math.min(robots.length, maxQuestions);
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentRobotIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadRobot();
+        }
+
+        function loadRobot() {
+            if (currentRobotIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+
+            currentRobot = robots[currentRobotIndex];
+            currentStepIndex = 0;
+            addedParts = [];
+            
+            document.getElementById('instructions').textContent = `Build: ${currentRobot.name}`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('nextButton').classList.add('hidden');
+
+            createRobot();
+            createSteps();
+            createPartsShelf();
+            
+            setTimeout(() => {
+                readText(`Build a robot step by step. First, ${currentRobot.steps[0].label.toLowerCase()}`, 'en-US', 0.7);
+            }, 500);
+        }
+
+        function createRobot() {
+            const container = document.getElementById('robotContainer');
+            container.innerHTML = '';
+            
+            // Create robot parts (initially hidden)
+            const parts = {
+                body: { class: 'robot-part robot-body', part: 'body' },
+                head: { class: 'robot-part robot-head', part: 'head' },
+                eyes: { class: 'robot-part', part: 'eyes', html: '<div class="robot-eye left"></div><div class="robot-eye right"></div>' },
+                leftArm: { class: 'robot-part robot-arm left', part: 'leftArm' },
+                rightArm: { class: 'robot-part robot-arm right', part: 'rightArm' },
+                leftLeg: { class: 'robot-part robot-leg left', part: 'leftLeg' },
+                rightLeg: { class: 'robot-part robot-leg right', part: 'rightLeg' }
+            };
+            
+            Object.keys(parts).forEach(partKey => {
+                const part = document.createElement('div');
+                part.className = parts[partKey].class;
+                part.dataset.part = partKey;
+                if (parts[partKey].html) {
+                    part.innerHTML = parts[partKey].html;
+                }
+                container.appendChild(part);
+            });
+        }
+
+        function createSteps() {
+            const display = document.getElementById('stepsDisplay');
+            display.innerHTML = '<h3 style="margin-top: 0;">📋 Steps:</h3>';
+            
+            currentRobot.steps.forEach((step, index) => {
+                const stepItem = document.createElement('div');
+                stepItem.className = 'step-item';
+                stepItem.dataset.index = index;
+                stepItem.dataset.part = step.part;
+                stepItem.textContent = `${index + 1}. ${step.label}`;
+                display.appendChild(stepItem);
+            });
+        }
+
+        function createPartsShelf() {
+            const shelf = document.getElementById('partsShelf');
+            shelf.innerHTML = '';
+            
+            // Shuffle steps and show all parts
+            const shuffled = [...currentRobot.steps].sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach(step => {
+                const part = document.createElement('div');
+                part.className = 'part-item';
+                part.textContent = step.emoji;
+                part.dataset.part = step.part;
+                part.dataset.label = step.label;
+                
+                const label = document.createElement('div');
+                label.className = 'part-label';
+                label.textContent = step.label;
+                part.appendChild(label);
+                
+                part.onclick = () => addPart(part, step.part);
+                shelf.appendChild(part);
+            });
+        }
+
+        function addPart(partElement, partName) {
+            if (partElement.classList.contains('used')) return;
+            
+            const expectedStep = currentRobot.steps[currentStepIndex];
+            if (expectedStep.part !== partName) {
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback" style="background: #f8d7da; color: #721c24;">✗ Wrong part! Follow the steps in order.</div>';
+                incorrectCount++;
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                }, 2000);
+                return;
+            }
+            
+            // Add part to robot
+            const robotPart = document.querySelector(`.robot-part[data-part="${partName}"]`);
+            if (robotPart) {
+                robotPart.classList.add('added');
+            }
+            
+            // Mark step as complete
+            const stepItem = document.querySelector(`.step-item[data-index="${currentStepIndex}"]`);
+            if (stepItem) {
+                stepItem.classList.add('complete');
+            }
+            
+            // Mark part as used
+            partElement.classList.add('used');
+            addedParts.push(partName);
+            currentStepIndex++;
+            
+            // Check if complete
+            if (currentStepIndex >= currentRobot.steps.length) {
+                correctCount++;
+                updateStarCount();
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback correct">✓ Robot complete! Great building! 🤖🎉</div>';
+                setTimeout(() => {
+                    document.getElementById('nextButton').classList.remove('hidden');
+                }, 2000);
+            } else {
+                // Read next step
+                const nextStep = currentRobot.steps[currentStepIndex];
+                readText(`Next, ${nextStep.label.toLowerCase()}`, 'en-US', 0.7);
+            }
+        }
+
+        function nextRobot() {
+            currentRobotIndex++;
+            loadRobot();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('instructions').innerHTML = 
+                `<h2>🎉 All Robots Built! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('robotContainer').innerHTML = '';
+            document.getElementById('partsShelf').innerHTML = '';
+            document.getElementById('stepsDisplay').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRobots);
+    </script>
+</body>
+</html>
+

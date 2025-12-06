@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Puzzle Adventure</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #f5576c;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .word-display {
+            text-align: center;
+            font-size: 1.5em;
+            color: #f5576c;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .puzzle-grid {
+            background: #f5f5f5;
+            border: 3px solid #f5576c;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 10px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .puzzle-cell {
+            aspect-ratio: 1;
+            background: white;
+            border: 3px solid #9e9e9e;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .puzzle-cell:hover {
+            background: #fff3cd;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .puzzle-cell.selected {
+            background: #ffc107;
+            border-color: #ff8c00;
+            transform: scale(1.15);
+        }
+        .puzzle-cell.correct {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+        }
+        .word-display-area {
+            background: #e8f5e9;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #2e7d32;
+            letter-spacing: 10px;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #f5576c;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+        .puzzle-reveal {
+            animation: reveal 0.5s ease;
+        }
+        @keyframes reveal {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧩 Word Puzzle Adventure 🧩</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        
+        <div class="word-display" id="wordDisplay">
+            <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
+        </div>
+        
+        <div class="word-display-area" id="wordDisplayArea"></div>
+        
+        <div class="puzzle-grid" id="puzzleGrid"></div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="button-container">
+            <button class="button" id="clearButton" onclick="clearSelection()">Clear</button>
+            <button class="button" id="checkButton" onclick="checkWord()">✓ Check Word</button>
+            <button class="button hidden" id="nextButton" onclick="nextWord()">Next Puzzle →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let words = [];
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let selectedCells = [];
+        let isFirstAttempt = true;
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+        }
+
+        function loadWords(jsonUrl) {
+            fetch(jsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = [];
+                    }
+                    maxQuestions = Math.min(words.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.error('Error loading words file:', error);
+                    words = [];
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentWordIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentWord = words[currentWordIndex];
+            selectedCells = [];
+            isFirstAttempt = true;
+            document.getElementById('wordDisplay').innerHTML = 
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('wordDisplayArea').textContent = '';
+            document.getElementById('checkButton').disabled = false;
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            createPuzzle();
+            
+            setTimeout(playInstruction, 500);
+        }
+
+        function playInstruction() {
+            const { word, sentence } = currentWord;
+            const textToRead = sentence ? `Find the letters to spell: ${word}. ${sentence}` : `Find the letters to spell: ${word}`;
+            readText(textToRead, 'en-US', 0.8);
+        }
+
+        function createPuzzle() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            
+            const letters = currentWord.word.split('');
+            const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
+                .sort(() => 0.5 - Math.random())
+                .slice(0, Math.max(9 - letters.length, 3));
+            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+            
+            // Create grid (3x3 or 4x4 depending on word length)
+            const gridSize = Math.ceil(Math.sqrt(letterPool.length));
+            grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            
+            letterPool.forEach((letter, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'puzzle-cell puzzle-reveal';
+                cell.textContent = letter.toUpperCase();
+                cell.dataset.letter = letter.toLowerCase();
+                cell.dataset.index = index;
+                cell.style.animationDelay = (index * 0.1) + 's';
+                cell.onclick = () => selectCell(cell, letter.toLowerCase());
+                grid.appendChild(cell);
+            });
+        }
+
+        function selectCell(cell, letter) {
+            if (selectedCells.length >= currentWord.word.length) return;
+            
+            // Check if already selected
+            if (cell.classList.contains('selected')) {
+                // Deselect
+                const index = selectedCells.findIndex(c => c === cell);
+                if (index !== -1) {
+                    selectedCells.splice(index, 1);
+                    cell.classList.remove('selected');
+                    updateWordDisplay();
+                }
+                return;
+            }
+            
+            cell.classList.add('selected');
+            selectedCells.push(cell);
+            updateWordDisplay();
+        }
+
+        function updateWordDisplay() {
+            const display = document.getElementById('wordDisplayArea');
+            const word = selectedCells.map(cell => cell.dataset.letter.toUpperCase()).join('');
+            display.textContent = word || '_'.repeat(currentWord.word.length);
+        }
+
+        function clearSelection() {
+            selectedCells.forEach(cell => cell.classList.remove('selected'));
+            selectedCells = [];
+            updateWordDisplay();
+        }
+
+        function checkWord() {
+            const spelledWord = selectedCells.map(cell => cell.dataset.letter).join('');
+            const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
+            
+            if (isCorrect) {
+                // Mark all cells as correct
+                selectedCells.forEach(cell => {
+                    cell.classList.remove('selected');
+                    cell.classList.add('correct');
+                });
+                
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback correct">✓ Puzzle solved! Great job! 🧩🎉</div>';
+                
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
+                
+                document.getElementById('checkButton').disabled = true;
+                setTimeout(() => {
+                    document.getElementById('nextButton').classList.remove('hidden');
+                }, 2000);
+            } else {
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false;
+                }
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
+                
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                    clearSelection();
+                }, 2000);
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('wordDisplay').innerHTML = 
+                `<h2>🎉 Adventure Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('puzzleGrid').innerHTML = '';
+            document.getElementById('wordDisplayArea').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+        });
+    </script>
+</body>
+</html>
+

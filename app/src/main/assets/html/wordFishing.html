@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Fishing</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 50%, #1E90FF 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #1E90FF;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .word-display {
+            text-align: center;
+            font-size: 1.5em;
+            color: #1E90FF;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .ocean-container {
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 100%);
+            border: 3px solid #1E90FF;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+        .letter-fish {
+            position: absolute;
+            font-size: 2.5em;
+            cursor: pointer;
+            animation: swim 3s infinite ease-in-out;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .letter-fish:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+        .letter-fish.caught {
+            animation: none;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        @keyframes swim {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px);
+            }
+            50% {
+                transform: translateY(-10px) translateX(-10px);
+            }
+            75% {
+                transform: translateY(-30px) translateX(5px);
+            }
+        }
+        .fishing-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #654321 0%, #8B4513 100%);
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        .fishing-rod {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background: #8B4513;
+            border-radius: 10px;
+            z-index: 2;
+        }
+        .fishing-rod::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid #8B4513;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+        .word-container {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .word-slot {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border: 3px dashed #9e9e9e;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #1E90FF;
+            transition: all 0.3s ease;
+        }
+        .word-slot.filled {
+            border: 3px solid #4CAF50;
+            background: #c8e6c9;
+            animation: splash 0.5s ease;
+        }
+        @keyframes splash {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #1E90FF;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+        .caught-animation {
+            position: absolute;
+            font-size: 3em;
+            animation: caught 1s ease-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+        @keyframes caught {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎣 Word Fishing 🎣</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        
+        <div class="word-display" id="wordDisplay">
+            <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
+        </div>
+        
+        <div class="ocean-container" id="oceanContainer">
+            <div class="fishing-rod"></div>
+            <div class="fishing-line"></div>
+        </div>
+        
+        <div class="word-container" id="wordContainer"></div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="button-container">
+            <button class="button" id="checkButton" onclick="checkWord()">✓ Check Word</button>
+            <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let words = [];
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let caughtLetters = [];
+        let isFirstAttempt = true;
+        let fishElements = [];
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+        }
+
+        function loadWords(jsonUrl) {
+            fetch(jsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = [];
+                    }
+                    maxQuestions = Math.min(words.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.error('Error loading words file:', error);
+                    words = [];
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentWordIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentWord = words[currentWordIndex];
+            caughtLetters = [];
+            isFirstAttempt = true;
+            fishElements = [];
+            document.getElementById('wordDisplay').innerHTML = 
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('checkButton').disabled = false;
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            createOcean();
+            createWordSlots();
+            
+            setTimeout(playInstruction, 500);
+        }
+
+        function playInstruction() {
+            const { word, sentence } = currentWord;
+            const textToRead = sentence ? `Catch the letters to spell: ${word}. ${sentence}` : `Catch the letters to spell: ${word}`;
+            readText(textToRead, 'en-US', 0.8);
+        }
+
+        function createOcean() {
+            const ocean = document.getElementById('oceanContainer');
+            // Clear existing fish
+            const existingFish = ocean.querySelectorAll('.letter-fish');
+            existingFish.forEach(fish => fish.remove());
+            
+            const letters = currentWord.word.split('');
+            const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 4);
+            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+            
+            letterPool.forEach((letter, index) => {
+                const fish = document.createElement('div');
+                fish.className = 'letter-fish';
+                fish.textContent = '🐟';
+                fish.dataset.letter = letter.toLowerCase();
+                fish.style.left = (20 + (index * 12) % 70) + '%';
+                fish.style.top = (30 + (index * 15) % 50) + '%';
+                fish.style.animationDelay = (index * 0.3) + 's';
+                fish.style.animationDuration = (3 + Math.random() * 2) + 's';
+                
+                // Add letter label
+                const label = document.createElement('span');
+                label.textContent = letter.toUpperCase();
+                label.style.position = 'absolute';
+                label.style.top = '50%';
+                label.style.left = '50%';
+                label.style.transform = 'translate(-50%, -50%)';
+                label.style.fontSize = '0.4em';
+                label.style.color = 'white';
+                label.style.fontWeight = 'bold';
+                label.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
+                fish.appendChild(label);
+                
+                fish.onclick = () => catchFish(fish, letter.toLowerCase());
+                ocean.appendChild(fish);
+                fishElements.push(fish);
+            });
+        }
+
+        function catchFish(fish, letter) {
+            if (fish.classList.contains('caught') || caughtLetters.length >= currentWord.word.length) return;
+            
+            // Add caught animation
+            const caught = document.createElement('div');
+            caught.className = 'caught-animation';
+            caught.textContent = '✨';
+            caught.style.left = fish.style.left;
+            caught.style.top = fish.style.top;
+            document.getElementById('oceanContainer').appendChild(caught);
+            setTimeout(() => caught.remove(), 1000);
+            
+            fish.classList.add('caught');
+            caughtLetters.push(letter);
+            updateWordSlots();
+        }
+
+        function createWordSlots() {
+            const container = document.getElementById('wordContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < currentWord.word.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'word-slot';
+                slot.dataset.index = i;
+                slot.dataset.expected = currentWord.word[i].toLowerCase();
+                container.appendChild(slot);
+            }
+        }
+
+        function updateWordSlots() {
+            const slots = document.querySelectorAll('.word-slot');
+            slots.forEach((slot, index) => {
+                if (index < caughtLetters.length) {
+                    slot.textContent = caughtLetters[index].toUpperCase();
+                    slot.classList.add('filled');
+                } else {
+                    slot.textContent = '';
+                    slot.classList.remove('filled');
+                }
+            });
+        }
+
+        function checkWord() {
+            const spelledWord = caughtLetters.join('');
+            const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
+            
+            if (isCorrect) {
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback correct">✓ Great catch! You spelled it correctly! 🎣</div>';
+                
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
+                
+                document.getElementById('checkButton').disabled = true;
+                setTimeout(() => {
+                    document.getElementById('nextButton').classList.remove('hidden');
+                }, 2000);
+            } else {
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false;
+                }
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback incorrect">✗ Not quite right. Try catching different letters!</div>';
+                
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                    // Reset
+                    caughtLetters = [];
+                    fishElements.forEach(fish => fish.classList.remove('caught'));
+                    updateWordSlots();
+                }, 2000);
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('wordDisplay').innerHTML = 
+                `<h2>🎉 Fishing Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('oceanContainer').innerHTML = '';
+            document.getElementById('wordContainer').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+        });
+    </script>
+</body>
+</html>
+

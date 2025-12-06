@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step-by-Step Checklist</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #f5576c;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .task-display {
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            font-size: 1.4em;
+            text-align: center;
+            font-weight: bold;
+            color: #856404;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8bc34a);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .steps-container {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step-item {
+            background: white;
+            border: 3px solid #9e9e9e;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .step-item::before {
+            content: attr(data-number);
+            position: absolute;
+            left: 20px;
+            background: #9e9e9e;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .step-content {
+            margin-left: 70px;
+            flex: 1;
+        }
+        .step-item.completed {
+            border: 3px solid #4CAF50;
+            background: #c8e6c9;
+        }
+        .step-item.completed::before {
+            background: #4CAF50;
+            content: '✓';
+            font-size: 1.5em;
+        }
+        .step-item.current {
+            border: 3px solid #ff9800;
+            background: #ffe0b2;
+            animation: pulse 1.5s infinite;
+        }
+        .step-item.current::before {
+            background: #ff9800;
+        }
+        .step-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .checkbox {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #9e9e9e;
+            border-radius: 5px;
+            margin-right: 15px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .checkbox.checked {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        .checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #f5576c;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .celebration {
+            text-align: center;
+            font-size: 2em;
+            margin: 20px 0;
+            animation: bounce 0.5s ease;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>✅ Step-by-Step Checklist ✅</h1>
+        <div id="starCount">⭐ 0 / 5</div>
+        
+        <div class="task-display" id="taskDisplay">
+            Loading task...
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+        
+        <div class="steps-container" id="stepsContainer"></div>
+        
+        <div id="celebrationContainer"></div>
+        
+        <div class="button-container">
+            <button class="button hidden" id="nextButton" onclick="nextTask()">Next Task →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let tasks = [];
+        let currentTaskIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 5;
+        let currentTask = null;
+        let completedSteps = 0;
+
+        // Sample tasks for grade 1 level
+        const defaultTasks = [
+            {
+                task: "Make a Sandwich",
+                steps: [
+                    "Get two slices of bread",
+                    "Put peanut butter on one slice",
+                    "Put jelly on the other slice",
+                    "Put the slices together",
+                    "Cut the sandwich in half"
+                ]
+            },
+            {
+                task: "Get Ready for School",
+                steps: [
+                    "Wake up",
+                    "Brush your teeth",
+                    "Put on your clothes",
+                    "Eat breakfast",
+                    "Pack your backpack"
+                ]
+            },
+            {
+                task: "Plant a Seed",
+                steps: [
+                    "Get a pot and soil",
+                    "Put soil in the pot",
+                    "Make a hole in the soil",
+                    "Put the seed in the hole",
+                    "Water the seed"
+                ]
+            },
+            {
+                task: "Clean Your Room",
+                steps: [
+                    "Put toys in the toy box",
+                    "Put books on the shelf",
+                    "Put clothes in the hamper",
+                    "Make your bed",
+                    "Put trash in the trash can"
+                ]
+            },
+            {
+                task: "Make a Card",
+                steps: [
+                    "Get paper and crayons",
+                    "Fold the paper in half",
+                    "Draw a picture on the front",
+                    "Write a message inside",
+                    "Sign your name"
+                ]
+            }
+        ];
+
+        function loadTasks() {
+            // Try to load from JSON file, fallback to defaults
+            fetch('../data/stepByStepTasks.json')
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('File not found');
+                })
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        tasks = data;
+                    } else {
+                        tasks = defaultTasks;
+                    }
+                    maxQuestions = Math.min(tasks.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.log('Using default tasks');
+                    tasks = defaultTasks;
+                    maxQuestions = Math.min(tasks.length, maxQuestions);
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentTaskIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadTask();
+        }
+
+        function loadTask() {
+            if (currentTaskIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+
+            currentTask = tasks[currentTaskIndex];
+            completedSteps = 0;
+            document.getElementById('taskDisplay').textContent = `Task: ${currentTask.task}`;
+            document.getElementById('celebrationContainer').innerHTML = '';
+            document.getElementById('nextButton').classList.add('hidden');
+            updateProgress();
+
+            // Create steps
+            const stepsContainer = document.getElementById('stepsContainer');
+            stepsContainer.innerHTML = '';
+            currentTask.steps.forEach((step, index) => {
+                const stepItem = document.createElement('div');
+                stepItem.className = 'step-item';
+                stepItem.dataset.number = index + 1;
+                stepItem.dataset.index = index;
+                
+                if (index === 0) {
+                    stepItem.classList.add('current');
+                } else {
+                    stepItem.classList.add('locked');
+                }
+                
+                const checkbox = document.createElement('div');
+                checkbox.className = 'checkbox';
+                checkbox.onclick = () => checkStep(index, stepItem, checkbox);
+                
+                const stepContent = document.createElement('div');
+                stepContent.className = 'step-content';
+                stepContent.textContent = step;
+                
+                stepItem.appendChild(checkbox);
+                stepItem.appendChild(stepContent);
+                stepsContainer.appendChild(stepItem);
+            });
+
+            // Read the task
+            setTimeout(() => {
+                readText(`Complete this task step by step: ${currentTask.task}. ${currentTask.steps[0]}`, 'en-US', 0.7);
+            }, 500);
+        }
+
+        function checkStep(index, stepItem, checkbox) {
+            // Check if this is the current step
+            const currentStepIndex = currentTask.steps.findIndex((_, i) => {
+                const item = document.querySelector(`.step-item[data-index="${i}"]`);
+                return item && item.classList.contains('current');
+            });
+
+            if (index !== currentStepIndex) {
+                // Wrong step - show feedback
+                stepItem.style.animation = 'none';
+                setTimeout(() => {
+                    stepItem.style.background = '#ffebee';
+                    stepItem.style.borderColor = '#f44336';
+                    setTimeout(() => {
+                        stepItem.style.background = '';
+                        stepItem.style.borderColor = '';
+                        stepItem.style.animation = '';
+                    }, 1000);
+                }, 10);
+                incorrectCount++;
+                return;
+            }
+
+            // Correct step
+            checkbox.classList.add('checked');
+            stepItem.classList.remove('current');
+            stepItem.classList.add('completed');
+            stepItem.classList.remove('locked');
+            completedSteps++;
+            updateProgress();
+
+            // Unlock next step
+            if (index < currentTask.steps.length - 1) {
+                const nextItem = document.querySelector(`.step-item[data-index="${index + 1}"]`);
+                if (nextItem) {
+                    nextItem.classList.remove('locked');
+                    nextItem.classList.add('current');
+                    // Read the next step
+                    readText(currentTask.steps[index + 1], 'en-US', 0.7);
+                }
+            }
+
+            // Check if all steps completed
+            if (completedSteps === currentTask.steps.length) {
+                correctCount++;
+                updateStarCount();
+                celebrate();
+            }
+        }
+
+        function updateProgress() {
+            const percentage = (completedSteps / currentTask.steps.length) * 100;
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%';
+            progressFill.textContent = `${Math.round(percentage)}%`;
+        }
+
+        function celebrate() {
+            const celebration = document.getElementById('celebrationContainer');
+            celebration.innerHTML = '<div class="celebration">🎉 Great job! Task completed! 🎉</div>';
+            document.getElementById('nextButton').classList.remove('hidden');
+        }
+
+        function nextTask() {
+            currentTaskIndex++;
+            loadTask();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            document.getElementById('taskDisplay').innerHTML = 
+                `<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('stepsContainer').innerHTML = '';
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('progressFill').textContent = '100%';
+            document.querySelector('.button-container').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+</body>
+</html>
+

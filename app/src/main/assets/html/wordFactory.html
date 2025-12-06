@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Factory</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 20px;
+        }
+        .word-display {
+            text-align: center;
+            font-size: 1.5em;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .factory-line {
+            background: #f5f5f5;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+        .conveyor-belt {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: repeating-linear-gradient(
+                90deg,
+                #9e9e9e 0px,
+                #9e9e9e 20px,
+                #bdbdbd 20px,
+                #bdbdbd 40px
+            );
+            border-top: 3px solid #616161;
+            border-bottom: 3px solid #616161;
+        }
+        .letter-box {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            border: 3px solid #2e7d32;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: moveConveyor 5s linear infinite;
+        }
+        .letter-box:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+        .letter-box.picked {
+            animation: none;
+            opacity: 0.3;
+        }
+        @keyframes moveConveyor {
+            from {
+                left: -80px;
+            }
+            to {
+                left: 100%;
+            }
+        }
+        .assembly-line {
+            background: #e8f5e9;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .assembly-slot {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border: 3px dashed #9e9e9e;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+        .assembly-slot.filled {
+            background: #c8e6c9;
+            border: 3px solid #4CAF50;
+            animation: package 0.5s ease;
+        }
+        @keyframes package {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .button:hover {
+            background: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: popIn 0.5s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+        .factory-controls {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .control-button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        .control-button:hover {
+            background: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏭 Word Factory 🏭</h1>
+        <div id="starCount">⭐ 0 / 10</div>
+        
+        <div class="word-display" id="wordDisplay">
+            <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
+        </div>
+        
+        <div class="factory-line" id="factoryLine">
+            <div class="conveyor-belt"></div>
+        </div>
+        
+        <div class="factory-controls">
+            <button class="control-button" onclick="startConveyor()">▶ Start Conveyor</button>
+            <button class="control-button" onclick="stopConveyor()">⏸ Stop Conveyor</button>
+        </div>
+        
+        <div class="assembly-line" id="assemblyLine"></div>
+        
+        <div id="feedbackContainer"></div>
+        
+        <div class="button-container">
+            <button class="button" id="checkButton" onclick="checkWord()">📦 Package Word</button>
+            <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let words = [];
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let assembledLetters = [];
+        let isFirstAttempt = true;
+        let conveyorRunning = false;
+        let letterBoxes = [];
+        let conveyorInterval = null;
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            return file ? `../data/${file}` : '../data/englishWordsGr1.json';
+        }
+
+        function loadWords(jsonUrl) {
+            fetch(jsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = [];
+                    }
+                    maxQuestions = Math.min(words.length, maxQuestions);
+                    startGame();
+                })
+                .catch(error => {
+                    console.error('Error loading words file:', error);
+                    words = [];
+                    startGame();
+                });
+        }
+
+        function startGame() {
+            currentWordIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            updateStarCount();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentWord = words[currentWordIndex];
+            assembledLetters = [];
+            isFirstAttempt = true;
+            conveyorRunning = false;
+            letterBoxes = [];
+            
+            document.getElementById('wordDisplay').innerHTML = 
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('checkButton').disabled = false;
+            document.getElementById('nextButton').classList.add('hidden');
+            
+            // Clear factory
+            document.getElementById('factoryLine').querySelectorAll('.letter-box').forEach(box => box.remove());
+            createAssemblyLine();
+            
+            setTimeout(playInstruction, 500);
+        }
+
+        function playInstruction() {
+            const { word, sentence } = currentWord;
+            const textToRead = sentence ? `Pick letters from the conveyor to spell: ${word}. ${sentence}` : `Pick letters from the conveyor to spell: ${word}`;
+            readText(textToRead, 'en-US', 0.8);
+        }
+
+        function createAssemblyLine() {
+            const line = document.getElementById('assemblyLine');
+            line.innerHTML = '';
+            
+            for (let i = 0; i < currentWord.word.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'assembly-slot';
+                slot.dataset.index = i;
+                slot.dataset.expected = currentWord.word[i].toLowerCase();
+                line.appendChild(slot);
+            }
+        }
+
+        function startConveyor() {
+            if (conveyorRunning) return;
+            conveyorRunning = true;
+            
+            const letters = currentWord.word.split('');
+            const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 5);
+            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+            
+            let letterIndex = 0;
+            
+            conveyorInterval = setInterval(() => {
+                if (letterIndex >= letterPool.length * 2) {
+                    letterIndex = 0;
+                }
+                
+                const letter = letterPool[letterIndex % letterPool.length];
+                createLetterBox(letter);
+                letterIndex++;
+            }, 1500);
+        }
+
+        function stopConveyor() {
+            conveyorRunning = false;
+            if (conveyorInterval) {
+                clearInterval(conveyorInterval);
+                conveyorInterval = null;
+            }
+        }
+
+        function createLetterBox(letter) {
+            const factoryLine = document.getElementById('factoryLine');
+            const box = document.createElement('div');
+            box.className = 'letter-box';
+            box.textContent = letter.toUpperCase();
+            box.dataset.letter = letter.toLowerCase();
+            box.style.top = '30px';
+            box.onclick = () => pickLetter(box, letter.toLowerCase());
+            
+            factoryLine.appendChild(box);
+            letterBoxes.push(box);
+            
+            // Remove box when it goes off screen
+            setTimeout(() => {
+                if (box.parentNode && !box.classList.contains('picked')) {
+                    box.remove();
+                    const index = letterBoxes.indexOf(box);
+                    if (index > -1) letterBoxes.splice(index, 1);
+                }
+            }, 5000);
+        }
+
+        function pickLetter(box, letter) {
+            if (box.classList.contains('picked') || assembledLetters.length >= currentWord.word.length) return;
+            
+            // Find first empty slot
+            const emptySlot = document.querySelector(`.assembly-slot[data-index="${assembledLetters.length}"]`);
+            if (!emptySlot) return;
+            
+            // Add to assembly line
+            emptySlot.textContent = letter.toUpperCase();
+            emptySlot.classList.add('filled');
+            assembledLetters.push(letter);
+            
+            // Mark box as picked
+            box.classList.add('picked');
+            box.style.animation = 'none';
+            setTimeout(() => {
+                box.remove();
+                const index = letterBoxes.indexOf(box);
+                if (index > -1) letterBoxes.splice(index, 1);
+            }, 500);
+        }
+
+        function checkWord() {
+            const spelledWord = assembledLetters.join('');
+            const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
+            
+            if (isCorrect) {
+                stopConveyor();
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback correct">✓ Word packaged! Perfect! 📦🎉</div>';
+                
+                if (isFirstAttempt) {
+                    correctCount++;
+                    updateStarCount();
+                }
+                
+                document.getElementById('checkButton').disabled = true;
+                setTimeout(() => {
+                    document.getElementById('nextButton').classList.remove('hidden');
+                }, 2000);
+            } else {
+                if (isFirstAttempt) {
+                    incorrectCount++;
+                    isFirstAttempt = false;
+                }
+                document.getElementById('feedbackContainer').innerHTML = 
+                    '<div class="feedback incorrect">✗ Not quite right. Try picking different letters!</div>';
+                
+                setTimeout(() => {
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                    // Reset
+                    assembledLetters = [];
+                    document.querySelectorAll('.assembly-slot').forEach(slot => {
+                        slot.textContent = '';
+                        slot.classList.remove('filled');
+                    });
+                }, 2000);
+            }
+        }
+
+        function nextWord() {
+            stopConveyor();
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function updateStarCount() {
+            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+        }
+
+        function endGame() {
+            stopConveyor();
+            document.getElementById('wordDisplay').innerHTML = 
+                `<h2>🎉 Factory Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
+            document.getElementById('factoryLine').innerHTML = '';
+            document.getElementById('assemblyLine').innerHTML = '';
+            document.querySelector('.button-container').innerHTML = '';
+            document.querySelector('.factory-controls').innerHTML = '';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+        });
+    </script>
+</body>
+</html>
+
