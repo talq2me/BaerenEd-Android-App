@@ -363,11 +363,27 @@
             // Update location states
             document.querySelectorAll('.location').forEach((loc, i) => {
                 loc.classList.remove('current');
+                loc.onclick = null; // Clear previous handlers
+                loc.style.cursor = 'default';
                 if (i < index) loc.classList.add('visited');
             });
             
             if (locElement) {
                 locElement.classList.add('current');
+            }
+            
+            // Make next location clickable
+            if (index < currentQuest.locations.length - 1) {
+                const nextLoc = document.querySelector(`.location[data-index="${index + 1}"]`);
+                if (nextLoc) {
+                    nextLoc.onclick = () => {
+                        if (index + 1 === currentLocationIndex + 1) {
+                            currentLocationIndex++;
+                            showLocation(currentLocationIndex);
+                        }
+                    };
+                    nextLoc.style.cursor = 'pointer';
+                }
             }
             
             if (location.problem) {
@@ -387,7 +403,7 @@
             } else {
                 // Start location
                 document.getElementById('problemDisplay').innerHTML = 
-                    '<h3 style="text-align: center;">Your quest begins! Click on the next location.</h3>';
+                    '<h3 style="text-align: center;">Your quest begins! Click on the next location on the map.</h3>';
             }
         }
 

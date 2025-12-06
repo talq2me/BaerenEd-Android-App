@@ -442,10 +442,11 @@
             
             slots.forEach((slot, index) => {
                 const expectedIndex = parseInt(slot.dataset.expected);
-                const actualIndex = parseInt(slot.dataset.actual);
                 const sentence = slot.querySelector('.slot-content').textContent;
+                const expectedSentence = currentStory.sentences[expectedIndex];
                 
-                if (expectedIndex !== index || !sentence) {
+                // Check if the sentence text matches the expected sentence
+                if (!sentence || sentence.trim() !== expectedSentence.trim()) {
                     isCorrect = false;
                 }
             });

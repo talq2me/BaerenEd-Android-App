@@ -179,6 +179,111 @@
           "chromePage": true
         },
         {
+          "title": "Story Sequence",
+          "launch": "storySequence",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Step-by-Step",
+          "launch": "stepByStepChecklist",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/stepByStepChecklist.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Garden",
+          "launch": "wordGarden",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Fishing",
+          "launch": "wordFishing",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Spelling Race",
+          "launch": "spellingRace",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Potion Maker",
+          "launch": "potionMaker",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/potionMaker.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Character Trait Hunter",
+          "launch": "characterTraitHunter",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/characterTraitHunter.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "What Happens Next?",
+          "launch": "whatHappensNext",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/whatHappensNext.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Recipe Builder",
+          "launch": "recipeBuilder",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/recipeBuilder.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Treasure Map Quest",
+          "launch": "treasureMapQuest",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/treasureMapQuest.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Build a Robot",
+          "launch": "buildARobot",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/buildARobot.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Construction Site",
+          "launch": "constructionSite",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/constructionSite.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Building Blocks",
+          "launch": "wordBuildingBlocks",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordBuildingBlocks.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Puzzle Adventure",
+          "launch": "wordPuzzleAdventure",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordPuzzleAdventure.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Factory",
+          "launch": "wordFactory",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
           "stars": 1,

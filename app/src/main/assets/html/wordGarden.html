@@ -406,12 +406,19 @@
             
             plantedLetters[emptyPlotIndex] = letter;
             letterItem.classList.add('used');
+            letterItem.style.opacity = '0.3';
+            letterItem.style.cursor = 'not-allowed';
+            letterItem.onclick = null; // Disable further clicks
             
             // Add water animation
             const water = document.createElement('div');
             water.className = 'water-animation';
             plot.appendChild(water);
             setTimeout(() => water.remove(), 500);
+            
+            // Update plot appearance
+            plot.classList.add('filled');
+            plot.style.background = '#5d4037';
         }
 
         function returnLetterToBank(letter) {

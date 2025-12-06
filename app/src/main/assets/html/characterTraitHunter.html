@@ -430,9 +430,10 @@
             
             // Mark trait as used
             document.querySelectorAll('.trait-item').forEach(item => {
-                if (item.dataset.trait === selectedTrait) {
+                if (item.textContent.trim().toLowerCase() === selectedTrait.toLowerCase()) {
                     item.classList.add('used');
                     item.classList.remove('selected');
+                    item.onclick = null; // Disable further clicks
                 }
             });
             

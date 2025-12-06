@@ -197,6 +197,7 @@
         <div id="feedbackContainer"></div>
         
         <div class="button-container">
+            <button class="button" id="deleteButton" onclick="deleteLastStep()">⌫ Delete Last</button>
             <button class="button" id="checkButton" onclick="checkRecipe()">✓ Check Recipe</button>
             <button class="button hidden" id="nextButton" onclick="nextRecipe()">Next Recipe →</button>
         </div>
@@ -415,16 +416,42 @@
             draggedElement.draggable = false;
         }
 
+        function deleteLastStep() {
+            const slots = Array.from(document.querySelectorAll('.recipe-slot'));
+            // Find the last filled slot
+            for (let i = slots.length - 1; i >= 0; i--) {
+                const slot = slots[i];
+                if (slot.classList.contains('filled')) {
+                    const stepText = slot.querySelector('.slot-content').textContent;
+                    slot.querySelector('.slot-content').textContent = '';
+                    slot.classList.remove('filled');
+                    slot.dataset.actual = -1;
+                    
+                    // Return step to bank
+                    const stepItems = document.querySelectorAll('.step-item');
+                    for (let item of stepItems) {
+                        if (item.textContent.includes(stepText) && item.classList.contains('used')) {
+                            item.classList.remove('used');
+                            item.draggable = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
         function checkRecipe() {
             const slots = Array.from(document.querySelectorAll('.recipe-slot'));
             let isCorrect = true;
             
             slots.forEach((slot, index) => {
                 const expectedIndex = parseInt(slot.dataset.expected);
-                const actualIndex = parseInt(slot.dataset.actual);
                 const step = slot.querySelector('.slot-content').textContent;
+                const expectedStep = currentRecipe.steps[expectedIndex];
                 
-                if (expectedIndex !== index || !step) {
+                // Check if the step text matches the expected step
+                if (!step || step !== expectedStep) {
                     isCorrect = false;
                 }
             });

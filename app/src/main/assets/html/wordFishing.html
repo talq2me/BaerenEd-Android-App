@@ -244,6 +244,7 @@
         <div id="feedbackContainer"></div>
         
         <div class="button-container">
+            <button class="button" id="deleteButton" onclick="deleteLastLetter()">⌫ Delete</button>
             <button class="button" id="checkButton" onclick="checkWord()">✓ Check Word</button>
             <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
         </div>
@@ -426,6 +427,27 @@
                     slot.classList.remove('filled');
                 }
             });
+        }
+
+        function deleteLastLetter() {
+            if (caughtLetters.length === 0) return;
+            
+            const lastLetter = caughtLetters.pop();
+            const slots = document.querySelectorAll('.word-slot');
+            const lastSlot = slots[caughtLetters.length];
+            if (lastSlot) {
+                lastSlot.textContent = '';
+                lastSlot.classList.remove('filled');
+            }
+            
+            // Return fish to ocean
+            const fishElements = document.querySelectorAll('.letter-fish');
+            for (let fish of fishElements) {
+                if (fish.dataset.letter === lastLetter && fish.classList.contains('caught')) {
+                    fish.classList.remove('caught');
+                    break;
+                }
+            }
         }
 
         function checkWord() {
