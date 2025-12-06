@@ -466,13 +466,12 @@
             const slots = Array.from(document.querySelectorAll('.slot'));
             let isCorrect = true;
             
-            slots.forEach((slot, index) => {
-                const expectedIndex = parseInt(slot.dataset.expected);
-                const sentence = slot.querySelector('.slot-content').textContent;
-                const expectedSentence = currentStory.sentences[expectedIndex];
+            slots.forEach((slot, slotIndex) => {
+                const sentence = slot.querySelector('.slot-content').textContent.trim();
+                const expectedSentence = currentStory.sentences[slotIndex];
                 
-                // Check if the sentence text matches the expected sentence
-                if (!sentence || sentence.trim() !== expectedSentence.trim()) {
+                // Check if the sentence text matches the expected sentence for this position
+                if (!sentence || sentence !== expectedSentence.trim()) {
                     isCorrect = false;
                 }
             });

@@ -69,6 +69,11 @@
         .garden-plot.filled {
             background: #5d4037;
         }
+        .garden-plot.drag-over {
+            background: #a1887f;
+            border: 3px solid #ff9800;
+            transform: scale(1.05);
+        }
         .garden-plot:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -143,13 +148,18 @@
             justify-content: center;
             font-size: 1.8em;
             font-weight: bold;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             position: relative;
             z-index: 10;
             user-select: none;
             -webkit-user-select: none;
+        }
+        .letter-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.1);
+            cursor: grabbing;
         }
         .letter-item:hover {
             background: #45a049;
@@ -353,6 +363,30 @@
                 plot.dataset.index = i;
                 plot.dataset.expectedLetter = currentWord.word[i].toLowerCase();
                 
+                // Drag and drop handlers
+                plot.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    plot.classList.add('drag-over');
+                });
+                
+                plot.addEventListener('dragleave', () => {
+                    plot.classList.remove('drag-over');
+                });
+                
+                plot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    plot.classList.remove('drag-over');
+                    const letter = e.dataTransfer.getData('text/plain');
+                    if (letter) {
+                        const letterItem = document.querySelector(`.letter-item[data-letter="${letter}"]`);
+                        if (letterItem && !letterItem.classList.contains('used')) {
+                            plantLetterOnPlot(letterItem, letter, i);
+                        }
+                    }
+                });
+                
+                // Click to remove
                 plot.addEventListener('click', () => {
                     if (plantedLetters[i]) {
                         // Remove letter from plot
@@ -361,6 +395,8 @@
                             const letter = seed.textContent.toLowerCase();
                             seed.remove();
                             plantedLetters[i] = null;
+                            plot.classList.remove('filled');
+                            plot.style.background = '';
                             // Return letter to bank
                             returnLetterToBank(letter);
                         }
@@ -387,25 +423,33 @@
                 letterItem.className = 'letter-item';
                 letterItem.textContent = letter.toUpperCase();
                 letterItem.dataset.letter = letter.toLowerCase();
-                letterItem.addEventListener('click', function() {
-                    plantLetter(letterItem, letter.toLowerCase());
+                letterItem.draggable = true;
+                
+                // Drag handlers
+                letterItem.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', letter.toLowerCase());
+                    letterItem.classList.add('dragging');
                 });
+                
+                letterItem.addEventListener('dragend', () => {
+                    letterItem.classList.remove('dragging');
+                });
+                
                 letterBank.appendChild(letterItem);
             });
         }
 
-        function plantLetter(letterItem, letter) {
+        function plantLetterOnPlot(letterItem, letter, plotIndex) {
             if (letterItem.classList.contains('used')) {
                 return;
             }
             
-            // Find first empty plot
-            const emptyPlotIndex = plantedLetters.findIndex(l => !l);
-            if (emptyPlotIndex === -1) {
+            // Check if plot is already filled
+            if (plantedLetters[plotIndex]) {
                 return;
             }
             
-            const plot = document.querySelector(`.garden-plot[data-index="${emptyPlotIndex}"]`);
+            const plot = document.querySelector(`.garden-plot[data-index="${plotIndex}"]`);
             if (!plot) {
                 return;
             }
@@ -416,11 +460,11 @@
             seed.textContent = letter.toUpperCase();
             plot.appendChild(seed);
             
-            plantedLetters[emptyPlotIndex] = letter;
+            plantedLetters[plotIndex] = letter;
             letterItem.classList.add('used');
             letterItem.style.opacity = '0.3';
             letterItem.style.cursor = 'not-allowed';
-            letterItem.style.pointerEvents = 'none';
+            letterItem.draggable = false;
             
             // Add water animation
             const water = document.createElement('div');
@@ -439,8 +483,8 @@
                 if (item.dataset.letter === letter && item.classList.contains('used')) {
                     item.classList.remove('used');
                     item.style.opacity = '1';
-                    item.style.cursor = 'pointer';
-                    item.style.pointerEvents = 'auto';
+                    item.style.cursor = 'grab';
+                    item.draggable = true;
                     break;
                 }
             }
