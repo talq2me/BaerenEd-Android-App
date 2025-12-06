@@ -253,6 +253,7 @@
         <div class="letter-bank" id="letterBank"></div>
         
         <div class="button-container">
+            <button class="button" id="deleteButton" onclick="deleteLastLetter()">⌫ Delete Last</button>
             <button class="button" id="checkButton" onclick="checkWord()">🌱 Check Word</button>
             <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
         </div>
@@ -381,8 +382,16 @@
                     plot.classList.remove('drag-over');
                     const letter = e.dataTransfer.getData('text/plain');
                     if (letter) {
-                        const letterItem = document.querySelector(`.letter-item[data-letter="${letter}"]`);
-                        if (letterItem && !letterItem.classList.contains('used')) {
+                        // Find an unused letter item with this letter (handles duplicates)
+                        const letterItems = document.querySelectorAll(`.letter-item[data-letter="${letter}"]`);
+                        let letterItem = null;
+                        for (let item of letterItems) {
+                            if (!item.classList.contains('used')) {
+                                letterItem = item;
+                                break;
+                            }
+                        }
+                        if (letterItem) {
                             const success = plantLetterOnPlot(letterItem, letter, i);
                             if (success) {
                                 // Prevent dragend from interfering
@@ -499,10 +508,33 @@
             return true;
         }
 
+        function deleteLastLetter() {
+            // Find the last filled plot
+            for (let i = plantedLetters.length - 1; i >= 0; i--) {
+                if (plantedLetters[i]) {
+                    const plot = document.querySelector(`.garden-plot[data-index="${i}"]`);
+                    if (plot) {
+                        const seed = plot.querySelector('.letter-seed');
+                        if (seed) {
+                            const letter = seed.textContent.toLowerCase();
+                            seed.remove();
+                            plantedLetters[i] = null;
+                            plot.classList.remove('filled');
+                            plot.style.background = '';
+                            // Return letter to bank
+                            returnLetterToBank(letter);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         function returnLetterToBank(letter) {
-            const letterItems = document.querySelectorAll('.letter-item');
+            // Find a used letter item with this letter and return it
+            const letterItems = document.querySelectorAll(`.letter-item[data-letter="${letter}"]`);
             for (let item of letterItems) {
-                if (item.dataset.letter === letter && item.classList.contains('used')) {
+                if (item.classList.contains('used')) {
                     item.classList.remove('used');
                     item.style.opacity = '1';
                     item.style.cursor = 'grab';
