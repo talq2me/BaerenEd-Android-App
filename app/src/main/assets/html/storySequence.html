@@ -214,8 +214,9 @@
         <div id="feedbackContainer"></div>
         
         <div class="button-container">
+            <button class="button" id="deleteButton" onclick="deleteLastSentence()">⌫ Delete Last</button>
             <button class="button" id="checkButton" onclick="checkSequence()">✓ Check Order</button>
-            <button class="button" id="nextButton" class="hidden" onclick="nextStory()">Next Story →</button>
+            <button class="button hidden" id="nextButton" onclick="nextStory()">Next Story →</button>
         </div>
     </div>
 
@@ -434,6 +435,31 @@
             // Mark sentence as used
             draggedElement.classList.add('used');
             draggedElement.draggable = false;
+        }
+
+        function deleteLastSentence() {
+            const slots = Array.from(document.querySelectorAll('.slot'));
+            // Find the last filled slot
+            for (let i = slots.length - 1; i >= 0; i--) {
+                const slot = slots[i];
+                if (slot.classList.contains('filled')) {
+                    const sentenceText = slot.querySelector('.slot-content').textContent;
+                    slot.querySelector('.slot-content').textContent = '';
+                    slot.classList.remove('filled');
+                    slot.dataset.actual = -1;
+                    
+                    // Return sentence to bank
+                    const sentenceItems = document.querySelectorAll('.sentence-item');
+                    for (let item of sentenceItems) {
+                        if (item.dataset.sentence === sentenceText && item.classList.contains('used')) {
+                            item.classList.remove('used');
+                            item.draggable = true;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
         }
 
         function checkSequence() {

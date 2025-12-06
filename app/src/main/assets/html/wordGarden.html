@@ -146,6 +146,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 10;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .letter-item:hover {
             background: #45a049;
@@ -383,20 +387,28 @@
                 letterItem.className = 'letter-item';
                 letterItem.textContent = letter.toUpperCase();
                 letterItem.dataset.letter = letter.toLowerCase();
-                letterItem.onclick = () => plantLetter(letterItem, letter.toLowerCase());
+                letterItem.addEventListener('click', function() {
+                    plantLetter(letterItem, letter.toLowerCase());
+                });
                 letterBank.appendChild(letterItem);
             });
         }
 
         function plantLetter(letterItem, letter) {
-            if (letterItem.classList.contains('used')) return;
+            if (letterItem.classList.contains('used')) {
+                return;
+            }
             
             // Find first empty plot
             const emptyPlotIndex = plantedLetters.findIndex(l => !l);
-            if (emptyPlotIndex === -1) return;
+            if (emptyPlotIndex === -1) {
+                return;
+            }
             
             const plot = document.querySelector(`.garden-plot[data-index="${emptyPlotIndex}"]`);
-            if (!plot) return;
+            if (!plot) {
+                return;
+            }
             
             // Create seed
             const seed = document.createElement('div');
@@ -408,7 +420,7 @@
             letterItem.classList.add('used');
             letterItem.style.opacity = '0.3';
             letterItem.style.cursor = 'not-allowed';
-            letterItem.onclick = null; // Disable further clicks
+            letterItem.style.pointerEvents = 'none';
             
             // Add water animation
             const water = document.createElement('div');
@@ -426,6 +438,9 @@
             for (let item of letterItems) {
                 if (item.dataset.letter === letter && item.classList.contains('used')) {
                     item.classList.remove('used');
+                    item.style.opacity = '1';
+                    item.style.cursor = 'pointer';
+                    item.style.pointerEvents = 'auto';
                     break;
                 }
             }

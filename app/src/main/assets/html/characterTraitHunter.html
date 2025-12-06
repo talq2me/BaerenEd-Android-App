@@ -209,6 +209,7 @@
         <div id="feedbackContainer"></div>
         
         <div class="button-container">
+            <button class="button" id="addMatchButton" onclick="addMatch()">+ Add Match</button>
             <button class="button" id="checkButton" onclick="checkMatches()">✓ Check Matches</button>
             <button class="button hidden" id="nextButton" onclick="nextStory()">Next Story →</button>
         </div>
@@ -368,7 +369,7 @@
             // Remove previous selection
             document.querySelectorAll('.trait-item').forEach(t => t.classList.remove('selected'));
             item.classList.add('selected');
-            selectedTrait = trait;
+            selectedTrait = trait.toLowerCase();
             
             // Highlight evidence in story
             highlightEvidence(trait);
@@ -430,14 +431,18 @@
             
             // Mark trait as used
             document.querySelectorAll('.trait-item').forEach(item => {
-                if (item.textContent.trim().toLowerCase() === selectedTrait.toLowerCase()) {
+                const itemTrait = item.textContent.trim().toLowerCase();
+                if (itemTrait === selectedTrait.toLowerCase()) {
                     item.classList.add('used');
                     item.classList.remove('selected');
-                    item.onclick = null; // Disable further clicks
+                    item.style.pointerEvents = 'none'; // Disable further clicks
                 }
             });
             
             selectedTrait = null;
+            
+            // Clear selection highlight
+            document.querySelectorAll('.trait-item').forEach(t => t.classList.remove('selected'));
         }
 
         function updateMatchesDisplay() {
