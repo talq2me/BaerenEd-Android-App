@@ -12,6 +12,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.io.IOException
+import java.io.InputStream
+import java.nio.charset.Charset
 import java.util.Locale
 
 class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -158,6 +161,21 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
             tts.language = locale
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+
+        @JavascriptInterface
+        fun loadJsonFile(fileName: String): String {
+            return try {
+                val inputStream: InputStream = assets.open("data/$fileName")
+                val size = inputStream.available()
+                val buffer = ByteArray(size)
+                inputStream.read(buffer)
+                inputStream.close()
+                String(buffer, Charset.forName("UTF-8"))
+            } catch (e: IOException) {
+                android.util.Log.e("WebGameActivity", "Error loading JSON file: $fileName", e)
+                "[]"
+            }
         }
     }
 

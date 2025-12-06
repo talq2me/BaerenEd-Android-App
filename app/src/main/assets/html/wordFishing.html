@@ -285,22 +285,17 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            // Check if running in Android WebView
-            const isAndroid = window.Android !== undefined;
-            if (isAndroid) {
-                // Use Android asset path
-                const fileName = file || 'englishWordsGr1.json';
-                return `file:///android_asset/data/${fileName}`;
-            } else {
-                // Use relative path for web
-                return file ? `../data/${file}` : '../data/englishWordsGr1.json';
-            }
+            return file || 'englishWordsGr1.json';
         }
 
-        function loadWords(jsonUrl) {
-            fetch(jsonUrl)
-                .then(response => response.json())
-                .then(data => {
+        function loadWords(fileName) {
+            const isAndroid = window.Android !== undefined;
+            
+            if (isAndroid) {
+                // Use Android interface to load JSON from assets
+                try {
+                    const jsonString = window.Android.loadJsonFile(fileName);
+                    const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0 && data[0].word) {
                         words = data;
                     } else if (Array.isArray(data)) {
@@ -310,12 +305,33 @@
                     }
                     maxQuestions = Math.min(words.length, maxQuestions);
                     startGame();
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Error loading words file:', error);
                     words = [];
                     startGame();
-                });
+                }
+            } else {
+                // Use fetch for web
+                const jsonUrl = `../data/${fileName}`;
+                fetch(jsonUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                            words = data;
+                        } else if (Array.isArray(data)) {
+                            words = data.map(word => ({ word: word, sentence: "" }));
+                        } else {
+                            words = [];
+                        }
+                        maxQuestions = Math.min(words.length, maxQuestions);
+                        startGame();
+                    })
+                    .catch(error => {
+                        console.error('Error loading words file:', error);
+                        words = [];
+                        startGame();
+                    });
+            }
         }
 
         function startGame() {

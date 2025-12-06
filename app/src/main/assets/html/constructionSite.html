@@ -356,26 +356,18 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            // Check if running in Android WebView
-            const isAndroid = window.Android !== undefined;
-            if (isAndroid) {
-                // Use Android asset path
-                const fileName = file || 'structures.json';
-                return `file:///android_asset/data/${fileName}`;
-            } else {
-                // Use relative path for web
-                return file ? `../data/${file}` : '../data/structures.json';
-            }
+            return file || 'structures.json';
         }
 
         function loadStructures() {
-            const jsonUrl = getGameConfig();
-            fetch(jsonUrl)
-                .then(response => {
-                    if (response.ok) return response.json();
-                    throw new Error('File not found');
-                })
-                .then(data => {
+            const fileName = getGameConfig();
+            const isAndroid = window.Android !== undefined;
+            
+            if (isAndroid) {
+                // Use Android interface to load JSON from assets
+                try {
+                    const jsonString = window.Android.loadJsonFile(fileName);
+                    const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         structures = data;
                     } else {
@@ -383,13 +375,36 @@
                     }
                     maxQuestions = Math.min(structures.length, maxQuestions);
                     startGame();
-                })
-                .catch(error => {
+                } catch (error) {
                     console.log('Using default structures');
                     structures = defaultStructures;
                     maxQuestions = Math.min(structures.length, maxQuestions);
                     startGame();
-                });
+                }
+            } else {
+                // Use fetch for web
+                const jsonUrl = `../data/${fileName}`;
+                fetch(jsonUrl)
+                    .then(response => {
+                        if (response.ok) return response.json();
+                        throw new Error('File not found');
+                    })
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0) {
+                            structures = data;
+                        } else {
+                            structures = defaultStructures;
+                        }
+                        maxQuestions = Math.min(structures.length, maxQuestions);
+                        startGame();
+                    })
+                    .catch(error => {
+                        console.log('Using default structures');
+                        structures = defaultStructures;
+                        maxQuestions = Math.min(structures.length, maxQuestions);
+                        startGame();
+                    });
+            }
         }
 
         function startGame() {

@@ -289,26 +289,18 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            // Check if running in Android WebView
-            const isAndroid = window.Android !== undefined;
-            if (isAndroid) {
-                // Use Android asset path
-                const fileName = file || 'recipes.json';
-                return `file:///android_asset/data/${fileName}`;
-            } else {
-                // Use relative path for web
-                return file ? `../data/${file}` : '../data/recipes.json';
-            }
+            return file || 'recipes.json';
         }
 
         function loadRecipes() {
-            const jsonUrl = getGameConfig();
-            fetch(jsonUrl)
-                .then(response => {
-                    if (response.ok) return response.json();
-                    throw new Error('File not found');
-                })
-                .then(data => {
+            const fileName = getGameConfig();
+            const isAndroid = window.Android !== undefined;
+            
+            if (isAndroid) {
+                // Use Android interface to load JSON from assets
+                try {
+                    const jsonString = window.Android.loadJsonFile(fileName);
+                    const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         recipes = data;
                     } else {
@@ -316,13 +308,36 @@
                     }
                     maxQuestions = Math.min(recipes.length, maxQuestions);
                     startGame();
-                })
-                .catch(error => {
+                } catch (error) {
                     console.log('Using default recipes');
                     recipes = defaultRecipes;
                     maxQuestions = Math.min(recipes.length, maxQuestions);
                     startGame();
-                });
+                }
+            } else {
+                // Use fetch for web
+                const jsonUrl = `../data/${fileName}`;
+                fetch(jsonUrl)
+                    .then(response => {
+                        if (response.ok) return response.json();
+                        throw new Error('File not found');
+                    })
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0) {
+                            recipes = data;
+                        } else {
+                            recipes = defaultRecipes;
+                        }
+                        maxQuestions = Math.min(recipes.length, maxQuestions);
+                        startGame();
+                    })
+                    .catch(error => {
+                        console.log('Using default recipes');
+                        recipes = defaultRecipes;
+                        maxQuestions = Math.min(recipes.length, maxQuestions);
+                        startGame();
+                    });
+            }
         }
 
         function startGame() {
