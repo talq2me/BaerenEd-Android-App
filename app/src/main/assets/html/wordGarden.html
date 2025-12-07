@@ -125,6 +125,60 @@
                 opacity: 1;
             }
         }
+        .shovel-animation {
+            position: absolute;
+            font-size: 2em;
+            z-index: 5;
+            pointer-events: none;
+            animation: digHole 1.2s ease-out;
+        }
+        @keyframes digHole {
+            0% {
+                transform: translateY(-30px) rotate(-20deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            40% {
+                transform: translateY(0px) rotate(20deg);
+            }
+            60% {
+                transform: translateY(10px) rotate(-10deg);
+            }
+            80% {
+                transform: translateY(5px) rotate(10deg);
+            }
+            100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0;
+            }
+        }
+        .dirt-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+        .dirt-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #5d4037;
+            border-radius: 50%;
+            animation: flyDirt 0.8s ease-out forwards;
+        }
+        @keyframes flyDirt {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(0);
+                opacity: 0;
+            }
+        }
         .letter-bank {
             background: #fff3cd;
             border: 2px dashed #ffc107;
@@ -507,28 +561,62 @@
                 return false;
             }
             
-            // Create seed
-            const seed = document.createElement('div');
-            seed.className = 'letter-seed planted';
-            seed.textContent = letter.toUpperCase();
-            plot.appendChild(seed);
+            // Get plot center position
+            const plotRect = plot.getBoundingClientRect();
             
-            plantedLetters[plotIndex] = letter;
-            letterItem.classList.add('used');
-            letterItem.style.opacity = '0.3';
-            letterItem.style.cursor = 'not-allowed';
-            letterItem.draggable = false;
-            letterItem.classList.remove('dragging');
+            // Create shovel animation
+            const shovel = document.createElement('div');
+            shovel.className = 'shovel-animation';
+            shovel.textContent = '🪣';
+            shovel.style.left = (plotRect.width / 2 - 20) + 'px';
+            shovel.style.top = '-30px';
+            plot.appendChild(shovel);
             
-            // Add water animation
-            const water = document.createElement('div');
-            water.className = 'water-animation';
-            plot.appendChild(water);
-            setTimeout(() => water.remove(), 500);
+            // Create dirt particles
+            const dirtContainer = document.createElement('div');
+            dirtContainer.className = 'dirt-particles';
+            plot.appendChild(dirtContainer);
             
-            // Update plot appearance
-            plot.classList.add('filled');
-            plot.style.background = '#5d4037';
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'dirt-particle';
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 30 + Math.random() * 20;
+                particle.style.left = '50%';
+                particle.style.top = '80%';
+                particle.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--dy', Math.sin(angle) * distance + 'px');
+                dirtContainer.appendChild(particle);
+            }
+            
+            // After digging animation, plant the seed
+            setTimeout(() => {
+                shovel.remove();
+                dirtContainer.remove();
+                
+                // Create seed (letter visible in plot)
+                const seed = document.createElement('div');
+                seed.className = 'letter-seed planted';
+                seed.textContent = letter.toUpperCase();
+                plot.appendChild(seed);
+                
+                plantedLetters[plotIndex] = letter;
+                letterItem.classList.add('used');
+                letterItem.style.opacity = '0.3';
+                letterItem.style.cursor = 'not-allowed';
+                letterItem.draggable = false;
+                letterItem.classList.remove('dragging');
+                
+                // Add water animation
+                const water = document.createElement('div');
+                water.className = 'water-animation';
+                plot.appendChild(water);
+                setTimeout(() => water.remove(), 500);
+                
+                // Update plot appearance
+                plot.classList.add('filled');
+                plot.style.background = '#5d4037';
+            }, 1200);
             
             return true;
         }

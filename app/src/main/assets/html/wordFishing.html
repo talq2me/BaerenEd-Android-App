@@ -92,17 +92,27 @@
             background: linear-gradient(180deg, #654321 0%, #8B4513 100%);
             transform: translateX(-50%);
             z-index: 1;
+            opacity: 0;
+        }
+        .fishing-line.casting {
+            opacity: 1;
+            animation: castLine 1.5s ease-out;
         }
         .fishing-rod {
             position: absolute;
             top: -10px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) rotate(0deg);
             width: 200px;
             height: 20px;
             background: #8B4513;
             border-radius: 10px;
             z-index: 2;
+            transform-origin: left center;
+            transition: transform 0.3s ease;
+        }
+        .fishing-rod.casting {
+            animation: castRod 1.5s ease-out;
         }
         .fishing-rod::after {
             content: '';
@@ -115,6 +125,85 @@
             border-left: 10px solid #8B4513;
             border-top: 5px solid transparent;
             border-bottom: 5px solid transparent;
+        }
+        .fishing-hook {
+            position: absolute;
+            font-size: 1.5em;
+            z-index: 3;
+            opacity: 0;
+        }
+        .fishing-hook.casting {
+            opacity: 1;
+            animation: castHook 1.5s ease-out;
+        }
+        @keyframes castRod {
+            0% {
+                transform: translateX(-50%) rotate(0deg);
+            }
+            30% {
+                transform: translateX(-50%) rotate(45deg);
+            }
+            60% {
+                transform: translateX(-50%) rotate(0deg);
+            }
+            100% {
+                transform: translateX(-50%) rotate(0deg);
+            }
+        }
+        @keyframes castLine {
+            0% {
+                height: 0;
+                opacity: 0;
+            }
+            30% {
+                opacity: 1;
+            }
+            60% {
+                height: 100%;
+            }
+            100% {
+                height: 100%;
+                opacity: 0;
+            }
+        }
+        @keyframes castHook {
+            0% {
+                top: 0;
+                left: 50%;
+                opacity: 0;
+            }
+            30% {
+                opacity: 1;
+            }
+            60% {
+                top: 100%;
+                left: 50%;
+            }
+            100% {
+                top: 100%;
+                left: 50%;
+                opacity: 0;
+            }
+        }
+        .fish-caught {
+            position: absolute;
+            font-size: 2.5em;
+            z-index: 5;
+            animation: reelFish 1s ease-in;
+        }
+        @keyframes reelFish {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(0, -100%) scale(0.8);
+            }
+        }
+        .fish-flying {
+            position: fixed;
+            font-size: 2.5em;
+            z-index: 1000;
+            pointer-events: none;
         }
         .word-container {
             background: #fff3cd;
@@ -235,8 +324,9 @@
         </div>
         
         <div class="ocean-container" id="oceanContainer">
-            <div class="fishing-rod"></div>
-            <div class="fishing-line"></div>
+            <div class="fishing-rod" id="fishingRod"></div>
+            <div class="fishing-line" id="fishingLine"></div>
+            <div class="fishing-hook" id="fishingHook">🪝</div>
         </div>
         
         <div class="word-container" id="wordContainer"></div>
@@ -414,18 +504,107 @@
         function catchFish(fish, letter) {
             if (fish.classList.contains('caught') || caughtLetters.length >= currentWord.word.length) return;
             
-            // Add caught animation
-            const caught = document.createElement('div');
-            caught.className = 'caught-animation';
-            caught.textContent = '✨';
-            caught.style.left = fish.style.left;
-            caught.style.top = fish.style.top;
-            document.getElementById('oceanContainer').appendChild(caught);
-            setTimeout(() => caught.remove(), 1000);
+            // Disable fish during animation
+            fish.style.pointerEvents = 'none';
             
-            fish.classList.add('caught');
-            caughtLetters.push(letter);
-            updateWordSlots();
+            // Get fish position
+            const fishRect = fish.getBoundingClientRect();
+            const oceanRect = document.getElementById('oceanContainer').getBoundingClientRect();
+            const fishX = fishRect.left + fishRect.width / 2 - oceanRect.left;
+            const fishY = fishRect.top + fishRect.height / 2 - oceanRect.top;
+            
+            // Animate fishing rod casting
+            const rod = document.getElementById('fishingRod');
+            const line = document.getElementById('fishingLine');
+            const hook = document.getElementById('fishingHook');
+            
+            // Position hook at fish location
+            hook.style.left = (fishX / oceanRect.width * 100) + '%';
+            hook.style.top = (fishY / oceanRect.height * 100) + '%';
+            
+            // Start casting animation
+            rod.classList.add('casting');
+            line.classList.add('casting');
+            hook.classList.add('casting');
+            
+            // After casting, catch the fish
+            setTimeout(() => {
+                // Create caught fish element
+                const caughtFish = fish.cloneNode(true);
+                caughtFish.className = 'fish-caught';
+                caughtFish.style.left = hook.style.left;
+                caughtFish.style.top = hook.style.top;
+                caughtFish.style.position = 'absolute';
+                document.getElementById('oceanContainer').appendChild(caughtFish);
+                
+                // Hide original fish
+                fish.classList.add('caught');
+                
+                // Reel up animation
+                setTimeout(() => {
+                    // Get target slot position
+                    const slots = document.querySelectorAll('.word-slot');
+                    const targetSlot = slots[caughtLetters.length];
+                    if (targetSlot) {
+                        const slotRect = targetSlot.getBoundingClientRect();
+                        const startX = fishX + oceanRect.left;
+                        const startY = fishY + oceanRect.top;
+                        const endX = slotRect.left + slotRect.width / 2;
+                        const endY = slotRect.top + slotRect.height / 2;
+                        
+                        // Create flying fish
+                        const flyingFish = caughtFish.cloneNode(true);
+                        flyingFish.className = 'fish-flying';
+                        flyingFish.style.left = startX + 'px';
+                        flyingFish.style.top = startY + 'px';
+                        document.body.appendChild(flyingFish);
+                        
+                        // Animate to slot using requestAnimationFrame
+                        const startTime = Date.now();
+                        const duration = 800;
+                        
+                        function animateFly() {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            
+                            // Easing function
+                            const ease = 1 - Math.pow(1 - progress, 3);
+                            
+                            const currentX = startX + (endX - startX) * ease;
+                            const currentY = startY + (endY - startY) * ease;
+                            const scale = 1 - (progress * 0.5);
+                            const rotation = progress * 360;
+                            
+                            flyingFish.style.left = currentX + 'px';
+                            flyingFish.style.top = currentY + 'px';
+                            flyingFish.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+                            
+                            if (progress < 1) {
+                                requestAnimationFrame(animateFly);
+                            } else {
+                                flyingFish.remove();
+                                caughtFish.remove();
+                                
+                                // Add letter to caught letters
+                                caughtLetters.push(letter);
+                                updateWordSlots();
+                                
+                                // Reset rod
+                                rod.classList.remove('casting');
+                                line.classList.remove('casting');
+                                hook.classList.remove('casting');
+                            }
+                        }
+                        
+                        requestAnimationFrame(animateFly);
+                    } else {
+                        caughtFish.remove();
+                        rod.classList.remove('casting');
+                        line.classList.remove('casting');
+                        hook.classList.remove('casting');
+                    }
+                }, 600);
+            }, 600);
         }
 
         function createWordSlots() {
