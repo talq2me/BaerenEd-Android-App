@@ -16,6 +16,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.Locale
+import org.json.JSONArray
 
 class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -175,6 +176,86 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             } catch (e: IOException) {
                 android.util.Log.e("WebGameActivity", "Error loading JSON file: $fileName", e)
                 "[]"
+            }
+        }
+
+        @JavascriptInterface
+        fun loadPokemonManifest(): String {
+            return try {
+                val inputStream: InputStream = assets.open("images/pokeSprites/sprites/pokemon/pokedex_manifest.json")
+                val size = inputStream.available()
+                val buffer = ByteArray(size)
+                inputStream.read(buffer)
+                inputStream.close()
+                String(buffer, Charset.forName("UTF-8"))
+            } catch (e: IOException) {
+                android.util.Log.e("WebGameActivity", "Error loading Pokemon manifest", e)
+                "[]"
+            }
+        }
+
+        @JavascriptInterface
+        fun loadPokemonImage(filename: String): String {
+            return try {
+                val inputStream: InputStream = assets.open("images/pokeSprites/sprites/pokemon/$filename")
+                val size = inputStream.available()
+                val buffer = ByteArray(size)
+                inputStream.read(buffer)
+                inputStream.close()
+                
+                // Convert to base64
+                val base64 = android.util.Base64.encodeToString(buffer, android.util.Base64.NO_WRAP)
+                "data:image/png;base64,$base64"
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error loading Pokemon image: $filename", e)
+                "" // Return empty string on error
+            }
+        }
+
+        @JavascriptInterface
+        fun getUnlockedPokemonCount(): Int {
+            return try {
+                DailyProgressManager(this@WebGameActivity).getUnlockedPokemonCount()
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error getting unlocked Pokemon count", e)
+                0
+            }
+        }
+
+        @JavascriptInterface
+        fun getPokemonFileList(): String {
+            return try {
+                val files = assets.list("images/pokeSprites/sprites/pokemon") ?: emptyArray()
+                val pngFiles = files.filter { it.endsWith(".png") }
+                JSONArray(pngFiles).toString()
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error getting Pokemon file list", e)
+                "[]"
+            }
+        }
+
+        @JavascriptInterface
+        fun unlockPokemon(count: Int) {
+            try {
+                DailyProgressManager(this@WebGameActivity).unlockPokemon(count)
+                android.util.Log.d("WebGameActivity", "Unlocked $count Pokemon via JavaScript interface")
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error unlocking Pokemon", e)
+            }
+        }
+
+        @JavascriptInterface
+        fun launchGame(gameId: String) {
+            android.util.Log.d("WebGameActivity", "JavaScript requested to launch game: $gameId")
+            // Note: This would need to be handled by the parent activity or MainActivity
+            // For now, we'll just log it. The actual game launching should be handled
+            // by the activity that opened this WebView (likely MainActivity)
+            runOnUiThread {
+                Toast.makeText(
+                    this@WebGameActivity,
+                    "Game launch requested: $gameId\n(Implement game launching in MainActivity)",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

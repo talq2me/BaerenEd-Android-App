@@ -9,23 +9,36 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
             box-sizing: border-box;
         }
         .game-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .construction-layout {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .construction-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .construction-right {
+            flex: 1;
+            min-width: 0;
         }
         h1 {
             text-align: center;
             color: #d4a574;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-size: 1.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         #starCount {
@@ -43,11 +56,12 @@
         }
         .construction-site {
             background: #8b6914;
-            border: 3px solid #654321;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 20px 0;
-            min-height: 400px;
+            border: 2px solid #654321;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 250px;
+            max-height: 350px;
             position: relative;
             display: flex;
             align-items: flex-end;
@@ -55,8 +69,8 @@
         }
         .structure {
             position: relative;
-            width: 300px;
-            height: 350px;
+            width: 250px;
+            height: 280px;
         }
         .structure-part {
             position: absolute;
@@ -153,10 +167,13 @@
         .materials-shelf {
             background: #fff3cd;
             border: 2px dashed #ffc107;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
             display: flex;
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
             flex-wrap: wrap;
             gap: 15px;
             justify-content: center;
@@ -256,11 +273,16 @@
         
         <div class="steps-display" id="stepsDisplay"></div>
         
-        <div class="construction-site">
-            <div class="structure" id="structureContainer"></div>
+        <div class="construction-layout">
+            <div class="construction-left">
+                <div class="construction-site">
+                    <div class="structure" id="structureContainer"></div>
+                </div>
+            </div>
+            <div class="construction-right">
+                <div class="materials-shelf" id="materialsShelf"></div>
+            </div>
         </div>
-        
-        <div class="materials-shelf" id="materialsShelf"></div>
         
         <div id="feedbackContainer"></div>
         

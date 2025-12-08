@@ -9,23 +9,36 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
             box-sizing: border-box;
         }
         .game-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .blocks-layout {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .blocks-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .blocks-right {
+            flex: 1;
+            min-width: 0;
         }
         h1 {
             text-align: center;
             color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-size: 1.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         #starCount {
@@ -43,16 +56,18 @@
         }
         .block-tower {
             background: #f5f5f5;
-            border: 3px solid #667eea;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 20px 0;
-            min-height: 300px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 200px;
+            max-height: 350px;
             display: flex;
             align-items: flex-end;
             justify-content: center;
             gap: 5px;
             flex-wrap: wrap;
+            overflow-y: auto;
         }
         .block {
             width: 60px;
@@ -93,14 +108,16 @@
         .block-bank {
             background: #fff3cd;
             border: 2px dashed #ffc107;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
             justify-content: center;
-            min-height: 100px;
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
         }
         .block-item {
             width: 70px;
@@ -192,9 +209,14 @@
             <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
         </div>
         
-        <div class="block-tower" id="blockTower"></div>
-        
-        <div class="block-bank" id="blockBank"></div>
+        <div class="blocks-layout">
+            <div class="blocks-left">
+                <div class="block-tower" id="blockTower"></div>
+            </div>
+            <div class="blocks-right">
+                <div class="block-bank" id="blockBank"></div>
+            </div>
+        </div>
         
         <div id="feedbackContainer"></div>
         

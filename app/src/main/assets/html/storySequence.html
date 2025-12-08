@@ -9,23 +9,23 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
             box-sizing: border-box;
         }
         .game-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
         h1 {
             text-align: center;
             color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-size: 1.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         #starCount {
@@ -36,14 +36,29 @@
         }
         .story-display {
             background: #f0f8ff;
-            border: 3px solid #667eea;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            font-size: 1.3em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1em;
             line-height: 1.6;
-            min-height: 150px;
+            min-height: 120px;
+            max-height: 200px;
+            overflow-y: auto;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .sequence-layout {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .sequence-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .sequence-right {
+            flex: 1;
+            min-width: 0;
         }
         .instructions {
             text-align: center;
@@ -55,10 +70,12 @@
         .sentence-bank {
             background: #fff3cd;
             border: 2px dashed #ffc107;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            min-height: 100px;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
         }
         .sentence-item {
             background: #4CAF50;
@@ -90,11 +107,13 @@
         }
         .sequence-slots {
             background: #e8f5e9;
-            border: 3px solid #4CAF50;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
             min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
         }
         .slot {
             background: white;
@@ -207,9 +226,14 @@
             Drag the sentences below into the correct order!
         </div>
         
-        <div class="sequence-slots" id="sequenceSlots"></div>
-        
-        <div class="sentence-bank" id="sentenceBank"></div>
+        <div class="sequence-layout">
+            <div class="sequence-left">
+                <div class="sequence-slots" id="sequenceSlots"></div>
+            </div>
+            <div class="sequence-right">
+                <div class="sentence-bank" id="sentenceBank"></div>
+            </div>
+        </div>
         
         <div id="feedbackContainer"></div>
         

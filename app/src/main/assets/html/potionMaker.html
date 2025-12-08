@@ -9,23 +9,36 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
             box-sizing: border-box;
         }
         .game-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .potion-layout {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .potion-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .potion-right {
+            flex: 1;
+            min-width: 0;
         }
         h1 {
             text-align: center;
             color: #764ba2;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-size: 1.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         #starCount {
@@ -41,34 +54,63 @@
             margin: 20px 0;
             font-weight: bold;
         }
-        .cauldron-container {
-            background: #2c3e50;
-            border-radius: 20px;
+        .vial-container {
+            background: linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%);
+            border-radius: 15px;
             padding: 30px;
-            margin: 20px 0;
+            margin: 10px 0;
             display: flex;
             justify-content: center;
             align-items: flex-end;
             min-height: 300px;
+            max-height: 400px;
             position: relative;
+            gap: 40px;
         }
-        .cauldron {
-            width: 200px;
-            height: 180px;
+        .vial-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+        }
+        .vial {
+            width: 80px;
+            height: 200px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .vial-neck {
+            width: 30px;
+            height: 40px;
             background: #34495e;
-            border-radius: 0 0 100px 100px;
+            border: 3px solid #2c3e50;
+            border-radius: 15px 15px 0 0;
             position: relative;
-            box-shadow: inset 0 -20px 40px rgba(0,0,0,0.5);
+            z-index: 3;
         }
-        .cauldron::before {
+        .vial-neck::after {
             content: '';
             position: absolute;
-            top: -10px;
-            left: 10px;
-            right: 10px;
-            height: 20px;
+            top: -5px;
+            left: -3px;
+            right: -3px;
+            height: 8px;
             background: #2c3e50;
-            border-radius: 10px;
+            border-radius: 15px 15px 0 0;
+        }
+        .vial-body {
+            width: 80px;
+            height: 160px;
+            background: rgba(52, 73, 94, 0.3);
+            border: 3px solid #2c3e50;
+            border-top: none;
+            border-radius: 0 0 40px 40px;
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
         }
         .potion-liquid {
             position: absolute;
@@ -76,58 +118,81 @@
             left: 0;
             right: 0;
             background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%);
-            border-radius: 0 0 100px 100px;
+            border-radius: 0 0 37px 37px;
             transition: height 0.5s ease;
             height: 0%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
+            font-size: 1.5em;
             color: white;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 1;
         }
         .potion-liquid.mixing {
             animation: bubble 0.5s infinite;
         }
         @keyframes bubble {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.02); }
         }
         .potion-liquid.complete {
             background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%);
             animation: glow 1s infinite alternate;
         }
         @keyframes glow {
-            from { box-shadow: 0 0 20px rgba(46, 204, 113, 0.5); }
-            to { box-shadow: 0 0 40px rgba(46, 204, 113, 0.8); }
+            from { box-shadow: inset 0 0 20px rgba(46, 204, 113, 0.5); }
+            to { box-shadow: inset 0 0 40px rgba(46, 204, 113, 0.8); }
         }
-        .witch-container {
+        .vial-label {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 120px;
-            height: 150px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7em;
+            color: #2c3e50;
+            font-weight: bold;
+            z-index: 4;
+            opacity: 0.7;
+        }
+        .wizard-container {
+            position: relative;
+            width: 150px;
+            height: 200px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end;
             z-index: 10;
         }
-        .witch {
-            font-size: 4em;
-            animation: witchAppear 0.5s ease-out;
+        .wizard {
+            font-size: 5em;
+            animation: wizardAppear 0.5s ease-out;
+            transform-origin: bottom center;
+            position: relative;
         }
-        .witch.drinking {
-            animation: drinkPotion 1.5s ease-in-out;
+        .wizard.drinking {
+            animation: drinkFromVial 2s ease-in-out;
         }
-        .witch.color-changing {
+        .wizard.color-changing {
             animation: colorChange 1s ease-in-out;
         }
-        .witch.transforming {
+        .wizard.transforming {
             animation: transformAnimal 1s ease-in-out forwards;
         }
-        @keyframes witchAppear {
+        .vial-in-hand {
+            position: absolute;
+            font-size: 1.2em;
+            opacity: 0;
+            transform: translate(-20px, -80px) rotate(-30deg);
+            transition: opacity 0.3s ease;
+        }
+        .wizard.drinking .vial-in-hand {
+            opacity: 1;
+            animation: vialDrinking 2s ease-in-out;
+        }
+        @keyframes wizardAppear {
             0% {
                 transform: scale(0) rotate(0deg);
                 opacity: 0;
@@ -137,18 +202,58 @@
                 opacity: 1;
             }
         }
-        @keyframes drinkPotion {
+        @keyframes drinkFromVial {
             0% {
-                transform: translateY(0) rotate(0deg);
+                transform: translateY(0) rotate(0deg) scale(1);
             }
-            30% {
-                transform: translateY(-20px) rotate(-10deg);
+            20% {
+                transform: translateY(-10px) rotate(-5deg) scale(1);
+            }
+            40% {
+                transform: translateY(-15px) rotate(-15deg) scale(1.05);
             }
             60% {
-                transform: translateY(-10px) rotate(10deg);
+                transform: translateY(-20px) rotate(-20deg) scale(1.1);
+            }
+            80% {
+                transform: translateY(-15px) rotate(-10deg) scale(1.05);
             }
             100% {
-                transform: translateY(0) rotate(0deg);
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+        }
+        @keyframes vialDrinking {
+            0% {
+                transform: translate(-20px, -80px) rotate(-30deg);
+            }
+            20% {
+                transform: translate(-15px, -90px) rotate(-40deg);
+            }
+            40% {
+                transform: translate(-10px, -100px) rotate(-50deg);
+            }
+            60% {
+                transform: translate(-10px, -100px) rotate(-50deg);
+            }
+            80% {
+                transform: translate(-15px, -90px) rotate(-40deg);
+            }
+            100% {
+                transform: translate(-20px, -80px) rotate(-30deg);
+            }
+        }
+        .vial.drinking {
+            animation: vialTilt 2s ease-in-out;
+        }
+        @keyframes vialTilt {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            40% {
+                transform: rotate(-20deg);
+            }
+            60% {
+                transform: rotate(-20deg);
             }
         }
         @keyframes colorChange {
@@ -209,15 +314,17 @@
         }
         .ingredient-shelf {
             background: #ecf0f1;
-            border: 3px solid #bdc3c7;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+            border: 2px solid #bdc3c7;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
             justify-content: center;
-            min-height: 120px;
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
         }
         .ingredient {
             width: 80px;
@@ -366,14 +473,28 @@
         
         <div class="recipe-display" id="recipeDisplay"></div>
         
-        <div class="cauldron-container">
-            <div class="cauldron">
-                <div class="potion-liquid" id="potionLiquid"></div>
+        <div class="potion-layout">
+            <div class="potion-left">
+                <div class="vial-container">
+                    <div class="vial-wrapper">
+                        <div class="vial" id="vial">
+                            <div class="vial-neck"></div>
+                            <div class="vial-body">
+                                <div class="vial-label">POTION</div>
+                                <div class="potion-liquid" id="potionLiquid"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-container" id="wizardContainer">
+                        <div class="wizard" id="wizard">🧙</div>
+                        <div class="vial-in-hand">🧪</div>
+                    </div>
+                </div>
             </div>
-            <div class="witch-container" id="witchContainer"></div>
+            <div class="potion-right">
+                <div class="ingredient-shelf" id="ingredientShelf"></div>
+            </div>
         </div>
-        
-        <div class="ingredient-shelf" id="ingredientShelf"></div>
         
         <div id="feedbackContainer"></div>
         
@@ -491,7 +612,10 @@
             document.getElementById('potionLiquid').classList.remove('complete', 'mixing');
             document.getElementById('potionLiquid').style.height = '0%';
             document.getElementById('potionLiquid').textContent = '';
-            document.getElementById('witchContainer').innerHTML = '';
+            const wizard = document.getElementById('wizard');
+            wizard.className = 'wizard';
+            wizard.textContent = '🧙';
+            document.getElementById('vial').classList.remove('drinking');
             
             createRecipe();
             createIngredients();
@@ -624,23 +748,24 @@
         }
 
         function showWitchTransformation() {
-            const witchContainer = document.getElementById('witchContainer');
-            witchContainer.innerHTML = '';
+            const wizard = document.getElementById('wizard');
+            const vial = document.getElementById('vial');
+            const potionLiquid = document.getElementById('potionLiquid');
             
             // Random animals for transformation
             const animals = ['🐸', '🐱', '🐶', '🐰', '🐭', '🐹', '🐨', '🐼', '🦊', '🐷', '🐸', '🦄'];
             const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
             
-            // Create witch
-            const witch = document.createElement('div');
-            witch.className = 'witch';
-            witch.textContent = '🧙‍♀️';
-            witchContainer.appendChild(witch);
-            
             // Create sparkles container
             const sparkles = document.createElement('div');
             sparkles.className = 'sparkles';
-            witchContainer.appendChild(sparkles);
+            sparkles.style.position = 'absolute';
+            sparkles.style.top = '0';
+            sparkles.style.left = '0';
+            sparkles.style.width = '100%';
+            sparkles.style.height = '100%';
+            sparkles.style.pointerEvents = 'none';
+            document.querySelector('.vial-container').appendChild(sparkles);
             
             // Add sparkles
             for (let i = 0; i < 12; i++) {
@@ -656,22 +781,37 @@
                 sparkles.appendChild(sparkle);
             }
             
-            // Animation sequence: appear -> drink -> color change -> transform
+            // Animation sequence: Wizard drinks from vial
             setTimeout(() => {
-                witch.classList.add('drinking');
+                wizard.classList.add('drinking');
+                vial.classList.add('drinking');
+                
+                // Animate liquid decreasing as wizard drinks
+                let liquidLevel = 100;
+                const drinkInterval = setInterval(() => {
+                    liquidLevel -= 5;
+                    if (liquidLevel <= 0) {
+                        liquidLevel = 0;
+                        clearInterval(drinkInterval);
+                    }
+                    potionLiquid.style.height = liquidLevel + '%';
+                }, 100);
             }, 500);
             
             setTimeout(() => {
-                witch.classList.remove('drinking');
-                witch.classList.add('color-changing');
+                wizard.classList.remove('drinking');
+                vial.classList.remove('drinking');
+                wizard.classList.add('color-changing');
+                // Reset liquid to show it's been drunk
+                potionLiquid.style.height = '0%';
             }, 2000);
             
             setTimeout(() => {
-                witch.classList.remove('color-changing');
-                witch.classList.add('transforming');
+                wizard.classList.remove('color-changing');
+                wizard.classList.add('transforming');
                 // Change to animal
                 setTimeout(() => {
-                    witch.textContent = randomAnimal;
+                    wizard.textContent = randomAnimal;
                 }, 500);
             }, 3000);
             
@@ -682,8 +822,10 @@
 
         function nextWord() {
             currentWordIndex++;
-            // Remove witch
-            document.getElementById('witchContainer').innerHTML = '';
+            const wizard = document.getElementById('wizard');
+            wizard.className = 'wizard';
+            wizard.textContent = '🧙';
+            document.getElementById('vial').classList.remove('drinking');
             loadWord();
         }
 

@@ -9,23 +9,28 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
             box-sizing: border-box;
         }
         .game-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .race-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         h1 {
             text-align: center;
             color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-size: 1.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         #starCount {
@@ -43,12 +48,13 @@
         }
         .race-track {
             background: #f5f5f5;
-            border: 3px solid #667eea;
-            border-radius: 15px;
-            padding: 30px 20px;
-            margin: 20px 0;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px 10px;
+            margin: 10px 0;
             position: relative;
-            min-height: 200px;
+            min-height: 120px;
+            max-height: 200px;
         }
         .track-line {
             position: absolute;
@@ -117,12 +123,12 @@
         }
         .spelling-input {
             width: 100%;
-            padding: 20px;
-            font-size: 2em;
+            padding: 12px;
+            font-size: 1.6em;
             text-align: center;
-            border: 3px solid #667eea;
-            border-radius: 15px;
-            margin: 20px 0;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin: 10px 0;
             font-family: inherit;
             box-sizing: border-box;
         }

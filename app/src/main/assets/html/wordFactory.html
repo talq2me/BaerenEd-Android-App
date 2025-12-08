@@ -9,23 +9,36 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
             box-sizing: border-box;
         }
         .game-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .factory-layout {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .factory-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .factory-right {
+            flex: 1;
+            min-width: 0;
         }
         h1 {
             text-align: center;
             color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
+            margin-bottom: 8px;
+            font-size: 1.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         #starCount {
@@ -43,11 +56,13 @@
         }
         .factory-line {
             background: #f5f5f5;
-            border: 3px solid #667eea;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 20px 0;
-            min-height: 200px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 8px 0;
+            min-height: 120px;
+            max-height: 180px;
+            overflow-y: auto;
             position: relative;
             overflow: hidden;
         }
@@ -103,11 +118,13 @@
         }
         .assembly-line {
             background: #e8f5e9;
-            border: 3px solid #4CAF50;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            min-height: 100px;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 8px;
+            margin: 8px 0;
+            min-height: 60px;
+            max-height: 120px;
+            overflow-y: auto;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -220,16 +237,21 @@
             <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>
         </div>
         
-        <div class="factory-line" id="factoryLine">
-            <div class="conveyor-belt"></div>
+        <div class="factory-layout">
+            <div class="factory-left">
+                <div class="factory-line" id="factoryLine">
+                    <div class="conveyor-belt"></div>
+                </div>
+                <div class="factory-controls">
+                    <button class="control-button" onclick="startConveyor()">▶ Start Conveyor</button>
+                    <button class="control-button" onclick="stopConveyor()">⏸ Stop Conveyor</button>
+                </div>
+                <div class="assembly-line" id="assemblyLine"></div>
+            </div>
+            <div class="factory-right">
+                <div class="letter-bank" id="letterBank"></div>
+            </div>
         </div>
-        
-        <div class="factory-controls">
-            <button class="control-button" onclick="startConveyor()">▶ Start Conveyor</button>
-            <button class="control-button" onclick="stopConveyor()">⏸ Stop Conveyor</button>
-        </div>
-        
-        <div class="assembly-line" id="assemblyLine"></div>
         
         <div id="feedbackContainer"></div>
         
