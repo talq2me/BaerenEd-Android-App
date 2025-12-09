@@ -2,6 +2,7 @@
   "version": "2025-10-04",
   "header": {
     "buttons": [
+      {"label": "⚡ Battle Hub", "action": "openBattleHub"},
       {"label": "My Pokedex", "action": "openPokedex"},
       {"label": "Ask for Time", "action": "askForTime"},
       {"label": "Settings", "action": "settings"}
@@ -55,7 +56,7 @@
         {
           "title": "Times Tables",
           "launch": "timesTables",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=8",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=9",
           "stars": 3,
           "webGame": true
         },
@@ -347,7 +348,7 @@
         {
           "title": "Times Tables",
           "launch": "timesTables",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=8",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=9",
           "stars": 3,
           "webGame": true
         },
