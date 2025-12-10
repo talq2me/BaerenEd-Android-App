@@ -48,6 +48,546 @@
       "Write a message inside",
       "Sign your name"
     ]
+  },
+  {
+    "task": "Brush Your Teeth",
+    "steps": [
+      "Get your toothbrush and toothpaste",
+      "Put toothpaste on the brush",
+      "Brush your top teeth",
+      "Brush your bottom teeth",
+      "Rinse your mouth with water"
+    ]
+  },
+  {
+    "task": "Set the Table",
+    "steps": [
+      "Put a plate at each seat",
+      "Put a fork on the left side",
+      "Put a knife and spoon on the right",
+      "Put a cup above the knife",
+      "Put a napkin under the fork"
+    ]
+  },
+  {
+    "task": "Make Your Bed",
+    "steps": [
+      "Pull up the bottom sheet",
+      "Pull up the top sheet",
+      "Pull up the blanket",
+      "Fluff your pillow",
+      "Smooth out the covers"
+    ]
+  },
+  {
+    "task": "Make a Paper Airplane",
+    "steps": [
+      "Get a piece of paper",
+      "Fold it in half lengthwise",
+      "Fold the corners to the center",
+      "Fold the wings down",
+      "Throw it gently"
+    ]
+  },
+  {
+    "task": "Wash Your Hands",
+    "steps": [
+      "Turn on the water",
+      "Wet your hands",
+      "Put soap on your hands",
+      "Rub your hands together",
+      "Rinse and dry your hands"
+    ]
+  },
+  {
+    "task": "Make a Bowl of Cereal",
+    "steps": [
+      "Get a bowl and spoon",
+      "Pour cereal into the bowl",
+      "Pour milk over the cereal",
+      "Stir gently",
+      "Eat with your spoon"
+    ]
+  },
+  {
+    "task": "Tie Your Shoes",
+    "steps": [
+      "Cross the laces",
+      "Make a loop with one lace",
+      "Wrap the other lace around",
+      "Pull through to make a knot",
+      "Make another loop and tie"
+    ]
+  },
+  {
+    "task": "Feed a Pet",
+    "steps": [
+      "Get the pet food",
+      "Get the food bowl",
+      "Pour food into the bowl",
+      "Put the bowl on the floor",
+      "Call your pet to eat"
+    ]
+  },
+  {
+    "task": "Pack a Lunch",
+    "steps": [
+      "Get a lunchbox",
+      "Put in a sandwich",
+      "Add a piece of fruit",
+      "Add a drink",
+      "Close the lunchbox"
+    ]
+  },
+  {
+    "task": "Water the Plants",
+    "steps": [
+      "Get a watering can",
+      "Fill it with water",
+      "Go to each plant",
+      "Pour water on the soil",
+      "Put the watering can away"
+    ]
+  },
+  {
+    "task": "Fold Laundry",
+    "steps": [
+      "Take a piece of clothing",
+      "Lay it flat",
+      "Fold it in half",
+      "Fold it again",
+      "Put it in the pile"
+    ]
+  },
+  {
+    "task": "Make a Smoothie",
+    "steps": [
+      "Get fruit and yogurt",
+      "Put fruit in the blender",
+      "Add yogurt",
+      "Blend until smooth",
+      "Pour into a cup"
+    ]
+  },
+  {
+    "task": "Put on Your Coat",
+    "steps": [
+      "Hold your coat open",
+      "Put one arm in a sleeve",
+      "Put the other arm in",
+      "Pull the coat up",
+      "Zip or button it up"
+    ]
+  },
+  {
+    "task": "Make a Pizza",
+    "steps": [
+      "Get pizza dough",
+      "Spread sauce on the dough",
+      "Add cheese",
+      "Add toppings",
+      "Bake in the oven"
+    ]
+  },
+  {
+    "task": "Write a Story",
+    "steps": [
+      "Get paper and a pencil",
+      "Think of a main character",
+      "Write the beginning",
+      "Write the middle",
+      "Write the ending"
+    ]
+  },
+  {
+    "task": "Build a Sandcastle",
+    "steps": [
+      "Get a bucket and shovel",
+      "Fill the bucket with sand",
+      "Turn it upside down",
+      "Lift the bucket off",
+      "Decorate with shells"
+    ]
+  },
+  {
+    "task": "Make a Paper Chain",
+    "steps": [
+      "Cut strips of paper",
+      "Make the first loop",
+      "Thread the next strip through",
+      "Continue adding loops",
+      "Hang up your chain"
+    ]
+  },
+  {
+    "task": "Do the Dishes",
+    "steps": [
+      "Scrape food off plates",
+      "Fill the sink with soapy water",
+      "Wash each dish",
+      "Rinse with clean water",
+      "Put dishes in the drainer"
+    ]
+  },
+  {
+    "task": "Make a Bird Feeder",
+    "steps": [
+      "Get a pinecone",
+      "Spread peanut butter on it",
+      "Roll it in birdseed",
+      "Tie a string to it",
+      "Hang it outside"
+    ]
+  },
+  {
+    "task": "Get Ready for Bed",
+    "steps": [
+      "Put on your pajamas",
+      "Brush your teeth",
+      "Wash your face",
+      "Get into bed",
+      "Turn off the light"
+    ]
+  },
+  {
+    "task": "Make a Salad",
+    "steps": [
+      "Wash the lettuce",
+      "Tear it into pieces",
+      "Add vegetables",
+      "Add dressing",
+      "Toss everything together"
+    ]
+  },
+  {
+    "task": "Draw a Picture",
+    "steps": [
+      "Get paper and crayons",
+      "Think of what to draw",
+      "Draw the outline",
+      "Add colors",
+      "Add details"
+    ]
+  },
+  {
+    "task": "Organize Your Backpack",
+    "steps": [
+      "Empty your backpack",
+      "Put books in order",
+      "Put pencils in a case",
+      "Put everything back in",
+      "Zip it closed"
+    ]
+  },
+  {
+    "task": "Make Hot Chocolate",
+    "steps": [
+      "Heat milk in a pot",
+      "Add cocoa powder",
+      "Add sugar",
+      "Stir until mixed",
+      "Pour into a mug"
+    ]
+  },
+  {
+    "task": "Plant a Flower",
+    "steps": [
+      "Dig a hole in the ground",
+      "Put the flower in the hole",
+      "Cover the roots with soil",
+      "Water the flower",
+      "Pat the soil down"
+    ]
+  },
+  {
+    "task": "Make a Fort",
+    "steps": [
+      "Get blankets and pillows",
+      "Drape blankets over furniture",
+      "Secure with pillows",
+      "Add a flashlight",
+      "Crawl inside"
+    ]
+  },
+  {
+    "task": "Make Popcorn",
+    "steps": [
+      "Get a pot and oil",
+      "Heat the oil",
+      "Add popcorn kernels",
+      "Cover and shake",
+      "Pour into a bowl"
+    ]
+  },
+  {
+    "task": "Wrap a Gift",
+    "steps": [
+      "Get wrapping paper and tape",
+      "Put the gift on the paper",
+      "Fold the paper around it",
+      "Tape the edges",
+      "Add a bow"
+    ]
+  },
+  {
+    "task": "Make a Scrapbook Page",
+    "steps": [
+      "Get paper and photos",
+      "Glue photos on the page",
+      "Add stickers",
+      "Write captions",
+      "Decorate with markers"
+    ]
+  },
+  {
+    "task": "Clean a Window",
+    "steps": [
+      "Get a spray bottle",
+      "Spray the window",
+      "Wipe with a cloth",
+      "Dry with a paper towel",
+      "Check for streaks"
+    ]
+  },
+  {
+    "task": "Make a Bracelet",
+    "steps": [
+      "Get beads and string",
+      "Thread beads on the string",
+      "Tie the ends together",
+      "Check the fit",
+      "Trim extra string"
+    ]
+  },
+  {
+    "task": "Make Pancakes",
+    "steps": [
+      "Mix flour and eggs",
+      "Add milk and stir",
+      "Pour batter in a pan",
+      "Flip when bubbly",
+      "Serve with syrup"
+    ]
+  },
+  {
+    "task": "Sort Laundry",
+    "steps": [
+      "Separate light colors",
+      "Separate dark colors",
+      "Put whites together",
+      "Check pockets",
+      "Put each pile in a basket"
+    ]
+  },
+  {
+    "task": "Make a Mask",
+    "steps": [
+      "Get paper and scissors",
+      "Cut eye holes",
+      "Decorate with markers",
+      "Punch holes on sides",
+      "Tie string through holes"
+    ]
+  },
+  {
+    "task": "Set Up a Tent",
+    "steps": [
+      "Lay out the tent",
+      "Put poles together",
+      "Thread poles through loops",
+      "Stake the corners",
+      "Put on the rainfly"
+    ]
+  },
+  {
+    "task": "Make a Sandwich Wrap",
+    "steps": [
+      "Get a tortilla",
+      "Spread filling in the middle",
+      "Fold the sides in",
+      "Roll it up",
+      "Cut it in half"
+    ]
+  },
+  {
+    "task": "Make a Collage",
+    "steps": [
+      "Get paper and magazines",
+      "Cut out pictures",
+      "Arrange them on paper",
+      "Glue them down",
+      "Let it dry"
+    ]
+  },
+  {
+    "task": "Clean Your Shoes",
+    "steps": [
+      "Remove the laces",
+      "Brush off dirt",
+      "Wipe with a damp cloth",
+      "Let them dry",
+      "Put laces back in"
+    ]
+  },
+  {
+    "task": "Make a Kite",
+    "steps": [
+      "Get paper and sticks",
+      "Make a diamond shape",
+      "Tie sticks together",
+      "Attach a string",
+      "Add a tail"
+    ]
+  },
+  {
+    "task": "Make a Fruit Salad",
+    "steps": [
+      "Wash all the fruit",
+      "Cut fruit into pieces",
+      "Put in a bowl",
+      "Mix gently",
+      "Serve in cups"
+    ]
+  },
+  {
+    "task": "Change Your Sheets",
+    "steps": [
+      "Take off old sheets",
+      "Put on the bottom sheet",
+      "Tuck in the corners",
+      "Put on the top sheet",
+      "Add the blanket"
+    ]
+  },
+  {
+    "task": "Make a Bookmark",
+    "steps": [
+      "Cut a strip of paper",
+      "Decorate with markers",
+      "Punch a hole at the top",
+      "Thread ribbon through",
+      "Tie a knot"
+    ]
+  },
+  {
+    "task": "Make a Smoothie Bowl",
+    "steps": [
+      "Blend fruit and yogurt",
+      "Pour into a bowl",
+      "Add granola on top",
+      "Add fresh berries",
+      "Drizzle with honey"
+    ]
+  },
+  {
+    "task": "Organize Your Desk",
+    "steps": [
+      "Clear everything off",
+      "Sort items into piles",
+      "Put pencils in a cup",
+      "Stack papers neatly",
+      "Put everything back"
+    ]
+  },
+  {
+    "task": "Make a Paper Hat",
+    "steps": [
+      "Fold paper in half",
+      "Fold corners to center",
+      "Fold bottom up",
+      "Turn it over",
+      "Fold bottom up again"
+    ]
+  },
+  {
+    "task": "Make a Milkshake",
+    "steps": [
+      "Get ice cream and milk",
+      "Put in a blender",
+      "Blend until smooth",
+      "Pour into a glass",
+      "Add a straw"
+    ]
+  },
+  {
+    "task": "Make a Wind Chime",
+    "steps": [
+      "Get metal objects",
+      "Tie strings to each",
+      "Tie strings to a stick",
+      "Space them evenly",
+      "Hang it outside"
+    ]
+  },
+  {
+    "task": "Make a Friendship Bracelet",
+    "steps": [
+      "Get three strings",
+      "Tie them together at the top",
+      "Braid the strings",
+      "Tie a knot at the end",
+      "Give it to a friend"
+    ]
+  },
+  {
+    "task": "Make a Time Capsule",
+    "steps": [
+      "Get a box",
+      "Put in special items",
+      "Write a letter",
+      "Close the box",
+      "Hide it somewhere safe"
+    ]
+  },
+  {
+    "task": "Make a Paper Fan",
+    "steps": [
+      "Fold paper back and forth",
+      "Keep folding evenly",
+      "Fold in half",
+      "Staple the bottom",
+      "Open it up"
+    ]
+  },
+  {
+    "task": "Make a Pasta Salad",
+    "steps": [
+      "Cook the pasta",
+      "Let it cool",
+      "Add vegetables",
+      "Add dressing",
+      "Mix everything together"
+    ]
+  },
+  {
+    "task": "Make a Dream Catcher",
+    "steps": [
+      "Get a hoop and string",
+      "Wrap string around hoop",
+      "Make a web pattern",
+      "Add beads",
+      "Hang feathers"
+    ]
+  },
+  {
+    "task": "Make a Paper Boat",
+    "steps": [
+      "Fold paper in half",
+      "Fold corners to center",
+      "Fold bottom up",
+      "Turn it over",
+      "Open it into a boat"
+    ]
+  },
+  {
+    "task": "Make a Trail Mix",
+    "steps": [
+      "Get nuts and dried fruit",
+      "Add cereal",
+      "Add chocolate chips",
+      "Mix in a bowl",
+      "Put in bags"
+    ]
   }
 ]
 

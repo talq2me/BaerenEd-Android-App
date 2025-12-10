@@ -44,6 +44,933 @@
       "creative": "made up stories and songs",
       "artistic": "loved to paint and draw"
     }
+  },
+  {
+    "story": "Tom always told the truth, even when it was hard. When he broke his mom's favorite vase, he admitted it right away. He never lied to his teachers or friends.",
+    "traits": ["honest", "dishonest", "brave", "responsible", "sneaky"],
+    "correctTraits": ["honest", "responsible"],
+    "evidence": {
+      "honest": "admitted it right away when he broke the vase",
+      "responsible": "never lied to his teachers or friends"
+    }
+  },
+  {
+    "story": "Sofia shared her snacks with everyone at lunch. She gave her extra pencil to a classmate who forgot theirs. Sofia always thought about how others were feeling.",
+    "traits": ["generous", "selfish", "thoughtful", "kind", "mean"],
+    "correctTraits": ["generous", "thoughtful"],
+    "evidence": {
+      "generous": "shared her snacks with everyone at lunch",
+      "thoughtful": "always thought about how others were feeling"
+    }
+  },
+  {
+    "story": "Alex never gave up on learning to ride his bike. He fell down many times but kept trying. Alex practiced every day until he finally succeeded.",
+    "traits": ["determined", "lazy", "persistent", "brave", "quitter"],
+    "correctTraits": ["determined", "persistent"],
+    "evidence": {
+      "determined": "never gave up on learning to ride his bike",
+      "persistent": "practiced every day until he finally succeeded"
+    }
+  },
+  {
+    "story": "Zoe always said please and thank you. She held the door open for others. Zoe listened carefully when adults were speaking to her.",
+    "traits": ["polite", "rude", "respectful", "kind", "mean"],
+    "correctTraits": ["polite", "respectful"],
+    "evidence": {
+      "polite": "always said please and thank you",
+      "respectful": "listened carefully when adults were speaking to her"
+    }
+  },
+  {
+    "story": "Ryan loved to read books about space and science. He asked lots of questions in class. Ryan wanted to learn about everything around him.",
+    "traits": ["curious", "boring", "smart", "interested", "lazy"],
+    "correctTraits": ["curious", "interested"],
+    "evidence": {
+      "curious": "asked lots of questions in class",
+      "interested": "wanted to learn about everything around him"
+    }
+  },
+  {
+    "story": "Mia always finished her homework before playing. She cleaned her room without being asked. Mia took care of her pet fish every day.",
+    "traits": ["responsible", "lazy", "organized", "reliable", "messy"],
+    "correctTraits": ["responsible", "reliable"],
+    "evidence": {
+      "responsible": "always finished her homework before playing",
+      "reliable": "took care of her pet fish every day"
+    }
+  },
+  {
+    "story": "Noah was always smiling and making jokes. He could make anyone laugh with his silly faces. Noah loved to play fun games with his friends.",
+    "traits": ["funny", "serious", "playful", "happy", "sad"],
+    "correctTraits": ["funny", "playful"],
+    "evidence": {
+      "funny": "could make anyone laugh with his silly faces",
+      "playful": "loved to play fun games with his friends"
+    }
+  },
+  {
+    "story": "Isabella waited quietly in line at the store. She didn't interrupt when others were talking. Isabella was calm and patient during long car rides.",
+    "traits": ["patient", "impatient", "calm", "polite", "rude"],
+    "correctTraits": ["patient", "calm"],
+    "evidence": {
+      "patient": "waited quietly in line at the store",
+      "calm": "was calm and patient during long car rides"
+    }
+  },
+  {
+    "story": "Ethan always looked on the bright side of things. Even when it rained, he said it was good for the plants. Ethan believed everything would work out.",
+    "traits": ["optimistic", "pessimistic", "positive", "hopeful", "sad"],
+    "correctTraits": ["optimistic", "positive"],
+    "evidence": {
+      "optimistic": "always looked on the bright side of things",
+      "positive": "believed everything would work out"
+    }
+  },
+  {
+    "story": "Olivia remembered her friend's birthday and made a card. She noticed when someone was feeling sad. Olivia always thought about what others might need.",
+    "traits": ["thoughtful", "selfish", "caring", "attentive", "mean"],
+    "correctTraits": ["thoughtful", "attentive"],
+    "evidence": {
+      "thoughtful": "remembered her friend's birthday and made a card",
+      "attentive": "noticed when someone was feeling sad"
+    }
+  },
+  {
+    "story": "Lucas was very organized. He kept his school supplies neat in his backpack. Lucas always knew where to find his things.",
+    "traits": ["organized", "messy", "neat", "prepared", "lazy"],
+    "correctTraits": ["organized", "neat"],
+    "evidence": {
+      "organized": "kept his school supplies neat in his backpack",
+      "neat": "always knew where to find his things"
+    }
+  },
+  {
+    "story": "Ava loved to explore new places. She tried different foods from around the world. Ava was excited to learn about other cultures.",
+    "traits": ["adventurous", "scared", "curious", "brave", "shy"],
+    "correctTraits": ["adventurous", "curious"],
+    "evidence": {
+      "adventurous": "loved to explore new places",
+      "curious": "was excited to learn about other cultures"
+    }
+  },
+  {
+    "story": "Mason always kept his promises. If he said he would help, he always did. Mason was someone you could count on.",
+    "traits": ["trustworthy", "dishonest", "reliable", "honest", "sneaky"],
+    "correctTraits": ["trustworthy", "reliable"],
+    "evidence": {
+      "trustworthy": "always kept his promises",
+      "reliable": "was someone you could count on"
+    }
+  },
+  {
+    "story": "Sophia was very good at solving problems. When her toy broke, she figured out how to fix it. Sophia thought carefully before making decisions.",
+    "traits": ["smart", "dumb", "clever", "thoughtful", "careless"],
+    "correctTraits": ["clever", "thoughtful"],
+    "evidence": {
+      "clever": "figured out how to fix it when her toy broke",
+      "thoughtful": "thought carefully before making decisions"
+    }
+  },
+  {
+    "story": "Jackson loved to help his teacher clean up the classroom. He volunteered to help younger kids with their reading. Jackson always offered to carry heavy things.",
+    "traits": ["helpful", "lazy", "kind", "caring", "selfish"],
+    "correctTraits": ["helpful", "kind"],
+    "evidence": {
+      "helpful": "loved to help his teacher clean up the classroom",
+      "kind": "volunteered to help younger kids with their reading"
+    }
+  },
+  {
+    "story": "Emma was very focused when doing her work. She didn't get distracted by noises around her. Emma finished her tasks completely before moving on.",
+    "traits": ["focused", "distracted", "concentrated", "determined", "lazy"],
+    "correctTraits": ["focused", "concentrated"],
+    "evidence": {
+      "focused": "didn't get distracted by noises around her",
+      "concentrated": "finished her tasks completely before moving on"
+    }
+  },
+  {
+    "story": "Liam always shared his toys with his little sister. He let his friends go first in games. Liam made sure everyone had a turn.",
+    "traits": ["sharing", "selfish", "fair", "generous", "mean"],
+    "correctTraits": ["sharing", "fair"],
+    "evidence": {
+      "sharing": "always shared his toys with his little sister",
+      "fair": "made sure everyone had a turn"
+    }
+  },
+  {
+    "story": "Charlotte was very careful with her belongings. She put her things away when she was done. Charlotte treated her books and toys gently.",
+    "traits": ["careful", "careless", "gentle", "responsible", "messy"],
+    "correctTraits": ["careful", "gentle"],
+    "evidence": {
+      "careful": "put her things away when she was done",
+      "gentle": "treated her books and toys gently"
+    }
+  },
+  {
+    "story": "Henry always tried his best in everything he did. He practiced piano every day to get better. Henry never settled for doing things halfway.",
+    "traits": ["hardworking", "lazy", "dedicated", "persistent", "quitter"],
+    "correctTraits": ["hardworking", "dedicated"],
+    "evidence": {
+      "hardworking": "practiced piano every day to get better",
+      "dedicated": "never settled for doing things halfway"
+    }
+  },
+  {
+    "story": "Amelia loved to make new friends. She introduced herself to new students at school. Amelia was friendly to everyone she met.",
+    "traits": ["friendly", "shy", "outgoing", "social", "lonely"],
+    "correctTraits": ["friendly", "outgoing"],
+    "evidence": {
+      "friendly": "was friendly to everyone she met",
+      "outgoing": "introduced herself to new students at school"
+    }
+  },
+  {
+    "story": "Benjamin always apologized when he made a mistake. He tried to fix problems he caused. Benjamin learned from his errors.",
+    "traits": ["humble", "proud", "responsible", "honest", "stubborn"],
+    "correctTraits": ["humble", "responsible"],
+    "evidence": {
+      "humble": "always apologized when he made a mistake",
+      "responsible": "tried to fix problems he caused"
+    }
+  },
+  {
+    "story": "Harper loved to read books about animals. She spent hours at the library learning new things. Harper was always excited to discover something new.",
+    "traits": ["curious", "boring", "eager", "interested", "lazy"],
+    "correctTraits": ["curious", "eager"],
+    "evidence": {
+      "curious": "loved to read books about animals",
+      "eager": "was always excited to discover something new"
+    }
+  },
+  {
+    "story": "Daniel always followed the rules at school and home. He waited for his turn and didn't cut in line. Daniel respected the teacher's instructions.",
+    "traits": ["obedient", "disobedient", "respectful", "polite", "rude"],
+    "correctTraits": ["obedient", "respectful"],
+    "evidence": {
+      "obedient": "always followed the rules at school and home",
+      "respectful": "respected the teacher's instructions"
+    }
+  },
+  {
+    "story": "Evelyn was very good at making others feel included. She invited everyone to play together. Evelyn made sure no one felt left out.",
+    "traits": ["inclusive", "exclusive", "kind", "caring", "mean"],
+    "correctTraits": ["inclusive", "caring"],
+    "evidence": {
+      "inclusive": "invited everyone to play together",
+      "caring": "made sure no one felt left out"
+    }
+  },
+  {
+    "story": "Matthew worked quietly on his art project. He didn't rush and took his time. Matthew paid attention to all the small details.",
+    "traits": ["patient", "impatient", "careful", "detailed", "rushed"],
+    "correctTraits": ["patient", "careful"],
+    "evidence": {
+      "patient": "didn't rush and took his time",
+      "careful": "paid attention to all the small details"
+    }
+  },
+  {
+    "story": "Abigail always cheered for her teammates, even when they lost. She encouraged others to keep trying. Abigail was positive and supportive.",
+    "traits": ["supportive", "mean", "encouraging", "positive", "negative"],
+    "correctTraits": ["supportive", "encouraging"],
+    "evidence": {
+      "supportive": "always cheered for her teammates",
+      "encouraging": "encouraged others to keep trying"
+    }
+  },
+  {
+    "story": "David was very good at listening to others. He remembered what his friends told him. David always paid attention when people spoke.",
+    "traits": ["attentive", "distracted", "listening", "caring", "rude"],
+    "correctTraits": ["attentive", "listening"],
+    "evidence": {
+      "attentive": "remembered what his friends told him",
+      "listening": "always paid attention when people spoke"
+    }
+  },
+  {
+    "story": "Grace loved to help her grandma in the garden. She watered the plants every morning. Grace took pride in watching things grow.",
+    "traits": ["helpful", "lazy", "nurturing", "caring", "selfish"],
+    "correctTraits": ["helpful", "nurturing"],
+    "evidence": {
+      "helpful": "loved to help her grandma in the garden",
+      "nurturing": "took pride in watching things grow"
+    }
+  },
+  {
+    "story": "James always stood up for what was right. He told a friend when they were being unfair. James wasn't afraid to speak the truth.",
+    "traits": ["brave", "scared", "honest", "just", "dishonest"],
+    "correctTraits": ["brave", "just"],
+    "evidence": {
+      "brave": "wasn't afraid to speak the truth",
+      "just": "told a friend when they were being unfair"
+    }
+  },
+  {
+    "story": "Scarlett was very creative with her art projects. She used unusual materials to make sculptures. Scarlett always had unique ideas.",
+    "traits": ["creative", "boring", "imaginative", "artistic", "plain"],
+    "correctTraits": ["creative", "imaginative"],
+    "evidence": {
+      "creative": "used unusual materials to make sculptures",
+      "imaginative": "always had unique ideas"
+    }
+  },
+  {
+    "story": "Logan always finished his chores before asking to play. He did his homework right after school. Logan was very responsible with his tasks.",
+    "traits": ["responsible", "lazy", "diligent", "reliable", "careless"],
+    "correctTraits": ["responsible", "diligent"],
+    "evidence": {
+      "responsible": "always finished his chores before asking to play",
+      "diligent": "did his homework right after school"
+    }
+  },
+  {
+    "story": "Chloe was very gentle with small animals. She moved slowly around birds and butterflies. Chloe was careful not to scare them.",
+    "traits": ["gentle", "rough", "careful", "kind", "mean"],
+    "correctTraits": ["gentle", "careful"],
+    "evidence": {
+      "gentle": "was very gentle with small animals",
+      "careful": "moved slowly around birds and butterflies"
+    }
+  },
+  {
+    "story": "Aiden loved to learn new words and their meanings. He read the dictionary for fun. Aiden was always asking what words meant.",
+    "traits": ["curious", "boring", "intelligent", "eager", "lazy"],
+    "correctTraits": ["curious", "intelligent"],
+    "evidence": {
+      "curious": "was always asking what words meant",
+      "intelligent": "read the dictionary for fun"
+    }
+  },
+  {
+    "story": "Luna always remembered to say thank you for gifts. She wrote thank you notes to her relatives. Luna showed appreciation for everything.",
+    "traits": ["grateful", "ungrateful", "appreciative", "polite", "rude"],
+    "correctTraits": ["grateful", "appreciative"],
+    "evidence": {
+      "grateful": "remembered to say thank you for gifts",
+      "appreciative": "wrote thank you notes to her relatives"
+    }
+  },
+  {
+    "story": "Carter was very organized with his school work. He kept all his papers in folders. Carter always knew where everything was.",
+    "traits": ["organized", "messy", "neat", "prepared", "scattered"],
+    "correctTraits": ["organized", "prepared"],
+    "evidence": {
+      "organized": "kept all his papers in folders",
+      "prepared": "always knew where everything was"
+    }
+  },
+  {
+    "story": "Zoe always tried to understand how others felt. She comforted her friend when they were sad. Zoe was very good at empathy.",
+    "traits": ["empathetic", "selfish", "understanding", "caring", "mean"],
+    "correctTraits": ["empathetic", "understanding"],
+    "evidence": {
+      "empathetic": "tried to understand how others felt",
+      "understanding": "comforted her friend when they were sad"
+    }
+  },
+  {
+    "story": "Owen practiced his soccer skills every afternoon. He worked on his weak foot until it got better. Owen never stopped trying to improve.",
+    "traits": ["determined", "lazy", "persistent", "hardworking", "quitter"],
+    "correctTraits": ["determined", "persistent"],
+    "evidence": {
+      "determined": "never stopped trying to improve",
+      "persistent": "worked on his weak foot until it got better"
+    }
+  },
+  {
+    "story": "Victoria always kept her promises to friends. She showed up when she said she would. Victoria was someone people could trust.",
+    "traits": ["trustworthy", "dishonest", "reliable", "honest", "unreliable"],
+    "correctTraits": ["trustworthy", "reliable"],
+    "evidence": {
+      "trustworthy": "always kept her promises to friends",
+      "reliable": "showed up when she said she would"
+    }
+  },
+  {
+    "story": "Nathan loved to explore the woods behind his house. He looked under rocks and logs for interesting things. Nathan was always discovering something new.",
+    "traits": ["adventurous", "scared", "curious", "exploratory", "shy"],
+    "correctTraits": ["adventurous", "exploratory"],
+    "evidence": {
+      "adventurous": "loved to explore the woods behind his house",
+      "exploratory": "was always discovering something new"
+    }
+  },
+  {
+    "story": "Penelope always thought before she spoke. She considered how her words might affect others. Penelope was very thoughtful with her language.",
+    "traits": ["thoughtful", "careless", "considerate", "kind", "rude"],
+    "correctTraits": ["thoughtful", "considerate"],
+    "evidence": {
+      "thoughtful": "always thought before she spoke",
+      "considerate": "considered how her words might affect others"
+    }
+  },
+  {
+    "story": "Wyatt always helped clean up after art class. He put away supplies without being asked. Wyatt made sure the room was tidy.",
+    "traits": ["helpful", "lazy", "responsible", "neat", "messy"],
+    "correctTraits": ["helpful", "responsible"],
+    "evidence": {
+      "helpful": "always helped clean up after art class",
+      "responsible": "put away supplies without being asked"
+    }
+  },
+  {
+    "story": "Layla was very good at solving puzzles. She could figure out difficult problems. Layla enjoyed challenges that made her think.",
+    "traits": ["smart", "dumb", "clever", "analytical", "careless"],
+    "correctTraits": ["clever", "analytical"],
+    "evidence": {
+      "clever": "could figure out difficult problems",
+      "analytical": "enjoyed challenges that made her think"
+    }
+  },
+  {
+    "story": "Hannah always included new students in games. She made sure everyone felt welcome. Hannah was friendly to people she didn't know yet.",
+    "traits": ["welcoming", "exclusive", "friendly", "inclusive", "mean"],
+    "correctTraits": ["welcoming", "friendly"],
+    "evidence": {
+      "welcoming": "made sure everyone felt welcome",
+      "friendly": "was friendly to people she didn't know yet"
+    }
+  },
+  {
+    "story": "Jack always finished what he started. He completed his science project even when it was hard. Jack never gave up halfway through.",
+    "traits": ["persistent", "quitter", "determined", "committed", "lazy"],
+    "correctTraits": ["persistent", "committed"],
+    "evidence": {
+      "persistent": "always finished what he started",
+      "committed": "completed his science project even when it was hard"
+    }
+  },
+  {
+    "story": "Nora was very calm during the school play when she forgot her lines. She took a deep breath and remembered them. Nora stayed composed under pressure.",
+    "traits": ["calm", "nervous", "composed", "brave", "scared"],
+    "correctTraits": ["calm", "composed"],
+    "evidence": {
+      "calm": "took a deep breath and remembered them",
+      "composed": "stayed composed under pressure"
+    }
+  },
+  {
+    "story": "Ethan always shared his snack with friends who forgot theirs. He gave his extra markers to classmates. Ethan was generous with what he had.",
+    "traits": ["generous", "selfish", "sharing", "kind", "stingy"],
+    "correctTraits": ["generous", "sharing"],
+    "evidence": {
+      "generous": "always shared his snack with friends who forgot theirs",
+      "sharing": "gave his extra markers to classmates"
+    }
+  },
+  {
+    "story": "Isabella always waited her turn without complaining. She was patient in long lines. Isabella didn't get upset when things took time.",
+    "traits": ["patient", "impatient", "calm", "understanding", "angry"],
+    "correctTraits": ["patient", "calm"],
+    "evidence": {
+      "patient": "always waited her turn without complaining",
+      "calm": "didn't get upset when things took time"
+    }
+  },
+  {
+    "story": "Mason loved to learn about different countries. He read books about people from around the world. Mason was curious about other cultures.",
+    "traits": ["curious", "boring", "open-minded", "interested", "closed"],
+    "correctTraits": ["curious", "open-minded"],
+    "evidence": {
+      "curious": "loved to learn about different countries",
+      "open-minded": "was curious about other cultures"
+    }
+  },
+  {
+    "story": "Ava always told the truth, even when it was difficult. She admitted when she made a mistake. Ava was honest with everyone.",
+    "traits": ["honest", "dishonest", "truthful", "brave", "liar"],
+    "correctTraits": ["honest", "truthful"],
+    "evidence": {
+      "honest": "admitted when she made a mistake",
+      "truthful": "always told the truth, even when it was difficult"
+    }
+  },
+  {
+    "story": "Lucas was very good at working with others. He listened to everyone's ideas in group projects. Lucas helped his team work together well.",
+    "traits": ["cooperative", "stubborn", "teamwork", "helpful", "selfish"],
+    "correctTraits": ["cooperative", "teamwork"],
+    "evidence": {
+      "cooperative": "listened to everyone's ideas in group projects",
+      "teamwork": "helped his team work together well"
+    }
+  },
+  {
+    "story": "Sophia always tried to see the good in situations. Even on rainy days, she found something positive. Sophia had a hopeful attitude.",
+    "traits": ["optimistic", "pessimistic", "positive", "hopeful", "negative"],
+    "correctTraits": ["optimistic", "hopeful"],
+    "evidence": {
+      "optimistic": "always tried to see the good in situations",
+      "hopeful": "had a hopeful attitude"
+    }
+  },
+  {
+    "story": "Jackson was very careful with library books. He returned them on time and in good condition. Jackson respected things that belonged to others.",
+    "traits": ["respectful", "disrespectful", "careful", "responsible", "careless"],
+    "correctTraits": ["respectful", "responsible"],
+    "evidence": {
+      "respectful": "respected things that belonged to others",
+      "responsible": "returned them on time and in good condition"
+    }
+  },
+  {
+    "story": "Emma loved to create stories and draw pictures. She made up characters and adventures. Emma had a very active imagination.",
+    "traits": ["imaginative", "boring", "creative", "artistic", "plain"],
+    "correctTraits": ["imaginative", "creative"],
+    "evidence": {
+      "imaginative": "had a very active imagination",
+      "creative": "made up characters and adventures"
+    }
+  },
+  {
+    "story": "Liam always helped his mom carry groceries. He offered to help neighbors with yard work. Liam was always ready to lend a hand.",
+    "traits": ["helpful", "lazy", "caring", "kind", "selfish"],
+    "correctTraits": ["helpful", "caring"],
+    "evidence": {
+      "helpful": "always helped his mom carry groceries",
+      "caring": "offered to help neighbors with yard work"
+    }
+  },
+  {
+    "story": "Charlotte was very focused during her piano lessons. She practiced the same piece many times. Charlotte worked hard to get it perfect.",
+    "traits": ["focused", "distracted", "dedicated", "hardworking", "lazy"],
+    "correctTraits": ["focused", "dedicated"],
+    "evidence": {
+      "focused": "was very focused during her piano lessons",
+      "dedicated": "worked hard to get it perfect"
+    }
+  },
+  {
+    "story": "Henry always made sure everyone got a fair share. He divided treats equally among friends. Henry was very fair in games.",
+    "traits": ["fair", "unfair", "just", "equal", "selfish"],
+    "correctTraits": ["fair", "just"],
+    "evidence": {
+      "fair": "made sure everyone got a fair share",
+      "just": "divided treats equally among friends"
+    }
+  },
+  {
+    "story": "Amelia was very gentle when holding her baby cousin. She moved slowly and carefully. Amelia was always careful with fragile things.",
+    "traits": ["gentle", "rough", "careful", "tender", "careless"],
+    "correctTraits": ["gentle", "tender"],
+    "evidence": {
+      "gentle": "was very gentle when holding her baby cousin",
+      "tender": "moved slowly and carefully"
+    }
+  },
+  {
+    "story": "Benjamin always tried new activities even if they seemed hard. He joined the chess club to learn something new. Benjamin was eager to try different things.",
+    "traits": ["adventurous", "scared", "eager", "curious", "shy"],
+    "correctTraits": ["adventurous", "eager"],
+    "evidence": {
+      "adventurous": "always tried new activities even if they seemed hard",
+      "eager": "joined the chess club to learn something new"
+    }
+  },
+  {
+    "story": "Harper always thanked her teacher at the end of class. She appreciated when people helped her. Harper showed gratitude for kindness.",
+    "traits": ["grateful", "ungrateful", "appreciative", "polite", "rude"],
+    "correctTraits": ["grateful", "appreciative"],
+    "evidence": {
+      "grateful": "always thanked her teacher at the end of class",
+      "appreciative": "appreciated when people helped her"
+    }
+  },
+  {
+    "story": "Daniel was very organized with his morning routine. He laid out his clothes the night before. Daniel was always prepared for the day.",
+    "traits": ["organized", "messy", "prepared", "planned", "scattered"],
+    "correctTraits": ["organized", "prepared"],
+    "evidence": {
+      "organized": "was very organized with his morning routine",
+      "prepared": "was always prepared for the day"
+    }
+  },
+  {
+    "story": "Evelyn always tried to understand why her friend was upset. She asked questions to learn more. Evelyn was very empathetic.",
+    "traits": ["empathetic", "selfish", "understanding", "caring", "mean"],
+    "correctTraits": ["empathetic", "understanding"],
+    "evidence": {
+      "empathetic": "always tried to understand why her friend was upset",
+      "understanding": "asked questions to learn more"
+    }
+  },
+  {
+    "story": "Matthew practiced his math problems until he understood them. He asked for help when needed. Matthew was determined to learn.",
+    "traits": ["determined", "lazy", "persistent", "hardworking", "quitter"],
+    "correctTraits": ["determined", "persistent"],
+    "evidence": {
+      "determined": "was determined to learn",
+      "persistent": "practiced his math problems until he understood them"
+    }
+  },
+  {
+    "story": "Abigail always kept secrets when friends asked her to. She never told things that were private. Abigail was very trustworthy.",
+    "traits": ["trustworthy", "dishonest", "reliable", "honest", "gossipy"],
+    "correctTraits": ["trustworthy", "reliable"],
+    "evidence": {
+      "trustworthy": "always kept secrets when friends asked her to",
+      "reliable": "never told things that were private"
+    }
+  },
+  {
+    "story": "David loved to explore nature trails. He looked for different types of plants and animals. David was curious about the natural world.",
+    "traits": ["curious", "boring", "exploratory", "interested", "lazy"],
+    "correctTraits": ["curious", "exploratory"],
+    "evidence": {
+      "curious": "was curious about the natural world",
+      "exploratory": "looked for different types of plants and animals"
+    }
+  },
+  {
+    "story": "Grace always considered other people's feelings. She chose her words carefully. Grace was very considerate.",
+    "traits": ["considerate", "careless", "thoughtful", "kind", "rude"],
+    "correctTraits": ["considerate", "thoughtful"],
+    "evidence": {
+      "considerate": "always considered other people's feelings",
+      "thoughtful": "chose her words carefully"
+    }
+  },
+  {
+    "story": "James always helped set up for school events. He stayed after to clean up too. James was very helpful to his school community.",
+    "traits": ["helpful", "lazy", "community-minded", "caring", "selfish"],
+    "correctTraits": ["helpful", "community-minded"],
+    "evidence": {
+      "helpful": "always helped set up for school events",
+      "community-minded": "was very helpful to his school community"
+    }
+  },
+  {
+    "story": "Scarlett was very good at solving riddles. She enjoyed brain teasers and puzzles. Scarlett liked to think deeply about problems.",
+    "traits": ["smart", "dumb", "analytical", "clever", "careless"],
+    "correctTraits": ["analytical", "clever"],
+    "evidence": {
+      "analytical": "liked to think deeply about problems",
+      "clever": "was very good at solving riddles"
+    }
+  },
+  {
+    "story": "Logan always welcomed new students to sit at his lunch table. He introduced them to his friends. Logan made people feel included.",
+    "traits": ["welcoming", "exclusive", "inclusive", "friendly", "mean"],
+    "correctTraits": ["welcoming", "inclusive"],
+    "evidence": {
+      "welcoming": "always welcomed new students to sit at his lunch table",
+      "inclusive": "made people feel included"
+    }
+  },
+  {
+    "story": "Chloe always completed her reading assignments. She finished every book she started. Chloe was committed to her schoolwork.",
+    "traits": ["committed", "lazy", "dedicated", "persistent", "quitter"],
+    "correctTraits": ["committed", "dedicated"],
+    "evidence": {
+      "committed": "was committed to her schoolwork",
+      "dedicated": "finished every book she started"
+    }
+  },
+  {
+    "story": "Aiden stayed calm when his team was losing the game. He encouraged his teammates to keep trying. Aiden remained positive under pressure.",
+    "traits": ["calm", "nervous", "positive", "composed", "angry"],
+    "correctTraits": ["calm", "composed"],
+    "evidence": {
+      "calm": "stayed calm when his team was losing the game",
+      "composed": "remained positive under pressure"
+    }
+  },
+  {
+    "story": "Luna always shared her art supplies with classmates. She gave away extra stickers to friends. Luna was generous with her belongings.",
+    "traits": ["generous", "selfish", "sharing", "kind", "stingy"],
+    "correctTraits": ["generous", "sharing"],
+    "evidence": {
+      "generous": "was generous with her belongings",
+      "sharing": "always shared her art supplies with classmates"
+    }
+  },
+  {
+    "story": "Carter waited patiently for his turn to speak in class. He raised his hand and didn't interrupt. Carter was very respectful of others.",
+    "traits": ["patient", "impatient", "respectful", "polite", "rude"],
+    "correctTraits": ["patient", "respectful"],
+    "evidence": {
+      "patient": "waited patiently for his turn to speak in class",
+      "respectful": "was very respectful of others"
+    }
+  },
+  {
+    "story": "Zoe loved learning about different languages. She tried to say hello in many languages. Zoe was curious about how people communicate.",
+    "traits": ["curious", "boring", "open-minded", "interested", "closed"],
+    "correctTraits": ["curious", "open-minded"],
+    "evidence": {
+      "curious": "was curious about how people communicate",
+      "open-minded": "loved learning about different languages"
+    }
+  },
+  {
+    "story": "Owen always told his parents the truth about his day. He never made up stories. Owen was honest about everything.",
+    "traits": ["honest", "dishonest", "truthful", "sincere", "liar"],
+    "correctTraits": ["honest", "sincere"],
+    "evidence": {
+      "honest": "always told his parents the truth about his day",
+      "sincere": "never made up stories"
+    }
+  },
+  {
+    "story": "Victoria worked well with her classmates on projects. She shared ideas and listened to others. Victoria was a good team player.",
+    "traits": ["cooperative", "stubborn", "collaborative", "teamwork", "selfish"],
+    "correctTraits": ["cooperative", "collaborative"],
+    "evidence": {
+      "cooperative": "worked well with her classmates on projects",
+      "collaborative": "shared ideas and listened to others"
+    }
+  },
+  {
+    "story": "Nathan always found something to be happy about. Even on difficult days, he looked for the bright side. Nathan had an optimistic outlook.",
+    "traits": ["optimistic", "pessimistic", "positive", "hopeful", "negative"],
+    "correctTraits": ["optimistic", "hopeful"],
+    "evidence": {
+      "optimistic": "had an optimistic outlook",
+      "hopeful": "always found something to be happy about"
+    }
+  },
+  {
+    "story": "Penelope always took good care of borrowed items. She returned library books in perfect condition. Penelope respected other people's property.",
+    "traits": ["respectful", "disrespectful", "careful", "responsible", "careless"],
+    "correctTraits": ["respectful", "responsible"],
+    "evidence": {
+      "respectful": "respected other people's property",
+      "responsible": "returned library books in perfect condition"
+    }
+  },
+  {
+    "story": "Wyatt loved to write stories about magical worlds. He created characters with special powers. Wyatt had a vivid imagination.",
+    "traits": ["imaginative", "boring", "creative", "artistic", "plain"],
+    "correctTraits": ["imaginative", "creative"],
+    "evidence": {
+      "imaginative": "had a vivid imagination",
+      "creative": "created characters with special powers"
+    }
+  },
+  {
+    "story": "Layla always offered to help carry heavy backpacks. She helped teachers move furniture. Layla was strong and helpful.",
+    "traits": ["helpful", "lazy", "strong", "caring", "weak"],
+    "correctTraits": ["helpful", "strong"],
+    "evidence": {
+      "helpful": "always offered to help carry heavy backpacks",
+      "strong": "helped teachers move furniture"
+    }
+  },
+  {
+    "story": "Hannah focused completely on her homework until it was done. She didn't check her phone or watch TV. Hannah was very disciplined.",
+    "traits": ["focused", "distracted", "disciplined", "dedicated", "lazy"],
+    "correctTraits": ["focused", "disciplined"],
+    "evidence": {
+      "focused": "focused completely on her homework until it was done",
+      "disciplined": "didn't check her phone or watch TV"
+    }
+  },
+  {
+    "story": "Jack always made sure games were fair for everyone. He followed the rules and made sure others did too. Jack was very just.",
+    "traits": ["fair", "unfair", "just", "rule-following", "cheater"],
+    "correctTraits": ["fair", "just"],
+    "evidence": {
+      "fair": "always made sure games were fair for everyone",
+      "just": "followed the rules and made sure others did too"
+    }
+  },
+  {
+    "story": "Nora was very gentle with her pet hamster. She moved slowly and spoke softly. Nora was always careful with small animals.",
+    "traits": ["gentle", "rough", "careful", "tender", "careless"],
+    "correctTraits": ["gentle", "tender"],
+    "evidence": {
+      "gentle": "was very gentle with her pet hamster",
+      "tender": "moved slowly and spoke softly"
+    }
+  },
+  {
+    "story": "Ethan tried rock climbing even though he was nervous. He joined the school band to learn an instrument. Ethan was adventurous and eager.",
+    "traits": ["adventurous", "scared", "eager", "brave", "shy"],
+    "correctTraits": ["adventurous", "eager"],
+    "evidence": {
+      "adventurous": "tried rock climbing even though he was nervous",
+      "eager": "joined the school band to learn an instrument"
+    }
+  },
+  {
+    "story": "Isabella always wrote thank you cards for birthday presents. She expressed gratitude for everything she received. Isabella was very appreciative.",
+    "traits": ["grateful", "ungrateful", "appreciative", "polite", "rude"],
+    "correctTraits": ["grateful", "appreciative"],
+    "evidence": {
+      "grateful": "always wrote thank you cards for birthday presents",
+      "appreciative": "expressed gratitude for everything she received"
+    }
+  },
+  {
+    "story": "Mason kept his desk organized with everything in its place. He had a system for all his school supplies. Mason was very methodical.",
+    "traits": ["organized", "messy", "methodical", "neat", "scattered"],
+    "correctTraits": ["organized", "methodical"],
+    "evidence": {
+      "organized": "kept his desk organized with everything in its place",
+      "methodical": "had a system for all his school supplies"
+    }
+  },
+  {
+    "story": "Ava always tried to see things from other people's perspectives. She thought about how others might feel. Ava was very empathetic.",
+    "traits": ["empathetic", "selfish", "understanding", "compassionate", "mean"],
+    "correctTraits": ["empathetic", "compassionate"],
+    "evidence": {
+      "empathetic": "always tried to see things from other people's perspectives",
+      "compassionate": "thought about how others might feel"
+    }
+  },
+  {
+    "story": "Lucas practiced his spelling words every night. He studied until he knew them all. Lucas was determined to improve.",
+    "traits": ["determined", "lazy", "persistent", "hardworking", "quitter"],
+    "correctTraits": ["determined", "hardworking"],
+    "evidence": {
+      "determined": "was determined to improve",
+      "hardworking": "practiced his spelling words every night"
+    }
+  },
+  {
+    "story": "Sophia always kept her word when she made plans. Friends could count on her to show up. Sophia was very reliable.",
+    "traits": ["reliable", "unreliable", "trustworthy", "dependable", "flaky"],
+    "correctTraits": ["reliable", "dependable"],
+    "evidence": {
+      "reliable": "always kept her word when she made plans",
+      "dependable": "friends could count on her to show up"
+    }
+  },
+  {
+    "story": "Jackson loved to investigate how things worked. He took apart old toys to see inside. Jackson was curious and exploratory.",
+    "traits": ["curious", "boring", "exploratory", "investigative", "lazy"],
+    "correctTraits": ["curious", "investigative"],
+    "evidence": {
+      "curious": "loved to investigate how things worked",
+      "investigative": "took apart old toys to see inside"
+    }
+  },
+  {
+    "story": "Emma always thought about how her actions affected others. She chose to be kind even when it was hard. Emma was very considerate.",
+    "traits": ["considerate", "careless", "thoughtful", "kind", "selfish"],
+    "correctTraits": ["considerate", "thoughtful"],
+    "evidence": {
+      "considerate": "always thought about how her actions affected others",
+      "thoughtful": "chose to be kind even when it was hard"
+    }
+  },
+  {
+    "story": "Liam volunteered to help at the school food drive. He organized donations and helped pack boxes. Liam was community-minded and helpful.",
+    "traits": ["helpful", "lazy", "community-minded", "caring", "selfish"],
+    "correctTraits": ["helpful", "community-minded"],
+    "evidence": {
+      "helpful": "volunteered to help at the school food drive",
+      "community-minded": "organized donations and helped pack boxes"
+    }
+  },
+  {
+    "story": "Charlotte was very good at math problems that required thinking. She enjoyed challenging puzzles. Charlotte was analytical and clever.",
+    "traits": ["smart", "dumb", "analytical", "clever", "careless"],
+    "correctTraits": ["analytical", "clever"],
+    "evidence": {
+      "analytical": "was very good at math problems that required thinking",
+      "clever": "enjoyed challenging puzzles"
+    }
+  },
+  {
+    "story": "Henry always made sure new kids felt welcome. He invited them to join activities. Henry was welcoming and inclusive.",
+    "traits": ["welcoming", "exclusive", "inclusive", "friendly", "mean"],
+    "correctTraits": ["welcoming", "inclusive"],
+    "evidence": {
+      "welcoming": "always made sure new kids felt welcome",
+      "inclusive": "invited them to join activities"
+    }
+  },
+  {
+    "story": "Amelia worked on her science fair project every weekend. She never missed a day of working on it. Amelia was committed and dedicated.",
+    "traits": ["committed", "lazy", "dedicated", "persistent", "quitter"],
+    "correctTraits": ["committed", "dedicated"],
+    "evidence": {
+      "committed": "worked on her science fair project every weekend",
+      "dedicated": "never missed a day of working on it"
+    }
+  },
+  {
+    "story": "Benjamin stayed calm during the fire drill. He followed instructions and helped others. Benjamin was composed and brave.",
+    "traits": ["calm", "nervous", "composed", "brave", "scared"],
+    "correctTraits": ["calm", "composed"],
+    "evidence": {
+      "calm": "stayed calm during the fire drill",
+      "composed": "followed instructions and helped others"
+    }
+  },
+  {
+    "story": "Harper shared her lunch when a friend forgot theirs. She gave away extra cookies to classmates. Harper was generous and sharing.",
+    "traits": ["generous", "selfish", "sharing", "kind", "stingy"],
+    "correctTraits": ["generous", "sharing"],
+    "evidence": {
+      "generous": "shared her lunch when a friend forgot theirs",
+      "sharing": "gave away extra cookies to classmates"
+    }
+  },
+  {
+    "story": "Daniel waited patiently for his birthday party to start. He didn't complain about the wait. Daniel was patient and understanding.",
+    "traits": ["patient", "impatient", "understanding", "calm", "angry"],
+    "correctTraits": ["patient", "understanding"],
+    "evidence": {
+      "patient": "waited patiently for his birthday party to start",
+      "understanding": "didn't complain about the wait"
+    }
+  },
+  {
+    "story": "Evelyn was interested in learning about different religions. She asked respectful questions. Evelyn was curious and open-minded.",
+    "traits": ["curious", "boring", "open-minded", "respectful", "closed"],
+    "correctTraits": ["curious", "open-minded"],
+    "evidence": {
+      "curious": "was interested in learning about different religions",
+      "open-minded": "asked respectful questions"
+    }
+  },
+  {
+    "story": "Matthew always told the truth about breaking the window. He didn't try to blame anyone else. Matthew was honest and truthful.",
+    "traits": ["honest", "dishonest", "truthful", "brave", "liar"],
+    "correctTraits": ["honest", "truthful"],
+    "evidence": {
+      "honest": "always told the truth about breaking the window",
+      "truthful": "didn't try to blame anyone else"
+    }
+  },
+  {
+    "story": "Abigail worked together with her group to finish the project. She listened to everyone's suggestions. Abigail was cooperative and collaborative.",
+    "traits": ["cooperative", "stubborn", "collaborative", "teamwork", "selfish"],
+    "correctTraits": ["cooperative", "collaborative"],
+    "evidence": {
+      "cooperative": "worked together with her group to finish the project",
+      "collaborative": "listened to everyone's suggestions"
+    }
+  },
+  {
+    "story": "David always believed things would get better. Even when he was sick, he stayed positive. David was optimistic and hopeful.",
+    "traits": ["optimistic", "pessimistic", "hopeful", "positive", "negative"],
+    "correctTraits": ["optimistic", "hopeful"],
+    "evidence": {
+      "optimistic": "always believed things would get better",
+      "hopeful": "stayed positive even when he was sick"
+    }
+  },
+  {
+    "story": "Grace always treated school property with care. She didn't write on desks or damage books. Grace was respectful and careful.",
+    "traits": ["respectful", "disrespectful", "careful", "responsible", "careless"],
+    "correctTraits": ["respectful", "responsible"],
+    "evidence": {
+      "respectful": "always treated school property with care",
+      "responsible": "didn't write on desks or damage books"
+    }
+  },
+  {
+    "story": "James created amazing drawings of fantasy creatures. He made up stories about dragons and unicorns. James was imaginative and creative.",
+    "traits": ["imaginative", "boring", "creative", "artistic", "plain"],
+    "correctTraits": ["imaginative", "creative"],
+    "evidence": {
+      "imaginative": "created amazing drawings of fantasy creatures",
+      "creative": "made up stories about dragons and unicorns"
+    }
   }
 ]
 

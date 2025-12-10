@@ -48,6 +48,986 @@
       "Put the pillows back",
       "Smooth out the blanket"
     ]
+  },
+  {
+    "title": "Make Pancakes",
+    "steps": [
+      "Mix flour, eggs, and milk",
+      "Stir until smooth",
+      "Pour batter in a hot pan",
+      "Flip when bubbles appear",
+      "Serve with syrup"
+    ]
+  },
+  {
+    "title": "Make a Smoothie",
+    "steps": [
+      "Put fruit in a blender",
+      "Add yogurt or milk",
+      "Blend until smooth",
+      "Pour into a glass",
+      "Add a straw"
+    ]
+  },
+  {
+    "title": "Make Scrambled Eggs",
+    "steps": [
+      "Crack eggs into a bowl",
+      "Add a little milk",
+      "Scramble with a fork",
+      "Cook in a pan",
+      "Serve on a plate"
+    ]
+  },
+  {
+    "title": "Make a Pizza",
+    "steps": [
+      "Roll out the dough",
+      "Spread tomato sauce",
+      "Add cheese and toppings",
+      "Bake in the oven",
+      "Slice and serve"
+    ]
+  },
+  {
+    "title": "Make Cookies",
+    "steps": [
+      "Mix butter and sugar",
+      "Add flour and eggs",
+      "Shape into cookies",
+      "Bake in the oven",
+      "Let cool and enjoy"
+    ]
+  },
+  {
+    "title": "Make a Salad",
+    "steps": [
+      "Wash the lettuce",
+      "Cut vegetables into pieces",
+      "Put everything in a bowl",
+      "Add dressing",
+      "Toss and serve"
+    ]
+  },
+  {
+    "title": "Make Hot Chocolate",
+    "steps": [
+      "Heat milk in a pot",
+      "Add cocoa powder",
+      "Add sugar",
+      "Stir until mixed",
+      "Pour into a mug"
+    ]
+  },
+  {
+    "title": "Make French Toast",
+    "steps": [
+      "Mix eggs and milk",
+      "Dip bread in the mixture",
+      "Cook in a buttered pan",
+      "Flip when golden",
+      "Serve with syrup"
+    ]
+  },
+  {
+    "title": "Make Macaroni and Cheese",
+    "steps": [
+      "Boil water and cook pasta",
+      "Drain the pasta",
+      "Add cheese and milk",
+      "Stir until creamy",
+      "Serve hot"
+    ]
+  },
+  {
+    "title": "Make a Milkshake",
+    "steps": [
+      "Put ice cream in a blender",
+      "Add milk",
+      "Blend until smooth",
+      "Pour into a glass",
+      "Add whipped cream"
+    ]
+  },
+  {
+    "title": "Make Popcorn",
+    "steps": [
+      "Heat oil in a pot",
+      "Add popcorn kernels",
+      "Cover and shake",
+      "Wait for popping to stop",
+      "Pour into a bowl"
+    ]
+  },
+  {
+    "title": "Make a Fruit Salad",
+    "steps": [
+      "Wash all the fruit",
+      "Cut fruit into pieces",
+      "Mix in a bowl",
+      "Add a little honey",
+      "Chill and serve"
+    ]
+  },
+  {
+    "title": "Make a Grilled Cheese",
+    "steps": [
+      "Butter two slices of bread",
+      "Put cheese between them",
+      "Cook in a pan",
+      "Flip when golden",
+      "Cut and serve"
+    ]
+  },
+  {
+    "title": "Make Rice",
+    "steps": [
+      "Rinse the rice",
+      "Put rice and water in a pot",
+      "Bring to a boil",
+      "Simmer until done",
+      "Fluff with a fork"
+    ]
+  },
+  {
+    "title": "Make Pasta",
+    "steps": [
+      "Boil water in a pot",
+      "Add pasta",
+      "Cook until tender",
+      "Drain the water",
+      "Add sauce and serve"
+    ]
+  },
+  {
+    "title": "Make a Sandwich Wrap",
+    "steps": [
+      "Get a tortilla",
+      "Add meat and cheese",
+      "Add vegetables",
+      "Roll it up",
+      "Cut in half"
+    ]
+  },
+  {
+    "title": "Make Oatmeal",
+    "steps": [
+      "Put oats in a bowl",
+      "Add milk or water",
+      "Heat in microwave",
+      "Stir well",
+      "Add fruit and enjoy"
+    ]
+  },
+  {
+    "title": "Make a Smoothie Bowl",
+    "steps": [
+      "Blend frozen fruit",
+      "Pour into a bowl",
+      "Add granola on top",
+      "Add fresh berries",
+      "Drizzle with honey"
+    ]
+  },
+  {
+    "title": "Make Quesadillas",
+    "steps": [
+      "Put cheese on a tortilla",
+      "Fold it in half",
+      "Cook in a pan",
+      "Flip when golden",
+      "Cut into triangles"
+    ]
+  },
+  {
+    "title": "Make a Trail Mix",
+    "steps": [
+      "Get nuts and dried fruit",
+      "Add cereal",
+      "Add chocolate chips",
+      "Mix everything",
+      "Put in bags"
+    ]
+  },
+  {
+    "title": "Make a Paper Chain",
+    "steps": [
+      "Cut strips of colored paper",
+      "Make the first loop",
+      "Thread next strip through",
+      "Continue adding loops",
+      "Hang up your chain"
+    ]
+  },
+  {
+    "title": "Make a Paper Hat",
+    "steps": [
+      "Fold paper in half",
+      "Fold corners to center",
+      "Fold bottom up",
+      "Turn it over",
+      "Fold bottom up again"
+    ]
+  },
+  {
+    "title": "Make a Paper Boat",
+    "steps": [
+      "Fold paper in half",
+      "Fold corners to center",
+      "Fold bottom up",
+      "Turn it over",
+      "Open into a boat"
+    ]
+  },
+  {
+    "title": "Make a Paper Fan",
+    "steps": [
+      "Fold paper back and forth",
+      "Keep folding evenly",
+      "Fold in half",
+      "Staple the bottom",
+      "Open it up"
+    ]
+  },
+  {
+    "title": "Make a Card",
+    "steps": [
+      "Fold paper in half",
+      "Draw on the front",
+      "Write a message inside",
+      "Add decorations",
+      "Sign your name"
+    ]
+  },
+  {
+    "title": "Make a Bookmark",
+    "steps": [
+      "Cut a strip of paper",
+      "Decorate with markers",
+      "Punch a hole at top",
+      "Thread ribbon through",
+      "Tie a knot"
+    ]
+  },
+  {
+    "title": "Make a Collage",
+    "steps": [
+      "Get paper and magazines",
+      "Cut out pictures",
+      "Arrange on paper",
+      "Glue them down",
+      "Let it dry"
+    ]
+  },
+  {
+    "title": "Make a Mask",
+    "steps": [
+      "Cut paper in mask shape",
+      "Cut eye holes",
+      "Decorate with markers",
+      "Punch holes on sides",
+      "Tie string through"
+    ]
+  },
+  {
+    "title": "Make a Bracelet",
+    "steps": [
+      "Get beads and string",
+      "Thread beads on string",
+      "Tie the ends together",
+      "Check the fit",
+      "Trim extra string"
+    ]
+  },
+  {
+    "title": "Make a Bird Feeder",
+    "steps": [
+      "Get a pinecone",
+      "Spread peanut butter",
+      "Roll in birdseed",
+      "Tie string to it",
+      "Hang outside"
+    ]
+  },
+  {
+    "title": "Make a Wind Chime",
+    "steps": [
+      "Get metal objects",
+      "Tie strings to each",
+      "Tie to a stick",
+      "Space them evenly",
+      "Hang outside"
+    ]
+  },
+  {
+    "title": "Make a Kite",
+    "steps": [
+      "Make diamond from paper",
+      "Tie sticks together",
+      "Attach string",
+      "Add a tail",
+      "Go fly it"
+    ]
+  },
+  {
+    "title": "Make a Dream Catcher",
+    "steps": [
+      "Get a hoop and string",
+      "Wrap string around hoop",
+      "Make a web pattern",
+      "Add beads",
+      "Hang feathers"
+    ]
+  },
+  {
+    "title": "Make a Time Capsule",
+    "steps": [
+      "Get a box",
+      "Put in special items",
+      "Write a letter",
+      "Close the box",
+      "Hide it safely"
+    ]
+  },
+  {
+    "title": "Make a Scrapbook Page",
+    "steps": [
+      "Get paper and photos",
+      "Glue photos on page",
+      "Add stickers",
+      "Write captions",
+      "Decorate with markers"
+    ]
+  },
+  {
+    "title": "Make a Fort",
+    "steps": [
+      "Get blankets and pillows",
+      "Drape over furniture",
+      "Secure with pillows",
+      "Add a flashlight",
+      "Crawl inside"
+    ]
+  },
+  {
+    "title": "Make a Friendship Bracelet",
+    "steps": [
+      "Get three strings",
+      "Tie together at top",
+      "Braid the strings",
+      "Tie knot at end",
+      "Give to a friend"
+    ]
+  },
+  {
+    "title": "Make Slime",
+    "steps": [
+      "Mix glue and water",
+      "Add food coloring",
+      "Add borax solution",
+      "Knead until smooth",
+      "Play with it"
+    ]
+  },
+  {
+    "title": "Make Play Dough",
+    "steps": [
+      "Mix flour and salt",
+      "Add water and oil",
+      "Add food coloring",
+      "Knead until smooth",
+      "Store in container"
+    ]
+  },
+  {
+    "title": "Make a Terrarium",
+    "steps": [
+      "Get a clear jar",
+      "Add rocks at bottom",
+      "Add soil",
+      "Plant small plants",
+      "Water lightly"
+    ]
+  },
+  {
+    "title": "Make a Candle",
+    "steps": [
+      "Melt wax in a pot",
+      "Add wick to jar",
+      "Pour wax in jar",
+      "Let it cool",
+      "Trim the wick"
+    ]
+  },
+  {
+    "title": "Make a Snow Globe",
+    "steps": [
+      "Get a jar with lid",
+      "Glue figure to lid",
+      "Fill with water",
+      "Add glitter",
+      "Screw lid on tight"
+    ]
+  },
+  {
+    "title": "Make a Paper Lantern",
+    "steps": [
+      "Fold paper in half",
+      "Cut strips along fold",
+      "Unfold and roll",
+      "Staple edges",
+      "Add handle"
+    ]
+  },
+  {
+    "title": "Make a Mobile",
+    "steps": [
+      "Cut shapes from paper",
+      "Tie strings to shapes",
+      "Tie to a hanger",
+      "Balance the strings",
+      "Hang from ceiling"
+    ]
+  },
+  {
+    "title": "Make a Pinwheel",
+    "steps": [
+      "Cut square paper",
+      "Cut from corners to center",
+      "Fold corners to center",
+      "Pin to stick",
+      "Blow and watch spin"
+    ]
+  },
+  {
+    "title": "Make a Paper Crown",
+    "steps": [
+      "Cut strip of paper",
+      "Decorate with markers",
+      "Measure around head",
+      "Staple ends together",
+      "Wear your crown"
+    ]
+  },
+  {
+    "title": "Make a Paper Flower",
+    "steps": [
+      "Cut paper in circles",
+      "Fold each circle",
+      "Glue centers together",
+      "Add a stem",
+      "Arrange in vase"
+    ]
+  },
+  {
+    "title": "Make a Coaster",
+    "steps": [
+      "Cut cardboard in circle",
+      "Cover with fabric",
+      "Glue edges down",
+      "Let it dry",
+      "Use under drinks"
+    ]
+  },
+  {
+    "title": "Make a Pencil Holder",
+    "steps": [
+      "Get a can or jar",
+      "Cover with paper",
+      "Decorate with markers",
+      "Let it dry",
+      "Put pencils inside"
+    ]
+  },
+  {
+    "title": "Make a Picture Frame",
+    "steps": [
+      "Cut cardboard frame",
+      "Cut out center",
+      "Decorate the frame",
+      "Glue photo behind",
+      "Hang on wall"
+    ]
+  },
+  {
+    "title": "Make a Paper Bag Puppet",
+    "steps": [
+      "Get a paper bag",
+      "Draw face on bottom",
+      "Add paper arms",
+      "Add decorations",
+      "Put hand inside"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Mask",
+    "steps": [
+      "Cut eye holes",
+      "Decorate the plate",
+      "Add paper features",
+      "Punch holes on sides",
+      "Tie string through"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Clock",
+    "steps": [
+      "Draw numbers on plate",
+      "Make clock hands",
+      "Attach with brad",
+      "Move hands to time",
+      "Learn to tell time"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Frisbee",
+    "steps": [
+      "Get two paper plates",
+      "Decorate both sides",
+      "Staple plates together",
+      "Bend edges up",
+      "Throw and catch"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Tambourine",
+    "steps": [
+      "Get two paper plates",
+      "Put beans inside",
+      "Staple edges together",
+      "Decorate outside",
+      "Shake and play"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Maraca",
+    "steps": [
+      "Get two paper plates",
+      "Put rice inside",
+      "Staple together",
+      "Add handle",
+      "Shake to music"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Sun",
+    "steps": [
+      "Cut triangles around edge",
+      "Paint plate yellow",
+      "Draw face in center",
+      "Add rays",
+      "Hang on wall"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Fish",
+    "steps": [
+      "Cut triangle from plate",
+      "Staple to back for tail",
+      "Draw fish face",
+      "Add scales",
+      "Hang with string"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Turtle",
+    "steps": [
+      "Cut head and legs",
+      "Attach to plate body",
+      "Draw shell pattern",
+      "Add eyes",
+      "Display your turtle"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Butterfly",
+    "steps": [
+      "Fold plate in half",
+      "Cut wing shapes",
+      "Decorate both sides",
+      "Add pipe cleaner body",
+      "Hang and watch fly"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Ladybug",
+    "steps": [
+      "Paint plate red",
+      "Add black spots",
+      "Cut head from paper",
+      "Attach to plate",
+      "Add googly eyes"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Owl",
+    "steps": [
+      "Fold plate in half",
+      "Cut out eyes",
+      "Add paper beak",
+      "Add paper wings",
+      "Hang in tree"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Cat",
+    "steps": [
+      "Paint plate",
+      "Cut out ears",
+      "Attach ears to top",
+      "Draw face",
+      "Add whiskers"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Dog",
+    "steps": [
+      "Paint plate",
+      "Cut out ears",
+      "Attach to sides",
+      "Draw face",
+      "Add paper tongue"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Elephant",
+    "steps": [
+      "Paint plate gray",
+      "Cut out trunk",
+      "Attach to bottom",
+      "Add big ears",
+      "Draw eyes"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Lion",
+    "steps": [
+      "Paint plate yellow",
+      "Add orange mane",
+      "Draw face",
+      "Add whiskers",
+      "Roar like a lion"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Penguin",
+    "steps": [
+      "Paint plate black and white",
+      "Cut out feet",
+      "Attach to bottom",
+      "Draw face",
+      "Add orange beak"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Bear",
+    "steps": [
+      "Paint plate brown",
+      "Cut out ears",
+      "Attach to top",
+      "Draw face",
+      "Add nose"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Rabbit",
+    "steps": [
+      "Paint plate white",
+      "Cut long ears",
+      "Attach to top",
+      "Draw face",
+      "Add cotton tail"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Pig",
+    "steps": [
+      "Paint plate pink",
+      "Cut out snout",
+      "Attach to front",
+      "Add curly tail",
+      "Draw eyes"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Monkey",
+    "steps": [
+      "Paint plate brown",
+      "Cut out ears",
+      "Attach to sides",
+      "Draw face",
+      "Add long tail"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Zebra",
+    "steps": [
+      "Paint plate white",
+      "Add black stripes",
+      "Cut out ears",
+      "Attach to top",
+      "Draw face"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Giraffe",
+    "steps": [
+      "Paint plate yellow",
+      "Add brown spots",
+      "Cut long neck",
+      "Attach to top",
+      "Draw face"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Hippo",
+    "steps": [
+      "Paint plate gray",
+      "Cut big mouth",
+      "Attach to front",
+      "Add small ears",
+      "Draw eyes"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Crocodile",
+    "steps": [
+      "Paint plate green",
+      "Cut zigzag teeth",
+      "Attach to mouth",
+      "Add scales",
+      "Draw eyes on top"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Snake",
+    "steps": [
+      "Cut plate in spiral",
+      "Paint with pattern",
+      "Add googly eyes",
+      "Add forked tongue",
+      "Hang from ceiling"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Spider",
+    "steps": [
+      "Paint plate black",
+      "Cut eight legs",
+      "Attach to sides",
+      "Add googly eyes",
+      "Hang with web"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Bee",
+    "steps": [
+      "Paint plate yellow",
+      "Add black stripes",
+      "Cut out wings",
+      "Attach to sides",
+      "Add antennae"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Ant",
+    "steps": [
+      "Paint plate black",
+      "Cut six legs",
+      "Attach to body",
+      "Add antennae",
+      "Draw face"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Dragonfly",
+    "steps": [
+      "Paint plate",
+      "Cut four wings",
+      "Attach to sides",
+      "Add long body",
+      "Add big eyes"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Caterpillar",
+    "steps": [
+      "Get several plates",
+      "Paint each one",
+      "Staple together",
+      "Add legs",
+      "Add face on front"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Flower",
+    "steps": [
+      "Cut petals around edge",
+      "Paint center yellow",
+      "Paint petals colorful",
+      "Add stem",
+      "Display in vase"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Tree",
+    "steps": [
+      "Paint plate green",
+      "Cut trunk from paper",
+      "Attach to bottom",
+      "Add branches",
+      "Hang on wall"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Rainbow",
+    "steps": [
+      "Cut plate in half",
+      "Paint rainbow colors",
+      "Add cotton clouds",
+      "Hang on wall",
+      "Enjoy your rainbow"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Star",
+    "steps": [
+      "Cut star shape",
+      "Paint gold or silver",
+      "Add glitter",
+      "Punch hole at top",
+      "Hang with string"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Moon",
+    "steps": [
+      "Cut crescent shape",
+      "Paint silver",
+      "Add stars around",
+      "Hang on wall",
+      "Light up the night"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Rocket",
+    "steps": [
+      "Paint plate",
+      "Cut triangle top",
+      "Attach to plate",
+      "Add flames",
+      "Blast off"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Car",
+    "steps": [
+      "Paint plate",
+      "Cut out wheels",
+      "Attach to sides",
+      "Draw windows",
+      "Add details"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Train",
+    "steps": [
+      "Get several plates",
+      "Paint each one",
+      "Staple together",
+      "Add wheels",
+      "Add smoke stack"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Airplane",
+    "steps": [
+      "Fold plate in half",
+      "Cut wing shapes",
+      "Attach to sides",
+      "Add tail",
+      "Fly your plane"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Boat",
+    "steps": [
+      "Cut plate in half",
+      "Paint bottom",
+      "Add sail",
+      "Add mast",
+      "Float in water"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate House",
+    "steps": [
+      "Cut triangle roof",
+      "Attach to plate",
+      "Draw windows",
+      "Draw door",
+      "Add chimney"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Castle",
+    "steps": [
+      "Cut battlements on top",
+      "Paint gray",
+      "Draw windows",
+      "Add towers",
+      "Add drawbridge"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Pizza",
+    "steps": [
+      "Paint plate red",
+      "Add yellow cheese",
+      "Add paper toppings",
+      "Cut into slices",
+      "Serve to friends"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Cake",
+    "steps": [
+      "Stack two plates",
+      "Paint like frosting",
+      "Add candles",
+      "Add decorations",
+      "Blow out candles"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Ice Cream",
+    "steps": [
+      "Paint plate like scoop",
+      "Add cone below",
+      "Add cherry on top",
+      "Add sprinkles",
+      "Enjoy your treat"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Donut",
+    "steps": [
+      "Cut hole in center",
+      "Paint like frosting",
+      "Add sprinkles",
+      "Add glaze",
+      "Eat it up"
+    ]
+  },
+  {
+    "title": "Make a Paper Plate Cookie",
+    "steps": [
+      "Paint plate brown",
+      "Add chocolate chips",
+      "Add details",
+      "Make it look yummy",
+      "Share with friends"
+    ]
   }
 ]
 
