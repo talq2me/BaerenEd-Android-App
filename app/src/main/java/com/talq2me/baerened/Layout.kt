@@ -111,7 +111,7 @@ class Layout(private val activity: MainActivity) {
 
         // Display battle hub at the top (embedded WebView)
         setupBattleHub()
-        setupGymMap()
+        // setupGymMap() // Temporarily disabled - gym map needs more work
 
         // Display sections (tasks and buttons) - defer heavy view creation to avoid blocking
         sectionsContainer.visibility = View.VISIBLE
@@ -1985,8 +1985,13 @@ class Layout(private val activity: MainActivity) {
                 val currentContent = activity.getCurrentMainContent()
                 if (currentContent != null) {
                     val requiredSection = currentContent.sections?.find { it.id == "required" }
-                    val requiredTasks = requiredSection?.tasks?.filter { it.title != null && it.launch != null } ?: emptyList()
-                    android.util.Log.d("Layout", "Returning ${requiredTasks.size} required tasks for gym map")
+                    // Filter tasks the same way the main page does - only show tasks visible today
+                    val requiredTasks = requiredSection?.tasks?.filter { task ->
+                        task.title != null && 
+                        task.launch != null && 
+                        isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+                    } ?: emptyList()
+                    android.util.Log.d("Layout", "Returning ${requiredTasks.size} visible required tasks for gym map (out of ${requiredSection?.tasks?.size ?: 0} total)")
                     com.google.gson.Gson().toJson(requiredTasks)
                 } else {
                     android.util.Log.w("Layout", "No current content available for gym map")
