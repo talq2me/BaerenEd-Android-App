@@ -203,28 +203,28 @@
         {
           "title": "Word Garden",
           "launch": "wordGarden",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Word Fishing",
           "launch": "wordFishing",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Spelling Race",
           "launch": "spellingRace",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Potion Maker",
           "launch": "potionMaker",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/potionMaker.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/potionMaker.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
@@ -246,48 +246,34 @@
           "title": "Recipe Builder",
           "launch": "recipeBuilder",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/recipeBuilder.html?file=recipes.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Treasure Map Quest",
           "launch": "treasureMapQuest",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/treasureMapQuest.html?file=treasureQuests.json",
-          "stars": 3,
-          "webGame": true
-        },
-        {
-          "title": "Build a Robot",
-          "launch": "buildARobot",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/buildARobot.html?file=robots.json",
-          "stars": 3,
-          "webGame": true
-        },
-        {
-          "title": "Construction Site",
-          "launch": "constructionSite",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/constructionSite.html?file=structures.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Word Building Blocks",
           "launch": "wordBuildingBlocks",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordBuildingBlocks.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordBuildingBlocks.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Word Puzzle Adventure",
           "launch": "wordPuzzleAdventure",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordPuzzleAdventure.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordPuzzleAdventure.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
         {
           "title": "Word Factory",
           "launch": "wordFactory",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true
         },
@@ -295,62 +281,62 @@
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
           "stars": 1,
-          "totalQuestions": 1
+          "totalQuestions": 5
         },
         {
           "title": "Duological",
           "launch": "duologicalGame",
-          "stars": 1,
-          "totalQuestions": 1,
+          "stars": 2,
+          "totalQuestions": 5,
           "blockOutlines": true
         },
         {
           "title": "Translation",
           "launch": "translation",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 2,
+          "totalQuestions": 5
         },
         {
           "title": "French Stories",
           "launch": "frenchStories",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 3,
+          "totalQuestions": 5
         },
         {
           "title": "Congugation",
           "launch": "conjugation",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 2,
+          "totalQuestions": 5
         },
         {
           "title": "Fractions",
           "launch": "gr3fractions",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 3,
+          "totalQuestions": 5
         },
         {
           "title": "Math",
           "launch": "gr3math",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 2,
+          "totalQuestions": 5
         },
         {
           "title": "Mixed Math",
           "launch": "gr3mixedproblems",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 3,
+          "totalQuestions": 5
         },
         {
           "title": "Math Word Problems",
           "launch": "gr3wordproblems",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 3,
+          "totalQuestions": 3
         },
         {
           "title": "Algebra",
           "launch": "gr3algebra",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 2,
+          "totalQuestions": 5
         },
         {
           "title": "Times Tables",
@@ -369,8 +355,8 @@
         {
           "title": "Money Game",
           "launch": "canadianMoneyHard",
-          "stars": 1,
-          "totalQuestions": 1
+          "stars": 2,
+          "totalQuestions": 5
         },
         {
           "title": "Diagram Labeler: Circulatory System",
@@ -383,7 +369,7 @@
           "title": "Diagram Labeler: Digestive System",
           "launch": "diagramLabeler",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=digestiveSystem",
-          "stars": 3,
+          "stars": 4,
           "webGame": true
         },
         {
