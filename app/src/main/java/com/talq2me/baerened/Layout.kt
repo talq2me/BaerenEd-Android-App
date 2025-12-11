@@ -1979,6 +1979,26 @@ class Layout(private val activity: MainActivity) {
         }
         
         @android.webkit.JavascriptInterface
+        fun getRequiredTasks(): String {
+            return try {
+                // Use the same method the main page uses to get required tasks
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    val requiredSection = currentContent.sections?.find { it.id == "required" }
+                    val requiredTasks = requiredSection?.tasks?.filter { it.title != null && it.launch != null } ?: emptyList()
+                    android.util.Log.d("Layout", "Returning ${requiredTasks.size} required tasks for gym map")
+                    com.google.gson.Gson().toJson(requiredTasks)
+                } else {
+                    android.util.Log.w("Layout", "No current content available for gym map")
+                    "[]"
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting required tasks", e)
+                "[]"
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
         fun launchGame(gameId: String) {
             android.util.Log.d("Layout", "JavaScript requested to launch game from gym map: $gameId")
             activity.runOnUiThread {
