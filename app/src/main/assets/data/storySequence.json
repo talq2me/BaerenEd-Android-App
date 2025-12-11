@@ -48,6 +48,606 @@
       "Then we ate the cookies.",
       "They were delicious!"
     ]
+  },
+  {
+    "story": "The bird built a nest. It laid eggs in the nest. The eggs hatched. Baby birds came out. The mother fed them.",
+    "sentences": [
+      "The bird built a nest.",
+      "It laid eggs in the nest.",
+      "The eggs hatched.",
+      "Baby birds came out.",
+      "The mother fed them."
+    ]
+  },
+  {
+    "story": "Emma planted a seed. She watered it every day. A sprout appeared. It grew into a plant. Flowers bloomed.",
+    "sentences": [
+      "Emma planted a seed.",
+      "She watered it every day.",
+      "A sprout appeared.",
+      "It grew into a plant.",
+      "Flowers bloomed."
+    ]
+  },
+  {
+    "story": "The rain started falling. Puddles formed on the ground. Children put on raincoats. They jumped in puddles. They had fun.",
+    "sentences": [
+      "The rain started falling.",
+      "Puddles formed on the ground.",
+      "Children put on raincoats.",
+      "They jumped in puddles.",
+      "They had fun."
+    ]
+  },
+  {
+    "story": "Jake found a lost puppy. He asked around the neighborhood. No one claimed the puppy. Jake took it home. His family adopted it.",
+    "sentences": [
+      "Jake found a lost puppy.",
+      "He asked around the neighborhood.",
+      "No one claimed the puppy.",
+      "Jake took it home.",
+      "His family adopted it."
+    ]
+  },
+  {
+    "story": "The butterfly came out of its cocoon. It spread its wings. It flew to a flower. It drank nectar. It was beautiful.",
+    "sentences": [
+      "The butterfly came out of its cocoon.",
+      "It spread its wings.",
+      "It flew to a flower.",
+      "It drank nectar.",
+      "It was beautiful."
+    ]
+  },
+  {
+    "story": "Maya wanted to learn to ride a bike. Her dad helped her. She practiced every day. She learned to balance. She rode by herself.",
+    "sentences": [
+      "Maya wanted to learn to ride a bike.",
+      "Her dad helped her.",
+      "She practiced every day.",
+      "She learned to balance.",
+      "She rode by herself."
+    ]
+  },
+  {
+    "story": "The snow began to fall. It covered the ground. Children made a snowman. They added a carrot nose. They played in the snow.",
+    "sentences": [
+      "The snow began to fall.",
+      "It covered the ground.",
+      "Children made a snowman.",
+      "They added a carrot nose.",
+      "They played in the snow."
+    ]
+  },
+  {
+    "story": "The library had a book sale. Sarah found her favorite book. She bought it with her allowance. She read it at home. She loved the story.",
+    "sentences": [
+      "The library had a book sale.",
+      "Sarah found her favorite book.",
+      "She bought it with her allowance.",
+      "She read it at home.",
+      "She loved the story."
+    ]
+  },
+  {
+    "story": "The caterpillar ate many leaves. It grew bigger and bigger. It made a cocoon. It stayed inside. A butterfly emerged.",
+    "sentences": [
+      "The caterpillar ate many leaves.",
+      "It grew bigger and bigger.",
+      "It made a cocoon.",
+      "It stayed inside.",
+      "A butterfly emerged."
+    ]
+  },
+  {
+    "story": "Tom helped his mom cook dinner. He washed the vegetables. He cut them into pieces. They cooked together. The meal was delicious.",
+    "sentences": [
+      "Tom helped his mom cook dinner.",
+      "He washed the vegetables.",
+      "He cut them into pieces.",
+      "They cooked together.",
+      "The meal was delicious."
+    ]
+  },
+  {
+    "story": "The class went on a field trip. They visited a museum. They saw dinosaur bones. They learned about history. They had a great time.",
+    "sentences": [
+      "The class went on a field trip.",
+      "They visited a museum.",
+      "They saw dinosaur bones.",
+      "They learned about history.",
+      "They had a great time."
+    ]
+  },
+  {
+    "story": "The little seed was planted. The sun shone on it. Rain watered it. Roots grew down. A flower grew up.",
+    "sentences": [
+      "The little seed was planted.",
+      "The sun shone on it.",
+      "Rain watered it.",
+      "Roots grew down.",
+      "A flower grew up."
+    ]
+  },
+  {
+    "story": "Lily found a seashell at the beach. She picked it up. She washed it in the water. She put it in her pocket. She took it home.",
+    "sentences": [
+      "Lily found a seashell at the beach.",
+      "She picked it up.",
+      "She washed it in the water.",
+      "She put it in her pocket.",
+      "She took it home."
+    ]
+  },
+  {
+    "story": "The squirrel found an acorn. It carried it up the tree. It buried it in the ground. Winter came. It found the acorn again.",
+    "sentences": [
+      "The squirrel found an acorn.",
+      "It carried it up the tree.",
+      "It buried it in the ground.",
+      "Winter came.",
+      "It found the acorn again."
+    ]
+  },
+  {
+    "story": "Alex wanted to learn to swim. He took swimming lessons. He practiced in the pool. He learned different strokes. He became a good swimmer.",
+    "sentences": [
+      "Alex wanted to learn to swim.",
+      "He took swimming lessons.",
+      "He practiced in the pool.",
+      "He learned different strokes.",
+      "He became a good swimmer."
+    ]
+  },
+  {
+    "story": "The farmer planted corn seeds. He watered them. The corn grew tall. Ears of corn appeared. He harvested the corn.",
+    "sentences": [
+      "The farmer planted corn seeds.",
+      "He watered them.",
+      "The corn grew tall.",
+      "Ears of corn appeared.",
+      "He harvested the corn."
+    ]
+  },
+  {
+    "story": "Sophia made a painting. She mixed colors. She painted a picture. She let it dry. She hung it on the wall.",
+    "sentences": [
+      "Sophia made a painting.",
+      "She mixed colors.",
+      "She painted a picture.",
+      "She let it dry.",
+      "She hung it on the wall."
+    ]
+  },
+  {
+    "story": "The bee flew to a flower. It collected pollen. It flew to another flower. It spread the pollen. New flowers grew.",
+    "sentences": [
+      "The bee flew to a flower.",
+      "It collected pollen.",
+      "It flew to another flower.",
+      "It spread the pollen.",
+      "New flowers grew."
+    ]
+  },
+  {
+    "story": "Noah built a tower with blocks. He stacked them high. The tower got taller. It reached the ceiling. He was proud.",
+    "sentences": [
+      "Noah built a tower with blocks.",
+      "He stacked them high.",
+      "The tower got taller.",
+      "It reached the ceiling.",
+      "He was proud."
+    ]
+  },
+  {
+    "story": "The ducklings followed their mother. They walked to the pond. They jumped in the water. They learned to swim. They were safe.",
+    "sentences": [
+      "The ducklings followed their mother.",
+      "They walked to the pond.",
+      "They jumped in the water.",
+      "They learned to swim.",
+      "They were safe."
+    ]
+  },
+  {
+    "story": "Emma practiced the piano. She played scales. She learned a new song. She practiced every day. She played it perfectly.",
+    "sentences": [
+      "Emma practiced the piano.",
+      "She played scales.",
+      "She learned a new song.",
+      "She practiced every day.",
+      "She played it perfectly."
+    ]
+  },
+  {
+    "story": "The leaves changed color. They turned red and yellow. They fell from the trees. They covered the ground. Autumn had arrived.",
+    "sentences": [
+      "The leaves changed color.",
+      "They turned red and yellow.",
+      "They fell from the trees.",
+      "They covered the ground.",
+      "Autumn had arrived."
+    ]
+  },
+  {
+    "story": "Ryan found a treasure map. He followed the clues. He dug in the sand. He found a treasure chest. He opened it.",
+    "sentences": [
+      "Ryan found a treasure map.",
+      "He followed the clues.",
+      "He dug in the sand.",
+      "He found a treasure chest.",
+      "He opened it."
+    ]
+  },
+  {
+    "story": "The tadpole swam in the pond. It grew legs. Its tail got smaller. It became a frog. It jumped on land.",
+    "sentences": [
+      "The tadpole swam in the pond.",
+      "It grew legs.",
+      "Its tail got smaller.",
+      "It became a frog.",
+      "It jumped on land."
+    ]
+  },
+  {
+    "story": "Mia helped her grandma bake cookies. They mixed the ingredients. They shaped the cookies. They baked them. They tasted great.",
+    "sentences": [
+      "Mia helped her grandma bake cookies.",
+      "They mixed the ingredients.",
+      "They shaped the cookies.",
+      "They baked them.",
+      "They tasted great."
+    ]
+  },
+  {
+    "story": "The spider spun a web. It caught a fly. It wrapped it up. It saved it for later. It had dinner.",
+    "sentences": [
+      "The spider spun a web.",
+      "It caught a fly.",
+      "It wrapped it up.",
+      "It saved it for later.",
+      "It had dinner."
+    ]
+  },
+  {
+    "story": "Lucas planted a tree. He dug a hole. He put the tree in. He covered the roots. He watered it.",
+    "sentences": [
+      "Lucas planted a tree.",
+      "He dug a hole.",
+      "He put the tree in.",
+      "He covered the roots.",
+      "He watered it."
+    ]
+  },
+  {
+    "story": "The chick pecked at its shell. It made a crack. It pecked some more. It broke out. It was born.",
+    "sentences": [
+      "The chick pecked at its shell.",
+      "It made a crack.",
+      "It pecked some more.",
+      "It broke out.",
+      "It was born."
+    ]
+  },
+  {
+    "story": "Isabella wrote a story. She thought of characters. She wrote the plot. She added details. She shared it with friends.",
+    "sentences": [
+      "Isabella wrote a story.",
+      "She thought of characters.",
+      "She wrote the plot.",
+      "She added details.",
+      "She shared it with friends."
+    ]
+  },
+  {
+    "story": "The ant found food. It went back to the nest. It told other ants. They followed it. They carried the food home.",
+    "sentences": [
+      "The ant found food.",
+      "It went back to the nest.",
+      "It told other ants.",
+      "They followed it.",
+      "They carried the food home."
+    ]
+  },
+  {
+    "story": "Ethan learned to tie his shoes. He watched his mom. He practiced the loops. He got it right. He was excited.",
+    "sentences": [
+      "Ethan learned to tie his shoes.",
+      "He watched his mom.",
+      "He practiced the loops.",
+      "He got it right.",
+      "He was excited."
+    ]
+  },
+  {
+    "story": "The moon appeared in the sky. Stars came out. The sky got dark. Owls began to hoot. Night had come.",
+    "sentences": [
+      "The moon appeared in the sky.",
+      "Stars came out.",
+      "The sky got dark.",
+      "Owls began to hoot.",
+      "Night had come."
+    ]
+  },
+  {
+    "story": "Olivia made a birdhouse. She hammered the pieces. She painted it. She hung it in a tree. Birds moved in.",
+    "sentences": [
+      "Olivia made a birdhouse.",
+      "She hammered the pieces.",
+      "She painted it.",
+      "She hung it in a tree.",
+      "Birds moved in."
+    ]
+  },
+  {
+    "story": "The bear looked for food. It found berries. It ate them. It found fish. It was full.",
+    "sentences": [
+      "The bear looked for food.",
+      "It found berries.",
+      "It ate them.",
+      "It found fish.",
+      "It was full."
+    ]
+  },
+  {
+    "story": "Mason built a sandcastle. He made towers. He added a moat. He decorated it. He was proud of his work.",
+    "sentences": [
+      "Mason built a sandcastle.",
+      "He made towers.",
+      "He added a moat.",
+      "He decorated it.",
+      "He was proud of his work."
+    ]
+  },
+  {
+    "story": "The seed fell to the ground. Rain soaked it. The sun warmed it. A root grew down. A stem grew up.",
+    "sentences": [
+      "The seed fell to the ground.",
+      "Rain soaked it.",
+      "The sun warmed it.",
+      "A root grew down.",
+      "A stem grew up."
+    ]
+  },
+  {
+    "story": "Ava learned to read. She practiced letters. She read words. She read sentences. She read a whole book.",
+    "sentences": [
+      "Ava learned to read.",
+      "She practiced letters.",
+      "She read words.",
+      "She read sentences.",
+      "She read a whole book."
+    ]
+  },
+  {
+    "story": "The fish swam in the ocean. It saw a bigger fish. It hid behind a rock. The bigger fish swam away. It was safe.",
+    "sentences": [
+      "The fish swam in the ocean.",
+      "It saw a bigger fish.",
+      "It hid behind a rock.",
+      "The bigger fish swam away.",
+      "It was safe."
+    ]
+  },
+  {
+    "story": "Henry collected rocks. He found smooth ones. He found shiny ones. He organized them. He showed his collection.",
+    "sentences": [
+      "Henry collected rocks.",
+      "He found smooth ones.",
+      "He found shiny ones.",
+      "He organized them.",
+      "He showed his collection."
+    ]
+  },
+  {
+    "story": "The worm dug through the soil. It made tunnels. It ate dead leaves. It helped the plants. The soil was healthy.",
+    "sentences": [
+      "The worm dug through the soil.",
+      "It made tunnels.",
+      "It ate dead leaves.",
+      "It helped the plants.",
+      "The soil was healthy."
+    ]
+  },
+  {
+    "story": "Charlotte learned to skip. She practiced hopping. She tried skipping. She got better. She skipped all the way home.",
+    "sentences": [
+      "Charlotte learned to skip.",
+      "She practiced hopping.",
+      "She tried skipping.",
+      "She got better.",
+      "She skipped all the way home."
+    ]
+  },
+  {
+    "story": "The clouds gathered in the sky. They turned dark gray. Thunder rumbled. Rain started falling. A rainbow appeared.",
+    "sentences": [
+      "The clouds gathered in the sky.",
+      "They turned dark gray.",
+      "Thunder rumbled.",
+      "Rain started falling.",
+      "A rainbow appeared."
+    ]
+  },
+  {
+    "story": "Benjamin made a paper airplane. He folded the paper. He made wings. He threw it. It flew far.",
+    "sentences": [
+      "Benjamin made a paper airplane.",
+      "He folded the paper.",
+      "He made wings.",
+      "He threw it.",
+      "It flew far."
+    ]
+  },
+  {
+    "story": "The rabbit hopped in the garden. It found a carrot. It nibbled on it. It found lettuce. It had a feast.",
+    "sentences": [
+      "The rabbit hopped in the garden.",
+      "It found a carrot.",
+      "It nibbled on it.",
+      "It found lettuce.",
+      "It had a feast."
+    ]
+  },
+  {
+    "story": "Harper learned to ride a scooter. She practiced balancing. She pushed with her foot. She went faster. She rode around the block.",
+    "sentences": [
+      "Harper learned to ride a scooter.",
+      "She practiced balancing.",
+      "She pushed with her foot.",
+      "She went faster.",
+      "She rode around the block."
+    ]
+  },
+  {
+    "story": "The caterpillar crawled on a leaf. It ate and ate. It got very fat. It made a cocoon. It became a butterfly.",
+    "sentences": [
+      "The caterpillar crawled on a leaf.",
+      "It ate and ate.",
+      "It got very fat.",
+      "It made a cocoon.",
+      "It became a butterfly."
+    ]
+  },
+  {
+    "story": "Daniel helped clean the park. He picked up trash. He put it in bags. He recycled what he could. The park looked clean.",
+    "sentences": [
+      "Daniel helped clean the park.",
+      "He picked up trash.",
+      "He put it in bags.",
+      "He recycled what he could.",
+      "The park looked clean."
+    ]
+  },
+  {
+    "story": "The sunflower grew tall. It faced the sun. Its petals opened. Bees came to visit. Seeds formed in the center.",
+    "sentences": [
+      "The sunflower grew tall.",
+      "It faced the sun.",
+      "Its petals opened.",
+      "Bees came to visit.",
+      "Seeds formed in the center."
+    ]
+  },
+  {
+    "story": "Evelyn learned to jump rope. She practiced the rhythm. She jumped higher. She did tricks. She was good at it.",
+    "sentences": [
+      "Evelyn learned to jump rope.",
+      "She practiced the rhythm.",
+      "She jumped higher.",
+      "She did tricks.",
+      "She was good at it."
+    ]
+  },
+  {
+    "story": "The turtle walked slowly. It reached the water. It swam away. It found food. It was happy.",
+    "sentences": [
+      "The turtle walked slowly.",
+      "It reached the water.",
+      "It swam away.",
+      "It found food.",
+      "It was happy."
+    ]
+  },
+  {
+    "story": "Matthew built a model airplane. He read the instructions. He glued the pieces. He painted it. He flew it.",
+    "sentences": [
+      "Matthew built a model airplane.",
+      "He read the instructions.",
+      "He glued the pieces.",
+      "He painted it.",
+      "He flew it."
+    ]
+  },
+  {
+    "story": "The apple fell from the tree. It rolled on the ground. A deer found it. The deer ate it. It was tasty.",
+    "sentences": [
+      "The apple fell from the tree.",
+      "It rolled on the ground.",
+      "A deer found it.",
+      "The deer ate it.",
+      "It was tasty."
+    ]
+  },
+  {
+    "story": "Abigail learned to whistle. She practiced with her lips. She tried different ways. She made a sound. She whistled a tune.",
+    "sentences": [
+      "Abigail learned to whistle.",
+      "She practiced with her lips.",
+      "She tried different ways.",
+      "She made a sound.",
+      "She whistled a tune."
+    ]
+  },
+  {
+    "story": "The spider wove its web. It waited patiently. A bug got caught. The spider wrapped it. It had a meal.",
+    "sentences": [
+      "The spider wove its web.",
+      "It waited patiently.",
+      "A bug got caught.",
+      "The spider wrapped it.",
+      "It had a meal."
+    ]
+  },
+  {
+    "story": "David planted sunflower seeds. He watered them daily. Stems grew tall. Big flowers bloomed. Birds ate the seeds.",
+    "sentences": [
+      "David planted sunflower seeds.",
+      "He watered them daily.",
+      "Stems grew tall.",
+      "Big flowers bloomed.",
+      "Birds ate the seeds."
+    ]
+  },
+  {
+    "story": "The ice began to melt. Water dripped down. Puddles formed. The sun shone. Spring had arrived.",
+    "sentences": [
+      "The ice began to melt.",
+      "Water dripped down.",
+      "Puddles formed.",
+      "The sun shone.",
+      "Spring had arrived."
+    ]
+  },
+  {
+    "story": "Grace learned to hula hoop. She moved her hips. She kept it spinning. She did it longer. She was proud.",
+    "sentences": [
+      "Grace learned to hula hoop.",
+      "She moved her hips.",
+      "She kept it spinning.",
+      "She did it longer.",
+      "She was proud."
+    ]
+  },
+  {
+    "story": "The bird made a nest. It laid blue eggs. The eggs hatched. Baby birds chirped. The mother fed them worms.",
+    "sentences": [
+      "The bird made a nest.",
+      "It laid blue eggs.",
+      "The eggs hatched.",
+      "Baby birds chirped.",
+      "The mother fed them worms."
+    ]
+  },
+  {
+    "story": "James learned to catch a ball. He practiced with his dad. He caught it with two hands. He caught it with one hand. He was good at it.",
+    "sentences": [
+      "James learned to catch a ball.",
+      "He practiced with his dad.",
+      "He caught it with two hands.",
+      "He caught it with one hand.",
+      "He was good at it."
+    ]
+  },
+  {
+    "story": "The acorn fell from the oak tree. It landed on the ground. A squirrel found it. The squirrel buried it. A new tree grew.",
+    "sentences": [
+      "The acorn fell from the oak tree.",
+      "It landed on the ground.",
+      "A squirrel found it.",
+      "The squirrel buried it.",
+      "A new tree grew."
+    ]
   }
 ]
 

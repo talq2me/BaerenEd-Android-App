@@ -61,6 +61,13 @@
           "webGame": true
         },
         {
+          "title": "Multi-Digit Add/Subtract",
+          "launch": "multiDigitAddSubtract",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
@@ -364,6 +371,27 @@
           "launch": "canadianMoneyHard",
           "stars": 1,
           "totalQuestions": 1
+        },
+        {
+          "title": "Diagram Labeler: Circulatory System",
+          "launch": "diagramLabeler",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=circulatorySystem",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Diagram Labeler: Digestive System",
+          "launch": "diagramLabeler",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=digestiveSystem",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Diagram Labeler: Skeletal System",
+          "launch": "diagramLabeler",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=skeletalSystem",
+          "stars": 6,
+          "webGame": true
         }
       ]
     },

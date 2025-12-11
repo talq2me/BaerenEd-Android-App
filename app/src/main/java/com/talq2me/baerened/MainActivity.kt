@@ -87,6 +87,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var webGameCompletionLauncher: ActivityResultLauncher<Intent>
     lateinit var chromePageLauncher: ActivityResultLauncher<Intent>
     lateinit var emailReportLauncher: ActivityResultLauncher<Intent>
+    lateinit var gameCompletionLauncher: ActivityResultLauncher<Intent>
     
     // Store pending reward minutes to launch after email is sent
     private var pendingRewardMinutes: Int? = null
@@ -150,6 +151,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             handleChromePageCompletion(result)
         }
 
+        gameCompletionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            handleGameCompletion(result)
+        }
 
         emailReportLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             // After email activity finishes (user sent email or cancelled), launch reward selection if pending
@@ -697,14 +701,76 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun handleWebGameCompletion(result: ActivityResult) {
         android.util.Log.d("MainActivity", "WebGame result received: resultCode=${result.resultCode}")
-        if (result.resultCode == RESULT_OK && result.data != null) {
+        
+        // Check if battle hub requested to launch a game
+        if (result.resultCode == WebGameActivity.RESULT_LAUNCH_GAME && result.data != null) {
+            val gameId = result.data?.getStringExtra(WebGameActivity.RESULT_EXTRA_GAME_ID)
+            if (gameId != null) {
+                Log.d(TAG, "Battle hub requested to launch game: $gameId")
+                launchGameFromBattleHub(gameId)
+                return
+            }
+        }
+        
+        // Check if this was a game launched from battle hub (taskId starts with "battleHub_")
             val taskId = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_ID)
+        val wasFromBattleHub = taskId?.startsWith("battleHub_") == true
+        
+        if (result.resultCode == RESULT_OK && result.data != null) {
             val sectionId = result.data?.getStringExtra(WebGameActivity.EXTRA_SECTION_ID)
             val stars = result.data?.getIntExtra(WebGameActivity.EXTRA_STARS, 0) ?: 0
             val taskTitle = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
+            
+            // If game was launched from battle hub, save berries to be added when battle hub reopens
+            if (wasFromBattleHub && stars > 0) {
+                val berriesToAdd = stars // 1 star = 1 berry
+                val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                    .getInt("pendingBerries", 0)
+                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                    .edit()
+                    .putInt("pendingBerries", savedBerries + berriesToAdd)
+                    .apply()
+                Log.d(TAG, "Saved $berriesToAdd berries from battle hub game completion")
+            }
+            
             lifecycleScope.launch(Dispatchers.Main) {
                 layout.handleWebGameCompletion(taskId, sectionId, stars, taskTitle)
+                
+                // If game was launched from battle hub or gym map, refresh the embedded views
+                if (wasFromBattleHub || taskId?.startsWith("gymMap_") == true) {
+                    Log.d(TAG, "Game completed from battle hub or gym map, refreshing embedded views")
+                    layout.refreshBattleHub()
+                    layout.refreshGymMap()
+                }
             }
+        }
+    }
+    
+    private fun launchGameFromBattleHub(gameId: String) {
+        val currentContent = getCurrentMainContent() ?: return
+        
+        // Find the task in the config by launch ID
+        var taskToLaunch: Task? = null
+        var sectionId: String? = null
+        
+        currentContent.sections?.forEach { section ->
+            section.tasks?.forEach { task ->
+                if (task.launch == gameId) {
+                    taskToLaunch = task
+                    sectionId = section.id
+                    return@forEach
+                }
+            }
+        }
+        
+        if (taskToLaunch != null && sectionId != null) {
+            Log.d(TAG, "Found task for battle hub: ${taskToLaunch!!.title}, totalQuestions=${taskToLaunch!!.totalQuestions}, stars=${taskToLaunch!!.stars}")
+            // Launch the game using the same logic as Layout.kt
+            // Pass a modified task ID so we know it came from battle hub
+            layout.launchTaskFromBattleHub(taskToLaunch!!, sectionId, "battleHub_$gameId")
+        } else {
+            Log.w(TAG, "Game not found in config: $gameId")
+            Toast.makeText(this, "Game not found: $gameId", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -718,6 +784,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             if (taskId != null && taskTitle != null) {
                 layout.handleChromePageCompletion(taskId, taskTitle, stars, sectionId)
+            }
+        }
+    }
+    
+    private fun handleGameCompletion(result: ActivityResult) {
+        android.util.Log.d("MainActivity", "Game result received: resultCode=${result.resultCode}")
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val battleHubTaskId = result.data?.getStringExtra("BATTLE_HUB_TASK_ID")
+            val gameStars = result.data?.getIntExtra("GAME_STARS", 0) ?: 0
+            val gameType = result.data?.getStringExtra("GAME_TYPE")
+            
+            // Get sectionId from the current content to check if it's from required/optional
+            val currentContent = getCurrentMainContent()
+            val sectionId = currentContent?.sections?.find { section ->
+                section.tasks?.any { it.launch == gameType } == true
+            }?.id
+            
+            // If game was launched from battle hub/gym map OR from required/optional section, refresh views
+            val shouldRefresh = battleHubTaskId != null || (sectionId == "required" || sectionId == "optional")
+            
+            if (shouldRefresh) {
+                Log.d(TAG, "Game completed (battleHub=${battleHubTaskId != null}, section=$sectionId), refreshing embedded views")
+                layout.refreshBattleHub()
+                layout.refreshGymMap()
             }
         }
     }
@@ -980,6 +1070,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         when (action) {
             "settings" -> openSettings()
             "openPokedex" -> openPokemonCollection()
+            "openBattleHub" -> openBattleHub()
             "askForTime" -> showAskForTimeDialog()
             null -> Log.w(TAG, "Header button action is null")
             else -> Log.d(TAG, "Unknown header button action: $action")
@@ -1031,6 +1122,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         Log.d(TAG, "Opening Pokemon collection")
         val intent = Intent(this, PokemonActivity::class.java)
         startActivity(intent)
+    }
+
+    fun openBattleHub() {
+        Log.d(TAG, "Opening Pokemon Battle Hub")
+        val intent = Intent(this, WebGameActivity::class.java).apply {
+            putExtra(WebGameActivity.EXTRA_GAME_URL, "file:///android_asset/html/pokemonBattleHub.html")
+            putExtra(WebGameActivity.EXTRA_TASK_ID, "battleHub")
+            putExtra(WebGameActivity.EXTRA_TASK_TITLE, "Pokemon Battle Hub")
+        }
+        webGameCompletionLauncher.launch(intent)
     }
 
     fun openSettings() {
@@ -1579,7 +1680,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val GITHUB_REPORTS_PATH = "BaerenEd_Reports"  // Directory in repo for reports
     }
 
-    fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null) {
+    fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null, battleHubTaskId: String? = null) {
         Log.d(TAG, "Starting game: ${game.title}")
 
         when (game.type) {
@@ -1593,7 +1694,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
 
                 if (gameContent != null) {
-                    launchGameActivity(game, gameContent, sectionId)
+                    launchGameActivity(game, gameContent, sectionId, battleHubTaskId)
                 } else {
                     Toast.makeText(this, "${game.type} content not available", Toast.LENGTH_SHORT).show()
                 }
@@ -1643,11 +1744,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .show()
     }
 
-    private fun launchGameActivity(game: Game, gameContent: String, sectionId: String? = null) {
+    private fun launchGameActivity(game: Game, gameContent: String, sectionId: String? = null, battleHubTaskId: String? = null) {
         try {
             val gson = Gson()
             val questions = gson.fromJson(gameContent, Array<GameData>::class.java)
-            val totalQuestions = game.totalQuestions ?: questions.size
+            // Prioritize game.totalQuestions from config - this is the authoritative value
+            // Only fall back to questions.size if totalQuestions is not specified in config
+            // But ensure we use at least 5 questions as a reasonable default
+            val totalQuestions = when {
+                game.totalQuestions != null -> {
+                    // Config explicitly specifies totalQuestions - use it
+                    Log.d(TAG, "Using totalQuestions from config: ${game.totalQuestions}")
+                    game.totalQuestions!!
+                }
+                questions.size > 0 -> {
+                    // No config value, but we have questions - use all available
+                    Log.d(TAG, "No totalQuestions in config, using questions.size: ${questions.size}")
+                    questions.size
+                }
+                else -> {
+                    // No config and no questions - use default
+                    Log.d(TAG, "No totalQuestions in config and no questions, using default: 5")
+                    5
+                }
+            }
+            
+            Log.d(TAG, "Launching game: ${game.title}, totalQuestions from config: ${game.totalQuestions}, questions in content: ${questions.size}, final totalQuestions: $totalQuestions")
 
             val currentContent = getCurrentMainContent()
             val isRequired = currentContent?.sections?.any { section ->
@@ -1663,8 +1785,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 putExtra("IS_REQUIRED_GAME", isRequired)
                 putExtra("BLOCK_OUTLINES", game.blockOutlines)
                 sectionId?.let { putExtra("SECTION_ID", it) }
+                // Pass battleHubTaskId if this game was launched from battle hub
+                battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
             }
+            
+            // If launched from battle hub, use launcher to get result; otherwise just start activity
+            if (battleHubTaskId != null) {
+                gameCompletionLauncher.launch(intent)
+            } else {
             startActivity(intent)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing game content for ${game.type}", e)
             Toast.makeText(this, "Error loading game content", Toast.LENGTH_SHORT).show()

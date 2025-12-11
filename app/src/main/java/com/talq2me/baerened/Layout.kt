@@ -44,6 +44,29 @@ class Layout(private val activity: MainActivity) {
     // Runnable for pending section setup to prevent duplicates
     private var pendingSectionsSetup: Runnable? = null
 
+    // Icon configuration
+    private var iconConfig: IconConfig? = null
+    
+    data class IconConfig(
+        val starsIcon: String = "🍍",
+        val coinsIcon: String = "🪙"
+    )
+    
+    private fun loadIconConfig(): IconConfig {
+        if (iconConfig == null) {
+            try {
+                val inputStream = activity.assets.open("config/icon_config.json")
+                val configJson = inputStream.bufferedReader().use { it.readText() }
+                inputStream.close()
+                iconConfig = Gson().fromJson(configJson, IconConfig::class.java) ?: IconConfig()
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error loading icon config", e)
+                iconConfig = IconConfig() // Use defaults
+            }
+        }
+        return iconConfig!!
+    }
+
     /**
      * Display the main content by setting up all UI components
      */
@@ -85,6 +108,10 @@ class Layout(private val activity: MainActivity) {
             // Always calculate totals from config to ensure correct caching
             progressManager.calculateTotalsFromConfig(content)
         }
+
+        // Display battle hub at the top (embedded WebView)
+        setupBattleHub()
+        setupGymMap()
 
         // Display sections (tasks and buttons) - defer heavy view creation to avoid blocking
         sectionsContainer.visibility = View.VISIBLE
@@ -208,7 +235,8 @@ class Layout(private val activity: MainActivity) {
         // Get actual banked reward minutes (not recalculated from stars)
         val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-        progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
+        val icons = loadIconConfig()
+        progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
         progressBar.max = totalCoins
         progressBar.progress = earnedCoins
 
@@ -243,7 +271,8 @@ class Layout(private val activity: MainActivity) {
             // Get actual banked reward minutes (not recalculated from stars)
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - Complete tasks to earn coins and stars!"
+            val icons = loadIconConfig()
+            progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn coins and stars!"
             progressBar.max = totalCoins
             progressBar.progress = earnedCoins
 
@@ -271,7 +300,8 @@ class Layout(private val activity: MainActivity) {
             // Get actual banked reward minutes (not recalculated from stars)
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-            progressText.text = "$earnedCoins/$totalCoins 🪙 + $earnedStars ⭐ = $rewardMinutes mins - Complete tasks to earn coins and stars!\""
+            val icons = loadIconConfig()
+            progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn coins and stars!"
             progressBar.max = totalCoins
             progressBar.progress = earnedCoins
         }
@@ -373,8 +403,27 @@ class Layout(private val activity: MainActivity) {
                 // Show completion message first
                 Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
 
-                // Force refresh the entire content to ensure task completion is reflected
+                // Add berries to battle hub if task is from required or optional section
                 val currentContent = activity.getCurrentMainContent()
+                val isFromRequiredOrOptional = currentContent?.sections?.any { section ->
+                    (section.id == "required" || section.id == "optional") && 
+                    section.tasks?.any { it.launch == taskId } == true
+                } ?: false
+                
+                if (isFromRequiredOrOptional) {
+                    val berriesToAdd = earnedStars // 1 star = 1 berry
+                    val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                        .getInt("pendingBerries", 0)
+                    activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .putInt("pendingBerries", savedBerries + berriesToAdd)
+                        .apply()
+                    android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from main page video task completion")
+                    // Refresh battle hub to show updated berries
+                    refreshBattleHub()
+                }
+
+                // Force refresh the entire content to ensure task completion is reflected
                 if (currentContent != null) {
                     android.util.Log.d("Layout", "Re-displaying content to update task completion state")
                     displayContent(currentContent)
@@ -403,15 +452,23 @@ class Layout(private val activity: MainActivity) {
             val progressManager = DailyProgressManager(activity)
             val currentContent = activity.getCurrentMainContent()
             
+            // Extract original gameId if taskId starts with "battleHub_"
+            val actualTaskId = if (taskId.startsWith("battleHub_")) {
+                taskId.substringAfter("battleHub_")
+            } else {
+                taskId
+            }
+            
             // Use task title from parameter or create default
-            val displayTitle = taskTitle ?: "Web Game: $taskId"
+            val displayTitle = taskTitle ?: "Web Game: $actualTaskId"
             
             // Determine if task is required based on section ID
             val isRequiredTask = sectionId == "required"
             
             // Pass config and sectionId to markTaskCompletedWithName so it can track tasks separately per section
+            // Use actualTaskId (without battleHub_ prefix) for completion tracking
             val earnedStars = progressManager.markTaskCompletedWithName(
-                taskId, 
+                actualTaskId, 
                 displayTitle, 
                 stars, 
                 isRequiredTask,
@@ -425,6 +482,21 @@ class Layout(private val activity: MainActivity) {
                 android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
 
                 Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+
+                // Add berries to battle hub if task is from required or optional section
+                if (sectionId == "required" || sectionId == "optional") {
+                    val berriesToAdd = earnedStars // 1 star = 1 berry
+                    val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                        .getInt("pendingBerries", 0)
+                    activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .putInt("pendingBerries", savedBerries + berriesToAdd)
+                        .apply()
+                    android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from main page task completion")
+                    // Refresh battle hub and gym map to show updated state
+                    refreshBattleHub()
+                    refreshGymMap()
+                }
 
                 if (currentContent != null) {
                     android.util.Log.d("Layout", "Re-displaying content to update task completion state")
@@ -466,6 +538,20 @@ class Layout(private val activity: MainActivity) {
             val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
             android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars, total reward minutes: $totalRewardMinutes")
             Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+            
+            // Add berries to battle hub if task is from required or optional section
+            if (sectionId == "required" || sectionId == "optional") {
+                val berriesToAdd = earnedStars // 1 star = 1 berry
+                val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .getInt("pendingBerries", 0)
+                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("pendingBerries", savedBerries + berriesToAdd)
+                    .apply()
+                android.util.Log.d(TAG, "Added $berriesToAdd berries to battle hub from main page task completion")
+                // Refresh battle hub to show updated berries
+                refreshBattleHub()
+            }
         } else {
             android.util.Log.d(TAG, "Chrome page task $taskId already completed today or no stars to award")
             Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
@@ -852,6 +938,110 @@ class Layout(private val activity: MainActivity) {
                 }
             }
         }
+        
+        // Function to launch a task from battle hub
+        fun launchTaskFromBattleHub(task: Task, sectionId: String) {
+            val gameType = task.launch ?: "unknown"
+            val gameTitle = task.title ?: "Task"
+            
+            // Check if this is a Chrome page task
+            if (task.chromePage == true) {
+                val pageUrl = task.url
+                if (pageUrl.isNullOrBlank()) {
+                    android.widget.Toast.makeText(activity, "No page configured for this task.", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    val taskLaunchId = task.launch ?: "unknown"
+                    val intent = android.content.Intent(activity, ChromePageActivity::class.java).apply {
+                        putExtra(ChromePageActivity.EXTRA_URL, pageUrl)
+                        putExtra(ChromePageActivity.EXTRA_TASK_ID, taskLaunchId)
+                        putExtra(ChromePageActivity.EXTRA_STARS, task.stars ?: 0)
+                        putExtra(ChromePageActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
+                        putExtra(ChromePageActivity.EXTRA_SECTION_ID, sectionId)
+                    }
+                    activity.chromePageLauncher.launch(intent)
+                }
+            }
+            // Check if this is a web game task
+            else if (task.webGame == true && !task.url.isNullOrEmpty()) {
+                android.util.Log.d("Layout", "Handling web game task from battle hub: ${task.title}, URL: ${task.url}")
+                val taskLaunchId = task.launch ?: "unknown"
+                val intent = android.content.Intent(activity, WebGameActivity::class.java).apply {
+                    var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                    // Convert GitHub Pages URL to local asset URL for Android
+                    if (gameUrl.contains("talq2me.github.io") && gameUrl.contains("/html/")) {
+                        val fileName = gameUrl.substringAfterLast("/")
+                        gameUrl = "file:///android_asset/html/$fileName"
+                        android.util.Log.d("Layout", "Converted to local asset URL: $gameUrl")
+                    }
+                    putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
+                    putExtra(WebGameActivity.EXTRA_TASK_ID, taskLaunchId)
+                    putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)
+                    putExtra(WebGameActivity.EXTRA_STARS, task.stars ?: 0)
+                    putExtra(WebGameActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
+                }
+                activity.webGameCompletionLauncher.launch(intent)
+            }
+            else if (task.videoSequence != null) {
+                android.util.Log.d("Layout", "Handling video sequence task from battle hub: ${task.videoSequence}, launch: ${task.launch}")
+                handleVideoSequenceTask(task, sectionId)
+            }
+            else if (task.playlistId != null) {
+                android.util.Log.d("Layout", "Handling direct playlist task from battle hub with playlistId: ${task.playlistId}")
+                playYouTubePlaylist(task.playlistId, task.title ?: "Playlist")
+            }
+            else if (task.launch == "googleReadAlong") {
+                android.util.Log.d("Layout", "Launching Google Read Along from battle hub")
+                activity.launchGoogleReadAlong(task, sectionId)
+            }
+            else if (task.launch == "frenchBookReader") {
+                android.util.Log.d("Layout", "Launching French Book Reader from battle hub")
+                val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
+                activity.startActivity(intent)
+            }
+            else {
+                // Handle regular game content
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
+                        
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            val game = Game(
+                                id = gameType,
+                                title = gameTitle,
+                                description = "Educational activity",
+                                type = gameType,
+                                iconUrl = "",
+                                requiresRewardTime = false,
+                                difficulty = "Easy",
+                                estimatedTime = task.stars ?: 1,
+                                totalQuestions = task.totalQuestions,
+                                blockOutlines = task.blockOutlines ?: false
+                            )
+                            activity.startGame(game, gameContent, sectionId)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
+                        
+                        // Fallback to starting game without content
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            val game = Game(
+                                id = gameType,
+                                title = gameTitle,
+                                description = "Educational activity",
+                                type = gameType,
+                                iconUrl = "",
+                                requiresRewardTime = false,
+                                difficulty = "Easy",
+                                estimatedTime = task.stars ?: 1,
+                                totalQuestions = task.totalQuestions,
+                                blockOutlines = task.blockOutlines ?: false
+                            )
+                            activity.startGame(game, null, sectionId)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun playYouTubeVideo(videoJson: String, videoName: String, task: Task, sectionId: String? = null) {
@@ -985,7 +1175,17 @@ class Layout(private val activity: MainActivity) {
 
     private fun setupSections(sections: List<Section>) {
         android.util.Log.d("Layout", "setupSections called with ${sections.size} sections")
+        // Remove all views except the battle hub and gym map WebViews
+        val battleHubView = battleHubWebView
+        val gymMapView = gymMapWebView
         sectionsContainer.removeAllViews()
+        // Re-add battle hub and gym map if they exist
+        battleHubView?.let {
+            sectionsContainer.addView(it, 0)
+        }
+        gymMapView?.let {
+            sectionsContainer.addView(it, 1)
+        }
 
         // Pre-load all completed task statuses in one batch to avoid multiple SharedPreferences reads
         // This is a light operation as it just reads from memory (DailyProgressManager caches the map)
@@ -1243,9 +1443,10 @@ class Layout(private val activity: MainActivity) {
             minimumHeight = tileHeight
 
             // Create the stars indicator first, so we can position the text above it
+            val icons = loadIconConfig()
             val starsView = TextView(activity).apply {
                 id = View.generateViewId() // Important for RelativeLayout rules
-                text = "⭐".repeat(task.stars ?: 1)
+                text = icons.starsIcon.repeat(task.stars ?: 1)
                 textSize = 16f // Slightly smaller for compact layout
                 setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.parseColor("#FFD700")) // Gold for active, grey for completed
                 gravity = android.view.Gravity.CENTER
@@ -1329,49 +1530,13 @@ class Layout(private val activity: MainActivity) {
                     } else if (task.launch == "googleReadAlong") {
                         android.util.Log.d("Layout", "Launching Google Read Along with tracking")
                         activity.launchGoogleReadAlong(task, sectionId)
+                    } else if (task.launch == "frenchBookReader") {
+                        android.util.Log.d("Layout", "Launching French Book Reader")
+                        val intent = Intent(activity, FrenchBookReaderActivity::class.java)
+                        activity.startActivity(intent)
                     } else {
-                        // Handle regular game content
-                        // Fetch game content asynchronously
-                        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                            try {
-                                val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
-
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                    val game = Game(
-                                        id = gameType,
-                                        title = gameTitle,
-                                        description = "Educational activity",
-                                        type = gameType,
-                                        iconUrl = "",
-                                        requiresRewardTime = false,
-                                        difficulty = "Easy",
-                                        estimatedTime = task.stars ?: 1,
-                                        totalQuestions = task.totalQuestions,
-                                        blockOutlines = task.blockOutlines ?: false
-                                    )
-                                    activity.startGame(game, gameContent, sectionId)
-                                }
-                            } catch (e: Exception) {
-                                android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
-
-                                // Fallback to starting game without content
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                    val game = Game(
-                                        id = gameType,
-                                        title = gameTitle,
-                                        description = "Educational activity",
-                                        type = gameType,
-                                        iconUrl = "",
-                                        requiresRewardTime = false,
-                                        difficulty = "Easy",
-                                        estimatedTime = task.stars ?: 1,
-                                        totalQuestions = task.totalQuestions,
-                                        blockOutlines = task.blockOutlines ?: false
-                                    )
-                                    activity.startGame(game, null, sectionId)
-                                }
-                            }
-                        }
+                        // Handle regular game content - use shared launchTask function
+                        launchTask(task, sectionId, null)
                     }
                 }
             }
@@ -1411,8 +1576,9 @@ class Layout(private val activity: MainActivity) {
             }
 
             // Create stars view (right next to label)
+            val icons = loadIconConfig()
             val starsView = TextView(activity).apply {
-                text = if (item.stars != null && item.stars!! > 0) "⭐".repeat(item.stars!!) else ""
+                text = if (item.stars != null && item.stars!! > 0) icons.starsIcon.repeat(item.stars!!) else ""
                 textSize = 16f
                 setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.parseColor("#FFD700")) // Gold for active, grey for completed
                 layoutParams = LinearLayout.LayoutParams(
@@ -1540,13 +1706,484 @@ class Layout(private val activity: MainActivity) {
             }
         }
     }
+    
+    // Shared function to launch a task (used by both main page and battle hub/gym map)
+    private fun launchTask(task: Task, sectionId: String, sourceTaskId: String? = null) {
+        val gameType = task.launch ?: "unknown"
+        val gameTitle = task.title ?: "Task"
+        
+        // Check if this is a Chrome page task
+        if (task.chromePage == true) {
+            val pageUrl = task.url
+            if (pageUrl.isNullOrBlank()) {
+                android.widget.Toast.makeText(activity, "No page configured for this task.", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                val taskLaunchId = task.launch ?: "unknown"
+                val intent = android.content.Intent(activity, ChromePageActivity::class.java).apply {
+                    putExtra(ChromePageActivity.EXTRA_URL, pageUrl)
+                    putExtra(ChromePageActivity.EXTRA_TASK_ID, taskLaunchId)
+                    putExtra(ChromePageActivity.EXTRA_STARS, task.stars ?: 0)
+                    putExtra(ChromePageActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
+                    putExtra(ChromePageActivity.EXTRA_SECTION_ID, sectionId)
+                }
+                activity.chromePageLauncher.launch(intent)
+            }
+        }
+        // Check if this is a web game task
+        else if (task.webGame == true && !task.url.isNullOrEmpty()) {
+            android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
+            val taskLaunchId = task.launch ?: "unknown"
+            val intent = android.content.Intent(activity, WebGameActivity::class.java).apply {
+                var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                // Convert GitHub Pages URL to local asset URL for Android
+                if (gameUrl.contains("talq2me.github.io") && gameUrl.contains("/html/")) {
+                    val fileName = gameUrl.substringAfterLast("/")
+                    gameUrl = "file:///android_asset/html/$fileName"
+                    android.util.Log.d("Layout", "Converted to local asset URL: $gameUrl")
+                }
+                putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
+                putExtra(WebGameActivity.EXTRA_TASK_ID, sourceTaskId ?: taskLaunchId)
+                putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(WebGameActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(WebGameActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
+            }
+            activity.webGameCompletionLauncher.launch(intent)
+        }
+        else if (task.videoSequence != null) {
+            android.util.Log.d("Layout", "Handling video sequence task: ${task.videoSequence}, launch: ${task.launch}")
+            handleVideoSequenceTask(task, sectionId)
+        }
+        else if (task.playlistId != null) {
+            android.util.Log.d("Layout", "Handling direct playlist task with playlistId: ${task.playlistId}")
+            playYouTubePlaylist(task.playlistId, task.title ?: "Playlist")
+        }
+        else if (task.launch == "googleReadAlong") {
+            android.util.Log.d("Layout", "Launching Google Read Along")
+            activity.launchGoogleReadAlong(task, sectionId)
+        }
+        else if (task.launch == "frenchBookReader") {
+            android.util.Log.d("Layout", "Launching French Book Reader")
+            val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
+            activity.startActivity(intent)
+        }
+        else {
+            // Handle regular game content - use exact same logic as main page
+            kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val gameContent = activity.contentUpdateService.fetchGameContent(activity, gameType)
+
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        android.util.Log.d("Layout", "Launching game: ${task.title}, totalQuestions=${task.totalQuestions}, gameType=$gameType, sourceTaskId=$sourceTaskId")
+                        val game = Game(
+                            id = gameType,
+                            title = gameTitle,
+                            description = "Educational activity",
+                            type = gameType,
+                            iconUrl = "",
+                            requiresRewardTime = false,
+                            difficulty = "Easy",
+                            estimatedTime = task.stars ?: 1,
+                            totalQuestions = task.totalQuestions,
+                            blockOutlines = task.blockOutlines ?: false
+                        )
+                        android.util.Log.d("Layout", "Created Game object: totalQuestions=${game.totalQuestions}")
+                        // Pass sourceTaskId to startGame so it can track completion properly
+                        activity.startGame(game, gameContent, sectionId, sourceTaskId)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("Layout", "Error fetching game content for $gameType", e)
+
+                    // Fallback to starting game without content
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        android.util.Log.d("Layout", "Launching game (no content): ${task.title}, totalQuestions=${task.totalQuestions}, gameType=$gameType, sourceTaskId=$sourceTaskId")
+                        val game = Game(
+                            id = gameType,
+                            title = gameTitle,
+                            description = "Educational activity",
+                            type = gameType,
+                            iconUrl = "",
+                            requiresRewardTime = false,
+                            difficulty = "Easy",
+                            estimatedTime = task.stars ?: 1,
+                            totalQuestions = task.totalQuestions,
+                            blockOutlines = task.blockOutlines ?: false
+                        )
+                        android.util.Log.d("Layout", "Created Game object (no content): totalQuestions=${game.totalQuestions}")
+                        // Pass sourceTaskId to startGame so it can track completion properly
+                        activity.startGame(game, null, sectionId, sourceTaskId)
+                    }
+                }
+            }
+        }
+    }
+    
+    // Function to launch a task from battle hub or gym map
+    fun launchTaskFromBattleHub(task: Task, sectionId: String, battleHubTaskId: String? = null) {
+        launchTask(task, sectionId, battleHubTaskId)
+    }
+    
+    // Battle Hub WebView (embedded at top of main screen)
+    private var battleHubWebView: android.webkit.WebView? = null
+    
+    private fun setupBattleHub() {
+        // Remove existing battle hub if it exists
+        battleHubWebView?.let {
+            sectionsContainer.removeView(it)
+            battleHubWebView = null
+        }
+        
+        // Create WebView for battle hub
+        val webView = android.webkit.WebView(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                // Increase height to show full battle hub including berry meter
+                // Use screen height as reference - take about 50% of screen height for battle hub
+                // This ensures the berry meter and all controls are visible
+                val screenHeight = activity.resources.displayMetrics.heightPixels
+                val density = activity.resources.displayMetrics.density
+                // Use 50% of screen or minimum 800dp, whichever is larger
+                val minHeightDp = 800
+                val minHeightPx = (density * minHeightDp).toInt()
+                height = maxOf((screenHeight * 0.5).toInt(), minHeightPx)
+                setMargins(0, 0, 0, 16) // Bottom margin
+            }
+            
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                allowFileAccess = true
+                allowContentAccess = true
+            }
+            
+            webViewClient = object : android.webkit.WebViewClient() {
+                override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    android.util.Log.d("Layout", "Battle hub page loaded")
+                }
+            }
+            
+            // Add JavaScript interface (same as WebGameActivity)
+            addJavascriptInterface(BattleHubInterface(), "Android")
+        }
+        
+        // Insert at the beginning of sectionsContainer (before sections)
+        sectionsContainer.addView(webView, 0)
+        battleHubWebView = webView
+        
+        // Load the battle hub HTML
+        webView.loadUrl("file:///android_asset/html/pokemonBattleHub.html")
+        
+        android.util.Log.d("Layout", "Battle hub WebView created and added to main screen")
+    }
+    
+    fun refreshBattleHub() {
+        // Reload the battle hub to update berries and Pokemon
+        battleHubWebView?.reload()
+    }
+    
+    // Gym Map WebView (embedded on main screen)
+    private var gymMapWebView: android.webkit.WebView? = null
+    
+    private fun setupGymMap() {
+        // Remove existing gym map if it exists
+        gymMapWebView?.let {
+            sectionsContainer.removeView(it)
+            gymMapWebView = null
+        }
+        
+        // Create WebView for gym map
+        val webView = android.webkit.WebView(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                val screenHeight = activity.resources.displayMetrics.heightPixels
+                val density = activity.resources.displayMetrics.density
+                // Use 55% of screen or minimum 700dp, whichever is larger
+                val minHeightDp = 700
+                val minHeightPx = (density * minHeightDp).toInt()
+                height = maxOf((screenHeight * 0.55).toInt(), minHeightPx)
+                setMargins(0, 0, 0, 16) // Bottom margin
+            }
+            
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                allowFileAccess = true
+                allowContentAccess = true
+            }
+            
+            webViewClient = object : android.webkit.WebViewClient() {
+                override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    android.util.Log.d("Layout", "Gym map page loaded")
+                }
+            }
+            
+            // Add JavaScript interface
+            addJavascriptInterface(GymMapInterface(), "Android")
+        }
+        
+        // Insert after battle hub (at index 1)
+        sectionsContainer.addView(webView, 1)
+        gymMapWebView = webView
+        
+        // Load the gym map HTML
+        webView.loadUrl("file:///android_asset/html/gymMap.html")
+        
+        android.util.Log.d("Layout", "Gym map WebView created and added to main screen")
+    }
+    
+    fun refreshGymMap() {
+        // Reload the gym map to update completed gyms
+        gymMapWebView?.reload()
+    }
+    
+    // JavaScript interface for gym map
+    inner class GymMapInterface {
+        @android.webkit.JavascriptInterface
+        fun getConfigJson(): String {
+            return try {
+                val contentUpdateService = com.talq2me.baerened.ContentUpdateService()
+                val cachedContent = contentUpdateService.getCachedMainContent(activity)
+                if (cachedContent != null) {
+                    android.util.Log.d("Layout", "Returning cached config for gym map")
+                    cachedContent
+                } else {
+                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "A"
+                    val configFileName = when (profile) {
+                        "A" -> "AM_config.json"
+                        "B" -> "BM_config.json"
+                        else -> "Main_config.json"
+                    }
+                    activity.assets.open("config/$configFileName").bufferedReader().use { it.readText() }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting config JSON for gym map", e)
+                "{}"
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getCompletedTasks(): String {
+            return try {
+                val completedTasksMap = progressManager.getCompletedTasksMap()
+                val completedTasks = completedTasksMap.filter { it.value }.keys.toList()
+                com.google.gson.Gson().toJson(completedTasks)
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting completed tasks", e)
+                "[]"
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun launchGame(gameId: String) {
+            android.util.Log.d("Layout", "JavaScript requested to launch game from gym map: $gameId")
+            activity.runOnUiThread {
+                // Launch game from gym map (same logic as battle hub)
+                val currentContent = activity.getCurrentMainContent() ?: return@runOnUiThread
+                
+                var taskToLaunch: com.talq2me.baerened.Task? = null
+                var sectionId: String? = null
+                
+                currentContent.sections?.forEach { section ->
+                    section.tasks?.forEach { task ->
+                        if (task.launch == gameId) {
+                            taskToLaunch = task
+                            sectionId = section.id
+                            return@forEach
+                        }
+                    }
+                }
+                
+                if (taskToLaunch != null && sectionId != null) {
+                    android.util.Log.d("Layout", "Found task for gym map: ${taskToLaunch.title}, totalQuestions=${taskToLaunch.totalQuestions}, stars=${taskToLaunch.stars}")
+                    // Use battleHubTaskId prefix to track that it came from gym map
+                    val gymMapTaskId = "gymMap_$gameId"
+                    launchTaskFromBattleHub(taskToLaunch, sectionId, gymMapTaskId)
+                } else {
+                    android.util.Log.w("Layout", "Task not found for gameId: $gameId")
+                }
+            }
+        }
+    }
+    
+    // JavaScript interface for battle hub (embedded version)
+    inner class BattleHubInterface {
+        @android.webkit.JavascriptInterface
+        fun getUnlockedPokemonCount(): Int {
+            return DailyProgressManager(activity).getUnlockedPokemonCount()
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getPokemonFileList(): String {
+            return try {
+                val fileList = activity.assets.list("images/pokeSprites/sprites/pokemon")
+                    ?.filter { it.endsWith(".png") }
+                    ?: emptyList()
+                com.google.gson.Gson().toJson(fileList)
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting Pokemon file list", e)
+                "[]"
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun unlockPokemon(count: Int) {
+            DailyProgressManager(activity).unlockPokemon(count)
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun launchGame(gameId: String) {
+            android.util.Log.d("Layout", "JavaScript requested to launch game: $gameId")
+            activity.runOnUiThread {
+                // Launch game from battle hub (same logic as before)
+                val currentContent = activity.getCurrentMainContent() ?: return@runOnUiThread
+                
+                var taskToLaunch: com.talq2me.baerened.Task? = null
+                var sectionId: String? = null
+                
+                currentContent.sections?.forEach { section ->
+                    section.tasks?.forEach { task ->
+                        if (task.launch == gameId) {
+                            taskToLaunch = task
+                            sectionId = section.id
+                            return@forEach
+                        }
+                    }
+                }
+                
+                if (taskToLaunch != null && sectionId != null) {
+                    launchTaskFromBattleHub(taskToLaunch!!, sectionId, "battleHub_$gameId")
+                } else {
+                    android.widget.Toast.makeText(activity, "Game not found: $gameId", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getConfigJson(): String {
+            return try {
+                val contentUpdateService = com.talq2me.baerened.ContentUpdateService()
+                val cachedContent = contentUpdateService.getCachedMainContent(activity)
+                if (cachedContent != null) {
+                    android.util.Log.d("Layout", "Returning cached config")
+                    cachedContent
+                } else {
+                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "A"
+                    val configFileName = when (profile) {
+                        "A" -> "AM_config.json"
+                        "B" -> "BM_config.json"
+                        else -> "Main_config.json"
+                    }
+                    activity.assets.open("config/$configFileName").bufferedReader().use { it.readText() }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting config JSON", e)
+                "{}"
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun setPendingBerries(amount: Int) {
+            try {
+                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("pendingBerries", amount)
+                    .apply()
+                android.util.Log.d("Layout", "Set pending berries to $amount")
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error setting pending berries", e)
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getPendingBerries(): Int {
+            return try {
+                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .getInt("pendingBerries", 0)
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting pending berries", e)
+                0
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun clearPendingBerries() {
+            try {
+                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .remove("pendingBerries")
+                    .apply()
+                android.util.Log.d("Layout", "Cleared pending berries")
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error clearing pending berries", e)
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun loadPokemonImage(filename: String): String {
+            return try {
+                val inputStream = activity.assets.open("images/pokeSprites/sprites/pokemon/$filename")
+                val bytes = inputStream.readBytes()
+                inputStream.close()
+                val base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+                "data:image/png;base64,$base64"
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error loading Pokemon image: $filename", e)
+                ""
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun loadPokemonManifest(): String {
+            return try {
+                val inputStream = activity.assets.open("images/pokeSprites/sprites/pokemon/pokedex_manifest.json")
+                val size = inputStream.available()
+                val buffer = ByteArray(size)
+                inputStream.read(buffer)
+                inputStream.close()
+                String(buffer)
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error loading Pokemon manifest", e)
+                "[]"
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getTotalStars(): Int {
+            return try {
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    val (_, totalStars) = DailyProgressManager(activity).calculateTotalsFromConfig(currentContent)
+                    totalStars
+                } else {
+                    100 // Fallback default
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting total stars", e)
+                100 // Fallback default
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getIconConfig(): String {
+            return try {
+                val inputStream = activity.assets.open("config/icon_config.json")
+                val configJson = inputStream.bufferedReader().use { it.readText() }
+                inputStream.close()
+                configJson
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error loading icon config", e)
+                // Return default config
+                """{"starsIcon":"🍍","coinsIcon":"🪙"}"""
+            }
+        }
+    }
 }
 
-data class ConfigData(
-    val webGameStars: Int? = null
-)
-
-// Extension function to convert dp to pixels
 private fun Int.dpToPx(): Int {
     return TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP,

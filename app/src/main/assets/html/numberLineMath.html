@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Number Line Math</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --correct-color: #8BC34A;
+            --wrong-color: #F44336;
+            --number-line-color: #2196F3;
+            --bunny-color: #FFB6C1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .question {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        
+        .number-line-container {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            margin: 40px 0;
+            padding: 20px 0;
+        }
+        
+        .number-line {
+            position: relative;
+            width: 100%;
+            height: 8px;
+            background: var(--number-line-color);
+            border-radius: 4px;
+            margin-top: 40px;
+        }
+        
+        .number-line::before,
+        .number-line::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid var(--number-line-color);
+        }
+        
+        .number-line::before {
+            left: -10px;
+        }
+        
+        .number-line::after {
+            right: -10px;
+        }
+        
+        .number-tick {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #333;
+            top: -6px;
+            transform: translateX(-50%);
+        }
+        
+        .number-label {
+            position: absolute;
+            top: -25px;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            user-select: none;
+        }
+        
+        .number-label:hover {
+            background: rgba(33, 150, 243, 0.2);
+            transform: translateX(-50%) scale(1.2);
+        }
+        
+        .number-label.clickable {
+            cursor: pointer;
+        }
+        
+        .bunny {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            bottom: 20px;
+            transform: translateX(-50%);
+            transition: left 0.4s ease-in-out;
+            z-index: 10;
+        }
+        
+        .bunny-body {
+            width: 50px;
+            height: 50px;
+            background: var(--bunny-color);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .bunny-ear {
+            position: absolute;
+            width: 20px;
+            height: 30px;
+            background: var(--bunny-color);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: -15px;
+        }
+        
+        .bunny-ear.left {
+            left: 5px;
+            transform: rotate(-20deg);
+        }
+        
+        .bunny-ear.right {
+            right: 5px;
+            transform: rotate(20deg);
+        }
+        
+        .bunny-ear::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 15px;
+            background: #FF69B4;
+            border-radius: 50%;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .bunny-face {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .bunny-eye {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            top: 0;
+        }
+        
+        .bunny-eye.left {
+            left: -8px;
+        }
+        
+        .bunny-eye.right {
+            right: -8px;
+        }
+        
+        .bunny-nose {
+            position: absolute;
+            width: 6px;
+            height: 4px;
+            background: #FF69B4;
+            border-radius: 50%;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .bunny-mouth {
+            position: absolute;
+            width: 12px;
+            height: 6px;
+            border: 2px solid #000;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .bunny.facing-left {
+            transform: translateX(-50%) scaleX(-1);
+        }
+        
+        .bunny.hop {
+            animation: hop 0.3s ease-in-out;
+        }
+        
+        .bunny.jump {
+            animation: jump 0.6s ease-in-out infinite;
+        }
+        
+        .bunny.sad .bunny-eye {
+            transform: translateY(2px);
+        }
+        
+        .bunny.sad .bunny-mouth {
+            border-radius: 12px 12px 0 0;
+            border-bottom: none;
+            border-top: 2px solid #000;
+            top: 18px;
+        }
+        
+        @keyframes hop {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-20px); }
+        }
+        
+        @keyframes jump {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+            50% { transform: translateX(-50%) translateY(-30px) scale(1.1); }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--confetti-color);
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .next-button {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .next-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .next-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+        <div class="question" id="question"></div>
+        <div class="number-line-container" id="numberLineContainer">
+            <div class="number-line" id="numberLine"></div>
+            <div class="bunny" id="bunny">
+                <div class="bunny-body">
+                    <div class="bunny-ear left"></div>
+                    <div class="bunny-ear right"></div>
+                    <div class="bunny-face">
+                        <div class="bunny-eye left"></div>
+                        <div class="bunny-eye right"></div>
+                        <div class="bunny-nose"></div>
+                        <div class="bunny-mouth"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="next-button" id="nextButton">Next Question</button>
+    </div>
+
+    <script>
+        let currentProblem = null;
+        let currentAnswer = null;
+        let startPosition = 0;
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let problems = [];
+        let currentProblemIndex = 0;
+        let canAnswer = true;
+        let currentBunnyPosition = 0;
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function loadConfig() {
+            try {
+                let configJson = '{}';
+                
+                // Try to get config from Android interface
+                if (isAndroidWebView() && typeof window.Android.getConfigJson === 'function') {
+                    configJson = window.Android.getConfigJson();
+                } else {
+                    // Browser fallback: try to load from localStorage or use defaults
+                    const savedConfig = localStorage.getItem('numberLineMathConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                
+                // Try to find questionsToComplete in the config
+                // Look for it in the current task or in a general game config
+                const urlParams = new URLSearchParams(window.location.search);
+                const taskId = urlParams.get('taskId');
+                
+                if (config.sections) {
+                    // Search through sections and tasks to find questionsToComplete
+                    for (const section of config.sections) {
+                        if (section.tasks) {
+                            for (const task of section.tasks) {
+                                if (task.questionsToComplete) {
+                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Also check for a general questionsToComplete at the root level
+                if (config.questionsToComplete) {
+                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                }
+            } catch (e) {
+                console.log('Using default maxQuestions:', maxQuestions);
+            }
+        }
+
+        // Load problems from JSON file
+        async function loadProblems() {
+            try {
+                const response = await fetch('../data/numberLineMath.json');
+                const data = await response.json();
+                problems = data.problems;
+                shuffleArray(problems);
+                maxQuestions = Math.min(problems.length, maxQuestions);
+                loadNextProblem();
+            } catch (error) {
+                console.error('Error loading problems:', error);
+                // Fallback problems if JSON fails to load
+                problems = [
+                    { question: "What is 7 take away 4?", start: 7, operation: "subtract", value: 4, answer: 3 },
+                    { question: "What is 5 plus 3?", start: 5, operation: "add", value: 3, answer: 8 },
+                    { question: "What is 10 take away 6?", start: 10, operation: "subtract", value: 6, answer: 4 },
+                    { question: "What is 8 plus 4?", start: 8, operation: "add", value: 4, answer: 12 },
+                    { question: "What is 9 take away 5?", start: 9, operation: "subtract", value: 5, answer: 4 }
+                ];
+                maxQuestions = Math.min(problems.length, maxQuestions);
+                loadNextProblem();
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createNumberLine() {
+            const numberLine = document.getElementById('numberLine');
+            const container = document.getElementById('numberLineContainer');
+            const numberLineWidth = numberLine.offsetWidth;
+            
+            // Clear existing ticks and labels
+            const existingTicks = container.querySelectorAll('.number-tick, .number-label');
+            existingTicks.forEach(el => el.remove());
+            
+            // Create ticks and labels for 0-20
+            for (let i = 0; i <= 20; i++) {
+                const tick = document.createElement('div');
+                tick.className = 'number-tick';
+                tick.style.left = `${(i / 20) * 100}%`;
+                numberLine.appendChild(tick);
+                
+                const label = document.createElement('div');
+                label.className = 'number-label clickable';
+                label.textContent = i;
+                label.style.left = `${(i / 20) * 100}%`;
+                label.dataset.number = i;
+                label.addEventListener('click', () => handleNumberClick(i));
+                container.appendChild(label);
+            }
+        }
+
+        function loadNextProblem() {
+            // Check if we've completed enough questions
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            if (currentProblemIndex >= problems.length) {
+                currentProblemIndex = 0;
+                shuffleArray(problems);
+            }
+            
+            currentProblem = problems[currentProblemIndex++];
+            currentAnswer = currentProblem.answer;
+            startPosition = currentProblem.start;
+            
+            document.getElementById('question').textContent = currentProblem.question;
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('nextButton').textContent = 'Next Question';
+            canAnswer = true;
+            
+            // Position bunny at start
+            const bunny = document.getElementById('bunny');
+            const numberLine = document.getElementById('numberLine');
+            const container = document.getElementById('numberLineContainer');
+            
+            const numberLineWidth = numberLine.offsetWidth;
+            const bunnyLeft = (startPosition / 20) * 100;
+            bunny.style.left = `${bunnyLeft}%`;
+            
+            // Face bunny in correct direction
+            if (currentProblem.operation === 'subtract') {
+                bunny.classList.add('facing-left');
+            } else {
+                bunny.classList.remove('facing-left');
+            }
+            
+            // Reset bunny state
+            bunny.classList.remove('sad', 'jump', 'hop');
+            
+            // Update current position tracking
+            currentBunnyPosition = startPosition;
+        }
+
+        function getCurrentBunnyPosition() {
+            return currentBunnyPosition;
+        }
+
+        function hopToNumber(targetNumber, callback) {
+            const bunny = document.getElementById('bunny');
+            const currentPos = getCurrentBunnyPosition();
+            
+            // Determine direction and create array of numbers to hop through
+            let numbersToHop = [];
+            if (targetNumber > currentPos) {
+                // Moving right
+                for (let i = currentPos + 1; i <= targetNumber; i++) {
+                    numbersToHop.push(i);
+                }
+            } else if (targetNumber < currentPos) {
+                // Moving left
+                for (let i = currentPos - 1; i >= targetNumber; i--) {
+                    numbersToHop.push(i);
+                }
+            } else {
+                // Already at target
+                if (callback) callback();
+                return;
+            }
+            
+            // Hop through each number sequentially
+            let hopIndex = 0;
+            function doNextHop() {
+                if (hopIndex >= numbersToHop.length) {
+                    currentBunnyPosition = targetNumber;
+                    if (callback) callback();
+                    return;
+                }
+                
+                const nextNumber = numbersToHop[hopIndex];
+                const nextLeft = (nextNumber / 20) * 100;
+                
+                // Add hop animation
+                bunny.classList.add('hop');
+                
+                // Move bunny to next number
+                bunny.style.left = `${nextLeft}%`;
+                
+                // Remove hop class after animation completes
+                setTimeout(() => {
+                    bunny.classList.remove('hop');
+                    currentBunnyPosition = nextNumber;
+                    hopIndex++;
+                    // Continue to next hop
+                    setTimeout(doNextHop, 100);
+                }, 400);
+            }
+            
+            doNextHop();
+        }
+
+        function handleNumberClick(number) {
+            if (!canAnswer) return;
+            
+            canAnswer = false;
+            const bunny = document.getElementById('bunny');
+            
+            // Hop sequentially to the clicked number
+            hopToNumber(number, () => {
+                if (number === currentAnswer) {
+                    // Correct answer!
+                    bunny.classList.add('jump');
+                    createConfetti();
+                    correctCount++;
+                    score++;
+                    questionsCompleted++;
+                    document.getElementById('score').textContent = score;
+                    document.getElementById('progress').textContent = questionsCompleted;
+                    document.getElementById('nextButton').style.display = 'block';
+                    
+                    // Check if we've completed enough questions
+                    if (questionsCompleted >= maxQuestions) {
+                        document.getElementById('nextButton').textContent = 'Finish Game';
+                    }
+                } else {
+                    // Wrong answer
+                    incorrectCount++;
+                    bunny.classList.add('sad');
+                    
+                    setTimeout(() => {
+                        // Turn bunny around
+                        if (currentProblem.operation === 'subtract') {
+                            bunny.classList.add('facing-left');
+                        } else {
+                            bunny.classList.remove('facing-left');
+                        }
+                        
+                        // Hop back to start sequentially
+                        hopToNumber(startPosition, () => {
+                            bunny.classList.remove('sad');
+                            canAnswer = true;
+                        });
+                    }, 1000);
+                }
+            });
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const container = document.body;
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+                confetti.style.background = confetti.style.getPropertyValue('--confetti-color');
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').innerHTML = 
+                `<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions} correct answers!</p>`;
+            document.getElementById('numberLineContainer').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            
+            // Call Android interface to complete the game
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        // Initialize game
+        window.addEventListener('load', () => {
+            loadConfig();
+            document.getElementById('maxQuestions').textContent = maxQuestions;
+            createNumberLine();
+            loadProblems();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                createNumberLine();
+                const bunny = document.getElementById('bunny');
+                const numberLine = document.getElementById('numberLine');
+                const bunnyLeft = (startPosition / 20) * 100;
+                bunny.style.left = `${bunnyLeft}%`;
+            });
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+            } else {
+                loadNextProblem();
+            }
+        });
+    </script>
+</body>
+</html>
+

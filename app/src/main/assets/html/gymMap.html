@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Gym Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            padding: 12px 15px;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .section-header:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .toggle-button {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-button.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .gym-map-content {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            overflow: hidden;
+        }
+
+        .gym-map-content.collapsed {
+            max-height: 0;
+            padding: 0 15px;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 700px;
+            background: linear-gradient(135deg, #87CEEB 0%, #98D8C8 50%, #F7DC6F 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        #mapCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: default;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 1.2em;
+        }
+
+        .error {
+            text-align: center;
+            color: #e74c3c;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        /* Tablet optimizations */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .map-container {
+                height: 650px;
+            }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 767px) {
+            .map-container {
+                height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section-header" onclick="toggleMap()">
+            <h2 class="section-title">🗺️ Training Gyms Map</h2>
+            <span class="toggle-button" id="mapToggle">▼</span>
+        </div>
+        <div class="gym-map-content" id="mapContent">
+            <div class="map-container">
+                <canvas id="mapCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gyms = [];
+        let completedGyms = new Set();
+        let canvas, ctx;
+        let gymMarkers = [];
+        let particles = [];
+        let animationFrame = 0;
+        let hoveredGym = null;
+
+        // Detect if we're running in Android WebView or browser
+        function isAndroidWebView() {
+            return typeof Android !== 'undefined';
+        }
+
+        // Load games from config
+        function loadGymsFromConfig() {
+            try {
+                let configJson = '{}';
+                
+                // Try to get config from Android interface
+                if (isAndroidWebView() && typeof Android.getConfigJson === 'function') {
+                    configJson = Android.getConfigJson();
+                } else {
+                    // Browser fallback: try to load from localStorage or use defaults
+                    const savedConfig = localStorage.getItem('gymMapConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    } else {
+                        // Use hardcoded defaults for browser testing
+                        gyms = [
+                            { id: 1, title: 'Duological', launch: 'duologicalGame', stars: 3 },
+                            { id: 2, title: 'Translation', launch: 'translation', stars: 3 },
+                            { id: 3, title: 'French Stories', launch: 'frenchStories', stars: 3 }
+                        ];
+                        initMap();
+                        return;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                
+                // Extract required games from "required" section
+                const requiredSection = config.sections?.find(s => s.id === 'required');
+                if (requiredSection && requiredSection.tasks) {
+                    gyms = requiredSection.tasks
+                        .filter(task => task.title && task.launch)
+                        .map((task, index) => ({
+                            id: index + 1,
+                            title: task.title,
+                            launch: task.launch,
+                            stars: task.stars || 3
+                        }));
+                } else {
+                    gyms = [];
+                }
+                
+                console.log('Loaded gyms from config:', gyms);
+                initMap();
+            } catch (e) {
+                console.error('Error loading gyms from config:', e);
+                document.querySelector('.map-container').innerHTML = '<div class="error">Error loading gyms. Please try again.</div>';
+            }
+        }
+
+        // Load completed gyms from Android or localStorage
+        function loadCompletedGyms() {
+            completedGyms.clear();
+            if (isAndroidWebView() && typeof Android.getCompletedTasks === 'function') {
+                try {
+                    const completedJson = Android.getCompletedTasks();
+                    const completed = JSON.parse(completedJson);
+                    completed.forEach(taskId => {
+                        completedGyms.add(taskId);
+                    });
+                    console.log('Loaded completed gyms:', Array.from(completedGyms));
+                } catch (e) {
+                    console.error('Error loading completed tasks:', e);
+                }
+            } else {
+                // Browser fallback: use localStorage
+                const saved = localStorage.getItem('completedGyms');
+                if (saved) {
+                    try {
+                        const completed = JSON.parse(saved);
+                        completed.forEach(taskId => {
+                            completedGyms.add(taskId);
+                        });
+                    } catch (e) {
+                        console.error('Error parsing completed gyms:', e);
+                    }
+                }
+            }
+        }
+
+        // Particle system for effects
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.life = 1.0;
+                this.decay = 0.02 + Math.random() * 0.02;
+                this.size = 2 + Math.random() * 3;
+                this.color = color;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+                this.vy += 0.1; // Gravity
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            isDead() {
+                return this.life <= 0;
+            }
+        }
+
+        // Initialize canvas map
+        function initMap() {
+            if (gyms.length === 0) {
+                document.querySelector('.map-container').innerHTML = '<div class="error">No gyms available. Check your config.</div>';
+                return;
+            }
+
+            loadCompletedGyms();
+
+            canvas = document.getElementById('mapCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            const container = document.querySelector('.map-container');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            drawMap();
+            setupInteractivity();
+            animate();
+        }
+
+        // Draw the map
+        function drawMap() {
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw terrain background with animated clouds
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#87CEEB'); // Sky blue
+            gradient.addColorStop(0.5, '#98D8C8'); // Mint green
+            gradient.addColorStop(1, '#F7DC6F'); // Yellow
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw animated clouds
+            drawClouds(width, height);
+
+            // Draw water areas with animation
+            drawWater(width, height);
+
+            // Draw trees
+            drawForest(width, height);
+
+            // Draw buildings
+            drawBuildings(width, height);
+
+            // Draw roads
+            drawRoads(width, height);
+
+            // Position gyms at strategic non-linear locations
+            const gymPositions = [
+                { x: width * 0.15, y: height * 0.2 },   // Top left
+                { x: width * 0.4, y: height * 0.25 },    // Top center-left
+                { x: width * 0.65, y: height * 0.2 },    // Top center-right
+                { x: width * 0.85, y: height * 0.3 },     // Top right
+                { x: width * 0.2, y: height * 0.5 },     // Middle left
+                { x: width * 0.5, y: height * 0.55 },     // Center
+                { x: width * 0.75, y: height * 0.5 },     // Middle right
+                { x: width * 0.35, y: height * 0.75 },    // Bottom left
+                { x: width * 0.65, y: height * 0.8 }      // Bottom right
+            ];
+
+            // Draw gyms
+            gymMarkers = [];
+            gyms.forEach((gym, index) => {
+                if (index >= gymPositions.length) return;
+                
+                const pos = gymPositions[index];
+                const isCompleted = completedGyms.has(gym.launch);
+                const isHovered = hoveredGym === index;
+                
+                drawGym(pos.x, pos.y, gym, isCompleted, index, isHovered);
+                
+                gymMarkers.push({
+                    x: pos.x,
+                    y: pos.y,
+                    gym: gym,
+                    isCompleted: isCompleted,
+                    radius: 50,
+                    index: index
+                });
+            });
+
+            // Draw particles
+            particles.forEach(particle => {
+                particle.draw(ctx);
+            });
+
+            // Draw map title with glow effect
+            drawTitle(width);
+        }
+
+        // Draw animated clouds
+        function drawClouds(width, height) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            const time = animationFrame * 0.01;
+            
+            for (let i = 0; i < 5; i++) {
+                const x = (width * 0.2 * i + time * 10) % (width + 200) - 100;
+                const y = height * 0.1 + Math.sin(time + i) * 20;
+                drawCloud(x, y, 40 + i * 10);
+            }
+        }
+
+        function drawCloud(x, y, size) {
+            // Draw smooth cloud using only arcs, no sharp edges
+            ctx.beginPath();
+            // Bottom arcs
+            ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.5, y, size * 0.7, 0, Math.PI * 2);
+            ctx.arc(x + size, y, size * 0.6, 0, Math.PI * 2);
+            // Top arcs
+            ctx.arc(x + size * 0.25, y - size * 0.3, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.75, y - size * 0.3, size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw animated water
+        function drawWater(width, height) {
+            const time = animationFrame * 0.05;
+            
+            // Water area 1
+            ctx.fillStyle = '#4682B4';
+            ctx.beginPath();
+            ctx.ellipse(width * 0.2, height * 0.3, 75, 50 + Math.sin(time) * 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Water highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(width * 0.2 - 20, height * 0.3 - 15, 30, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Water area 2
+            ctx.fillStyle = '#4682B4';
+            ctx.beginPath();
+            ctx.ellipse(width * 0.8, height * 0.7, 60, 40 + Math.sin(time + 1) * 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(width * 0.8 - 15, height * 0.7 - 10, 25, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw trees with better shapes
+        function drawForest(width, height) {
+            const treePositions = [
+                { x: width * 0.1, y: height * 0.15 },
+                { x: width * 0.3, y: height * 0.4 },
+                { x: width * 0.7, y: height * 0.35 },
+                { x: width * 0.9, y: height * 0.6 },
+                { x: width * 0.25, y: height * 0.85 }
+            ];
+            
+            treePositions.forEach(pos => {
+                drawTree(pos.x, pos.y);
+            });
+        }
+
+        function drawTree(x, y) {
+            // Tree trunk
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x - 4, y, 8, 20);
+            
+            // Tree foliage (multiple layers for depth)
+            ctx.fillStyle = '#228B22';
+            // Bottom layer
+            ctx.beginPath();
+            ctx.arc(x, y - 5, 18, 0, Math.PI * 2);
+            ctx.fill();
+            // Middle layer
+            ctx.beginPath();
+            ctx.arc(x - 8, y - 12, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x + 8, y - 12, 15, 0, Math.PI * 2);
+            ctx.fill();
+            // Top layer
+            ctx.beginPath();
+            ctx.arc(x, y - 20, 12, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw buildings using available assets
+        function drawBuildings(width, height) {
+            const buildingPositions = [
+                { x: width * 0.05, y: height * 0.1, type: 'library' },
+                { x: width * 0.95, y: height * 0.2, type: 'playground' },
+                { x: width * 0.08, y: height * 0.9, type: 'gym' }
+            ];
+            
+            buildingPositions.forEach(building => {
+                drawBuilding(building.x, building.y, building.type);
+            });
+        }
+
+        function drawBuilding(x, y, type) {
+            // Simple building representation
+            const colors = {
+                'library': '#8B7355',
+                'playground': '#FFA500',
+                'gym': '#C0C0C0'
+            };
+            
+            const color = colors[type] || '#808080';
+            const width = 30;
+            const height = 40;
+            
+            // Building base
+            ctx.fillStyle = color;
+            ctx.fillRect(x - width/2, y - height, width, height);
+            
+            // Building roof
+            ctx.fillStyle = '#654321';
+            ctx.beginPath();
+            ctx.moveTo(x - width/2, y - height);
+            ctx.lineTo(x, y - height - 10);
+            ctx.lineTo(x + width/2, y - height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Windows
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(x - width/2 + 5, y - height + 10, 6, 8);
+            ctx.fillRect(x + width/2 - 11, y - height + 10, 6, 8);
+            ctx.fillRect(x - width/2 + 5, y - height + 25, 6, 8);
+            ctx.fillRect(x + width/2 - 11, y - height + 25, 6, 8);
+        }
+
+        // Draw roads connecting gyms
+        function drawRoads(width, height) {
+            const roadPoints = [
+                { x: width * 0.15, y: height * 0.2 },
+                { x: width * 0.4, y: height * 0.25 },
+                { x: width * 0.65, y: height * 0.2 },
+                { x: width * 0.85, y: height * 0.3 },
+                { x: width * 0.2, y: height * 0.5 },
+                { x: width * 0.5, y: height * 0.55 },
+                { x: width * 0.75, y: height * 0.5 },
+                { x: width * 0.35, y: height * 0.75 },
+                { x: width * 0.65, y: height * 0.8 }
+            ];
+
+            // Draw road base
+            ctx.strokeStyle = '#696969';
+            ctx.lineWidth = 25;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            for (let i = 0; i < roadPoints.length; i++) {
+                for (let j = i + 1; j < roadPoints.length; j++) {
+                    const dist = Math.sqrt(
+                        Math.pow(roadPoints[i].x - roadPoints[j].x, 2) +
+                        Math.pow(roadPoints[i].y - roadPoints[j].y, 2)
+                    );
+                    if (dist < width * 0.4) {
+                        ctx.beginPath();
+                        ctx.moveTo(roadPoints[i].x, roadPoints[i].y);
+                        ctx.lineTo(roadPoints[j].x, roadPoints[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Draw road center lines (static)
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([15, 10]);
+
+            for (let i = 0; i < roadPoints.length; i++) {
+                for (let j = i + 1; j < roadPoints.length; j++) {
+                    const dist = Math.sqrt(
+                        Math.pow(roadPoints[i].x - roadPoints[j].x, 2) +
+                        Math.pow(roadPoints[i].y - roadPoints[j].y, 2)
+                    );
+                    if (dist < width * 0.4) {
+                        ctx.beginPath();
+                        ctx.moveTo(roadPoints[i].x, roadPoints[i].y);
+                        ctx.lineTo(roadPoints[j].x, roadPoints[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.setLineDash([]);
+        }
+
+        // Draw a gym marker with enhanced visuals
+        function drawGym(x, y, gym, isCompleted, index, isHovered) {
+            const time = animationFrame * 0.05;
+            const baseColor = isCompleted ? '#7f8c8d' : '#e74c3c';
+            const pulseScale = isCompleted ? 1 : (1 + Math.sin(time + index) * 0.15);
+            const hoverScale = isHovered ? 1.3 : 1;
+            const finalScale = pulseScale * hoverScale;
+
+            // Outer glow for active gyms
+            if (!isCompleted) {
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = baseColor;
+            } else {
+                ctx.shadowBlur = 0;
+            }
+
+            // Gym base circle with gradient
+            const gradient = ctx.createRadialGradient(x, y - 10, 0, x, y, 35 * finalScale);
+            gradient.addColorStop(0, isCompleted ? '#95a5a6' : '#ff6b6b');
+            gradient.addColorStop(1, baseColor);
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(x, y, 35 * finalScale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(x - 8, y - 8, 12 * finalScale, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Gym icon (emoji as text) with bounce
+            const iconY = y - 8 + Math.sin(time * 2 + index) * 2;
+            ctx.font = '32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🏟️', x, iconY);
+
+            // Gym number with shadow
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 4;
+            ctx.font = 'bold 18px "Comic Sans MS"';
+            ctx.strokeText(gym.id.toString(), x, y + 15);
+            ctx.fillText(gym.id.toString(), x, y + 15);
+
+            // Gym title with enhanced styling
+            ctx.fillStyle = isCompleted ? '#7f8c8d' : (isHovered ? '#e74c3c' : '#2c3e50');
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.font = '13px "Comic Sans MS"'; // Removed bold, slightly larger for readability
+            
+            const text = gym.title;
+            const metrics = ctx.measureText(text);
+            const textWidth = metrics.width;
+            const textHeight = 18;
+            const padding = 8;
+            
+            // Background with rounded corners effect
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.strokeStyle = isCompleted ? '#7f8c8d' : '#f39c12';
+            ctx.lineWidth = 3;
+            
+            // Draw rounded rectangle
+            const titleY = y + 50;
+            const cornerRadius = 5;
+            ctx.beginPath();
+            ctx.moveTo(x - textWidth / 2 - padding + cornerRadius, titleY - textHeight / 2);
+            ctx.lineTo(x + textWidth / 2 + padding - cornerRadius, titleY - textHeight / 2);
+            ctx.quadraticCurveTo(x + textWidth / 2 + padding, titleY - textHeight / 2, x + textWidth / 2 + padding, titleY - textHeight / 2 + cornerRadius);
+            ctx.lineTo(x + textWidth / 2 + padding, titleY + textHeight / 2 - cornerRadius);
+            ctx.quadraticCurveTo(x + textWidth / 2 + padding, titleY + textHeight / 2, x + textWidth / 2 + padding - cornerRadius, titleY + textHeight / 2);
+            ctx.lineTo(x - textWidth / 2 - padding + cornerRadius, titleY + textHeight / 2);
+            ctx.quadraticCurveTo(x - textWidth / 2 - padding, titleY + textHeight / 2, x - textWidth / 2 - padding, titleY + textHeight / 2 - cornerRadius);
+            ctx.lineTo(x - textWidth / 2 - padding, titleY - textHeight / 2 + cornerRadius);
+            ctx.quadraticCurveTo(x - textWidth / 2 - padding, titleY - textHeight / 2, x - textWidth / 2 - padding + cornerRadius, titleY - textHeight / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Text (no bold, cleaner)
+            ctx.fillStyle = isCompleted ? '#7f8c8d' : '#2c3e50';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            ctx.strokeText(text, x, titleY + 4);
+            ctx.fillText(text, x, titleY + 4);
+
+            // Add sparkle particles for active gyms on hover
+            if (isHovered && !isCompleted && Math.random() < 0.3) {
+                particles.push(new Particle(
+                    x + (Math.random() - 0.5) * 60,
+                    y + (Math.random() - 0.5) * 60,
+                    '#FFD700'
+                ));
+            }
+        }
+
+        // Draw map title with glow
+        function drawTitle(width) {
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle = '#2c3e50';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 5;
+            ctx.font = 'bold 28px "Comic Sans MS"';
+            ctx.textAlign = 'center';
+            ctx.strokeText('Training City', width / 2, 35);
+            ctx.fillText('Training City', width / 2, 35);
+            ctx.restore();
+        }
+
+        // Setup interactivity
+        function setupInteractivity() {
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                gymMarkers.forEach(marker => {
+                    const dist = Math.sqrt(
+                        Math.pow(x - marker.x, 2) +
+                        Math.pow(y - marker.y, 2)
+                    );
+                    if (dist <= marker.radius && !marker.isCompleted) {
+                        // Create click particles
+                        for (let i = 0; i < 10; i++) {
+                            particles.push(new Particle(marker.x, marker.y, '#FFD700'));
+                        }
+                        launchGym(marker.gym);
+                    }
+                });
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                let foundHover = false;
+                gymMarkers.forEach(marker => {
+                    const dist = Math.sqrt(
+                        Math.pow(x - marker.x, 2) +
+                        Math.pow(y - marker.y, 2)
+                    );
+                    if (dist <= marker.radius && !marker.isCompleted) {
+                        foundHover = true;
+                        if (hoveredGym !== marker.index) {
+                            hoveredGym = marker.index;
+                        }
+                        canvas.style.cursor = 'pointer';
+                    }
+                });
+                
+                if (!foundHover) {
+                    hoveredGym = null;
+                    canvas.style.cursor = 'default';
+                }
+            });
+        }
+
+        // Animate the map
+        function animate() {
+            animationFrame++;
+            
+            // Update particles
+            particles = particles.filter(particle => {
+                particle.update();
+                return !particle.isDead();
+            });
+
+            // Redraw everything
+            drawMap();
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Launch gym game
+        function launchGym(gym) {
+            if (completedGyms.has(gym.launch)) {
+                console.log('Gym already completed:', gym.title);
+                return;
+            }
+
+            console.log('Launching gym:', gym.title, gym.launch);
+            
+            if (isAndroidWebView() && typeof Android.launchGame === 'function') {
+                // Launch via Android interface
+                Android.launchGame(gym.launch);
+            } else {
+                // Browser fallback
+                alert(`Would launch: ${gym.title} (${gym.launch})`);
+            }
+        }
+
+        // Toggle map section
+        function toggleMap() {
+            const content = document.getElementById('mapContent');
+            const toggle = document.getElementById('mapToggle');
+            
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+            
+            // Resize canvas when toggled
+            if (canvas && !content.classList.contains('collapsed')) {
+                setTimeout(() => {
+                    const container = document.querySelector('.map-container');
+                    canvas.width = container.offsetWidth;
+                    canvas.height = container.offsetHeight;
+                }, 300);
+            }
+        }
+
+        // Refresh gym map (called from Android after game completion)
+        function refreshGymMap() {
+            loadCompletedGyms();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (canvas && !document.getElementById('mapContent').classList.contains('collapsed')) {
+                const container = document.querySelector('.map-container');
+                canvas.width = container.offsetWidth;
+                canvas.height = container.offsetHeight;
+            }
+        });
+
+        // Initialize
+        function init() {
+            loadGymsFromConfig();
+        }
+
+        // Start when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // Listen for messages from Android (if needed)
+        if (isAndroidWebView() && typeof Android !== 'undefined') {
+            // Android can call refreshGymMap() after game completion
+            window.refreshGymMap = refreshGymMap;
+        }
+    </script>
+</body>
+</html>

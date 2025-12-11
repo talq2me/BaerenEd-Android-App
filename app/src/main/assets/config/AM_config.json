@@ -77,7 +77,8 @@
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
           "stars": 3,
-          "totalQuestions": 5
+          "totalQuestions": 5,
+          "displayDays": "fri"
         },
         {
           "title": "Sentence Builder",
@@ -91,7 +92,39 @@
           "launch": "ufliLessonData",
           "stars": 3,
           "totalQuestions": 5,
-          "blockOutlines": true
+          "blockOutlines": true,
+          "displayDays": "mon"
+        },
+        {
+          "title": "Word Garden",
+          "launch": "wordGarden",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri"
+        },
+        {
+          "title": "Number Line Math",
+          "launch": "numberLineMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Fishing",
+          "launch": "wordFishing",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "wed,sat"
+        },
+        {
+          "title": "Word Factory",
+          "launch": "wordFactory",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "thu,sun"
         },
         {
           "title": "Kung Fu Form",

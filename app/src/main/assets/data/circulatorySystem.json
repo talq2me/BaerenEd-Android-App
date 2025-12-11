@@ -1,0 +1,62 @@
+{
+    "diagrams": [
+      {
+        "title": "the circulatory system",
+        "image": "diagrams/circulatorySystem.png",
+        "parts": [
+          {
+            "name": "Arteries",
+            "intro": "This is a diagram of the circulatory system.",
+            "explanation": "Arteries are blood vessels that carry blood away from your heart to all parts of your body. The blood in arteries is full of oxygen and nutrients that your body needs.",
+            "labelX": 201,
+            "labelY": 359,
+            "clickRegion": {
+              "x1": 146,
+              "y1": 343,
+              "x2": 256,
+              "y2": 374
+            }
+          },
+          {
+            "name": "Heart",
+            "intro": "",
+            "explanation": "The heart is a strong muscle that pumps blood throughout your body. It works like a pump, pushing blood through tubes called blood vessels to deliver oxygen and nutrients everywhere they are needed.",
+            "labelX": 148,
+            "labelY": 457,
+            "clickRegion": {
+              "x1": 109,
+              "y1": 442,
+              "x2": 187,
+              "y2": 471
+            }
+          },
+          {
+            "name": "Lungs",
+            "intro": "",
+            "explanation": "The lungs are organs that help you breathe. They take oxygen from the air you breathe in and put it into your blood. The blood then carries this oxygen to all parts of your body.",
+            "labelX": 147,
+            "labelY": 608,
+            "clickRegion": {
+              "x1": 97,
+              "y1": 588,
+              "x2": 197,
+              "y2": 627
+            }
+          },
+          {
+            "name": "Veins",
+            "intro": "",
+            "explanation": "Veins are blood vessels that carry blood back to your heart. After the blood has delivered oxygen to your body, the veins bring it back to the heart and lungs to get more oxygen.",
+            "labelX": 265,
+            "labelY": 704,
+            "clickRegion": {
+              "x1": 223,
+              "y1": 679,
+              "x2": 307,
+              "y2": 728
+            }
+          }
+        ]
+      }
+    ]
+  }

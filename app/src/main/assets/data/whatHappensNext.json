@@ -48,6 +48,826 @@
       "Lily turned off the oven and left the cookies inside."
     ],
     "correct": 1
+  },
+  {
+    "story": "Maya was walking to school when she saw an elderly woman struggling to carry heavy grocery bags. The woman looked tired and was moving slowly.",
+    "options": [
+      "Maya walked past quickly to avoid being late.",
+      "Maya offered to help carry the bags.",
+      "Maya called her friends to come help.",
+      "Maya went home to get her backpack."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Alex found a wallet on the ground with money and an ID card inside. He looked around but didn't see anyone nearby who might have dropped it.",
+    "options": [
+      "Alex took the money and threw the wallet away.",
+      "Alex kept the wallet and spent the money.",
+      "Alex turned the wallet in to a teacher or lost and found.",
+      "Alex hid the wallet under a rock."
+    ],
+    "correct": 2
+  },
+  {
+    "story": "During a test, Sam noticed his friend was trying to look at his paper. His friend whispered asking for help with the answers.",
+    "options": [
+      "Sam let his friend copy all the answers.",
+      "Sam covered his paper and told his friend to do their own work.",
+      "Sam gave his friend the test paper.",
+      "Sam told the teacher his friend was cheating."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Sophia was playing at the playground when she noticed a younger child crying because they couldn't reach the monkey bars. The child looked upset.",
+    "options": [
+      "Sophia ignored the child and kept playing.",
+      "Sophia helped the child reach the monkey bars or found another activity.",
+      "Sophia told the child to stop crying.",
+      "Sophia went to play somewhere else."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Noah was at a friend's birthday party. The cake was being served, but there wasn't enough for everyone. Noah noticed one child didn't get a piece.",
+    "options": [
+      "Noah ate his piece quickly before anyone noticed.",
+      "Noah shared his piece with the child who didn't get one.",
+      "Noah asked for a second piece for himself.",
+      "Noah left the party early."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Isabella was doing her homework when her little brother came in and accidentally spilled juice on her paper. Her homework was now wet and hard to read.",
+    "options": [
+      "Isabella yelled at her brother and told him to leave.",
+      "Isabella calmly explained what happened and helped clean up, then redid her work.",
+      "Isabella threw her homework away and didn't do it.",
+      "Isabella blamed her brother to her teacher."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Ethan saw someone drop their lunch tray in the cafeteria. Food was scattered everywhere, and the person looked embarrassed.",
+    "options": [
+      "Ethan laughed and pointed at the mess.",
+      "Ethan helped clean up the mess and offered to help.",
+      "Ethan walked away and ignored it.",
+      "Ethan told everyone about the accident."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Olivia was at the library studying when she noticed someone was being very loud and disturbing others who were trying to read quietly.",
+    "options": [
+      "Olivia started being loud too.",
+      "Olivia politely asked the person to be quieter.",
+      "Olivia left the library immediately.",
+      "Olivia complained loudly about the noise."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Mason was playing soccer when he accidentally kicked the ball too hard and it hit another player. The player fell down and looked hurt.",
+    "options": [
+      "Mason kept playing and ignored what happened.",
+      "Mason went to check if the player was okay and apologized.",
+      "Mason blamed someone else for the accident.",
+      "Mason ran away from the field."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Ava was at the store with her mom when she saw a child taking candy without paying. The child was about to leave the store.",
+    "options": [
+      "Ava took some candy too.",
+      "Ava told her mom or a store employee about what she saw.",
+      "Ava ignored it and kept shopping.",
+      "Ava followed the child outside."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Lucas was working on a group project when one team member wasn't doing their share of the work. The project was due soon.",
+    "options": [
+      "Lucas did all the work himself without saying anything.",
+      "Lucas talked to the team member and offered to help them contribute.",
+      "Lucas complained to the teacher without talking to the team member.",
+      "Lucas quit the group project."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Harper noticed that a classmate was sitting alone at lunch every day and looked sad. No one seemed to want to sit with them.",
+    "options": [
+      "Harper ignored the classmate and sat with her usual friends.",
+      "Harper invited the classmate to sit with her and her friends.",
+      "Harper told others not to sit with that person.",
+      "Harper moved to a different table to avoid them."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Benjamin was at a friend's house when he accidentally broke a toy. The toy belonged to his friend's little sister, and she was very upset.",
+    "options": [
+      "Benjamin hid the broken toy and didn't say anything.",
+      "Benjamin apologized and offered to help fix or replace the toy.",
+      "Benjamin blamed his friend for the accident.",
+      "Benjamin left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Charlotte was walking her dog when she saw another dog that had gotten loose from its owner. The dog was running toward a busy street.",
+    "options": [
+      "Charlotte kept walking and ignored the loose dog.",
+      "Charlotte tried to help catch the dog or alert the owner.",
+      "Charlotte let her own dog run free too.",
+      "Charlotte went home immediately."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Daniel was playing a game with friends when he noticed that one friend was cheating to win. The friend was being dishonest about the rules.",
+    "options": [
+      "Daniel started cheating too.",
+      "Daniel calmly pointed out the rules and asked to play fairly.",
+      "Daniel quit the game and went home.",
+      "Daniel told everyone the friend was a cheater."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Evelyn was at a restaurant when she noticed the person at the next table had dropped their napkin and didn't notice. It was on the floor.",
+    "options": [
+      "Evelyn picked it up and threw it away.",
+      "Evelyn pointed it out to the person politely.",
+      "Evelyn ignored it and kept eating.",
+      "Evelyn made fun of the person for dropping it."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Matthew was at the park when he saw a group of kids making fun of another child. The child being teased looked very upset.",
+    "options": [
+      "Matthew joined in with the teasing.",
+      "Matthew stood up for the child being teased and asked the others to stop.",
+      "Matthew walked away and ignored it.",
+      "Matthew told the child to fight back."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Abigail was at a school assembly when she noticed someone had left their backpack in the hallway. The backpack looked expensive and important.",
+    "options": [
+      "Abigail took the backpack for herself.",
+      "Abigail took it to the lost and found or office.",
+      "Abigail left it where it was and ignored it.",
+      "Abigail opened it to see what was inside."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "David was playing basketball when he saw that the hoop was broken and hanging crooked. It would be dangerous for someone to use it.",
+    "options": [
+      "David kept playing and ignored the broken hoop.",
+      "David told a teacher or adult about the broken equipment.",
+      "David tried to fix it himself.",
+      "David encouraged others to use it anyway."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Grace was at a friend's birthday party when she realized she had forgotten to bring a gift. All the other guests had brought presents.",
+    "options": [
+      "Grace pretended she had a gift and made something up.",
+      "Grace apologized and offered to make a card or give a gift later.",
+      "Grace left the party early.",
+      "Grace asked someone else to share their gift."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "James was at the zoo when he saw someone trying to feed the animals despite signs saying not to. The person was throwing food into the enclosure.",
+    "options": [
+      "James started feeding the animals too.",
+      "James politely reminded the person about the rules or told a zookeeper.",
+      "James ignored it and kept walking.",
+      "James took pictures of the person breaking the rules."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Scarlett was at a movie theater when she noticed someone's phone was ringing loudly during the movie. The phone kept ringing and disturbing everyone.",
+    "options": [
+      "Scarlett started talking loudly too.",
+      "Scarlett politely asked the person to silence their phone.",
+      "Scarlett left the theater immediately.",
+      "Scarlett yelled at the person to turn off their phone."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Logan was playing video games when his mom asked him to help set the table for dinner. Dinner was almost ready, and the table needed to be set.",
+    "options": [
+      "Logan ignored his mom and kept playing.",
+      "Logan paused his game and helped set the table.",
+      "Logan told his mom he was too busy.",
+      "Logan finished his game first and then helped."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Chloe was at the beach when she saw a seagull tangled in some fishing line. The bird was struggling and couldn't fly away.",
+    "options": [
+      "Chloe ignored the bird and kept playing.",
+      "Chloe carefully tried to help free the bird or got an adult to help.",
+      "Chloe threw sand at the bird.",
+      "Chloe took pictures of the bird."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Aiden was at a friend's house when he accidentally knocked over a glass of water. The water spilled all over the friend's homework that was on the table.",
+    "options": [
+      "Aiden ran away and didn't say anything.",
+      "Aiden apologized and helped clean up and dry the homework.",
+      "Aiden blamed his friend for leaving the glass there.",
+      "Aiden laughed about the accident."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Luna was walking home from school when she saw a younger student who looked lost and confused. The student was looking around nervously.",
+    "options": [
+      "Luna kept walking and ignored the student.",
+      "Luna asked if the student needed help finding their way.",
+      "Luna told the student to figure it out themselves.",
+      "Luna pointed and laughed at the lost student."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Carter was at a store when he saw an item fall off a shelf. The item was on the floor and could be a tripping hazard for other shoppers.",
+    "options": [
+      "Carter stepped over it and kept shopping.",
+      "Carter picked it up and put it back on the shelf.",
+      "Carter kicked it out of the way.",
+      "Carter told a store employee about it."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Zoe was at a park when she noticed someone had left trash on a picnic table. There were wrappers and bottles scattered around.",
+    "options": [
+      "Zoe added her own trash to the pile.",
+      "Zoe picked up the trash and threw it away.",
+      "Zoe ignored it and sat at another table.",
+      "Zoe complained about it but didn't do anything."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Owen was playing at recess when he saw a classmate fall down and scrape their knee. The classmate was crying and the knee was bleeding.",
+    "options": [
+      "Owen kept playing and ignored the classmate.",
+      "Owen went to help the classmate and got a teacher or adult.",
+      "Owen laughed at the classmate for falling.",
+      "Owen told the classmate to stop crying."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Victoria was at a library when she noticed someone had left books scattered on a table instead of putting them back. The books were in a messy pile.",
+    "options": [
+      "Victoria added her own books to the pile.",
+      "Victoria helped put the books back on the shelves.",
+      "Victoria ignored it and found another table.",
+      "Victoria complained to the librarian about the mess."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Nathan was at a birthday party when he realized he was the only one who hadn't brought a gift. All the other guests had presents for the birthday child.",
+    "options": [
+      "Nathan pretended he had a gift.",
+      "Nathan apologized and offered to make a card or bring a gift later.",
+      "Nathan left the party early.",
+      "Nathan asked someone to share their gift."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Penelope was doing her chores when her little sister asked for help with her homework. The sister looked frustrated and confused.",
+    "options": [
+      "Penelope told her sister to figure it out herself.",
+      "Penelope helped her sister understand the homework.",
+      "Penelope ignored her sister and kept doing chores.",
+      "Penelope did the homework for her sister."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Wyatt was at a restaurant when he noticed the person at the next table had dropped their fork. The fork was on the floor and they didn't notice.",
+    "options": [
+      "Wyatt picked it up and gave it to them.",
+      "Wyatt pointed it out to the person politely.",
+      "Wyatt ignored it and kept eating.",
+      "Wyatt made fun of the person for dropping it."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Layla was at a friend's house when she accidentally broke a vase. The vase fell off a table and shattered into pieces on the floor.",
+    "options": [
+      "Layla hid the pieces and didn't say anything.",
+      "Layla told her friend's parent and offered to help clean up or replace it.",
+      "Layla blamed her friend for having the vase there.",
+      "Layla left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Hannah was at school when she noticed a classmate had forgotten their lunch. The classmate was looking through their backpack and seemed worried.",
+    "options": [
+      "Hannah ignored the classmate and ate her own lunch.",
+      "Hannah offered to share her lunch with the classmate.",
+      "Hannah told the classmate they should have remembered.",
+      "Hannah told the teacher the classmate forgot their lunch."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Jack was playing outside when he saw an elderly neighbor struggling to carry groceries up their front steps. The neighbor looked tired.",
+    "options": [
+      "Jack kept playing and ignored the neighbor.",
+      "Jack offered to help carry the groceries.",
+      "Jack told his friends about the neighbor.",
+      "Jack went inside his own house."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Nora was at a store when she saw someone trying to shoplift. The person was putting items in their bag without paying.",
+    "options": [
+      "Nora started shoplifting too.",
+      "Nora told a store employee or her parent about what she saw.",
+      "Nora ignored it and kept shopping.",
+      "Nora confronted the person herself."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Ethan was at a friend's house when he noticed the friend's pet had gotten out of its cage. The pet was running around the house.",
+    "options": [
+      "Ethan ignored the pet and kept playing.",
+      "Ethan helped catch the pet and put it back safely.",
+      "Ethan let the pet run free.",
+      "Ethan told the friend's parent about it."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Isabella was at a park when she saw someone had left their bike unlocked and unattended. The bike was just sitting there with no one around.",
+    "options": [
+      "Isabella took the bike for herself.",
+      "Isabella left the bike where it was and ignored it.",
+      "Isabella moved the bike to a safer location or told someone.",
+      "Isabella played with the bike."
+    ],
+    "correct": 2
+  },
+  {
+    "story": "Mason was at a school dance when he noticed a classmate sitting alone and looking sad. Everyone else was dancing and having fun.",
+    "options": [
+      "Mason ignored the classmate and kept dancing.",
+      "Mason invited the classmate to dance or join the group.",
+      "Mason told others not to dance with that person.",
+      "Mason made fun of the classmate for sitting alone."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Ava was at a friend's house when she accidentally spilled paint on the carpet. The paint was spreading and making a big stain.",
+    "options": [
+      "Ava hid the stain and didn't say anything.",
+      "Ava told her friend's parent and helped clean it up.",
+      "Ava blamed her friend for having paint out.",
+      "Ava left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Lucas was at a playground when he saw a child who couldn't reach the water fountain. The child was trying to get a drink but was too short.",
+    "options": [
+      "Lucas ignored the child and got his own drink.",
+      "Lucas helped the child reach the water fountain.",
+      "Lucas laughed at the child for being too short.",
+      "Lucas told the child to find a taller friend."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Sophia was at a museum when she noticed someone touching a display that had a 'Do Not Touch' sign. The person was ignoring the sign.",
+    "options": [
+      "Sophia started touching the display too.",
+      "Sophia politely reminded the person about the sign or told a guard.",
+      "Sophia ignored it and kept walking.",
+      "Sophia took pictures of the person breaking the rules."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Jackson was at a friend's house when he accidentally knocked over a plant. The plant fell and dirt spilled all over the floor.",
+    "options": [
+      "Jackson hid the mess and didn't say anything.",
+      "Jackson told his friend's parent and helped clean it up.",
+      "Jackson blamed his friend for having the plant there.",
+      "Jackson left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Emma was at a store when she saw someone drop their wallet. The wallet fell to the ground and the person didn't notice and kept walking.",
+    "options": [
+      "Emma picked up the wallet and kept it.",
+      "Emma picked up the wallet and returned it to the person.",
+      "Emma ignored it and kept shopping.",
+      "Emma told a store employee about it."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Liam was at school when he noticed a classmate had dropped all their books. The books were scattered on the floor and the classmate looked embarrassed.",
+    "options": [
+      "Liam laughed and pointed at the mess.",
+      "Liam helped pick up the books.",
+      "Liam walked around the books and ignored them.",
+      "Liam told everyone about the accident."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Charlotte was at a park when she saw a dog that had gotten its leash tangled around a tree. The dog was pulling and couldn't get free.",
+    "options": [
+      "Charlotte ignored the dog and kept playing.",
+      "Charlotte helped untangle the dog or found its owner.",
+      "Charlotte tried to pet the dog while it was tangled.",
+      "Charlotte told her friends about the dog."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Henry was at a friend's birthday party when he realized he had eaten the last piece of cake. Another guest hadn't gotten any cake yet.",
+    "options": [
+      "Henry ate the cake quickly before anyone noticed.",
+      "Henry offered to share the cake or apologized.",
+      "Henry pretended he didn't know about the other guest.",
+      "Henry asked for more cake."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Amelia was at a library when she noticed someone was talking loudly on their phone. Other people were trying to read and study quietly.",
+    "options": [
+      "Amelia started talking loudly too.",
+      "Amelia politely asked the person to take their call outside.",
+      "Amelia left the library immediately.",
+      "Amelia complained loudly about the noise."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Benjamin was playing basketball when he accidentally hit another player with the ball. The player fell down and looked hurt.",
+    "options": [
+      "Benjamin kept playing and ignored what happened.",
+      "Benjamin went to check if the player was okay and apologized.",
+      "Benjamin blamed the other player for being in the way.",
+      "Benjamin ran away from the court."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Harper was at a restaurant when she noticed the person at the next table had dropped their menu. The menu was on the floor and they didn't notice.",
+    "options": [
+      "Harper picked it up and gave it to them.",
+      "Harper pointed it out to the person politely.",
+      "Harper ignored it and kept eating.",
+      "Harper made fun of the person for dropping it."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Daniel was at a friend's house when he accidentally broke a window while playing ball. The window had a big crack in it.",
+    "options": [
+      "Daniel hid the broken window and didn't say anything.",
+      "Daniel told his friend's parent and offered to help fix it.",
+      "Daniel blamed his friend for having the window there.",
+      "Daniel left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Evelyn was at school when she noticed a classmate was being left out of a game. The classmate was standing alone and looked sad.",
+    "options": [
+      "Evelyn ignored the classmate and kept playing.",
+      "Evelyn invited the classmate to join the game.",
+      "Evelyn told others not to include that person.",
+      "Evelyn made fun of the classmate for being left out."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Matthew was at a store when he saw someone trying to return an item without a receipt. The person was getting frustrated with the cashier.",
+    "options": [
+      "Matthew got involved and argued with the cashier.",
+      "Matthew minded his own business and kept shopping.",
+      "Matthew took sides and started arguing.",
+      "Matthew told the person to leave the store."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Abigail was at a park when she noticed someone had left their phone on a bench. The phone was sitting there with no one around.",
+    "options": [
+      "Abigail took the phone for herself.",
+      "Abigail left the phone where it was and ignored it.",
+      "Abigail took it to a lost and found or tried to find the owner.",
+      "Abigail opened the phone to see what was on it."
+    ],
+    "correct": 2
+  },
+  {
+    "story": "David was at a friend's house when he accidentally knocked over a lamp. The lamp fell and the lightbulb broke, scattering glass on the floor.",
+    "options": [
+      "David hid the broken lamp and didn't say anything.",
+      "David told his friend's parent and helped clean up safely.",
+      "David blamed his friend for having the lamp there.",
+      "David left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Grace was at a school event when she noticed a classmate had forgotten their part in a presentation. The classmate looked nervous and panicked.",
+    "options": [
+      "Grace laughed at the classmate's mistake.",
+      "Grace offered to help the classmate remember or find their notes.",
+      "Grace ignored the classmate and watched the presentation.",
+      "Grace told the teacher the classmate forgot their part."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "James was at a playground when he saw a child fall off the swing. The child was crying and holding their arm, which looked like it might be hurt.",
+    "options": [
+      "James kept playing and ignored the child.",
+      "James went to help the child and got an adult.",
+      "James laughed at the child for falling.",
+      "James told the child to stop crying."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Scarlett was at a friend's house when she noticed the friend's little sibling was trying to reach something on a high shelf. The sibling looked frustrated.",
+    "options": [
+      "Scarlett ignored the sibling and kept playing.",
+      "Scarlett helped the sibling reach what they needed.",
+      "Scarlett told the sibling they were too short.",
+      "Scarlett laughed at the sibling for trying."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Logan was at a store when he saw someone drop their keys. The keys fell to the ground and the person didn't notice and kept walking.",
+    "options": [
+      "Logan picked up the keys and kept them.",
+      "Logan picked up the keys and returned them to the person.",
+      "Logan ignored the keys and kept shopping.",
+      "Logan told a store employee about the keys."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Chloe was at a park when she noticed someone had left their jacket on a bench. The jacket was sitting there with no one around.",
+    "options": [
+      "Chloe took the jacket for herself.",
+      "Chloe left the jacket where it was and ignored it.",
+      "Chloe took it to a lost and found or tried to find the owner.",
+      "Chloe tried on the jacket."
+    ],
+    "correct": 2
+  },
+  {
+    "story": "Aiden was at a friend's house when he accidentally spilled juice on a book. The book was now wet and the pages were sticking together.",
+    "options": [
+      "Aiden hid the wet book and didn't say anything.",
+      "Aiden told his friend and helped dry the book or offered to replace it.",
+      "Aiden blamed his friend for having the book there.",
+      "Aiden left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Luna was at a school assembly when she noticed a classmate had dropped their notes. The notes were scattered on the floor and the classmate looked worried.",
+    "options": [
+      "Luna ignored the notes and kept watching.",
+      "Luna helped pick up the notes.",
+      "Luna stepped on the notes.",
+      "Luna told everyone about the dropped notes."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Carter was at a friend's house when he accidentally knocked over a glass of milk. The milk spilled all over the table and onto the floor.",
+    "options": [
+      "Carter hid the spill and didn't say anything.",
+      "Carter told his friend's parent and helped clean it up.",
+      "Carter blamed his friend for having the glass there.",
+      "Carter left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Zoe was at a park when she saw a child who couldn't reach the monkey bars. The child was trying but was too short to grab them.",
+    "options": [
+      "Zoe ignored the child and kept playing.",
+      "Zoe helped the child reach the monkey bars or found another activity.",
+      "Zoe laughed at the child for being too short.",
+      "Zoe told the child to find a taller friend."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Owen was at a store when he saw someone drop their shopping list. The list fell to the ground and the person didn't notice and kept shopping.",
+    "options": [
+      "Owen picked up the list and kept it.",
+      "Owen picked up the list and returned it to the person.",
+      "Owen ignored the list and kept shopping.",
+      "Owen told a store employee about the list."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Victoria was at a friend's house when she accidentally broke a picture frame. The frame fell and the glass shattered on the floor.",
+    "options": [
+      "Victoria hid the broken frame and didn't say anything.",
+      "Victoria told her friend's parent and helped clean up safely.",
+      "Victoria blamed her friend for having the frame there.",
+      "Victoria left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Nathan was at school when he noticed a classmate had forgotten their pencil case. The classmate was looking through their backpack and seemed worried.",
+    "options": [
+      "Nathan ignored the classmate and kept working.",
+      "Nathan offered to share his pencils with the classmate.",
+      "Nathan told the classmate they should have remembered.",
+      "Nathan told the teacher the classmate forgot their pencils."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Penelope was at a park when she saw a bird that had gotten its wing caught in some string. The bird was struggling and couldn't fly away.",
+    "options": [
+      "Penelope ignored the bird and kept playing.",
+      "Penelope carefully tried to help free the bird or got an adult to help.",
+      "Penelope tried to catch the bird.",
+      "Penelope told her friends about the bird."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Wyatt was at a friend's house when he accidentally knocked over a stack of books. The books fell and scattered all over the floor.",
+    "options": [
+      "Wyatt hid the books and didn't say anything.",
+      "Wyatt told his friend and helped pick up the books.",
+      "Wyatt blamed his friend for having the books there.",
+      "Wyatt left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Layla was at a school event when she noticed a classmate had dropped their project. The project was on the floor and some pieces had come apart.",
+    "options": [
+      "Layla ignored the project and kept walking.",
+      "Layla helped pick up the project and put it back together.",
+      "Layla stepped on the project.",
+      "Layla told everyone about the dropped project."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Hannah was at a store when she saw someone drop their shopping bag. The bag fell and items spilled out onto the floor.",
+    "options": [
+      "Hannah ignored the spilled items and kept shopping.",
+      "Hannah helped pick up the items and put them back in the bag.",
+      "Hannah stepped on the items.",
+      "Hannah told a store employee about the mess."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Jack was at a friend's house when he accidentally knocked over a plant pot. The pot fell and dirt spilled all over the carpet.",
+    "options": [
+      "Jack hid the mess and didn't say anything.",
+      "Jack told his friend's parent and helped clean it up.",
+      "Jack blamed his friend for having the plant there.",
+      "Jack left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Nora was at a park when she saw a child who couldn't reach the water fountain. The child was trying to get a drink but was too short.",
+    "options": [
+      "Nora ignored the child and got her own drink.",
+      "Nora helped the child reach the water fountain.",
+      "Nora laughed at the child for being too short.",
+      "Nora told the child to find a taller friend."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Ethan was at a school assembly when he noticed someone had left their backpack in the aisle. The backpack was blocking the way.",
+    "options": [
+      "Ethan stepped over the backpack and kept walking.",
+      "Ethan moved the backpack to the side or found its owner.",
+      "Ethan kicked the backpack out of the way.",
+      "Ethan told a teacher about the backpack."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Isabella was at a friend's house when she accidentally knocked over a cup of juice. The juice spilled all over the table and onto the floor.",
+    "options": [
+      "Isabella hid the spill and didn't say anything.",
+      "Isabella told her friend's parent and helped clean it up.",
+      "Isabella blamed her friend for having the cup there.",
+      "Isabella left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Mason was at a playground when he saw a child fall off the slide. The child was crying and holding their knee, which looked scraped.",
+    "options": [
+      "Mason kept playing and ignored the child.",
+      "Mason went to help the child and got an adult.",
+      "Mason laughed at the child for falling.",
+      "Mason told the child to stop crying."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Ava was at a store when she saw someone drop their wallet. The wallet fell to the ground and the person didn't notice and kept walking.",
+    "options": [
+      "Ava picked up the wallet and kept it.",
+      "Ava picked up the wallet and returned it to the person.",
+      "Ava ignored the wallet and kept shopping.",
+      "Ava told a store employee about the wallet."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Lucas was at a friend's house when he accidentally knocked over a lamp. The lamp fell and the lightbulb broke, scattering glass on the floor.",
+    "options": [
+      "Lucas hid the broken lamp and didn't say anything.",
+      "Lucas told his friend's parent and helped clean up safely.",
+      "Lucas blamed his friend for having the lamp there.",
+      "Lucas left the house quickly."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Sophia was at a park when she saw a child who couldn't reach the swings. The child was trying to get on but was too short.",
+    "options": [
+      "Sophia ignored the child and kept playing.",
+      "Sophia helped the child get on the swing.",
+      "Sophia laughed at the child for being too short.",
+      "Sophia told the child to find a taller friend."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Jackson was at a school event when he noticed a classmate had dropped their lunch. The lunch was on the floor and the container had opened.",
+    "options": [
+      "Jackson ignored the spilled lunch and kept walking.",
+      "Jackson helped pick up the lunch and put it back in the container.",
+      "Jackson stepped on the lunch.",
+      "Jackson told everyone about the dropped lunch."
+    ],
+    "correct": 1
+  },
+  {
+    "story": "Emma was at a friend's house when she accidentally knocked over a vase of flowers. The vase fell and water spilled all over the table.",
+    "options": [
+      "Emma hid the mess and didn't say anything.",
+      "Emma told her friend's parent and helped clean it up.",
+      "Emma blamed her friend for having the vase there.",
+      "Emma left the house quickly."
+    ],
+    "correct": 1
   }
 ]
 

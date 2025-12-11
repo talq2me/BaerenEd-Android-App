@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Place Value Blocks</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --correct-color: #8BC34A;
+            --wrong-color: #F44336;
+            --block-color-ones: #FFB6C1;
+            --block-color-tens: #87CEEB;
+            --block-color-hundreds: #DDA0DD;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .question {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .blocks-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            min-height: 250px;
+        }
+        
+        .block-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .block-group-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .blocks-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            max-width: 400px;
+        }
+        
+        .block-ones {
+            width: 40px;
+            height: 40px;
+            background: var(--block-color-ones);
+            border: 3px solid #333;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: appearBlock 0.3s ease-in-out;
+        }
+        
+        .block-tens {
+            width: 80px;
+            height: 40px;
+            background: var(--block-color-tens);
+            border: 3px solid #333;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: appearBlock 0.3s ease-in-out;
+        }
+        
+        .block-hundreds {
+            width: 80px;
+            height: 80px;
+            background: var(--block-color-hundreds);
+            border: 3px solid #333;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: appearBlock 0.3s ease-in-out;
+        }
+        
+        @keyframes appearBlock {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .answer-option {
+            padding: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-family: inherit;
+        }
+        
+        .answer-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        
+        .answer-option:active {
+            transform: scale(0.95);
+        }
+        
+        .answer-option.correct {
+            background: var(--correct-color);
+            animation: correctPulse 0.5s ease-in-out;
+        }
+        
+        .answer-option.wrong {
+            background: var(--wrong-color);
+            animation: wrongShake 0.5s ease-in-out;
+        }
+        
+        .answer-option.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--confetti-color);
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .next-button {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .next-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .next-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+        <div class="question" id="question">How many blocks are shown?</div>
+        <div class="blocks-container" id="blocksContainer"></div>
+        <div class="answer-options" id="answerOptions"></div>
+        <button class="next-button" id="nextButton">Next Question</button>
+    </div>
+
+    <script>
+        let currentProblem = null;
+        let currentAnswer = null;
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let problems = [];
+        let currentProblemIndex = 0;
+        let canAnswer = true;
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function loadConfig() {
+            try {
+                let configJson = '{}';
+                
+                if (isAndroidWebView() && typeof window.Android.getConfigJson === 'function') {
+                    configJson = window.Android.getConfigJson();
+                } else {
+                    const savedConfig = localStorage.getItem('placeValueBlocksConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                const urlParams = new URLSearchParams(window.location.search);
+                const taskId = urlParams.get('taskId');
+                
+                if (config.sections) {
+                    for (const section of config.sections) {
+                        if (section.tasks) {
+                            for (const task of section.tasks) {
+                                if (task.questionsToComplete) {
+                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (config.questionsToComplete) {
+                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                }
+            } catch (e) {
+                console.log('Using default maxQuestions:', maxQuestions);
+            }
+        }
+
+        function generateProblems() {
+            problems = [];
+            
+            // Grade 1-2 level: numbers from 1 to 200
+            // Mix of different place value combinations
+            
+            // Numbers with only ones (1-9)
+            for (let i = 0; i < 5; i++) {
+                const ones = Math.floor(Math.random() * 9) + 1;
+                problems.push({
+                    hundreds: 0,
+                    tens: 0,
+                    ones: ones,
+                    total: ones
+                });
+            }
+            
+            // Numbers with tens and ones (10-99)
+            for (let i = 0; i < 15; i++) {
+                const tens = Math.floor(Math.random() * 9) + 1; // 1-9 tens
+                const ones = Math.floor(Math.random() * 10); // 0-9 ones
+                problems.push({
+                    hundreds: 0,
+                    tens: tens,
+                    ones: ones,
+                    total: tens * 10 + ones
+                });
+            }
+            
+            // Numbers with only tens (10, 20, 30, etc.)
+            for (let i = 0; i < 5; i++) {
+                const tens = Math.floor(Math.random() * 9) + 1;
+                problems.push({
+                    hundreds: 0,
+                    tens: tens,
+                    ones: 0,
+                    total: tens * 10
+                });
+            }
+            
+            // Numbers with hundreds, tens, and ones (100-199)
+            for (let i = 0; i < 10; i++) {
+                const hundreds = 1; // Grade 1-2 typically uses 1-2 hundreds
+                const tens = Math.floor(Math.random() * 10);
+                const ones = Math.floor(Math.random() * 10);
+                problems.push({
+                    hundreds: hundreds,
+                    tens: tens,
+                    ones: ones,
+                    total: hundreds * 100 + tens * 10 + ones
+                });
+            }
+            
+            // Numbers with just hundreds (100, 200)
+            for (let i = 0; i < 3; i++) {
+                const hundreds = Math.floor(Math.random() * 2) + 1; // 1 or 2
+                problems.push({
+                    hundreds: hundreds,
+                    tens: 0,
+                    ones: 0,
+                    total: hundreds * 100
+                });
+            }
+            
+            shuffleArray(problems);
+            maxQuestions = Math.min(problems.length, maxQuestions);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createBlocks(hundreds, tens, ones) {
+            const container = document.getElementById('blocksContainer');
+            container.innerHTML = '';
+            
+            // Create hundreds blocks
+            if (hundreds > 0) {
+                const hundredsGroup = document.createElement('div');
+                hundredsGroup.className = 'block-group';
+                
+                const hundredsRow = document.createElement('div');
+                hundredsRow.className = 'blocks-row';
+                
+                for (let i = 0; i < hundreds; i++) {
+                    const block = document.createElement('div');
+                    block.className = 'block-hundreds';
+                    block.textContent = '100';
+                    block.style.animationDelay = `${i * 0.1}s`;
+                    hundredsRow.appendChild(block);
+                }
+                
+                hundredsGroup.appendChild(hundredsRow);
+                const hundredsLabel = document.createElement('div');
+                hundredsLabel.className = 'block-group-label';
+                hundredsLabel.textContent = `${hundreds} hundred${hundreds > 1 ? 's' : ''}`;
+                hundredsGroup.appendChild(hundredsLabel);
+                container.appendChild(hundredsGroup);
+            }
+            
+            // Create tens blocks
+            if (tens > 0) {
+                const tensGroup = document.createElement('div');
+                tensGroup.className = 'block-group';
+                
+                const tensRow = document.createElement('div');
+                tensRow.className = 'blocks-row';
+                
+                for (let i = 0; i < tens; i++) {
+                    const block = document.createElement('div');
+                    block.className = 'block-tens';
+                    block.textContent = '10';
+                    block.style.animationDelay = `${i * 0.1}s`;
+                    tensRow.appendChild(block);
+                }
+                
+                tensGroup.appendChild(tensRow);
+                const tensLabel = document.createElement('div');
+                tensLabel.className = 'block-group-label';
+                tensLabel.textContent = `${tens} ten${tens > 1 ? 's' : ''}`;
+                tensGroup.appendChild(tensLabel);
+                container.appendChild(tensGroup);
+            }
+            
+            // Create ones blocks
+            if (ones > 0) {
+                const onesGroup = document.createElement('div');
+                onesGroup.className = 'block-group';
+                
+                const onesRow = document.createElement('div');
+                onesRow.className = 'blocks-row';
+                
+                for (let i = 0; i < ones; i++) {
+                    const block = document.createElement('div');
+                    block.className = 'block-ones';
+                    block.textContent = '1';
+                    block.style.animationDelay = `${i * 0.05}s`;
+                    onesRow.appendChild(block);
+                }
+                
+                onesGroup.appendChild(onesRow);
+                const onesLabel = document.createElement('div');
+                onesLabel.className = 'block-group-label';
+                onesLabel.textContent = `${ones} one${ones > 1 ? 's' : ''}`;
+                onesGroup.appendChild(onesLabel);
+                container.appendChild(onesGroup);
+            }
+        }
+
+        function loadNextProblem() {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            if (currentProblemIndex >= problems.length) {
+                currentProblemIndex = 0;
+                shuffleArray(problems);
+            }
+            
+            currentProblem = problems[currentProblemIndex++];
+            currentAnswer = currentProblem.total;
+            
+            document.getElementById('question').textContent = 'How many blocks are shown?';
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('nextButton').textContent = 'Next Question';
+            canAnswer = true;
+            
+            // Create blocks
+            createBlocks(currentProblem.hundreds, currentProblem.tens, currentProblem.ones);
+            
+            // Generate answer options
+            generateAnswerOptions();
+        }
+
+        function generateAnswerOptions() {
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+            
+            const correctAnswer = currentAnswer;
+            const options = [correctAnswer];
+            
+            // Generate wrong answers
+            while (options.length < 4) {
+                let wrongAnswer;
+                
+                // Generate plausible wrong answers
+                const range = Math.max(10, Math.floor(correctAnswer * 0.3));
+                wrongAnswer = correctAnswer + Math.floor(Math.random() * (range * 2 + 1)) - range;
+                
+                // Ensure wrong answer is positive, different, and reasonable for grade 1-2
+                if (wrongAnswer > 0 && wrongAnswer <= 200 && !options.includes(wrongAnswer)) {
+                    options.push(wrongAnswer);
+                } else {
+                    // Fallback strategies
+                    if (correctAnswer < 20) {
+                        // For small numbers, try ±1-5
+                        const offset = Math.floor(Math.random() * 5) + 1;
+                        wrongAnswer = correctAnswer + (Math.random() > 0.5 ? offset : -offset);
+                    } else if (correctAnswer < 100) {
+                        // For medium numbers, try ±5-15
+                        const offset = Math.floor(Math.random() * 11) + 5;
+                        wrongAnswer = correctAnswer + (Math.random() > 0.5 ? offset : -offset);
+                    } else {
+                        // For large numbers, try ±10-30
+                        const offset = Math.floor(Math.random() * 21) + 10;
+                        wrongAnswer = correctAnswer + (Math.random() > 0.5 ? offset : -offset);
+                    }
+                    
+                    if (wrongAnswer > 0 && wrongAnswer <= 200 && !options.includes(wrongAnswer)) {
+                        options.push(wrongAnswer);
+                    } else {
+                        // Last resort: just add sequential numbers
+                        let fallback = correctAnswer + options.length;
+                        if (fallback > 200) fallback = correctAnswer - options.length;
+                        if (fallback > 0 && !options.includes(fallback)) {
+                            options.push(fallback);
+                        }
+                    }
+                }
+            }
+            
+            shuffleArray(options);
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'answer-option';
+                button.textContent = option;
+                button.dataset.value = option;
+                button.addEventListener('click', () => handleAnswerClick(option));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function handleAnswerClick(selectedAnswer) {
+            if (!canAnswer) return;
+            
+            canAnswer = false;
+            const buttons = document.querySelectorAll('.answer-option');
+            buttons.forEach(btn => btn.classList.add('disabled'));
+            
+            if (selectedAnswer === currentAnswer) {
+                // Correct answer!
+                buttons.forEach(btn => {
+                    if (parseInt(btn.dataset.value) === selectedAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+                
+                createConfetti();
+                correctCount++;
+                score++;
+                questionsCompleted++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('progress').textContent = questionsCompleted;
+                document.getElementById('nextButton').style.display = 'block';
+                
+                if (questionsCompleted >= maxQuestions) {
+                    document.getElementById('nextButton').textContent = 'Finish Game';
+                }
+            } else {
+                // Wrong answer
+                buttons.forEach(btn => {
+                    if (parseInt(btn.dataset.value) === selectedAnswer) {
+                        btn.classList.add('wrong');
+                    }
+                    if (parseInt(btn.dataset.value) === currentAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+                
+                incorrectCount++;
+                
+                // Allow retry after showing correct answer
+                setTimeout(() => {
+                    canAnswer = true;
+                    buttons.forEach(btn => {
+                        btn.classList.remove('disabled', 'wrong', 'correct');
+                    });
+                }, 2000);
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const container = document.body;
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+                confetti.style.background = confetti.style.getPropertyValue('--confetti-color');
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').innerHTML = 
+                `<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions} correct answers!</p>`;
+            document.getElementById('blocksContainer').style.display = 'none';
+            document.getElementById('answerOptions').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        window.addEventListener('load', () => {
+            loadConfig();
+            document.getElementById('maxQuestions').textContent = maxQuestions;
+            generateProblems();
+            loadNextProblem();
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+            } else {
+                loadNextProblem();
+            }
+        });
+    </script>
+</body>
+</html>
+

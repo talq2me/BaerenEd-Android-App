@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Diagram Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .step {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .image-container {
+            position: relative;
+            display: inline-block;
+            border: 2px solid #ddd;
+            margin: 20px 0;
+            background: white;
+        }
+        .diagram-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .selection-box {
+            position: absolute;
+            border: 3px dashed #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .selection-box::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: #4CAF50;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover { background: #45a049; }
+        .btn-secondary {
+            background: #2196F3;
+        }
+        .btn-secondary:hover { background: #1976D2; }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover { background: #d32f2f; }
+        .part-list {
+            margin: 20px 0;
+        }
+        .part-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .part-item input {
+            flex: 1;
+            padding: 8px;
+            margin: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .part-item .coords {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            margin: 0 10px;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .status {
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Simple Diagram Setup</h1>
+        <p>Load your labeled diagram, click and drag rectangles over each label, then name them!</p>
+        
+        <div class="instructions">
+            <h3>How it works:</h3>
+            <ol>
+                <li>Load your <strong>labeled diagram</strong> (with labels already on it)</li>
+                <li><strong>Click and drag</strong> to draw a rectangle over each label</li>
+                <li>Enter the label name when prompted</li>
+                <li>Edit explanations if needed</li>
+                <li>Generate the JSON configuration!</li>
+            </ol>
+            <p><strong>Note:</strong> The game will cover these areas with white boxes. When students click the correct region, the white box disappears to reveal the label underneath!</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 1: Load Labeled Diagram</h2>
+            <input type="file" id="imageFile" accept="image/*" style="display: none;">
+            <button class="btn" onclick="document.getElementById('imageFile').click()">Load Labeled Diagram</button>
+            <div id="imageContainer" class="image-container" style="display: none;">
+                <img id="diagramImage" class="diagram-image" alt="Diagram">
+                <div class="status" id="status">Click and drag to select a region over a label</div>
+            </div>
+        </div>
+
+        <div class="step" id="partsStep" style="display: none;">
+            <h2>Step 2: Review and Edit Parts</h2>
+            <div class="part-list" id="partsList"></div>
+            <button class="btn btn-secondary" onclick="addCustomPart()">Add Part Manually</button>
+        </div>
+
+        <div class="step" id="generateStep" style="display: none;">
+            <h2>Step 3: Generate Configuration</h2>
+            <label>
+                Diagram Title:
+                <input type="text" id="diagramTitle" placeholder="the excretory system" style="width: 300px; padding: 8px; margin-left: 10px;">
+            </label>
+            <br><br>
+            <button class="btn" onclick="generateJSON()">Generate JSON Configuration</button>
+            <button class="btn btn-secondary" onclick="copyJSON()">Copy to Clipboard</button>
+        </div>
+
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        let imageData = null;
+        let parts = [];
+        let isDragging = false;
+        let dragStart = null;
+        let currentSelectionBox = null;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            loadImage(e.target.files[0]);
+        });
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('diagramImage');
+                img.src = e.target.result;
+                img.onload = function() {
+                    document.getElementById('imageContainer').style.display = 'block';
+                    imageData = {
+                        src: e.target.result,
+                        width: img.naturalWidth,
+                        height: img.naturalHeight,
+                        displayWidth: img.width,
+                        displayHeight: img.height
+                    };
+                    
+                    // Add mouse event listeners for drag selection
+                    const container = document.getElementById('imageContainer');
+                    img.addEventListener('mousedown', startDrag);
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mouseup', endDrag);
+                    
+                    document.getElementById('partsStep').style.display = 'block';
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function startDrag(e) {
+            if (e.target.id !== 'diagramImage') return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDragging = true;
+            const container = document.getElementById('imageContainer');
+            const rect = container.getBoundingClientRect();
+            const img = document.getElementById('diagramImage');
+            const imgRect = img.getBoundingClientRect();
+            
+            dragStart = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+                imgX: ((e.clientX - imgRect.left) / imgRect.width) * imageData.width,
+                imgY: ((e.clientY - imgRect.top) / imgRect.height) * imageData.height
+            };
+            
+            // Create selection box
+            currentSelectionBox = document.createElement('div');
+            currentSelectionBox.className = 'selection-box';
+            container.appendChild(currentSelectionBox);
+            
+            updateSelectionBox(e);
+        }
+
+        function drag(e) {
+            if (!isDragging || !dragStart) return;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            updateSelectionBox(e);
+        }
+
+        function updateSelectionBox(e) {
+            if (!currentSelectionBox || !dragStart) return;
+            
+            const container = document.getElementById('imageContainer');
+            const rect = container.getBoundingClientRect();
+            
+            const x = Math.min(dragStart.x, e.clientX - rect.left);
+            const y = Math.min(dragStart.y, e.clientY - rect.top);
+            const width = Math.abs(e.clientX - rect.left - dragStart.x);
+            const height = Math.abs(e.clientY - rect.top - dragStart.y);
+            
+            currentSelectionBox.style.left = `${x}px`;
+            currentSelectionBox.style.top = `${y}px`;
+            currentSelectionBox.style.width = `${width}px`;
+            currentSelectionBox.style.height = `${height}px`;
+        }
+
+        function endDrag(e) {
+            if (!isDragging || !dragStart) return;
+            
+            const img = document.getElementById('diagramImage');
+            const imgRect = img.getBoundingClientRect();
+            const container = document.getElementById('imageContainer');
+            
+            // Use the last known mouse position (in case mouse left the image)
+            const endX = lastMouseX || e.clientX;
+            const endY = lastMouseY || e.clientY;
+            
+            // Calculate final coordinates in image space
+            // Clamp to image bounds
+            const clampedX = Math.max(imgRect.left, Math.min(imgRect.right, endX));
+            const clampedY = Math.max(imgRect.top, Math.min(imgRect.bottom, endY));
+            
+            const x2 = ((clampedX - imgRect.left) / imgRect.width) * imageData.width;
+            const y2 = ((clampedY - imgRect.top) / imgRect.height) * imageData.height;
+            
+            const region = {
+                x1: Math.round(Math.min(dragStart.imgX, x2)),
+                y1: Math.round(Math.min(dragStart.imgY, y2)),
+                x2: Math.round(Math.max(dragStart.imgX, x2)),
+                y2: Math.round(Math.max(dragStart.imgY, y2))
+            };
+            
+            // Check if region is too small (probably accidental click)
+            if (Math.abs(region.x2 - region.x1) < 10 || Math.abs(region.y2 - region.y1) < 10) {
+                if (currentSelectionBox) currentSelectionBox.remove();
+                isDragging = false;
+                dragStart = null;
+                currentSelectionBox = null;
+                return;
+            }
+            
+            // Clean up drag state first
+            isDragging = false;
+            const savedRegion = region;
+            const savedBox = currentSelectionBox;
+            dragStart = null;
+            currentSelectionBox = null;
+            
+            // Ask for label name
+            const labelText = prompt('Enter the label name for this region:', '');
+            if (!labelText || !labelText.trim()) {
+                if (savedBox) savedBox.remove();
+                return;
+            }
+            
+            // Add part (explanation left blank for AI to fill in)
+            const part = {
+                name: labelText.trim(),
+                explanation: '', // Left blank for AI to fill in
+                labelX: Math.round((savedRegion.x1 + savedRegion.x2) / 2), // Center of region for label position
+                labelY: Math.round((savedRegion.y1 + savedRegion.y2) / 2),
+                clickRegion: savedRegion
+            };
+            
+            parts.push(part);
+            
+            // Update selection box to show label name
+            if (savedBox) {
+                savedBox.setAttribute('data-label', labelText);
+                savedBox.style.pointerEvents = 'all';
+                savedBox.style.cursor = 'pointer';
+                savedBox.onclick = function() {
+                    editPart(parts.length - 1);
+                };
+            }
+            
+            updatePartsList();
+            
+            // Show generate step after first part
+            if (parts.length === 1) {
+                document.getElementById('generateStep').style.display = 'block';
+            }
+            
+            document.getElementById('status').textContent = `Added "${labelText}". Click and drag to select another label region.`;
+        }
+
+        function updatePartsList() {
+            const list = document.getElementById('partsList');
+            list.innerHTML = '';
+            
+            parts.forEach((part, index) => {
+                const div = document.createElement('div');
+                div.className = 'part-item';
+                div.innerHTML = `
+                    <strong>${index + 1}.</strong>
+                    <input type="text" value="${part.name}" onchange="parts[${index}].name = this.value; updatePartsList();" style="flex: 1;">
+                    <span class="coords">Region: (${part.clickRegion.x1}, ${part.clickRegion.y1}) to (${part.clickRegion.x2}, ${part.clickRegion.y2})</span>
+                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removePart(${index})">Remove</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function removePart(index) {
+            parts.splice(index, 1);
+            updatePartsList();
+            // Remove selection boxes
+            const boxes = document.querySelectorAll('.selection-box');
+            if (boxes[index]) boxes[index].remove();
+        }
+
+        function addCustomPart() {
+            const name = prompt('Enter part name:', '');
+            if (!name || !name.trim()) return;
+            
+            parts.push({
+                name: name.trim(),
+                explanation: '', // Left blank for AI to fill in
+                labelX: 200,
+                labelY: 200,
+                clickRegion: {
+                    x1: 150,
+                    y1: 150,
+                    x2: 250,
+                    y2: 250
+                }
+            });
+            
+            updatePartsList();
+            
+            if (parts.length === 1) {
+                document.getElementById('generateStep').style.display = 'block';
+            }
+        }
+
+        function editPart(index) {
+            const part = parts[index];
+            const newName = prompt('Edit part name:', part.name);
+            if (newName && newName.trim()) {
+                part.name = newName.trim();
+            }
+            updatePartsList();
+        }
+
+        function generateJSON() {
+            const title = document.getElementById('diagramTitle').value.trim() || 'a diagram';
+            const imageName = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            
+            const diagram = {
+                title: title,
+                image: `diagrams/${imageName}.png`,
+                parts: parts.map((part, index) => ({
+                    name: part.name,
+                    intro: index === 0 ? `This is a diagram of ${title}.` : '',
+                    explanation: part.explanation || '', // Leave blank for AI to fill in
+                    labelX: part.labelX,
+                    labelY: part.labelY,
+                    clickRegion: part.clickRegion
+                }))
+            };
+            
+            const fullJSON = {
+                diagrams: [diagram]
+            };
+            
+            const jsonText = JSON.stringify(fullJSON, null, 2);
+            document.getElementById('output').textContent = 
+                '// Copy this JSON and add it to diagramLabeler.json\n' +
+                '// Make sure your labeled image is saved as: assets/images/diagrams/' + imageName + '.png\n' +
+                '// The game will cover the labels with white boxes that disappear when clicked correctly!\n\n' +
+                jsonText;
+        }
+
+        function copyJSON() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('JSON copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

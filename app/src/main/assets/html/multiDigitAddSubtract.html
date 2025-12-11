@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Multidigit Math</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --correct-color: #8BC34A;
+            --wrong-color: #F44336;
+            --border-color: #333;
+            --input-bg: #fff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .question {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .math-problem {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin: 30px 0;
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .math-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 2px 0;
+            position: relative;
+        }
+        
+        .operation-sign {
+            margin-right: 10px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .digit-cell {
+            width: 50px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--input-bg);
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .digit-cell.input {
+            background: #f0f0f0;
+            cursor: text;
+        }
+        
+        .digit-cell.input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        
+        .digit-cell.input.error {
+            border-color: var(--wrong-color);
+            background: #ffebee;
+            animation: shake 0.3s;
+        }
+        
+        .digit-cell.crossed {
+            text-decoration: line-through;
+            color: #999;
+            position: relative;
+        }
+        
+        .digit-cell.crossed::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #333;
+            transform: rotate(-45deg);
+        }
+        
+        .borrow-indicator {
+            position: absolute;
+            top: -25px;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .carry-indicator {
+            position: absolute;
+            top: -25px;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .borrow-button {
+            position: absolute;
+            top: -20px;
+            width: 50px;
+            height: 20px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: bold;
+        }
+        
+        .math-row:hover .borrow-button {
+            opacity: 1;
+        }
+        
+        .borrow-button:hover {
+            background: #F57C00;
+        }
+        
+        .answer-row {
+            border-top: 3px solid var(--border-color);
+            margin-top: 5px;
+            padding-top: 5px;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .error-message {
+            color: var(--wrong-color);
+            font-size: 1rem;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 25px;
+            font-weight: bold;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--confetti-color);
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .next-button {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .next-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .next-button:active {
+            transform: scale(0.95);
+        }
+        
+        .hint-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+        <div class="question" id="question"></div>
+        <div class="math-problem" id="mathProblem"></div>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="hint-text" id="hintText"></div>
+        <button class="next-button" id="nextButton">Next Question</button>
+    </div>
+
+    <script>
+        let currentProblem = null;
+        let currentAnswer = null;
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let problems = [];
+        let currentProblemIndex = 0;
+        let canAnswer = true;
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+        let borrows = {}; // Track which positions have been borrowed
+        let carries = {}; // Track which positions have carries
+        let answerInputs = []; // Track answer input fields
+        let carryInputs = []; // Track carry input fields for addition
+        let borrowInputs = {}; // Track borrow input fields for subtraction
+        let borrowFromMap = {}; // Track which column we borrow FROM for each column that needs to borrow
+        let borrowNinesMap = {}; // Track which columns become 9s for each borrow
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function loadConfig() {
+            try {
+                let configJson = '{}';
+                
+                if (isAndroidWebView() && typeof window.Android.getConfigJson === 'function') {
+                    configJson = window.Android.getConfigJson();
+                } else {
+                    const savedConfig = localStorage.getItem('multidigitMathConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                
+                if (config.sections) {
+                    for (const section of config.sections) {
+                        if (section.tasks) {
+                            for (const task of section.tasks) {
+                                if (task.questionsToComplete) {
+                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (config.questionsToComplete) {
+                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                }
+            } catch (e) {
+                console.log('Using default maxQuestions:', maxQuestions);
+            }
+        }
+
+        function generateProblems() {
+            problems = [];
+            
+            // Generate addition problems (2-4 digits, grade 4 appropriate)
+            for (let i = 0; i < 15; i++) {
+                const numDigits = Math.floor(Math.random() * 3) + 2; // 2-4 digits
+                const num1 = generateNumber(numDigits);
+                const num2 = generateNumber(numDigits);
+                const sum = num1 + num2;
+                
+                problems.push({
+                    question: `Add these numbers:`,
+                    num1: num1,
+                    num2: num2,
+                    operation: 'add',
+                    answer: sum
+                });
+            }
+            
+            // Generate subtraction problems (2-4 digits, ensure num1 > num2)
+            for (let i = 0; i < 15; i++) {
+                const numDigits = Math.floor(Math.random() * 3) + 2; // 2-4 digits
+                // Generate two numbers, then ensure larger is on top
+                let num1 = generateNumber(numDigits);
+                let num2 = generateNumber(numDigits);
+                
+                // Ensure num1 >= num2 (larger number on top)
+                if (num2 > num1) {
+                    [num1, num2] = [num2, num1]; // Swap them
+                }
+                
+                // Make sure num2 is not too small (at least 10% of num1 for reasonable problems)
+                const minNum2 = Math.max(1, Math.floor(num1 * 0.1));
+                if (num2 < minNum2) {
+                    num2 = minNum2;
+                }
+                
+                // Final check: ensure num1 > num2
+                if (num1 <= num2) {
+                    num2 = Math.max(1, num1 - 1);
+                }
+                
+                const difference = num1 - num2;
+                
+                // Ensure we have a valid subtraction problem
+                if (num1 > num2 && difference > 0) {
+                    problems.push({
+                        question: `Subtract these numbers:`,
+                        num1: num1,
+                        num2: num2,
+                        operation: 'subtract',
+                        answer: difference
+                    });
+                }
+            }
+            
+            shuffleArray(problems);
+            maxQuestions = Math.min(problems.length, maxQuestions);
+        }
+
+        function generateNumber(numDigits) {
+            const min = Math.pow(10, numDigits - 1);
+            const max = Math.pow(10, numDigits) - 1;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function getNumDigits(num) {
+            return num.toString().length;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createMathProblem(problem) {
+            const container = document.getElementById('mathProblem');
+            container.innerHTML = '';
+            borrows = {};
+            carries = {};
+            answerInputs = [];
+            carryInputs = [];
+            borrowInputs = {};
+            
+            const num1Str = problem.num1.toString();
+            const num2Str = problem.num2.toString();
+            const maxLen = Math.max(num1Str.length, num2Str.length);
+            
+            // Pad numbers to same length for alignment
+            const num1Padded = num1Str.padStart(maxLen, '0');
+            const num2Padded = num2Str.padStart(maxLen, '0');
+            
+            // Calculate answer digit by digit, column by column (from RIGHT to LEFT: ones, tens, hundreds, etc.)
+            // Store answer digits from RIGHT to LEFT (ones first, then tens, etc.)
+            const answerDigits = []; // Will store: [ones, tens, hundreds, thousands] (right to left)
+            const needsCarry = {}; // Track which COLUMN POSITIONS need carry boxes (for addition)
+            const needsBorrow = {}; // Track which COLUMN POSITIONS need borrow boxes (for subtraction)
+            
+            if (problem.operation === 'add') {
+                // ADDITION: Calculate from right to left (ones column first)
+                // num1Padded[i] where i=0 is leftmost, i=maxLen-1 is rightmost (ones)
+                let carry = 0;
+                // i goes from maxLen-1 (rightmost/ones) to 0 (leftmost)
+                for (let i = maxLen - 1; i >= 0; i--) {
+                    const digit1 = parseInt(num1Padded[i]);
+                    const digit2 = parseInt(num2Padded[i]);
+                    const sum = digit1 + digit2 + carry;
+                    
+                    // The ones digit of the sum goes in this column
+                    const answerDigit = sum % 10;
+                    answerDigits.push(answerDigit); // Add to end (building right to left: ones, tens, hundreds...)
+                    
+                    // If sum >= 10, we need a carry box in the column to the LEFT (i-1)
+                    // needsCarry[i] = true means column i needs a carry box (the carry FROM column i+1)
+                    if (sum >= 10) {
+                        carry = 1;
+                        if (i > 0) {
+                            needsCarry[i - 1] = true; // Column i-1 needs a carry box (carry FROM column i)
+                        }
+                    } else {
+                        carry = 0;
+                    }
+                }
+                
+                // If there's a final carry, it creates a new leftmost digit
+                if (carry > 0) {
+                    answerDigits.push(carry); // Add final carry as new leftmost digit
+                    needsCarry[-1] = true; // Special marker for the new leftmost column
+                }
+            } else {
+                // SUBTRACTION: Calculate from right to left (ones column first)
+                const num1Working = num1Padded.split('').map(d => parseInt(d));
+                
+                // Calculate from right to left (ones column first)
+                // i goes from maxLen-1 (rightmost/ones) to 0 (leftmost)
+                // num1Padded[i] where i=maxLen-1 is rightmost (ones), i=0 is leftmost
+                // But num1Padded is indexed left-to-right: [0] is leftmost, [maxLen-1] is rightmost
+                // So when i = maxLen-1, we're looking at num1Padded[maxLen-1] (rightmost digit)
+                // In display, this is displayPos = maxLen-1 (rightmost)
+                for (let i = maxLen - 1; i >= 0; i--) {
+                    let digit1 = num1Working[i];
+                    const digit2 = parseInt(num2Padded[i]);
+                    
+                    // Check if we need to borrow
+                    if (digit1 < digit2) {
+                        // Need to borrow from the column to the LEFT
+                        // i is the column that needs to borrow (displayPos = i, left-to-right)
+                        if (i > 0) {
+                            needsBorrow[i] = true; // Column i needs to borrow (displayPos = i)
+                            
+                            // Find a column to borrow from (might need to chain borrow through zeros)
+                            let borrowFromPos = i - 1;
+                            const zerosPassed = []; // Track columns that become 9s
+                            
+                            // Chain borrow: if we hit a 0, we need to borrow from further left
+                            while (borrowFromPos >= 0 && num1Working[borrowFromPos] === 0) {
+                                zerosPassed.push(borrowFromPos); // This column will become 9
+                                num1Working[borrowFromPos] = 9;
+                                borrowFromPos--;
+                            }
+                            
+                            // Now borrow from the found column (decrement it by 1)
+                            if (borrowFromPos >= 0) {
+                                // Store which column we actually borrow from
+                                borrowFromMap[i] = borrowFromPos;
+                                // Store which columns become 9s
+                                borrowNinesMap[i] = zerosPassed;
+                                
+                                num1Working[borrowFromPos] -= 1;
+                                digit1 += 10; // Add 10 to current digit
+                            } else {
+                                console.error('Cannot borrow - invalid subtraction problem');
+                            }
+                        }
+                    }
+                    
+                    // Calculate the difference
+                    const answerDigit = digit1 - digit2;
+                    answerDigits.push(answerDigit); // Add to end (building right to left)
+                }
+            }
+            
+            // answerDigits is now [ones, tens, hundreds, thousands] (right to left)
+            // We need to reverse it to get [thousands, hundreds, tens, ones] (left to right) for display
+            answerDigits.reverse();
+            
+            // Remove leading zeros from answer (but keep at least one digit)
+            while (answerDigits.length > 1 && answerDigits[0] === 0) {
+                answerDigits.shift();
+            }
+            
+            // Answer length: same as inputs OR one more (if final carry in addition)
+            const actualAnswerLen = answerDigits.length;
+            const answerLen = Math.max(actualAnswerLen, maxLen);
+            
+            // Convert to string (left to right: thousands, hundreds, tens, ones)
+            let answerStr = answerDigits.join('');
+            // Pad to answerLen for alignment
+            answerStr = answerStr.padStart(answerLen, '0');
+            
+            // Debug logging
+            console.log(`Problem: ${problem.num1} ${problem.operation === 'add' ? '+' : '-'} ${problem.num2}`);
+            console.log(`Calculated answer: ${answerStr}, Expected: ${problem.answer}`);
+            console.log(`Answer digits (left to right):`, answerDigits);
+            if (problem.operation === 'add') {
+                console.log(`Carry positions:`, needsCarry);
+            }
+            if (problem.operation === 'subtract') {
+                console.log(`Borrow positions:`, needsBorrow);
+            }
+            
+            // Verify against problem.answer
+            if (parseInt(answerStr) !== problem.answer) {
+                console.warn(`Answer mismatch! Calculated: ${parseInt(answerStr)}, Expected: ${problem.answer}`);
+            }
+            
+            // Store original strings for display (without leading zeros)
+            const num1Display = num1Str;
+            const num2Display = num2Str;
+            
+            // Create top number row
+            const topRow = document.createElement('div');
+            topRow.className = 'math-row';
+            topRow.id = 'topRow';
+            
+            // Add carry input row (for addition)
+            if (problem.operation === 'add') {
+                const carryRow = document.createElement('div');
+                carryRow.className = 'math-row';
+                carryRow.style.height = '40px';
+                carryRow.style.marginBottom = '5px';
+                
+                // needsCarry is already calculated above
+                
+                // Create carry row - display left to right (thousands, hundreds, tens, ones)
+                // needsCarry[calcPos] = true means: column calcPos needs a carry box (the carry FROM the column to its right)
+                // calcPos in calculation: 0 = leftmost, maxLen-1 = rightmost (ones)
+                // displayPos: 0 = leftmost, answerLen-1 = rightmost (ones)
+                // Mapping: calcPos = 0 -> displayPos = 0, calcPos = maxLen-1 -> displayPos = answerLen-1
+                for (let displayPos = 0; displayPos < answerLen; displayPos++) {
+                    const carryCell = document.createElement('div');
+                    carryCell.style.width = '50px';
+                    carryCell.style.position = 'relative';
+                    
+                    let needsCarryHere = false;
+                    let calcPos = -1;
+                    
+                    if (displayPos < answerLen - maxLen) {
+                        // This is a new leftmost column from final carry
+                        needsCarryHere = needsCarry[-1] === true;
+                        calcPos = -1;
+                    } else {
+                        // Map display position to calculation position
+                        // displayPos 0 = leftmost, answerLen-1 = rightmost
+                        // calcPos 0 = leftmost, maxLen-1 = rightmost
+                        // When answerLen == maxLen: calcPos = displayPos
+                        // When answerLen > maxLen: calcPos = displayPos - (answerLen - maxLen)
+                        calcPos = displayPos - (answerLen - maxLen);
+                        
+                        // needsCarry[calcPos] = true means this column needs a carry box
+                        if (calcPos >= 0 && calcPos < maxLen && needsCarry[calcPos] === true) {
+                            needsCarryHere = true;
+                        }
+                    }
+                    
+                    if (needsCarryHere) {
+                        // This column needs a carry input
+                        const carryInput = document.createElement('input');
+                        carryInput.type = 'text';
+                        carryInput.className = 'digit-cell input';
+                        carryInput.style.width = '40px';
+                        carryInput.style.height = '35px';
+                        carryInput.style.fontSize = '1.2rem';
+                        carryInput.maxLength = 1;
+                        carryInput.dataset.position = calcPos >= 0 ? calcPos : -1;
+                        carryInput.dataset.correctValue = '1';
+                        carryInput.style.textAlign = 'center';
+                        carryInput.addEventListener('input', (e) => handleCarryInput(e, calcPos >= 0 ? calcPos : -1));
+                        carryInputs.push(carryInput);
+                        carryCell.appendChild(carryInput);
+                    } else {
+                        carryCell.style.height = '35px';
+                    }
+                    
+                    carryRow.appendChild(carryCell);
+                }
+                container.appendChild(carryRow);
+            }
+            
+            // Top number (num1) - display left to right (thousands, hundreds, tens, ones)
+            // num1Padded is already left-to-right: [0] is leftmost, [maxLen-1] is rightmost
+            const num1StartIndex = maxLen - num1Display.length;
+            for (let i = 0; i < maxLen; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'digit-cell';
+                // Only show digit if it's not a leading zero
+                if (i >= num1StartIndex) {
+                    cell.textContent = num1Padded[i];
+                    cell.dataset.value = num1Padded[i];
+                } else {
+                    // Leading zero - leave empty
+                    cell.textContent = '';
+                    cell.dataset.value = '0';
+                }
+                // Position: 0 = leftmost (thousands), maxLen-1 = rightmost (ones)
+                cell.dataset.position = i;
+                topRow.appendChild(cell);
+            }
+            container.appendChild(topRow);
+            
+            // Operation row
+            const opRow = document.createElement('div');
+            opRow.className = 'math-row';
+            const opSign = document.createElement('div');
+            opSign.className = 'operation-sign';
+            opSign.textContent = problem.operation === 'add' ? '+' : '−';
+            opRow.appendChild(opSign);
+            
+            // Add borrow input row (for subtraction) - above the top number, display left to right
+            if (problem.operation === 'subtract') {
+                const borrowRow = document.createElement('div');
+                borrowRow.className = 'math-row';
+                borrowRow.style.height = '40px';
+                borrowRow.style.marginBottom = '5px';
+                
+                // needsBorrow[calcPos] means column calcPos needs to borrow
+                // calcPos: 0 = leftmost, maxLen-1 = rightmost (ones) in num1Padded indexing
+                // Display left to right: displayPos 0 = leftmost, displayPos maxLen-1 = rightmost (ones)
+                // Since both use same indexing (left-to-right), calcPos = displayPos
+                for (let displayPos = 0; displayPos < maxLen; displayPos++) {
+                    const borrowCell = document.createElement('div');
+                    borrowCell.style.width = '50px';
+                    borrowCell.style.position = 'relative';
+                    
+                    // displayPos is the same as calcPos (both left-to-right)
+                    // needsBorrow[displayPos] = true means this column needs to borrow (shows "10")
+                    // Check if any borrow operation makes this column a 9 (it was a zero we passed through)
+                    let hasBorrowInput = false;
+                    const inputsForThisCell = [];
+                    
+                    // Check if this column needs to show "10" (it needs to borrow)
+                    if (needsBorrow[displayPos]) {
+                        const borrowInput = document.createElement('input');
+                        borrowInput.type = 'text';
+                        borrowInput.className = 'digit-cell input';
+                        borrowInput.style.width = '40px';
+                        borrowInput.style.height = '35px';
+                        borrowInput.style.fontSize = '1.2rem';
+                        borrowInput.maxLength = 2; // Can be 10-19
+                        borrowInput.dataset.position = displayPos;
+                        const num1Digit = parseInt(num1Padded[displayPos]);
+                        borrowInput.dataset.correctValue = (num1Digit + 10).toString();
+                        borrowInput.style.textAlign = 'center';
+                        borrowInput.style.display = 'none'; // Hidden until borrow button is clicked
+                        borrowInput.addEventListener('input', (e) => handleBorrowInput(e, displayPos));
+                        inputsForThisCell.push(borrowInput);
+                        hasBorrowInput = true;
+                    }
+                    
+                    // Check if this column becomes a 9 (it was a zero we passed through)
+                    for (let borrowPos in borrowNinesMap) {
+                        const borrowPosNum = parseInt(borrowPos);
+                        if (borrowNinesMap[borrowPos] && borrowNinesMap[borrowPos].includes(displayPos)) {
+                            const nineInput = document.createElement('input');
+                            nineInput.type = 'text';
+                            nineInput.className = 'digit-cell input';
+                            nineInput.style.width = '40px';
+                            nineInput.style.height = '35px';
+                            nineInput.style.fontSize = '1.2rem';
+                            nineInput.maxLength = 1;
+                            nineInput.dataset.position = displayPos;
+                            nineInput.dataset.correctValue = '9';
+                            nineInput.dataset.borrowFor = borrowPosNum; // Track which borrow this 9 is for
+                            nineInput.style.textAlign = 'center';
+                            nineInput.style.display = 'none'; // Hidden until borrow button is clicked
+                            nineInput.addEventListener('input', (e) => handleBorrowInput(e, displayPos));
+                            inputsForThisCell.push(nineInput);
+                            hasBorrowInput = true;
+                        }
+                    }
+                    
+                    // Store inputs for this cell
+                    if (inputsForThisCell.length > 0) {
+                        borrowInputs[displayPos] = inputsForThisCell.length === 1 ? inputsForThisCell[0] : inputsForThisCell;
+                        inputsForThisCell.forEach(input => borrowCell.appendChild(input));
+                    } else {
+                        borrowCell.style.height = '35px';
+                    }
+                    
+                    borrowRow.appendChild(borrowCell);
+                }
+                container.insertBefore(borrowRow, topRow);
+            }
+            
+            // Bottom number (num2) - display left to right (thousands, hundreds, tens, ones)
+            const num2StartIndex = maxLen - num2Display.length;
+            for (let i = 0; i < maxLen; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'digit-cell';
+                // Only show digit if it's not a leading zero
+                if (i >= num2StartIndex) {
+                    cell.textContent = num2Padded[i];
+                    cell.dataset.value = num2Padded[i];
+                } else {
+                    // Leading zero - leave empty
+                    cell.textContent = '';
+                    cell.dataset.value = '0';
+                }
+                cell.dataset.position = i;
+                opRow.appendChild(cell);
+            }
+            container.appendChild(opRow);
+            
+            // Line - width should match answer length (may be longer than inputs)
+            const lineRow = document.createElement('div');
+            lineRow.className = 'math-row';
+            lineRow.style.marginLeft = '35px';
+            const line = document.createElement('div');
+            line.style.width = `${answerLen * 55}px`;
+            line.style.height = '3px';
+            line.style.background = 'var(--border-color)';
+            lineRow.appendChild(line);
+            container.appendChild(lineRow);
+            
+            // Answer row - display left to right (thousands, hundreds, tens, ones)
+            const answerRow = document.createElement('div');
+            answerRow.className = 'math-row answer-row';
+            answerRow.style.marginLeft = '35px';
+            
+            // answerStr is left-to-right: [0] is leftmost, [answerLen-1] is rightmost (ones)
+            // We create inputs left to right, so position 0 gets answerStr[0], position answerLen-1 gets answerStr[answerLen-1]
+            for (let displayPos = 0; displayPos < answerLen; displayPos++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'digit-cell input';
+                input.maxLength = 1;
+                // displayPos: 0 = leftmost, answerLen-1 = rightmost (ones)
+                input.dataset.position = displayPos;
+                // Map to answer string: displayPos 0 -> answerStr[0] (leftmost), displayPos answerLen-1 -> answerStr[answerLen-1] (rightmost)
+                const correctDigit = answerStr[displayPos];
+                input.dataset.correctValue = correctDigit;
+                input.style.textAlign = 'center';
+                input.addEventListener('input', (e) => handleAnswerInput(e, displayPos));
+                input.addEventListener('keydown', (e) => handleKeyDown(e, displayPos, answerLen));
+                answerInputs.push(input);
+                answerRow.appendChild(input);
+            }
+            container.appendChild(answerRow);
+            
+            // Add borrow buttons for subtraction
+            // needsBorrow[displayPos] = true means column displayPos needs to borrow
+            // borrowFrom[displayPos] tells us which column we actually borrow FROM (after chaining through zeros)
+            // The borrow button should appear on the column we actually borrow from
+            if (problem.operation === 'subtract') {
+                const topRowCells = topRow.querySelectorAll('.digit-cell');
+                topRowCells.forEach((cell, idx) => {
+                    const displayPos = parseInt(cell.dataset.position);
+                    
+                    // Check if any column needs to borrow FROM this column
+                    // Look through all columns that need to borrow
+                    for (let borrowPos in needsBorrow) {
+                        const borrowPosNum = parseInt(borrowPos);
+                        if (needsBorrow[borrowPos] && borrowFromMap[borrowPosNum] === displayPos) {
+                            // This column (displayPos) is where we borrow from for column borrowPos
+                            const borrowBtn = document.createElement('button');
+                            borrowBtn.className = 'borrow-button';
+                            borrowBtn.textContent = 'Borrow';
+                            borrowBtn.dataset.position = borrowPosNum; // The column that needs to borrow
+                            borrowBtn.dataset.borrowFrom = displayPos; // The column we borrow from
+                            borrowBtn.addEventListener('click', () => handleBorrow(borrowPosNum, problem));
+                            cell.style.position = 'relative';
+                            cell.appendChild(borrowBtn);
+                            break; // Only one borrow button per column
+                        }
+                    }
+                });
+            }
+            
+            // Focus first input
+            if (answerInputs.length > 0) {
+                answerInputs[answerInputs.length - 1].focus();
+            }
+        }
+
+        function calculateBorrows(problem) {
+            const num1Str = problem.num1.toString();
+            const num2Str = problem.num2.toString();
+            const maxLen = Math.max(num1Str.length, num2Str.length);
+            const num1Padded = num1Str.padStart(maxLen, '0');
+            const num2Padded = num2Str.padStart(maxLen, '0');
+            
+            const needsBorrow = {};
+            let borrowed = false;
+            
+            // Calculate from right to left
+            for (let i = maxLen - 1; i >= 0; i--) {
+                let num1Digit = parseInt(num1Padded[i]);
+                const num2Digit = parseInt(num2Padded[i]);
+                
+                // If we borrowed from this position, subtract 1
+                if (borrowed) {
+                    num1Digit -= 1;
+                }
+                
+                if (num1Digit < num2Digit && i > 0) {
+                    needsBorrow[i] = true;
+                    borrowed = true;
+                } else {
+                    borrowed = false;
+                }
+            }
+            
+            return needsBorrow;
+        }
+
+        function handleBorrowInput(e, position) {
+            const input = e.target;
+            const value = input.value;
+            
+            // Only allow digits
+            if (value && !/^\d+$/.test(value)) {
+                input.value = '';
+                showError('Please enter a number');
+                input.classList.add('error');
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    clearError();
+                }, 2000);
+                return;
+            }
+            
+            // Check if correct
+            const correctValue = input.dataset.correctValue;
+            if (value === correctValue) {
+                input.classList.remove('error');
+                input.style.borderColor = 'var(--correct-color)';
+                input.style.background = '#e8f5e9';
+                clearError();
+            } else if (value !== '' && value.length === correctValue.length) {
+                input.classList.add('error');
+                showError('Try again! Check your borrowing calculation.');
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    clearError();
+                }, 2000);
+            }
+        }
+
+        function calculateCarries(problem) {
+            const num1Str = problem.num1.toString();
+            const num2Str = problem.num2.toString();
+            const maxLen = Math.max(num1Str.length, num2Str.length);
+            const num1Padded = num1Str.padStart(maxLen, '0');
+            const num2Padded = num2Str.padStart(maxLen, '0');
+            
+            const needsCarry = {};
+            let carry = 0;
+            
+            // Calculate from right to left (ones to hundreds)
+            for (let i = maxLen - 1; i >= 0; i--) {
+                const sum = parseInt(num1Padded[i]) + parseInt(num2Padded[i]) + carry;
+                if (sum >= 10) {
+                    // There's a carry to the next column (to the left, which is i-1)
+                    if (i > 0) {
+                        needsCarry[i - 1] = true;
+                    }
+                    // If i == 0 and sum >= 10, there's a final carry that creates a new leftmost digit
+                    // This is handled separately when we check if answerLen > maxLen
+                    carry = 1;
+                } else {
+                    carry = 0;
+                }
+            }
+            
+            // Check if final carry creates new digit
+            if (carry > 0) {
+                needsCarry[-1] = true; // Special marker for extra leftmost column
+            }
+            
+            return needsCarry;
+        }
+
+        function handleCarryInput(e, position) {
+            const input = e.target;
+            const value = input.value;
+            
+            // Only allow digits
+            if (value && !/^\d$/.test(value)) {
+                input.value = '';
+                showError('Please enter a number (0-9)');
+                input.classList.add('error');
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    clearError();
+                }, 2000);
+                return;
+            }
+            
+            // Check if correct (should be 1 for carry)
+            if (value === '1') {
+                input.classList.remove('error');
+                input.style.borderColor = 'var(--correct-color)';
+                input.style.background = '#e8f5e9';
+                carries[position] = true;
+                clearError();
+            } else if (value !== '') {
+                input.classList.add('error');
+                showError('The carry should be 1. Try again!');
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    clearError();
+                }, 2000);
+            }
+        }
+
+        function handleBorrow(position, problem) {
+            // position is the column that NEEDS to borrow (display position)
+            // borrowFrom[position] tells us which column we actually borrow FROM
+            if (borrows[position]) return; // Already borrowed
+            
+            const num1Str = problem.num1.toString();
+            const num2Str = problem.num2.toString();
+            const maxLen = Math.max(num1Str.length, num2Str.length);
+            const num1Padded = num1Str.padStart(maxLen, '0');
+            
+            // Find the cells
+            const topRow = document.getElementById('topRow');
+            const cells = topRow.querySelectorAll('.digit-cell');
+            
+            // Get the actual column we borrow from (after chaining through zeros)
+            const borrowFromPos = borrowFromMap[position];
+            const borrowFromCell = Array.from(cells).find(c => parseInt(c.dataset.position) === borrowFromPos);
+            const targetCell = Array.from(cells).find(c => parseInt(c.dataset.position) === position);
+            
+            if (borrowFromCell) {
+                // Cross out the digit we're borrowing from
+                borrowFromCell.classList.add('crossed');
+                const oldValue = parseInt(borrowFromCell.dataset.value);
+                const newValue = oldValue - 1;
+                borrowFromCell.dataset.value = newValue;
+                borrowFromCell.textContent = newValue;
+                
+                // Cross out the target cell (the one that needed to borrow)
+                targetCell.classList.add('crossed');
+                
+                // Show and auto-fill "9" above all the zero columns we passed through
+                if (borrowNinesMap[position]) {
+                    borrowNinesMap[position].forEach(zeroPos => {
+                        // Cross out the zero cell
+                        const zeroCell = Array.from(cells).find(c => parseInt(c.dataset.position) === zeroPos);
+                        if (zeroCell) {
+                            zeroCell.classList.add('crossed');
+                        }
+                        // Show and auto-fill the "9" input above this zero column
+                        const borrowRow = topRow.previousElementSibling;
+                        if (borrowRow) {
+                            const borrowCells = borrowRow.querySelectorAll('div');
+                            const zeroBorrowCell = Array.from(borrowCells)[zeroPos];
+                            if (zeroBorrowCell) {
+                                const nineInput = zeroBorrowCell.querySelector(`input[data-correct-value="9"][data-borrow-for="${position}"]`);
+                                if (nineInput) {
+                                    nineInput.style.display = 'block';
+                                    nineInput.value = '9'; // Auto-fill
+                                    nineInput.disabled = true; // Don't let kid type it
+                                    nineInput.style.background = '#e8f5e9'; // Green to show it's correct
+                                    nineInput.style.borderColor = 'var(--correct-color)';
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Show and auto-fill "10" above the column that needed to borrow (position)
+                const borrowInput = borrowInputs[position];
+                if (borrowInput) {
+                    let tenInput = null;
+                    if (Array.isArray(borrowInput)) {
+                        // Find the "10" input (not the "9" inputs)
+                        tenInput = borrowInput.find(input => input.dataset.correctValue && parseInt(input.dataset.correctValue) >= 10);
+                    } else {
+                        tenInput = borrowInput;
+                    }
+                    
+                    if (tenInput) {
+                        tenInput.style.display = 'block';
+                        tenInput.value = '10'; // Auto-fill
+                        tenInput.disabled = true; // Don't let kid type it
+                        tenInput.style.background = '#e8f5e9'; // Green to show it's correct
+                        tenInput.style.borderColor = 'var(--correct-color)';
+                    }
+                }
+                
+                borrows[position] = true;
+                
+                // Remove borrow button from the column we borrowed from
+                const borrowBtn = borrowFromCell.querySelector('.borrow-button');
+                if (borrowBtn) {
+                    borrowBtn.remove();
+                }
+            }
+        }
+
+        function handleAnswerInput(e, position) {
+            const input = e.target;
+            const value = input.value;
+            
+            // Only allow digits
+            if (value && !/^\d$/.test(value)) {
+                input.value = '';
+                showError('Please enter a number (0-9)');
+                input.classList.add('error');
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    clearError();
+                }, 2000);
+                return;
+            }
+            
+            // Check if correct - ensure both are strings for comparison
+            const correctValue = String(input.dataset.correctValue || '');
+            if (String(value) === correctValue) {
+                input.classList.remove('error');
+                input.style.borderColor = 'var(--correct-color)';
+                input.style.background = '#e8f5e9';
+                clearError();
+                
+                // Move to next input if available
+                const currentIndex = answerInputs.indexOf(input);
+                if (currentIndex > 0) {
+                    answerInputs[currentIndex - 1].focus();
+                } else {
+                    // All inputs filled, check if complete
+                    checkComplete();
+                }
+            } else if (value !== '') {
+                input.classList.add('error');
+                showError(`Try again! Expected ${correctValue}, got ${value}.`);
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    clearError();
+                }, 2000);
+            }
+        }
+
+        function handleKeyDown(e, position, maxLen) {
+            const input = e.target;
+            const currentIndex = answerInputs.indexOf(input);
+            
+            if (e.key === 'Backspace' && input.value === '' && currentIndex < answerInputs.length - 1) {
+                // Move to next input on backspace
+                answerInputs[currentIndex + 1].focus();
+            } else if (e.key === 'ArrowLeft' && currentIndex < answerInputs.length - 1) {
+                e.preventDefault();
+                answerInputs[currentIndex + 1].focus();
+            } else if (e.key === 'ArrowRight' && currentIndex > 0) {
+                e.preventDefault();
+                answerInputs[currentIndex - 1].focus();
+            }
+        }
+
+        function checkComplete() {
+            let allCorrect = true;
+            let allFilled = true;
+            
+            // Check answer inputs
+            answerInputs.forEach(input => {
+                if (!input.value) {
+                    allFilled = false;
+                }
+                if (input.value !== input.dataset.correctValue) {
+                    allCorrect = false;
+                }
+            });
+            
+            // Check carry inputs for addition
+            if (currentProblem.operation === 'add') {
+                carryInputs.forEach(input => {
+                    if (!input.value) {
+                        allFilled = false;
+                    }
+                    if (input.value !== input.dataset.correctValue) {
+                        allCorrect = false;
+                    }
+                });
+            }
+            
+            // Check borrow inputs for subtraction
+            if (currentProblem.operation === 'subtract') {
+                Object.values(borrowInputs).forEach(inputOrArray => {
+                    // borrowInputs can be a single input or an array of inputs
+                    const inputs = Array.isArray(inputOrArray) ? inputOrArray : [inputOrArray];
+                    inputs.forEach(input => {
+                        if (input && input.style.display !== 'none' && !input.disabled) {
+                            // Only check inputs that are visible and not auto-filled (disabled)
+                            if (!input.value) {
+                                allFilled = false;
+                            }
+                            if (input.value !== input.dataset.correctValue) {
+                                allCorrect = false;
+                            }
+                        } else if (input && input.disabled) {
+                            // Auto-filled inputs are already correct, count them as filled
+                            // They don't need to be checked
+                        }
+                    });
+                });
+            }
+            
+            if (allFilled && allCorrect) {
+                // Problem solved!
+                createConfetti();
+                correctCount++;
+                score++;
+                questionsCompleted++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('progress').textContent = questionsCompleted;
+                document.getElementById('nextButton').style.display = 'block';
+                
+                if (questionsCompleted >= maxQuestions) {
+                    document.getElementById('nextButton').textContent = 'Finish Game';
+                }
+                
+                // Disable all inputs
+                answerInputs.forEach(input => {
+                    input.disabled = true;
+                });
+                carryInputs.forEach(input => {
+                    input.disabled = true;
+                });
+                Object.values(borrowInputs).forEach(input => {
+                    input.disabled = true;
+                });
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = message;
+        }
+
+        function clearError() {
+            const errorMsg = document.getElementById('errorMessage');
+            if (errorMsg.textContent) {
+                setTimeout(() => {
+                    errorMsg.textContent = '';
+                }, 2000);
+            }
+        }
+
+        function loadNextProblem() {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            if (currentProblemIndex >= problems.length) {
+                currentProblemIndex = 0;
+                shuffleArray(problems);
+            }
+            
+            currentProblem = problems[currentProblemIndex++];
+            currentAnswer = currentProblem.answer;
+            
+            document.getElementById('question').textContent = currentProblem.question;
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('nextButton').textContent = 'Next Question';
+            document.getElementById('errorMessage').textContent = '';
+            document.getElementById('hintText').textContent = 
+                currentProblem.operation === 'add' 
+                    ? 'Tip: Add from right to left. Carry over when the sum is 10 or more.'
+                    : 'Tip: Subtract from right to left. Click "Borrow" if you need to borrow.';
+            canAnswer = true;
+            
+            createMathProblem(currentProblem);
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const container = document.body;
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+                confetti.style.background = confetti.style.getPropertyValue('--confetti-color');
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').innerHTML = 
+                `<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions} correct answers!</p>`;
+            document.getElementById('mathProblem').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('hintText').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        window.addEventListener('load', () => {
+            loadConfig();
+            document.getElementById('maxQuestions').textContent = maxQuestions;
+            generateProblems();
+            loadNextProblem();
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+            } else {
+                loadNextProblem();
+            }
+        });
+    </script>
+</body>
+</html>
+

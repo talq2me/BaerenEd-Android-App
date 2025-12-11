@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ten Frame Math</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --correct-color: #8BC34A;
+            --wrong-color: #F44336;
+            --frame-color: #2196F3;
+            --filled-color: #FFB6C1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .question {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .ten-frames-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .ten-frame {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 5px;
+            width: 200px;
+            height: 100px;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 3px solid var(--frame-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .ten-frame-cell {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .ten-frame-cell.filled {
+            background: var(--filled-color);
+            border-color: var(--frame-color);
+            animation: fillCell 0.5s ease-in-out;
+        }
+        
+        .ten-frame-cell.filled::after {
+            content: '●';
+            font-size: 1.5rem;
+            color: var(--frame-color);
+        }
+        
+        @keyframes fillCell {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .operation-sign {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--frame-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .equals-sign {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0 20px;
+        }
+        
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .answer-option {
+            padding: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-family: inherit;
+        }
+        
+        .answer-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        
+        .answer-option:active {
+            transform: scale(0.95);
+        }
+        
+        .answer-option.correct {
+            background: var(--correct-color);
+            animation: correctPulse 0.5s ease-in-out;
+        }
+        
+        .answer-option.wrong {
+            background: var(--wrong-color);
+            animation: wrongShake 0.5s ease-in-out;
+        }
+        
+        .answer-option.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--confetti-color);
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .next-button {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .next-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .next-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+        <div class="question" id="question"></div>
+        <div class="ten-frames-container" id="tenFramesContainer"></div>
+        <div class="answer-options" id="answerOptions"></div>
+        <button class="next-button" id="nextButton">Next Question</button>
+    </div>
+
+    <script>
+        let currentProblem = null;
+        let currentAnswer = null;
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let problems = [];
+        let currentProblemIndex = 0;
+        let canAnswer = true;
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function loadConfig() {
+            try {
+                let configJson = '{}';
+                
+                if (isAndroidWebView() && typeof window.Android.getConfigJson === 'function') {
+                    configJson = window.Android.getConfigJson();
+                } else {
+                    const savedConfig = localStorage.getItem('tenFrameMathConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                const urlParams = new URLSearchParams(window.location.search);
+                const taskId = urlParams.get('taskId');
+                
+                if (config.sections) {
+                    for (const section of config.sections) {
+                        if (section.tasks) {
+                            for (const task of section.tasks) {
+                                if (task.questionsToComplete) {
+                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (config.questionsToComplete) {
+                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                }
+            } catch (e) {
+                console.log('Using default maxQuestions:', maxQuestions);
+            }
+        }
+
+        function generateProblems() {
+            problems = [];
+            
+            // Generate addition problems (sums within 20)
+            for (let i = 0; i < 20; i++) {
+                const num1 = Math.floor(Math.random() * 11) + 1; // 1-11
+                const num2 = Math.floor(Math.random() * (21 - num1)) + 1; // ensures sum <= 20
+                const sum = num1 + num2;
+                
+                problems.push({
+                    question: `What is ${num1} plus ${num2}?`,
+                    num1: num1,
+                    num2: num2,
+                    operation: 'add',
+                    answer: sum
+                });
+            }
+            
+            // Generate subtraction problems (differences within 20)
+            for (let i = 0; i < 20; i++) {
+                const num1 = Math.floor(Math.random() * 20) + 1; // 1-20
+                const num2 = Math.floor(Math.random() * num1) + 1; // 1 to num1
+                const difference = num1 - num2;
+                
+                problems.push({
+                    question: `What is ${num1} take away ${num2}?`,
+                    num1: num1,
+                    num2: num2,
+                    operation: 'subtract',
+                    answer: difference
+                });
+            }
+            
+            shuffleArray(problems);
+            maxQuestions = Math.min(problems.length, maxQuestions);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createTenFrame(num, container) {
+            // Create a wrapper for multiple frames if needed
+            const framesWrapper = document.createElement('div');
+            framesWrapper.style.display = 'flex';
+            framesWrapper.style.gap = '10px';
+            framesWrapper.style.flexWrap = 'wrap';
+            framesWrapper.style.justifyContent = 'center';
+            
+            let remaining = num;
+            
+            // Create full 10-frames
+            while (remaining >= 10) {
+                const frame = document.createElement('div');
+                frame.className = 'ten-frame';
+                
+                for (let i = 0; i < 10; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'ten-frame-cell filled';
+                    frame.appendChild(cell);
+                }
+                
+                framesWrapper.appendChild(frame);
+                remaining -= 10;
+            }
+            
+            // Create partial frame if there's a remainder
+            if (remaining > 0) {
+                const frame = document.createElement('div');
+                frame.className = 'ten-frame';
+                
+                for (let i = 0; i < 10; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'ten-frame-cell';
+                    if (i < remaining) {
+                        cell.classList.add('filled');
+                    }
+                    frame.appendChild(cell);
+                }
+                
+                framesWrapper.appendChild(frame);
+            }
+            
+            container.appendChild(framesWrapper);
+            return framesWrapper;
+        }
+
+        function loadNextProblem() {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            if (currentProblemIndex >= problems.length) {
+                currentProblemIndex = 0;
+                shuffleArray(problems);
+            }
+            
+            currentProblem = problems[currentProblemIndex++];
+            currentAnswer = currentProblem.answer;
+            
+            document.getElementById('question').textContent = currentProblem.question;
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('nextButton').textContent = 'Next Question';
+            canAnswer = true;
+            
+            // Clear previous frames
+            const container = document.getElementById('tenFramesContainer');
+            container.innerHTML = '';
+            
+            // Create ten frames
+            if (currentProblem.operation === 'add') {
+                createTenFrame(currentProblem.num1, container);
+                
+                const plusSign = document.createElement('div');
+                plusSign.className = 'operation-sign';
+                plusSign.textContent = '+';
+                container.appendChild(plusSign);
+                
+                createTenFrame(currentProblem.num2, container);
+                
+                const equalsSign = document.createElement('div');
+                equalsSign.className = 'equals-sign';
+                equalsSign.textContent = '=';
+                container.appendChild(equalsSign);
+                
+                // Create answer frame wrapper (empty, will be filled when answered)
+                const answerFrame = document.createElement('div');
+                answerFrame.id = 'answerFrame';
+                answerFrame.style.display = 'flex';
+                answerFrame.style.gap = '10px';
+                answerFrame.style.flexWrap = 'wrap';
+                answerFrame.style.justifyContent = 'center';
+                container.appendChild(answerFrame);
+            } else {
+                // Subtraction: show full frame, then remove
+                createTenFrame(currentProblem.num1, container);
+                
+                const minusSign = document.createElement('div');
+                minusSign.className = 'operation-sign';
+                minusSign.textContent = '−';
+                container.appendChild(minusSign);
+                
+                createTenFrame(currentProblem.num2, container);
+                
+                const equalsSign = document.createElement('div');
+                equalsSign.className = 'equals-sign';
+                equalsSign.textContent = '=';
+                container.appendChild(equalsSign);
+                
+                // Create answer frame wrapper (empty)
+                const answerFrame = document.createElement('div');
+                answerFrame.id = 'answerFrame';
+                answerFrame.style.display = 'flex';
+                answerFrame.style.gap = '10px';
+                answerFrame.style.flexWrap = 'wrap';
+                answerFrame.style.justifyContent = 'center';
+                container.appendChild(answerFrame);
+            }
+            
+            // Generate answer options
+            generateAnswerOptions();
+        }
+
+        function generateAnswerOptions() {
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+            
+            const correctAnswer = currentAnswer;
+            const options = [correctAnswer];
+            
+            // Generate wrong answers
+            while (options.length < 4) {
+                let wrongAnswer;
+                if (currentProblem.operation === 'add') {
+                    wrongAnswer = correctAnswer + Math.floor(Math.random() * 5) - 2; // ±2 range
+                } else {
+                    wrongAnswer = correctAnswer + Math.floor(Math.random() * 5) - 2;
+                }
+                
+                // Ensure wrong answer is positive and different
+                if (wrongAnswer > 0 && wrongAnswer <= 20 && !options.includes(wrongAnswer)) {
+                    options.push(wrongAnswer);
+                } else {
+                    // Fallback: just add/subtract 1-3
+                    const offset = Math.floor(Math.random() * 3) + 1;
+                    const sign = Math.random() > 0.5 ? 1 : -1;
+                    wrongAnswer = correctAnswer + (sign * offset);
+                    if (wrongAnswer > 0 && wrongAnswer <= 20 && !options.includes(wrongAnswer)) {
+                        options.push(wrongAnswer);
+                    }
+                }
+            }
+            
+            shuffleArray(options);
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'answer-option';
+                button.textContent = option;
+                button.dataset.value = option;
+                button.addEventListener('click', () => handleAnswerClick(option));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function handleAnswerClick(selectedAnswer) {
+            if (!canAnswer) return;
+            
+            canAnswer = false;
+            const buttons = document.querySelectorAll('.answer-option');
+            buttons.forEach(btn => btn.classList.add('disabled'));
+            
+            if (selectedAnswer === currentAnswer) {
+                // Correct answer!
+                buttons.forEach(btn => {
+                    if (parseInt(btn.dataset.value) === selectedAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+                
+                // Fill answer frame
+                fillAnswerFrame(currentAnswer);
+                createConfetti();
+                correctCount++;
+                score++;
+                questionsCompleted++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('progress').textContent = questionsCompleted;
+                document.getElementById('nextButton').style.display = 'block';
+                
+                if (questionsCompleted >= maxQuestions) {
+                    document.getElementById('nextButton').textContent = 'Finish Game';
+                }
+            } else {
+                // Wrong answer
+                buttons.forEach(btn => {
+                    if (parseInt(btn.dataset.value) === selectedAnswer) {
+                        btn.classList.add('wrong');
+                    }
+                    if (parseInt(btn.dataset.value) === currentAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+                
+                incorrectCount++;
+                
+                // Show correct answer frame after a delay
+                setTimeout(() => {
+                    fillAnswerFrame(currentAnswer);
+                }, 1000);
+                
+                // Allow retry after showing correct answer
+                setTimeout(() => {
+                    canAnswer = true;
+                    buttons.forEach(btn => {
+                        btn.classList.remove('disabled', 'wrong', 'correct');
+                    });
+                }, 2000);
+            }
+        }
+
+        function fillAnswerFrame(answer) {
+            const answerFrame = document.getElementById('answerFrame');
+            if (!answerFrame) return;
+            
+            answerFrame.innerHTML = '';
+            
+            let remaining = answer;
+            let cellIndex = 0;
+            
+            // Create full 10-frames
+            while (remaining >= 10) {
+                const frame = document.createElement('div');
+                frame.className = 'ten-frame';
+                
+                for (let i = 0; i < 10; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'ten-frame-cell filled';
+                    // Stagger the animation
+                    setTimeout(() => {
+                        cell.style.animationDelay = `${cellIndex * 0.05}s`;
+                    }, cellIndex * 50);
+                    frame.appendChild(cell);
+                    cellIndex++;
+                }
+                
+                answerFrame.appendChild(frame);
+                remaining -= 10;
+            }
+            
+            // Create partial frame if there's a remainder
+            if (remaining > 0) {
+                const frame = document.createElement('div');
+                frame.className = 'ten-frame';
+                
+                for (let i = 0; i < 10; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'ten-frame-cell';
+                    if (i < remaining) {
+                        cell.classList.add('filled');
+                        // Stagger the animation
+                        setTimeout(() => {
+                            cell.style.animationDelay = `${cellIndex * 0.05}s`;
+                        }, cellIndex * 50);
+                    }
+                    frame.appendChild(cell);
+                    if (i < remaining) {
+                        cellIndex++;
+                    }
+                }
+                
+                answerFrame.appendChild(frame);
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const container = document.body;
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+                confetti.style.background = confetti.style.getPropertyValue('--confetti-color');
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').innerHTML = 
+                `<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions} correct answers!</p>`;
+            document.getElementById('tenFramesContainer').style.display = 'none';
+            document.getElementById('answerOptions').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        window.addEventListener('load', () => {
+            loadConfig();
+            document.getElementById('maxQuestions').textContent = maxQuestions;
+            generateProblems();
+            loadNextProblem();
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+            } else {
+                loadNextProblem();
+            }
+        });
+    </script>
+</body>
+</html>
+

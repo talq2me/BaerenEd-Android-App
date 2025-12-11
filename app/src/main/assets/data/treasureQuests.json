@@ -22,6 +22,435 @@
       { "x": 70, "y": 70, "name": "Valley", "problem": { "question": "You find 9 gems. You give away 2. How many do you keep?", "options": ["5", "6", "7", "8"], "correct": 2 } },
       { "x": 80, "y": 30, "name": "Treasure", "problem": null }
     ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 25, "name": "Library", "problem": { "question": "Mary has a little brother Joe who is 4 years younger than her. They like to go swimming after school in the summer. They have a pool in their backyard and invite their friends Patrick and Dana over for a swim often. Who is the older child?", "options": ["Mary", "Joe", "Patrick", "Dana"], "correct": 0 } },
+      { "x": 55, "y": 45, "name": "Garden", "problem": { "question": "Sarah has 12 flowers. She picks 5 for a bouquet. How many flowers are left in the garden?", "options": ["5", "6", "7", "8"], "correct": 2 } },
+      { "x": 75, "y": 65, "name": "Tower", "problem": { "question": "Tom read 8 pages on Monday and 6 pages on Tuesday. How many pages did he read in total?", "options": ["12", "13", "14", "15"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 20, "name": "Beach", "problem": { "question": "Emma collected 15 seashells. She gave 7 to her friend. How many does she have left?", "options": ["6", "7", "8", "9"], "correct": 2 } },
+      { "x": 50, "y": 40, "name": "Lighthouse", "problem": { "question": "The lighthouse keeper turns on the light every night at 7 PM. It stays on for 5 hours. What time does it turn off?", "options": ["10 PM", "11 PM", "12 AM", "1 AM"], "correct": 2 } },
+      { "x": 70, "y": 60, "name": "Cave", "problem": { "question": "Jake found 9 coins in the cave. He already had 4 coins. How many coins does he have now?", "options": ["11", "12", "13", "14"], "correct": 2 } },
+      { "x": 90, "y": 80, "name": "Island", "problem": { "question": "There are 6 palm trees on the island. Each tree has 3 coconuts. How many coconuts are there in total?", "options": ["15", "16", "17", "18"], "correct": 3 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 30, "name": "School", "problem": { "question": "In the story, Lisa has 3 pencils. Her friend gives her 2 more. Then she loses 1. How many pencils does Lisa have now?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 60, "y": 50, "name": "Park", "problem": { "question": "The park has 4 swings. Each swing can hold 2 children. How many children can swing at the same time?", "options": ["6", "7", "8", "9"], "correct": 2 } },
+      { "x": 80, "y": 70, "name": "Forest", "problem": { "question": "Alex saw 5 rabbits in the morning and 3 rabbits in the afternoon. How many rabbits did he see in total?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 25, "name": "Farm", "problem": { "question": "The farmer has 10 chickens. Each chicken lays 2 eggs per day. How many eggs does the farmer collect in one day?", "options": ["18", "19", "20", "21"], "correct": 2 } },
+      { "x": 55, "y": 45, "name": "Barn", "problem": { "question": "There are 7 cows in the barn. 3 cows go outside to graze. How many cows are still in the barn?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 75, "y": 65, "name": "Field", "problem": { "question": "Sam planted 6 rows of corn. Each row has 4 plants. How many corn plants did Sam plant?", "options": ["22", "23", "24", "25"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Castle", "problem": { "question": "The king has 14 knights. He sends 5 knights on a quest. How many knights stay at the castle?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "Dungeon", "problem": { "question": "In the dungeon, you find 8 keys. You need 12 keys to escape. How many more keys do you need?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Tower", "problem": { "question": "The princess has 9 jewels. She gives 3 to the prince. How many jewels does she have left?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Throne Room", "problem": { "question": "There are 4 guards at each door. There are 3 doors. How many guards are there in total?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 85, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Zoo", "problem": { "question": "The zoo has 5 elephants. Each elephant eats 4 bananas per day. How many bananas do all the elephants eat in one day?", "options": ["18", "19", "20", "21"], "correct": 2 } },
+      { "x": 60, "y": 55, "name": "Aquarium", "problem": { "question": "There are 12 fish in the tank. 4 fish are goldfish. How many fish are not goldfish?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Aviary", "problem": { "question": "The aviary has 6 birds. 2 more birds arrive. How many birds are in the aviary now?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Museum", "problem": { "question": "The museum has 3 dinosaur exhibits. Each exhibit has 5 fossils. How many fossils are in the museum?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 55, "y": 50, "name": "Gallery", "problem": { "question": "There are 8 paintings on the wall. The curator adds 4 more paintings. How many paintings are there now?", "options": ["11", "12", "13", "14"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Hall", "problem": { "question": "The hall has 10 statues. 3 statues are moved to storage. How many statues remain in the hall?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Kitchen", "problem": { "question": "Mom baked 16 cookies. The family ate 9 cookies. How many cookies are left?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "Dining Room", "problem": { "question": "There are 4 people at the table. Each person needs 2 plates. How many plates are needed?", "options": ["6", "7", "8", "9"], "correct": 2 } },
+      { "x": 70, "y": 65, "name": "Pantry", "problem": { "question": "The pantry has 11 cans of soup. Dad buys 5 more cans. How many cans of soup are there now?", "options": ["15", "16", "17", "18"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Garden", "problem": { "question": "The garden has 7 tomato plants. Each plant has 3 tomatoes. How many tomatoes are growing?", "options": ["19", "20", "21", "22"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Store", "problem": { "question": "Emma has 20 dollars. She buys a toy for 8 dollars. How much money does she have left?", "options": ["11", "12", "13", "14"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Market", "problem": { "question": "The market sells apples in bags of 5. If you buy 3 bags, how many apples do you get?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 80, "y": 75, "name": "Shop", "problem": { "question": "A book costs 6 dollars. You have 15 dollars. How many books can you buy?", "options": ["1", "2", "3", "4"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Playground", "problem": { "question": "There are 9 children playing. 4 children go home. How many children are still playing?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Slide", "problem": { "question": "The slide can fit 2 children at a time. If 8 children want to slide, how many turns will it take?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Swing", "problem": { "question": "There are 6 swings. Each swing can hold 1 child. How many children can swing at once?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Library", "problem": { "question": "Tom has 3 older sisters and 2 younger brothers. His friend Mike has 1 older sister and 3 younger brothers. Who has more siblings?", "options": ["Tom", "Mike", "They have the same", "Cannot tell"], "correct": 0 } },
+      { "x": 50, "y": 45, "name": "Reading Room", "problem": { "question": "Sarah read 7 books in January and 5 books in February. How many books did she read in those two months?", "options": ["11", "12", "13", "14"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Study", "problem": { "question": "The library has 15 books on one shelf and 8 books on another. How many books are on both shelves?", "options": ["22", "23", "24", "25"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Archive", "problem": { "question": "There are 6 students reading. Each student reads 2 books. How many books are being read in total?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 85, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Ocean", "problem": { "question": "The boat has 12 passengers. 5 passengers get off at the first stop. How many passengers are still on the boat?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Island", "problem": { "question": "The island has 9 palm trees. A storm knocks down 3 trees. How many trees are still standing?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Beach", "problem": { "question": "You collect 11 shells. You give 4 shells to your friend. How many shells do you have left?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Space Station", "problem": { "question": "There are 8 astronauts on the station. 3 astronauts go on a spacewalk. How many astronauts stay inside?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Moon", "problem": { "question": "The rover collects 10 rock samples. Scientists analyze 6 samples. How many samples are left to analyze?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Planet", "problem": { "question": "You discover 7 new planets. Each planet has 2 moons. How many moons are there in total?", "options": ["12", "13", "14", "15"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Forest", "problem": { "question": "The forest has 13 trees. Loggers cut down 5 trees. How many trees remain?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "River", "problem": { "question": "You see 6 ducks swimming. 2 more ducks join them. How many ducks are swimming now?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Mountain", "problem": { "question": "You climb 8 steps. Then you climb 5 more steps. How many steps have you climbed in total?", "options": ["12", "13", "14", "15"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Cave", "problem": { "question": "The cave has 4 bats. Each bat has 2 wings. How many wings are there in total?", "options": ["6", "7", "8", "9"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "School", "problem": { "question": "The class has 14 students. 6 students are absent today. How many students are present?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Classroom", "problem": { "question": "There are 5 rows of desks. Each row has 3 desks. How many desks are in the classroom?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 80, "y": 75, "name": "Gym", "problem": { "question": "The gym class has 12 students. They form teams of 4. How many teams are there?", "options": ["2", "3", "4", "5"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Bakery", "problem": { "question": "The baker made 18 cookies. She sold 9 cookies. How many cookies are left?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Kitchen", "problem": { "question": "You need 3 eggs for a recipe. You have 2 eggs. How many more eggs do you need?", "options": ["1", "2", "3", "4"], "correct": 0 } },
+      { "x": 75, "y": 70, "name": "Counter", "problem": { "question": "There are 7 loaves of bread. Each loaf is cut into 4 slices. How many slices are there in total?", "options": ["26", "27", "28", "29"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Hospital", "problem": { "question": "The hospital has 16 patients. 7 patients are discharged. How many patients remain?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "Ward", "problem": { "question": "There are 4 rooms. Each room has 3 beds. How many beds are there in total?", "options": ["11", "12", "13", "14"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Pharmacy", "problem": { "question": "The pharmacy has 9 bottles of medicine. They receive 5 more bottles. How many bottles are there now?", "options": ["13", "14", "15", "16"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Emergency", "problem": { "question": "There are 6 ambulances. Each ambulance can carry 2 patients. How many patients can be transported at once?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Circus", "problem": { "question": "The circus has 5 elephants. Each elephant performs 2 tricks. How many tricks are performed in total?", "options": ["8", "9", "10", "11"], "correct": 2 } },
+      { "x": 60, "y": 55, "name": "Tent", "problem": { "question": "There are 12 clowns in the tent. 4 clowns leave to perform. How many clowns are still in the tent?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Ring", "problem": { "question": "The ring has 3 lions. Each lion jumps through 2 hoops. How many hoops are jumped through in total?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Airport", "problem": { "question": "The airport has 10 planes. 4 planes take off. How many planes are still at the airport?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Terminal", "problem": { "question": "There are 8 gates. Each gate can board 50 passengers. If 3 gates are in use, how many passengers can board?", "options": ["140", "150", "160", "170"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Runway", "problem": { "question": "A plane has 20 passengers. 7 passengers get off. How many passengers are still on the plane?", "options": ["12", "13", "14", "15"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Aquarium", "problem": { "question": "The aquarium has 15 fish. 6 fish are moved to another tank. How many fish remain?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "Tank", "problem": { "question": "There are 5 sharks. Each shark has 3 rows of teeth. How many rows of teeth are there in total?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 70, "y": 65, "name": "Coral", "problem": { "question": "The coral reef has 9 sea stars. 3 sea stars move away. How many sea stars are left?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Deep", "problem": { "question": "You see 4 octopuses. Each octopus has 8 arms. How many arms are there in total?", "options": ["30", "31", "32", "33"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Park", "problem": { "question": "The park has 11 benches. 5 benches are being repaired. How many benches can people use?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Fountain", "problem": { "question": "There are 8 coins in the fountain. Visitors throw in 4 more coins. How many coins are in the fountain now?", "options": ["11", "12", "13", "14"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Garden", "problem": { "question": "The garden has 6 flower beds. Each bed has 4 flowers. How many flowers are there in total?", "options": ["22", "23", "24", "25"], "correct": 2 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Restaurant", "problem": { "question": "The restaurant has 14 tables. 6 tables are occupied. How many tables are available?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Kitchen", "problem": { "question": "The chef prepares 5 dishes. Each dish serves 3 people. How many people can be served?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 75, "y": 70, "name": "Dining", "problem": { "question": "There are 9 customers. Each customer orders 2 items. How many items are ordered in total?", "options": ["16", "17", "18", "19"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Theater", "problem": { "question": "The theater has 12 seats in a row. There are 3 rows. How many seats are there in total?", "options": ["34", "35", "36", "37"], "correct": 2 } },
+      { "x": 50, "y": 45, "name": "Stage", "problem": { "question": "There are 8 actors on stage. 3 actors exit. How many actors remain on stage?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Backstage", "problem": { "question": "The play has 5 scenes. Each scene has 2 props. How many props are needed for the play?", "options": ["8", "9", "10", "11"], "correct": 2 } },
+      { "x": 90, "y": 85, "name": "Lobby", "problem": { "question": "There are 15 people waiting. 7 people enter the theater. How many people are still waiting?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Beach", "problem": { "question": "The beach has 13 umbrellas. 5 umbrellas are taken. How many umbrellas are available?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Shore", "problem": { "question": "You find 7 seashells. Your friend finds 4 seashells. How many seashells did you find together?", "options": ["10", "11", "12", "13"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Ocean", "problem": { "question": "There are 6 boats in the water. 2 boats return to shore. How many boats are still in the water?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Mountain", "problem": { "question": "The mountain trail has 10 rest stops. You pass 4 rest stops. How many rest stops are left?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Summit", "problem": { "question": "There are 8 hikers at the summit. 3 hikers start descending. How many hikers remain at the summit?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Base", "problem": { "question": "The base camp has 5 tents. Each tent can sleep 2 people. How many people can sleep at the base camp?", "options": ["8", "9", "10", "11"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Desert", "problem": { "question": "The desert has 9 cacti. Each cactus has 4 arms. How many cactus arms are there in total?", "options": ["34", "35", "36", "37"], "correct": 2 } },
+      { "x": 50, "y": 45, "name": "Oasis", "problem": { "question": "The oasis has 11 palm trees. 5 trees have dates. How many trees do not have dates?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Dunes", "problem": { "question": "You climb 7 sand dunes. Then you climb 3 more. How many sand dunes have you climbed?", "options": ["9", "10", "11", "12"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Mirage", "problem": { "question": "The caravan has 6 camels. Each camel carries 2 packs. How many packs are carried in total?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Jungle", "problem": { "question": "The jungle has 8 monkeys. 3 monkeys swing away. How many monkeys remain?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "River", "problem": { "question": "There are 5 crocodiles in the river. Each crocodile has 4 legs. How many legs are there in total?", "options": ["18", "19", "20", "21"], "correct": 2 } },
+      { "x": 80, "y": 75, "name": "Tree", "problem": { "question": "The tree has 12 branches. Each branch has 3 leaves. How many leaves are on the tree?", "options": ["34", "35", "36", "37"], "correct": 2 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Arctic", "problem": { "question": "The arctic has 7 polar bears. 2 polar bears go hunting. How many polar bears remain?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Ice", "problem": { "question": "There are 6 penguins on the ice. Each penguin has 2 flippers. How many flippers are there in total?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 75, "y": 70, "name": "Igloo", "problem": { "question": "The igloo is made of 15 ice blocks. 5 blocks are replaced. How many blocks are still original?", "options": ["9", "10", "11", "12"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Farm", "problem": { "question": "The farm has 10 pigs. Each pig has 4 legs. How many pig legs are there in total?", "options": ["38", "39", "40", "41"], "correct": 2 } },
+      { "x": 50, "y": 45, "name": "Barn", "problem": { "question": "There are 9 chickens. Each chicken lays 1 egg per day. How many eggs are laid in one day?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Field", "problem": { "question": "The field has 6 rows of corn. Each row has 5 ears. How many ears of corn are there?", "options": ["28", "29", "30", "31"], "correct": 2 } },
+      { "x": 90, "y": 85, "name": "Pasture", "problem": { "question": "There are 8 sheep in the pasture. 3 sheep go to another field. How many sheep remain?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "City", "problem": { "question": "The city has 11 buildings. 4 buildings are under construction. How many buildings are completed?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Street", "problem": { "question": "There are 7 cars on the street. Each car has 4 wheels. How many wheels are there in total?", "options": ["26", "27", "28", "29"], "correct": 2 } },
+      { "x": 80, "y": 75, "name": "Park", "problem": { "question": "The park has 5 benches. Each bench seats 2 people. How many people can sit on the benches?", "options": ["8", "9", "10", "11"], "correct": 2 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Library", "problem": { "question": "Anna has 2 older brothers and 1 younger sister. Her friend Ben has 1 older brother and 2 younger sisters. Who has more siblings?", "options": ["Anna", "Ben", "They have the same", "Cannot tell"], "correct": 2 } },
+      { "x": 55, "y": 50, "name": "Reading", "problem": { "question": "The library has 13 books on one shelf and 6 books on another. How many books are on both shelves?", "options": ["18", "19", "20", "21"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Study", "problem": { "question": "There are 4 students studying. Each student reads 3 books. How many books are being read?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Zoo", "problem": { "question": "The zoo has 9 lions. Each lion has 4 legs. How many lion legs are there in total?", "options": ["34", "35", "36", "37"], "correct": 2 } },
+      { "x": 50, "y": 45, "name": "Enclosure", "problem": { "question": "There are 7 giraffes. 3 giraffes are eating leaves. How many giraffes are not eating?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Habitat", "problem": { "question": "The habitat has 5 elephants. Each elephant has 2 tusks. How many tusks are there in total?", "options": ["8", "9", "10", "11"], "correct": 2 } },
+      { "x": 90, "y": 85, "name": "Exhibit", "problem": { "question": "There are 6 penguins. Each penguin eats 2 fish per day. How many fish do all penguins eat in one day?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Beach", "problem": { "question": "The beach has 12 towels. 5 towels are being used. How many towels are available?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Shore", "problem": { "question": "You collect 8 shells. Your friend collects 5 shells. How many shells did you collect together?", "options": ["12", "13", "14", "15"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Ocean", "problem": { "question": "There are 4 boats. Each boat has 3 passengers. How many passengers are there in total?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "School", "problem": { "question": "The school has 15 classrooms. 7 classrooms are being used. How many classrooms are empty?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Classroom", "problem": { "question": "There are 4 rows of desks. Each row has 4 desks. How many desks are in the classroom?", "options": ["14", "15", "16", "17"], "correct": 2 } },
+      { "x": 75, "y": 70, "name": "Gym", "problem": { "question": "The gym class has 14 students. They form teams of 2. How many teams are there?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Store", "problem": { "question": "The store has 16 apples. You buy 7 apples. How many apples are left in the store?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "Aisle", "problem": { "question": "There are 5 shelves. Each shelf has 4 items. How many items are on the shelves?", "options": ["18", "19", "20", "21"], "correct": 2 } },
+      { "x": 70, "y": 65, "name": "Counter", "problem": { "question": "You have 20 dollars. You spend 8 dollars. How much money do you have left?", "options": ["11", "12", "13", "14"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Checkout", "problem": { "question": "There are 6 people in line. 2 people are served. How many people are still waiting?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Cafe", "problem": { "question": "The cafe has 11 tables. 4 tables are occupied. How many tables are available?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Kitchen", "problem": { "question": "The chef makes 6 sandwiches. Each sandwich is cut into 2 halves. How many halves are there?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 80, "y": 75, "name": "Counter", "problem": { "question": "There are 8 customers. Each customer orders 1 drink. How many drinks are ordered?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Library", "problem": { "question": "David has 3 older sisters. His friend Lisa has 2 older brothers and 1 younger sister. Who has more siblings?", "options": ["David", "Lisa", "They have the same", "Cannot tell"], "correct": 0 } },
+      { "x": 55, "y": 50, "name": "Reading", "problem": { "question": "The library has 14 books on one shelf and 7 books on another. How many books are on both shelves?", "options": ["20", "21", "22", "23"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Study", "problem": { "question": "There are 5 students. Each student reads 2 books. How many books are being read?", "options": ["9", "10", "11", "12"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Park", "problem": { "question": "The park has 10 trees. Each tree has 5 branches. How many branches are there in total?", "options": ["48", "49", "50", "51"], "correct": 2 } },
+      { "x": 50, "y": 45, "name": "Playground", "problem": { "question": "There are 9 children playing. 4 children go home. How many children are still playing?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Picnic", "problem": { "question": "The picnic has 6 families. Each family brings 2 dishes. How many dishes are brought?", "options": ["10", "11", "12", "13"], "correct": 2 } },
+      { "x": 90, "y": 85, "name": "Garden", "problem": { "question": "The garden has 7 flower beds. Each bed has 3 flowers. How many flowers are there?", "options": ["19", "20", "21", "22"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Museum", "problem": { "question": "The museum has 12 exhibits. 5 exhibits are closed for renovation. How many exhibits are open?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Gallery", "problem": { "question": "There are 8 paintings on the wall. The curator adds 5 more paintings. How many paintings are there now?", "options": ["12", "13", "14", "15"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Hall", "problem": { "question": "The hall has 9 statues. 3 statues are moved to storage. How many statues remain?", "options": ["5", "6", "7", "8"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Library", "problem": { "question": "Emma has 2 older brothers and 2 younger sisters. Her friend Jake has 1 older sister and 3 younger brothers. Who has more siblings?", "options": ["Emma", "Jake", "They have the same", "Cannot tell"], "correct": 2 } },
+      { "x": 55, "y": 50, "name": "Reading", "problem": { "question": "The library has 15 books on one shelf and 8 books on another. How many books are on both shelves?", "options": ["22", "23", "24", "25"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Study", "problem": { "question": "There are 6 students. Each student reads 3 books. How many books are being read?", "options": ["16", "17", "18", "19"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Zoo", "problem": { "question": "The zoo has 10 monkeys. Each monkey eats 2 bananas per day. How many bananas do all monkeys eat in one day?", "options": ["18", "19", "20", "21"], "correct": 2 } },
+      { "x": 50, "y": 45, "name": "Enclosure", "problem": { "question": "There are 8 zebras. 3 zebras are resting. How many zebras are not resting?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 70, "y": 65, "name": "Habitat", "problem": { "question": "The habitat has 6 tigers. Each tiger has 4 legs. How many tiger legs are there in total?", "options": ["22", "23", "24", "25"], "correct": 2 } },
+      { "x": 90, "y": 85, "name": "Exhibit", "problem": { "question": "There are 5 bears. Each bear has 2 cubs. How many cubs are there in total?", "options": ["8", "9", "10", "11"], "correct": 2 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Beach", "problem": { "question": "The beach has 13 umbrellas. 6 umbrellas are taken. How many umbrellas are available?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Shore", "problem": { "question": "You find 9 shells. Your friend finds 4 shells. How many shells did you find together?", "options": ["12", "13", "14", "15"], "correct": 1 } },
+      { "x": 80, "y": 75, "name": "Ocean", "problem": { "question": "There are 5 boats. Each boat has 4 passengers. How many passengers are there in total?", "options": ["18", "19", "20", "21"], "correct": 2 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "School", "problem": { "question": "The school has 16 classrooms. 8 classrooms are being used. How many classrooms are empty?", "options": ["7", "8", "9", "10"], "correct": 1 } },
+      { "x": 55, "y": 50, "name": "Classroom", "problem": { "question": "There are 5 rows of desks. Each row has 3 desks. How many desks are in the classroom?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 75, "y": 70, "name": "Gym", "problem": { "question": "The gym class has 15 students. They form teams of 3. How many teams are there?", "options": ["4", "5", "6", "7"], "correct": 1 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 10, "y": 10, "name": "Start", "problem": null },
+      { "x": 30, "y": 25, "name": "Store", "problem": { "question": "The store has 17 apples. You buy 8 apples. How many apples are left in the store?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 50, "y": 45, "name": "Aisle", "problem": { "question": "There are 6 shelves. Each shelf has 3 items. How many items are on the shelves?", "options": ["16", "17", "18", "19"], "correct": 2 } },
+      { "x": 70, "y": 65, "name": "Counter", "problem": { "question": "You have 25 dollars. You spend 9 dollars. How much money do you have left?", "options": ["15", "16", "17", "18"], "correct": 1 } },
+      { "x": 90, "y": 85, "name": "Checkout", "problem": { "question": "There are 7 people in line. 3 people are served. How many people are still waiting?", "options": ["3", "4", "5", "6"], "correct": 1 } },
+      { "x": 80, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 20, "y": 20, "name": "Start", "problem": null },
+      { "x": 40, "y": 35, "name": "Cafe", "problem": { "question": "The cafe has 12 tables. 5 tables are occupied. How many tables are available?", "options": ["6", "7", "8", "9"], "correct": 1 } },
+      { "x": 60, "y": 55, "name": "Kitchen", "problem": { "question": "The chef makes 7 sandwiches. Each sandwich is cut into 2 halves. How many halves are there?", "options": ["12", "13", "14", "15"], "correct": 2 } },
+      { "x": 80, "y": 75, "name": "Counter", "problem": { "question": "There are 9 customers. Each customer orders 1 drink. How many drinks are ordered?", "options": ["8", "9", "10", "11"], "correct": 1 } },
+      { "x": 70, "y": 90, "name": "Treasure", "problem": null }
+    ]
+  },
+  {
+    "locations": [
+      { "x": 15, "y": 15, "name": "Start", "problem": null },
+      { "x": 35, "y": 30, "name": "Library", "problem": { "question": "Sophia has 4 older sisters. Her friend Max has 2 older brothers and 2 younger sisters. Who has more siblings?", "options": ["Sophia", "Max", "They have the same", "Cannot tell"], "correct": 0 } },
+      { "x": 55, "y": 50, "name": "Reading", "problem": { "question": "The library has 16 books on one shelf and 9 books on another. How many books are on both shelves?", "options": ["24", "25", "26", "27"], "correct": 1 } },
+      { "x": 75, "y": 70, "name": "Study", "problem": { "question": "There are 7 students. Each student reads 2 books. How many books are being read?", "options": ["13", "14", "15", "16"], "correct": 2 } },
+      { "x": 85, "y": 85, "name": "Treasure", "problem": null }
+    ]
   }
 ]
 

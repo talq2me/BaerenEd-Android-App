@@ -1,0 +1,107 @@
+{
+  "diagrams": [
+    {
+      "title": "the excretory system",
+      "image": "diagrams/excretorySystem-start.png",
+      "parts": [
+        {
+          "name": "aorta",
+          "intro": "This is a diagram of the excretory system.",
+          "explanation": "The aorta is the largest artery in the body. It carries oxygen-rich blood from the heart to all parts of the body, including the kidneys.",
+          "labelX": 833,
+          "labelY": 71,
+          "clickRegion": {
+            "x1": 797.5,
+            "y1": 74.15625,
+            "x2": 880.5,
+            "y2": 96.15625
+          }
+        },
+        {
+          "name": "vena cava",
+          "explanation": "The vena cava is a large vein that carries deoxygenated blood from the body back to the heart. The inferior vena cava brings blood from the lower body.",
+          "labelX": 446,
+          "labelY": 98,
+          "clickRegion": {
+            "x1": 505.5,
+            "y1": 107.15625,
+            "x2": 507.5,
+            "y2": 108.15625
+          }
+        },
+        {
+          "name": "renal artery",
+          "explanation": "The renal artery carries blood from the aorta to the kidneys. This blood contains waste products that the kidneys will filter out.",
+          "labelX": 857,
+          "labelY": 153,
+          "clickRegion": {
+            "x1": 800.5,
+            "y1": 148.15625,
+            "x2": 875.5,
+            "y2": 170.15625
+          }
+        },
+        {
+          "name": "kidney",
+          "explanation": "The kidneys are bean-shaped organs that filter waste products and extra water from the blood to make urine. You have two kidneys, one on each side of your spine.",
+          "labelX": 848,
+          "labelY": 204,
+          "clickRegion": {
+            "x1": 805.5,
+            "y1": 195.15624999999997,
+            "x2": 887.5,
+            "y2": 215.15625
+          }
+        },
+        {
+          "name": "renal vein",
+          "explanation": "The renal vein carries filtered blood away from the kidneys and back to the heart. This blood has had waste products removed by the kidneys.",
+          "labelX": 446,
+          "labelY": 175,
+          "clickRegion": {
+            "x1": 406.5,
+            "y1": 164.15625,
+            "x2": 505.5,
+            "y2": 190.15625
+          }
+        },
+        {
+          "name": "ureter",
+          "explanation": "The ureter is a tube that carries urine from the kidneys down to the bladder. There is one ureter for each kidney.",
+          "labelX": 466,
+          "labelY": 278,
+          "clickRegion": {
+            "x1": 406.5,
+            "y1": 258.15625,
+            "x2": 500.5,
+            "y2": 287.15625
+          }
+        },
+        {
+          "name": "bladder",
+          "explanation": "The bladder is a muscular sac that stores urine until you are ready to go to the bathroom. It can expand to hold urine and contracts to push it out.",
+          "labelX": 857,
+          "labelY": 431,
+          "clickRegion": {
+            "x1": 801.5,
+            "y1": 434.15625,
+            "x2": 891.5,
+            "y2": 453.15625
+          }
+        },
+        {
+          "name": "urethra",
+          "explanation": "The urethra is the tube that carries urine from the bladder out of the body. This is how urine leaves your body when you go to the bathroom.",
+          "labelX": 847,
+          "labelY": 502,
+          "clickRegion": {
+            "x1": 801.5,
+            "y1": 497.15625,
+            "x2": 879.5,
+            "y2": 515.15625
+          }
+        }
+      ]
+    }
+  ]
+}

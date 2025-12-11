@@ -1,0 +1,335 @@
+{
+    "diagrams": [
+      {
+        "title": "the skeletal system",
+        "image": "diagrams/skeletalsystem.png",
+        "parts": [
+          {
+            "name": "Cranium",
+            "intro": "This is a diagram of the skeletal system.",
+            "explanation": "The cranium is the bony part of your skull that protects your brain. It is made up of several flat bones that fit together like puzzle pieces to keep your brain safe.",
+            "labelX": 140,
+            "labelY": 40,
+            "clickRegion": {
+              "x1": 94,
+              "y1": 23,
+              "x2": 185,
+              "y2": 56
+            }
+          },
+          {
+            "name": "Clavicle",
+            "intro": "",
+            "explanation": "The clavicle is also called the collarbone. It is a long, thin bone that connects your shoulder to your chest. It helps your arms move and keeps your shoulders in the right position.",
+            "labelX": 124,
+            "labelY": 180,
+            "clickRegion": {
+              "x1": 72,
+              "y1": 165,
+              "x2": 176,
+              "y2": 194
+            }
+          },
+          {
+            "name": "Scapula",
+            "intro": "",
+            "explanation": "The scapula is also called the shoulder blade. It is a flat, triangular bone in your upper back that connects your arm bone to your collar bone. It helps you lift and move your arms.",
+            "labelX": 124,
+            "labelY": 282,
+            "clickRegion": {
+              "x1": 77,
+              "y1": 263,
+              "x2": 170,
+              "y2": 300
+            }
+          },
+          {
+            "name": "Ribs",
+            "intro": "",
+            "explanation": "Ribs are curved bones that form a cage around your chest to protect your heart and lungs. You have 12 pairs of ribs that attach to your spine in the back and your sternum in the front.",
+            "labelX": 139,
+            "labelY": 354,
+            "clickRegion": {
+              "x1": 109,
+              "y1": 341,
+              "x2": 168,
+              "y2": 366
+            }
+          },
+          {
+            "name": "Floating Rib",
+            "intro": "",
+            "explanation": "Floating ribs are the last two pairs of ribs at the bottom. They are called floating because they don't connect to the sternum in the front like the other ribs do. They only attach to the spine.",
+            "labelX": 104,
+            "labelY": 420,
+            "clickRegion": {
+              "x1": 38,
+              "y1": 406,
+              "x2": 170,
+              "y2": 434
+            }
+          },
+          {
+            "name": "Pelvis",
+            "intro": "",
+            "explanation": "The pelvis is a large, bowl-shaped bone at the base of your spine. It connects your spine to your legs and supports your body when you sit or stand. It also protects important organs in your lower abdomen.",
+            "labelX": 131,
+            "labelY": 485,
+            "clickRegion": {
+              "x1": 93,
+              "y1": 467,
+              "x2": 168,
+              "y2": 502
+            }
+          },
+          {
+            "name": "Carpal",
+            "intro": "",
+            "explanation": "Carpal bones are small bones in your wrist. You have eight carpal bones in each wrist arranged in two rows. They allow your wrist to move and bend in many different directions.",
+            "labelX": 92,
+            "labelY": 547,
+            "clickRegion": {
+              "x1": 45,
+              "y1": 525,
+              "x2": 138,
+              "y2": 569
+            }
+          },
+          {
+            "name": "Metacarpal",
+            "intro": "",
+            "explanation": "Metacarpals are the five long bones in the palm of your hand. They connect your wrist bones to your finger bones. They give your hand its shape and help you grip and hold things.",
+            "labelX": 61,
+            "labelY": 605,
+            "clickRegion": {
+              "x1": 0,
+              "y1": 587,
+              "x2": 121,
+              "y2": 623
+            }
+          },
+          {
+            "name": "Phalanges",
+            "intro": "",
+            "explanation": "Phalanges are the bones in your fingers. Each finger has three phalanges, and your thumb has two. These bones let you bend and move your fingers to pick things up, write, and do many other tasks.",
+            "labelX": 99,
+            "labelY": 675,
+            "clickRegion": {
+              "x1": 44,
+              "y1": 655,
+              "x2": 154,
+              "y2": 694
+            }
+          },
+          {
+            "name": "Coccyx",
+            "intro": "",
+            "explanation": "The coccyx is also called the tailbone. It is at the very bottom of your spine and is made up of several small bones fused together. It helps you sit and provides attachment points for muscles and ligaments.",
+            "labelX": 101,
+            "labelY": 746,
+            "clickRegion": {
+              "x1": 45,
+              "y1": 724,
+              "x2": 157,
+              "y2": 768
+            }
+          },
+          {
+            "name": "Tarsal bones",
+            "intro": "",
+            "explanation": "Tarsal bones are the seven small bones in your ankle and the back part of your foot. They include the heel bone and other bones that help you walk, run, and balance. They connect your leg bones to your foot bones.",
+            "labelX": 73,
+            "labelY": 798,
+            "clickRegion": {
+              "x1": 0,
+              "y1": 778,
+              "x2": 145,
+              "y2": 818
+            }
+          },
+          {
+            "name": "Metatarsals",
+            "intro": "",
+            "explanation": "Metatarsals are the five long bones in the middle of your foot. They connect your ankle bones to your toe bones. They form the arch of your foot and help you push off the ground when you walk or run.",
+            "labelX": 78,
+            "labelY": 848,
+            "clickRegion": {
+              "x1": 5,
+              "y1": 831,
+              "x2": 151,
+              "y2": 865
+            }
+          },
+          {
+            "name": "Phalanges",
+            "intro": "",
+            "explanation": "Phalanges are the bones in your toes. Each toe has three phalanges except your big toe, which has two. These bones help you balance and push off when you walk, run, or jump.",
+            "labelX": 85,
+            "labelY": 901,
+            "clickRegion": {
+              "x1": 23,
+              "y1": 882,
+              "x2": 146,
+              "y2": 920
+            }
+          },
+          {
+            "name": "Tibia",
+            "intro": "",
+            "explanation": "The tibia is also called the shin bone. It is the larger of the two bones in your lower leg and runs down the front of your leg. It connects your knee to your ankle and supports most of your body weight when you stand.",
+            "labelX": 638,
+            "labelY": 882,
+            "clickRegion": {
+              "x1": 591,
+              "y1": 864,
+              "x2": 684,
+              "y2": 900
+            }
+          },
+          {
+            "name": "Fibula",
+            "intro": "",
+            "explanation": "The fibula is the thinner bone next to the tibia in your lower leg. It runs along the outside of your leg from your knee to your ankle. It helps stabilize your ankle and provides attachment points for muscles.",
+            "labelX": 639,
+            "labelY": 825,
+            "clickRegion": {
+              "x1": 597,
+              "y1": 806,
+              "x2": 681,
+              "y2": 843
+            }
+          },
+          {
+            "name": "Patella",
+            "intro": "",
+            "explanation": "The patella is also called the kneecap. It is a small, flat, round bone that sits in front of your knee joint. It protects your knee and helps your leg bend and straighten when you walk, run, or jump.",
+            "labelX": 635,
+            "labelY": 765,
+            "clickRegion": {
+              "x1": 587,
+              "y1": 741,
+              "x2": 682,
+              "y2": 788
+            }
+          },
+          {
+            "name": "Femur",
+            "intro": "",
+            "explanation": "The femur is also called the thigh bone. It is the longest and strongest bone in your body. It connects your hip to your knee and supports your body weight when you stand, walk, or run.",
+            "labelX": 629,
+            "labelY": 690,
+            "clickRegion": {
+              "x1": 586,
+              "y1": 666,
+              "x2": 671,
+              "y2": 714
+            }
+          },
+          {
+            "name": "Ulna",
+            "intro": "",
+            "explanation": "The ulna is one of the two bones in your forearm. It runs along the inside of your arm from your elbow to your wrist. It helps you rotate your forearm and works with the radius to move your wrist and hand.",
+            "labelX": 656,
+            "labelY": 552,
+            "clickRegion": {
+              "x1": 627,
+              "y1": 532,
+              "x2": 685,
+              "y2": 572
+            }
+          },
+          {
+            "name": "Radius",
+            "intro": "",
+            "explanation": "The radius is one of the two bones in your forearm. It runs along the outside of your arm from your elbow to your wrist. It works with the ulna to let you turn your hand and rotate your forearm.",
+            "labelX": 664,
+            "labelY": 492,
+            "clickRegion": {
+              "x1": 622,
+              "y1": 473,
+              "x2": 705,
+              "y2": 510
+            }
+          },
+          {
+            "name": "Thoracic",
+            "intro": "",
+            "explanation": "The thoracic spine is the middle section of your backbone. It has 12 vertebrae that are attached to your ribs. This part of your spine helps protect your heart and lungs and allows you to bend and twist your upper body.",
+            "labelX": 615,
+            "labelY": 420,
+            "clickRegion": {
+              "x1": 564,
+              "y1": 403,
+              "x2": 666,
+              "y2": 437
+            }
+          },
+          {
+            "name": "Humerus",
+            "intro": "",
+            "explanation": "The humerus is the bone in your upper arm. It runs from your shoulder to your elbow. It is one of the longest bones in your body and helps you lift, lower, and rotate your arm.",
+            "labelX": 619,
+            "labelY": 361,
+            "clickRegion": {
+              "x1": 569,
+              "y1": 345,
+              "x2": 669,
+              "y2": 376
+            }
+          },
+          {
+            "name": "Sternum",
+            "intro": "",
+            "explanation": "The sternum is also called the breastbone. It is a flat bone in the center of your chest that connects most of your ribs together. It protects your heart and lungs and provides a strong framework for your chest.",
+            "labelX": 614,
+            "labelY": 305,
+            "clickRegion": {
+              "x1": 561,
+              "y1": 288,
+              "x2": 667,
+              "y2": 322
+            }
+          },
+          {
+            "name": "Cervical spine",
+            "intro": "",
+            "explanation": "The cervical spine is the top part of your backbone in your neck. It has seven small vertebrae that support your head and allow you to nod, shake, and turn your head. It also protects the top part of your spinal cord.",
+            "labelX": 637,
+            "labelY": 215,
+            "clickRegion": {
+              "x1": 563,
+              "y1": 197,
+              "x2": 710,
+              "y2": 232
+            }
+          },
+          {
+            "name": "Lower maxilar",
+            "intro": "",
+            "explanation": "The lower maxilla is also called the mandible or jawbone. It is the bone that forms your lower jaw and holds your lower teeth. It is the strongest bone in your face and moves when you talk, chew, or open and close your mouth.",
+            "labelX": 638,
+            "labelY": 154,
+            "clickRegion": {
+              "x1": 565,
+              "y1": 142,
+              "x2": 710,
+              "y2": 166
+            }
+          },
+          {
+            "name": "Orbital bone",
+            "intro": "",
+            "explanation": "The orbital bone is part of your skull that forms the eye socket. It is a bony cavity that surrounds and protects your eye. It helps keep your eye safe and gives it a place to sit in your skull.",
+            "labelX": 634,
+            "labelY": 92,
+            "clickRegion": {
+              "x1": 568,
+              "y1": 79,
+              "x2": 699,
+              "y2": 105
+            }
+          }
+        ]
+      }
+    ]
+  }

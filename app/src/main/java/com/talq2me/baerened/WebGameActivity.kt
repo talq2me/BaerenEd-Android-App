@@ -17,6 +17,7 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.Locale
 import org.json.JSONArray
+import java.io.File
 
 class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -26,6 +27,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val EXTRA_SECTION_ID = "section_id"
         const val EXTRA_STARS = "stars"
         const val EXTRA_TASK_TITLE = "task_title"
+        const val RESULT_LAUNCH_GAME = 100
+        const val RESULT_EXTRA_GAME_ID = "game_id_to_launch"
     }
 
     private lateinit var webView: WebView
@@ -247,15 +250,66 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         @JavascriptInterface
         fun launchGame(gameId: String) {
             android.util.Log.d("WebGameActivity", "JavaScript requested to launch game: $gameId")
-            // Note: This would need to be handled by the parent activity or MainActivity
-            // For now, we'll just log it. The actual game launching should be handled
-            // by the activity that opened this WebView (likely MainActivity)
+            // Return result to MainActivity so it can launch the game
             runOnUiThread {
-                Toast.makeText(
-                    this@WebGameActivity,
-                    "Game launch requested: $gameId\n(Implement game launching in MainActivity)",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val resultIntent = Intent().apply {
+                    putExtra(RESULT_EXTRA_GAME_ID, gameId)
+                }
+                setResult(RESULT_LAUNCH_GAME, resultIntent)
+                finish() // Close battle hub and return to MainActivity
+            }
+        }
+
+        @JavascriptInterface
+        fun getPendingBerries(): Int {
+            return try {
+                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                    .getInt("pendingBerries", 0)
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error getting pending berries", e)
+                0
+            }
+        }
+
+        @JavascriptInterface
+        fun clearPendingBerries() {
+            try {
+                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                    .edit()
+                    .putInt("pendingBerries", 0)
+                    .apply()
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error clearing pending berries", e)
+            }
+        }
+
+        @JavascriptInterface
+        fun getConfigJson(): String {
+            return try {
+                // Try to get from cache first (most up-to-date)
+                val cacheFile = File(this@WebGameActivity.filesDir, "main_content.json")
+                if (cacheFile.exists()) {
+                    android.util.Log.d("WebGameActivity", "Returning cached config")
+                    cacheFile.readText()
+                } else {
+                    // Fallback to assets based on current profile
+                    val profile = SettingsManager.readProfile(this@WebGameActivity) ?: "A"
+                    val configFileName = when (profile) {
+                        "A" -> "AM_config.json"
+                        "B" -> "BM_config.json"
+                        else -> "Main_config.json"
+                    }
+                    android.util.Log.d("WebGameActivity", "Loading config from assets: $configFileName")
+                    val inputStream: InputStream = assets.open("config/$configFileName")
+                    val size = inputStream.available()
+                    val buffer = ByteArray(size)
+                    inputStream.read(buffer)
+                    inputStream.close()
+                    String(buffer, Charset.forName("UTF-8"))
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error loading config JSON", e)
+                "{}"
             }
         }
     }

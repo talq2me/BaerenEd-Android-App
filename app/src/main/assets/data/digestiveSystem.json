@@ -1,0 +1,114 @@
+{
+    "diagrams": [
+      {
+        "title": "the digestive system",
+        "image": "diagrams/digestiveSystem.png",
+        "parts": [
+          {
+            "name": "Mouth",
+            "intro": "This is a diagram of the digestive system.",
+            "explanation": "The mouth is where food enters your body. Your teeth chew the food into smaller pieces, and your tongue helps move it around.",
+            "labelX": 576,
+            "labelY": 316,
+            "clickRegion": {
+              "x1": 535,
+              "y1": 301,
+              "x2": 617,
+              "y2": 330
+            }
+          },
+          {
+            "name": "Oesophagus",
+            "intro": "",
+            "explanation": "The oesophagus is a long tube that carries food from your mouth down to your stomach. When you swallow, muscles push the food down this tube.",
+            "labelX": 581,
+            "labelY": 399,
+            "clickRegion": {
+              "x1": 511,
+              "y1": 384,
+              "x2": 651,
+              "y2": 413
+            }
+          },
+          {
+            "name": "Stomach",
+            "intro": "",
+            "explanation": "The stomach is like a bag that holds your food. It squeezes and mixes the food with special juices that help break it down into smaller pieces.",
+            "labelX": 606,
+            "labelY": 552,
+            "clickRegion": {
+              "x1": 554,
+              "y1": 538,
+              "x2": 658,
+              "y2": 566
+            }
+          },
+          {
+            "name": "Colon",
+            "intro": "",
+            "explanation": "The colon is a large tube that takes water from the leftover food. It helps turn the food into waste that your body needs to get rid of.",
+            "labelX": 579,
+            "labelY": 703,
+            "clickRegion": {
+              "x1": 547,
+              "y1": 690,
+              "x2": 610,
+              "y2": 716
+            }
+          },
+          {
+            "name": "Rectum",
+            "intro": "",
+            "explanation": "The rectum is the last part of the digestive system. It stores the waste until your body is ready to get rid of it.",
+            "labelX": 623,
+            "labelY": 832,
+            "clickRegion": {
+              "x1": 577,
+              "y1": 814,
+              "x2": 668,
+              "y2": 849
+            }
+          },
+          {
+            "name": "Liver",
+            "intro": "",
+            "explanation": "The liver is a large organ that helps clean your blood and makes a special juice called bile that helps digest your food.",
+            "labelX": 118,
+            "labelY": 404,
+            "clickRegion": {
+              "x1": 73,
+              "y1": 387,
+              "x2": 162,
+              "y2": 421
+            }
+          },
+          {
+            "name": "Pancreas",
+            "intro": "",
+            "explanation": "The pancreas makes special chemicals called enzymes that help break down food in your small intestine so your body can use the nutrients.",
+            "labelX": 110,
+            "labelY": 638,
+            "clickRegion": {
+              "x1": 49,
+              "y1": 621,
+              "x2": 170,
+              "y2": 654
+            }
+          },
+          {
+            "name": "Small Intestine",
+            "intro": "",
+            "explanation": "The small intestine is a long, winding tube where most of the nutrients from your food are absorbed into your blood to give you energy and help you grow.",
+            "labelX": 117,
+            "labelY": 799,
+            "clickRegion": {
+              "x1": 54,
+              "y1": 772,
+              "x2": 180,
+              "y2": 825
+            }
+          }
+        ]
+      }
+    ]
+  }

@@ -185,18 +185,18 @@
         .battle-arena {
             background: white;
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 6px;
+            margin-bottom: 8px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.3);
             border: 3px solid #ff6b6b;
         }
 
         .battle-instructions {
             text-align: center;
-            font-size: 1em;
+            font-size: 0.85em;
             color: #764ba2;
-            margin-bottom: 15px;
-            padding: 10px;
+            margin-bottom: 5px;
+            padding: 4px;
             background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
             border-radius: 10px;
             font-weight: bold;
@@ -207,9 +207,9 @@
             justify-content: space-around;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
-            margin: 15px 0;
-            min-height: 200px;
+            gap: 8px;
+            margin: 3px 0;
+            min-height: 140px;
         }
 
         .pokemon-battle-card {
@@ -219,9 +219,9 @@
         }
 
         .pokemon-battle-sprite {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 10px;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 5px;
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
@@ -344,17 +344,17 @@
         }
 
         .pokemon-battle-name {
-            font-size: 1.2em;
+            font-size: 1em;
             font-weight: bold;
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .pokemon-battle-stats {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-radius: 10px;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 8px;
+            margin-top: 5px;
         }
 
         .stat-bar {
@@ -462,7 +462,7 @@
         }
 
         .berry-fill::before {
-            content: '🍓';
+            content: var(--stars-icon, '🍍');
             position: absolute;
             left: 10px;
             font-size: 1.5em;
@@ -470,7 +470,7 @@
         }
 
         .berry-fill::after {
-            content: '🍓';
+            content: var(--stars-icon, '🍍');
             position: absolute;
             right: 10px;
             font-size: 1.5em;
@@ -659,13 +659,14 @@
             }
             
             .battle-field {
-                gap: 10px;
-                min-height: 180px;
+                gap: 8px;
+                min-height: 130px;
+                margin: 3px 0;
             }
             
             .pokemon-battle-sprite {
-                width: 100px;
-                height: 100px;
+                width: 90px;
+                height: 90px;
             }
         }
 
@@ -676,13 +677,15 @@
             }
 
             .pokemon-battle-sprite {
-                width: 80px;
-                height: 80px;
+                width: 70px;
+                height: 70px;
             }
 
             .battle-field {
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
+                min-height: 120px;
+                margin: 3px 0;
             }
 
             .vs-divider {
@@ -700,7 +703,6 @@
     <div class="container">
         <div class="header">
             <h1>⚡ Pokemon Battle Hub ⚡</h1>
-            <p style="font-size: 1.3em;">Power up your Pokemon and catch them all!</p>
         </div>
 
         <!-- Pokedex Section -->
@@ -720,6 +722,13 @@
         <div class="battle-arena">
             <div class="battle-instructions">
                 💪 Power up your Pokemon with berries before battling the boss! 💪
+            </div>
+            
+            <!-- Battle Button (moved above VS) -->
+            <div style="text-align: center; margin-bottom: 5px;">
+                <button class="action-button battle-button" id="battleButton" disabled>
+                    ⚔️ Battle ⚔️
+                </button>
             </div>
             
             <div class="battle-field">
@@ -768,21 +777,12 @@
         <!-- Berry Section -->
         <div class="berry-section">
             <div class="berry-meter-container">
-                <div class="berry-meter-label">🍓 Berry Power Meter 🍓</div>
+                <div class="berry-meter-label" id="berryMeterLabel">🍍 Berry Power Meter 🍍</div>
                 <div class="berry-meter">
                     <div class="berry-fill" id="berryFill" style="width: 0%;">
                         <div class="berry-count" id="berryCount">0 / 100 Berries</div>
                     </div>
                 </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="action-button berry-button" id="berryButton">
-                    🍓 Earn Berries 🍓
-                </button>
-                <button class="action-button battle-button" id="battleButton" disabled>
-                    ⚔️ Battle Boss ⚔️
-                </button>
             </div>
 
             <div class="educational-games-list" id="gamesList" style="display: none;">
@@ -813,6 +813,39 @@
         let unlockedCount = 0;
         let playerPokemon = null;
         let bossPokemon = null;
+        
+        // Icon configuration
+        let iconConfig = {
+            starsIcon: '🍍', // Default to pineapple
+            coinsIcon: '🪙'   // Default to coin
+        };
+        
+        // Load icon configuration
+        function loadIconConfig() {
+            if (isAndroidWebView() && typeof Android.getIconConfig === 'function') {
+                try {
+                    const configJson = Android.getIconConfig();
+                    const config = JSON.parse(configJson);
+                    iconConfig.starsIcon = config.starsIcon || '🍍';
+                    iconConfig.coinsIcon = config.coinsIcon || '🪙';
+                    console.log('Loaded icon config:', iconConfig);
+                } catch (e) {
+                    console.error('Error loading icon config:', e);
+                }
+            } else {
+                // Browser fallback: try to load from localStorage or use defaults
+                const savedConfig = localStorage.getItem('iconConfig');
+                if (savedConfig) {
+                    try {
+                        const config = JSON.parse(savedConfig);
+                        iconConfig.starsIcon = config.starsIcon || '🍍';
+                        iconConfig.coinsIcon = config.coinsIcon || '🪙';
+                    } catch (e) {
+                        console.error('Error parsing saved icon config:', e);
+                    }
+                }
+            }
+        }
 
         // Parse Pokemon filename (format: "prefix-pokenum-variant.png")
         function parsePokemonFilename(filename) {
@@ -851,6 +884,33 @@
         // Detect if we're running in Android WebView or browser
         function isAndroidWebView() {
             return typeof Android !== 'undefined';
+        }
+        
+        // Load icon configuration
+        function loadIconConfig() {
+            if (isAndroidWebView() && typeof Android.getIconConfig === 'function') {
+                try {
+                    const configJson = Android.getIconConfig();
+                    const config = JSON.parse(configJson);
+                    iconConfig.starsIcon = config.starsIcon || '🍍';
+                    iconConfig.coinsIcon = config.coinsIcon || '🪙';
+                    console.log('Loaded icon config:', iconConfig);
+                } catch (e) {
+                    console.error('Error loading icon config:', e);
+                }
+            } else {
+                // Browser fallback: try to load from localStorage or use defaults
+                const savedConfig = localStorage.getItem('iconConfig');
+                if (savedConfig) {
+                    try {
+                        const config = JSON.parse(savedConfig);
+                        iconConfig.starsIcon = config.starsIcon || '🍍';
+                        iconConfig.coinsIcon = config.coinsIcon || '🪙';
+                    } catch (e) {
+                        console.error('Error parsing saved icon config:', e);
+                    }
+                }
+            }
         }
 
         // Get the base URL for images (GitHub for browser, Android asset for WebView)
@@ -1039,19 +1099,9 @@
         // Game state
         let gameState = {
             berries: 0,
-            maxBerries: 100,
-            requiredGames: [
-                { title: 'Google Read Along', launch: 'googleReadAlong', berries: 20 },
-                { title: 'Duological', launch: 'duologicalGame', berries: 20 },
-                { title: 'Translation', launch: 'translation', berries: 20 },
-                { title: 'French Stories', launch: 'frenchStories', berries: 20 },
-                { title: 'Times Tables', launch: 'timesTables', berries: 20 }
-            ],
-            optionalGames: [
-                { title: 'Word Garden', launch: 'wordGarden', berries: 10 },
-                { title: 'Potion Maker', launch: 'potionMaker', berries: 10 },
-                { title: 'Spelling Race', launch: 'spellingRace', berries: 10 }
-            ]
+            maxBerries: 100, // Will be updated from Android to match total stars
+            requiredGames: [],
+            optionalGames: []
         };
 
         // Load saved state from localStorage
@@ -1060,6 +1110,22 @@
             if (saved) {
                 const savedState = JSON.parse(saved);
                 gameState.berries = savedState.berries || 0;
+            }
+            
+            // Check for pending berries from Android (games completed while battle hub was closed)
+            if (isAndroidWebView() && typeof Android.getPendingBerries === 'function') {
+                try {
+                    const pendingBerries = parseInt(Android.getPendingBerries()) || 0;
+                    if (pendingBerries > 0) {
+                        addBerries(pendingBerries);
+                        // Clear pending berries
+                        if (typeof Android.clearPendingBerries === 'function') {
+                            Android.clearPendingBerries();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error getting pending berries:', e);
+                }
             }
         }
 
@@ -1079,9 +1145,98 @@
             toggle.classList.toggle('collapsed');
         }
 
+        // Load games from config
+        function loadGamesFromConfig() {
+            try {
+                let configJson = '{}';
+                
+                // Try to get config from Android interface
+                if (isAndroidWebView() && typeof Android.getConfigJson === 'function') {
+                    configJson = Android.getConfigJson();
+                } else {
+                    // Browser fallback: try to load from localStorage or use defaults
+                    const savedConfig = localStorage.getItem('battleHubConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    } else {
+                        // Use hardcoded defaults for browser testing
+                        gameState.requiredGames = [
+                            { title: 'Google Read Along', launch: 'googleReadAlong', berries: 20 },
+                            { title: 'Duological', launch: 'duologicalGame', berries: 20 },
+                            { title: 'Translation', launch: 'translation', berries: 20 },
+                            { title: 'French Stories', launch: 'frenchStories', berries: 20 },
+                            { title: 'Times Tables', launch: 'timesTables', berries: 20 }
+                        ];
+                        gameState.optionalGames = [
+                            { title: 'Word Garden', launch: 'wordGarden', berries: 10 },
+                            { title: 'Potion Maker', launch: 'potionMaker', berries: 10 },
+                            { title: 'Spelling Race', launch: 'spellingRace', berries: 10 }
+                        ];
+                        return;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                
+                // Extract required games from "required" section
+                const requiredSection = config.sections?.find(s => s.id === 'required');
+                if (requiredSection && requiredSection.tasks) {
+                    gameState.requiredGames = requiredSection.tasks
+                        .filter(task => task.title && task.launch)
+                        .map(task => ({
+                            title: task.title,
+                            launch: task.launch,
+                            berries: (task.stars || 3) // 1 star = 1 berry
+                        }));
+                }
+                
+                // Extract optional games from "optional" section
+                const optionalSection = config.sections?.find(s => s.id === 'optional');
+                if (optionalSection && optionalSection.tasks) {
+                    gameState.optionalGames = optionalSection.tasks
+                        .filter(task => task.title && task.launch)
+                        .map(task => ({
+                            title: task.title,
+                            launch: task.launch,
+                            berries: (task.stars || 3) // 1 star = 1 berry
+                        }));
+                }
+                
+                console.log('Loaded games from config:', {
+                    required: gameState.requiredGames.length,
+                    optional: gameState.optionalGames.length
+                });
+            } catch (e) {
+                console.error('Error loading games from config:', e);
+                // Use fallback defaults
+                gameState.requiredGames = [
+                    { title: 'Google Read Along', launch: 'googleReadAlong', berries: 20 },
+                    { title: 'Duological', launch: 'duologicalGame', berries: 20 },
+                    { title: 'Translation', launch: 'translation', berries: 20 }
+                ];
+                gameState.optionalGames = [
+                    { title: 'Word Garden', launch: 'wordGarden', berries: 10 },
+                    { title: 'Potion Maker', launch: 'potionMaker', berries: 10 }
+                ];
+            }
+        }
+
         // Initialize
         function init() {
             loadState();
+            loadGamesFromConfig(); // Load games from config first
+            
+            // Get total stars from Android to set maxBerries (so berries = coins/stars)
+            if (isAndroidWebView() && typeof Android.getTotalStars === 'function') {
+                try {
+                    const totalStars = parseInt(Android.getTotalStars()) || 100;
+                    gameState.maxBerries = totalStars;
+                    console.log('Set maxBerries to total stars:', totalStars);
+                } catch (e) {
+                    console.error('Error getting total stars:', e);
+                }
+            }
+            
             loadPokemonData(); // This will call updateUI when done
         }
 
@@ -1116,8 +1271,7 @@
                     <div class="pokemon-sprite">
                         <img src="" alt="${pokemon.name}" data-filename="${pokemon.filename}" onerror="this.style.display='none'; this.parentElement.innerHTML='❓';">
                     </div>
-                    <div class="pokemon-name">${pokemon.name}${pokemon.shiny ? ' ⭐' : ''}</div>
-                    <div class="pokemon-level">#${pokemon.pokenum}</div>
+                    <div class="pokemon-name">${pokemon.name}</div>
                 `;
                 
                 // Load image asynchronously
@@ -1140,7 +1294,7 @@
                     <div class="pokemon-sprite">
                         <img src="" alt="${pokemon.name}" data-filename="${pokemon.filename}" style="filter: grayscale(100%) brightness(0.3);" onerror="this.style.display='none'; this.parentElement.innerHTML='❓';">
                     </div>
-                    <div class="pokemon-name">${pokemon.name}${pokemon.shiny ? ' ⭐' : ''}</div>
+                    <div class="pokemon-name">${pokemon.name}</div>
                     <div class="pokemon-level">Locked</div>
                 `;
                 
@@ -1172,7 +1326,7 @@
                 if (playerImg) {
                     loadPokemonImageAsync(playerPokemon.filename, playerImg);
                 }
-                document.getElementById('playerPokemonName').textContent = playerPokemon.name + (playerPokemon.shiny ? ' ⭐' : '');
+                document.getElementById('playerPokemonName').textContent = playerPokemon.name;
             } else {
                 playerSprite.innerHTML = '<div style="font-size: 4em;">❓</div>';
                 document.getElementById('playerPokemonName').textContent = 'No Pokemon';
@@ -1184,7 +1338,7 @@
                 if (bossImg) {
                     loadPokemonImageAsync(bossPokemon.filename, bossImg);
                 }
-                document.getElementById('bossPokemonName').textContent = bossPokemon.name + (bossPokemon.shiny ? ' ⭐' : '');
+                document.getElementById('bossPokemonName').textContent = bossPokemon.name;
             } else {
                 bossSprite.innerHTML = '<div style="font-size: 4em;">❓</div>';
                 document.getElementById('bossPokemonName').textContent = 'No Boss';
@@ -1202,9 +1356,23 @@
             const percent = (gameState.berries / gameState.maxBerries) * 100;
             const fill = document.getElementById('berryFill');
             const count = document.getElementById('berryCount');
+            const label = document.getElementById('berryMeterLabel');
 
             fill.style.width = percent + '%';
             count.textContent = `${gameState.berries} / ${gameState.maxBerries} Berries`;
+            label.textContent = `${iconConfig.starsIcon} Berry Power Meter ${iconConfig.starsIcon}`;
+            
+            // Update the ::before and ::after pseudo-elements by updating the parent
+            const berryFillStyle = document.createElement('style');
+            berryFillStyle.textContent = `
+                .berry-fill::before { content: '${iconConfig.starsIcon}'; }
+                .berry-fill::after { content: '${iconConfig.starsIcon}'; }
+            `;
+            // Remove old style if exists
+            const oldStyle = document.getElementById('berryIconStyle');
+            if (oldStyle) oldStyle.remove();
+            berryFillStyle.id = 'berryIconStyle';
+            document.head.appendChild(berryFillStyle);
 
             if (percent >= 100) {
                 fill.classList.add('full');
@@ -1243,7 +1411,7 @@
             gameState.requiredGames.forEach(game => {
                 const item = document.createElement('div');
                 item.className = 'game-item';
-                item.innerHTML = `🎮 ${game.title} (+${game.berries} berries)`;
+                item.innerHTML = `🎮 ${game.title} (+${game.berries} ${iconConfig.starsIcon})`;
                 item.onclick = () => launchGame(game);
                 container.appendChild(item);
             });
@@ -1258,7 +1426,7 @@
             gameState.optionalGames.forEach(game => {
                 const item = document.createElement('div');
                 item.className = 'game-item';
-                item.innerHTML = `🎮 ${game.title} (+${game.berries} berries)`;
+                item.innerHTML = `🎮 ${game.title} (+${game.berries} ${iconConfig.starsIcon})`;
                 item.onclick = () => launchGame(game);
                 container.appendChild(item);
             });
@@ -1357,7 +1525,7 @@
 
                 // Player attacks
                 setTimeout(() => {
-                    showBattleMessage(`${playerPokemon.name} attacks!`);
+                    showBattleMessage('You attack!');
                     playerSprite.classList.add('attacking');
                     
                     setTimeout(() => {
@@ -1436,7 +1604,7 @@
                             
                             // Boss attacks back (only if still alive)
                             setTimeout(() => {
-                                showBattleMessage(`${bossPokemon.name} attacks!`);
+                                showBattleMessage('Boss attacks!');
                                 bossSprite.classList.add('attacking');
                                 
                                 setTimeout(() => {
@@ -1586,7 +1754,7 @@
                             
                             // Reset battle button (will be updated when victory screen closes)
                             battleButton.disabled = true;
-                            battleButton.textContent = '⚔️ Battle Boss ⚔️';
+                            battleButton.textContent = '⚔️ Battle ⚔️';
                             
                             // Note: UI refresh will happen when victory screen is closed via closeVictory()
                         }, 1500);
@@ -1599,7 +1767,7 @@
                 playerHP.classList.remove('damaging');
                 bossHP.classList.remove('damaging');
                 battleButton.disabled = false;
-                battleButton.textContent = '⚔️ Battle Boss ⚔️';
+                battleButton.textContent = '⚔️ Battle ⚔️';
                 alert('Not enough power! Earn more berries!');
             }
         }
@@ -1619,7 +1787,7 @@
             if (victoryImg) {
                 loadPokemonImageAsync(pokemon.filename, victoryImg);
             }
-            document.getElementById('victoryPokemonName').textContent = pokemon.name + (pokemon.shiny ? ' ⭐' : '');
+            document.getElementById('victoryPokemonName').textContent = pokemon.name;
             document.getElementById('victoryOverlay').style.display = 'flex';
         }
 
@@ -1642,8 +1810,10 @@
         }
 
         // Event Listeners
-        document.getElementById('berryButton').addEventListener('click', showGamesList);
         document.getElementById('battleButton').addEventListener('click', battleBoss);
+        
+        // Auto-show games list on load (no need for button)
+        showGamesList();
 
         // Function to be called from Android after game completion
         window.onGameComplete = function(berriesEarned) {

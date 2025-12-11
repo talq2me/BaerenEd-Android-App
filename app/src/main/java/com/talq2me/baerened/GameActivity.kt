@@ -41,6 +41,7 @@ class GameActivity : AppCompatActivity() {
     private var isRequiredGame: Boolean = false
     private var sectionId: String? = null
     private var blockOutlines: Boolean = false
+    private var battleHubTaskId: String? = null
     private val selectedChoices = mutableSetOf<String>()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
@@ -60,6 +61,9 @@ class GameActivity : AppCompatActivity() {
         isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
         sectionId = intent.getStringExtra("SECTION_ID")
         blockOutlines = intent.getBooleanExtra("BLOCK_OUTLINES", false)
+        battleHubTaskId = intent.getStringExtra("BATTLE_HUB_TASK_ID")
+        
+        android.util.Log.d("GameActivity", "Game initialized: title=$gameTitle, type=$gameType, totalQuestions=$totalQuestions, stars=$gameStars")
 
         if (gameContent == null) {
             Toast.makeText(this, "Game content not available", Toast.LENGTH_SHORT).show()
@@ -82,6 +86,8 @@ class GameActivity : AppCompatActivity() {
             launch = gameType,
             requiredCorrectAnswers = totalQuestions
         )
+        
+        android.util.Log.d("GameActivity", "GameConfig created: requiredCorrectAnswers=${config.requiredCorrectAnswers}, questions available=${questions.size}")
 
         gameEngine = GameEngine(this, gameType, questions, config)
 
@@ -181,21 +187,61 @@ class GameActivity : AppCompatActivity() {
                 // Show feedback for correct answer
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
+                        // Extract original gameId if this came from battle hub or gym map
+                        val currentBattleHubTaskId = battleHubTaskId // Store in local val to avoid smart cast issue
+                        val actualGameType = when {
+                            currentBattleHubTaskId != null && currentBattleHubTaskId.startsWith("battleHub_") -> {
+                                currentBattleHubTaskId.substringAfter("battleHub_")
+                            }
+                            currentBattleHubTaskId != null && currentBattleHubTaskId.startsWith("gymMap_") -> {
+                                currentBattleHubTaskId.substringAfter("gymMap_")
+                            }
+                            else -> {
+                                gameType
+                            }
+                        }
+                    
                     // Game completed successfully - award stars to reward bank
-                    val earnedStars = progressManager.markTaskCompletedWithName(gameType, gameTitle, gameStars, isRequiredGame, null, sectionId)
+                    // Use actualGameType (without battleHub_ prefix) for completion tracking
+                    val earnedStars = progressManager.markTaskCompletedWithName(actualGameType, gameTitle, gameStars, isRequiredGame, null, sectionId)
                     if (earnedStars > 0) {
                         // Add stars to reward bank and convert to minutes
                         val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-                        android.util.Log.d("GameActivity", "Game $gameType completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
+                        android.util.Log.d("GameActivity", "Game $actualGameType completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
 
                         // Update time tracker with stars earned
                         timeTracker.updateStarsEarned("game", earnedStars)
+                        
+                        // Save berries if launched from battle hub OR if from required/optional section
+                        val shouldAddBerries = currentBattleHubTaskId != null || 
+                            (sectionId == "required" || sectionId == "optional")
+                        
+                        if (shouldAddBerries) {
+                            val berriesToAdd = earnedStars // 1 star = 1 berry
+                            val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                .getInt("pendingBerries", 0)
+                            getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                .edit()
+                                .putInt("pendingBerries", savedBerries + berriesToAdd)
+                                .apply()
+                            android.util.Log.d("GameActivity", "Saved $berriesToAdd berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
+                        }
                     }
 
                     // Final update of answer counts before finishing
                     timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
 
-                    // Navigate back to profile screen after delay
+                    // If launched from battle hub, set result to indicate we should reopen battle hub
+                    if (currentBattleHubTaskId != null) {
+                        val resultIntent = android.content.Intent().apply {
+                            putExtra("BATTLE_HUB_TASK_ID", currentBattleHubTaskId)
+                            putExtra("GAME_TYPE", actualGameType)
+                            putExtra("GAME_STARS", earnedStars)
+                        }
+                        setResult(RESULT_OK, resultIntent)
+                    }
+
+                    // Navigate back after delay
                     android.os.Handler().postDelayed({
                         finish()
                     }, 2500) // 2.5 seconds total (2s message + 0.5s buffer)

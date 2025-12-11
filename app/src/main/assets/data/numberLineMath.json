@@ -1,0 +1,292 @@
+{
+  "problems": [
+    {
+      "question": "What is 7 take away 4?",
+      "start": 7,
+      "operation": "subtract",
+      "value": 4,
+      "answer": 3
+    },
+    {
+      "question": "What is 5 plus 3?",
+      "start": 5,
+      "operation": "add",
+      "value": 3,
+      "answer": 8
+    },
+    {
+      "question": "What is 10 take away 6?",
+      "start": 10,
+      "operation": "subtract",
+      "value": 6,
+      "answer": 4
+    },
+    {
+      "question": "What is 8 plus 4?",
+      "start": 8,
+      "operation": "add",
+      "value": 4,
+      "answer": 12
+    },
+    {
+      "question": "What is 9 take away 5?",
+      "start": 9,
+      "operation": "subtract",
+      "value": 5,
+      "answer": 4
+    },
+    {
+      "question": "What is 6 plus 7?",
+      "start": 6,
+      "operation": "add",
+      "value": 7,
+      "answer": 13
+    },
+    {
+      "question": "What is 12 take away 8?",
+      "start": 12,
+      "operation": "subtract",
+      "value": 8,
+      "answer": 4
+    },
+    {
+      "question": "What is 4 plus 9?",
+      "start": 4,
+      "operation": "add",
+      "value": 9,
+      "answer": 13
+    },
+    {
+      "question": "What is 15 take away 7?",
+      "start": 15,
+      "operation": "subtract",
+      "value": 7,
+      "answer": 8
+    },
+    {
+      "question": "What is 3 plus 5?",
+      "start": 3,
+      "operation": "add",
+      "value": 5,
+      "answer": 8
+    },
+    {
+      "question": "What is 11 take away 4?",
+      "start": 11,
+      "operation": "subtract",
+      "value": 4,
+      "answer": 7
+    },
+    {
+      "question": "What is 7 plus 6?",
+      "start": 7,
+      "operation": "add",
+      "value": 6,
+      "answer": 13
+    },
+    {
+      "question": "What is 14 take away 9?",
+      "start": 14,
+      "operation": "subtract",
+      "value": 9,
+      "answer": 5
+    },
+    {
+      "question": "What is 2 plus 8?",
+      "start": 2,
+      "operation": "add",
+      "value": 8,
+      "answer": 10
+    },
+    {
+      "question": "What is 16 take away 8?",
+      "start": 16,
+      "operation": "subtract",
+      "value": 8,
+      "answer": 8
+    },
+    {
+      "question": "What is 9 plus 3?",
+      "start": 9,
+      "operation": "add",
+      "value": 3,
+      "answer": 12
+    },
+    {
+      "question": "What is 13 take away 6?",
+      "start": 13,
+      "operation": "subtract",
+      "value": 6,
+      "answer": 7
+    },
+    {
+      "question": "What is 5 plus 8?",
+      "start": 5,
+      "operation": "add",
+      "value": 8,
+      "answer": 13
+    },
+    {
+      "question": "What is 17 take away 9?",
+      "start": 17,
+      "operation": "subtract",
+      "value": 9,
+      "answer": 8
+    },
+    {
+      "question": "What is 6 plus 5?",
+      "start": 6,
+      "operation": "add",
+      "value": 5,
+      "answer": 11
+    },
+    {
+      "question": "What is 10 take away 3?",
+      "start": 10,
+      "operation": "subtract",
+      "value": 3,
+      "answer": 7
+    },
+    {
+      "question": "What is 4 plus 7?",
+      "start": 4,
+      "operation": "add",
+      "value": 7,
+      "answer": 11
+    },
+    {
+      "question": "What is 18 take away 10?",
+      "start": 18,
+      "operation": "subtract",
+      "value": 10,
+      "answer": 8
+    },
+    {
+      "question": "What is 8 plus 5?",
+      "start": 8,
+      "operation": "add",
+      "value": 5,
+      "answer": 13
+    },
+    {
+      "question": "What is 11 take away 5?",
+      "start": 11,
+      "operation": "subtract",
+      "value": 5,
+      "answer": 6
+    },
+    {
+      "question": "What is 3 plus 9?",
+      "start": 3,
+      "operation": "add",
+      "value": 9,
+      "answer": 12
+    },
+    {
+      "question": "What is 15 take away 6?",
+      "start": 15,
+      "operation": "subtract",
+      "value": 6,
+      "answer": 9
+    },
+    {
+      "question": "What is 7 plus 8?",
+      "start": 7,
+      "operation": "add",
+      "value": 8,
+      "answer": 15
+    },
+    {
+      "question": "What is 12 take away 7?",
+      "start": 12,
+      "operation": "subtract",
+      "value": 7,
+      "answer": 5
+    },
+    {
+      "question": "What is 9 plus 6?",
+      "start": 9,
+      "operation": "add",
+      "value": 6,
+      "answer": 15
+    },
+    {
+      "question": "What is 14 take away 5?",
+      "start": 14,
+      "operation": "subtract",
+      "value": 5,
+      "answer": 9
+    },
+    {
+      "question": "What is 2 plus 10?",
+      "start": 2,
+      "operation": "add",
+      "value": 10,
+      "answer": 12
+    },
+    {
+      "question": "What is 16 take away 7?",
+      "start": 16,
+      "operation": "subtract",
+      "value": 7,
+      "answer": 9
+    },
+    {
+      "question": "What is 6 plus 9?",
+      "start": 6,
+      "operation": "add",
+      "value": 9,
+      "answer": 15
+    },
+    {
+      "question": "What is 13 take away 4?",
+      "start": 13,
+      "operation": "subtract",
+      "value": 4,
+      "answer": 9
+    },
+    {
+      "question": "What is 5 plus 10?",
+      "start": 5,
+      "operation": "add",
+      "value": 10,
+      "answer": 15
+    },
+    {
+      "question": "What is 19 take away 11?",
+      "start": 19,
+      "operation": "subtract",
+      "value": 11,
+      "answer": 8
+    },
+    {
+      "question": "What is 8 plus 7?",
+      "start": 8,
+      "operation": "add",
+      "value": 7,
+      "answer": 15
+    },
+    {
+      "question": "What is 10 take away 2?",
+      "start": 10,
+      "operation": "subtract",
+      "value": 2,
+      "answer": 8
+    },
+    {
+      "question": "What is 4 plus 8?",
+      "start": 4,
+      "operation": "add",
+      "value": 8,
+      "answer": 12
+    },
+    {
+      "question": "What is 17 take away 8?",
+      "start": 17,
+      "operation": "subtract",
+      "value": 8,
+      "answer": 9
+    }
+  ]
+}
+

@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Science Diagram Labeler</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --highlight-color: #FFEB3B;
+            --correct-color: #8BC34A;
+            --wrong-color: #F44336;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 20px;
+        }
+        
+        .diagram-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 400px;
+            border: 3px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .diagram-image {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        
+        
+        .clickable-region {
+            position: absolute;
+            border: 3px solid transparent;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 7;
+        }
+        
+        .label-cover {
+            position: absolute;
+            background: white;
+            border: 2px solid #ddd;
+            z-index: 6;
+            transition: opacity 0.5s ease;
+            pointer-events: none; /* Don't block clicks on clickable regions */
+        }
+        
+        .label-cover.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .clickable-region.highlighted {
+            border-color: var(--highlight-color);
+            background: rgba(255, 235, 59, 0.2);
+            animation: highlightPulse 1s ease-in-out infinite;
+            box-shadow: 0 0 20px var(--highlight-color);
+        }
+        
+        .clickable-region.highlighted:not(.clickable) {
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        .clickable-region.clickable {
+            cursor: pointer;
+            pointer-events: all;
+        }
+        
+        .clickable-region:hover {
+            background: rgba(255, 235, 59, 0.3);
+        }
+        
+        .diagram-part {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .diagram-part:hover {
+            opacity: 0.8;
+        }
+        
+        .diagram-part.highlighted {
+            animation: highlightPulse 1s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px var(--highlight-color));
+        }
+        
+        @keyframes highlightPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .label-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .label-marker:hover {
+            transform: scale(1.2);
+        }
+        
+        .label-marker.correct {
+            background: var(--correct-color);
+            animation: correctPulse 0.5s ease;
+        }
+        
+        .label-marker.incorrect {
+            background: var(--wrong-color);
+            animation: shake 0.5s ease;
+        }
+        
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .label-text {
+            position: absolute;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 11;
+            margin-top: 25px;
+            margin-left: -50%;
+        }
+        
+        .instruction-panel {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .instruction-text {
+            font-size: 1.2rem;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .current-task {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 10px;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .button {
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .button:active {
+            transform: scale(0.95);
+        }
+        
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .next-button {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .completion-message {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Science Diagram Labeler</h1>
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+        </div>
+        
+        <div class="instruction-panel" id="instructionPanel">
+            <div class="instruction-text" id="instructionText">Loading diagram...</div>
+            <div class="current-task" id="currentTask"></div>
+        </div>
+        
+        <div class="diagram-container" id="diagramContainer">
+            <img class="diagram-image" id="diagramImage" style="display: none;" alt="Science diagram">
+        </div>
+        
+        <div class="button-container">
+            <button class="button" id="playButton" onclick="playInstruction()">🔊 Play Instruction</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate = 1.0, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        let diagrams = [];
+        let currentDiagramIndex = 0;
+        let currentPartIndex = 0;
+        let currentDiagram = null;
+        let currentPart = null;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+        let isWaitingForLabel = false;
+        let placedLabels = new Map();
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function loadConfig() {
+            try {
+                let configJson = '{}';
+                
+                if (isAndroidWebView() && typeof window.Android.getConfigJson === 'function') {
+                    configJson = window.Android.getConfigJson();
+                } else {
+                    const savedConfig = localStorage.getItem('diagramLabelerConfig');
+                    if (savedConfig) {
+                        configJson = savedConfig;
+                    }
+                }
+                
+                const config = JSON.parse(configJson);
+                
+                if (config.sections) {
+                    for (const section of config.sections) {
+                        if (section.tasks) {
+                            for (const task of section.tasks) {
+                                if (task.questionsToComplete) {
+                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (config.questionsToComplete) {
+                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                }
+            } catch (e) {
+                console.log('Using default maxQuestions:', maxQuestions);
+            }
+        }
+
+        function getURLParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        async function loadDiagrams() {
+            try {
+                const isAndroid = window.Android !== undefined;
+                let data;
+                
+                // Check for specific diagram in URL parameter
+                const diagramParam = getURLParameter('diagram');
+                
+                // If a specific diagram is requested, try loading it as a separate JSON file first
+                if (diagramParam) {
+                    try {
+                        let diagramJsonString;
+                        const fileName = diagramParam.toLowerCase().replace(/\s+/g, '') + '.json';
+                        
+                        if (isAndroid) {
+                            diagramJsonString = window.Android.loadJsonFile(fileName);
+                        } else {
+                            const response = await fetch(`../data/${fileName}`);
+                            if (response.ok) {
+                                diagramJsonString = await response.text();
+                            } else {
+                                throw new Error('File not found');
+                            }
+                        }
+                        
+                        const diagramData = JSON.parse(diagramJsonString);
+                        // Handle both single diagram files and files with diagrams array
+                        if (diagramData.diagrams && Array.isArray(diagramData.diagrams)) {
+                            diagrams = diagramData.diagrams.filter(d => d.image);
+                        } else if (diagramData.title || diagramData.image) {
+                            diagrams = [diagramData].filter(d => d.image);
+                        }
+                        
+                        if (diagrams.length > 0) {
+                            // Set maxQuestions to total number of parts (all labels must be completed)
+                            maxQuestions = diagrams.reduce((sum, d) => sum + d.parts.length, 0);
+                            startGame();
+                            return; // Successfully loaded individual diagram file
+                        }
+                    } catch (error) {
+                        console.log(`Could not load ${diagramParam}.json, trying diagramLabeler.json instead`);
+                    }
+                }
+                
+                // Load main diagramLabeler.json
+                if (isAndroid) {
+                    const jsonString = window.Android.loadJsonFile('diagramLabeler.json');
+                    data = JSON.parse(jsonString);
+                } else {
+                    const response = await fetch('../data/diagramLabeler.json');
+                    data = await response.json();
+                }
+                
+                // Only use diagrams that have images (from diagrams folder)
+                diagrams = data.diagrams.filter(d => d.image);
+                
+                // If a specific diagram is requested via URL parameter, filter to that one
+                if (diagramParam) {
+                    const requestedDiagram = diagrams.find(d => 
+                        d.title.toLowerCase().replace(/\s+/g, '') === diagramParam.toLowerCase() ||
+                        d.image.toLowerCase().includes(diagramParam.toLowerCase())
+                    );
+                    if (requestedDiagram) {
+                        diagrams = [requestedDiagram];
+                    } else {
+                        console.warn(`Diagram "${diagramParam}" not found. Available diagrams:`, diagrams.map(d => d.title));
+                    }
+                }
+                
+                if (diagrams.length === 0) {
+                    throw new Error('No image-based diagrams found. Please add diagrams with images to diagramLabeler.json');
+                }
+                
+                // Only shuffle if not a specific diagram
+                if (!diagramParam) {
+                    shuffleArray(diagrams);
+                }
+                
+                // Set maxQuestions to total number of parts (all labels must be completed)
+                // This ensures the game continues until all labels are done, regardless of config.json
+                maxQuestions = diagrams.reduce((sum, d) => sum + d.parts.length, 0);
+                startGame();
+            } catch (error) {
+                console.error('Error loading diagrams:', error);
+                alert('Error loading diagrams. Please make sure diagramLabeler.json contains diagrams with images.');
+                document.getElementById('instructionText').textContent = 'Error loading diagrams. Please check the console for details.';
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startGame() {
+            currentDiagramIndex = 0;
+            currentPartIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            questionsCompleted = 0;
+            placedLabels.clear();
+            document.getElementById('maxQuestions').textContent = maxQuestions;
+            loadDiagram();
+        }
+
+        function loadDiagram() {
+            if (currentDiagramIndex >= diagrams.length) {
+                if (questionsCompleted >= maxQuestions) {
+                    endGame();
+                    return;
+                }
+                // Shuffle and restart
+                currentDiagramIndex = 0;
+                shuffleArray(diagrams);
+            }
+            
+            currentDiagram = diagrams[currentDiagramIndex];
+            currentPartIndex = 0;
+            placedLabels.clear();
+            
+            // Render diagram
+            renderDiagram();
+            
+            // Start with first part
+            loadPart();
+        }
+
+        function renderDiagram() {
+            const container = document.getElementById('diagramContainer');
+            const img = document.getElementById('diagramImage');
+            
+            // Clear any existing clickable regions and label covers
+            document.querySelectorAll('.clickable-region').forEach(region => region.remove());
+            document.querySelectorAll('.label-cover').forEach(cover => cover.remove());
+            
+            // Require image-based diagram
+            if (!currentDiagram.image) {
+                console.error('Diagram missing image property:', currentDiagram);
+                alert('Diagram is missing image. Only image-based diagrams are supported.');
+                currentDiagramIndex++;
+                loadDiagram();
+                return;
+            }
+            
+            // Use image-based diagram
+            img.style.display = 'block';
+            
+            // Set image source
+            const isAndroid = window.Android !== undefined;
+            if (isAndroid) {
+                img.src = `file:///android_asset/images/${currentDiagram.image}`;
+            } else {
+                img.src = `../images/${currentDiagram.image}`;
+            }
+            
+            // Wait for image to load, then create clickable regions and label covers
+            img.onload = function() {
+                // Small delay to ensure rendering is complete
+                setTimeout(() => {
+                    createClickableRegions();
+                    createLabelCovers();
+                }, 50);
+            };
+            
+            // If image already loaded
+            if (img.complete && img.naturalWidth > 0) {
+                setTimeout(() => {
+                    createClickableRegions();
+                    createLabelCovers();
+                }, 50);
+            }
+        }
+        
+        function createClickableRegions() {
+            const img = document.getElementById('diagramImage');
+            const container = document.getElementById('diagramContainer');
+            
+            // Get actual rendered image position and size
+            const imgRect = img.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            // With object-fit: contain, the image maintains aspect ratio
+            // We need to calculate the actual displayed image size (which may be smaller than imgRect)
+            // due to object-fit behavior
+            const naturalAspectRatio = img.naturalWidth / img.naturalHeight;
+            const renderedAspectRatio = imgRect.width / imgRect.height;
+            
+            let actualDisplayedWidth, actualDisplayedHeight, actualOffsetX, actualOffsetY;
+            
+            if (renderedAspectRatio > naturalAspectRatio) {
+                // Container is wider than image - image fits to height
+                actualDisplayedHeight = imgRect.height;
+                actualDisplayedWidth = actualDisplayedHeight * naturalAspectRatio;
+                actualOffsetX = imgRect.left + (imgRect.width - actualDisplayedWidth) / 2;
+                actualOffsetY = imgRect.top;
+            } else {
+                // Container is taller than image - image fits to width
+                actualDisplayedWidth = imgRect.width;
+                actualDisplayedHeight = actualDisplayedWidth / naturalAspectRatio;
+                actualOffsetX = imgRect.left;
+                actualOffsetY = imgRect.top + (imgRect.height - actualDisplayedHeight) / 2;
+            }
+            
+            // Use uniform scale based on actual displayed size
+            const scale = actualDisplayedWidth / img.naturalWidth;
+            
+            // Calculate offset relative to container
+            const imgOffsetX = actualOffsetX - containerRect.left;
+            const imgOffsetY = actualOffsetY - containerRect.top;
+            
+            currentDiagram.parts.forEach((part, index) => {
+                if (part.clickRegion) {
+                    // part.clickRegion can be: {x, y, width, height} or {x1, y1, x2, y2}
+                    let x, y, width, height;
+                    
+                    if (part.clickRegion.x !== undefined && part.clickRegion.y !== undefined) {
+                        // Rectangle format - use uniform scale
+                        x = (part.clickRegion.x * scale) + imgOffsetX;
+                        y = (part.clickRegion.y * scale) + imgOffsetY;
+                        width = (part.clickRegion.width || 50) * scale;
+                        height = (part.clickRegion.height || 50) * scale;
+                    } else if (part.clickRegion.x1 !== undefined) {
+                        // Two-point format (from drag selection) - use uniform scale
+                        x = (Math.min(part.clickRegion.x1, part.clickRegion.x2) * scale) + imgOffsetX;
+                        y = (Math.min(part.clickRegion.y1, part.clickRegion.y2) * scale) + imgOffsetY;
+                        width = Math.abs(part.clickRegion.x2 - part.clickRegion.x1) * scale;
+                        height = Math.abs(part.clickRegion.y2 - part.clickRegion.y1) * scale;
+                    } else {
+                        // Point format - create a circular region
+                        const radius = (part.clickRegion.radius || 40) * scale;
+                        x = (part.clickRegion.x * scale) + imgOffsetX - radius;
+                        y = (part.clickRegion.y * scale) + imgOffsetY - radius;
+                        width = height = radius * 2;
+                    }
+                    
+                    const region = document.createElement('div');
+                    region.className = 'clickable-region';
+                    region.setAttribute('data-part-id', index);
+                    region.style.left = `${x}px`;
+                    region.style.top = `${y}px`;
+                    region.style.width = `${width}px`;
+                    region.style.height = `${height}px`;
+                    
+                    region.addEventListener('click', function(e) {
+                        if (this.classList.contains('clickable')) {
+                            e.stopPropagation();
+                            handlePartClick(index, e);
+                        }
+                    });
+                    
+                    container.appendChild(region);
+                }
+            });
+        }
+        
+        function createLabelCovers() {
+            const img = document.getElementById('diagramImage');
+            const container = document.getElementById('diagramContainer');
+            
+            // Get actual rendered image position and size
+            const imgRect = img.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            // With object-fit: contain, the image maintains aspect ratio
+            // We need to calculate the actual displayed image size (which may be smaller than imgRect)
+            const naturalAspectRatio = img.naturalWidth / img.naturalHeight;
+            const renderedAspectRatio = imgRect.width / imgRect.height;
+            
+            let actualDisplayedWidth, actualDisplayedHeight, actualOffsetX, actualOffsetY;
+            
+            if (renderedAspectRatio > naturalAspectRatio) {
+                // Container is wider than image - image fits to height
+                actualDisplayedHeight = imgRect.height;
+                actualDisplayedWidth = actualDisplayedHeight * naturalAspectRatio;
+                actualOffsetX = imgRect.left + (imgRect.width - actualDisplayedWidth) / 2;
+                actualOffsetY = imgRect.top;
+            } else {
+                // Container is taller than image - image fits to width
+                actualDisplayedWidth = imgRect.width;
+                actualDisplayedHeight = actualDisplayedWidth / naturalAspectRatio;
+                actualOffsetX = imgRect.left;
+                actualOffsetY = imgRect.top + (imgRect.height - actualDisplayedHeight) / 2;
+            }
+            
+            // Use uniform scale based on actual displayed size
+            const scale = actualDisplayedWidth / img.naturalWidth;
+            
+            // Calculate offset relative to container
+            const imgOffsetX = actualOffsetX - containerRect.left;
+            const imgOffsetY = actualOffsetY - containerRect.top;
+            
+            currentDiagram.parts.forEach((part, index) => {
+                if (part.clickRegion) {
+                    // Calculate cover position and size (same as clickable region)
+                    let x, y, width, height;
+                    
+                    if (part.clickRegion.x !== undefined && part.clickRegion.y !== undefined) {
+                        // Rectangle format - use uniform scale
+                        x = (part.clickRegion.x * scale) + imgOffsetX;
+                        y = (part.clickRegion.y * scale) + imgOffsetY;
+                        width = (part.clickRegion.width || 50) * scale;
+                        height = (part.clickRegion.height || 50) * scale;
+                    } else if (part.clickRegion.x1 !== undefined) {
+                        // Two-point format (from drag selection) - use uniform scale
+                        x = (Math.min(part.clickRegion.x1, part.clickRegion.x2) * scale) + imgOffsetX;
+                        y = (Math.min(part.clickRegion.y1, part.clickRegion.y2) * scale) + imgOffsetY;
+                        width = Math.abs(part.clickRegion.x2 - part.clickRegion.x1) * scale;
+                        height = Math.abs(part.clickRegion.y2 - part.clickRegion.y1) * scale;
+                    } else {
+                        // Point format - create a circular region
+                        const radius = (part.clickRegion.radius || 40) * scale;
+                        x = (part.clickRegion.x * scale) + imgOffsetX - radius;
+                        y = (part.clickRegion.y * scale) + imgOffsetY - radius;
+                        width = height = radius * 2;
+                    }
+                    
+                    // Check if this label has already been revealed
+                    const isRevealed = placedLabels.has(index);
+                    
+                    const cover = document.createElement('div');
+                    cover.className = 'label-cover';
+                    cover.setAttribute('data-part-id', index);
+                    cover.style.left = `${x}px`;
+                    cover.style.top = `${y}px`;
+                    cover.style.width = `${width}px`;
+                    cover.style.height = `${height}px`;
+                    
+                    // Hide cover if label is already revealed
+                    if (isRevealed) {
+                        cover.classList.add('hidden');
+                    }
+                    
+                    container.appendChild(cover);
+                }
+            });
+        }
+        
+        function handlePartClick(partIndex, event) {
+            if (!isWaitingForLabel || !currentPart || partIndex !== currentPartIndex) {
+                return;
+            }
+            
+            // This is the correct part! Remove the white box to reveal the label
+            const cover = document.querySelector(`.label-cover[data-part-id="${currentPartIndex}"]`);
+            if (cover) {
+                cover.classList.add('hidden');
+            }
+            
+            correctCount++;
+            questionsCompleted++;
+            document.getElementById('score').textContent = correctCount;
+            document.getElementById('progress').textContent = questionsCompleted;
+            
+            // Remove highlight
+            const region = document.querySelector(`.clickable-region[data-part-id="${currentPartIndex}"]`);
+            if (region) {
+                region.classList.remove('highlighted');
+                region.classList.remove('clickable');
+            }
+            
+            readText("Great job!", "en-US");
+            
+            // Store that this label has been revealed
+            placedLabels.set(currentPartIndex, {
+                x: currentPart.labelX,
+                y: currentPart.labelY,
+                name: currentPart.name
+            });
+            
+            isWaitingForLabel = false;
+            
+            // Move to next part after a short delay
+            setTimeout(() => {
+                currentPartIndex++;
+                loadPart();
+            }, 2000);
+        }
+
+        function loadPart() {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            if (currentPartIndex >= currentDiagram.parts.length) {
+                // Move to next diagram
+                currentDiagramIndex++;
+                loadDiagram();
+                return;
+            }
+            
+            currentPart = currentDiagram.parts[currentPartIndex];
+            isWaitingForLabel = false; // Start as false, enable after TTS finishes
+            
+            // Update instruction - only include intro for the first part
+            const explanationText = currentPart.explanation || '';
+            let fullText;
+            
+            if (currentPartIndex === 0) {
+                // First part - include intro
+                const introText = currentPart.intro || `This is a diagram of ${currentDiagram.title}.`;
+                fullText = `${introText} ${explanationText} Label the ${currentPart.name}.`;
+            } else {
+                // Subsequent parts - no intro
+                fullText = `${explanationText} Label the ${currentPart.name}.`;
+            }
+            
+            document.getElementById('instructionText').textContent = fullText;
+            document.getElementById('currentTask').textContent = `Listen, then click on the ${currentPart.name}`;
+            
+            // Highlight the part immediately (while reading)
+            highlightPart(currentPartIndex);
+            
+            // Start TTS and enable clicking after it finishes
+            readText(fullText, 'en-US', 0.9, () => {
+                // TTS finished - now enable clicking
+                isWaitingForLabel = true;
+                enableClicking();
+                document.getElementById('currentTask').textContent = `Now click on the ${currentPart.name} in the diagram`;
+            });
+        }
+
+        function highlightPart(partIndex) {
+            // Remove previous highlights
+            document.querySelectorAll('.clickable-region.highlighted, .clickable-region.clickable').forEach(el => {
+                el.classList.remove('highlighted', 'clickable');
+            });
+            
+            // Add highlight to clickable region - but not clickable yet
+            const region = document.querySelector(`.clickable-region[data-part-id="${partIndex}"]`);
+            if (region) {
+                region.classList.add('highlighted');
+                // Don't add 'clickable' class yet - wait for TTS to finish
+            }
+        }
+        
+        function enableClicking() {
+            // Enable clicking on the highlighted region
+            const region = document.querySelector(`.clickable-region[data-part-id="${currentPartIndex}"]`);
+            if (region) {
+                region.classList.add('clickable');
+            }
+        }
+
+        function playInstruction() {
+            if (!currentPart) return;
+            
+            // Only include intro for the first part
+            const explanationText = currentPart.explanation || '';
+            let fullText;
+            
+            if (currentPartIndex === 0) {
+                // First part - include intro
+                const introText = currentPart.intro || `This is a diagram of ${currentDiagram.title}.`;
+                fullText = `${introText} ${explanationText} Label the ${currentPart.name}.`;
+            } else {
+                // Subsequent parts - no intro
+                fullText = `${explanationText} Label the ${currentPart.name}.`;
+            }
+            
+            // Highlight while reading
+            highlightPart(currentPartIndex);
+            
+            // Enable clicking after TTS finishes
+            readText(fullText, 'en-US', 0.9, () => {
+                isWaitingForLabel = true;
+                enableClicking();
+                document.getElementById('currentTask').textContent = `Now click on the ${currentPart.name} in the diagram`;
+            });
+        }
+
+
+        // placeLabel function not needed - labels are revealed by removing white boxes
+
+        function nextPart() {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentPartIndex++;
+            loadPart();
+        }
+        
+        // Keep labels on screen - don't remove them
+        function removeLabelMarkers() {
+            // Don't remove labels - they stay on screen
+            // Only remove incorrect attempt markers
+            document.querySelectorAll('.label-marker.incorrect').forEach(marker => marker.remove());
+        }
+
+        function endGame() {
+            document.getElementById('instructionPanel').innerHTML = 
+                `<div class="completion-message">🎉 Game Complete! 🎉</div>
+                 <div style="text-align: center; font-size: 1.2rem; color: #666;">
+                     Final Score: ${correctCount}/${maxQuestions} correct labels!
+                 </div>`;
+            document.getElementById('diagramContainer').style.display = 'none';
+            document.getElementById('playButton').style.display = 'none';
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+
+        // Handle window resize - recalculate regions if diagram is loaded
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (currentDiagram && document.getElementById('diagramImage').complete) {
+                    // Clear existing regions
+                    document.querySelectorAll('.clickable-region').forEach(region => region.remove());
+                    document.querySelectorAll('.label-cover').forEach(cover => cover.remove());
+                    // Recreate with new positions
+                    createClickableRegions();
+                    createLabelCovers();
+                }
+            }, 250);
+        });
+
+        // Initialize game
+        window.addEventListener('load', () => {
+            loadConfig();
+            loadDiagrams();
+        });
+    </script>
+</body>
+</html>
+
