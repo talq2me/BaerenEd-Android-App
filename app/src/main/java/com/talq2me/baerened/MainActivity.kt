@@ -737,10 +737,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 layout.handleWebGameCompletion(taskId, sectionId, stars, taskTitle)
                 
                 // If game was launched from battle hub or gym map, refresh the embedded views
-                if (wasFromBattleHub || taskId?.startsWith("gymMap_") == true) {
-                    Log.d(TAG, "Game completed from battle hub or gym map, refreshing embedded views")
+                if (wasFromBattleHub || taskId?.startsWith("gymMap_") == true || taskId?.startsWith("trainingMap_") == true) {
+                    Log.d(TAG, "Game completed from battle hub, gym map, or training map, refreshing embedded views")
                     layout.refreshBattleHub()
                     layout.refreshGymMap()
+                    layout.refreshTrainingMap()
                 }
             }
         }
@@ -808,6 +809,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 Log.d(TAG, "Game completed (battleHub=${battleHubTaskId != null}, section=$sectionId), refreshing embedded views")
                 layout.refreshBattleHub()
                 layout.refreshGymMap()
+                layout.refreshTrainingMap()
             }
         }
     }

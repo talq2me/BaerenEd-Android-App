@@ -2206,6 +2206,321 @@ class Layout(private val activity: MainActivity) {
                 """{"starsIcon":"🍍","coinsIcon":"🪙"}"""
             }
         }
+        
+        @android.webkit.JavascriptInterface
+        fun navigateToTrainingMap() {
+            activity.runOnUiThread {
+                showTrainingMap()
+            }
+        }
+    }
+    
+    // Training Map (Native Android View)
+    private var trainingMapView: View? = null
+    private var currentMapType: String = "required" // "required" or "optional"
+    
+    private fun showTrainingMap() {
+        // Hide battle hub
+        battleHubWebView?.visibility = android.view.View.GONE
+        
+        // Hide all section views (but keep them in the container for later)
+        for (i in 0 until sectionsContainer.childCount) {
+            val child = sectionsContainer.getChildAt(i)
+            // Hide everything except the training map (if it exists)
+            if (child != trainingMapView) {
+                child.visibility = android.view.View.GONE
+            }
+        }
+        
+        // Remove existing training map if it exists
+        trainingMapView?.let {
+            sectionsContainer.removeView(it)
+            trainingMapView = null
+        }
+        
+        // Create native Android training map view
+        val mapView = createTrainingMapView()
+        
+        // Add to container (at index 1, after battle hub if it exists)
+        sectionsContainer.addView(mapView, 1)
+        trainingMapView = mapView
+        mapView.visibility = android.view.View.VISIBLE
+        
+        android.util.Log.d("Layout", "Training map view created and shown")
+    }
+    
+    private fun showBattleHub() {
+        // Show battle hub and sections
+        battleHubWebView?.visibility = android.view.View.VISIBLE
+        sectionsContainer.visibility = android.view.VISIBLE
+        
+        // Hide training map
+        trainingMapView?.visibility = android.view.View.GONE
+        
+        // Show all section views (they were hidden when training map was shown)
+        for (i in 0 until sectionsContainer.childCount) {
+            val child = sectionsContainer.getChildAt(i)
+            // Show everything except the training map
+            if (child != trainingMapView) {
+                child.visibility = android.view.View.VISIBLE
+            }
+        }
+        
+        android.util.Log.d("Layout", "Battle hub shown, training map hidden")
+    }
+    
+    // Native Android training map functions
+    private fun createTrainingMapView(): View {
+        val density = activity.resources.displayMetrics.density
+        val screenHeight = activity.resources.displayMetrics.heightPixels
+        
+        // Main container
+        val container = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            )
+            setPadding((16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt())
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(android.graphics.Color.parseColor("#2c3e50"))
+                cornerRadius = (15 * density)
+            }
+        }
+        
+        // Header with back button and title
+        val headerLayout = RelativeLayout(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setPadding(0, 0, 0, (16 * density).toInt())
+        }
+        
+        // Back button
+        val backButton = android.widget.Button(activity).apply {
+            text = "← Back to Battle Hub"
+            textSize = 16f
+            setTextColor(android.graphics.Color.WHITE)
+            background = activity.getDrawable(R.drawable.button_rounded)
+            setPadding((12 * density).toInt(), (8 * density).toInt(), (12 * density).toInt(), (8 * density).toInt())
+            layoutParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                addRule(RelativeLayout.ALIGN_PARENT_START)
+            }
+            setOnClickListener {
+                showBattleHub()
+                refreshBattleHub()
+            }
+        }
+        
+        // Title
+        val titleView = TextView(activity).apply {
+            text = "🗺️ Training Map 🗺️"
+            textSize = 24f
+            setTextColor(android.graphics.Color.WHITE)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            gravity = android.view.Gravity.CENTER
+            layoutParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        
+        headerLayout.addView(backButton)
+        headerLayout.addView(titleView)
+        container.addView(headerLayout)
+        
+        // Progress info
+        val progressInfo = TextView(activity).apply {
+            textSize = 18f
+            setTextColor(android.graphics.Color.WHITE)
+            gravity = android.view.Gravity.CENTER
+            setPadding(0, 0, 0, (8 * density).toInt())
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        
+        container.addView(progressInfo)
+        
+        // Map container (RelativeLayout for absolute positioning of gyms)
+        val mapContainer = RelativeLayout(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (screenHeight * 0.6).toInt() // 60% of screen height
+            ).apply {
+                setMargins(0, (16 * density).toInt(), 0, (16 * density).toInt())
+            }
+            // Brown map-like background
+            background = android.graphics.drawable.GradientDrawable().apply {
+                setColor(android.graphics.Color.parseColor("#8b6914"))
+                cornerRadius = (10 * density)
+            }
+            minimumHeight = (400 * density).toInt()
+        }
+        
+        container.addView(mapContainer)
+        
+        // Load and display required tasks first
+        currentMapType = "required"
+        loadTasksIntoMap(mapContainer, progressInfo, "required")
+        
+        // Store references for refreshing
+        mapContainer.tag = "mapContainer"
+        progressInfo.tag = "progressInfo"
+        
+        return container
+    }
+    
+    private fun loadTasksIntoMap(mapContainer: RelativeLayout, progressInfo: TextView, mapType: String) {
+        val currentContent = activity.getCurrentMainContent() ?: return
+        val completedTasksMap = progressManager.getCompletedTasksMap()
+        
+        // Get tasks for this map type
+        val section = currentContent.sections?.find { it.id == mapType }
+        val tasks = section?.tasks?.filter { task ->
+            task.title != null && 
+            task.launch != null && 
+            isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+        } ?: emptyList()
+        
+        if (tasks.isEmpty()) {
+            progressInfo.text = "No ${mapType} tasks available"
+            return
+        }
+        
+        // Clear existing gyms
+        mapContainer.removeAllViews()
+        
+        // Calculate progress
+        val completedCount = tasks.count { task ->
+            val taskId = if (mapType == "required") {
+                task.launch ?: ""
+            } else {
+                "${mapType}_${task.launch}"
+            }
+            completedTasksMap[taskId] == true
+        }
+        progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
+        
+        // Generate positions for gyms (spread them out)
+        val density = activity.resources.displayMetrics.density
+        val mapWidth = mapContainer.width.takeIf { it > 0 } ?: (activity.resources.displayMetrics.widthPixels - (32 * density).toInt())
+        val mapHeight = mapContainer.height.takeIf { it > 0 } ?: (activity.resources.displayMetrics.heightPixels * 0.6).toInt()
+        
+        // Create gym buttons
+        tasks.forEachIndexed { index, task ->
+            val taskId = if (mapType == "required") {
+                task.launch ?: ""
+            } else {
+                "${mapType}_${task.launch}"
+            }
+            val isCompleted = completedTasksMap[taskId] == true
+            
+            // Calculate position (spread gyms across the map)
+            val cols = 3 // 3 columns
+            val rows = (tasks.size + cols - 1) / cols
+            val col = index % cols
+            val row = index / cols
+            
+            val x = (mapWidth * (0.2f + col * 0.3f)).toInt()
+            val y = (mapHeight * (0.15f + row * (0.7f / rows))).toInt()
+            
+            // Create gym button
+            val gymButton = android.widget.Button(activity).apply {
+                text = "🏟️\n${task.title}\n${task.stars ?: 1}⭐"
+                textSize = 12f
+                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                gravity = android.view.Gravity.CENTER
+                setPadding((8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt())
+                
+                // Style based on completion
+                background = if (isCompleted) {
+                    android.graphics.drawable.GradientDrawable().apply {
+                        setColor(android.graphics.Color.parseColor("#4CAF50"))
+                        cornerRadius = (40 * density)
+                        setStroke((3 * density).toInt(), android.graphics.Color.parseColor("#2e7d32"))
+                    }
+                } else {
+                    android.graphics.drawable.GradientDrawable().apply {
+                        setColor(android.graphics.Color.parseColor("#ffd700"))
+                        cornerRadius = (40 * density)
+                        setStroke((3 * density).toInt(), android.graphics.Color.parseColor("#ff8c00"))
+                    }
+                }
+                
+                layoutParams = RelativeLayout.LayoutParams(
+                    (80 * density).toInt(),
+                    (80 * density).toInt()
+                ).apply {
+                    leftMargin = x - (40 * density).toInt()
+                    topMargin = y - (40 * density).toInt()
+                }
+                
+                if (!isCompleted) {
+                    setOnClickListener {
+                        launchTask(task, mapType, "trainingMap_${task.launch}")
+                    }
+                }
+            }
+            
+            mapContainer.addView(gymButton)
+        }
+        
+        // If all required tasks are completed and we're showing required, check for optional
+        if (mapType == "required" && completedCount == tasks.size) {
+            val optionalSection = currentContent.sections?.find { it.id == "optional" }
+            val optionalTasks = optionalSection?.tasks?.filter { task ->
+                task.title != null && 
+                task.launch != null && 
+                isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+            } ?: emptyList()
+            
+            if (optionalTasks.isNotEmpty()) {
+                // Find the container and add button after map
+                val parent = mapContainer.parent as? LinearLayout
+                parent?.let {
+                    val mapIndex = it.indexOfChild(mapContainer)
+                    if (it.findViewWithTag<View>("showOptionalButton") == null) {
+                        val showOptionalButton = android.widget.Button(activity).apply {
+                            text = "🎯 Show Optional Training"
+                            textSize = 18f
+                            setTextColor(android.graphics.Color.WHITE)
+                            background = activity.getDrawable(R.drawable.button_rounded)
+                            setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
+                            layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            ).apply {
+                                setMargins(0, (16 * density).toInt(), 0, 0)
+                            }
+                            tag = "showOptionalButton"
+                            setOnClickListener {
+                                currentMapType = "optional"
+                                loadTasksIntoMap(mapContainer, progressInfo, "optional")
+                                it.removeView(this)
+                            }
+                        }
+                        it.addView(showOptionalButton, mapIndex + 1)
+                    }
+                }
+            }
+        }
+    }
+    
+    fun refreshTrainingMap() {
+        trainingMapView?.let { view ->
+            val mapContainer = view.findViewWithTag<RelativeLayout>("mapContainer")
+            val progressInfo = view.findViewWithTag<TextView>("progressInfo")
+            if (mapContainer != null && progressInfo != null) {
+                loadTasksIntoMap(mapContainer, progressInfo, currentMapType)
+            }
+        }
     }
 }
 

@@ -785,9 +785,10 @@
                 </div>
             </div>
 
-            <div class="educational-games-list" id="gamesList" style="display: none;">
-                <h3 style="margin-bottom: 15px; color: #764ba2;">Choose a game to earn berries:</h3>
-                <div id="gamesContainer"></div>
+            <div class="action-buttons" style="margin-top: 15px;">
+                <button class="action-button berry-button" id="earnBerriesButton" onclick="navigateToTrainingMap()">
+                    🍍 Earn Berries 🍍
+                </button>
             </div>
         </div>
     </div>
@@ -1812,8 +1813,15 @@
         // Event Listeners
         document.getElementById('battleButton').addEventListener('click', battleBoss);
         
-        // Auto-show games list on load (no need for button)
-        showGamesList();
+        // Navigate to training map screen
+        function navigateToTrainingMap() {
+            if (isAndroidWebView() && typeof Android.navigateToTrainingMap === 'function') {
+                Android.navigateToTrainingMap();
+            } else {
+                // Browser fallback: show games list inline
+                showGamesList();
+            }
+        }
 
         // Function to be called from Android after game completion
         window.onGameComplete = function(berriesEarned) {
