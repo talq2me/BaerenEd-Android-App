@@ -34,9 +34,85 @@
             background: white;
             border-radius: 20px;
             padding: 30px;
-            max-width: 600px;
+            max-width: 900px;
             width: 100%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 20px;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .number-pad-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+        }
+        
+        .number-pad-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .number-pad-button {
+            width: 55px;
+            height: 55px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .number-pad-button:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .number-pad-button:active {
+            transform: translateY(0);
+            background: #e0e0e0;
+        }
+        
+        .number-pad-button.delete {
+            background: var(--wrong-color);
+            color: white;
+            border-color: #c62828;
+        }
+        
+        .number-pad-button.delete:hover {
+            background: #d32f2f;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .number-pad-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .number-pad-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
         }
         
         .question {
@@ -255,13 +331,36 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="score">Score: <span id="score">0</span></div>
-        <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
-        <div class="question" id="question"></div>
-        <div class="math-problem" id="mathProblem"></div>
-        <div class="error-message" id="errorMessage"></div>
-        <div class="hint-text" id="hintText"></div>
-        <button class="next-button" id="nextButton">Next Question</button>
+        <div class="main-content">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+            <div class="question" id="question"></div>
+            <div class="math-problem" id="mathProblem"></div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="hint-text" id="hintText"></div>
+            <button class="next-button" id="nextButton">Next Question</button>
+        </div>
+        <div class="number-pad-container" id="numberPad">
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="7">7</button>
+                <button class="number-pad-button" data-number="8">8</button>
+                <button class="number-pad-button" data-number="9">9</button>
+            </div>
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="4">4</button>
+                <button class="number-pad-button" data-number="5">5</button>
+                <button class="number-pad-button" data-number="6">6</button>
+            </div>
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="1">1</button>
+                <button class="number-pad-button" data-number="2">2</button>
+                <button class="number-pad-button" data-number="3">3</button>
+            </div>
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="0">0</button>
+                <button class="number-pad-button delete" id="deleteButton">⌫</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -282,6 +381,7 @@
         let borrowInputs = {}; // Track borrow input fields for subtraction
         let borrowFromMap = {}; // Track which column we borrow FROM for each column that needs to borrow
         let borrowNinesMap = {}; // Track which columns become 9s for each borrow
+        let skipCursorMove = false; // Flag to prevent double cursor movement
 
         function isAndroidWebView() {
             return typeof window.Android !== 'undefined';
@@ -1031,6 +1131,10 @@
             const input = e.target;
             const value = input.value;
             
+            // Store the flag state and reset it immediately to prevent issues
+            const shouldSkipMove = skipCursorMove;
+            skipCursorMove = false;
+            
             // Only allow digits
             if (value && !/^\d$/.test(value)) {
                 input.value = '';
@@ -1051,12 +1155,19 @@
                 input.style.background = '#e8f5e9';
                 clearError();
                 
-                // Move to next input if available
-                const currentIndex = answerInputs.indexOf(input);
-                if (currentIndex > 0) {
-                    answerInputs[currentIndex - 1].focus();
+                // Only move cursor if this was typed via keyboard (not number pad)
+                // The number pad handler will move the cursor itself
+                if (!shouldSkipMove) {
+                    // Move to previous input (left) if available
+                    const currentIndex = answerInputs.indexOf(input);
+                    if (currentIndex > 0) {
+                        answerInputs[currentIndex - 1].focus();
+                    } else {
+                        // All inputs filled, check if complete
+                        checkComplete();
+                    }
                 } else {
-                    // All inputs filled, check if complete
+                    // Cursor was already moved by number pad, just check if complete
                     checkComplete();
                 }
             } else if (value !== '') {
@@ -1242,10 +1353,87 @@
             }, 3000);
         }
 
+        // Number pad functionality
+        let currentFocusedInput = null;
+        
+        function setupNumberPad() {
+            const numberButtons = document.querySelectorAll('.number-pad-button[data-number]');
+            const deleteButton = document.getElementById('deleteButton');
+            
+            numberButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const number = button.dataset.number;
+                    if (currentFocusedInput && !currentFocusedInput.disabled) {
+                        // Only allow one digit in answer inputs
+                        if (currentFocusedInput.classList.contains('input') && 
+                            currentFocusedInput.maxLength === 1 && 
+                            currentFocusedInput.value === '') {
+                            currentFocusedInput.value = number;
+                            // Set flag to prevent handleAnswerInput from moving cursor
+                            skipCursorMove = true;
+                            currentFocusedInput.dispatchEvent(new Event('input'));
+                            
+                            // Move to previous input (left) if available
+                            const currentIndex = answerInputs.indexOf(currentFocusedInput);
+                            if (currentIndex > 0) {
+                                answerInputs[currentIndex - 1].focus();
+                            } else {
+                                // Check if complete
+                                checkComplete();
+                            }
+                        } else if (currentFocusedInput.maxLength > 1) {
+                            // For borrow inputs that can take multiple digits
+                            currentFocusedInput.value += number;
+                            currentFocusedInput.dispatchEvent(new Event('input'));
+                        }
+                    }
+                });
+            });
+            
+            deleteButton.addEventListener('click', () => {
+                if (currentFocusedInput && !currentFocusedInput.disabled) {
+                    if (currentFocusedInput.value.length > 0) {
+                        currentFocusedInput.value = currentFocusedInput.value.slice(0, -1);
+                        currentFocusedInput.dispatchEvent(new Event('input'));
+                    } else {
+                        // If empty, move to next input (right) and delete there
+                        const currentIndex = answerInputs.indexOf(currentFocusedInput);
+                        if (currentIndex < answerInputs.length - 1) {
+                            answerInputs[currentIndex + 1].focus();
+                            if (currentFocusedInput.value.length > 0) {
+                                currentFocusedInput.value = currentFocusedInput.value.slice(0, -1);
+                                currentFocusedInput.dispatchEvent(new Event('input'));
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Track focused input
+            document.addEventListener('focusin', (e) => {
+                if (e.target.classList.contains('input')) {
+                    currentFocusedInput = e.target;
+                }
+            });
+            
+            document.addEventListener('focusout', (e) => {
+                if (e.target === currentFocusedInput) {
+                    // Keep currentFocusedInput so number pad still works
+                    // Only clear if clicking outside all inputs
+                    setTimeout(() => {
+                        if (document.activeElement && !document.activeElement.classList.contains('input')) {
+                            currentFocusedInput = null;
+                        }
+                    }, 100);
+                }
+            });
+        }
+        
         window.addEventListener('load', () => {
             loadConfig();
             document.getElementById('maxQuestions').textContent = maxQuestions;
             generateProblems();
+            setupNumberPad();
             loadNextProblem();
         });
 

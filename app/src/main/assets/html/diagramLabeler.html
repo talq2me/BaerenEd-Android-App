@@ -342,23 +342,61 @@
                 
                 const config = JSON.parse(configJson);
                 
-                if (config.sections) {
+                // Get the diagram parameter from URL to match the current task
+                const diagramParam = getURLParameter('diagram');
+                
+                // Find the matching task in the config
+                let matchedTask = null;
+                if (config.sections && diagramParam) {
                     for (const section of config.sections) {
                         if (section.tasks) {
                             for (const task of section.tasks) {
-                                if (task.questionsToComplete) {
-                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
-                                    break;
+                                // Match by launch type and URL parameter
+                                if (task.launch === 'diagramLabeler' && task.url) {
+                                    const taskDiagramParam = new URL(task.url).searchParams.get('diagram');
+                                    if (taskDiagramParam && taskDiagramParam.toLowerCase() === diagramParam.toLowerCase()) {
+                                        matchedTask = task;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (matchedTask) break;
+                    }
+                }
+                
+                // Use properties from the matched task
+                if (matchedTask) {
+                    console.log('Matched task from config:', matchedTask);
+                    if (matchedTask.questionsToComplete) {
+                        maxQuestions = parseInt(matchedTask.questionsToComplete, 10) || maxQuestions;
+                    }
+                    // Could use other task properties here if needed (e.g., stars, title, etc.)
+                } else if (diagramParam) {
+                    console.log('No matching task found in config for diagram:', diagramParam);
+                }
+                
+                // Fallback: check for questionsToComplete in any task or root level
+                if (!matchedTask || !matchedTask.questionsToComplete) {
+                    if (config.sections) {
+                        for (const section of config.sections) {
+                            if (section.tasks) {
+                                for (const task of section.tasks) {
+                                    if (task.questionsToComplete) {
+                                        maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                
-                if (config.questionsToComplete) {
-                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    
+                    if (config.questionsToComplete) {
+                        maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    }
                 }
             } catch (e) {
+                console.log('Error loading config:', e);
                 console.log('Using default maxQuestions:', maxQuestions);
             }
         }
@@ -380,16 +418,48 @@
                 if (diagramParam) {
                     try {
                         let diagramJsonString;
-                        const fileName = diagramParam.toLowerCase().replace(/\s+/g, '') + '.json';
+                        // Try different filename variations: original case, then lowercase
+                        // Also handle common patterns like "System" with capital S
+                        const fileNameVariations = [
+                            diagramParam + '.json',  // Original: "circulatorySystem.json"
+                            diagramParam.replace(/system$/i, 'System') + '.json',  // "circulatorySystem.json" (already correct)
+                            diagramParam.toLowerCase().replace(/\s+/g, '') + '.json'  // "circulatorysystem.json"
+                        ];
+                        
+                        let loaded = false;
                         
                         if (isAndroid) {
-                            diagramJsonString = window.Android.loadJsonFile(fileName);
+                            // Try different filename variations
+                            for (const tryFileName of fileNameVariations) {
+                                try {
+                                    diagramJsonString = window.Android.loadJsonFile(tryFileName);
+                                    loaded = true;
+                                    console.log(`Successfully loaded diagram file: ${tryFileName}`);
+                                    break;
+                                } catch (e) {
+                                    // Try next variation
+                                }
+                            }
+                            if (!loaded) {
+                                throw new Error(`Could not load any variation: ${fileNameVariations.join(', ')}`);
+                            }
                         } else {
-                            const response = await fetch(`../data/${fileName}`);
-                            if (response.ok) {
-                                diagramJsonString = await response.text();
-                            } else {
-                                throw new Error('File not found');
+                            // Try different filename variations
+                            for (const tryFileName of fileNameVariations) {
+                                try {
+                                    const response = await fetch(`../data/${tryFileName}`);
+                                    if (response.ok) {
+                                        diagramJsonString = await response.text();
+                                        loaded = true;
+                                        console.log(`Successfully loaded diagram file: ${tryFileName}`);
+                                        break;
+                                    }
+                                } catch (e) {
+                                    // Try next variation
+                                }
+                            }
+                            if (!loaded) {
+                                throw new Error(`Could not load any variation: ${fileNameVariations.join(', ')}`);
                             }
                         }
                         
@@ -426,14 +496,28 @@
                 
                 // If a specific diagram is requested via URL parameter, filter to that one
                 if (diagramParam) {
-                    const requestedDiagram = diagrams.find(d => 
-                        d.title.toLowerCase().replace(/\s+/g, '') === diagramParam.toLowerCase() ||
-                        d.image.toLowerCase().includes(diagramParam.toLowerCase())
-                    );
+                    // Normalize the search parameter
+                    const normalizedParam = diagramParam.toLowerCase().replace(/\s+/g, '').replace(/system/g, 'system');
+                    const requestedDiagram = diagrams.find(d => {
+                        // Normalize title for comparison (remove "the", spaces, and handle variations)
+                        const normalizedTitle = d.title.toLowerCase()
+                            .replace(/^the\s+/, '')  // Remove leading "the "
+                            .replace(/\s+/g, '')     // Remove all spaces
+                            .replace(/system/g, 'system');
+                        // Also check image filename
+                        const normalizedImage = d.image.toLowerCase().replace(/[\/\\]/g, '/');
+                        
+                        return normalizedTitle === normalizedParam ||
+                               normalizedTitle.includes(normalizedParam) ||
+                               normalizedParam.includes(normalizedTitle) ||
+                               normalizedImage.includes(normalizedParam) ||
+                               normalizedImage.includes(diagramParam.toLowerCase());
+                    });
                     if (requestedDiagram) {
                         diagrams = [requestedDiagram];
                     } else {
                         console.warn(`Diagram "${diagramParam}" not found. Available diagrams:`, diagrams.map(d => d.title));
+                        // Don't throw error, just use all available diagrams
                     }
                 }
                 
