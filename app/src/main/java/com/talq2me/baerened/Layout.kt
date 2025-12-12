@@ -1737,8 +1737,14 @@ class Layout(private val activity: MainActivity) {
                 var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
                 // Convert GitHub Pages URL to local asset URL for Android
                 if (gameUrl.contains("talq2me.github.io") && gameUrl.contains("/html/")) {
-                    val fileName = gameUrl.substringAfterLast("/")
-                    gameUrl = "file:///android_asset/html/$fileName"
+                    val uri = android.net.Uri.parse(gameUrl)
+                    val fileName = uri.path?.substringAfterLast("/") ?: ""
+                    val queryString = uri.query
+                    gameUrl = if (queryString != null) {
+                        "file:///android_asset/html/$fileName?$queryString"
+                    } else {
+                        "file:///android_asset/html/$fileName"
+                    }
                     android.util.Log.d("Layout", "Converted to local asset URL: $gameUrl")
                 }
                 putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
@@ -1879,7 +1885,7 @@ class Layout(private val activity: MainActivity) {
     }
     
     fun refreshBattleHub() {
-        // Reload the battle hub to update berries and Pokemon
+        // Reload the battle hub to update berries (earned stars) and Pokemon
         battleHubWebView?.reload()
     }
     
@@ -2190,6 +2196,24 @@ class Layout(private val activity: MainActivity) {
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error getting total stars", e)
                 100 // Fallback default
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getEarnedStars(): Int {
+            return try {
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    val progressManager = DailyProgressManager(activity)
+                    val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
+                    val earnedStars = progressData.second.first
+                    earnedStars
+                } else {
+                    0 // Fallback default
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting earned stars", e)
+                0 // Fallback default
             }
         }
         

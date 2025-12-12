@@ -149,15 +149,19 @@
             const mode = urlParams.get('mode');
             const file = urlParams.get('file');
             gameMode = ['easy', 'hard', 'extreme'].includes(mode) ? mode : 'hard';
-            return file ? `../data/${file}` : null;
+            return file; // Return just the filename, not the path
         }
 
-        function loadWords(jsonUrl) {
+        function loadWords(fileName) {
             const defaultWords = ["cat", "dog", "hat", "run", "big", "red", "sun", "map", "cup", "box"].map(w => ({ word: w, sentence: "" }));
-            if (jsonUrl) {
-                fetch(jsonUrl)
-                    .then(response => response.json())
-                    .then(data => {
+            const isAndroid = window.Android !== undefined;
+            
+            if (fileName) {
+                if (isAndroid && typeof window.Android.loadJsonFile === 'function') {
+                    // Use Android interface to load JSON from assets
+                    try {
+                        const jsonString = window.Android.loadJsonFile(fileName);
+                        const data = JSON.parse(jsonString);
                         if (Array.isArray(data) && data.length > 0 && data[0].word) {
                             words = data;
                         } else if (Array.isArray(data)) {
@@ -166,12 +170,32 @@
                             words = defaultWords;
                         }
                         startGame();
-                    })
-                    .catch(error => {
-                        console.error('Error loading words file:', error);
+                    } catch (error) {
+                        console.error('Error loading words file via Android interface:', error);
                         words = defaultWords;
                         startGame();
-                    });
+                    }
+                } else {
+                    // Use fetch for web
+                    const jsonUrl = `../data/${fileName}`;
+                    fetch(jsonUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                                words = data;
+                            } else if (Array.isArray(data)) {
+                                words = data.map(word => ({ word: word, sentence: "" }));
+                            } else {
+                                words = defaultWords;
+                            }
+                            startGame();
+                        })
+                        .catch(error => {
+                            console.error('Error loading words file:', error);
+                            words = defaultWords;
+                            startGame();
+                        });
+                }
             } else {
                 words = defaultWords;
                 startGame();

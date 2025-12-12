@@ -1099,41 +1099,36 @@
 
         // Game state
         let gameState = {
-            berries: 0,
-            maxBerries: 100, // Will be updated from Android to match total stars
+            earnedStars: 0, // Will be updated from Android to match daily homework dashboard
+            totalStars: 100, // Will be updated from Android to match total stars
             requiredGames: [],
             optionalGames: []
         };
 
-        // Load saved state from localStorage
+        // Load state from Android (earned stars from daily homework dashboard)
         function loadState() {
-            const saved = localStorage.getItem('pokemonBattleState');
-            if (saved) {
-                const savedState = JSON.parse(saved);
-                gameState.berries = savedState.berries || 0;
-            }
-            
-            // Check for pending berries from Android (games completed while battle hub was closed)
-            if (isAndroidWebView() && typeof Android.getPendingBerries === 'function') {
+            // Get earned stars from Android to match daily homework dashboard
+            if (isAndroidWebView() && typeof Android.getEarnedStars === 'function') {
                 try {
-                    const pendingBerries = parseInt(Android.getPendingBerries()) || 0;
-                    if (pendingBerries > 0) {
-                        addBerries(pendingBerries);
-                        // Clear pending berries
-                        if (typeof Android.clearPendingBerries === 'function') {
-                            Android.clearPendingBerries();
-                        }
-                    }
+                    gameState.earnedStars = parseInt(Android.getEarnedStars()) || 0;
+                    console.log('Loaded earned stars from Android:', gameState.earnedStars);
                 } catch (e) {
-                    console.error('Error getting pending berries:', e);
+                    console.error('Error getting earned stars:', e);
+                }
+            } else {
+                // Browser fallback
+                const saved = localStorage.getItem('pokemonBattleState');
+                if (saved) {
+                    const savedState = JSON.parse(saved);
+                    gameState.earnedStars = savedState.earnedStars || 0;
                 }
             }
         }
 
-        // Save state to localStorage
+        // Save state to localStorage (for browser fallback)
         function saveState() {
             localStorage.setItem('pokemonBattleState', JSON.stringify({
-                berries: gameState.berries
+                earnedStars: gameState.earnedStars
             }));
         }
 
@@ -1227,14 +1222,23 @@
             loadState();
             loadGamesFromConfig(); // Load games from config first
             
-            // Get total stars from Android to set maxBerries (so berries = coins/stars)
+            // Get total stars from Android to set totalStars
             if (isAndroidWebView() && typeof Android.getTotalStars === 'function') {
                 try {
-                    const totalStars = parseInt(Android.getTotalStars()) || 100;
-                    gameState.maxBerries = totalStars;
-                    console.log('Set maxBerries to total stars:', totalStars);
+                    gameState.totalStars = parseInt(Android.getTotalStars()) || 100;
+                    console.log('Set totalStars to:', gameState.totalStars);
                 } catch (e) {
                     console.error('Error getting total stars:', e);
+                }
+            }
+            
+            // Get earned stars from Android to match daily homework dashboard
+            if (isAndroidWebView() && typeof Android.getEarnedStars === 'function') {
+                try {
+                    gameState.earnedStars = parseInt(Android.getEarnedStars()) || 0;
+                    console.log('Set earnedStars to:', gameState.earnedStars);
+                } catch (e) {
+                    console.error('Error getting earned stars:', e);
                 }
             }
             
@@ -1345,22 +1349,31 @@
                 document.getElementById('bossPokemonName').textContent = 'No Boss';
             }
 
-            // Update player power based on berries
-            const powerPercent = (gameState.berries / gameState.maxBerries) * 100;
+            // Update player power based on earned stars
+            const powerPercent = (gameState.earnedStars / gameState.totalStars) * 100;
             const powerFill = document.getElementById('playerPower');
             powerFill.style.width = powerPercent + '%';
             powerFill.textContent = Math.round(powerPercent) + '%';
         }
 
-        // Update Berry Meter
+        // Update Berry Meter (shows earned stars, matching daily homework dashboard)
         function updateBerryMeter() {
-            const percent = (gameState.berries / gameState.maxBerries) * 100;
+            // Refresh earned stars from Android to match daily homework dashboard
+            if (isAndroidWebView() && typeof Android.getEarnedStars === 'function') {
+                try {
+                    gameState.earnedStars = parseInt(Android.getEarnedStars()) || 0;
+                } catch (e) {
+                    console.error('Error getting earned stars:', e);
+                }
+            }
+            
+            const percent = (gameState.earnedStars / gameState.totalStars) * 100;
             const fill = document.getElementById('berryFill');
             const count = document.getElementById('berryCount');
             const label = document.getElementById('berryMeterLabel');
 
             fill.style.width = percent + '%';
-            count.textContent = `${gameState.berries} / ${gameState.maxBerries} Berries`;
+            count.textContent = `${gameState.earnedStars} / ${gameState.totalStars} ${iconConfig.starsIcon}`;
             label.textContent = `${iconConfig.starsIcon} Berry Power Meter ${iconConfig.starsIcon}`;
             
             // Update the ::before and ::after pseudo-elements by updating the parent
@@ -1385,7 +1398,7 @@
         // Update Battle Button
         function updateBattleButton() {
             const button = document.getElementById('battleButton');
-            const isFull = gameState.berries >= gameState.maxBerries;
+            const isFull = gameState.earnedStars >= gameState.totalStars;
             button.disabled = !isFull;
             
             if (isFull) {
@@ -1446,26 +1459,36 @@
             } else {
                 // Browser mode: simulate game completion for testing
                 alert(`Launching ${game.title}...\n\nIn the app, this will open the game.\n\nSimulating completion for browser testing.`);
-                // Simulate earning berries after game completion
+                // Simulate earning stars after game completion (for browser testing)
                 setTimeout(() => {
-                    addBerries(game.berries);
+                    gameState.earnedStars = Math.min(gameState.earnedStars + game.berries, gameState.totalStars);
+                    saveState();
+                    updateBerryMeter();
+                    updateBattleArena();
+                    updateBattleButton();
                 }, 2000);
             }
         }
 
-        // Add Berries (called after game completion)
-        function addBerries(amount) {
-            gameState.berries = Math.min(gameState.berries + amount, gameState.maxBerries);
-            saveState();
-            updateBerryMeter();
-            updateBattleArena();
-            updateBattleButton();
+        // Refresh berries from Android (earned stars from daily homework dashboard)
+        function refreshBerries() {
+            if (isAndroidWebView() && typeof Android.getEarnedStars === 'function') {
+                try {
+                    gameState.earnedStars = parseInt(Android.getEarnedStars()) || 0;
+                    saveState();
+                    updateBerryMeter();
+                    updateBattleArena();
+                    updateBattleButton();
+                } catch (e) {
+                    console.error('Error refreshing berries:', e);
+                }
+            }
         }
 
         // Battle Boss
         function battleBoss() {
-            if (gameState.berries < gameState.maxBerries) {
-                alert('You need full berries to battle the boss!');
+            if (gameState.earnedStars < gameState.totalStars) {
+                alert('You need to earn all stars to battle the boss!');
                 return;
             }
 
@@ -1727,8 +1750,8 @@
                                 localStorage.setItem('unlockedPokemonCount', unlockedCount.toString());
                             }
                             
-                            // Reset berries
-                            gameState.berries = 0;
+                            // Reset earned stars (will be refreshed from Android)
+                            gameState.earnedStars = 0;
                             saveState();
                             
                             // Show victory screen with the defeated Pokemon
@@ -1824,8 +1847,8 @@
         }
 
         // Function to be called from Android after game completion
-        window.onGameComplete = function(berriesEarned) {
-            addBerries(berriesEarned || 20);
+        window.onGameComplete = function() {
+            refreshBerries();
         };
 
         // Initialize on load
