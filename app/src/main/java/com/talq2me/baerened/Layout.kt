@@ -2206,7 +2206,7 @@ class Layout(private val activity: MainActivity) {
                 if (currentContent != null) {
                     val progressManager = DailyProgressManager(activity)
                     val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
-                    val earnedStars = progressData.second.first
+                    val earnedStars = progressData.second.first // Get earned stars from the same method as daily homework dashboard
                     earnedStars
                 } else {
                     0 // Fallback default
@@ -2245,14 +2245,14 @@ class Layout(private val activity: MainActivity) {
     
     private fun showTrainingMap() {
         // Hide battle hub
-        battleHubWebView?.visibility = android.view.View.GONE
+        battleHubWebView?.visibility = View.GONE
         
         // Hide all section views (but keep them in the container for later)
         for (i in 0 until sectionsContainer.childCount) {
             val child = sectionsContainer.getChildAt(i)
             // Hide everything except the training map (if it exists)
             if (child != trainingMapView) {
-                child.visibility = android.view.View.GONE
+                child.visibility = View.GONE
             }
         }
         
@@ -2268,25 +2268,25 @@ class Layout(private val activity: MainActivity) {
         // Add to container (at index 1, after battle hub if it exists)
         sectionsContainer.addView(mapView, 1)
         trainingMapView = mapView
-        mapView.visibility = android.view.View.VISIBLE
+        mapView.visibility = View.VISIBLE
         
         android.util.Log.d("Layout", "Training map view created and shown")
     }
     
     private fun showBattleHub() {
         // Show battle hub and sections
-        battleHubWebView?.visibility = android.view.View.VISIBLE
-        sectionsContainer.visibility = android.view.VISIBLE
+        battleHubWebView?.visibility = View.VISIBLE
+        sectionsContainer.visibility = View.VISIBLE
         
         // Hide training map
-        trainingMapView?.visibility = android.view.View.GONE
+        trainingMapView?.visibility = View.GONE
         
         // Show all section views (they were hidden when training map was shown)
         for (i in 0 until sectionsContainer.childCount) {
             val child = sectionsContainer.getChildAt(i)
             // Show everything except the training map
             if (child != trainingMapView) {
-                child.visibility = android.view.View.VISIBLE
+                child.visibility = View.VISIBLE
             }
         }
         
@@ -2431,12 +2431,24 @@ class Layout(private val activity: MainActivity) {
         }
         progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
         
-        // Generate positions for gyms (spread them out)
+        // Generate random positions for gyms
         val density = activity.resources.displayMetrics.density
         val mapWidth = mapContainer.width.takeIf { it > 0 } ?: (activity.resources.displayMetrics.widthPixels - (32 * density).toInt())
         val mapHeight = mapContainer.height.takeIf { it > 0 } ?: (activity.resources.displayMetrics.heightPixels * 0.6).toInt()
+        val buttonSize = (80 * density).toInt()
+        val buttonRadius = (40 * density).toInt()
+        val padding = (20 * density).toInt() // Padding from edges
         
-        // Create gym buttons
+        // Load icon config
+        val icons = loadIconConfig()
+        
+        // Generate random positions for gym buttons
+        val random = kotlin.random.Random
+        val positions = mutableListOf<Pair<Int, Int>>()
+        
+        // Create gym buttons with random positions
+        val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
+        
         tasks.forEachIndexed { index, task ->
             val taskId = if (mapType == "required") {
                 task.launch ?: ""
@@ -2445,25 +2457,33 @@ class Layout(private val activity: MainActivity) {
             }
             val isCompleted = completedTasksMap[taskId] == true
             
-            // Calculate position (spread gyms across the map)
-            val cols = 3 // 3 columns
-            val rows = (tasks.size + cols - 1) / cols
-            val col = index % cols
-            val row = index / cols
+            // Generate random position (with padding from edges)
+            var x: Int
+            var y: Int
+            var attempts = 0
+            do {
+                x = padding + random.nextInt(mapWidth - 2 * padding - buttonSize)
+                y = padding + random.nextInt(mapHeight - 2 * padding - buttonSize)
+                attempts++
+            } while (attempts < 50 && positions.any { 
+                val dx = it.first - x
+                val dy = it.second - y
+                Math.sqrt((dx * dx + dy * dy).toDouble()) < (buttonSize * 1.5) // Minimum distance between buttons
+            })
             
-            val x = (mapWidth * (0.2f + col * 0.3f)).toInt()
-            val y = (mapHeight * (0.15f + row * (0.7f / rows))).toInt()
+            positions.add(Pair(x + buttonRadius, y + buttonRadius)) // Store center position
             
-            // Create gym button
-            val gymButton = android.widget.Button(activity).apply {
-                text = "🏟️\n${task.title}\n${task.stars ?: 1}⭐"
-                textSize = 12f
-                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
-                setTypeface(null, android.graphics.Typeface.BOLD)
-                gravity = android.view.Gravity.CENTER
-                setPadding((8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt(), (8 * density).toInt())
+            // Create gym button container (FrameLayout to layer gym emoji and text)
+            val gymButtonContainer = android.widget.FrameLayout(activity).apply {
+                layoutParams = RelativeLayout.LayoutParams(
+                    buttonSize,
+                    buttonSize
+                ).apply {
+                    leftMargin = x
+                    topMargin = y
+                }
                 
-                // Style based on completion
+                // Background circle
                 background = if (isCompleted) {
                     android.graphics.drawable.GradientDrawable().apply {
                         setColor(android.graphics.Color.parseColor("#4CAF50"))
@@ -2478,14 +2498,6 @@ class Layout(private val activity: MainActivity) {
                     }
                 }
                 
-                layoutParams = RelativeLayout.LayoutParams(
-                    (80 * density).toInt(),
-                    (80 * density).toInt()
-                ).apply {
-                    leftMargin = x - (40 * density).toInt()
-                    topMargin = y - (40 * density).toInt()
-                }
-                
                 if (!isCompleted) {
                     setOnClickListener {
                         launchTask(task, mapType, "trainingMap_${task.launch}")
@@ -2493,7 +2505,83 @@ class Layout(private val activity: MainActivity) {
                 }
             }
             
-            mapContainer.addView(gymButton)
+            // Large gym emoji (fills the button circle)
+            val gymEmoji = TextView(activity).apply {
+                text = "🏟️"
+                textSize = (buttonSize * 0.7f) // Large emoji, 70% of button size
+                gravity = android.view.Gravity.CENTER
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            }
+            
+            // Text overlay (title and stars icon)
+            val textOverlay = TextView(activity).apply {
+                val starsCount = task.stars ?: 1
+                text = "${task.title}\n$starsCount ${icons.starsIcon}"
+                textSize = 9f // Smaller text to prevent wrapping
+                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                gravity = android.view.Gravity.CENTER
+                setPadding((4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
+                // Add semi-transparent background for better text readability
+                setBackgroundColor(android.graphics.Color.argb(180, 255, 255, 255))
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+            }
+            
+            gymButtonContainer.addView(gymEmoji)
+            gymButtonContainer.addView(textOverlay)
+            
+            gymButtons.add(Pair(gymButtonContainer, Pair(x + buttonRadius, y + buttonRadius)))
+        }
+        
+        // Create custom view to draw dashed lines connecting the gyms
+        val pathView = object : View(activity) {
+            override fun onDraw(canvas: android.graphics.Canvas) {
+                super.onDraw(canvas)
+                
+                if (positions.size < 2) return
+                
+                val paint = android.graphics.Paint().apply {
+                    color = android.graphics.Color.parseColor("#ffffff")
+                    strokeWidth = (4 * density)
+                    style = android.graphics.Paint.Style.STROKE
+                    pathEffect = android.graphics.DashPathEffect(floatArrayOf(20f * density, 10f * density), 0f)
+                    alpha = 180 // Semi-transparent
+                }
+                
+                // Draw lines connecting each gym to the next one (creating a pathway)
+                for (i in 0 until positions.size - 1) {
+                    val start = positions[i]
+                    val end = positions[i + 1]
+                    canvas.drawLine(
+                        start.first.toFloat(),
+                        start.second.toFloat(),
+                        end.first.toFloat(),
+                        end.second.toFloat(),
+                        paint
+                    )
+                }
+            }
+        }.apply {
+            layoutParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        
+        // Add path view first (so it appears behind the buttons)
+        mapContainer.addView(pathView)
+        
+        // Add all gym buttons
+        gymButtons.forEach { (button, _) ->
+            mapContainer.addView(button)
         }
         
         // If all required tasks are completed and we're showing required, check for optional
@@ -2527,7 +2615,7 @@ class Layout(private val activity: MainActivity) {
                             setOnClickListener {
                                 currentMapType = "optional"
                                 loadTasksIntoMap(mapContainer, progressInfo, "optional")
-                                it.removeView(this)
+                                (this.parent as? android.view.ViewGroup)?.removeView(this)
                             }
                         }
                         it.addView(showOptionalButton, mapIndex + 1)

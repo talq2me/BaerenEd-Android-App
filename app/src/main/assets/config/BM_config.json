@@ -194,13 +194,6 @@
           "webGame": true
         },
         {
-          "title": "Step-by-Step",
-          "launch": "stepByStepChecklist",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/stepByStepChecklist.html?file=stepByStepTasks.json",
-          "stars": 3,
-          "webGame": true
-        },
-        {
           "title": "Word Garden",
           "launch": "wordGarden",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
