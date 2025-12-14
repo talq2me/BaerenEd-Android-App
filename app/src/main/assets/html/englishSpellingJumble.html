@@ -148,14 +148,37 @@
             const urlParams = new URLSearchParams(window.location.search);
             const mode = urlParams.get('mode');
             const file = urlParams.get('file');
+            const jsonData = urlParams.get('json') || urlParams.get('data');
             gameMode = ['easy', 'hard', 'extreme'].includes(mode) ? mode : 'hard';
-            return file; // Return just the filename, not the path
+            return { file, jsonData }; // Return both file and jsonData
         }
 
-        function loadWords(fileName) {
+        function loadWords(config) {
             const defaultWords = ["cat", "dog", "hat", "run", "big", "red", "sun", "map", "cup", "box"].map(w => ({ word: w, sentence: "" }));
             const isAndroid = window.Android !== undefined;
             
+            // First, check if JSON data is passed directly in URL parameter
+            if (config.jsonData) {
+                try {
+                    const decodedJson = decodeURIComponent(config.jsonData);
+                    const data = JSON.parse(decodedJson);
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = defaultWords;
+                    }
+                    startGame();
+                    return;
+                } catch (error) {
+                    console.error('Error parsing JSON from URL parameter:', error);
+                    // Fall through to try loading from file
+                }
+            }
+            
+            // If no JSON in URL or parsing failed, try loading from file
+            const fileName = config.file;
             if (fileName) {
                 if (isAndroid && typeof window.Android.loadJsonFile === 'function') {
                     // Use Android interface to load JSON from assets
@@ -432,8 +455,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const jsonUrl = getGameConfig();
-            loadWords(jsonUrl);
+            const config = getGameConfig();
+            loadWords(config);
             createKeyboard();
         });
     </script>
