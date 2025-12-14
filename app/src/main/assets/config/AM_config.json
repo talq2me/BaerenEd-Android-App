@@ -40,8 +40,7 @@
           "stars": 3,
           "webGame": true,
           "easydays": "mon,tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun"
+          "harddays": "thu,fri,sat,sun"
         },
         {
           "title": "Fr Spelling",
@@ -50,8 +49,7 @@
           "stars": 3,
           "webGame": true,
           "easydays": "mon,tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun"
+          "harddays": "thu,fri,sat,sun"
         },
         {
           "title": "French Vowels",
@@ -157,14 +155,6 @@
           "videoSequence": "sequential"
         },
         {
-          "title": "Google Classroom",
-          "launch": "googleClassroom",
-          "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
-          "stars": 3,
-          "chromePage": true,
-          "displayDays": "tue,fri"
-        },
-        {
           "title": "Ufli Home Videos",
           "launch": "uflivideos",
           "stars": 3,
@@ -206,6 +196,21 @@
           "launch": "jkmath",
           "stars": 1,
           "totalQuestions": 1
+        },
+        {
+          "title": "Number Line Math",
+          "launch": "numberLineMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+          "stars": 3,
+          "webGame": true
+        },
+        
+        {
+          "title": "Ten Frame Math",
+          "launch": "tenFrameMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html",
+          "stars": 3,
+          "webGame": true
         },
         {
           "title": "Sk Spellings",
@@ -252,6 +257,14 @@
           "stars": 1,
           "totalQuestions": 1,
           "blockOutlines": true
+        },
+        {
+          "title": "Google Classroom",
+          "launch": "googleClassroom",
+          "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
+          "stars": 3,
+          "chromePage": true,
+          "displayDays": "tue,fri"
         }
       ]
     },
