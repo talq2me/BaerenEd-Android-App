@@ -898,6 +898,12 @@
         function handleLetterCollision(letterObj, index) {
             if (!canInteract) return;
             
+            // Prevent duplicate processing if already being handled
+            if (letterObj.element.classList.contains('eaten') || 
+                letterObj.element.classList.contains('barfed')) {
+                return;
+            }
+            
             const letter = letterObj.letter;
             const word = currentWord.word.toLowerCase();
             const expectedLetter = word[collectedLetters.length];
@@ -914,8 +920,17 @@
                 updateSnakeBody();
                 
                 setTimeout(() => {
-                    letterObj.element.remove();
-                    letters.splice(index, 1);
+                    // Find current index in case array has changed due to other removals
+                    const currentIndex = letters.findIndex(l => l === letterObj);
+                    if (currentIndex !== -1) {
+                        letterObj.element.remove();
+                        letters.splice(currentIndex, 1);
+                    } else {
+                        // Element already removed, just clean up
+                        if (letterObj.element.parentNode) {
+                            letterObj.element.remove();
+                        }
+                    }
                     
                     // Check if word is complete
                     // collectedLetters uses unshift, so it's in reverse order: [newest, ..., oldest]
