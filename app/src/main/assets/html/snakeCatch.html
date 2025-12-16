@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Snake Catch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .word-display {
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .score-display {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: #666;
+            text-align: center;
+            margin-left: 10px;
+        }
+        
+        .controls-hint {
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: #999;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            margin-top: 100px;
+            background: linear-gradient(180deg, #87CEEB 0%, #98D8C8 50%, #F7DC6F 100%);
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        
+        .snake-head {
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+            border: 3px solid #2E7D32;
+            box-shadow: 
+                0 4px 10px rgba(0,0,0,0.3),
+                inset 0 2px 5px rgba(255,255,255,0.3);
+            z-index: 100;
+            transition: transform 0.1s ease-out;
+            border-radius: 50% 50% 50% 50% / 60% 60% 30% 30%;
+            transform-origin: center center;
+            overflow: visible;
+        }
+        
+        /* Eyes */
+        .snake-head::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            box-shadow: 20px 0 0 #000;
+            z-index: 102;
+        }
+        
+        /* Tongue */
+        .snake-head::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-top: 8px solid #FF6B6B;
+            z-index: 101;
+        }
+        
+        /* Open mouth */
+        .snake-mouth {
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 22px;
+            border: 3px solid #2E7D32;
+            border-top: none;
+            border-radius: 0 0 50% 50%;
+            background: #1a1a1a;
+            z-index: 101;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.8);
+        }
+        
+        .snake-mouth::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid #2E7D32;
+        }
+        
+        .snake-body {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+            border: 2px solid #388E3C;
+            box-shadow: 
+                0 3px 8px rgba(0,0,0,0.2),
+                inset 0 2px 4px rgba(255,255,255,0.2);
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .letter {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            border: 4px solid #FF4757;
+            box-shadow: 
+                0 4px 10px rgba(0,0,0,0.3),
+                inset 0 2px 5px rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 50;
+            transition: transform 0.2s ease;
+        }
+        
+        .letter.eaten {
+            animation: eatLetter 0.4s ease-in forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes eatLetter {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(0.5) rotate(180deg);
+            }
+            100% {
+                transform: scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .letter.barfed {
+            animation: barf 0.8s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes barf {
+            0% {
+                transform: scale(0.8) translate(0, 0) rotate(0deg);
+                opacity: 0.8;
+            }
+            30% {
+                transform: scale(1.3) translate(-40px, -50px) rotate(-180deg);
+                opacity: 1;
+            }
+            60% {
+                transform: scale(1.1) translate(-30px, -30px) rotate(-360deg);
+            }
+            100% {
+                transform: scale(1) translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FF6B6B;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 200;
+            animation: particlePop 0.6s ease-out forwards;
+        }
+        
+        @keyframes particlePop {
+            0% {
+                transform: scale(0) translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translate(var(--tx), var(--ty));
+                opacity: 0;
+            }
+        }
+        
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            z-index: 2000;
+            pointer-events: none;
+            animation: feedbackPop 1s ease-out forwards;
+        }
+        
+        @keyframes feedbackPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .feedback.correct {
+            color: #4CAF50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+        }
+        
+        .feedback.incorrect {
+            color: #F44336;
+            text-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
+        }
+        
+        .next-button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            transition: all 0.3s;
+        }
+        
+        .next-button:hover {
+            background: #45a049;
+            transform: translateX(-50%) scale(1.05);
+        }
+        
+        .next-button:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 3000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: none;
+        }
+        
+        .game-over h2 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .game-over p {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div>
+                <div class="word-display" id="wordDisplay">Spell: CAT</div>
+                <div class="controls-hint">Touch or click to move the snake</div>
+            </div>
+            <div class="score-display">Score: <span id="score">0</span> / <span id="totalWords">0</span></div>
+        </div>
+        
+        <div class="game-area" id="gameArea"></div>
+        
+        <button class="next-button" id="nextButton">Next Word →</button>
+        
+        <div class="game-over" id="gameOver">
+            <h2>🎉 Game Complete! 🎉</h2>
+            <p>Final Score: <span id="finalScore">0</span> / <span id="finalMax">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        let words = [];
+        let currentWord = null;
+        let currentWordIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let questionsCompleted = 0;
+        let maxQuestions = 10;
+        let totalWords = 0; // Total number of words in the list
+        let letters = [];
+        let snake = [];
+        let snakePath = []; // Store the path the snake head has taken
+        let snakeDirection = { x: 1, y: 0 };
+        let targetPosition = null;
+        let collectedLetters = [];
+        let gameArea = null;
+        let gameLoop = null;
+        let snakeSpeed = 4; // pixels per frame
+        let canInteract = true;
+        let isPaused = false;
+        let isTouching = false;
+        let letterMovementSpeeds = [];
+        let segmentSpacing = 12; // How many path points between segments
+        let isCelebrating = false; // Flag for celebration animation
+        let celebrationProgress = 0; // Progress of celebration animation (0 to 1)
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function readText(text, lang, rate = 0.8, onEndCallback = null) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang);
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
+            } else if ('speechSynthesis' in window) {
+                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+                window.currentTTSUtterance.lang = lang;
+                window.currentTTSUtterance.rate = rate;
+                window.currentTTSUtterance.onend = () => {
+                    if (onEndCallback) onEndCallback();
+                    window.currentTTSUtterance = null;
+                };
+                window.speechSynthesis.speak(window.currentTTSUtterance);
+            } else {
+                if (onEndCallback) onEndCallback();
+            }
+        }
+
+        function getGameConfig() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const file = urlParams.get('file');
+            return file || 'englishWordsGr1.json';
+        }
+
+        function loadWords(fileName) {
+            const isAndroid = window.Android !== undefined;
+            
+            if (isAndroid) {
+                try {
+                    const jsonString = window.Android.loadJsonFile(fileName);
+                    const data = JSON.parse(jsonString);
+                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                        words = data;
+                    } else if (Array.isArray(data)) {
+                        words = data.map(word => ({ word: word, sentence: "" }));
+                    } else {
+                        words = [];
+                    }
+                    totalWords = words.length;
+                    maxQuestions = Math.min(words.length, maxQuestions);
+                    startGame();
+                } catch (error) {
+                    console.error('Error loading words file:', error);
+                    words = [];
+                    startGame();
+                }
+            } else {
+                const jsonUrl = `../data/${fileName}`;
+                fetch(jsonUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                            words = data;
+                        } else if (Array.isArray(data)) {
+                            words = data.map(word => ({ word: word, sentence: "" }));
+                        } else {
+                            words = [];
+                        }
+                        totalWords = words.length;
+                        maxQuestions = Math.min(words.length, maxQuestions);
+                        startGame();
+                    })
+                    .catch(error => {
+                        console.error('Error loading words file:', error);
+                        words = [];
+                        startGame();
+                    });
+            }
+        }
+
+        function startGame() {
+            gameArea = document.getElementById('gameArea');
+            currentWordIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            questionsCompleted = 0;
+            score = 0;
+            isCelebrating = false;
+            updateScore();
+            loadWord();
+        }
+
+        function loadWord() {
+            if (currentWordIndex >= maxQuestions) {
+                endGame();
+                return;
+            }
+            
+            currentWord = words[currentWordIndex];
+            collectedLetters = [];
+            snake = [];
+            snakeDirection = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            canInteract = true;
+            isPaused = false;
+            
+            document.getElementById('wordDisplay').textContent = `Spell: ${currentWord.word.toUpperCase()}`;
+            document.getElementById('nextButton').style.display = 'none';
+            
+            // Clear previous elements
+            gameArea.innerHTML = '';
+            letters = [];
+            
+            // Initialize snake at center
+            const startX = window.innerWidth / 2;
+            const startY = window.innerHeight / 2 + 50;
+            snake.push({ x: startX, y: startY });
+            targetPosition = { x: startX, y: startY };
+            snakePath = [];
+            // Initialize path with starting position repeated
+            for (let i = 0; i < 100; i++) {
+                snakePath.push({ x: startX, y: startY });
+            }
+            
+            createSnake();
+            createLetters();
+            setupControls();
+            
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+            }
+            gameLoop = requestAnimationFrame(updateGame);
+            
+            // Play instruction
+            setTimeout(() => {
+                const { word, sentence } = currentWord;
+                const textToRead = sentence ? `Catch the letters to spell: ${word}. ${sentence}` : `Catch the letters to spell: ${word}`;
+                readText(textToRead, 'en-US', 0.8);
+            }, 500);
+        }
+
+        function createSnake() {
+            // Clear existing snake
+            document.querySelectorAll('.snake-head, .snake-body').forEach(el => el.remove());
+            
+            // Create head
+            const head = document.createElement('div');
+            head.className = 'snake-head';
+            head.id = 'snakeHead';
+            
+            // Create mouth
+            const mouth = document.createElement('div');
+            mouth.className = 'snake-mouth';
+            head.appendChild(mouth);
+            
+            gameArea.appendChild(head);
+            
+            // Create body segments (initially empty, will show letters as collected)
+            updateSnakeBody();
+        }
+
+        function updateSnakeBody() {
+            // Remove old body segments
+            document.querySelectorAll('.snake-body').forEach(el => el.remove());
+            
+            // Create body segments for collected letters
+            // collectedLetters uses unshift, so newest letter is at index 0
+            // collectedLetters = [T, A, C] if we collect C, then A, then T
+            // We want to display so when snake faces right, reading head to tail: C, A, T
+            // So we need to reverse the array for display
+            const displayOrder = [...collectedLetters].reverse();
+            for (let i = 0; i < displayOrder.length; i++) {
+                const bodySeg = document.createElement('div');
+                bodySeg.className = 'snake-body';
+                bodySeg.textContent = displayOrder[i].toUpperCase();
+                bodySeg.dataset.index = i;
+                bodySeg.style.left = snake[0].x - 25 + 'px';
+                bodySeg.style.top = snake[0].y - 25 + 'px';
+                gameArea.appendChild(bodySeg);
+            }
+        }
+
+        function createLetters() {
+            const word = currentWord.word.toLowerCase();
+            const wordLetters = word.split('');
+            const allLetters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            const wrongLetters = allLetters.filter(l => !wordLetters.includes(l));
+            
+            // Shuffle wrong letters and take enough for the game
+            const shuffledWrong = wrongLetters.sort(() => Math.random() - 0.5);
+            const extraWrong = shuffledWrong.slice(0, Math.max(5, wordLetters.length * 2));
+            
+            // Combine word letters with wrong letters
+            const letterPool = [...wordLetters, ...extraWrong].sort(() => Math.random() - 0.5);
+            
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const minSpacing = 120; // Minimum distance between letters
+            const padding = 80;
+            
+            letterPool.forEach((letter, index) => {
+                let x, y;
+                let attempts = 0;
+                const maxAttempts = 100;
+                let validPosition = false;
+                
+                do {
+                    x = padding + Math.random() * (gameAreaRect.width - padding * 2);
+                    y = padding + Math.random() * (gameAreaRect.height - padding * 2);
+                    
+                    // Check distance from snake start
+                    const distFromSnake = Math.sqrt(
+                        Math.pow(x - snake[0].x, 2) + Math.pow(y - snake[0].y, 2)
+                    );
+                    
+                    if (distFromSnake > minSpacing) {
+                        // Check distance from other letters
+                        validPosition = true;
+                        for (const existingLetter of letters) {
+                            const dist = Math.sqrt(
+                                Math.pow(x - existingLetter.x, 2) + Math.pow(y - existingLetter.y, 2)
+                            );
+                            if (dist < minSpacing) {
+                                validPosition = false;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    attempts++;
+                } while (!validPosition && attempts < maxAttempts);
+                
+                if (validPosition || attempts >= maxAttempts) {
+                    const letterElement = document.createElement('div');
+                    letterElement.className = 'letter';
+                    letterElement.textContent = letter.toUpperCase();
+                    letterElement.style.left = x + 'px';
+                    letterElement.style.top = y + 'px';
+                    letterElement.dataset.letter = letter;
+                    gameArea.appendChild(letterElement);
+                    
+                    // Random movement speed and direction for each letter
+                    const speed = 0.5 + Math.random() * 1;
+                    const angle = Math.random() * Math.PI * 2;
+                    
+                    letters.push({
+                        element: letterElement,
+                        letter: letter,
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        bounds: {
+                            minX: padding,
+                            maxX: gameAreaRect.width - padding - 60,
+                            minY: padding,
+                            maxY: gameAreaRect.height - padding - 60
+                        }
+                    });
+                }
+            });
+        }
+
+        function setupControls() {
+            // Remove any existing listeners
+            gameArea.removeEventListener('mousedown', handleStart);
+            gameArea.removeEventListener('mousemove', handleMove);
+            gameArea.removeEventListener('mouseup', handleEnd);
+            gameArea.removeEventListener('touchstart', handleStart);
+            gameArea.removeEventListener('touchmove', handleMove);
+            gameArea.removeEventListener('touchend', handleEnd);
+            
+            // Mouse controls
+            gameArea.addEventListener('mousedown', handleStart, { passive: false });
+            gameArea.addEventListener('mousemove', handleMove, { passive: false });
+            gameArea.addEventListener('mouseup', handleEnd);
+            gameArea.addEventListener('mouseleave', handleEnd);
+            
+            // Touch controls
+            gameArea.addEventListener('touchstart', handleStart, { passive: false });
+            gameArea.addEventListener('touchmove', handleMove, { passive: false });
+            gameArea.addEventListener('touchend', handleEnd);
+        }
+
+        function handleStart(e) {
+            if (!canInteract || isPaused) return;
+            isTouching = true;
+            updateTargetPosition(e);
+            e.preventDefault();
+        }
+
+        function handleMove(e) {
+            if (!canInteract || isPaused || !isTouching) return;
+            updateTargetPosition(e);
+            e.preventDefault();
+        }
+
+        function handleEnd(e) {
+            isTouching = false;
+        }
+
+        function updateTargetPosition(e) {
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            targetPosition = {
+                x: clientX - gameAreaRect.left,
+                y: clientY - gameAreaRect.top
+            };
+        }
+
+        function updateGame() {
+            if (isPaused || !canInteract) {
+                gameLoop = requestAnimationFrame(updateGame);
+                return;
+            }
+            
+            // Handle celebration animation
+            if (isCelebrating) {
+                updateCelebrationAnimation();
+                gameLoop = requestAnimationFrame(updateGame);
+                return;
+            }
+            
+            // After celebration, keep snake visible with even spacing
+            // Check if we just finished celebrating and need to maintain positions
+            if (!canInteract && collectedLetters.length > 0 && document.getElementById('nextButton').style.display === 'block') {
+                updateCelebrationBodyPositions();
+            }
+            
+            // Move snake head towards target position
+            const head = snake[0];
+            if (targetPosition) {
+                const dx = targetPosition.x - head.x;
+                const dy = targetPosition.y - head.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 5) {
+                    // Normalize direction and move towards target
+                    const moveX = (dx / distance) * snakeSpeed;
+                    const moveY = (dy / distance) * snakeSpeed;
+                    
+                    snakeDirection = { x: moveX / snakeSpeed, y: moveY / snakeSpeed };
+                    
+                    const newHead = {
+                        x: head.x + moveX,
+                        y: head.y + moveY
+                    };
+                    
+                    // Boundary checking
+                    const gameAreaRect = gameArea.getBoundingClientRect();
+                    const headSize = 60;
+                    if (newHead.x < headSize / 2) {
+                        newHead.x = headSize / 2;
+                    } else if (newHead.x > gameAreaRect.width - headSize / 2) {
+                        newHead.x = gameAreaRect.width - headSize / 2;
+                    }
+                    if (newHead.y < headSize / 2) {
+                        newHead.y = headSize / 2;
+                    } else if (newHead.y > gameAreaRect.height - headSize / 2) {
+                        newHead.y = gameAreaRect.height - headSize / 2;
+                    }
+                    
+                    snake[0] = newHead;
+                }
+            }
+            
+            // Add current head position to path history
+            snakePath.unshift({ x: snake[0].x, y: snake[0].y });
+            
+            // Limit path length to what we need (max segments * spacing + buffer)
+            const maxPathLength = (collectedLetters.length + 1) * segmentSpacing + 50;
+            if (snakePath.length > maxPathLength) {
+                snakePath = snakePath.slice(0, maxPathLength);
+            }
+            
+            // Update snake visual position
+            const headElement = document.getElementById('snakeHead');
+            if (headElement) {
+                headElement.style.left = (snake[0].x - 30) + 'px';
+                headElement.style.top = (snake[0].y - 25) + 'px';
+                
+                // Rotate head based on direction
+                const angle = Math.atan2(snakeDirection.y, snakeDirection.x) * (180 / Math.PI);
+                headElement.style.transform = `rotate(${angle}deg)`;
+            }
+            
+            // Update body positions
+            updateSnakeBodyPositions();
+            
+            // Move letters around
+            updateLetterPositions();
+            
+            // Check collisions with letters
+            checkLetterCollisions();
+            
+            gameLoop = requestAnimationFrame(updateGame);
+        }
+        
+        function updateLetterPositions() {
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            
+            letters.forEach(letterObj => {
+                if (letterObj.element.classList.contains('eaten') || 
+                    letterObj.element.classList.contains('barfed')) {
+                    return;
+                }
+                
+                // Update position
+                letterObj.x += letterObj.vx;
+                letterObj.y += letterObj.vy;
+                
+                // Bounce off boundaries
+                if (letterObj.x <= letterObj.bounds.minX || letterObj.x >= letterObj.bounds.maxX) {
+                    letterObj.vx = -letterObj.vx;
+                    letterObj.x = Math.max(letterObj.bounds.minX, Math.min(letterObj.bounds.maxX, letterObj.x));
+                }
+                if (letterObj.y <= letterObj.bounds.minY || letterObj.y >= letterObj.bounds.maxY) {
+                    letterObj.vy = -letterObj.vy;
+                    letterObj.y = Math.max(letterObj.bounds.minY, Math.min(letterObj.bounds.maxY, letterObj.y));
+                }
+                
+                // Update visual position
+                letterObj.element.style.left = letterObj.x + 'px';
+                letterObj.element.style.top = letterObj.y + 'px';
+            });
+        }
+
+        function updateSnakeBodyPositions() {
+            const bodySegments = document.querySelectorAll('.snake-body');
+            const segmentSize = 45;
+            
+            // bodySegments are created in reverse order of collectedLetters
+            // collectedLetters = [T, A, C] (newest first)
+            // displayOrder = [C, A, T] (reversed for display)
+            // So index 0 in bodySegments is the first letter collected (C), should be at tail
+            // Last index is newest letter (T), should be closest to head
+            bodySegments.forEach((seg, index) => {
+                // Calculate which position in the path this segment should follow
+                // Index 0 (first collected, at tail) should follow the oldest position
+                // Last index (newest collected, closest to head) should follow a recent position
+                const positionIndex = bodySegments.length - 1 - index;
+                const pathIndex = (positionIndex + 1) * segmentSpacing;
+                
+                let segmentPos;
+                if (pathIndex < snakePath.length) {
+                    segmentPos = snakePath[pathIndex];
+                } else {
+                    // Fallback to last position if path isn't long enough yet
+                    segmentPos = snakePath[snakePath.length - 1] || snake[0];
+                }
+                
+                seg.style.left = (segmentPos.x - segmentSize / 2) + 'px';
+                seg.style.top = (segmentPos.y - segmentSize / 2) + 'px';
+                
+                // Calculate rotation based on direction to next segment or previous segment
+                let segAngle = 0;
+                if (index === bodySegments.length - 1) {
+                    // Last segment (closest to head) - point towards head
+                    const dx = snake[0].x - segmentPos.x;
+                    const dy = snake[0].y - segmentPos.y;
+                    segAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+                } else {
+                    // Other segments - point towards next segment
+                    const nextPathIndex = (positionIndex + 2) * segmentSpacing;
+                    let nextPos;
+                    if (nextPathIndex < snakePath.length) {
+                        nextPos = snakePath[nextPathIndex];
+                    } else {
+                        nextPos = snakePath[snakePath.length - 1] || snake[0];
+                    }
+                    const dx = nextPos.x - segmentPos.x;
+                    const dy = nextPos.y - segmentPos.y;
+                    segAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+                }
+                
+                seg.style.transform = `rotate(${segAngle}deg)`;
+            });
+        }
+
+        function checkLetterCollisions() {
+            if (!canInteract) return;
+            
+            const head = snake[0];
+            const headRadius = 30;
+            const letterRadius = 30;
+            
+            letters.forEach((letterObj, index) => {
+                if (letterObj.element.classList.contains('eaten') || 
+                    letterObj.element.classList.contains('barfed')) {
+                    return;
+                }
+                
+                const distance = Math.sqrt(
+                    Math.pow(head.x - letterObj.x, 2) + 
+                    Math.pow(head.y - letterObj.y, 2)
+                );
+                
+                if (distance < headRadius + letterRadius) {
+                    handleLetterCollision(letterObj, index);
+                }
+            });
+        }
+
+        function handleLetterCollision(letterObj, index) {
+            if (!canInteract) return;
+            
+            const letter = letterObj.letter;
+            const word = currentWord.word.toLowerCase();
+            const expectedLetter = word[collectedLetters.length];
+            
+            if (letter === expectedLetter) {
+                // Correct letter! Eat it
+                letterObj.element.classList.add('eaten');
+                createParticles(letterObj.element, '#4CAF50');
+                showFeedback('✓', 'correct');
+                
+                // Add letter to front (next to head) - unshift adds to beginning
+                // This way newest letter is at index 0, which will be closest to head
+                collectedLetters.unshift(letter);
+                updateSnakeBody();
+                
+                setTimeout(() => {
+                    letterObj.element.remove();
+                    letters.splice(index, 1);
+                    
+                    // Check if word is complete
+                    // collectedLetters uses unshift, so it's in reverse order: [newest, ..., oldest]
+                    // collectedLetters = [T, A, C] if we collect C, A, T
+                    // We need to reverse it to check against the word
+                    if (collectedLetters.length === word.length) {
+                        // Reverse to get the correct order for comparison
+                        const collectedWord = [...collectedLetters].reverse().join('');
+                        if (collectedWord === word) {
+                            canInteract = false;
+                            correctCount++;
+                            score++;
+                            questionsCompleted++;
+                            updateScore();
+                            
+                            showFeedback('🎉', 'correct');
+                            
+                            // Start celebration animation
+                            startCelebrationAnimation(word);
+                        }
+                    }
+                }, 400);
+            } else {
+                // Wrong letter! Barf it
+                letterObj.element.classList.add('barfed');
+                createParticles(letterObj.element, '#F44336');
+                showFeedback('✗', 'incorrect');
+                incorrectCount++;
+                
+                setTimeout(() => {
+                    letterObj.element.classList.remove('barfed');
+                }, 800);
+            }
+        }
+
+        function createParticles(element, color) {
+            const rect = element.getBoundingClientRect();
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2 - gameAreaRect.left;
+            const centerY = rect.top + rect.height / 2 - gameAreaRect.top;
+            
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.background = color;
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                
+                const angle = (Math.PI * 2 * i) / 8;
+                const distance = 30 + Math.random() * 20;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                
+                gameArea.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 600);
+            }
+        }
+
+        function showFeedback(text, type) {
+            const feedback = document.createElement('div');
+            feedback.className = `feedback ${type}`;
+            feedback.textContent = text;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => feedback.remove(), 1000);
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('totalWords').textContent = totalWords;
+        }
+        
+        function startCelebrationAnimation(word) {
+            isCelebrating = true;
+            celebrationProgress = 0;
+            
+            // Stop normal game updates
+            canInteract = false;
+            
+            // Position snake at left side, middle of screen
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const middleY = gameAreaRect.height / 2;
+            const startX = -60; // Start off-screen left
+            const endX = gameAreaRect.width + 60; // End off-screen right
+            
+            // Reset snake position for celebration
+            snake = [{ x: startX, y: middleY }];
+            snakePath = [];
+            for (let i = 0; i < 100; i++) {
+                snakePath.push({ x: startX, y: middleY });
+            }
+            
+            // Update snake head position
+            const headElement = document.getElementById('snakeHead');
+            if (headElement) {
+                headElement.style.left = (snake[0].x - 30) + 'px';
+                headElement.style.top = (snake[0].y - 25) + 'px';
+                headElement.style.transform = 'rotate(0deg)'; // Point right
+            }
+            
+            // Update body to show complete word
+            updateSnakeBody();
+            
+            // Animation duration (9 seconds - slower to see spacing)
+            const duration = 9000;
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                celebrationProgress = Math.min(elapsed / duration, 1);
+                
+                // Ease in-out function for smooth animation
+                const eased = celebrationProgress < 0.5 
+                    ? 2 * celebrationProgress * celebrationProgress 
+                    : 1 - Math.pow(-2 * celebrationProgress + 2, 2) / 2;
+                
+                // Move snake from left to right
+                const currentX = startX + (endX - startX) * eased;
+                snake[0] = { x: currentX, y: middleY };
+                
+                // Update path - add more points for smoother snake body
+                snakePath.unshift({ x: currentX, y: middleY });
+                // Keep enough path points for all body segments
+                const maxPathLength = (word.length + 1) * segmentSpacing + 50;
+                if (snakePath.length > maxPathLength) {
+                    snakePath = snakePath.slice(0, maxPathLength);
+                }
+                
+                // Update visual positions
+                if (headElement) {
+                    headElement.style.left = (snake[0].x - 30) + 'px';
+                    headElement.style.top = (snake[0].y - 25) + 'px';
+                    headElement.style.transform = 'rotate(0deg)'; // Point right
+                }
+                
+                // Update body positions with proper spacing and no rotation
+                updateCelebrationBodyPositions();
+                
+                if (celebrationProgress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Animation complete - snake has moved all the way across
+                    // Update positions one final time with even spacing
+                    updateCelebrationBodyPositions();
+                    
+                    // Keep the snake displayed and show next button
+                    isCelebrating = false;
+                    
+                    // Show next button so kid can click for next word
+                    if (questionsCompleted >= maxQuestions) {
+                        setTimeout(() => endGame(), 1000);
+                    } else {
+                        document.getElementById('nextButton').style.display = 'block';
+                    }
+                }
+            }
+            
+            animate();
+        }
+        
+        function updateCelebrationAnimation() {
+            // This is handled by the animate function in startCelebrationAnimation
+            // But we need this placeholder for the updateGame check
+        }
+        
+        function updateCelebrationBodyPositions() {
+            const bodySegments = document.querySelectorAll('.snake-body');
+            const segmentSize = 45;
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const middleY = gameAreaRect.height / 2;
+            
+            // If animation is complete (!isCelebrating), space evenly
+            if (!isCelebrating && celebrationProgress >= 1) {
+                // Calculate even spacing for all letters
+                const headX = snake[0].x;
+                const spacing = 50; // Space between segments
+                
+                // Position segments evenly from head going left
+                // bodySegments[0] = first letter (closest to head)
+                // bodySegments[last] = last letter (furthest from head)
+                bodySegments.forEach((seg, index) => {
+                    // Each segment is spaced to the left of the head
+                    const x = headX - (index + 1) * spacing;
+                    const y = middleY;
+                    
+                    seg.style.left = (x - segmentSize / 2) + 'px';
+                    seg.style.top = (y - segmentSize / 2) + 'px';
+                    seg.style.transform = 'rotate(0deg)';
+                });
+            } else {
+                // During animation, use path-based positioning
+                // For celebration, we want letters in order from head to tail, all pointing right
+                // collectedLetters = [T, A, C] (newest first, so T is at index 0)
+                // displayOrder = [C, A, T] (reversed for display)
+                // bodySegments[0] = C (first letter), bodySegments[last] = T (last letter)
+                
+                bodySegments.forEach((seg, index) => {
+                    // Calculate position - each segment follows the one before it
+                    // Index 0 (first letter C) should be closest to head
+                    // Last index (last letter T) should be at tail
+                    const positionIndex = bodySegments.length - 1 - index;
+                    const pathIndex = (positionIndex + 1) * segmentSpacing;
+                    
+                    let segmentPos;
+                    if (pathIndex < snakePath.length) {
+                        segmentPos = snakePath[pathIndex];
+                    } else {
+                        // Fallback to last position if path isn't long enough yet
+                        segmentPos = snakePath[snakePath.length - 1] || snake[0];
+                    }
+                    
+                    seg.style.left = (segmentPos.x - segmentSize / 2) + 'px';
+                    seg.style.top = (segmentPos.y - segmentSize / 2) + 'px';
+                    
+                    // All segments point right (0 degrees) for celebration
+                    seg.style.transform = 'rotate(0deg)';
+                });
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+        }
+
+        function endGame() {
+            canInteract = false;
+            isPaused = true;
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+            }
+            
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalMax').textContent = totalWords;
+            
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            nextWord();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Adjust snake position if needed
+            if (snake.length > 0) {
+                const gameAreaRect = gameArea.getBoundingClientRect();
+                const headSize = 50;
+                snake[0].x = Math.max(headSize / 2, Math.min(gameAreaRect.width - headSize / 2, snake[0].x));
+                snake[0].y = Math.max(headSize / 2, Math.min(gameAreaRect.height - headSize / 2, snake[0].y));
+            }
+        });
+
+        // Start game when page loads
+        window.addEventListener('load', () => {
+            const jsonUrl = getGameConfig();
+            loadWords(jsonUrl);
+        });
+    </script>
+</body>
+</html>
+

@@ -64,6 +64,21 @@
           "webGame": true
         },
         {
+          "title": "Math Hole",
+          "launch": "mathHole",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=hard",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Snake Catch",
+          "launch": "snakeCatch",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
