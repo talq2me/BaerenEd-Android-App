@@ -22,7 +22,14 @@
       "title": "Required Tasks",
       "description": "Complete all of these first!",
       "tasks": [
-       
+        {
+          "title": "Duological",
+          "launch": "duologicalGame",
+          "stars": 3,
+          "totalQuestions": 5,
+          "blockOutlines": true,
+          "displayDays": "fri"
+        },
         {
           "title": "Translation",
           "launch": "translation",
@@ -56,6 +63,21 @@
           "webGame": true
         },
         {
+          "title": "Math Hole",
+          "launch": "mathHole",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=hard",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Snake Catch",
+          "launch": "snakeCatch",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
@@ -80,6 +102,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Dec 26, 2025",
           "easydays": "tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun,mon"
@@ -156,6 +179,7 @@
           "stars": 3,
           "chromePage": true,
           "displayDays": "tue,sat"
+<<<<<<< HEAD
         },
         {
           "title": "Google Classroom",
@@ -189,7 +213,7 @@
           "title": "Je Lis",
           "launch": "jeLis",
           "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
-          "stars": 3,
+          "stars": 1,
           "chromePage": true
         },
         {
@@ -203,42 +227,42 @@
           "title": "Word Garden",
           "launch": "wordGarden",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Word Fishing",
           "launch": "wordFishing",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Spelling Race",
           "launch": "spellingRace",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Potion Maker",
           "launch": "potionMaker",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/potionMaker.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Character Trait Hunter",
           "launch": "characterTraitHunter",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/characterTraitHunter.html?file=characterTraits.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "What Happens Next?",
           "launch": "whatHappensNext",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/whatHappensNext.html?file=whatHappensNext.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
@@ -259,21 +283,21 @@
           "title": "Word Building Blocks",
           "launch": "wordBuildingBlocks",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordBuildingBlocks.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Word Puzzle Adventure",
           "launch": "wordPuzzleAdventure",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordPuzzleAdventure.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Word Factory",
           "launch": "wordFactory",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsGr4.json",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
@@ -285,76 +309,76 @@
         {
           "title": "Duological",
           "launch": "duologicalGame",
-          "stars": 2,
+          "stars": 1,
           "totalQuestions": 5,
           "blockOutlines": true
         },
         {
           "title": "Translation",
           "launch": "translation",
-          "stars": 2,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "French Stories",
           "launch": "frenchStories",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "Congugation",
           "launch": "conjugation",
-          "stars": 2,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "Fractions",
           "launch": "gr3fractions",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "Math",
           "launch": "gr3math",
-          "stars": 2,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "Mixed Math",
           "launch": "gr3mixedproblems",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "Math Word Problems",
           "launch": "gr3wordproblems",
-          "stars": 3,
+          "stars": 1,
           "totalQuestions": 3
         },
         {
           "title": "Algebra",
           "launch": "gr3algebra",
-          "stars": 2,
+          "stars": 1,
           "totalQuestions": 5
         },
         {
           "title": "Times Tables",
           "launch": "timesTables",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=9",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
-          "stars": 3,
+          "stars": 1,
           "webGame": true
         },
         {
           "title": "Money Game",
           "launch": "canadianMoneyHard",
-          "stars": 2,
+          "stars": 1,
           "totalQuestions": 5
         },
         {

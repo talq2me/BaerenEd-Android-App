@@ -41,8 +41,7 @@
           "webGame": true,
           "disable": "Jan 2, 2026",
           "easydays": "mon,tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun"
+          "harddays": "thu,fri,sat,sun"
         },
         {
           "title": "Fr Spelling",
@@ -52,8 +51,7 @@
           "webGame": true,
           "disable": "Jan 2, 2026",
           "easydays": "mon,tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun"
+          "harddays": "thu,fri,sat,sun"
         },
         {
           "title": "French Vowels",
@@ -124,6 +122,21 @@
           "webGame": true
         },
         {
+          "title": "Math Hole",
+          "launch": "mathHole",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Snake Catch",
+          "launch": "snakeCatch",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
           "title": "Word Fishing",
           "launch": "wordFishing",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
@@ -163,6 +176,7 @@
           "videoSequence": "sequential"
         },
         {
+<<<<<<< HEAD
           "title": "Google Classroom",
           "launch": "googleClassroom",
           "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
@@ -215,6 +229,21 @@
           "totalQuestions": 1
         },
         {
+          "title": "Number Line Math",
+          "launch": "numberLineMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+          "stars": 3,
+          "webGame": true
+        },
+        
+        {
+          "title": "Ten Frame Math",
+          "launch": "tenFrameMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
           "title": "Sk Spellings",
           "launch": "skSpelling",
           "stars": 1,
@@ -259,6 +288,14 @@
           "stars": 1,
           "totalQuestions": 1,
           "blockOutlines": true
+        },
+        {
+          "title": "Google Classroom",
+          "launch": "googleClassroom",
+          "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
+          "stars": 3,
+          "chromePage": true,
+          "displayDays": "tue,fri"
         }
       ]
     },
