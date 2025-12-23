@@ -83,10 +83,27 @@ class ContentUpdateService : Service() {
 
     fun getCachedMainContent(context: Context): String? {
         return try {
+            // First try to read from the same location fetchMainContent saves to (cacheDir with profile-specific filename)
+            val url = getContentUrlForChild(context)
+            val cacheFileName = url.substring(url.lastIndexOf('/') + 1) // e.g., "AM_config.json"
+            val cacheFile = File(context.cacheDir, cacheFileName)
+            
+            if (cacheFile.exists()) {
+                val content = cacheFile.readText()
+                Log.d(TAG, "getCachedMainContent: Found content in cacheDir: ${cacheFile.name} (length=${content.length})")
+                return content
+            }
+            
+            // Fallback to filesDir/main_content.json (for backwards compatibility)
             val file = File(context.filesDir, "main_content.json")
             if (file.exists()) {
-                file.readText()
-            } else null
+                val content = file.readText()
+                Log.d(TAG, "getCachedMainContent: Found content in filesDir: main_content.json (length=${content.length})")
+                return content
+            }
+            
+            Log.w(TAG, "getCachedMainContent: No cached content found in cacheDir or filesDir")
+            null
         } catch (e: Exception) {
             Log.e(TAG, "Error reading cached main content", e)
             null
@@ -153,7 +170,7 @@ class ContentUpdateService : Service() {
             }
         } catch (e: IOException) {
             Log.e(TAG, "Could not find or read game asset file: data/$gameFileName", e)
-            return null // Final failure
+            return null // Final failure - no hardcoded defaults
         }
     }
 

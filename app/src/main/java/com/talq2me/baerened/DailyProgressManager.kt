@@ -54,6 +54,8 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_LAST_POKEMON_UNLOCK_DATE = "last_pokemon_unlock_date"
         private const val KEY_ADMIN_PIN = "admin_pin"
         private const val DEFAULT_ADMIN_PIN = "1981" // Default PIN for first-time setup
+        private const val KEY_BERRIES_SPENT = "berries_spent" // Berries spent on battle
+        private const val KEY_EARNED_STARS_AT_BATTLE_END = "earned_stars_at_battle_end" // Track earned stars when battle ended
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -90,6 +92,8 @@ class DailyProgressManager(private val context: Context) {
             .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(emptyMap<String, String>()))
             .putString(KEY_LAST_RESET_DATE, currentDate)
             .putInt("banked_reward_minutes", 0) // Reset reward bank for new day
+            .putInt(KEY_BERRIES_SPENT, 0) // Reset spent berries for new day
+            .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0) // Reset battle end tracking for new day
             .apply()
 
         // Also reset video sequence progress for new day
@@ -504,10 +508,14 @@ class DailyProgressManager(private val context: Context) {
                 section.tasks?.forEach { task ->
                     val taskId = task.launch ?: "unknown_task"
                     val stars = task.stars ?: 0
+                    val isCompleted = completedTasks[taskId] == true
 
-                    if (completedTasks[taskId] == true && stars > 0) {
+                    Log.d("DailyProgressManager", "getCurrentProgressWithCoinsAndStars: taskId=$taskId, stars=$stars, isCompleted=$isCompleted, completedTasks keys=${completedTasks.keys}")
+
+                    if (isCompleted && stars > 0) {
                         earnedStars += stars
                         earnedCoins += stars // Required tasks award coins equal to their stars
+                        Log.d("DailyProgressManager", "Added to progress: taskId=$taskId, stars=$stars, total earnedStars=$earnedStars, total earnedCoins=$earnedCoins")
                     }
                 }
             }
@@ -525,7 +533,12 @@ class DailyProgressManager(private val context: Context) {
         }
 
         val (totalCoins, totalStars) = calculateTotalsFromConfig(config)
-        return Pair(Pair(earnedCoins, totalCoins), Pair(earnedStars, totalStars))
+        
+        // Subtract spent berries (berries used in battle)
+        val spentBerries = getSpentBerries()
+        val displayEarnedStars = (earnedStars - spentBerries).coerceAtLeast(0)
+        
+        return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
     }
 
     /**
@@ -544,8 +557,12 @@ class DailyProgressManager(private val context: Context) {
         // This is approximate - in a real implementation, we'd need to track star values per task
         // For now, just count completed tasks as 1 star each
         completedTasks.values.forEach { if (it) earnedStars += 1 }
+        
+        // Subtract spent berries (berries used in battle)
+        val spentBerries = getSpentBerries()
+        val displayEarnedStars = (earnedStars - spentBerries).coerceAtLeast(0)
 
-        return Pair(Pair(earnedCoins, totalCoins), Pair(earnedStars, totalStars))
+        return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
     }
 
     /**
@@ -567,6 +584,206 @@ class DailyProgressManager(private val context: Context) {
      */
     fun getLastResetDate(): String {
         return prefs.getString(KEY_LAST_RESET_DATE, "Never") ?: "Never"
+    }
+
+    /**
+     * Battle Berry Management - tracks berries spent on battles
+     */
+    
+    /**
+     * Gets the number of berries spent on battle (persists across screens)
+     */
+    fun getSpentBerries(): Int {
+        return prefs.getInt(KEY_BERRIES_SPENT, 0)
+    }
+    
+    /**
+     * Sets the number of berries spent on battle
+     */
+    fun setSpentBerries(amount: Int) {
+        prefs.edit().putInt(KEY_BERRIES_SPENT, amount).apply()
+    }
+    
+    /**
+     * Gets the earned stars count when battle ended (to detect new task completions)
+     */
+    fun getEarnedStarsAtBattleEnd(): Int {
+        return prefs.getInt(KEY_EARNED_STARS_AT_BATTLE_END, 0)
+    }
+    
+    /**
+     * Sets the earned stars count when battle ended
+     */
+    fun setEarnedStarsAtBattleEnd(amount: Int) {
+        prefs.edit().putInt(KEY_EARNED_STARS_AT_BATTLE_END, amount).apply()
+    }
+    
+    /**
+     * Resets spent berries (called when new required tasks are completed)
+     */
+    fun resetSpentBerries() {
+        prefs.edit().putInt(KEY_BERRIES_SPENT, 0).putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0).apply()
+    }
+    
+    /**
+     * Gets earned stars WITHOUT subtracting spent berries (for internal calculations)
+     * This is used when we need to know the actual earned stars before battle spending
+     */
+    fun getEarnedStarsWithoutSpentBerries(config: MainContent): Int {
+        val completedTasks = getCompletedTasks()
+        var earnedStars = 0
+
+        val visibleContent = filterVisibleContent(config)
+
+        visibleContent.sections?.forEach { section ->
+            // Only count required section tasks for progress
+            if (section.id == "required") {
+                section.tasks?.forEach { task ->
+                    val taskId = task.launch ?: "unknown_task"
+                    val stars = task.stars ?: 0
+
+                    if (completedTasks[taskId] == true && stars > 0) {
+                        earnedStars += stars
+                    }
+                }
+            }
+
+            section.items?.forEach { item ->
+                val itemId = item.id ?: "checkbox_${item.label}"
+                val stars = item.stars ?: 0
+
+                if (completedTasks[itemId] == true && stars > 0) {
+                    earnedStars += stars
+                }
+            }
+        }
+
+        return earnedStars
+    }
+
+    /**
+     * Gets ALL earned stars including both required and optional tasks (for berry display)
+     * This counts stars from all completed tasks regardless of section
+     */
+    fun getAllEarnedStars(config: MainContent): Int {
+        val completedTasks = getCompletedTasks()
+        var earnedStars = 0
+
+        val visibleContent = filterVisibleContent(config)
+
+        visibleContent.sections?.forEach { section ->
+            // Count stars from ALL sections (required, optional, bonus)
+            section.tasks?.forEach { task ->
+                val baseTaskId = task.launch ?: "unknown_task"
+                val stars = task.stars ?: 0
+                
+                // For optional/bonus tasks, use unique task ID with section prefix
+                // For required tasks, use base taskId
+                val taskIdToCheck = if (section.id == "required") {
+                    baseTaskId
+                } else {
+                    getUniqueTaskId(baseTaskId, section.id)
+                }
+                
+                // Special handling for diagramLabeler to use the diagram parameter in the unique ID
+                var finalTaskId = taskIdToCheck
+                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                    // Extract diagram parameter from URL if present
+                    val url = task.url
+                    if (url.contains("diagram=")) {
+                        val diagramParam = url.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                        if (diagramParam.isNotEmpty()) {
+                            finalTaskId = if (section.id == "required") {
+                                "${baseTaskId}_$diagramParam"
+                            } else {
+                                "${section.id}_${baseTaskId}_$diagramParam"
+                            }
+                        }
+                    }
+                }
+                
+                // Check if task is completed using the appropriate ID
+                if (completedTasks[finalTaskId] == true && stars > 0) {
+                    earnedStars += stars
+                }
+            }
+
+            // Count checklist items from all sections
+            section.items?.forEach { item ->
+                val itemId = item.id ?: "checkbox_${item.label}"
+                val stars = item.stars ?: 0
+
+                if (completedTasks[itemId] == true && stars > 0) {
+                    earnedStars += stars
+                }
+            }
+        }
+
+        // Subtract spent berries (berries used in battle)
+        val spentBerries = getSpentBerries()
+        return (earnedStars - spentBerries).coerceAtLeast(0)
+    }
+    
+    /**
+     * Gets ALL earned stars including both required and optional tasks WITHOUT subtracting spent berries
+     * This is used to get the baseline total when a battle ends
+     */
+    fun getAllEarnedStarsWithoutSpentBerries(config: MainContent): Int {
+        val completedTasks = getCompletedTasks()
+        var earnedStars = 0
+
+        val visibleContent = filterVisibleContent(config)
+
+        visibleContent.sections?.forEach { section ->
+            // Count stars from ALL sections (required, optional, bonus)
+            section.tasks?.forEach { task ->
+                val baseTaskId = task.launch ?: "unknown_task"
+                val stars = task.stars ?: 0
+                
+                // For optional/bonus tasks, use unique task ID with section prefix
+                // For required tasks, use base taskId
+                val taskIdToCheck = if (section.id == "required") {
+                    baseTaskId
+                } else {
+                    getUniqueTaskId(baseTaskId, section.id)
+                }
+                
+                // Special handling for diagramLabeler to use the diagram parameter in the unique ID
+                var finalTaskId = taskIdToCheck
+                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                    // Extract diagram parameter from URL if present
+                    val url = task.url
+                    if (url.contains("diagram=")) {
+                        val diagramParam = url.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                        if (diagramParam.isNotEmpty()) {
+                            finalTaskId = if (section.id == "required") {
+                                "${baseTaskId}_$diagramParam"
+                            } else {
+                                "${section.id}_${baseTaskId}_$diagramParam"
+                            }
+                        }
+                    }
+                }
+                
+                // Check if task is completed using the appropriate ID
+                if (completedTasks[finalTaskId] == true && stars > 0) {
+                    earnedStars += stars
+                }
+            }
+
+            // Count checklist items from all sections
+            section.items?.forEach { item ->
+                val itemId = item.id ?: "checkbox_${item.label}"
+                val stars = item.stars ?: 0
+
+                if (completedTasks[itemId] == true && stars > 0) {
+                    earnedStars += stars
+                }
+            }
+        }
+
+        // DON'T subtract spent berries - return total earned stars
+        return earnedStars
     }
 
     /**

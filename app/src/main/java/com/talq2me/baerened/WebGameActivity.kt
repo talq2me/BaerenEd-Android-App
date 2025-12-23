@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -74,6 +75,17 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         ws.javaScriptEnabled = true
         ws.domStorageEnabled = true
         ws.mediaPlaybackRequiresUserGesture = false
+        ws.allowFileAccess = true
+        ws.allowContentAccess = true
+        ws.allowFileAccessFromFileURLs = true
+        ws.allowUniversalAccessFromFileURLs = true
+        ws.loadWithOverviewMode = true
+        ws.useWideViewPort = true
+        ws.setSupportZoom(false)
+        ws.builtInZoomControls = false
+        ws.displayZoomControls = false
+        // Enable hardware acceleration for better performance
+        webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
@@ -105,6 +117,31 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         tts = TextToSpeech(this, this)
+        
+        // Set up TTS utterance progress listener to notify JavaScript when TTS finishes
+        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                // TTS started
+            }
+            
+            override fun onDone(utteranceId: String?) {
+                // TTS finished - notify JavaScript if there's a callback registered
+                runOnUiThread {
+                    if (utteranceId != null && utteranceId.startsWith("tts_callback_")) {
+                        webView.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
+                    }
+                }
+            }
+            
+            override fun onError(utteranceId: String?) {
+                // TTS error - still notify JavaScript so it doesn't wait forever
+                runOnUiThread {
+                    if (utteranceId != null && utteranceId.startsWith("tts_callback_")) {
+                        webView.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
+                    }
+                }
+            }
+        })
 
         if (!gameUrl.isNullOrEmpty()) {
             android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
@@ -164,7 +201,12 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         fun readText(text: String, lang: String) {
             val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
             tts.language = locale
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+            // Use a unique utterance ID so we can track when this specific TTS call finishes
+            val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
+            // Use a bundle to pass the utterance ID (required for UtteranceProgressListener)
+            val params = android.os.Bundle()
+            params.putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
         }
 
         @JavascriptInterface

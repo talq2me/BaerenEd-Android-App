@@ -789,6 +789,15 @@
                 <button class="action-button berry-button" id="earnBerriesButton" onclick="navigateToTrainingMap()">
                     🍍 Earn Berries 🍍
                 </button>
+                <button class="action-button berry-button" id="earnExtraBerriesButton" onclick="navigateToOptionalTrainingMap()" style="margin-top: 10px;">
+                    🍍 Earn Extra Berries 🍍
+                </button>
+                <button class="action-button berry-button" id="nativeBattleHubButton" onclick="navigateToNativeBattleHub()" style="margin-top: 10px;">
+                    BH
+                </button>
+                <button class="action-button berry-button" id="testBerriesButton" onclick="grantTestBerries()" style="margin-top: 10px;">
+                    🧪 +50 Berries & Coins (Test)
+                </button>
             </div>
         </div>
     </div>
@@ -1843,6 +1852,48 @@
             } else {
                 // Browser fallback: show games list inline
                 showGamesList();
+            }
+        }
+        
+        // Navigate to optional training map screen
+        function navigateToOptionalTrainingMap() {
+            if (isAndroidWebView() && typeof Android.navigateToOptionalTrainingMap === 'function') {
+                Android.navigateToOptionalTrainingMap();
+            } else {
+                // Browser fallback: show games list inline
+                showGamesList();
+            }
+        }
+        
+        // Navigate to native Android battle hub
+        function navigateToNativeBattleHub() {
+            if (isAndroidWebView() && typeof Android.navigateToNativeBattleHub === 'function') {
+                Android.navigateToNativeBattleHub();
+            } else {
+                alert('Native battle hub is only available in Android app');
+            }
+        }
+        
+        // Test function to grant berries
+        function grantTestBerries() {
+            console.log('grantTestBerries called');
+            if (isAndroidWebView() && typeof Android !== 'undefined' && typeof Android.grantTestBerries === 'function') {
+                try {
+                    console.log('Calling Android.grantTestBerries(50)');
+                    Android.grantTestBerries(50);
+                    // Refresh berry meter after granting (give it time to process)
+                    setTimeout(() => {
+                        console.log('Refreshing berry meter after test grant');
+                        updateBerryMeter();
+                        updateBattleButton();
+                    }, 1000);
+                } catch (e) {
+                    console.error('Error granting test berries:', e);
+                    alert('Error granting test berries: ' + e.message);
+                }
+            } else {
+                console.log('Test berries not available - isAndroidWebView:', isAndroidWebView(), 'Android:', typeof Android, 'grantTestBerries:', typeof Android?.grantTestBerries);
+                alert('Test berries only available in Android app');
             }
         }
 

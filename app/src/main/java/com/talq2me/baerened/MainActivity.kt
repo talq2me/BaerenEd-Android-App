@@ -975,6 +975,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         restorePendingReadAlongStateIfNeeded()
         handleReadAlongReturnIfNeeded()
         
+        // Check if battle hub requested to show training map
+        val battleHubPrefs = getSharedPreferences("battle_hub_prefs", Context.MODE_PRIVATE)
+        val showTrainingMap = battleHubPrefs.getBoolean("showTrainingMap", false)
+        val showOptionalTrainingMap = battleHubPrefs.getBoolean("showOptionalTrainingMap", false)
+        val showBonusTrainingMap = battleHubPrefs.getBoolean("showBonusTrainingMap", false)
+        
         // Don't trigger reward launch here when email is in flight - wait for ActivityResult callback
         // Only check for other pending rewards if email is not in flight
         if (!rewardEmailInFlight) {
@@ -985,8 +991,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         
         layout.refreshProgressDisplay()
         layout.refreshHeaderButtons()
-        currentMainContent?.let { content ->
-            layout.displayContent(content)
+        
+        // Show training map if requested, otherwise show normal content
+        if (showTrainingMap) {
+            battleHubPrefs.edit().remove("showTrainingMap").apply()
+            Log.d(TAG, "Showing training map from battle hub")
+            layout.showTrainingMap()
+        } else if (showOptionalTrainingMap) {
+            battleHubPrefs.edit().remove("showOptionalTrainingMap").apply()
+            Log.d(TAG, "Showing optional training map from battle hub")
+            layout.showOptionalTrainingMap()
+        } else if (showBonusTrainingMap) {
+            battleHubPrefs.edit().remove("showBonusTrainingMap").apply()
+            Log.d(TAG, "Showing bonus training map from battle hub")
+            layout.showBonusTrainingMap()
+        } else {
+            currentMainContent?.let { content ->
+                layout.displayContent(content)
+            }
         }
     }
 

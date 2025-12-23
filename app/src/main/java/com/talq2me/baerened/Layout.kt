@@ -6,6 +6,7 @@ import android.content.res.Resources
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
@@ -169,7 +170,7 @@ class Layout(private val activity: MainActivity) {
         }
         
         // Add cloud storage toggle button
-        addCloudToggleButton()
+        // addCloudToggleButton() // Commented out - CloudStorageManager not available
     }
 
     private fun setupDefaultHeaderButtons() {
@@ -204,9 +205,11 @@ class Layout(private val activity: MainActivity) {
         }
         
         // Add cloud storage toggle button
-        addCloudToggleButton()
+        // addCloudToggleButton() // Commented out - CloudStorageManager not available
     }
     
+    // Commented out - CloudStorageManager class not available
+    /*
     private fun addCloudToggleButton() {
         val cloudStorageManager = CloudStorageManager(activity)
         val isCloudEnabled = cloudStorageManager.isCloudStorageEnabled()
@@ -233,6 +236,7 @@ class Layout(private val activity: MainActivity) {
         }
         headerLayout.addView(cloudButton)
     }
+    */
 
     private fun addMyPokedexButton() {
         val pokedexButton = android.widget.Button(activity).apply {
@@ -998,12 +1002,49 @@ class Layout(private val activity: MainActivity) {
             else if (task.webGame == true && !task.url.isNullOrEmpty()) {
                 android.util.Log.d("Layout", "Handling web game task from battle hub: ${task.title}, URL: ${task.url}")
                 val taskLaunchId = task.launch ?: "unknown"
+                
+                // For diagramLabeler and similar games with URL parameters, make taskId unique
+                // Extract diagram parameter from URL if present (e.g., ?diagram=digestiveSystem)
+                var uniqueTaskId = taskLaunchId
+                val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                if (taskLaunchId == "diagramLabeler" && gameUrl.contains("diagram=")) {
+                    val diagramParam = gameUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                    if (diagramParam.isNotEmpty()) {
+                        uniqueTaskId = "${taskLaunchId}_$diagramParam"
+                        android.util.Log.d("Layout", "Made diagramLabeler taskId unique: $uniqueTaskId (diagram: $diagramParam)")
+                    }
+                }
+                
                 val intent = android.content.Intent(activity, WebGameActivity::class.java).apply {
-                    var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
-                    // Use GitHub URL directly instead of converting to local assets
-                    android.util.Log.d("Layout", "Using GitHub URL: $gameUrl")
-                    putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
-                    putExtra(WebGameActivity.EXTRA_TASK_ID, taskLaunchId)
+                    var finalGameUrl = gameUrl
+                    // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
+                    if (finalGameUrl.contains("talq2me.github.io") && finalGameUrl.contains("/html/")) {
+                        val uri = android.net.Uri.parse(finalGameUrl)
+                        val fileName = finalGameUrl.substringAfterLast("/").substringBefore("?")
+                        
+                        // Check if file exists in assets first
+                        try {
+                            val assetManager = activity.assets
+                            val assetPath = "html/$fileName"
+                            val inputStream = assetManager.open(assetPath)
+                            inputStream.close()
+                            
+                            // File exists in assets, convert to local asset URL
+                            val queryParams = uri.query
+                            finalGameUrl = if (queryParams != null) {
+                                "file:///android_asset/html/$fileName?$queryParams"
+                            } else {
+                                "file:///android_asset/html/$fileName"
+                            }
+                            android.util.Log.d("Layout", "Converted to local asset URL: $finalGameUrl (file exists)")
+                        } catch (e: java.io.IOException) {
+                            // File doesn't exist in assets, keep GitHub Pages URL
+                            android.util.Log.d("Layout", "File not in assets, using GitHub Pages URL: $finalGameUrl")
+                            // Keep the original GitHub URL - don't convert it
+                        }
+                    }
+                    putExtra(WebGameActivity.EXTRA_GAME_URL, finalGameUrl)
+                    putExtra(WebGameActivity.EXTRA_TASK_ID, uniqueTaskId)  // Use unique taskId with diagram parameter
                     putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)
                     putExtra(WebGameActivity.EXTRA_STARS, task.stars ?: 0)
                     putExtra(WebGameActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
@@ -1536,8 +1577,32 @@ class Layout(private val activity: MainActivity) {
                         val taskLaunchId = task.launch ?: "unknown"
                         val intent = Intent(activity, WebGameActivity::class.java).apply {
                             var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
-                            // Use GitHub URL directly instead of converting to local assets
-                            android.util.Log.d("Layout", "Using GitHub URL: $gameUrl")
+                            // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
+                            if (gameUrl.contains("talq2me.github.io") && gameUrl.contains("/html/")) {
+                                val uri = android.net.Uri.parse(gameUrl)
+                                val fileName = gameUrl.substringAfterLast("/").substringBefore("?")
+                                
+                                // Check if file exists in assets first
+                                try {
+                                    val assetManager = activity.assets
+                                    val assetPath = "html/$fileName"
+                                    val inputStream = assetManager.open(assetPath)
+                                    inputStream.close()
+                                    
+                                    // File exists in assets, convert to local asset URL
+                                    val queryParams = uri.query
+                                    gameUrl = if (queryParams != null) {
+                                        "file:///android_asset/html/$fileName?$queryParams"
+                                    } else {
+                                        "file:///android_asset/html/$fileName"
+                                    }
+                                    android.util.Log.d("Layout", "Converted to local asset URL: $gameUrl (file exists)")
+                                } catch (e: java.io.IOException) {
+                                    // File doesn't exist in assets, keep GitHub Pages URL
+                                    android.util.Log.d("Layout", "File not in assets, using GitHub Pages URL: $gameUrl")
+                                    // Keep the original GitHub URL - don't convert it
+                                }
+                            }
                             putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
                             putExtra(WebGameActivity.EXTRA_TASK_ID, taskLaunchId)  // Use launch ID instead of rewardId
                             putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)  // Pass section ID
@@ -1758,12 +1823,49 @@ class Layout(private val activity: MainActivity) {
         else if (task.webGame == true && !task.url.isNullOrEmpty()) {
             android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
             val taskLaunchId = task.launch ?: "unknown"
+            
+            // For diagramLabeler and similar games with URL parameters, make taskId unique
+            // Extract diagram parameter from URL if present (e.g., ?diagram=digestiveSystem)
+            var uniqueTaskId = taskLaunchId
+            val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+            if (taskLaunchId == "diagramLabeler" && gameUrl.contains("diagram=")) {
+                val diagramParam = gameUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                if (diagramParam.isNotEmpty()) {
+                    uniqueTaskId = "${taskLaunchId}_$diagramParam"
+                    android.util.Log.d("Layout", "Made diagramLabeler taskId unique: $uniqueTaskId (diagram: $diagramParam)")
+                }
+            }
+            
             val intent = android.content.Intent(activity, WebGameActivity::class.java).apply {
-                var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
-                // Use GitHub URL directly instead of converting to local assets
-                android.util.Log.d("Layout", "Using GitHub URL: $gameUrl")
-                putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
-                putExtra(WebGameActivity.EXTRA_TASK_ID, sourceTaskId ?: taskLaunchId)
+                var finalGameUrl = gameUrl
+                // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
+                if (finalGameUrl.contains("talq2me.github.io") && finalGameUrl.contains("/html/")) {
+                    val uri = android.net.Uri.parse(finalGameUrl)
+                    val fileName = finalGameUrl.substringAfterLast("/").substringBefore("?")
+                    
+                    // Check if file exists in assets first
+                    try {
+                        val assetManager = activity.assets
+                        val assetPath = "html/$fileName"
+                        val inputStream = assetManager.open(assetPath)
+                        inputStream.close()
+                        
+                        // File exists in assets, convert to local asset URL
+                        val queryParams = uri.query
+                        finalGameUrl = if (queryParams != null) {
+                            "file:///android_asset/html/$fileName?$queryParams"
+                        } else {
+                            "file:///android_asset/html/$fileName"
+                        }
+                        android.util.Log.d("Layout", "Converted to local asset URL: $finalGameUrl (file exists)")
+                    } catch (e: java.io.IOException) {
+                        // File doesn't exist in assets, keep GitHub Pages URL
+                        android.util.Log.d("Layout", "File not in assets, using GitHub Pages URL: $finalGameUrl")
+                        // Keep the original GitHub URL - don't convert it
+                    }
+                }
+                putExtra(WebGameActivity.EXTRA_GAME_URL, finalGameUrl)
+                putExtra(WebGameActivity.EXTRA_TASK_ID, sourceTaskId ?: uniqueTaskId)
                 putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)
                 putExtra(WebGameActivity.EXTRA_STARS, task.stars ?: 0)
                 putExtra(WebGameActivity.EXTRA_TASK_TITLE, task.title ?: taskLaunchId)
@@ -1900,7 +2002,7 @@ class Layout(private val activity: MainActivity) {
     }
     
     fun refreshBattleHub() {
-        // Reload the battle hub to update berries (earned stars) and Pokemon
+        // Reload the battle hub to update berries and Pokemon
         battleHubWebView?.reload()
     }
     
@@ -2215,24 +2317,6 @@ class Layout(private val activity: MainActivity) {
         }
         
         @android.webkit.JavascriptInterface
-        fun getEarnedStars(): Int {
-            return try {
-                val currentContent = activity.getCurrentMainContent()
-                if (currentContent != null) {
-                    val progressManager = DailyProgressManager(activity)
-                    val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
-                    val earnedStars = progressData.second.first // Get earned stars from the same method as daily homework dashboard
-                    earnedStars
-                } else {
-                    0 // Fallback default
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error getting earned stars", e)
-                0 // Fallback default
-            }
-        }
-        
-        @android.webkit.JavascriptInterface
         fun getIconConfig(): String {
             return try {
                 val inputStream = activity.assets.open("config/icon_config.json")
@@ -2252,13 +2336,158 @@ class Layout(private val activity: MainActivity) {
                 showTrainingMap()
             }
         }
+        
+        @android.webkit.JavascriptInterface
+        fun navigateToOptionalTrainingMap() {
+            activity.runOnUiThread {
+                showOptionalTrainingMap()
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun getEarnedStars(): Int {
+            return try {
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    val progressManager = DailyProgressManager(activity)
+                    val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
+                    val earnedStars = progressData.second.first // Get earned stars from the same method as daily homework dashboard
+                    earnedStars
+                } else {
+                    0 // Fallback default
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("Layout", "Error getting earned stars", e)
+                0 // Fallback default
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun navigateToNativeBattleHub() {
+            activity.runOnUiThread {
+                val intent = android.content.Intent(activity, BattleHubActivity::class.java)
+                // Pass MainContent as JSON string extra so BattleHubActivity can use it
+                val currentContent = activity.getCurrentMainContent()
+                if (currentContent != null) {
+                    val jsonString = Gson().toJson(currentContent)
+                    intent.putExtra("mainContentJson", jsonString)
+                }
+                activity.startActivity(intent)
+            }
+        }
+        
+        @android.webkit.JavascriptInterface
+        fun grantTestBerries(amount: Int) {
+            activity.runOnUiThread {
+                try {
+                    android.util.Log.d("Layout", "grantTestBerries called with amount: $amount")
+                    val progressManager = DailyProgressManager(activity)
+                    val currentContent = activity.getCurrentMainContent()
+                    
+                    if (currentContent != null) {
+                        // Find an incomplete required task from the config to mark as completed
+                        // This ensures the progress actually increases since it's a real task
+                        val requiredSection = currentContent.sections?.find { it.id == "required" }
+                        val incompleteTask = requiredSection?.tasks?.firstOrNull { task ->
+                            val taskId = task.launch ?: ""
+                            taskId.isNotEmpty() && !progressManager.isTaskCompleted(taskId) && (task.stars ?: 0) > 0
+                        }
+                        
+                        if (incompleteTask != null) {
+                            // Mark the first incomplete required task as completed with the test amount
+                            val taskId = incompleteTask.launch ?: "test_task"
+                            val taskStars = incompleteTask.stars ?: amount
+                            
+                            // Use the task's actual star value, but if it's less than amount, we'll mark multiple tasks
+                            var remainingAmount = amount
+                            var tasksMarked = 0
+                            
+                            // Mark tasks until we've granted the full amount
+                            requiredSection.tasks?.forEach { task ->
+                                if (remainingAmount > 0) {
+                                    val tId = task.launch ?: ""
+                                    if (tId.isNotEmpty() && !progressManager.isTaskCompleted(tId)) {
+                                        val tStars = task.stars ?: 0
+                                        if (tStars > 0) {
+                                            val starsToGrant = minOf(remainingAmount, tStars)
+                                            val earnedStars = progressManager.markTaskCompletedWithName(
+                                                tId,
+                                                task.title ?: "Test Task",
+                                                starsToGrant,
+                                                true,
+                                                currentContent,
+                                                "required"
+                                            )
+                                            if (earnedStars > 0) {
+                                                remainingAmount -= earnedStars
+                                                tasksMarked++
+                                                progressManager.addStarsToRewardBank(earnedStars)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // If we still need more, mark additional test tasks
+                            while (remainingAmount > 0) {
+                                val testTaskId = "test_berries_${System.currentTimeMillis()}_${tasksMarked}"
+                                val testStars = minOf(remainingAmount, 50) // Mark in chunks of up to 50
+                                val earnedStars = progressManager.markTaskCompletedWithName(
+                                    testTaskId,
+                                    "Test Berries & Coins",
+                                    testStars,
+                                    true,
+                                    currentContent,
+                                    "required"
+                                )
+                                if (earnedStars > 0) {
+                                    remainingAmount -= earnedStars
+                                    tasksMarked++
+                                    progressManager.addStarsToRewardBank(earnedStars)
+                                } else {
+                                    break // Can't mark more
+                                }
+                            }
+                            
+                            val totalRewardMinutes = progressManager.getBankedRewardMinutes()
+                            android.util.Log.d("Layout", "Granted test berries and coins, marked $tasksMarked tasks, total reward minutes: $totalRewardMinutes")
+                            
+                            // Refresh progress display and header buttons to show updated progress
+                            refreshProgressDisplay()
+                            refreshHeaderButtons()
+                            
+                            // Reload battle hub to update berry meter
+                            refreshBattleHub()
+                            
+                            // Show toast notification
+                            android.widget.Toast.makeText(activity, "Granted $amount berries and coins! Total: $totalRewardMinutes minutes", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
+                            // No incomplete tasks found, just add stars to reward bank
+                            val totalRewardMinutes = progressManager.addStarsToRewardBank(amount)
+                            android.util.Log.d("Layout", "No incomplete tasks, granted $amount stars to reward bank only, total: $totalRewardMinutes")
+                            refreshProgressDisplay()
+                            refreshHeaderButtons()
+                            refreshBattleHub()
+                            android.widget.Toast.makeText(activity, "Granted $amount berries (all tasks completed)! Total: $totalRewardMinutes minutes", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        android.util.Log.e("Layout", "Cannot grant test berries - currentContent is null")
+                        android.widget.Toast.makeText(activity, "Error: Content not loaded", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("Layout", "Error granting test berries", e)
+                    e.printStackTrace()
+                    android.widget.Toast.makeText(activity, "Error granting test berries: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
     
     // Training Map (Native Android View)
     private var trainingMapView: View? = null
     private var currentMapType: String = "required" // "required" or "optional"
     
-    private fun showTrainingMap() {
+    fun showTrainingMap() {
         // Hide battle hub
         battleHubWebView?.visibility = View.GONE
         
@@ -2280,12 +2509,75 @@ class Layout(private val activity: MainActivity) {
         // Create native Android training map view
         val mapView = createTrainingMapView()
         
-        // Add to container (at index 1, after battle hub if it exists)
-        sectionsContainer.addView(mapView, 1)
+        // Add to container - check if we can add at index 1, otherwise add at end
+        val insertIndex = if (sectionsContainer.childCount > 1) 1 else sectionsContainer.childCount
+        sectionsContainer.addView(mapView, insertIndex)
         trainingMapView = mapView
         mapView.visibility = View.VISIBLE
         
         android.util.Log.d("Layout", "Training map view created and shown")
+    }
+    
+    fun showOptionalTrainingMap() {
+        // Hide battle hub
+        battleHubWebView?.visibility = View.GONE
+        
+        // Hide all section views (but keep them in the container for later)
+        for (i in 0 until sectionsContainer.childCount) {
+            val child = sectionsContainer.getChildAt(i)
+            // Hide everything except the training map (if it exists)
+            if (child != trainingMapView) {
+                child.visibility = View.GONE
+            }
+        }
+        
+        // Remove existing training map if it exists
+        trainingMapView?.let {
+            sectionsContainer.removeView(it)
+            trainingMapView = null
+        }
+        
+        // Create native Android training map view for optional tasks
+        val mapView = createTrainingMapView("optional")
+        
+        // Add to container - check if we can add at index 1, otherwise add at end
+        val insertIndex = if (sectionsContainer.childCount > 1) 1 else sectionsContainer.childCount
+        sectionsContainer.addView(mapView, insertIndex)
+        trainingMapView = mapView
+        mapView.visibility = View.VISIBLE
+        
+        android.util.Log.d("Layout", "Optional training map view created and shown")
+    }
+    
+    fun showBonusTrainingMap() {
+        // Hide battle hub
+        battleHubWebView?.visibility = View.GONE
+        
+        // Hide all section views (but keep them in the container for later)
+        for (i in 0 until sectionsContainer.childCount) {
+            val child = sectionsContainer.getChildAt(i)
+            // Hide everything except the training map (if it exists)
+            if (child != trainingMapView) {
+                child.visibility = View.GONE
+            }
+        }
+        
+        // Remove existing training map if it exists
+        trainingMapView?.let {
+            sectionsContainer.removeView(it)
+            trainingMapView = null
+        }
+        
+        // Create native Android training map view for bonus tasks
+        val mapView = createTrainingMapView("bonus")
+        
+        // Add to container - check if we can add at index 1, otherwise add at end
+        val insertIndex = if (sectionsContainer.childCount > 1) 1 else sectionsContainer.childCount
+        sectionsContainer.addView(mapView, insertIndex)
+        trainingMapView = mapView
+        mapView.visibility = View.VISIBLE
+        
+        android.util.Log.d("Layout", "Bonus training map view created and shown")
     }
     
     private fun showBattleHub() {
@@ -2309,7 +2601,7 @@ class Layout(private val activity: MainActivity) {
     }
     
     // Native Android training map functions
-    private fun createTrainingMapView(): View {
+    private fun createTrainingMapView(mapType: String = "required"): View {
         val density = activity.resources.displayMetrics.density
         val screenHeight = activity.resources.displayMetrics.heightPixels
         
@@ -2350,14 +2642,20 @@ class Layout(private val activity: MainActivity) {
                 addRule(RelativeLayout.ALIGN_PARENT_START)
             }
             setOnClickListener {
-                showBattleHub()
-                refreshBattleHub()
+                // Navigate back to BattleHubActivity
+                val intent = android.content.Intent(activity, BattleHubActivity::class.java)
+                activity.startActivity(intent)
+                activity.finish()
             }
         }
         
         // Title
         val titleView = TextView(activity).apply {
-            text = "🗺️ Training Map 🗺️"
+            text = when (mapType) {
+                "optional" -> "🗺️ Extra Practice Map 🗺️"
+                "bonus" -> "🎮 Bonus Training Map 🎮"
+                else -> "🗺️ Training Map 🗺️"
+            }
             textSize = 24f
             setTextColor(android.graphics.Color.WHITE)
             setTypeface(null, android.graphics.Typeface.BOLD)
@@ -2404,9 +2702,9 @@ class Layout(private val activity: MainActivity) {
         
         container.addView(mapContainer)
         
-        // Load and display required tasks first
-        currentMapType = "required"
-        loadTasksIntoMap(mapContainer, progressInfo, "required")
+        // Load and display tasks for the specified map type
+        currentMapType = mapType
+        loadTasksIntoMap(mapContainer, progressInfo, mapType)
         
         // Store references for refreshing
         mapContainer.tag = "mapContainer"
@@ -2417,7 +2715,7 @@ class Layout(private val activity: MainActivity) {
     
     private fun loadTasksIntoMap(mapContainer: RelativeLayout, progressInfo: TextView, mapType: String) {
         val currentContent = activity.getCurrentMainContent() ?: return
-        val completedTasksMap = progressManager.getCompletedTasksMap()
+        val completedTasksMap = progressManager.getCompletedTasksMap().toMutableMap()
         
         // Get tasks for this map type
         val section = currentContent.sections?.find { it.id == mapType }
@@ -2435,13 +2733,89 @@ class Layout(private val activity: MainActivity) {
         // Clear existing gyms
         mapContainer.removeAllViews()
         
+        // For bonus tasks, never grey out (always enabled)
+        // For optional tasks, check if all are completed - if so, reset them all
+        if (mapType == "optional") {
+            val allCompleted = tasks.all { task ->
+                val baseTaskId = task.launch ?: ""
+                var taskId = "${mapType}_$baseTaskId"
+                
+                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                    val originalUrl = task.url
+                    if (originalUrl.contains("diagram=")) {
+                        val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                        if (diagramParam.isNotEmpty()) {
+                            taskId = "${mapType}_${baseTaskId}_$diagramParam"
+                        }
+                    }
+                }
+                
+                completedTasksMap[taskId] == true
+            }
+            
+            // If all optional tasks are completed, reset them all (never ending)
+            if (allCompleted && tasks.isNotEmpty()) {
+                val allCompletedTasks = progressManager.getCompletedTasksMap().toMutableMap()
+                tasks.forEach { task ->
+                    val baseTaskId = task.launch ?: ""
+                    var taskId = "${mapType}_$baseTaskId"
+                    
+                    if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                        val originalUrl = task.url
+                        if (originalUrl.contains("diagram=")) {
+                            val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                            if (diagramParam.isNotEmpty()) {
+                                taskId = "${mapType}_${baseTaskId}_$diagramParam"
+                            }
+                        }
+                    }
+                    
+                    // Clear completion status by removing from map
+                    allCompletedTasks.remove(taskId)
+                }
+                // Save the updated map
+                val prefs = activity.getSharedPreferences("daily_progress", android.content.Context.MODE_PRIVATE)
+                val gson = com.google.gson.Gson()
+                prefs.edit()
+                    .putString("completed_tasks", gson.toJson(allCompletedTasks))
+                    .apply()
+                // Refresh the completed tasks map after resetting
+                completedTasksMap.clear()
+                completedTasksMap.putAll(progressManager.getCompletedTasksMap())
+            }
+        }
+        
         // Calculate progress
         val completedCount = tasks.count { task ->
-            val taskId = if (mapType == "required") {
-                task.launch ?: ""
+            val baseTaskId = task.launch ?: ""
+            
+            // For diagramLabeler and similar games with URL parameters, check for unique taskId
+            var taskId = if (mapType == "required") {
+                baseTaskId
             } else {
-                "${mapType}_${task.launch}"
+                "${mapType}_$baseTaskId"
             }
+            
+            // Check if this is a diagramLabeler task and if there's a unique ID with diagram parameter
+            if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                // Extract diagram parameter directly from URL (don't need to call getGameModeUrl for checking)
+                val originalUrl = task.url
+                if (originalUrl.contains("diagram=")) {
+                    val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                    if (diagramParam.isNotEmpty()) {
+                        val uniqueTaskId = if (mapType == "required") {
+                            "${baseTaskId}_$diagramParam"
+                        } else {
+                            "${mapType}_${baseTaskId}_$diagramParam"
+                        }
+                        // Check both the unique ID and the base ID (for backward compatibility)
+                        if (completedTasksMap[uniqueTaskId] == true) {
+                            return@count true
+                        }
+                    }
+                }
+            }
+            
             completedTasksMap[taskId] == true
         }
         progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
@@ -2454,7 +2828,7 @@ class Layout(private val activity: MainActivity) {
         val buttonRadius = (40 * density).toInt()
         val padding = (20 * density).toInt() // Padding from edges
         
-        // Load icon config
+        // Load icon config for stars icon
         val icons = loadIconConfig()
         
         // Generate random positions for gym buttons
@@ -2465,12 +2839,35 @@ class Layout(private val activity: MainActivity) {
         val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
         
         tasks.forEachIndexed { index, task ->
-            val taskId = if (mapType == "required") {
-                task.launch ?: ""
+            val baseTaskId = task.launch ?: ""
+            
+            // For diagramLabeler and similar games with URL parameters, check for unique taskId
+            var taskId = if (mapType == "required") {
+                baseTaskId
             } else {
-                "${mapType}_${task.launch}"
+                "${mapType}_$baseTaskId"
             }
-            val isCompleted = completedTasksMap[taskId] == true
+            
+            // Check if this is a diagramLabeler task and if there's a unique ID with diagram parameter
+            // For bonus tasks, never mark as completed (always enabled, never grey out)
+            var isCompleted = if (mapType == "bonus") false else completedTasksMap[taskId] == true
+            if (!isCompleted && baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                // Extract diagram parameter directly from URL (don't need to call getGameModeUrl for checking)
+                val originalUrl = task.url
+                if (originalUrl.contains("diagram=")) {
+                    val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                    if (diagramParam.isNotEmpty()) {
+                        val uniqueTaskId = if (mapType == "required") {
+                            "${baseTaskId}_$diagramParam"
+                        } else {
+                            "${mapType}_${baseTaskId}_$diagramParam"
+                        }
+                        // Check both the unique ID and the base ID (for backward compatibility)
+                        // For bonus tasks, never mark as completed
+                        isCompleted = if (mapType == "bonus") false else (completedTasksMap[uniqueTaskId] == true || completedTasksMap[taskId] == true)
+                    }
+                }
+            }
             
             // Generate random position (with padding from edges)
             var x: Int
@@ -2488,8 +2885,8 @@ class Layout(private val activity: MainActivity) {
             
             positions.add(Pair(x + buttonRadius, y + buttonRadius)) // Store center position
             
-            // Create gym button container (FrameLayout to layer gym emoji and text)
-            val gymButtonContainer = android.widget.FrameLayout(activity).apply {
+            // Create gym button container (FrameLayout to layer emoji and text)
+            val gymButtonContainer = FrameLayout(activity).apply {
                 layoutParams = RelativeLayout.LayoutParams(
                     buttonSize,
                     buttonSize
@@ -2502,28 +2899,29 @@ class Layout(private val activity: MainActivity) {
                 background = if (isCompleted) {
                     android.graphics.drawable.GradientDrawable().apply {
                         setColor(android.graphics.Color.parseColor("#4CAF50"))
-                        cornerRadius = (40 * density)
+                        cornerRadius = buttonRadius.toFloat()
                         setStroke((3 * density).toInt(), android.graphics.Color.parseColor("#2e7d32"))
                     }
                 } else {
                     android.graphics.drawable.GradientDrawable().apply {
                         setColor(android.graphics.Color.parseColor("#ffd700"))
-                        cornerRadius = (40 * density)
+                        cornerRadius = buttonRadius.toFloat()
                         setStroke((3 * density).toInt(), android.graphics.Color.parseColor("#ff8c00"))
                     }
                 }
                 
                 if (!isCompleted) {
                     setOnClickListener {
-                        launchTask(task, mapType, "trainingMap_${task.launch}")
+                        // Use same launch logic as daily homework dashboard - no sourceTaskId
+                        launchTask(task, mapType, null)
                     }
                 }
             }
             
-            // Large gym emoji (fills the button circle)
+            // Gym emoji - sized to fit within button (smaller to ensure it fits)
             val gymEmoji = TextView(activity).apply {
                 text = "🏟️"
-                textSize = (buttonSize * 0.7f) // Large emoji, 70% of button size
+                textSize = (buttonSize * 0.35f) // 35% of button size to ensure it fits comfortably
                 gravity = android.view.Gravity.CENTER
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -2531,11 +2929,11 @@ class Layout(private val activity: MainActivity) {
                 )
             }
             
-            // Text overlay (title and stars icon)
+            // Text overlay (title and stars icon) - smaller text
             val textOverlay = TextView(activity).apply {
                 val starsCount = task.stars ?: 1
                 text = "${task.title}\n$starsCount ${icons.starsIcon}"
-                textSize = 9f // Smaller text to prevent wrapping
+                textSize = 8f // Smaller text to prevent wrapping
                 setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 gravity = android.view.Gravity.CENTER
