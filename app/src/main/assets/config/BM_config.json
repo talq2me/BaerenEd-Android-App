@@ -22,19 +22,7 @@
       "title": "Required Tasks",
       "description": "Complete all of these first!",
       "tasks": [
-        {
-          "title": "Google Read Along",
-          "launch": "googleReadAlong",
-          "stars": 3
-        },
-        {
-          "title": "Duological",
-          "launch": "duologicalGame",
-          "stars": 3,
-          "totalQuestions": 5,
-          "blockOutlines": true,
-          "displayDays": "fri"
-        },
+       
         {
           "title": "Translation",
           "launch": "translation",
@@ -81,7 +69,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Dec 8, 2025",
+          "disable": "Jan 2, 2026",
           "easydays": "mon,tue",
           "harddays": "wed",
           "extremedays": "thu"
@@ -96,16 +84,33 @@
           "harddays": "thu,fri",
           "extremedays": "sat,sun,mon"
         },
+         {
+          "title": "Google Read Along",
+          "launch": "googleReadAlong",
+          "disable": "Jan 2, 2026",
+          "stars": 3
+        },
+        {
+          "title": "Duological",
+          "launch": "duologicalGame",
+          "stars": 3,
+          "disable": "Jan 2, 2026",
+          "totalQuestions": 5,
+          "blockOutlines": true,
+          "displayDays": "fri"
+        },
         {
           "title": "Kung Fu Form",
           "launch": "advancedKungFuVideos",
           "stars": 1,
+          "disable": "Jan 2, 2026",
           "video": "FerrociousFist",
           "videoSequence": "exact"
         },
         {
           "title": "Kung Fu",
           "launch": "intermediateKungFuVideos",
+          "disable": "Jan 2, 2026",
           "stars": 1,
           "videoSequence": "sequential"
         },
@@ -158,6 +163,7 @@
           "url": "https://classroom.google.com/c/Nzk1NzkwMDE0Mzk3",
           "stars": 3,
           "chromePage": true,
+          "disable": "Jan 2, 2026",
           "displayDays": "tue,fri"
         }
       ]

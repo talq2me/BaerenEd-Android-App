@@ -45,17 +45,17 @@
             background: #e8f5e9;
             border: 3px solid #4CAF50;
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px 30px 10px 30px;
             margin: 20px 0;
-            min-height: 300px;
+            min-height: 200px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 20px;
+            gap: 15px;
             justify-items: center;
         }
         .garden-plot {
             width: 100px;
-            height: 120px;
+            height: 100px;
             background: #8d6e63;
             border-radius: 10px;
             position: relative;
@@ -65,6 +65,7 @@
             justify-content: flex-end;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
+            padding-bottom: 5px;
         }
         .garden-plot.filled {
             background: #5d4037;
@@ -107,21 +108,31 @@
         }
         .flower {
             position: absolute;
-            bottom: 20px;
-            font-size: 3em;
+            bottom: -15px;
+            font-size: 3.5em;
             animation: growFlower 0.8s ease-out;
             z-index: 1;
         }
+        .flower-stem {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 30px;
+            background: #2e7d32;
+            z-index: 0;
+        }
         @keyframes growFlower {
             0% {
-                transform: scale(0) rotate(0deg);
+                transform: scale(0) rotate(0deg) translateY(20px);
                 opacity: 0;
             }
             50% {
-                transform: scale(1.2) rotate(180deg);
+                transform: scale(1.2) rotate(180deg) translateY(-5px);
             }
             100% {
-                transform: scale(1) rotate(360deg);
+                transform: scale(1) rotate(360deg) translateY(0);
                 opacity: 1;
             }
         }
@@ -264,6 +275,38 @@
             background: #d4edda;
             color: #155724;
             border: 2px solid #c3e6cb;
+        }
+        .popup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            z-index: 2000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            animation: popupIn 0.3s ease, popupOut 0.3s ease 1.7s forwards;
+            pointer-events: none;
+        }
+        .popup-message.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 3px solid #c3e6cb;
+        }
+        .popup-message.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 3px solid #f5c6cb;
+        }
+        @keyframes popupIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes popupOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
         }
         @keyframes popIn {
             0% { transform: scale(0.5); opacity: 0; }
@@ -447,7 +490,9 @@
                 plot.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    e.dataTransfer.dropEffect = 'move';
+                    if (e.dataTransfer) {
+                        e.dataTransfer.dropEffect = 'move';
+                    }
                     plot.classList.add('drag-over');
                 });
                 
@@ -459,7 +504,15 @@
                     e.preventDefault();
                     e.stopPropagation();
                     plot.classList.remove('drag-over');
-                    const letter = e.dataTransfer.getData('text/plain');
+                    
+                    // Try to get data from dataTransfer
+                    let letter = e.dataTransfer.getData('text/plain');
+                    
+                    // If no data, try to get from the dragged element
+                    if (!letter && window.draggedLetterItem) {
+                        letter = window.draggedLetterItem.dataset.letter;
+                    }
+                    
                     if (letter) {
                         // Find an unused letter item with this letter (handles duplicates)
                         const letterItems = document.querySelectorAll(`.letter-item[data-letter="${letter}"]`);
@@ -478,6 +531,7 @@
                             }
                         }
                     }
+                    window.draggedLetterItem = null;
                     return false;
                 });
                 
@@ -533,14 +587,45 @@
                 
                 // Drag handlers
                 letterItem.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', letter.toLowerCase());
-                    e.dataTransfer.effectAllowed = 'move';
+                    if (e.dataTransfer) {
+                        e.dataTransfer.setData('text/plain', letter.toLowerCase());
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
                     letterItem.classList.add('dragging');
+                    window.draggedLetterItem = letterItem; // Store reference
                 });
                 
                 letterItem.addEventListener('dragend', (e) => {
                     letterItem.classList.remove('dragging');
                 });
+                
+                // Add touch handlers for Android
+                let touchStartX = 0;
+                let touchStartY = 0;
+                letterItem.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    letterItem.classList.add('dragging');
+                    window.draggedLetterItem = letterItem;
+                }, { passive: false });
+                
+                letterItem.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+                
+                letterItem.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const touch = e.changedTouches[0];
+                    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (elementBelow) {
+                        const plot = elementBelow.closest('.garden-plot') || 
+                                    (elementBelow.classList.contains('garden-plot') ? elementBelow : null);
+                        if (plot) {
+                            plantLetterOnPlot(letterItem, letter.toLowerCase(), parseInt(plot.dataset.index));
+                        }
+                    }
+                    letterItem.classList.remove('dragging');
+                }, { passive: false });
                 
                 letterBank.appendChild(letterItem);
             });
@@ -666,6 +751,12 @@
                 const plots = document.querySelectorAll('.garden-plot');
                 plots.forEach((plot, index) => {
                     setTimeout(() => {
+                        // Add stem
+                        const stem = document.createElement('div');
+                        stem.className = 'flower-stem';
+                        plot.appendChild(stem);
+                        
+                        // Add flower
                         const flower = document.createElement('div');
                         flower.className = 'flower';
                         const flowers = ['🌻', '🌷', '🌺', '🌸', '🌼', '🌹', '💐'];
@@ -674,8 +765,7 @@
                     }, index * 200);
                 });
                 
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback correct">✓ Beautiful! Your word garden is blooming! 🌸</div>';
+                showPopupMessage('✓ Beautiful! Your word garden is blooming! 🌸', 'correct');
                 
                 if (isFirstAttempt) {
                     correctCount++;
@@ -716,6 +806,17 @@
         function nextWord() {
             currentWordIndex++;
             loadWord();
+        }
+
+        function showPopupMessage(message, type) {
+            const popup = document.createElement('div');
+            popup.className = `popup-message ${type}`;
+            popup.textContent = message;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 2000);
         }
 
         function updateStarCount() {

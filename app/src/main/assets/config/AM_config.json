@@ -39,6 +39,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 2, 2026",
           "easydays": "mon,tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun"
@@ -49,6 +50,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 2, 2026",
           "easydays": "mon,tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun"
@@ -73,6 +75,7 @@
           "launch": "handwriting",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
           "stars": 3,
+          "disable": "Jan 2, 2026",
           "webGame": true
         },
         {
@@ -141,18 +144,21 @@
           "launch": "noviceKungFuVideos",
           "stars": 3,
           "video": "SingleStepForm",
+          "disable": "Jan 2, 2026",
           "videoSequence": "exact",
           "displayDays": "sat"
         },
         {
           "title": "Kung Fu",
           "launch": "noviceKungFuVideos",
+          "disable": "Jan 2, 2026",
           "stars": 3,
           "videoSequence": "sequential"
         },
         {
           "title": "Facile A Lire 2",
           "launch": "facileAlire2",
+          "disable": "Jan 2, 2026",
           "stars": 3,
           "videoSequence": "sequential"
         },
@@ -162,6 +168,7 @@
           "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
           "stars": 3,
           "chromePage": true,
+          "disable": "Jan 2, 2026",
           "displayDays": "tue,fri"
         },
         {

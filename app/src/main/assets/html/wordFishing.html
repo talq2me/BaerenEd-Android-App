@@ -296,6 +296,31 @@
         .hidden {
             display: none;
         }
+        .popup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #d4edda;
+            color: #155724;
+            border: 3px solid #c3e6cb;
+            border-radius: 15px;
+            padding: 30px 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            z-index: 2000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            animation: popupIn 0.3s ease, popupOut 0.3s ease 1.7s forwards;
+            pointer-events: none;
+        }
+        @keyframes popupIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes popupOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+        }
         .caught-animation {
             position: absolute;
             font-size: 3em;
@@ -660,8 +685,8 @@
             const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
             
             if (isCorrect) {
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback correct">✓ Great catch! You spelled it correctly! 🎣</div>';
+                // Show popup instead of feedback container
+                showPopupMessage('✓ Great catch! You spelled it correctly! 🎣');
                 
                 if (isFirstAttempt) {
                     correctCount++;
@@ -693,6 +718,17 @@
         function nextWord() {
             currentWordIndex++;
             loadWord();
+        }
+
+        function showPopupMessage(message) {
+            const popup = document.createElement('div');
+            popup.className = 'popup-message';
+            popup.textContent = message;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 2000);
         }
 
         function updateStarCount() {

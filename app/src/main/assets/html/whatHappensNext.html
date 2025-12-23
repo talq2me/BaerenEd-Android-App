@@ -42,8 +42,9 @@
             margin: 10px 0;
             font-size: 1.1em;
             line-height: 1.6;
-            min-height: 150px;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-block;
+            width: 100%;
         }
         .question {
             text-align: center;
@@ -119,6 +120,38 @@
         .button-container {
             text-align: center;
             margin: 20px 0;
+        }
+        .popup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            z-index: 2000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            animation: popupIn 0.3s ease, popupOut 0.3s ease 1.7s forwards;
+            pointer-events: none;
+        }
+        .popup-message.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 3px solid #c3e6cb;
+        }
+        .popup-message.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 3px solid #f5c6cb;
+        }
+        @keyframes popupIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes popupOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
         }
         .feedback {
             text-align: center;
@@ -271,7 +304,9 @@
                     const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         stories = data;
+                        console.log(`Loaded ${stories.length} stories from JSON file: ${fileName}`);
                     } else {
+                        console.warn(`JSON file ${fileName} is empty or invalid, using default stories`);
                         stories = defaultStories;
                     }
                     maxQuestions = Math.min(stories.length, maxQuestions);
@@ -308,7 +343,18 @@
             }
         }
 
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
         function startGame() {
+            // Shuffle stories array to ensure all questions are used, not just first 5
+            stories = shuffleArray(stories);
             currentStoryIndex = 0;
             correctCount = 0;
             incorrectCount = 0;
@@ -342,7 +388,16 @@
             const container = document.getElementById('optionsContainer');
             container.innerHTML = '';
             
-            currentStory.options.forEach((option, index) => {
+            // Shuffle options array and track where correct answer moved to
+            const originalOptions = [...currentStory.options];
+            const correctAnswer = originalOptions[currentStory.correct];
+            const shuffledOptions = shuffleArray(originalOptions);
+            const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+            
+            // Update currentStory.correct to the new position
+            currentStory.correct = newCorrectIndex;
+            
+            shuffledOptions.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'option';
                 optionDiv.textContent = option;
@@ -382,8 +437,7 @@
             });
 
             if (isCorrect) {
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback correct">✓ Great thinking! That makes sense! 🎉</div>';
+                showPopupMessage('✓ Great thinking! That makes sense! 🎉', 'correct');
                 if (isFirstAttempt) {
                     correctCount++;
                     updateStarCount();
@@ -397,8 +451,7 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback incorrect">✗ Not quite. Think about what would make the most sense!</div>';
+                showPopupMessage('✗ Not quite. Think about what would make the most sense!', 'incorrect');
                 document.getElementById('submitButton').disabled = true;
                 setTimeout(() => {
                     document.getElementById('nextButton').classList.remove('hidden');
@@ -409,6 +462,17 @@
         function nextStory() {
             currentStoryIndex++;
             loadStory();
+        }
+
+        function showPopupMessage(message, type) {
+            const popup = document.createElement('div');
+            popup.className = `popup-message ${type}`;
+            popup.textContent = message;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 2000);
         }
 
         function updateStarCount() {

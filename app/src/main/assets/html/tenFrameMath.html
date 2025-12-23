@@ -259,6 +259,7 @@
         let canAnswer = true;
         let maxQuestions = 10;
         let questionsCompleted = 0;
+        let gameMode = 'easy'; // Default to easy mode
 
         function isAndroidWebView() {
             return typeof window.Android !== 'undefined';
@@ -280,6 +281,7 @@
                 const config = JSON.parse(configJson);
                 const urlParams = new URLSearchParams(window.location.search);
                 const taskId = urlParams.get('taskId');
+                gameMode = urlParams.get('mode') || 'easy'; // Get mode from URL (hard, easy, extreme)
                 
                 if (config.sections) {
                     for (const section of config.sections) {
@@ -305,34 +307,65 @@
         function generateProblems() {
             problems = [];
             
-            // Generate addition problems (sums within 20)
-            for (let i = 0; i < 20; i++) {
-                const num1 = Math.floor(Math.random() * 11) + 1; // 1-11
-                const num2 = Math.floor(Math.random() * (21 - num1)) + 1; // ensures sum <= 20
-                const sum = num1 + num2;
+            if (gameMode === 'hard' || gameMode === 'extreme') {
+                // Hard/Extreme mode: Generate problems with larger numbers (can exceed 20)
+                for (let i = 0; i < 20; i++) {
+                    const num1 = Math.floor(Math.random() * 50) + 1; // 1-50
+                    const num2 = Math.floor(Math.random() * 50) + 1; // 1-50
+                    const sum = num1 + num2;
+                    
+                    problems.push({
+                        question: `What is ${num1} plus ${num2}?`,
+                        num1: num1,
+                        num2: num2,
+                        operation: 'add',
+                        answer: sum
+                    });
+                }
                 
-                problems.push({
-                    question: `What is ${num1} plus ${num2}?`,
-                    num1: num1,
-                    num2: num2,
-                    operation: 'add',
-                    answer: sum
-                });
-            }
-            
-            // Generate subtraction problems (differences within 20)
-            for (let i = 0; i < 20; i++) {
-                const num1 = Math.floor(Math.random() * 20) + 1; // 1-20
-                const num2 = Math.floor(Math.random() * num1) + 1; // 1 to num1
-                const difference = num1 - num2;
+                for (let i = 0; i < 20; i++) {
+                    const num1 = Math.floor(Math.random() * 50) + 20; // 20-70
+                    const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1 to num1-1
+                    const difference = num1 - num2;
+                    
+                    problems.push({
+                        question: `What is ${num1} take away ${num2}?`,
+                        num1: num1,
+                        num2: num2,
+                        operation: 'subtract',
+                        answer: difference
+                    });
+                }
+            } else {
+                // Easy mode: Generate problems (sums within 20) - keep ten frames
+                for (let i = 0; i < 20; i++) {
+                    const num1 = Math.floor(Math.random() * 11) + 1; // 1-11
+                    const num2 = Math.floor(Math.random() * (21 - num1)) + 1; // ensures sum <= 20
+                    const sum = num1 + num2;
+                    
+                    problems.push({
+                        question: `What is ${num1} plus ${num2}?`,
+                        num1: num1,
+                        num2: num2,
+                        operation: 'add',
+                        answer: sum
+                    });
+                }
                 
-                problems.push({
-                    question: `What is ${num1} take away ${num2}?`,
-                    num1: num1,
-                    num2: num2,
-                    operation: 'subtract',
-                    answer: difference
-                });
+                // Generate subtraction problems (differences within 20)
+                for (let i = 0; i < 20; i++) {
+                    const num1 = Math.floor(Math.random() * 20) + 1; // 1-20
+                    const num2 = Math.floor(Math.random() * num1) + 1; // 1 to num1
+                    const difference = num1 - num2;
+                    
+                    problems.push({
+                        question: `What is ${num1} take away ${num2}?`,
+                        num1: num1,
+                        num2: num2,
+                        operation: 'subtract',
+                        answer: difference
+                    });
+                }
             }
             
             shuffleArray(problems);
@@ -411,58 +444,68 @@
             document.getElementById('nextButton').textContent = 'Next Question';
             canAnswer = true;
             
-            // Clear previous frames
+            // Clear previous frames and show container
             const container = document.getElementById('tenFramesContainer');
             container.innerHTML = '';
+            container.style.display = 'flex'; // Reset display in case it was hidden
             
-            // Create ten frames
-            if (currentProblem.operation === 'add') {
-                createTenFrame(currentProblem.num1, container);
-                
-                const plusSign = document.createElement('div');
-                plusSign.className = 'operation-sign';
-                plusSign.textContent = '+';
-                container.appendChild(plusSign);
-                
-                createTenFrame(currentProblem.num2, container);
-                
-                const equalsSign = document.createElement('div');
-                equalsSign.className = 'equals-sign';
-                equalsSign.textContent = '=';
-                container.appendChild(equalsSign);
-                
-                // Create answer frame wrapper (empty, will be filled when answered)
-                const answerFrame = document.createElement('div');
-                answerFrame.id = 'answerFrame';
-                answerFrame.style.display = 'flex';
-                answerFrame.style.gap = '10px';
-                answerFrame.style.flexWrap = 'wrap';
-                answerFrame.style.justifyContent = 'center';
-                container.appendChild(answerFrame);
+            // Only show ten frames if in easy mode OR if both numbers are 20 or less
+            const shouldShowTenFrames = gameMode === 'easy' || 
+                (currentProblem.num1 <= 20 && currentProblem.num2 <= 20 && currentProblem.answer <= 20);
+            
+            if (shouldShowTenFrames) {
+                // Create ten frames
+                if (currentProblem.operation === 'add') {
+                    createTenFrame(currentProblem.num1, container);
+                    
+                    const plusSign = document.createElement('div');
+                    plusSign.className = 'operation-sign';
+                    plusSign.textContent = '+';
+                    container.appendChild(plusSign);
+                    
+                    createTenFrame(currentProblem.num2, container);
+                    
+                    const equalsSign = document.createElement('div');
+                    equalsSign.className = 'equals-sign';
+                    equalsSign.textContent = '=';
+                    container.appendChild(equalsSign);
+                    
+                    // Create answer frame wrapper (empty, will be filled when answered)
+                    const answerFrame = document.createElement('div');
+                    answerFrame.id = 'answerFrame';
+                    answerFrame.style.display = 'flex';
+                    answerFrame.style.gap = '10px';
+                    answerFrame.style.flexWrap = 'wrap';
+                    answerFrame.style.justifyContent = 'center';
+                    container.appendChild(answerFrame);
+                } else {
+                    // Subtraction: show full frame, then remove
+                    createTenFrame(currentProblem.num1, container);
+                    
+                    const minusSign = document.createElement('div');
+                    minusSign.className = 'operation-sign';
+                    minusSign.textContent = '−';
+                    container.appendChild(minusSign);
+                    
+                    createTenFrame(currentProblem.num2, container);
+                    
+                    const equalsSign = document.createElement('div');
+                    equalsSign.className = 'equals-sign';
+                    equalsSign.textContent = '=';
+                    container.appendChild(equalsSign);
+                    
+                    // Create answer frame wrapper (empty)
+                    const answerFrame = document.createElement('div');
+                    answerFrame.id = 'answerFrame';
+                    answerFrame.style.display = 'flex';
+                    answerFrame.style.gap = '10px';
+                    answerFrame.style.flexWrap = 'wrap';
+                    answerFrame.style.justifyContent = 'center';
+                    container.appendChild(answerFrame);
+                }
             } else {
-                // Subtraction: show full frame, then remove
-                createTenFrame(currentProblem.num1, container);
-                
-                const minusSign = document.createElement('div');
-                minusSign.className = 'operation-sign';
-                minusSign.textContent = '−';
-                container.appendChild(minusSign);
-                
-                createTenFrame(currentProblem.num2, container);
-                
-                const equalsSign = document.createElement('div');
-                equalsSign.className = 'equals-sign';
-                equalsSign.textContent = '=';
-                container.appendChild(equalsSign);
-                
-                // Create answer frame wrapper (empty)
-                const answerFrame = document.createElement('div');
-                answerFrame.id = 'answerFrame';
-                answerFrame.style.display = 'flex';
-                answerFrame.style.gap = '10px';
-                answerFrame.style.flexWrap = 'wrap';
-                answerFrame.style.justifyContent = 'center';
-                container.appendChild(answerFrame);
+                // Hard mode with numbers over 20: Hide ten frames container
+                container.style.display = 'none';
             }
             
             // Generate answer options
@@ -477,6 +520,7 @@
             const options = [correctAnswer];
             
             // Generate wrong answers
+            const maxAnswer = gameMode === 'hard' || gameMode === 'extreme' ? 100 : 20;
             while (options.length < 4) {
                 let wrongAnswer;
                 if (currentProblem.operation === 'add') {
@@ -486,14 +530,14 @@
                 }
                 
                 // Ensure wrong answer is positive and different
-                if (wrongAnswer > 0 && wrongAnswer <= 20 && !options.includes(wrongAnswer)) {
+                if (wrongAnswer > 0 && wrongAnswer <= maxAnswer && !options.includes(wrongAnswer)) {
                     options.push(wrongAnswer);
                 } else {
                     // Fallback: just add/subtract 1-3
                     const offset = Math.floor(Math.random() * 3) + 1;
                     const sign = Math.random() > 0.5 ? 1 : -1;
                     wrongAnswer = correctAnswer + (sign * offset);
-                    if (wrongAnswer > 0 && wrongAnswer <= 20 && !options.includes(wrongAnswer)) {
+                    if (wrongAnswer > 0 && wrongAnswer <= maxAnswer && !options.includes(wrongAnswer)) {
                         options.push(wrongAnswer);
                     }
                 }
@@ -571,6 +615,16 @@
             const answerFrame = document.getElementById('answerFrame');
             if (!answerFrame) return;
             
+            // Only show ten frames if we're using them (i.e., answer <= 20 or easy mode)
+            const shouldShowTenFrames = gameMode === 'easy' || answer <= 20;
+            
+            if (!shouldShowTenFrames) {
+                // Hide the answer frame for hard mode with numbers over 20
+                answerFrame.style.display = 'none';
+                return;
+            }
+            
+            answerFrame.style.display = 'flex'; // Reset display
             answerFrame.innerHTML = '';
             
             let remaining = answer;

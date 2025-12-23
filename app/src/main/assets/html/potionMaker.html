@@ -54,16 +54,27 @@
             margin: 20px 0;
             font-weight: bold;
         }
+        .word-display-above-vial {
+            text-align: center;
+            font-size: 1.8em;
+            color: #764ba2;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .vial-container {
             background: linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%);
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px;
             margin: 10px 0;
             display: flex;
             justify-content: center;
-            align-items: flex-end;
-            min-height: 300px;
-            max-height: 400px;
+            align-items: center;
+            min-height: 200px;
+            max-height: 250px;
             position: relative;
             gap: 40px;
         }
@@ -90,6 +101,7 @@
             border-radius: 15px 15px 0 0;
             position: relative;
             z-index: 3;
+            margin: 0 auto; /* Center the neck */
         }
         .vial-neck::after {
             content: '';
@@ -159,11 +171,11 @@
         .wizard-container {
             position: relative;
             width: 150px;
-            height: 200px;
+            height: 150px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: center;
             z-index: 10;
         }
         .wizard {
@@ -243,17 +255,67 @@
             }
         }
         .vial.drinking {
-            animation: vialTilt 2s ease-in-out;
+            animation: vialShrinkAndTilt 2s ease-in-out;
+            transform-origin: bottom center;
         }
-        @keyframes vialTilt {
+        .vial.drinking .vial-neck {
+            animation: vialNeckTilt 2s ease-in-out;
+            transform-origin: bottom center;
+        }
+        .vial.fading {
+            animation: vialFadeAway 1s ease-in-out forwards;
+        }
+        .wizard.hiccup {
+            animation: wizardHiccup 0.5s ease-in-out;
+        }
+        @keyframes vialShrinkAndTilt {
+            0% {
+                transform: scale(1) translateY(0) translateX(0);
+                opacity: 1;
+            }
+            30% {
+                transform: scale(0.25) translateY(100px) translateX(50px);
+                opacity: 1;
+            }
+            40%, 60% {
+                transform: scale(0.25) translateY(100px) translateX(50px) rotate(30deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.25) translateY(100px) translateX(50px) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        @keyframes vialFadeAway {
+            0% {
+                opacity: 1;
+                transform: scale(0.25) translateY(100px) translateX(50px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.1) translateY(120px) translateX(50px);
+            }
+        }
+        @keyframes vialNeckTilt {
             0%, 100% {
                 transform: rotate(0deg);
             }
-            40% {
-                transform: rotate(-20deg);
+            40%, 60% {
+                transform: rotate(30deg) translateX(5px);
             }
-            60% {
-                transform: rotate(-20deg);
+        }
+        @keyframes wizardHiccup {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            25% {
+                transform: translateY(-5px) scale(1.05);
+            }
+            50% {
+                transform: translateY(0) scale(1);
+            }
+            75% {
+                transform: translateY(-3px) scale(1.02);
             }
         }
         @keyframes colorChange {
@@ -372,23 +434,16 @@
             background: white;
             border: 2px solid #ffc107;
             border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            font-size: 1.2em;
-        }
-        .recipe-step::before {
-            content: '📜';
-            margin-right: 10px;
-            font-size: 1.5em;
+            padding: 12px 20px;
+            margin: 8px 0;
+            font-size: 1.1em;
+            line-height: 1.6;
+            transition: all 0.3s ease;
         }
         .recipe-step.complete {
             background: #c8e6c9;
             border-color: #4CAF50;
-        }
-        .recipe-step.complete::before {
-            content: '✓';
+            color: #2e7d32;
         }
         .button {
             font-family: inherit;
@@ -415,6 +470,38 @@
         .button-container {
             text-align: center;
             margin: 20px 0;
+        }
+        .popup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            z-index: 2000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            animation: popupIn 0.3s ease, popupOut 0.3s ease 1.7s forwards;
+            pointer-events: none;
+        }
+        .popup-message.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 3px solid #c3e6cb;
+        }
+        .popup-message.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 3px solid #f5c6cb;
+        }
+        @keyframes popupIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes popupOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
         }
         .feedback {
             text-align: center;
@@ -492,6 +579,7 @@
                 </div>
             </div>
             <div class="potion-right">
+                <div class="word-display-above-vial" id="wordDisplayAboveVial"></div>
                 <div class="ingredient-shelf" id="ingredientShelf"></div>
             </div>
         </div>
@@ -499,6 +587,7 @@
         <div id="feedbackContainer"></div>
         
         <div class="button-container">
+            <button class="button" id="deleteButton" onclick="deleteLastLetter()">🗑️ Delete</button>
             <button class="button" id="checkButton" onclick="checkPotion()">✨ Finish Potion</button>
             <button class="button hidden" id="nextButton" onclick="nextWord()">Next Potion →</button>
         </div>
@@ -608,14 +697,38 @@
                 `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
+            document.getElementById('deleteButton').disabled = true; // Disable delete button initially
             document.getElementById('nextButton').classList.add('hidden');
-            document.getElementById('potionLiquid').classList.remove('complete', 'mixing');
-            document.getElementById('potionLiquid').style.height = '0%';
-            document.getElementById('potionLiquid').textContent = '';
+            
+            // Reset potion display
+            const potionLiquid = document.getElementById('potionLiquid');
+            potionLiquid.classList.remove('complete', 'mixing');
+            potionLiquid.style.height = '0%';
+            potionLiquid.style.opacity = '1';
+            potionLiquid.textContent = '';
+            document.getElementById('wordDisplayAboveVial').textContent = '';
+            
+            // Reset wizard
             const wizard = document.getElementById('wizard');
             wizard.className = 'wizard';
             wizard.textContent = '🧙';
-            document.getElementById('vial').classList.remove('drinking');
+            
+            // Reset and show vial (it was hidden after drinking)
+            const vial = document.getElementById('vial');
+            vial.className = 'vial';
+            vial.classList.remove('drinking', 'fading');
+            vial.style.display = 'block'; // Make sure it's visible
+            vial.style.opacity = '1';
+            vial.style.transform = '';
+            vial.style.translate = '';
+            const vialNeck = vial.querySelector('.vial-neck');
+            if (vialNeck) {
+                vialNeck.style.transform = '';
+            }
+            
+            // Recreate ingredients (they may have been removed)
+            createRecipe();
+            createIngredients();
             
             createRecipe();
             createIngredients();
@@ -634,14 +747,18 @@
             recipeDisplay.innerHTML = '<h3 style="margin-top: 0;">📜 Recipe:</h3>';
             
             const letters = currentWord.word.split('');
+            // Create sentence-like steps
+            let stepText = `Spell the word "${currentWord.word.toUpperCase()}" by adding letters: `;
             letters.forEach((letter, index) => {
-                const step = document.createElement('div');
-                step.className = 'recipe-step';
-                step.dataset.index = index;
-                step.dataset.letter = letter.toLowerCase();
-                step.textContent = `Add letter: ${letter.toUpperCase()}`;
-                recipeDisplay.appendChild(step);
+                if (index > 0) stepText += ', ';
+                stepText += letter.toUpperCase();
             });
+            
+            const step = document.createElement('div');
+            step.className = 'recipe-step';
+            step.textContent = stepText;
+            step.dataset.letters = letters.map(l => l.toLowerCase()).join(',');
+            recipeDisplay.appendChild(step);
         }
 
         function createIngredients() {
@@ -660,10 +777,7 @@
                 ingredient.dataset.letter = letter.toLowerCase();
                 ingredient.textContent = letter.toUpperCase();
                 
-                const label = document.createElement('div');
-                label.className = 'ingredient-label';
-                label.textContent = letter.toUpperCase();
-                ingredient.appendChild(label);
+                // Removed label below button - letter is only on the button
                 
                 ingredient.onclick = () => addIngredient(ingredient, letter.toLowerCase());
                 shelf.appendChild(ingredient);
@@ -685,21 +799,64 @@
             addedLetters.push(letter);
             ingredient.classList.add('used');
             
-            // Update potion level
-            const level = (addedLetters.length / currentWord.word.length) * 100;
-            document.getElementById('potionLiquid').style.height = level + '%';
-            document.getElementById('potionLiquid').textContent = addedLetters.join('').toUpperCase();
-            document.getElementById('potionLiquid').classList.add('mixing');
+            updatePotionDisplay();
             
-            // Update recipe
-            const step = document.querySelector(`.recipe-step[data-index="${addedLetters.length - 1}"]`);
-            if (step && step.dataset.letter === letter) {
-                step.classList.add('complete');
+            // Update recipe - mark step complete when all letters are correctly added
+            const step = document.querySelector('.recipe-step');
+            if (step && addedLetters.length === currentWord.word.length) {
+                const spelledWord = addedLetters.join('');
+                if (spelledWord.toLowerCase() === currentWord.word.toLowerCase()) {
+                    step.classList.add('complete');
+                }
             }
             
             // Check if all letters added
             if (addedLetters.length === currentWord.word.length) {
                 document.getElementById('potionLiquid').classList.remove('mixing');
+            }
+        }
+
+        function deleteLastLetter() {
+            if (addedLetters.length === 0) {
+                document.getElementById('deleteButton').disabled = true;
+                return;
+            }
+            
+            // Remove last letter
+            const lastLetter = addedLetters.pop();
+            
+            // Find and re-enable the ingredient button (find the last used one with this letter)
+            const ingredients = Array.from(document.querySelectorAll('.ingredient'))
+                .filter(ing => ing.dataset.letter === lastLetter && ing.classList.contains('used'));
+            
+            if (ingredients.length > 0) {
+                // Get the last one that was used (most recently added)
+                const lastUsed = ingredients[ingredients.length - 1];
+                lastUsed.classList.remove('used');
+            }
+            
+            updatePotionDisplay();
+            
+            // Disable delete button if no letters left
+            if (addedLetters.length === 0) {
+                document.getElementById('deleteButton').disabled = true;
+            }
+        }
+
+        function updatePotionDisplay() {
+            // Update potion level
+            const level = (addedLetters.length / currentWord.word.length) * 100;
+            document.getElementById('potionLiquid').style.height = level + '%';
+            // Display word above vial instead of in vial
+            document.getElementById('wordDisplayAboveVial').textContent = addedLetters.join('').toUpperCase();
+            document.getElementById('potionLiquid').textContent = ''; // Clear text from vial
+            
+            if (addedLetters.length > 0) {
+                document.getElementById('potionLiquid').classList.add('mixing');
+                document.getElementById('deleteButton').disabled = false;
+            } else {
+                document.getElementById('potionLiquid').classList.remove('mixing');
+                document.getElementById('deleteButton').disabled = true;
             }
         }
 
@@ -709,13 +866,14 @@
             
             if (isCorrect) {
                 document.getElementById('potionLiquid').classList.add('complete');
-                document.getElementById('potionLiquid').textContent = '✨';
+                document.getElementById('potionLiquid').textContent = ''; // Don't show text in vial
+                // Show word above vial
+                document.getElementById('wordDisplayAboveVial').textContent = '✨ ' + spelledWord.toUpperCase() + ' ✨';
                 
                 // Show witch and transformation animation
                 showWitchTransformation();
                 
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback correct">✓ Perfect potion! The magic works! ✨🧪</div>';
+                showPopupMessage('✓ Perfect potion! The magic works! ✨🧪', 'correct');
                 
                 if (isFirstAttempt) {
                     correctCount++;
@@ -731,8 +889,7 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback incorrect">✗ The potion fizzled! Try again with the correct letters.</div>';
+                showPopupMessage('✗ The potion fizzled! Try again with the correct letters.', 'incorrect');
                 
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';
@@ -798,14 +955,37 @@
                 }, 100);
             }, 500);
             
+            // Clear word display after animation starts
+            setTimeout(() => {
+                document.getElementById('wordDisplayAboveVial').textContent = '';
+            }, 1000);
+            
+            // After drinking, fade away the potion and make wizard hiccup
             setTimeout(() => {
                 wizard.classList.remove('drinking');
                 vial.classList.remove('drinking');
-                wizard.classList.add('color-changing');
-                // Reset liquid to show it's been drunk
+                // Fade away the potion
+                vial.classList.add('fading');
                 potionLiquid.style.height = '0%';
-            }, 2000);
+                potionLiquid.style.opacity = '0';
+                document.getElementById('wordDisplayAboveVial').textContent = '';
+                
+                // Hide the vial completely after fade
+                setTimeout(() => {
+                    vial.style.display = 'none';
+                }, 1000);
+                
+                // Wizard hiccup
+                wizard.classList.add('hiccup');
+            }, 2500);
             
+            // After hiccup, change color
+            setTimeout(() => {
+                wizard.classList.remove('hiccup');
+                wizard.classList.add('color-changing');
+            }, 3000);
+            
+            // After color change, transform to animal
             setTimeout(() => {
                 wizard.classList.remove('color-changing');
                 wizard.classList.add('transforming');
@@ -813,7 +993,7 @@
                 setTimeout(() => {
                     wizard.textContent = randomAnimal;
                 }, 500);
-            }, 3000);
+            }, 4000);
             
             setTimeout(() => {
                 sparkles.remove();
@@ -822,11 +1002,18 @@
 
         function nextWord() {
             currentWordIndex++;
-            const wizard = document.getElementById('wizard');
-            wizard.className = 'wizard';
-            wizard.textContent = '🧙';
-            document.getElementById('vial').classList.remove('drinking');
             loadWord();
+        }
+
+        function showPopupMessage(message, type) {
+            const popup = document.createElement('div');
+            popup.className = `popup-message ${type}`;
+            popup.textContent = message;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 2000);
         }
 
         function updateStarCount() {

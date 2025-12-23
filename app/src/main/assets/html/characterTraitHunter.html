@@ -54,9 +54,9 @@
             padding: 12px;
             margin: 10px 0;
             font-size: 0.95em;
-            line-height: 1.6;
-            min-height: 200px;
-            max-height: 400px;
+            line-height: 1.5;
+            min-height: 100px;
+            max-height: 200px;
             overflow-y: auto;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -83,8 +83,8 @@
             flex-wrap: wrap;
             gap: 8px;
             justify-content: center;
-            min-height: 200px;
-            max-height: 400px;
+            min-height: 100px;
+            max-height: 200px;
             overflow-y: auto;
         }
         .trait-item {
@@ -123,20 +123,45 @@
             background: white;
             border: 2px solid #4CAF50;
             border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
+            padding: 10px;
+            margin: 8px 0;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
+            position: relative;
         }
         .match-trait {
             background: #2196F3;
             color: white;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-weight: bold;
-            min-width: 100px;
+            min-width: 80px;
             text-align: center;
+            font-size: 0.9em;
+        }
+        .match-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+        }
+        .match-remove:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
         }
         .match-evidence {
             flex: 1;
@@ -333,7 +358,9 @@
                     const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         stories = data;
+                        console.log(`Loaded ${stories.length} stories from JSON file: ${fileName}`);
                     } else {
+                        console.warn(`JSON file ${fileName} is empty or invalid, using default stories`);
                         stories = defaultStories;
                     }
                     maxQuestions = Math.min(stories.length, maxQuestions);
@@ -425,6 +452,9 @@
             
             // Highlight evidence in story
             highlightEvidence(trait);
+            
+            // Auto-add the match
+            addMatch();
         }
 
         function highlightEvidence(trait) {
@@ -501,15 +531,32 @@
             const list = document.getElementById('matchesList');
             list.innerHTML = '';
             
-            matches.forEach(match => {
+            matches.forEach((match, index) => {
                 const item = document.createElement('div');
                 item.className = 'match-item';
                 item.innerHTML = `
                     <div class="match-trait">${match.trait}</div>
                     <div class="match-evidence">${match.evidence}</div>
+                    <button class="match-remove" onclick="removeMatch(${index})" title="Remove">×</button>
                 `;
                 list.appendChild(item);
             });
+        }
+        
+        function removeMatch(index) {
+            const removedMatch = matches[index];
+            matches.splice(index, 1);
+            
+            // Re-enable the trait in the bank
+            document.querySelectorAll('.trait-item').forEach(item => {
+                const itemTrait = item.textContent.trim().toLowerCase();
+                if (itemTrait === removedMatch.trait.toLowerCase()) {
+                    item.classList.remove('used');
+                    item.style.pointerEvents = 'auto';
+                }
+            });
+            
+            updateMatchesDisplay();
         }
 
         function checkMatches() {
