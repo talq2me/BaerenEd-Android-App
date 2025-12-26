@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var readAlongHasBeenPaused: Boolean = false
     private lateinit var readAlongTimeTracker: TimeTracker
     private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
+    private lateinit var cloudStorageManager: CloudStorageManager
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
@@ -106,6 +107,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize cloud storage manager
+        cloudStorageManager = CloudStorageManager(this)
+        
+        // Check if cloud storage is enabled - if so, redirect to LoginActivity
+        if (cloudStorageManager.isCloudStorageEnabled() && cloudStorageManager.isConfigured()) {
+            // Cloud storage is enabled, go to login
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+        
         setContentView(R.layout.activity_main)
 
         // Remove any leftover downloads that already match the installed build
@@ -1074,6 +1087,52 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             "askForTime" -> showAskForTimeDialog()
             null -> Log.w(TAG, "Header button action is null")
             else -> Log.d(TAG, "Unknown header button action: $action")
+        }
+    }
+    
+    fun toggleCloudStorage() {
+        val isCurrentlyEnabled = cloudStorageManager.isCloudStorageEnabled()
+        
+        if (!cloudStorageManager.isConfigured()) {
+            Toast.makeText(this, "Supabase not configured. Add SUPABASE_URL and SUPABASE_KEY to local.properties and rebuild.", Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        if (!isCurrentlyEnabled) {
+            // Enable cloud storage
+            cloudStorageManager.setCloudStorageEnabled(true)
+            val profile = SettingsManager.readProfile(this) ?: "A"
+            lifecycleScope.launch(Dispatchers.IO) {
+                val result = cloudStorageManager.uploadToCloud(profile)
+                runOnUiThread {
+                    if (result.isSuccess) {
+                        Toast.makeText(this@MainActivity, "Cloud storage enabled and synced", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@MainActivity, "Cloud enabled but sync failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
+                    }
+                    // Refresh UI to update button
+                    currentMainContent?.let { layout.displayContent(it) }
+                }
+            }
+        } else {
+            // Disable cloud storage
+            cloudStorageManager.setCloudStorageEnabled(false)
+            Toast.makeText(this, "Cloud storage disabled", Toast.LENGTH_SHORT).show()
+            // Refresh UI to update button
+            currentMainContent?.let { layout.displayContent(it) }
+        }
+    }
+    
+    /**
+     * Saves data to cloud if cloud storage is enabled
+     * Call this after any data changes
+     */
+    fun saveToCloudIfEnabled() {
+        if (cloudStorageManager.isCloudStorageEnabled()) {
+            val profile = SettingsManager.readProfile(this) ?: "A"
+            lifecycleScope.launch(Dispatchers.IO) {
+                cloudStorageManager.saveIfEnabled(profile)
+            }
         }
     }
 

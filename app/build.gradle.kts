@@ -35,6 +35,13 @@ android {
         val encryptedToken = getLocalProperty("ENCRYPTED_GITHUB_TOKEN", "")
         buildConfigField("String", "ENCRYPTED_GITHUB_TOKEN", "\"$encryptedToken\"")
         
+        // Read Supabase configuration from local.properties
+        // These will be embedded in the app at build time
+        val supabaseUrl = getLocalProperty("SUPABASE_URL", "")
+        val supabaseKey = getLocalProperty("SUPABASE_KEY", "")
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
+        
         // Exclude x86_64 to avoid 16KB alignment issues with ML Kit's native library
         // This is acceptable since x86_64 is primarily for emulators
         // Real Android devices use ARM architectures (armeabi-v7a, arm64-v8a)
