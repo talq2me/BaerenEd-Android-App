@@ -268,6 +268,48 @@
       "description": "Just for fun!",
       "tasks": [
         {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Soda Pop",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Your Idol",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Golden",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "What It Sounds Like",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "How its Done",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Take Down",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "What It Sounds Like",
+          "videoSequence": "exact"
+        },
+        {
           "title": "Mia Prep Gr 2 Reading",
           "launch": "PLvJNSf-7NfrO21IXNGcDvHnSLUCq2nW9g",
           "videoSequence": "playlist"
