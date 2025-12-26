@@ -845,7 +845,7 @@
                 placeNumberRandomly(num, gameAreaRect);
                 numbers.push({ element: num, value: currentAnswer, format: format });
             }
-            
+
             // Create wrong answer numbers
             const wrongAnswers = generateWrongAnswers(wrongCount);
             wrongAnswers.forEach(value => {
@@ -856,30 +856,25 @@
             });
         }
         
-        function getRandomFormat(value) {
-            const rand = Math.random();
-            const mode = getGameMode();
-            // Ten frames only work well for values 0-10
-            // In hard mode, avoid ten frames entirely for values over 20
-            const canUseTenFrame = value <= 10 && (mode !== 'hard' || value <= 20);
-            
-            if (canUseTenFrame) {
-                if (rand < 0.33) {
-                    return 'number';
-                } else if (rand < 0.66) {
-                    return 'ten-frame';
-                } else {
-                    return 'math-expression';
-                }
-            } else {
-                // For values > 10 (or > 20 in hard mode), use number or math-expression only
-                if (rand < 0.5) {
-                    return 'number';
-                } else {
-                    return 'math-expression';
-                }
-            }
-        }
+function getRandomFormat(value) {
+    // Ten frames only work well for values 0-10
+    // For values > 10, use number or math-expression only
+    if (value > 10) {
+        console.log('getRandomFormat called with value > 10:', value, '- returning number or math-expression');
+        const rand = Math.random();
+        return rand < 0.5 ? 'number' : 'math-expression';
+    }
+
+    // For values 0-10, randomly choose between number, ten-frame, or math-expression
+    const rand = Math.random();
+    if (rand < 0.33) {
+        return 'number';
+    } else if (rand < 0.66) {
+        return 'ten-frame';
+    } else {
+        return 'math-expression';
+    }
+}
 
         function generateWrongAnswers(count) {
             const wrongAnswers = [];
@@ -911,21 +906,20 @@
         function createNumberElement(value, format = 'number') {
             const num = document.createElement('div');
             num.className = 'number';
-            
+
             if (format === 'ten-frame') {
-                // Double-check: don't create ten frames for values > 10 (or > 20 in hard mode)
-                const mode = getGameMode();
-                const maxTenFrameValue = mode === 'hard' ? 20 : 10;
-                if (value > maxTenFrameValue) {
+                // Ten frames should only be used for values 0-10, but double-check just in case
+                if (value > 10) {
                     // Fallback to number format if value is too large
+                    console.warn('Attempted to create ten-frame for value > 10:', value, '- falling back to number format');
                     num.textContent = value;
                     return num;
                 }
-                
+
                 num.classList.add('ten-frame');
                 const grid = document.createElement('div');
                 grid.className = 'ten-frame-grid';
-                
+
                 for (let i = 0; i < 10; i++) {
                     const dot = document.createElement('div');
                     dot.className = 'ten-frame-dot';
@@ -934,13 +928,19 @@
                     }
                     grid.appendChild(dot);
                 }
-                
+
                 num.appendChild(grid);
             } else if (format === 'math-expression' && value === currentAnswer) {
                 num.classList.add('math-expression');
-                // Generate alternative math expressions for the correct answer
-                const expressions = generateMathExpressions(value);
-                num.textContent = expressions[Math.floor(Math.random() * expressions.length)];
+                // Create a simple math expression representation
+                const expressions = [
+                    `${value} = ${value}`,
+                    `${Math.floor(value/2)} + ${Math.ceil(value/2)}`,
+                    `${value} × 1`,
+                    `${value} ÷ 1`
+                ];
+                const randomExpr = expressions[Math.floor(Math.random() * expressions.length)];
+                num.textContent = randomExpr;
             } else if (format === 'math-expression') {
                 num.classList.add('math-expression');
                 const mode = getGameMode();
@@ -996,9 +996,15 @@
                     }
                 }
             } else {
+                // Default: show as plain number
                 num.textContent = value;
             }
-            
+
+            // Final fallback: ensure text content is set
+            if (!num.textContent && !num.hasChildNodes()) {
+                num.textContent = value;
+            }
+
             return num;
         }
         

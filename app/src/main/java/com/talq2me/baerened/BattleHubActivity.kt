@@ -26,7 +26,15 @@ import com.google.gson.Gson
 import kotlinx.coroutines.*
 
 class BattleHubActivity : AppCompatActivity() {
-    
+
+    data class ParsedPokemon(
+        val prefix: Int,
+        val pokenum: Int,
+        val name: String,
+        val filename: String,
+        val shiny: Boolean
+    )
+
     private lateinit var headerTitle: TextView
     private lateinit var coinCount: TextView
     private lateinit var berryCountDisplay: TextView
@@ -1477,15 +1485,7 @@ class BattleHubActivity : AppCompatActivity() {
             }
         }
     }
-    
-    data class ParsedPokemon(
-        val prefix: Int,
-        val pokenum: Int,
-        val name: String,
-        val filename: String,
-        val shiny: Boolean
-    )
-    
+
     private fun parsePokemonFilename(filename: String): ParsedPokemon? {
         if (!filename.endsWith(".png")) return null
         
@@ -1558,10 +1558,10 @@ class BattleHubActivity : AppCompatActivity() {
                             ?: allPokemon.filter { it.prefix > unlockedPokemonCount }
                                 .minByOrNull { it.prefix }
                         
-                        if (bossPokemon != null) {
-                            currentBossPokemon = bossPokemon
-                            loadBossPokemon(bossPokemon.filename, bossPokemon.name)
-                        }
+            if (bossPokemon != null) {
+                currentBossPokemon = bossPokemon
+                loadBossPokemon(bossPokemon.filename, bossPokemon.name)
+            }
                     }
                 }
             } catch (e: Exception) {
@@ -2191,7 +2191,8 @@ class BattleHubActivity : AppCompatActivity() {
                         // Wait for all animations to complete, then longer delay (3s) before showing victory
                         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                             clearBattleMessage()
-                            showBattleMessage("${currentBossPokemon?.name ?: "Boss"} was defeated!")
+                            val bossName = currentBossPokemon?.name ?: "Boss"
+                            showBattleMessage("$bossName was defeated!")
                             
                             // Wait a bit, then start defeated animation
                             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
