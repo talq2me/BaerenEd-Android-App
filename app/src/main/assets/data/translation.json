@@ -1,4 +1,364 @@
 [
+    {
+        "prompt": {"text": "Les astronautes explorent l'espace."},
+        "correctChoices": [{"text": "The astronauts explore space."}],
+        "extraChoices": [
+            {"text": "The astronauts live in space."},
+            {"text": "The astronauts look at space."},
+            {"text": "The astronauts are from space."}
+        ]
+    },
+    {
+        "prompt": {"text": "Le recyclage est important pour la planète."},
+        "correctChoices": [{"text": "Recycling is important for the planet."}],
+        "extraChoices": [
+            {"text": "Recycling is bad for the planet."},
+            {"text": "Recycling is fun for the planet."},
+            {"text": "Recycling is for the planet."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les dinosaures ont vécu il y a des millions d'années."},
+        "correctChoices": [{"text": "Dinosaurs lived millions of years ago."}],
+        "extraChoices": [
+            {"text": "Dinosaurs live now."},
+            {"text": "Dinosaurs will live in a million years."},
+            {"text": "Dinosaurs were small."}
+        ]
+    },
+    {
+        "prompt": {"text": "J'apprends à jouer du piano."},
+        "correctChoices": [{"text": "I am learning to play the piano."}],
+        "extraChoices": [
+            {"text": "I am teaching how to play the piano."},
+            {"text": "I am learning to play the guitar."},
+            {"text": "I am learning to sing."}
+        ]
+    },
+    {
+        "prompt": {"text": "La capitale de la France est Paris."},
+        "correctChoices": [{"text": "The capital of France is Paris."}],
+        "extraChoices": [
+            {"text": "The capital of France is London."},
+            {"text": "The capital of Italy is Paris."},
+            {"text": "Paris is a big city."}
+        ]
+    },
+    {
+        "prompt": {"text": "Le système solaire a huit planètes."},
+        "correctChoices": [{"text": "The solar system has eight planets."}],
+        "extraChoices": [
+            {"text": "The solar system has nine planets."},
+            {"text": "The solar system has one planet."},
+            {"text": "The solar system is small."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les abeilles produisent du miel."},
+        "correctChoices": [{"text": "Bees produce honey."}],
+        "extraChoices": [
+            {"text": "Bees eat honey."},
+            {"text": "Wasps produce honey."},
+            {"text": "Bees produce milk."}
+        ]
+    },
+    {
+        "prompt": {"text": "La Terre tourne autour du Soleil."},
+        "correctChoices": [{"text": "The Earth revolves around the Sun."}],
+        "extraChoices": [
+            {"text": "The Sun revolves around the Earth."},
+            {"text": "The Moon revolves around the Sun."},
+            {"text": "The Earth is the Sun."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les oiseaux migrateurs voyagent vers le sud en hiver."},
+        "correctChoices": [{"text": "Migratory birds travel south in winter."}],
+        "extraChoices": [
+            {"text": "Migratory birds travel north in winter."},
+            {"text": "Migratory birds stay in winter."},
+            {"text": "All birds travel south in winter."}
+        ]
+    },
+    {
+        "prompt": {"text": "Le corps humain a plus de 200 os."},
+        "correctChoices": [{"text": "The human body has more than 200 bones."}],
+        "extraChoices": [
+            {"text": "The human body has less than 200 bones."},
+            {"text": "The human body has 200 muscles."},
+            {"text": "The human body has no bones."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les plantes ont besoin de lumière pour grandir."},
+        "correctChoices": [{"text": "Plants need light to grow."}],
+        "extraChoices": [
+            {"text": "Plants need darkness to grow."},
+            {"text": "Plants need milk to grow."},
+            {"text": "Plants grow without light."}
+        ]
+    },
+    {
+        "prompt": {"text": "Le cycle de l'eau est un processus naturel."},
+        "correctChoices": [{"text": "The water cycle is a natural process."}],
+        "extraChoices": [
+            {"text": "The water cycle is a new process."},
+            {"text": "The water cycle is a short process."},
+            {"text": "The water cycle is a manual process."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les pyramides d'Égypte sont très anciennes."},
+        "correctChoices": [{"text": "The pyramids of Egypt are very old."}],
+        "extraChoices": [
+            {"text": "The pyramids of Egypt are new."},
+            {"text": "The pyramids of France are very old."},
+            {"text": "The pyramids of Egypt are small."}
+        ]
+    },
+    {
+        "prompt": {"text": "La Grande Muraille de Chine est visible depuis l'espace."},
+        "correctChoices": [{"text": "The Great Wall of China is visible from space."}],
+        "extraChoices": [
+            {"text": "The Great Wall of China is short."},
+            {"text": "The Great Wall of China is in Japan."},
+            {"text": "The Great Wall of China is invisible."}
+        ]
+    },
+    {
+        "prompt": {"text": "L'électricité est une forme d'énergie."},
+        "correctChoices": [{"text": "Electricity is a form of energy."}],
+        "extraChoices": [
+            {"text": "Electricity is a form of water."},
+            {"text": "Electricity is a form of food."},
+            {"text": "Electricity is not energy."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les volcans peuvent entrer en éruption."},
+        "correctChoices": [{"text": "Volcanoes can erupt."}],
+        "extraChoices": [
+            {"text": "Volcanoes can fly."},
+            {"text": "Volcanoes are always calm."},
+            {"text": "Volcanoes are cold."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les océans couvrent la majorité de la surface de la Terre."},
+        "correctChoices": [{"text": "Oceans cover most of the Earth's surface."}],
+        "extraChoices": [
+            {"text": "Oceans cover a small part of the Earth's surface."},
+            {"text": "Deserts cover most of the Earth's surface."},
+            {"text": "Oceans are not on Earth."}
+        ]
+    },
+    {
+        "prompt": {"text": "La photosynthèse est le processus par lequel les plantes fabriquent leur nourriture."},
+        "correctChoices": [{"text": "Photosynthesis is the process by which plants make their food."}],
+        "extraChoices": [
+            {"text": "Photosynthesis is for animals."},
+            {"text": "Plants eat food."},
+            {"text": "Photosynthesis is not a process."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les ordinateurs sont des outils puissants."},
+        "correctChoices": [{"text": "Computers are powerful tools."}],
+        "extraChoices": [
+            {"text": "Computers are weak tools."},
+            {"text": "Computers are old tools."},
+            {"text": "Computers are useless."}
+        ]
+    },
+    {
+        "prompt": {"text": "La lecture améliore l'imagination."},
+        "correctChoices": [{"text": "Reading improves imagination."}],
+        "extraChoices": [
+            {"text": "Reading is boring."},
+            {"text": "Reading is for sleeping."},
+            {"text": "Imagination does not need reading."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les continents sont de grandes masses de terre."},
+        "correctChoices": [{"text": "Continents are large land masses."}],
+        "extraChoices": [
+            {"text": "Continents are small islands."},
+            {"text": "Continents are oceans."},
+            {"text": "There are no continents."}
+        ]
+    },
+    {
+        "prompt": {"text": "Le cœur pompe le sang dans le corps."},
+        "correctChoices": [{"text": "The heart pumps blood through the body."}],
+        "extraChoices": [
+            {"text": "The brain pumps blood through the body."},
+            {"text": "The heart pumps air through the body."},
+            {"text": "The heart is not a pump."}
+        ]
+    },
+    {
+        "prompt": {"text": "L'énergie solaire provient du soleil."},
+        "correctChoices": [{"text": "Solar energy comes from the sun."}],
+        "extraChoices": [
+            {"text": "Solar energy comes from the moon."},
+            {"text": "Solar energy is not from the sun."},
+            {"text": "Solar energy is expensive."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les inventeurs créent de nouvelles choses."},
+        "correctChoices": [{"text": "Inventors create new things."}],
+        "extraChoices": [
+            {"text": "Inventors destroy things."},
+            {"text": "Inventors are not creative."},
+            {"text": "Inventors are lazy."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les athlètes s'entraînent dur pour les compétitions."},
+        "correctChoices": [{"text": "Athletes train hard for competitions."}],
+        "extraChoices": [
+            {"text": "Athletes sleep a lot for competitions."},
+            {"text": "Athletes do not train for competitions."},
+            {"text": "Competitions are easy."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les musées exposent des œuvres d'art et des objets historiques."},
+        "correctChoices": [{"text": "Museums display works of art and historical objects."}],
+        "extraChoices": [
+            {"text": "Museums sell works of art."},
+            {"text": "Museums are for sports."},
+            {"text": "Museums are boring."}
+        ]
+    },
+    {
+        "prompt": {"text": "La communication est essentielle entre les personnes."},
+        "correctChoices": [{"text": "Communication is essential between people."}],
+        "extraChoices": [
+            {"text": "Communication is not important."},
+            {"text": "People do not need to communicate."},
+            {"text": "Communication is only for animals."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les étoiles sont d'énormes boules de gaz chaud."},
+        "correctChoices": [{"text": "Stars are huge balls of hot gas."}],
+        "extraChoices": [
+            {"text": "Stars are small and cold."},
+            {"text": "Stars are made of rock."},
+            {"text": "Stars are close to Earth."}
+        ]
+    },
+    {
+        "prompt": {"text": "La gravité nous maintient au sol."},
+        "correctChoices": [{"text": "Gravity keeps us on the ground."}],
+        "extraChoices": [
+            {"text": "Gravity makes us fly."},
+            {"text": "There is no gravity."},
+            {"text": "Gravity is weak."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les architectes dessinent les plans des bâtiments."},
+        "correctChoices": [{"text": "Architects draw the plans for buildings."}],
+        "extraChoices": [
+            {"text": "Architects build the buildings."},
+            {"text": "Architects live in the buildings."},
+            {"text": "Architects destroy the buildings."}
+        ]
+    },
+    {
+        "prompt": {"text": "La vitesse du son est d'environ 343 mètres par seconde."},
+        "correctChoices": [{"text": "The speed of sound is about 343 meters per second."}],
+        "extraChoices": [
+            {"text": "The speed of light is about 343 meters per second."},
+            {"text": "The speed of sound is very slow."},
+            {"text": "The speed of sound is 1000 meters per second."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les télescopes nous aident à voir les objets lointains dans l'espace."},
+        "correctChoices": [{"text": "Telescopes help us see distant objects in space."}],
+        "extraChoices": [
+            {"text": "Telescopes are for looking at small things."},
+            {"text": "Telescopes are not useful."},
+            {"text": "Telescopes are for looking at things on Earth."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les élections permettent aux citoyens de choisir leurs dirigeants."},
+        "correctChoices": [{"text": "Elections allow citizens to choose their leaders."}],
+        "extraChoices": [
+            {"text": "Elections are not important."},
+            {"text": "Leaders are not chosen by citizens."},
+            {"text": "Elections are a game."}
+        ]
+    },
+    {
+        "prompt": {"text": "Le commerce international implique l'échange de biens entre les pays."},
+        "correctChoices": [{"text": "International trade involves the exchange of goods between countries."}],
+        "extraChoices": [
+            {"text": "International trade is not important."},
+            {"text": "Countries do not trade with each other."},
+            {"text": "International trade is only about money."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les droits de l'homme sont universels."},
+        "correctChoices": [{"text": "Human rights are universal."}],
+        "extraChoices": [
+            {"text": "Human rights are for some people only."},
+            {"text": "Human rights are not important."},
+            {"text": "Human rights are a new idea."}
+        ]
+    },
+    {
+        "prompt": {"text": "La démocratie est un système de gouvernement."},
+        "correctChoices": [{"text": "Democracy is a system of government."}],
+        "extraChoices": [
+            {"text": "Democracy is a type of food."},
+            {"text": "Democracy is not a system of government."},
+            {"text": "Democracy is for animals."}
+        ]
+    },
+    {
+        "prompt": {"text": "La pollution de l'air est un problème environnemental grave."},
+        "correctChoices": [{"text": "Air pollution is a serious environmental problem."}],
+        "extraChoices": [
+            {"text": "Air pollution is not a problem."},
+            {"text": "Air pollution is good for the environment."},
+            {"text": "Air pollution is a new problem."}
+        ]
+    },
+    {
+        "prompt": {"text": "Les énergies renouvelables sont l'avenir."},
+        "correctChoices": [{"text": "Renewable energies are the future."}],
+        "extraChoices": [
+            {"text": "Renewable energies are not important."},
+            {"text": "Renewable energies are from the past."},
+            {"text": "Renewable energies are expensive."}
+        ]
+    },
+    {
+        "prompt": {"text": "La biodiversité est la variété de la vie sur Terre."},
+        "correctChoices": [{"text": "Biodiversity is the variety of life on Earth."}],
+        "extraChoices": [
+            {"text": "Biodiversity is not important."},
+            {"text": "Biodiversity is only about animals."},
+            {"text": "Biodiversity is decreasing."}
+        ]
+    },
+    {
+        "prompt": {"text": "La technologie a changé notre façon de vivre."},
+        "correctChoices": [{"text": "Technology has changed the way we live."}],
+        "extraChoices": [
+            {"text": "Technology is not important."},
+            {"text": "Technology has not changed our lives."},
+            {"text": "Technology is only for young people."}
+        ]
+    },
   {
     "prompt": {
       "text": "Je mange une pomme."
@@ -17,9 +377,6 @@
       },
       {
         "text": "I am eating a pear."
-      },
-      {
-        "text": "You are eating an apple."
       }
     ]
   },
@@ -38,9 +395,6 @@
       },
       {
         "text": "We go to the park."
-      },
-      {
-        "text": "You are going to school."
       },
       {
         "text": "They are going to school."
@@ -65,9 +419,6 @@
       },
       {
         "text": "He had a dog."
-      },
-      {
-        "text": "He has a cat."
       }
     ]
   },
@@ -89,9 +440,6 @@
       },
       {
         "text": "He speaks French."
-      },
-      {
-        "text": "You are French."
       }
     ]
   },
@@ -112,9 +460,6 @@
         "text": "She hears music."
       },
       {
-        "text": "She likes the movie."
-      },
-      {
         "text": "He likes music."
       }
     ]
@@ -136,9 +481,6 @@
         "text": "He is watching a movie."
       },
       {
-        "text": "They are watching a show."
-      },
-      {
         "text": "They watched a movie."
       }
     ]
@@ -161,9 +503,6 @@
       },
       {
         "text": "We have two brothers."
-      },
-      {
-        "text": "You have two sisters."
       }
     ]
   },
@@ -185,9 +524,6 @@
       },
       {
         "text": "I am hungry."
-      },
-      {
-        "text": "I am late."
       }
     ]
   },
@@ -208,9 +544,6 @@
         "text": "He is drinking water."
       },
       {
-        "text": "She is eating water."
-      },
-      {
         "text": "She drinks wine."
       }
     ]
@@ -233,1899 +566,825 @@
       },
       {
         "text": "They are reading a book."
-      },
-      {
-        "text": "We read a letter."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle aime la musique."
+      "text": "Le chat dort sur le lit."
     },
     "correctChoices": [
       {
-        "text": "She likes music."
+        "text": "The cat is sleeping on the bed."
       }
     ],
     "extraChoices": [
       {
-        "text": "She likes the movie."
+        "text": "The dog is sleeping on the bed."
       },
       {
-        "text": "She hears music."
+        "text": "The cat is playing on the bed."
       },
       {
-        "text": "He likes music."
+        "text": "The cat is sleeping under the bed."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous allons à l’école."
+      "text": "J'aime dessiner des fleurs."
     },
     "correctChoices": [
       {
-        "text": "We are going to school."
+        "text": "I like to draw flowers."
       }
     ],
     "extraChoices": [
       {
-        "text": "We go to the park."
+        "text": "I like to paint flowers."
       },
       {
-        "text": "They are going to school."
+        "text": "I like to draw trees."
       },
       {
-        "text": "You are going to school."
+        "text": "She likes to draw flowers."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous allons à l’école."
+      "text": "Le soleil est jaune."
     },
     "correctChoices": [
       {
-        "text": "We are going to school."
+        "text": "The sun is yellow."
       }
     ],
     "extraChoices": [
       {
-        "text": "We go to the park."
+        "text": "The moon is yellow."
       },
       {
-        "text": "They are going to school."
+        "text": "The sun is blue."
       },
       {
-        "text": "We went to school."
+        "text": "The sun is hot."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle boit de l’eau."
+      "text": "J'ai un petit frère."
     },
     "correctChoices": [
       {
-        "text": "She is drinking water."
+        "text": "I have a little brother."
       }
     ],
     "extraChoices": [
       {
-        "text": "He is drinking water."
+        "text": "I have a big brother."
       },
       {
-        "text": "She drank water."
+        "text": "I have a little sister."
       },
       {
-        "text": "She is eating water."
+        "text": "He has a little brother."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "Le chien court dans le jardin."
     },
     "correctChoices": [
       {
-        "text": "You have two brothers."
+        "text": "The dog runs in the garden."
       }
     ],
     "extraChoices": [
       {
-        "text": "You are two brothers."
+        "text": "The cat runs in the garden."
       },
       {
-        "text": "We have two brothers."
+        "text": "The dog sleeps in the garden."
       },
       {
-        "text": "You have two sisters."
+        "text": "The dog runs in the house."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Ils regardent un film."
+      "text": "J'aime manger de la pizza."
     },
     "correctChoices": [
       {
-        "text": "They are watching a movie."
+        "text": "I like to eat pizza."
       }
     ],
     "extraChoices": [
       {
-        "text": "They are reading a book."
+        "text": "I like to drink pizza."
       },
       {
-        "text": "He is watching a movie."
+        "text": "I like to eat salad."
       },
       {
-        "text": "They are watching a show."
+        "text": "You like to eat pizza."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je suis fatigué."
+      "text": "La lune brille dans la nuit."
     },
     "correctChoices": [
       {
-        "text": "I am tired."
+        "text": "The moon shines in the night."
       }
     ],
     "extraChoices": [
       {
-        "text": "He is tired."
+        "text": "The sun shines in the night."
       },
       {
-        "text": "I am hungry."
+        "text": "The moon is hiding in the night."
       },
       {
-        "text": "You are tired."
+        "text": "The moon shines in the day."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Tu parles français."
+      "text": "Mon oiseau chante le matin."
     },
     "correctChoices": [
       {
-        "text": "You speak French."
+        "text": "My bird sings in the morning."
       }
     ],
     "extraChoices": [
       {
-        "text": "You spoke French."
+        "text": "My cat sings in the morning."
       },
       {
-        "text": "He speaks French."
+        "text": "My bird sleeps in the morning."
       },
       {
-        "text": "You speak English."
+        "text": "My bird sings at night."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous lisons un livre."
+      "text": "L'école est grande et blanche."
     },
     "correctChoices": [
       {
-        "text": "We are reading a book."
+        "text": "The school is big and white."
       }
     ],
     "extraChoices": [
       {
-        "text": "You are reading a book."
+        "text": "The house is big and white."
       },
       {
-        "text": "We are writing a book."
+        "text": "The school is small and white."
       },
       {
-        "text": "We read a letter."
+        "text": "The school is big and blue."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous allons à l’école."
+      "text": "Je joue au football avec mes amis."
     },
     "correctChoices": [
       {
-        "text": "We are going to school."
+        "text": "I play soccer with my friends."
       }
     ],
     "extraChoices": [
       {
-        "text": "We went to school."
+        "text": "I watch soccer with my friends."
       },
       {
-        "text": "They are going to school."
+        "text": "I play basketball with my friends."
       },
       {
-        "text": "We go to the park."
+        "text": "I play soccer with my family."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous lisons un livre."
+      "text": "Le poisson nage dans l'eau."
     },
     "correctChoices": [
       {
-        "text": "We are reading a book."
+        "text": "The fish swims in the water."
       }
     ],
     "extraChoices": [
       {
-        "text": "We are writing a book."
+        "text": "The bird swims in the water."
       },
       {
-        "text": "They are reading a book."
+        "text": "The fish flies in the water."
       },
       {
-        "text": "We read a letter."
+        "text": "The fish swims in the sky."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle boit de l’eau."
+      "text": "Ma maman lit une histoire."
     },
     "correctChoices": [
       {
-        "text": "She is drinking water."
+        "text": "My mom is reading a story."
       }
     ],
     "extraChoices": [
       {
-        "text": "He is drinking water."
+        "text": "My dad is reading a story."
       },
       {
-        "text": "She drank water."
+        "text": "My mom is writing a story."
       },
       {
-        "text": "She drinks wine."
+        "text": "My mom is reading a book."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous allons à l’école."
+      "text": "Le bébé pleure."
     },
     "correctChoices": [
       {
-        "text": "We are going to school."
+        "text": "The baby is crying."
       }
     ],
     "extraChoices": [
       {
-        "text": "They are going to school."
+        "text": "The baby is laughing."
       },
       {
-        "text": "You are going to school."
+        "text": "The baby is sleeping."
       },
       {
-        "text": "We go to the park."
+        "text": "The mother is crying."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous lisons un livre."
+      "text": "J'écris une lettre."
     },
     "correctChoices": [
       {
-        "text": "We are reading a book."
+        "text": "I am writing a letter."
       }
     ],
     "extraChoices": [
       {
-        "text": "You are reading a book."
+        "text": "I am reading a letter."
       },
       {
-        "text": "We are writing a book."
+        "text": "I am sending a letter."
       },
       {
-        "text": "They are reading a book."
+        "text": "She is writing a letter."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle boit de l’eau."
+      "text": "Le cheval est rapide."
     },
     "correctChoices": [
       {
-        "text": "She is drinking water."
+        "text": "The horse is fast."
       }
     ],
     "extraChoices": [
       {
-        "text": "She drank water."
+        "text": "The turtle is fast."
       },
       {
-        "text": "She drinks wine."
+        "text": "The horse is slow."
       },
       {
-        "text": "He is drinking water."
+        "text": "The horse is big."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous allons à l’école."
+      "text": "Je porte un chapeau rouge."
     },
     "correctChoices": [
       {
-        "text": "We are going to school."
+        "text": "I am wearing a red hat."
       }
     ],
     "extraChoices": [
       {
-        "text": "We went to school."
+        "text": "I am wearing a blue hat."
       },
       {
-        "text": "They are going to school."
+        "text": "I am wearing a red coat."
       },
       {
-        "text": "You are going to school."
+        "text": "He is wearing a red hat."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "La voiture est bleue."
     },
     "correctChoices": [
       {
-        "text": "You have two brothers."
+        "text": "The car is blue."
       }
     ],
     "extraChoices": [
       {
-        "text": "We have two brothers."
+        "text": "The bus is blue."
       },
       {
-        "text": "They have two brothers."
+        "text": "The car is red."
       },
       {
-        "text": "You have two sisters."
+        "text": "The car is new."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "J'ai faim."
     },
     "correctChoices": [
-      {
-        "text": "You have two brothers."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You have two sisters."
-      },
-      {
-        "text": "They have two brothers."
-      },
-      {
-        "text": "We have two brothers."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Vous avez deux frères."
-    },
-    "correctChoices": [
-      {
-        "text": "You have two brothers."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are two brothers."
-      },
-      {
-        "text": "They have two brothers."
-      },
-      {
-        "text": "You have two sisters."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are eating an apple."
-      },
-      {
-        "text": "He is eating an apple."
-      },
-      {
-        "text": "I eat a banana."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Tu parles français."
-    },
-    "correctChoices": [
-      {
-        "text": "You speak French."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He speaks French."
-      },
-      {
-        "text": "You speak English."
-      },
-      {
-        "text": "You spoke French."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are watching a show."
-      },
-      {
-        "text": "They watched a movie."
-      },
-      {
-        "text": "They are reading a book."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
-      {
-        "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am late."
-      },
-      {
-        "text": "I am hungry."
-      },
-      {
-        "text": "He is tired."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They watched a movie."
-      },
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "They are watching a show."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "We are writing a book."
-      },
-      {
-        "text": "You are reading a book."
-      },
-      {
-        "text": "We read a letter."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Vous avez deux frères."
-    },
-    "correctChoices": [
-      {
-        "text": "You have two brothers."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "We have two brothers."
-      },
-      {
-        "text": "You are two brothers."
-      },
-      {
-        "text": "You have two sisters."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "We are writing a book."
-      },
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "We read a letter."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are eating an apple."
-      },
-      {
-        "text": "He is eating an apple."
-      },
-      {
-        "text": "I eat a banana."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Elle aime la musique."
-    },
-    "correctChoices": [
-      {
-        "text": "She likes music."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "She loves books."
-      },
-      {
-        "text": "He likes music."
-      },
-      {
-        "text": "She likes the movie."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous allons à l’école."
-    },
-    "correctChoices": [
-      {
-        "text": "We are going to school."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "We go to the park."
-      },
-      {
-        "text": "You are going to school."
-      },
-      {
-        "text": "They are going to school."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Elle aime la musique."
-    },
-    "correctChoices": [
-      {
-        "text": "She likes music."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "She loves books."
-      },
-      {
-        "text": "He likes music."
-      },
-      {
-        "text": "She likes the movie."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Tu parles français."
-    },
-    "correctChoices": [
-      {
-        "text": "You speak French."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You speak English."
-      },
-      {
-        "text": "You spoke French."
-      },
-      {
-        "text": "He speaks French."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous allons à l’école."
-    },
-    "correctChoices": [
-      {
-        "text": "We are going to school."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are going to school."
-      },
-      {
-        "text": "They are going to school."
-      },
-      {
-        "text": "We went to school."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "We read a letter."
-      },
-      {
-        "text": "We are writing a book."
-      },
-      {
-        "text": "You are reading a book."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
-      {
-        "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are tired."
-      },
-      {
-        "text": "He is tired."
-      },
       {
         "text": "I am hungry."
       }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous allons à l’école."
-    },
-    "correctChoices": [
-      {
-        "text": "We are going to school."
-      }
     ],
     "extraChoices": [
       {
-        "text": "You are going to school."
+        "text": "I am thirsty."
       },
-      {
-        "text": "We went to school."
-      },
-      {
-        "text": "We go to the park."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "We read a letter."
-      },
-      {
-        "text": "You are reading a book."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous allons à l’école."
-    },
-    "correctChoices": [
-      {
-        "text": "We are going to school."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are going to school."
-      },
-      {
-        "text": "You are going to school."
-      },
-      {
-        "text": "We went to school."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
       {
         "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am late."
       },
       {
-        "text": "I am hungry."
-      },
-      {
-        "text": "He is tired."
+        "text": "I am happy."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous allons à l’école."
+      "text": "Le livre est sur la table."
     },
     "correctChoices": [
       {
-        "text": "We are going to school."
+        "text": "The book is on the table."
       }
     ],
     "extraChoices": [
       {
-        "text": "You are going to school."
+        "text": "The pen is on the table."
       },
       {
-        "text": "We went to school."
+        "text": "The book is under the table."
       },
       {
-        "text": "We go to the park."
+        "text": "The book is in the bag."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Tu parles français."
+      "text": "Je vais au parc."
     },
     "correctChoices": [
       {
-        "text": "You speak French."
+        "text": "I am going to the park."
       }
     ],
     "extraChoices": [
       {
-        "text": "He speaks French."
+        "text": "I am going to school."
       },
       {
-        "text": "You spoke French."
+        "text": "I am at the park."
       },
       {
-        "text": "You are French."
+        "text": "He is going to the park."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je suis fatigué."
+      "text": "Le garçon mange une glace."
     },
     "correctChoices": [
       {
-        "text": "I am tired."
+        "text": "The boy is eating an ice cream."
       }
     ],
     "extraChoices": [
       {
-        "text": "I am hungry."
+        "text": "The girl is eating an ice cream."
       },
       {
-        "text": "I am late."
+        "text": "The boy is drinking a soda."
       },
       {
-        "text": "He is tired."
+        "text": "The boy is eating a cake."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "La fille a les cheveux longs."
     },
     "correctChoices": [
       {
-        "text": "You have two brothers."
+        "text": "The girl has long hair."
       }
     ],
     "extraChoices": [
       {
-        "text": "They have two brothers."
+        "text": "The boy has long hair."
       },
       {
-        "text": "We have two brothers."
+        "text": "The girl has short hair."
       },
       {
-        "text": "You are two brothers."
+        "text": "The girl has brown hair."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je suis fatigué."
+      "text": "Le train arrive à la gare."
     },
     "correctChoices": [
       {
-        "text": "I am tired."
+        "text": "The train arrives at the station."
       }
     ],
     "extraChoices": [
       {
-        "text": "I am hungry."
+        "text": "The bus arrives at the station."
       },
       {
-        "text": "I am late."
+        "text": "The train leaves the station."
       },
       {
-        "text": "He is tired."
+        "text": "The train is on the tracks."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle boit de l’eau."
+      "text": "J'aime les animaux."
     },
     "correctChoices": [
       {
-        "text": "She is drinking water."
+        "text": "I like animals."
       }
     ],
     "extraChoices": [
       {
-        "text": "She drinks wine."
+        "text": "I like plants."
       },
       {
-        "text": "She drank water."
+        "text": "I have animals."
       },
       {
-        "text": "She is eating water."
+        "text": "She likes animals."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous lisons un livre."
+      "text": "Le pain est chaud."
     },
     "correctChoices": [
       {
-        "text": "We are reading a book."
+        "text": "The bread is warm."
       }
     ],
     "extraChoices": [
       {
-        "text": "They are reading a book."
+        "text": "The milk is warm."
       },
       {
-        "text": "We are writing a book."
+        "text": "The bread is cold."
       },
       {
-        "text": "We read a letter."
+        "text": "The bread is fresh."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle aime la musique."
+      "text": "Je vois un arc-en-ciel."
     },
     "correctChoices": [
       {
-        "text": "She likes music."
+        "text": "I see a rainbow."
       }
     ],
     "extraChoices": [
       {
-        "text": "He likes music."
+        "text": "I see a cloud."
       },
       {
-        "text": "She likes the movie."
+        "text": "I see a bird."
       },
       {
-        "text": "She hears music."
+        "text": "I paint a rainbow."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je suis fatigué."
+      "text": "Le fermier conduit un tracteur."
     },
     "correctChoices": [
       {
-        "text": "I am tired."
+        "text": "The farmer is driving a tractor."
       }
     ],
     "extraChoices": [
       {
-        "text": "I am hungry."
+        "text": "The farmer is driving a car."
       },
       {
-        "text": "He is tired."
+        "text": "The farmer is on a tractor."
       },
       {
-        "text": "I am late."
+        "text": "The tractor is red."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Ils regardent un film."
+      "text": "Je brosse mes dents."
     },
     "correctChoices": [
       {
-        "text": "They are watching a movie."
+        "text": "I am brushing my teeth."
       }
     ],
     "extraChoices": [
       {
-        "text": "He is watching a movie."
+        "text": "I am washing my face."
       },
       {
-        "text": "They watched a movie."
+        "text": "I am combing my hair."
       },
       {
-        "text": "They are reading a book."
+        "text": "He is brushing his teeth."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je mange une pomme."
+      "text": "Le lion est le roi de la jungle."
     },
     "correctChoices": [
       {
-        "text": "I am eating an apple."
+        "text": "The lion is the king of the jungle."
       }
     ],
     "extraChoices": [
       {
-        "text": "I am eating a pear."
+        "text": "The tiger is the king of the jungle."
       },
       {
-        "text": "You are eating an apple."
+        "text": "The lion is in the jungle."
       },
       {
-        "text": "He is eating an apple."
+        "text": "The lion is the king of the zoo."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je mange une pomme."
+      "text": "La fleur sent bon."
     },
     "correctChoices": [
       {
-        "text": "I am eating an apple."
+        "text": "The flower smells good."
       }
     ],
     "extraChoices": [
       {
-        "text": "I am eating a pear."
+        "text": "The flower looks good."
       },
       {
-        "text": "You are eating an apple."
+        "text": "The flower is beautiful."
       },
       {
-        "text": "He is eating an apple."
+        "text": "The food smells good."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je mange une pomme."
+      "text": "J'aide ma mère à cuisiner."
     },
     "correctChoices": [
       {
-        "text": "I am eating an apple."
+        "text": "I am helping my mom to cook."
       }
     ],
     "extraChoices": [
       {
-        "text": "I am eating a pear."
+        "text": "I am helping my dad to cook."
       },
       {
-        "text": "He is eating an apple."
+        "text": "I am watching my mom to cook."
       },
       {
-        "text": "You are eating an apple."
+        "text": "My mom is helping me to cook."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Il a un chien."
+      "text": "L'avion vole dans le ciel."
     },
     "correctChoices": [
       {
-        "text": "He has a dog."
+        "text": "The plane is flying in the sky."
       }
     ],
     "extraChoices": [
       {
-        "text": "He has a cat."
+        "text": "The bird is flying in the sky."
       },
       {
-        "text": "He is a dog."
+        "text": "The plane is landing."
       },
       {
-        "text": "He had a dog."
+        "text": "The plane is on the ground."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "Je suis content."
     },
     "correctChoices": [
       {
-        "text": "You have two brothers."
+        "text": "I am happy."
       }
     ],
     "extraChoices": [
       {
-        "text": "We have two brothers."
+        "text": "I am sad."
       },
       {
-        "text": "You are two brothers."
+        "text": "I am angry."
       },
       {
-        "text": "You have two sisters."
+        "text": "He is happy."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "Le gâteau est délicieux."
     },
     "correctChoices": [
       {
-        "text": "You have two brothers."
+        "text": "The cake is delicious."
       }
     ],
     "extraChoices": [
       {
-        "text": "They have two brothers."
+        "text": "The cookie is delicious."
       },
       {
-        "text": "You are two brothers."
+        "text": "The cake is big."
       },
       {
-        "text": "You have two sisters."
+        "text": "The cake is for my birthday."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Vous avez deux frères."
+      "text": "Il pleut dehors."
     },
     "correctChoices": [
       {
-        "text": "You have two brothers."
+        "text": "It is raining outside."
       }
     ],
     "extraChoices": [
       {
-        "text": "You are two brothers."
+        "text": "It is snowing outside."
       },
       {
-        "text": "We have two brothers."
+        "text": "It is sunny outside."
       },
       {
-        "text": "They have two brothers."
+        "text": "It is raining inside."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Il a un chien."
+      "text": "Le hibou hulule la nuit."
     },
     "correctChoices": [
       {
-        "text": "He has a dog."
+        "text": "The owl hoots at night."
       }
     ],
     "extraChoices": [
       {
-        "text": "I have a dog."
+        "text": "The owl sleeps at night."
       },
       {
-        "text": "He is a dog."
+        "text": "The owl flies at night."
       },
       {
-        "text": "He had a dog."
+        "text": "The bird hoots at night."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Je suis fatigué."
+      "text": "Je peux nager."
     },
     "correctChoices": [
       {
-        "text": "I am tired."
+        "text": "I can swim."
       }
     ],
     "extraChoices": [
       {
-        "text": "You are tired."
+        "text": "I can run."
       },
       {
-        "text": "I am late."
+        "text": "I can fly."
       },
       {
-        "text": "He is tired."
+        "text": "I like to swim."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Elle boit de l’eau."
+      "text": "L'étoile brille fort."
     },
     "correctChoices": [
       {
-        "text": "She is drinking water."
+        "text": "The star is shining brightly."
       }
     ],
     "extraChoices": [
       {
-        "text": "He is drinking water."
+        "text": "The moon is shining brightly."
       },
       {
-        "text": "She is eating water."
+        "text": "The star is falling."
       },
       {
-        "text": "She drinks wine."
+        "text": "The star is far away."
       }
     ]
   },
   {
     "prompt": {
-      "text": "Nous lisons un livre."
+      "text": "Le bébé sourit."
     },
     "correctChoices": [
       {
-        "text": "We are reading a book."
+        "text": "The baby is smiling."
       }
     ],
     "extraChoices": [
       {
-        "text": "We are writing a book."
+        "text": "The baby is crying."
       },
       {
-        "text": "You are reading a book."
+        "text": "The baby is laughing."
       },
       {
-        "text": "We read a letter."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are watching a show."
-      },
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "They watched a movie."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "They are watching a show."
-      },
-      {
-        "text": "They watched a movie."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Il a un chien."
-    },
-    "correctChoices": [
-      {
-        "text": "He has a dog."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I have a dog."
-      },
-      {
-        "text": "He had a dog."
-      },
-      {
-        "text": "He is a dog."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are reading a book."
-      },
-      {
-        "text": "We read a letter."
-      },
-      {
-        "text": "They are reading a book."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Elle boit de l’eau."
-    },
-    "correctChoices": [
-      {
-        "text": "She is drinking water."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is drinking water."
-      },
-      {
-        "text": "She drank water."
-      },
-      {
-        "text": "She drinks wine."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I eat a banana."
-      },
-      {
-        "text": "He is eating an apple."
-      },
-      {
-        "text": "I am eating a pear."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is watching a movie."
-      },
-      {
-        "text": "They watched a movie."
-      },
-      {
-        "text": "They are reading a book."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "We are writing a book."
-      },
-      {
-        "text": "You are reading a book."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous lisons un livre."
-    },
-    "correctChoices": [
-      {
-        "text": "We are reading a book."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "You are reading a book."
-      },
-      {
-        "text": "We read a letter."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Tu parles français."
-    },
-    "correctChoices": [
-      {
-        "text": "You speak French."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are French."
-      },
-      {
-        "text": "You spoke French."
-      },
-      {
-        "text": "He speaks French."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Elle boit de l’eau."
-    },
-    "correctChoices": [
-      {
-        "text": "She is drinking water."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "She drinks wine."
-      },
-      {
-        "text": "She drank water."
-      },
-      {
-        "text": "She is eating water."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
-      {
-        "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am late."
-      },
-      {
-        "text": "He is tired."
-      },
-      {
-        "text": "I am hungry."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Elle boit de l’eau."
-    },
-    "correctChoices": [
-      {
-        "text": "She is drinking water."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is drinking water."
-      },
-      {
-        "text": "She is eating water."
-      },
-      {
-        "text": "She drinks wine."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am eating a pear."
-      },
-      {
-        "text": "He is eating an apple."
-      },
-      {
-        "text": "I eat a banana."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Elle boit de l’eau."
-    },
-    "correctChoices": [
-      {
-        "text": "She is drinking water."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "She drinks wine."
-      },
-      {
-        "text": "She drank water."
-      },
-      {
-        "text": "He is drinking water."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is eating an apple."
-      },
-      {
-        "text": "You are eating an apple."
-      },
-      {
-        "text": "I am eating a pear."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
-      {
-        "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am late."
-      },
-      {
-        "text": "You are tired."
-      },
-      {
-        "text": "He is tired."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Vous avez deux frères."
-    },
-    "correctChoices": [
-      {
-        "text": "You have two brothers."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They have two brothers."
-      },
-      {
-        "text": "We have two brothers."
-      },
-      {
-        "text": "You have two sisters."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
-      {
-        "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am late."
-      },
-      {
-        "text": "He is tired."
-      },
-      {
-        "text": "I am hungry."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Il a un chien."
-    },
-    "correctChoices": [
-      {
-        "text": "He has a dog."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He had a dog."
-      },
-      {
-        "text": "I have a dog."
-      },
-      {
-        "text": "He is a dog."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Vous avez deux frères."
-    },
-    "correctChoices": [
-      {
-        "text": "You have two brothers."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are two brothers."
-      },
-      {
-        "text": "You have two sisters."
-      },
-      {
-        "text": "We have two brothers."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "I am eating a pear."
-      },
-      {
-        "text": "I eat a banana."
-      },
-      {
-        "text": "You are eating an apple."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Il a un chien."
-    },
-    "correctChoices": [
-      {
-        "text": "He has a dog."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is a dog."
-      },
-      {
-        "text": "I have a dog."
-      },
-      {
-        "text": "He has a cat."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is watching a movie."
-      },
-      {
-        "text": "They are reading a book."
-      },
-      {
-        "text": "They watched a movie."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Ils regardent un film."
-    },
-    "correctChoices": [
-      {
-        "text": "They are watching a movie."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is watching a movie."
-      },
-      {
-        "text": "They watched a movie."
-      },
-      {
-        "text": "They are watching a show."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are eating an apple."
-      },
-      {
-        "text": "I am eating a pear."
-      },
-      {
-        "text": "I eat a banana."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je suis fatigué."
-    },
-    "correctChoices": [
-      {
-        "text": "I am tired."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is tired."
-      },
-      {
-        "text": "I am late."
-      },
-      {
-        "text": "You are tired."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Je mange une pomme."
-    },
-    "correctChoices": [
-      {
-        "text": "I am eating an apple."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "He is eating an apple."
-      },
-      {
-        "text": "I eat a banana."
-      },
-      {
-        "text": "I am eating a pear."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Tu parles français."
-    },
-    "correctChoices": [
-      {
-        "text": "You speak French."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "You are French."
-      },
-      {
-        "text": "You spoke French."
-      },
-      {
-        "text": "You speak English."
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Nous allons à l’école."
-    },
-    "correctChoices": [
-      {
-        "text": "We are going to school."
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "They are going to school."
-      },
-      {
-        "text": "You are going to school."
-      },
-      {
-        "text": "We go to the park."
+        "text": "The baby is sleeping."
       }
     ]
   }

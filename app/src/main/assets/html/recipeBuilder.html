@@ -132,6 +132,15 @@
             border: 3px solid #4CAF50;
             background: #c8e6c9;
         }
+        .recipe-slot.show-hint {
+            border: 2px dashed #9e9e9e;
+            background: #f5f5f5;
+        }
+        .recipe-slot.show-hint .slot-content {
+            color: #999;
+            opacity: 0.5;
+            font-style: italic;
+        }
         .recipe-slot.drag-over {
             border: 3px solid #ff9800;
             background: #ffe0b2;
@@ -185,6 +194,38 @@
             background: #f8d7da;
             color: #721c24;
             border: 2px solid #f5c6cb;
+        }
+        .popup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            font-size: 1.8em;
+            font-weight: bold;
+            z-index: 2000;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            animation: popupIn 0.3s ease, popupOut 0.3s ease 1.7s forwards;
+            pointer-events: none;
+        }
+        .popup-message.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 3px solid #c3e6cb;
+        }
+        .popup-message.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 3px solid #f5c6cb;
+        }
+        @keyframes popupIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes popupOut {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
         }
         @keyframes popIn {
             0% { transform: scale(0.5); opacity: 0; }
@@ -325,7 +366,9 @@
                     const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         recipes = data;
+                        console.log(`Loaded ${recipes.length} recipes from JSON file: ${fileName}`);
                     } else {
+                        console.warn(`JSON file ${fileName} is empty or invalid, using default recipes`);
                         recipes = defaultRecipes;
                     }
                     maxQuestions = Math.min(recipes.length, maxQuestions);
@@ -399,6 +442,12 @@
                 slot.addEventListener('drop', handleDrop);
                 slot.addEventListener('dragleave', handleDragLeave);
                 
+                // Also allow drops on the slot-content div
+                const slotContent = slot.querySelector('.slot-content');
+                slotContent.addEventListener('dragover', handleDragOver);
+                slotContent.addEventListener('drop', handleDrop);
+                slotContent.addEventListener('dragleave', handleDragLeave);
+                
                 slotsContainer.appendChild(slot);
             });
 
@@ -416,6 +465,11 @@
                 item.addEventListener('dragstart', handleDragStart);
                 item.addEventListener('dragend', handleDragEnd);
                 
+                // Add touch handlers for Android
+                item.addEventListener('touchstart', handleTouchStart, { passive: false });
+                item.addEventListener('touchmove', handleTouchMove, { passive: false });
+                item.addEventListener('touchend', handleTouchEnd, { passive: false });
+                
                 bankContainer.appendChild(item);
             });
 
@@ -428,15 +482,86 @@
             draggedElement = e.target;
             e.target.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.dataset.step || '');
+            // Store reference globally for better compatibility
+            window.draggedRecipeElement = e.target;
         }
 
         function handleDragEnd(e) {
             e.target.classList.remove('dragging');
+            window.draggedRecipeElement = null;
+        }
+
+        // Touch handlers for Android
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchElement = null;
+
+        function handleTouchStart(e) {
+            touchElement = e.target;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchElement.classList.add('dragging');
+            draggedElement = touchElement;
+            window.draggedRecipeElement = touchElement;
+        }
+
+        function handleTouchMove(e) {
+            if (!touchElement) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (elementBelow) {
+                const slot = elementBelow.closest('.recipe-slot') || 
+                            (elementBelow.classList.contains('recipe-slot') ? elementBelow : null);
+                if (slot) {
+                    slot.classList.add('drag-over');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchElement) return;
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (elementBelow) {
+                let slot = elementBelow.closest('.recipe-slot') || 
+                          (elementBelow.classList.contains('recipe-slot') ? elementBelow : null);
+                if (slot && slot.classList.contains('slot-content')) {
+                    slot = slot.parentElement;
+                }
+                
+                if (slot && slot.classList.contains('recipe-slot') && draggedElement) {
+                    const step = draggedElement.dataset.step;
+                    const previousSlot = document.querySelector(`.recipe-slot[data-actual="${draggedElement.dataset.index}"]`);
+                    if (previousSlot && previousSlot !== slot) {
+                        previousSlot.querySelector('.slot-content').textContent = '';
+                        previousSlot.classList.remove('filled');
+                        previousSlot.dataset.actual = -1;
+                    }
+                    slot.querySelector('.slot-content').textContent = step;
+                    slot.classList.add('filled');
+                    slot.dataset.actual = draggedElement.dataset.index;
+                    draggedElement.classList.add('used');
+                    draggedElement.draggable = false;
+                }
+            }
+            
+            document.querySelectorAll('.recipe-slot').forEach(s => s.classList.remove('drag-over'));
+            touchElement.classList.remove('dragging');
+            touchElement = null;
+            draggedElement = null;
+            window.draggedRecipeElement = null;
         }
 
         function handleDragOver(e) {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            e.stopPropagation();
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
             e.currentTarget.classList.add('drag-over');
         }
 
@@ -446,27 +571,72 @@
 
         function handleDrop(e) {
             e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
+            e.stopPropagation();
             
-            const slot = e.currentTarget;
-            const step = draggedElement.dataset.step;
+            // Try to get dragged element from various sources
+            let dragged = draggedElement || window.draggedRecipeElement;
+            if (!dragged) {
+                const data = e.dataTransfer?.getData('text/plain');
+                if (data) {
+                    // Find the step item by text
+                    const stepItems = document.querySelectorAll('.step-item');
+                    for (let item of stepItems) {
+                        if (item.textContent.trim() === data && !item.classList.contains('used')) {
+                            dragged = item;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!dragged) return;
+            
+            // Get the slot (might be slot-content or the slot itself)
+            let slot = e.currentTarget;
+            if (slot.classList.contains('slot-content')) {
+                slot = slot.parentElement;
+            }
+            if (!slot || !slot.classList.contains('recipe-slot')) return;
+            
+            slot.classList.remove('drag-over');
+            const step = dragged.dataset.step;
             
             // Remove from previous slot if any
-            const previousSlot = document.querySelector(`.recipe-slot[data-actual="${draggedElement.dataset.index}"]`);
+            const previousSlot = document.querySelector(`.recipe-slot[data-actual="${dragged.dataset.index}"]`);
             if (previousSlot && previousSlot !== slot) {
                 previousSlot.querySelector('.slot-content').textContent = '';
                 previousSlot.classList.remove('filled');
                 previousSlot.dataset.actual = -1;
             }
             
+            // Clear hint if this slot had one - remove ALL hint-related styling
+            // Force remove class and reset styles completely
+            slot.classList.remove('show-hint');
+            slot.removeAttribute('data-is-hint');
+            slot.removeAttribute('data-ishint');
+            
             // Add to new slot
-            slot.querySelector('.slot-content').textContent = step;
+            const slotContent = slot.querySelector('.slot-content');
+            slotContent.textContent = step;
+            
+            // Force reset ALL styles that might be applied by CSS
+            // Use !important via setProperty to override CSS
+            slotContent.style.setProperty('color', '', 'important');
+            slotContent.style.setProperty('opacity', '', 'important');
+            slotContent.style.setProperty('font-style', '', 'important');
+            slotContent.style.setProperty('font-weight', '', 'important');
+            
+            // Also reset the slot's background and border to normal filled state
+            slot.style.setProperty('border', '', 'important');
+            slot.style.setProperty('background', '', 'important');
+            
             slot.classList.add('filled');
-            slot.dataset.actual = draggedElement.dataset.index;
+            slot.dataset.actual = dragged.dataset.index;
             
             // Mark step as used
-            draggedElement.classList.add('used');
-            draggedElement.draggable = false;
+            dragged.classList.add('used');
+            dragged.draggable = false;
+            draggedElement = null;
+            window.draggedRecipeElement = null;
         }
 
         function deleteLastStep() {
@@ -499,19 +669,18 @@
             let isCorrect = true;
             
             slots.forEach((slot, index) => {
-                const expectedIndex = parseInt(slot.dataset.expected);
-                const step = slot.querySelector('.slot-content').textContent;
-                const expectedStep = currentRecipe.steps[expectedIndex];
+                const slotPosition = parseInt(slot.dataset.number) - 1; // Convert to 0-based index (0, 1, 2, 3, 4)
+                const actualIndex = parseInt(slot.dataset.actual);
                 
-                // Check if the step text matches the expected step
-                if (!step || step !== expectedStep) {
+                // Check if the actual index matches the expected index for this slot position
+                // Slot 1 (position 0) should have step at index 0, slot 2 (position 1) should have step at index 1, etc.
+                if (actualIndex !== slotPosition) {
                     isCorrect = false;
                 }
             });
 
-            const feedback = document.getElementById('feedbackContainer');
             if (isCorrect) {
-                feedback.innerHTML = '<div class="feedback correct">✓ Perfect recipe! Great job! 🎉</div>';
+                showPopupMessage('✓ Perfect recipe! Great job! 🎉', 'correct');
                 correctCount++;
                 updateStarCount();
                 document.getElementById('checkButton').disabled = true;
@@ -522,18 +691,109 @@
                     slot.style.background = '#c8e6c9';
                 });
             } else {
-                feedback.innerHTML = '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
+                showPopupMessage('✗ Not quite right. Try again!', 'incorrect');
                 incorrectCount++;
                 
+                // Clear ALL pieces and return them to bank (simpler approach)
+                slots.forEach((slot, index) => {
+                    const slotContent = slot.querySelector('.slot-content');
+                    const stepText = slotContent ? slotContent.textContent : '';
+                    const actualIndex = slot.dataset.actual;
+                    const isHint = slot.dataset.isHint === 'true' || 
+                                  slot.dataset.ishint === 'true' || 
+                                  slot.classList.contains('show-hint') ||
+                                  (stepText && !actualIndex); // If there's text but no actualIndex, it's a hint
+                    
+                    // Clear ALL slots (both real blocks and hints)
+                    if (stepText && stepText.trim() !== '') {
+                        // If it's a real block (not a hint), return it to bank
+                        // Check if actualIndex exists and is valid (not -1, not empty, not undefined)
+                        const hasValidIndex = actualIndex !== undefined && 
+                                            actualIndex !== null && 
+                                            actualIndex !== '' && 
+                                            actualIndex !== '-1' &&
+                                            actualIndex !== 'undefined';
+                        
+                        if (!isHint && hasValidIndex) {
+                            // Try to find by index first (most reliable)
+                            const stepItems = document.querySelectorAll('.step-item');
+                            let found = false;
+                            
+                            // First try: match by dataset.index (compare as strings)
+                            for (let item of stepItems) {
+                                if (String(item.dataset.index) === String(actualIndex) && item.classList.contains('used')) {
+                                    item.classList.remove('used');
+                                    item.draggable = true;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            
+                            // Fallback: match by text content if index didn't work
+                            if (!found) {
+                                for (let item of stepItems) {
+                                    if (item.textContent.trim() === stepText.trim() && item.classList.contains('used')) {
+                                        item.classList.remove('used');
+                                        item.draggable = true;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Clear the slot (whether hint or real block)
+                        slotContent.textContent = '';
+                        slotContent.style.setProperty('color', '', 'important');
+                        slotContent.style.setProperty('opacity', '', 'important');
+                        slotContent.style.setProperty('font-style', '', 'important');
+                        slotContent.style.setProperty('font-weight', '', 'important');
+                        slot.style.setProperty('border', '', 'important');
+                        slot.style.setProperty('background', '', 'important');
+                        slot.classList.remove('filled');
+                        slot.classList.remove('show-hint');
+                        slot.dataset.actual = '-1';
+                        slot.removeAttribute('data-is-hint');
+                        slot.removeAttribute('data-ishint');
+                    }
+                });
+                
+                // Show correct answer faintly in each slot
+                // Sort slots by their position number to ensure correct order (1, 2, 3...)
+                const sortedSlots = Array.from(slots).sort((a, b) => {
+                    return parseInt(a.dataset.number) - parseInt(b.dataset.number);
+                });
+                
                 setTimeout(() => {
-                    feedback.innerHTML = '';
-                }, 2000);
+                    sortedSlots.forEach((slot) => {
+                        const slotPosition = parseInt(slot.dataset.number) - 1; // Convert to 0-based index (0, 1, 2, 3, 4)
+                        const correctStep = currentRecipe.steps[slotPosition];
+                        const slotContent = slot.querySelector('.slot-content');
+                        
+                        // Show hint for all slots
+                        slot.classList.add('show-hint');
+                        slotContent.textContent = correctStep;
+                        // Mark that this is a hint, not a real answer
+                        slot.dataset.isHint = 'true';
+                    });
+                }, 500);
             }
         }
 
         function nextRecipe() {
             currentRecipeIndex++;
             loadRecipe();
+        }
+
+        function showPopupMessage(message, type) {
+            const popup = document.createElement('div');
+            popup.className = `popup-message ${type}`;
+            popup.textContent = message;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 2000);
         }
 
         function updateStarCount() {

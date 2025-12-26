@@ -352,45 +352,6 @@
     },
     {
         "prompt": {
-            "text": "We eat breakfast in the morning."
-        },
-        "correctChoices": [
-            {
-                "text": "Nous"
-            },
-            {
-                "text": "mangeons"
-            },
-            {
-                "text": "le"
-            },
-            {
-                "text": "petit-déjeuner"
-            },
-            {
-                "text": "le"
-            },
-            {
-                "text": "matin"
-            }
-        ],
-        "extraChoices": [
-            {
-                "text": "soir"
-            },
-            {
-                "text": "déjeuner"
-            },
-            {
-                "text": "dîner"
-            },
-            {
-                "text": "chaud"
-            }
-        ]
-    },
-    {
-        "prompt": {
             "text": "He wears a blue shirt."
         },
         "correctChoices": [
@@ -3493,48 +3454,6 @@
     },
     {
         "prompt": {
-            "text": "I am taking the bus to work."
-        },
-        "correctChoices": [
-            {
-                "text": "Je"
-            },
-            {
-                "text": "prends"
-            },
-            {
-                "text": "le"
-            },
-            {
-                "text": "bus"
-            },
-            {
-                "text": "pour"
-            },
-            {
-                "text": "le"
-            },
-            {
-                "text": "travail"
-            }
-        ],
-        "extraChoices": [
-            {
-                "text": "voiture"
-            },
-            {
-                "text": "vélo"
-            },
-            {
-                "text": "métro"
-            },
-            {
-                "text": "marche"
-            }
-        ]
-    },
-    {
-        "prompt": {
             "text": "We are watching a movie at the cinema."
         },
         "correctChoices": [
@@ -4685,51 +4604,6 @@
             },
             {
                 "text": "manteau"
-            }
-        ]
-    },
-    {
-        "prompt": {
-            "text": "They are listening to music on the radio."
-        },
-        "correctChoices": [
-            {
-                "text": "Ils"
-            },
-            {
-                "text": "écoutent"
-            },
-            {
-                "text": "de"
-            },
-            {
-                "text": "la"
-            },
-            {
-                "text": "musique"
-            },
-            {
-                "text": "à"
-            },
-            {
-                "text": "la"
-            },
-            {
-                "text": "radio"
-            }
-        ],
-        "extraChoices": [
-            {
-                "text": "télévision"
-            },
-            {
-                "text": "ordinateur"
-            },
-            {
-                "text": "téléphone"
-            },
-            {
-                "text": "disque"
             }
         ]
     },
@@ -6277,48 +6151,6 @@
     },
     {
         "prompt": {
-            "text": "She is cooking dinner in the kitchen."
-        },
-        "correctChoices": [
-            {
-                "text": "Elle"
-            },
-            {
-                "text": "cuisine"
-            },
-            {
-                "text": "le"
-            },
-            {
-                "text": "dîner"
-            },
-            {
-                "text": "dans"
-            },
-            {
-                "text": "la"
-            },
-            {
-                "text": "cuisine"
-            }
-        ],
-        "extraChoices": [
-            {
-                "text": "déjeuner"
-            },
-            {
-                "text": "petit-déjeuner"
-            },
-            {
-                "text": "goûter"
-            },
-            {
-                "text": "désert"
-            }
-        ]
-    },
-    {
-        "prompt": {
             "text": "We are visiting the zoo tomorrow."
         },
         "correctChoices": [
@@ -7390,57 +7222,6 @@
     },
     {
         "prompt": {
-            "text": "He is playing the guitar in the music room."
-        },
-        "correctChoices": [
-            {
-                "text": "Il"
-            },
-            {
-                "text": "joue"
-            },
-            {
-                "text": "de"
-            },
-            {
-                "text": "la"
-            },
-            {
-                "text": "guitare"
-            },
-            {
-                "text": "dans"
-            },
-            {
-                "text": "la"
-            },
-            {
-                "text": "salle"
-            },
-            {
-                "text": "de"
-            },
-            {
-                "text": "musique"
-            }
-        ],
-        "extraChoices": [
-            {
-                "text": "piano"
-            },
-            {
-                "text": "batterie"
-            },
-            {
-                "text": "violon"
-            },
-            {
-                "text": "flûte"
-            }
-        ]
-    },
-    {
-        "prompt": {
             "text": "She is reading a book in the library."
         },
         "correctChoices": [
@@ -8095,54 +7876,6 @@
     },
     {
         "prompt": {
-            "text": "I am eating a sandwich with cheese and ham."
-        },
-        "correctChoices": [
-            {
-                "text": "Je"
-            },
-            {
-                "text": "mange"
-            },
-            {
-                "text": "un"
-            },
-            {
-                "text": "sandwich"
-            },
-            {
-                "text": "au"
-            },
-            {
-                "text": "fromage"
-            },
-            {
-                "text": "et"
-            },
-            {
-                "text": "au"
-            },
-            {
-                "text": "jambon"
-            }
-        ],
-        "extraChoices": [
-            {
-                "text": "salade"
-            },
-            {
-                "text": "soupe"
-            },
-            {
-                "text": "riz"
-            },
-            {
-                "text": "pâtes"
-            }
-        ]
-    },
-    {
-        "prompt": {
             "text": "She is riding her bike in the park."
         },
         "correctChoices": [
@@ -8298,4 +8031,3 @@
         ]
     }
 ]
-

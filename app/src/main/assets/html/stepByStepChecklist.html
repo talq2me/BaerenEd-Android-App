@@ -319,7 +319,9 @@
                     const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         tasks = data;
+                        console.log(`Loaded ${tasks.length} tasks from JSON file: ${fileName}`);
                     } else {
+                        console.warn(`JSON file ${fileName} is empty or invalid, using default tasks`);
                         tasks = defaultTasks;
                     }
                     maxQuestions = Math.min(tasks.length, maxQuestions);

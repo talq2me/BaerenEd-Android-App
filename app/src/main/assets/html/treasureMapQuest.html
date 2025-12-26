@@ -93,9 +93,11 @@
             font-size: 1em;
         }
         .problem-options {
-            display: grid;
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin: 15px 0;
+            justify-content: center;
         }
         .problem-option {
             background: white;
@@ -227,36 +229,13 @@
         let currentLocationIndex = 0;
         let selectedOption = null;
 
-        const defaultQuests = [
-            {
-                locations: [
-                    { x: 20, y: 20, name: "Start", problem: null },
-                    { x: 50, y: 30, name: "Bridge", problem: { question: "You need to cross a bridge. Count the planks: 3 + 4 = ?", options: ["5", "6", "7", "8"], correct: 2 } },
-                    { x: 80, y: 50, name: "Cave", problem: { question: "In the cave, you find 5 coins. You already have 3. How many total?", options: ["6", "7", "8", "9"], correct: 2 } },
-                    { x: 60, y: 80, name: "Treasure", problem: null }
-                ]
-            },
-            {
-                locations: [
-                    { x: 20, y: 20, name: "Start", problem: null },
-                    { x: 40, y: 40, name: "Forest", problem: { question: "You see 6 birds. 2 fly away. How many are left?", options: ["3", "4", "5", "6"], correct: 1 } },
-                    { x: 70, y: 60, name: "River", problem: { question: "You need 10 stones to cross. You have 4. How many more?", options: ["4", "5", "6", "7"], correct: 2 } },
-                    { x: 50, y: 85, name: "Treasure", problem: null }
-                ]
-            },
-            {
-                locations: [
-                    { x: 20, y: 20, name: "Start", problem: null },
-                    { x: 30, y: 50, name: "Mountain", problem: { question: "You climb 8 steps. Then 3 more. How many total steps?", options: ["10", "11", "12", "13"], correct: 1 } },
-                    { x: 70, y: 70, name: "Valley", problem: { question: "You find 9 gems. You give away 2. How many do you keep?", options: ["5", "6", "7", "8"], correct: 2 } },
-                    { x: 80, y: 30, name: "Treasure", problem: null }
-                ]
-            }
-        ];
+        // No default quests - must load from JSON
 
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
+            console.log('Treasure Map Quest - URL params:', window.location.search);
+            console.log('Treasure Map Quest - file parameter:', file);
             return file || 'treasureQuests.json';
         }
 
@@ -271,16 +250,16 @@
                     const data = JSON.parse(jsonString);
                     if (Array.isArray(data) && data.length > 0) {
                         quests = data;
+                        console.log(`Loaded ${quests.length} quests from JSON file: ${fileName}`);
+                        maxQuestions = Math.min(quests.length, maxQuestions);
+                        startGame();
                     } else {
-                        quests = defaultQuests;
+                        console.error(`JSON file ${fileName} is empty or invalid. Cannot load game without quest data.`);
+                        document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error: No quest data found. Please check the JSON file.</p>';
                     }
-                    maxQuestions = Math.min(quests.length, maxQuestions);
-                    startGame();
                 } catch (error) {
-                    console.log('Using default quests');
-                    quests = defaultQuests;
-                    maxQuestions = Math.min(quests.length, maxQuestions);
-                    startGame();
+                    console.error('Error loading quests from JSON:', error);
+                    document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error loading quest data. Please check the JSON file.</p>';
                 }
             } else {
                 // Use fetch for web
@@ -293,22 +272,32 @@
                     .then(data => {
                         if (Array.isArray(data) && data.length > 0) {
                             quests = data;
+                            maxQuestions = Math.min(quests.length, maxQuestions);
+                            startGame();
                         } else {
-                            quests = defaultQuests;
+                            console.error(`JSON file ${fileName} is empty or invalid. Cannot load game without quest data.`);
+                            document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error: No quest data found. Please check the JSON file.</p>';
                         }
-                        maxQuestions = Math.min(quests.length, maxQuestions);
-                        startGame();
                     })
                     .catch(error => {
-                        console.log('Using default quests');
-                        quests = defaultQuests;
-                        maxQuestions = Math.min(quests.length, maxQuestions);
-                        startGame();
+                        console.error('Error loading quests from JSON:', error);
+                        document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error loading quest data. Please check the JSON file.</p>';
                     });
             }
         }
 
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
         function startGame() {
+            // Shuffle quests array to ensure different quests are played each time
+            quests = shuffleArray(quests);
             currentQuestIndex = 0;
             correctCount = 0;
             incorrectCount = 0;

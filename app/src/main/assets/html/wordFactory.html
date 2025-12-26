@@ -22,17 +22,13 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
         .factory-layout {
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
+            display: block;
         }
         .factory-left {
-            flex: 1;
-            min-width: 0;
+            width: 100%;
         }
         .factory-right {
-            flex: 1;
-            min-width: 0;
+            display: none; /* Hide letter bank, not needed */
         }
         h1 {
             text-align: center;
@@ -65,6 +61,7 @@
             overflow-y: auto;
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
         .conveyor-belt {
             position: absolute;
@@ -98,7 +95,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            animation: moveConveyor 5s linear infinite;
+            animation: moveConveyor 24s linear infinite; /* 1/2 speed - was 12s, now 24s */
         }
         .letter-box:hover {
             transform: scale(1.2);
@@ -110,7 +107,7 @@
         }
         @keyframes moveConveyor {
             from {
-                left: -80px;
+                left: -200px; /* Account for letter box width (60px) + spacing (140px) */
             }
             to {
                 left: 100%;
@@ -130,6 +127,7 @@
             justify-content: center;
             gap: 10px;
             flex-wrap: wrap;
+            width: 100%;
         }
         .assembly-slot {
             width: 70px;
@@ -180,6 +178,20 @@
         .button-container {
             text-align: center;
             margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        #deleteButton {
+            background: #f44336;
+        }
+        #deleteButton:hover {
+            background: #d32f2f;
+        }
+        #deleteButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
         .feedback {
             text-align: center;
@@ -226,6 +238,31 @@
         .control-button:hover {
             background: #f57c00;
         }
+        .delivery-truck {
+            position: fixed;
+            bottom: 20px;
+            left: -200px;
+            font-size: 4em;
+            z-index: 1000;
+            animation: driveAway 2.5s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes driveAway {
+            0% {
+                left: -200px;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                left: 100%;
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -256,6 +293,7 @@
         <div id="feedbackContainer"></div>
         
         <div class="button-container">
+            <button class="button" id="deleteButton" onclick="deleteLastLetter()">🗑️ Delete</button>
             <button class="button" id="checkButton" onclick="checkWord()">📦 Package Word</button>
             <button class="button hidden" id="nextButton" onclick="nextWord()">Next Word →</button>
         </div>
@@ -367,10 +405,15 @@
             conveyorRunning = false;
             letterBoxes = [];
             
+            // Clear assembly line
+            document.getElementById('assemblyLine').innerHTML = '';
+            createAssemblyLine();
+            
             document.getElementById('wordDisplay').innerHTML = 
                 `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
+            document.getElementById('deleteButton').disabled = true; // Disable delete button initially
             document.getElementById('nextButton').classList.add('hidden');
             
             // Clear factory
@@ -400,26 +443,46 @@
         }
 
         function startConveyor() {
-            if (conveyorRunning) return;
+            if (conveyorRunning) {
+                // Resume if already running but paused
+                const letterBoxes = document.querySelectorAll('.letter-box:not(.picked)');
+                letterBoxes.forEach(box => {
+                    box.style.animationPlayState = 'running';
+                });
+                return;
+            }
             conveyorRunning = true;
             
+            // Make sure all letter boxes are running
+            const letterBoxes = document.querySelectorAll('.letter-box:not(.picked)');
+            letterBoxes.forEach(box => {
+                box.style.animationPlayState = 'running';
+            });
+            
+            // Create letter pool with 8 tiles per rotation
             const letters = currentWord.word.split('');
             const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
                 .sort(() => 0.5 - Math.random())
-                .slice(0, 5);
-            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+                .slice(0, 10);
+            // Create pool with 8 tiles: word letters + extra letters to make 8 total
+            const letterPool = [...letters, ...extra].slice(0, 8);
+            // If we need more, repeat the pool
+            while (letterPool.length < 8) {
+                letterPool.push(...letters, ...extra);
+            }
+            letterPool.length = 8; // Ensure exactly 8 tiles
             
             let letterIndex = 0;
             
+            // Don't create initial letters all at once - let the interval handle it
+            // This prevents jumbling and overlapping
+            
+            // Add letters at consistent rate: 8 tiles per rotation
             conveyorInterval = setInterval(() => {
-                if (letterIndex >= letterPool.length * 2) {
-                    letterIndex = 0;
-                }
-                
                 const letter = letterPool[letterIndex % letterPool.length];
                 createLetterBox(letter);
                 letterIndex++;
-            }, 1500);
+            }, 3000); // 24s animation / 8 tiles = 3s per tile (1/2 speed)
         }
 
         function stopConveyor() {
@@ -428,6 +491,11 @@
                 clearInterval(conveyorInterval);
                 conveyorInterval = null;
             }
+            // Also pause the CSS animation on all letter boxes
+            const letterBoxes = document.querySelectorAll('.letter-box:not(.picked)');
+            letterBoxes.forEach(box => {
+                box.style.animationPlayState = 'paused';
+            });
         }
 
         function createLetterBox(letter) {
@@ -437,19 +505,25 @@
             box.textContent = letter.toUpperCase();
             box.dataset.letter = letter.toLowerCase();
             box.style.top = '30px';
+            
+            // Calculate position based on total boxes created (including picked ones)
+            // This ensures consistent spacing regardless of when boxes are created
+            const spacing = 200; // 60px box + 140px spacing
+            const totalBoxes = letterBoxes.length;
+            box.style.left = `${-200 + (totalBoxes * spacing)}px`;
             box.onclick = () => pickLetter(box, letter.toLowerCase());
             
             factoryLine.appendChild(box);
             letterBoxes.push(box);
             
-            // Remove box when it goes off screen
+            // Remove box when it goes off screen (slower animation = longer time on screen)
             setTimeout(() => {
                 if (box.parentNode && !box.classList.contains('picked')) {
                     box.remove();
                     const index = letterBoxes.indexOf(box);
                     if (index > -1) letterBoxes.splice(index, 1);
                 }
-            }, 5000);
+            }, 24000); // Match animation duration (24s)
         }
 
         function pickLetter(box, letter) {
@@ -464,6 +538,9 @@
             emptySlot.classList.add('filled');
             assembledLetters.push(letter);
             
+            // Enable delete button when letters are added
+            document.getElementById('deleteButton').disabled = false;
+            
             // Mark box as picked
             box.classList.add('picked');
             box.style.animation = 'none';
@@ -474,14 +551,40 @@
             }, 500);
         }
 
+        function deleteLastLetter() {
+            if (assembledLetters.length === 0) {
+                document.getElementById('deleteButton').disabled = true;
+                return;
+            }
+            
+            // Remove last letter
+            assembledLetters.pop();
+            
+            // Clear the last filled slot
+            const slots = document.querySelectorAll('.assembly-slot');
+            for (let i = slots.length - 1; i >= 0; i--) {
+                if (slots[i].classList.contains('filled')) {
+                    slots[i].textContent = '';
+                    slots[i].classList.remove('filled');
+                    break;
+                }
+            }
+            
+            // Disable delete button if no letters left
+            if (assembledLetters.length === 0) {
+                document.getElementById('deleteButton').disabled = true;
+            }
+        }
+
         function checkWord() {
             const spelledWord = assembledLetters.join('');
             const isCorrect = spelledWord.toLowerCase() === currentWord.word.toLowerCase();
             
             if (isCorrect) {
                 stopConveyor();
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback correct">✓ Word packaged! Perfect! 📦🎉</div>';
+                
+                // Show delivery truck animation
+                showDeliveryTruck();
                 
                 if (isFirstAttempt) {
                     correctCount++;
@@ -491,7 +594,7 @@
                 document.getElementById('checkButton').disabled = true;
                 setTimeout(() => {
                     document.getElementById('nextButton').classList.remove('hidden');
-                }, 2000);
+                }, 3000); // Longer delay to see truck animation
             } else {
                 if (isFirstAttempt) {
                     incorrectCount++;
@@ -516,6 +619,17 @@
             stopConveyor();
             currentWordIndex++;
             loadWord();
+        }
+
+        function showDeliveryTruck() {
+            const truck = document.createElement('div');
+            truck.className = 'delivery-truck';
+            truck.textContent = '🚚';
+            document.body.appendChild(truck);
+            
+            setTimeout(() => {
+                truck.remove();
+            }, 2500);
         }
 
         function updateStarCount() {

@@ -290,14 +290,27 @@
     </div>
 
     <script>
+        // Register callback for Android TTS completion
+        window.onTTSFinished = function(utteranceId) {
+            if (window.pendingTTSCallback) {
+                window.pendingTTSCallback();
+                window.pendingTTSCallback = null;
+            }
+        };
+
         function readText(text, lang, rate = 1.0, onEndCallback = null) {
+            // Ensure clicks are disabled while TTS is speaking
+            isWaitingForLabel = false;
+            
             if (window.Android && typeof window.Android.readText === 'function') {
+                // Store the callback to be called when TTS finishes
+                window.pendingTTSCallback = onEndCallback;
                 window.Android.readText(text, lang);
-                setTimeout(() => {
-                    if (onEndCallback) onEndCallback();
-                }, 1000);
+                // The callback will be triggered by onTTSFinished when TTS actually finishes
             } else if ('speechSynthesis' in window) {
-                if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+                if (window.currentTTSUtterance) {
+                    window.speechSynthesis.cancel();
+                }
                 window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
                 window.currentTTSUtterance.lang = lang;
                 window.currentTTSUtterance.rate = rate;
@@ -305,9 +318,19 @@
                     if (onEndCallback) onEndCallback();
                     window.currentTTSUtterance = null;
                 };
+                window.currentTTSUtterance.onerror = () => {
+                    // If TTS fails, still allow the callback after a short delay
+                    if (onEndCallback) {
+                        setTimeout(() => onEndCallback(), 500);
+                    }
+                    window.currentTTSUtterance = null;
+                };
                 window.speechSynthesis.speak(window.currentTTSUtterance);
             } else {
-                if (onEndCallback) onEndCallback();
+                // Fallback: if no TTS available, wait a moment then call callback
+                setTimeout(() => {
+                    if (onEndCallback) onEndCallback();
+                }, 1000);
             }
         }
 
@@ -602,20 +625,80 @@
             img.style.display = 'block';
             
             // Set image source
+            // The image path in JSON is like "diagrams/circulatorySystem.png"
+            // We need to construct: file:///android_asset/images/diagrams/circulatorySystem.png
+            const imagePath = currentDiagram.image || '';
+            
             const isAndroid = window.Android !== undefined;
+            let imageSrc;
+            
             if (isAndroid) {
-                img.src = `file:///android_asset/images/${currentDiagram.image}`;
+                // For Android assets: file:///android_asset/images/diagrams/filename.png
+                // Maps to assets/images/diagrams/filename.png
+                imageSrc = `file:///android_asset/images/${imagePath}`;
             } else {
-                img.src = `../images/${currentDiagram.image}`;
+                // For web/GitHub: https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/diagrams/filename.png
+                const githubBase = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
+                imageSrc = `${githubBase}/images/${imagePath}`;
             }
+            
+            console.log('Loading diagram image:');
+            console.log('  Original path from JSON:', imagePath);
+            console.log('  Full image URL:', imageSrc);
+            console.log('  Is Android:', isAndroid);
+            
+            img.src = imageSrc;
             
             // Wait for image to load, then create clickable regions and label covers
             img.onload = function() {
+                console.log('✓ Image loaded successfully:', this.src);
                 // Small delay to ensure rendering is complete
                 setTimeout(() => {
                     createClickableRegions();
                     createLabelCovers();
                 }, 50);
+            };
+            
+            // Handle image load errors with fallback paths
+            let fallbackAttempt = 0;
+            img.onerror = function() {
+                console.error('✗ Failed to load image:', this.src);
+                console.error('  Original path from JSON:', imagePath);
+                fallbackAttempt++;
+                
+                if (isAndroid) {
+                    // Try alternative Android paths
+                    let altPath;
+                    if (fallbackAttempt === 1) {
+                        // Try with just the filename (assuming diagrams/ is already in path)
+                        const filename = imagePath.replace(/^.*\//, '');
+                        altPath = `file:///android_asset/images/diagrams/${filename}`;
+                        console.log('  Trying fallback 1:', altPath);
+                    } else if (fallbackAttempt === 2) {
+                        // Try direct path without images/ prefix
+                        altPath = `file:///android_asset/${imagePath}`;
+                        console.log('  Trying fallback 2:', altPath);
+                    } else {
+                        alert('Failed to load diagram image: ' + imagePath + 
+                              '\n\nPlease verify the image file exists at:\n' +
+                              'assets/images/' + imagePath);
+                        return;
+                    }
+                    
+                    this.onerror = img.onerror; // Keep the same handler for next attempt
+                    this.src = altPath;
+                } else {
+                    // For web, try relative path
+                    if (fallbackAttempt === 1) {
+                        const relativePath = `../images/${imagePath}`;
+                        console.log('  Trying relative path:', relativePath);
+                        this.onerror = img.onerror; // Keep the same handler
+                        this.src = relativePath;
+                    } else {
+                        alert('Failed to load diagram image: ' + imagePath + 
+                              '\n\nPlease check the image URL or file path.');
+                    }
+                }
             };
             
             // If image already loaded
@@ -698,11 +781,19 @@
                     region.style.height = `${height}px`;
                     
                     region.addEventListener('click', function(e) {
-                        if (this.classList.contains('clickable')) {
+                        // Only allow clicks if both the clickable class is present AND isWaitingForLabel is true
+                        if (this.classList.contains('clickable') && isWaitingForLabel) {
                             e.stopPropagation();
                             handlePartClick(index, e);
+                        } else {
+                            // Block the click
+                            e.preventDefault();
+                            e.stopPropagation();
                         }
                     });
+                    
+                    // Also prevent pointer events until clickable
+                    region.style.pointerEvents = 'none';
                     
                     container.appendChild(region);
                 }
@@ -792,8 +883,11 @@
         }
         
         function handlePartClick(partIndex, event) {
+            // Block clicks completely until TTS has finished and isWaitingForLabel is true
             if (!isWaitingForLabel || !currentPart || partIndex !== currentPartIndex) {
-                return;
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
             }
             
             // This is the correct part! Remove the white box to reveal the label
@@ -877,15 +971,17 @@
         }
 
         function highlightPart(partIndex) {
-            // Remove previous highlights
-            document.querySelectorAll('.clickable-region.highlighted, .clickable-region.clickable').forEach(el => {
+            // Remove previous highlights and disable all clicking
+            document.querySelectorAll('.clickable-region').forEach(el => {
                 el.classList.remove('highlighted', 'clickable');
+                el.style.pointerEvents = 'none'; // Disable pointer events on all regions
             });
             
             // Add highlight to clickable region - but not clickable yet
             const region = document.querySelector(`.clickable-region[data-part-id="${partIndex}"]`);
             if (region) {
                 region.classList.add('highlighted');
+                region.style.pointerEvents = 'none'; // Keep disabled until TTS finishes
                 // Don't add 'clickable' class yet - wait for TTS to finish
             }
         }
@@ -895,6 +991,7 @@
             const region = document.querySelector(`.clickable-region[data-part-id="${currentPartIndex}"]`);
             if (region) {
                 region.classList.add('clickable');
+                region.style.pointerEvents = 'all'; // Enable pointer events
             }
         }
 
