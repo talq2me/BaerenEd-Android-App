@@ -39,7 +39,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 15, 2026",
           "easydays": "mon,tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun"
@@ -50,7 +50,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 15, 2026",
           "easydays": "mon,tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun"
@@ -75,7 +75,7 @@
           "launch": "handwriting",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
           "stars": 3,
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 15, 2026",
           "webGame": true
         },
         {
