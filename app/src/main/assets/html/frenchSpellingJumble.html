@@ -233,7 +233,7 @@
             const letters = currentWord.word.split('');
             let letterPool = letters;
             if (gameMode === 'hard') {
-                const extra = 'abcdefghijklmnopqrstuvwxyzéèàùç'.split('').sort(() => 0.5 - Math.random()).slice(0, 3);
+                const extra = 'abcdefghijklmnopqrstuvwxyzéèàùçû'.split('').sort(() => 0.5 - Math.random()).slice(0, 3);
                 letterPool = [...letters, ...extra];
             }
             const shuffledLetters = letterPool.sort(() => Math.random() - 0.5);
@@ -381,7 +381,7 @@
                 { keys: 'qwertyuiop', count: 10 },
                 { keys: 'asdfghjkl', count: 9, extra: "'" }, // Add apostrophe to make 10
                 { keys: 'zxcvbnm', count: 7, extra: '-' }, // Add hyphen for words like "rendez-vous"
-                { keys: 'àâçéèêëîïô', count: 10 } // 10 accent keys
+                { keys: 'àâçéèêëîïôûù', count: 12 } // include û and ù
             ];
             
             rows.forEach((row, rowIndex) => {
