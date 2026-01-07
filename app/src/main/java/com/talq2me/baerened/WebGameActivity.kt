@@ -15,10 +15,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
 import java.io.InputStream
+import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.Locale
 import org.json.JSONArray
 import java.io.File
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.util.concurrent.TimeUnit
 
 class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -40,6 +44,12 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var sectionId: String? = null
     private var stars: Int = 0
     private var taskTitle: String? = null
+    
+    // HTTP client for fetching JSON from GitHub
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -211,16 +221,58 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         @JavascriptInterface
         fun loadJsonFile(fileName: String): String {
-            return try {
+            val cacheFile = File(this@WebGameActivity.cacheDir, fileName)
+
+            // 1. Try fetching from GitHub first
+            try {
+                val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$fileName"
+                val request = Request.Builder().url(url).build()
+                httpClient.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            android.util.Log.d("WebGameActivity", "Successfully fetched JSON from GitHub: $fileName")
+                            // Save to cache for offline use
+                            try {
+                                FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
+                                android.util.Log.d("WebGameActivity", "Saved JSON to cache: $fileName")
+                            } catch (e: IOException) {
+                                android.util.Log.e("WebGameActivity", "Error writing JSON to cache", e)
+                            }
+                            return body
+                        }
+                    }
+                    android.util.Log.w("WebGameActivity", "GitHub fetch failed with code: ${response.code}. Trying cache.")
+                }
+            } catch (e: IOException) {
+                android.util.Log.w("WebGameActivity", "Network error fetching JSON: ${e.message}. Trying cache.")
+            }
+
+            // 2. Network failed, try loading from Cache
+            if (cacheFile.exists()) {
+                try {
+                    val cachedContent = cacheFile.readText()
+                    android.util.Log.d("WebGameActivity", "Successfully loaded JSON from cache: $fileName")
+                    return cachedContent
+                } catch (e: Exception) {
+                    android.util.Log.e("WebGameActivity", "Error reading JSON from cache. Trying assets.", e)
+                }
+            }
+
+            // 3. Cache failed or doesn't exist, fall back to bundled Assets
+            try {
+                android.util.Log.d("WebGameActivity", "Loading JSON from bundled asset: $fileName")
                 val inputStream: InputStream = assets.open("data/$fileName")
                 val size = inputStream.available()
                 val buffer = ByteArray(size)
                 inputStream.read(buffer)
                 inputStream.close()
-                String(buffer, Charset.forName("UTF-8"))
+                val content = String(buffer, Charset.forName("UTF-8"))
+                android.util.Log.d("WebGameActivity", "Successfully loaded JSON from assets: $fileName")
+                return content
             } catch (e: IOException) {
-                android.util.Log.e("WebGameActivity", "Error loading JSON file: $fileName", e)
-                "[]"
+                android.util.Log.e("WebGameActivity", "Error loading JSON file from assets: $fileName", e)
+                return "[]"
             }
         }
 
