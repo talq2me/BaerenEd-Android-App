@@ -16,38 +16,36 @@ class GameEngine(
     // Track which questions have been answered (to only count first answer per question)
     private val answeredQuestions = mutableSetOf<Int>()
 
+    init {
+        android.util.Log.d("GameEngine", "GameEngine initialized for launchId: $launchId, loaded currentIndex: $currentIndex, questions: ${questions.size}, requiredCorrect: ${config.requiredCorrectAnswers}")
+    }
+
     fun getCurrentQuestion(): GameData {
-        // Use modulo to wrap around, but keep the index so we continue from where we left off
+        // Use the full question set, wrapping around when we reach the end
         val wrappedIndex = currentIndex % questions.size
+        android.util.Log.d("GameEngine", "getCurrentQuestion - currentIndex: $currentIndex, wrappedIndex: $wrappedIndex, totalQuestions: ${questions.size}")
         return questions[wrappedIndex]
     }
 
     fun submitAnswer(userAnswers: List<String>): Boolean {
-        val wrappedIndex = currentIndex % questions.size
+        val currentWrappedIndex = currentIndex % questions.size
         val correct = getCurrentQuestion().correctChoices.map { it.text }
         val isCorrect = userAnswers == correct
 
-        // Only count the first answer submission for each question
-        if (!answeredQuestions.contains(wrappedIndex)) {
-            answeredQuestions.add(wrappedIndex)
-            
-            if (isCorrect) {
-                correctCount++
-                currentIndex++
-                // Save the next index so we continue from there next time
-                progress.saveIndex(currentIndex)
-            } else {
-                incorrectCount++
-                // Still save current index so we stay on the same question if they restart
-                progress.saveIndex(currentIndex)
-            }
+        android.util.Log.d("GameEngine", "submitAnswer - currentIndex: $currentIndex, wrappedIndex: $currentWrappedIndex, question: ${questions[currentWrappedIndex].question?.text?.take(50)}...")
+
+        // Count all answers for scoring (correct/incorrect)
+        if (isCorrect) {
+            correctCount++
         } else {
-            // This question was already answered - don't count again, but still move forward if correct
-            if (isCorrect) {
-                currentIndex++
-                progress.saveIndex(currentIndex)
-            }
+            incorrectCount++
         }
+
+        // Save progress after each answer
+        currentIndex++
+        progress.saveIndex(currentIndex)
+
+        android.util.Log.d("GameEngine", "Answer submitted - correct: $isCorrect, correctCount: $correctCount/${config.requiredCorrectAnswers}, advanced currentIndex to: $currentIndex")
 
         return isCorrect
     }

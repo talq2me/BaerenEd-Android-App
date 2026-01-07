@@ -30,6 +30,7 @@ class ChromePageActivity : AppCompatActivity() {
     private var customTabsServiceConnection: CustomTabsServiceConnection? = null
     private lateinit var timeTracker: TimeTracker
     private var pageVisited = false
+    private lateinit var webGameProgress: WebGameProgress
 
     companion object {
         const val EXTRA_URL = "url"
@@ -59,6 +60,10 @@ class ChromePageActivity : AppCompatActivity() {
 
         // Initialize time tracker
         timeTracker = TimeTracker(this)
+
+        // Initialize web game progress tracker
+        val gameId = taskId ?: url ?: "unknown"
+        webGameProgress = WebGameProgress(this, gameId)
         
         // Use unique task ID that includes section info to track separately for required vs optional
         val progressManager = DailyProgressManager(this)

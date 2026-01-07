@@ -34,13 +34,9 @@ class ContentUpdateService : Service() {
     }
 
     private fun getContentUrlForChild(context: Context): String {
-        val child = SettingsManager.readProfile(context) ?: "A"
+        val child = SettingsManager.readProfile(context) ?: "AM"
 
-        return when (child) {
-            "A" -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/AM_config.json"
-            "B" -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/BM_config.json"
-            else -> "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/Main_config.json"
-        }
+        return "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/${child}_config.json"
     }
 
 

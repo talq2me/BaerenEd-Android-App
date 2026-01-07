@@ -66,10 +66,9 @@ class LoginActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
-                // Set current profile (cloud uses AM/BM, local uses A/B)
+                // Set current profile (use AM/BM directly)
                 cloudStorageManager.setCurrentProfile(profile)
-                val localProfile = if (profile == "AM") "A" else "B"
-                SettingsManager.writeProfile(this@LoginActivity, localProfile)
+                SettingsManager.writeProfile(this@LoginActivity, profile)
                 
                 // Download data from cloud
                 val result = cloudStorageManager.downloadFromCloud(profile)

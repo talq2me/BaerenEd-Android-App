@@ -35,7 +35,7 @@ class GameEngineTest {
 
         // Mock SettingsManager
         mockkObject(SettingsManager)
-        every { SettingsManager.readProfile(any()) } returns "A"
+        every { SettingsManager.readProfile(any()) } returns "AM"
 
         // Create sample questions
         questions = listOf(

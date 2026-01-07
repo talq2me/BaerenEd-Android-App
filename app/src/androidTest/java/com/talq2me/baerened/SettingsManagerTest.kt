@@ -38,7 +38,7 @@ class SettingsManagerTest {
         // When: Writing profile
         // Note: This may fail if ContentProvider isn't set up, but shouldn't crash
         try {
-            SettingsManager.writeProfile(context, "A")
+            SettingsManager.writeProfile(context, "AM")
             assertTrue(true) // Success
         } catch (e: Exception) {
             // If ContentProvider isn't available, that's okay for this test

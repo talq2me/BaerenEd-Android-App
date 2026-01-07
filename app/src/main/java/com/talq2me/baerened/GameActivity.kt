@@ -16,6 +16,7 @@ import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.gridlayout.widget.GridLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.gson.Gson
 import com.talq2me.baerened.GameData
@@ -33,6 +34,7 @@ class GameActivity : AppCompatActivity() {
     private var audioClipsPlayedForCurrentQuestion = false
     private lateinit var progressManager: DailyProgressManager
     private lateinit var timeTracker: TimeTracker
+    private lateinit var gameProgress: GameProgress
 
     // Game configuration
     private lateinit var gameType: String
@@ -73,7 +75,9 @@ class GameActivity : AppCompatActivity() {
 
         // Load JSON from the provided content
         val questions = try {
-            Gson().fromJson(gameContent, Array<GameData>::class.java).toList()
+            val parsedQuestions = Gson().fromJson(gameContent, Array<GameData>::class.java).toList()
+            android.util.Log.d("GameActivity", "Loaded ${parsedQuestions.size} questions from JSON for game: $gameTitle")
+            parsedQuestions
         } catch (e: Exception) {
             android.util.Log.e("GameActivity", "Error parsing game content", e)
             Toast.makeText(this, "Error loading game content", Toast.LENGTH_SHORT).show()
@@ -96,6 +100,9 @@ class GameActivity : AppCompatActivity() {
 
         // Initialize time tracker
         timeTracker = TimeTracker(this)
+
+        // Initialize game progress tracker
+        gameProgress = GameProgress(this, gameType)
         
         // Use unique task ID that includes section info to track separately for required vs optional
         val uniqueTaskId = if (sectionId != null) {
@@ -219,10 +226,10 @@ class GameActivity : AppCompatActivity() {
                         if (shouldAddBerries) {
                             val berriesToAdd = earnedStars // 1 star = 1 berry
                             val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .getInt("pendingBerries", 0)
+                                .getInt("earnedBerries", 0)
                             getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
                                 .edit()
-                                .putInt("pendingBerries", savedBerries + berriesToAdd)
+                                .putInt("earnedBerries", savedBerries + berriesToAdd)
                                 .apply()
                             android.util.Log.d("GameActivity", "Saved $berriesToAdd berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
                         }
@@ -230,6 +237,13 @@ class GameActivity : AppCompatActivity() {
 
                     // Final update of answer counts before finishing
                     timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
+
+                    // Sync progress to cloud after game completion
+                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
+                    val cloudStorageManager = CloudStorageManager(this)
+                    lifecycleScope.launch {
+                        cloudStorageManager.saveIfEnabled(currentProfile)
+                    }
 
                     // If launched from battle hub, set result to indicate we should reopen battle hub
                     if (currentBattleHubTaskId != null) {

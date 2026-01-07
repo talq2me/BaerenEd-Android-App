@@ -87,7 +87,7 @@ class Layout(private val activity: MainActivity) {
         val baseTitle = content.title ?: "BaerenEd"
         val version = activity.getAppVersion()
         val profile = SettingsManager.readProfile(activity) ?: "A"
-        val profileDisplay = if (profile == "A") "AM" else "BM"
+        val profileDisplay = profile
         
         // Format: "Daily Homework Dashboard v# - AM" (or BM)
         // Extract base title if it already includes profile, otherwise use as-is
@@ -168,9 +168,6 @@ class Layout(private val activity: MainActivity) {
             }
             headerLayout.addView(btn)
         }
-        
-        // Add cloud storage toggle button
-        // addCloudToggleButton() // Commented out - CloudStorageManager not available
     }
 
     private fun setupDefaultHeaderButtons() {
@@ -180,6 +177,9 @@ class Layout(private val activity: MainActivity) {
         val defaultButtons = listOf(
             Button("⚙ Settings", "settings")
         )
+
+        // Add cloud storage toggle button
+        addCloudToggleButton()
 
         defaultButtons.forEach { button ->
             val btn = android.widget.Button(activity).apply {
@@ -197,37 +197,32 @@ class Layout(private val activity: MainActivity) {
                     marginEnd = 12.dpToPx() // 12dp margin like game screen
                 }
 
-                background = activity.resources.getDrawable(R.drawable.button_rounded)
-                setTextColor(activity.resources.getColor(android.R.color.white))
-                setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
+            background = activity.resources.getDrawable(R.drawable.button_rounded)
+            setTextColor(activity.resources.getColor(android.R.color.white))
+            setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
             }
             headerLayout.addView(btn)
         }
-        
-        // Add cloud storage toggle button
-        // addCloudToggleButton() // Commented out - CloudStorageManager not available
     }
-    
-    // Commented out - CloudStorageManager class not available
-    /*
+
     private fun addCloudToggleButton() {
         val cloudStorageManager = CloudStorageManager(activity)
         val isCloudEnabled = cloudStorageManager.isCloudStorageEnabled()
-        
+
         val cloudButton = android.widget.Button(activity).apply {
             text = if (isCloudEnabled) "☁️ Cloud ON" else "☁️ Cloud OFF"
             textSize = 16f
             setOnClickListener {
                 activity.toggleCloudStorage()
             }
-            
+
             layoutParams = LinearLayout.LayoutParams(
                 140.dpToPx(),
                 70.dpToPx()
             ).apply {
                 marginEnd = 12.dpToPx()
             }
-            
+
             background = activity.resources.getDrawable(
                 if (isCloudEnabled) R.drawable.button_rounded_success else R.drawable.button_rounded
             )
@@ -236,7 +231,6 @@ class Layout(private val activity: MainActivity) {
         }
         headerLayout.addView(cloudButton)
     }
-    */
 
     private fun addMyPokedexButton() {
         val pokedexButton = android.widget.Button(activity).apply {
@@ -403,16 +397,24 @@ class Layout(private val activity: MainActivity) {
      */
     fun handleVideoCompletion(taskId: String, taskTitle: String, stars: Int, videoFile: String? = null, videoIndex: Int? = null) {
         android.util.Log.d("Layout", "handleVideoCompletion called: taskId=$taskId, taskTitle=$taskTitle, stars=$stars, videoFile=$videoFile, videoIndex=$videoIndex")
+        android.util.Log.d("Layout", "VIDEO COMPLETION: About to mark task as completed")
 
-        // If this is a sequential video that completed, save the video index
-        // This allows the next play from this video list to advance to the next video
+        // Save video progress for both sequential and regular videos
+        val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
+        val currentKid = SettingsManager.readProfile(activity) ?: "AM"
+
         if (videoFile != null && videoIndex != null) {
-            val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
-            val currentKid = SettingsManager.readProfile(activity) ?: "A"
+            // Sequential video - save the current index
             prefs.edit()
                 .putInt("${currentKid}_${videoFile}_index", videoIndex)
                 .apply()
             android.util.Log.d("Layout", "Saved sequential video progress: ${currentKid}_${videoFile}_index = $videoIndex")
+        } else if (taskId != null) {
+            // Regular video - save completion status (index = 1 for completed)
+            prefs.edit()
+                .putInt("${currentKid}_${taskId}_completed", 1)
+                .apply()
+            android.util.Log.d("Layout", "Saved regular video completion: ${currentKid}_${taskId}_completed = 1")
         }
 
         // Only grant rewards if this is a legitimate completion (not manual exit)
@@ -450,10 +452,10 @@ class Layout(private val activity: MainActivity) {
                 if (isFromRequiredOrOptional) {
                     val berriesToAdd = earnedStars // 1 star = 1 berry
                     val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                        .getInt("pendingBerries", 0)
+                        .getInt("earnedBerries", 0)
                     activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
                         .edit()
-                        .putInt("pendingBerries", savedBerries + berriesToAdd)
+                        .putInt("earnedBerries", savedBerries + berriesToAdd)
                         .apply()
                     android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from main page video task completion")
                     // Refresh battle hub to show updated berries
@@ -524,10 +526,10 @@ class Layout(private val activity: MainActivity) {
                 if (sectionId == "required" || sectionId == "optional") {
                     val berriesToAdd = earnedStars // 1 star = 1 berry
                     val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                        .getInt("pendingBerries", 0)
+                        .getInt("earnedBerries", 0)
                     activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
                         .edit()
-                        .putInt("pendingBerries", savedBerries + berriesToAdd)
+                        .putInt("earnedBerries", savedBerries + berriesToAdd)
                         .apply()
                     android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from main page task completion")
                     // Refresh battle hub and gym map to show updated state
@@ -580,10 +582,10 @@ class Layout(private val activity: MainActivity) {
             if (sectionId == "required" || sectionId == "optional") {
                 val berriesToAdd = earnedStars // 1 star = 1 berry
                 val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .getInt("pendingBerries", 0)
+                    .getInt("earnedBerries", 0)
                 activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
                     .edit()
-                    .putInt("pendingBerries", savedBerries + berriesToAdd)
+                    .putInt("earnedBerries", savedBerries + berriesToAdd)
                     .apply()
                 android.util.Log.d(TAG, "Added $berriesToAdd berries to battle hub from main page task completion")
                 // Refresh battle hub to show updated berries
@@ -626,6 +628,19 @@ class Layout(private val activity: MainActivity) {
                 TAG,
                 "Manual task completion awarded $earnedStars stars (${progressManager.convertStarsToMinutes(earnedStars)} mins). Total bank: $totalRewardMinutes"
             )
+            
+            // Add berries to battle hub if task is from required or optional section
+            if (sectionId == "required" || sectionId == "optional") {
+                val berriesToAdd = earnedStars // 1 star = 1 berry
+                val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .getInt("earnedBerries", 0)
+                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("earnedBerries", savedBerries + berriesToAdd)
+                    .apply()
+                android.util.Log.d(TAG, "Added $berriesToAdd berries to battle hub from manual task completion")
+            }
+            
             Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
         } else {
             android.util.Log.d(TAG, "Manual task $taskId already completed today")
@@ -1159,7 +1174,7 @@ class Layout(private val activity: MainActivity) {
 
             // Get the last played video index for this kid and video file
             val prefs = activity.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
-            val currentKid = SettingsManager.readProfile(activity) ?: "A"
+            val currentKid = SettingsManager.readProfile(activity) ?: "AM"
             var lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", -1)
             
             // Validate that the saved index is still valid for the current video list
@@ -1705,6 +1720,17 @@ class Layout(private val activity: MainActivity) {
                         if (earnedStars > 0) {
                             // Add stars to reward bank
                             progressManager.addStarsToRewardBank(earnedStars)
+                            
+                            // Add berries to battle hub (checklist items are from required section)
+                            val berriesToAdd = earnedStars // 1 star = 1 berry
+                            val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                                .getInt("earnedBerries", 0)
+                            activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
+                                .edit()
+                                .putInt("earnedBerries", savedBerries + berriesToAdd)
+                                .apply()
+                            android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from checklist item completion")
+                            
                             updateProgressDisplay()
                             // Update visual state - disable and grey out
                             post {
@@ -2075,12 +2101,8 @@ class Layout(private val activity: MainActivity) {
                     android.util.Log.d("Layout", "Returning cached config for gym map")
                     cachedContent
                 } else {
-                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "A"
-                    val configFileName = when (profile) {
-                        "A" -> "AM_config.json"
-                        "B" -> "BM_config.json"
-                        else -> "Main_config.json"
-                    }
+                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "AM"
+                    val configFileName = "${profile}_config.json"
                     activity.assets.open("config/$configFileName").bufferedReader().use { it.readText() }
                 }
             } catch (e: Exception) {
@@ -2220,12 +2242,8 @@ class Layout(private val activity: MainActivity) {
                     android.util.Log.d("Layout", "Returning cached config")
                     cachedContent
                 } else {
-                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "A"
-                    val configFileName = when (profile) {
-                        "A" -> "AM_config.json"
-                        "B" -> "BM_config.json"
-                        else -> "Main_config.json"
-                    }
+                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "AM"
+                    val configFileName = "${profile}_config.json"
                     activity.assets.open("config/$configFileName").bufferedReader().use { it.readText() }
                 }
             } catch (e: Exception) {
@@ -2235,39 +2253,39 @@ class Layout(private val activity: MainActivity) {
         }
         
         @android.webkit.JavascriptInterface
-        fun setPendingBerries(amount: Int) {
+        fun setEarnedBerries(amount: Int) {
             try {
                 activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
                     .edit()
-                    .putInt("pendingBerries", amount)
+                    .putInt("earnedBerries", amount)
                     .apply()
-                android.util.Log.d("Layout", "Set pending berries to $amount")
+                android.util.Log.d("Layout", "Set earned berries to $amount")
             } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error setting pending berries", e)
+                android.util.Log.e("Layout", "Error setting earned berries", e)
             }
         }
         
         @android.webkit.JavascriptInterface
-        fun getPendingBerries(): Int {
+        fun getEarnedBerries(): Int {
             return try {
                 activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .getInt("pendingBerries", 0)
+                    .getInt("earnedBerries", 0)
             } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error getting pending berries", e)
+                android.util.Log.e("Layout", "Error getting earned berries", e)
                 0
             }
         }
         
         @android.webkit.JavascriptInterface
-        fun clearPendingBerries() {
+        fun resetEarnedBerries() {
             try {
                 activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
                     .edit()
-                    .remove("pendingBerries")
+                    .putInt("earnedBerries", 0)
                     .apply()
-                android.util.Log.d("Layout", "Cleared pending berries")
+                android.util.Log.d("Layout", "Reset earned berries to 0")
             } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error clearing pending berries", e)
+                android.util.Log.e("Layout", "Error resetting earned berries", e)
             }
         }
         

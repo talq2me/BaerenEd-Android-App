@@ -792,6 +792,18 @@ class TrainingMapActivity : AppCompatActivity() {
                     if (earnedStars > 0) {
                         progressManager.addStarsToRewardBank(earnedStars)
                         android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
+                        
+                        // Add berries to battle hub if task is from required or optional section
+                        if (sectionId == "required" || sectionId == "optional") {
+                            val berriesToAdd = earnedStars // 1 star = 1 berry
+                            val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                .getInt("earnedBerries", 0)
+                            getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                .edit()
+                                .putInt("earnedBerries", savedBerries + berriesToAdd)
+                                .apply()
+                            android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from task completion")
+                        }
                     }
                     
                     android.util.Log.d("TrainingMapActivity", "Marked task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, earnedStars=$earnedStars")
@@ -822,6 +834,18 @@ class TrainingMapActivity : AppCompatActivity() {
                     // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
                     if (earnedStars > 0) {
                         progressManager.addStarsToRewardBank(earnedStars)
+                        
+                        // Add berries to battle hub if task is from required or optional section
+                        if (chromeSectionId == "required" || chromeSectionId == "optional") {
+                            val berriesToAdd = earnedStars // 1 star = 1 berry
+                            val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                .getInt("earnedBerries", 0)
+                            getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                .edit()
+                                .putInt("earnedBerries", savedBerries + berriesToAdd)
+                                .apply()
+                            android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from Chrome page completion")
+                        }
                     }
                 }
             }
@@ -861,6 +885,18 @@ class TrainingMapActivity : AppCompatActivity() {
                 if (earnedStars > 0) {
                     progressManager.addStarsToRewardBank(earnedStars)
                     android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
+                    
+                    // Add berries to battle hub if task is from required or optional section
+                    if (gameSectionId == "required" || gameSectionId == "optional") {
+                        val berriesToAdd = earnedStars // 1 star = 1 berry
+                        val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                            .getInt("earnedBerries", 0)
+                        getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                            .edit()
+                            .putInt("earnedBerries", savedBerries + berriesToAdd)
+                            .apply()
+                        android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from game completion")
+                    }
                 }
                 
                 android.util.Log.d("TrainingMapActivity", "Marked game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
@@ -893,6 +929,18 @@ class TrainingMapActivity : AppCompatActivity() {
                 if (earnedStars > 0) {
                     progressManager.addStarsToRewardBank(earnedStars)
                     android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
+                    
+                    // Add berries to battle hub if task is from required or optional section
+                    if (videoSectionId == "required" || videoSectionId == "optional") {
+                        val berriesToAdd = earnedStars // 1 star = 1 berry
+                        val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                            .getInt("earnedBerries", 0)
+                        getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                            .edit()
+                            .putInt("earnedBerries", savedBerries + berriesToAdd)
+                            .apply()
+                        android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from video completion")
+                    }
                 }
                 
                 android.util.Log.d("TrainingMapActivity", "Marked video task as completed: taskId=$videoTaskId, sectionId=$videoSectionId, stars=$videoStars, earnedStars=$earnedStars")
@@ -901,6 +949,13 @@ class TrainingMapActivity : AppCompatActivity() {
         
         // Refresh the map when returning from any task to show updated completion status
         if (requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004) {
+            // Sync progress to cloud after task completion
+            val currentProfile = SettingsManager.readProfile(this) ?: "AM"
+            val cloudStorageManager = CloudStorageManager(this)
+            lifecycleScope.launch {
+                cloudStorageManager.saveIfEnabled(currentProfile)
+            }
+
             // Reload tasks into map to show updated completion status
             mapContainer.removeAllViews()
             loadTasksIntoMap()
@@ -1127,7 +1182,7 @@ class TrainingMapActivity : AppCompatActivity() {
 
             // Get the last played video index for this kid and video file
             val prefs = getSharedPreferences("video_progress", android.content.Context.MODE_PRIVATE)
-            val currentKid = SettingsManager.readProfile(this) ?: "A"
+            val currentKid = SettingsManager.readProfile(this) ?: "AM"
             var lastVideoIndex = prefs.getInt("${currentKid}_${videoFile}_index", -1)
             
             if (lastVideoIndex >= videoList.size) {

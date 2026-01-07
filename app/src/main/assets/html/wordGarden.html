@@ -440,7 +440,19 @@
         }
 
         function startGame() {
-            currentWordIndex = 0;
+            // Load saved progress if available
+            if (window.Android && typeof window.Android.loadProgress === 'function') {
+                try {
+                    currentWordIndex = window.Android.loadProgress();
+                    console.log('Loaded saved progress: currentWordIndex =', currentWordIndex);
+                } catch (error) {
+                    console.log('No saved progress found, starting from 0');
+                    currentWordIndex = 0;
+                }
+            } else {
+                currentWordIndex = 0;
+            }
+
             correctCount = 0;
             incorrectCount = 0;
             updateStarCount();
@@ -805,6 +817,17 @@
 
         function nextWord() {
             currentWordIndex++;
+
+            // Save progress
+            if (window.Android && typeof window.Android.saveProgress === 'function') {
+                try {
+                    window.Android.saveProgress(currentWordIndex);
+                    console.log('Saved progress: currentWordIndex =', currentWordIndex);
+                } catch (error) {
+                    console.error('Error saving progress:', error);
+                }
+            }
+
             loadWord();
         }
 

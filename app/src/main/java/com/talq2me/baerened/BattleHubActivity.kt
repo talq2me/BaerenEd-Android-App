@@ -27,6 +27,8 @@ import kotlinx.coroutines.*
 
 class BattleHubActivity : AppCompatActivity() {
 
+    private lateinit var cloudStorageManager: CloudStorageManager
+
     data class ParsedPokemon(
         val prefix: Int,
         val pokenum: Int,
@@ -80,6 +82,9 @@ class BattleHubActivity : AppCompatActivity() {
         android.util.Log.d("BattleHubActivity", "onCreate() CALLED")
         setContentView(R.layout.activity_battle_hub)
         
+        // Initialize managers
+        cloudStorageManager = CloudStorageManager(this)
+
         // Get MainContent from Intent extra if available
         mainContentJson = intent.getStringExtra("mainContentJson")
         // Fallback to ContentUpdateService if not in Intent
@@ -136,12 +141,13 @@ class BattleHubActivity : AppCompatActivity() {
     private fun updateTitle() {
         val version = try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            packageInfo.versionName ?: packageInfo.longVersionCode.toString()
+            packageInfo.versionName ?: packageInfo.versionCode.toString()
         } catch (e: Exception) {
             "?"
         }
-        val profile = SettingsManager.readProfile(this) ?: "A"
-        val profileDisplay = if (profile == "A") "AM" else "BM"
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        val displayNames = SettingsManager.getProfileDisplayNames()
+        val profileDisplay = displayNames[profile] ?: profile
         headerTitle.text = "Pokemon Battle Hub v$version - $profileDisplay"
     }
     
@@ -153,6 +159,14 @@ class BattleHubActivity : AppCompatActivity() {
     
     private fun updateCountsDisplay() {
         android.util.Log.d("BattleHubActivity", "updateCountsDisplay() CALLED")
+
+        // Debug: Check what data is currently in SharedPreferences
+        val progressPrefs = getSharedPreferences("daily_progress_prefs", MODE_PRIVATE)
+        val completedTasksJson = progressPrefs.getString("completed_tasks", "{}")
+        val completedTaskNamesJson = progressPrefs.getString("completed_task_names", "{}")
+        android.util.Log.d("BattleHubActivity", "DEBUG: completed_tasks = $completedTasksJson")
+        android.util.Log.d("BattleHubActivity", "DEBUG: completed_task_names = $completedTaskNamesJson")
+
         // Use EXACTLY the same method as Layout.kt updateProgressDisplay()
         val progressManager = DailyProgressManager(this)
         
@@ -192,9 +206,8 @@ class BattleHubActivity : AppCompatActivity() {
             val rewardMinutes = progressManager.getBankedRewardMinutes()
             
             // Debug logging
-            val spentBerries = progressManager.getSpentBerries()
             val completedTasks = progressManager.getCompletedTasksMap()
-            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: earnedCoins=$earnedCoins, earnedStars=$earnedStars, spentBerries=$spentBerries")
+            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: earnedCoins=$earnedCoins, earnedStars=$earnedStars")
             android.util.Log.d("BattleHubActivity", "updateCountsDisplay: completedTasks keys=${completedTasks.keys}")
             android.util.Log.d("BattleHubActivity", "updateCountsDisplay: About to update UI with coins=$earnedCoins, berries=$earnedStars, minutes=$rewardMinutes")
             
@@ -211,11 +224,14 @@ class BattleHubActivity : AppCompatActivity() {
             
             // Display coins and berries - coins from required tasks, berries show all earned
             coinCount.text = "$earnedCoins ${icons.coinsIcon}"
-            // For berry count display, show ALL earned berries (required + optional) so user sees their total progress
-            val allEarnedStars = progressManager.getAllEarnedStars(currentContent)
+            // Simple: just get earned berries directly
+            val allEarnedStars = progressManager.getEarnedBerries()
+            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: earnedBerries=$allEarnedStars")
             berryCountDisplay.text = "$allEarnedStars ${icons.starsIcon}"
             minuteCount.text = "$rewardMinutes ⏱️"
             android.util.Log.d("BattleHubActivity", "updateCountsDisplay: UI updated - coinCount.text=${coinCount.text}, berryCountDisplay.text=${berryCountDisplay.text}, minuteCount.text=${minuteCount.text}")
+            android.util.Log.d("BattleHubActivity", "DEBUG: getAllEarnedStars returned $allEarnedStars for currentContent=${currentContent != null}")
+            android.util.Log.d("BattleHubActivity", "DEBUG: progressManager.getCompletedTasksMap() = ${progressManager.getCompletedTasksMap()}")
         } else {
             // Fallback - use cached values but ensure they're calculated correctly - EXACTLY like Layout.kt
             android.util.Log.w("BattleHubActivity", "updateCountsDisplay: currentContent is NULL, using fallback")
@@ -375,23 +391,25 @@ class BattleHubActivity : AppCompatActivity() {
                 setOnClickListener {
                     handleHeaderButtonClick("askForTime")
                 }
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    marginEnd = (6 * resources.displayMetrics.density).toInt()
-                }
-                background = getDrawable(R.drawable.button_rounded)
-                setTextColor(android.graphics.Color.WHITE)
-                setPadding((8 * resources.displayMetrics.density).toInt(), 
-                           (6 * resources.displayMetrics.density).toInt(), 
-                           (8 * resources.displayMetrics.density).toInt(), 
-                           (6 * resources.displayMetrics.density).toInt())
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                (32 * resources.displayMetrics.density).toInt()  // Match settings button height
+            ).apply {
+                marginEnd = (6 * resources.displayMetrics.density).toInt()
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+            background = getDrawable(R.drawable.button_rounded)
+            setTextColor(android.graphics.Color.WHITE)
+            setPadding((8 * resources.displayMetrics.density).toInt(), 
+                       (4 * resources.displayMetrics.density).toInt(), 
+                       (8 * resources.displayMetrics.density).toInt(), 
+                       (4 * resources.displayMetrics.density).toInt())
+            gravity = android.view.Gravity.CENTER
             }
             headerButtonsRight.addView(askForTimeBtn)
         }
         
-        // Add Settings button (gear icon only, smaller, far right)
+        // Add Settings button (gear icon only, far right)
         val settingsBtn = android.widget.Button(this).apply {
             text = "⚙"
             textSize = 16f
@@ -399,10 +417,11 @@ class BattleHubActivity : AppCompatActivity() {
                 handleHeaderButtonClick("settings")
             }
             layoutParams = LinearLayout.LayoutParams(
-                (32 * resources.displayMetrics.density).toInt(), // Smaller fixed width
-                (32 * resources.displayMetrics.density).toInt()  // Smaller fixed height
+                (32 * resources.displayMetrics.density).toInt(), // Match settings button width
+                (32 * resources.displayMetrics.density).toInt()  // Match settings button height
             ).apply {
                 marginEnd = (4 * resources.displayMetrics.density).toInt()
+                gravity = android.view.Gravity.CENTER_VERTICAL
             }
             background = getDrawable(R.drawable.button_rounded)
             setTextColor(android.graphics.Color.WHITE)
@@ -410,9 +429,80 @@ class BattleHubActivity : AppCompatActivity() {
                        (4 * resources.displayMetrics.density).toInt(), 
                        (4 * resources.displayMetrics.density).toInt(), 
                        (4 * resources.displayMetrics.density).toInt())
+            gravity = android.view.Gravity.CENTER
         }
         headerButtonsRight.addView(settingsBtn)
-        android.util.Log.d("BattleHubActivity", "Added header buttons (Ask for Time, Settings icon)")
+
+        // Add cloud storage toggle button
+        addCloudToggleButton()
+
+        android.util.Log.d("BattleHubActivity", "Added header buttons (Ask for Time, Settings icon, Cloud toggle)")
+    }
+
+    private fun addCloudToggleButton() {
+        val cloudStorageManager = CloudStorageManager(this)
+        val isCloudEnabled = cloudStorageManager.isCloudStorageEnabled()
+
+        val cloudButton = android.widget.Button(this).apply {
+            text = if (isCloudEnabled) "☁️ Cloud ON" else "☁️ Cloud OFF"
+            textSize = 16f
+            setOnClickListener {
+                toggleCloudStorage()
+            }
+
+            layoutParams = LinearLayout.LayoutParams(
+                140.dpToPx(),
+                (32 * resources.displayMetrics.density).toInt()  // Match settings button height
+            ).apply {
+                marginEnd = 12.dpToPx()
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+
+            background = resources.getDrawable(
+                if (isCloudEnabled) R.drawable.button_rounded_success else R.drawable.button_rounded
+            )
+            setTextColor(resources.getColor(android.R.color.white))
+            setPadding(8.dpToPx(), 4.dpToPx(), 8.dpToPx(), 4.dpToPx())
+            gravity = android.view.Gravity.CENTER
+        }
+        headerButtonsRight.addView(cloudButton)
+    }
+
+    private fun toggleCloudStorage() {
+        val isCurrentlyEnabled = cloudStorageManager.isCloudStorageEnabled()
+
+        if (!cloudStorageManager.isConfigured()) {
+            android.widget.Toast.makeText(this, "Supabase not configured. Add SUPABASE_URL and SUPABASE_KEY to local.properties and rebuild.", android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+
+        if (!isCurrentlyEnabled) {
+            // Enable cloud storage
+            cloudStorageManager.setCloudStorageEnabled(true)
+            val profile = SettingsManager.readProfile(this) ?: "AM"
+            lifecycleScope.launch(Dispatchers.IO) {
+                val result = cloudStorageManager.syncIfEnabled(profile)
+                runOnUiThread {
+                    if (result.isSuccess) {
+                        android.widget.Toast.makeText(this@BattleHubActivity, "Cloud storage enabled and synced", android.widget.Toast.LENGTH_SHORT).show()
+                    } else {
+                        android.widget.Toast.makeText(this@BattleHubActivity, "Cloud enabled but sync failed: ${result.exceptionOrNull()?.message}", android.widget.Toast.LENGTH_LONG).show()
+                    }
+                    // Refresh UI to update button
+                    setupHeaderButtons()
+                }
+            }
+        } else {
+            // Disable cloud storage
+            cloudStorageManager.setCloudStorageEnabled(false)
+            android.widget.Toast.makeText(this, "Cloud storage disabled", android.widget.Toast.LENGTH_SHORT).show()
+            // Refresh UI to update button
+            setupHeaderButtons()
+        }
+    }
+
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
     }
     
     private fun handleHeaderButtonClick(action: String?) {
@@ -558,12 +648,19 @@ class BattleHubActivity : AppCompatActivity() {
     }
     
     private fun showChangeProfileDialog() {
-        val profiles = arrayOf("Profile A", "Profile B")
+        val availableProfiles = SettingsManager.getAvailableProfiles(this)
+        val displayNames = SettingsManager.getProfileDisplayNames()
         val currentProfile = SettingsManager.readProfile(this)
+
+        // Create display names for available profiles
+        val profileDisplayNames = availableProfiles.map { profileId ->
+            displayNames[profileId] ?: "Profile $profileId"
+        }.toTypedArray()
+
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Select User Profile")
-            .setItems(profiles) { _, which ->
-                val selectedProfile = if (which == 0) "A" else "B"
+            .setItems(profileDisplayNames) { _, which ->
+                val selectedProfile = availableProfiles[which]
                 if (currentProfile != selectedProfile) {
                     SettingsManager.writeProfile(this, selectedProfile)
                     finishAffinity()
@@ -663,7 +760,7 @@ class BattleHubActivity : AppCompatActivity() {
             }
             val progressReport = progressManager.getComprehensiveProgressReport(currentContent, timeTracker)
             val currentKid = progressManager.getCurrentKid()
-            val childName = if (currentKid == "A") "AM" else "BM"
+            val childName = currentKid
             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
             val parentEmail = SettingsManager.readEmail(this)
             if (parentEmail.isNullOrBlank()) {
@@ -920,6 +1017,17 @@ class BattleHubActivity : AppCompatActivity() {
                             if (earnedStars > 0) {
                                 // Add stars to reward bank
                                 progressManager.addStarsToRewardBank(earnedStars)
+                                
+                                // Add berries to battle hub (checklist items are from required section)
+                                val berriesToAdd = earnedStars // 1 star = 1 berry
+                                val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                    .getInt("earnedBerries", 0)
+                                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
+                                    .edit()
+                                    .putInt("earnedBerries", savedBerries + berriesToAdd)
+                                    .apply()
+                                android.util.Log.d("BattleHubActivity", "Added $berriesToAdd berries to battle hub from checklist item completion")
+                                
                                 // Update UI
                                 updateCountsDisplay()
                                 updateBerryMeter()
@@ -1912,22 +2020,17 @@ class BattleHubActivity : AppCompatActivity() {
         android.util.Log.d("BattleHubActivity", "updateBerryMeter: currentContent is ${if (currentContent != null) "NOT NULL" else "NULL"}")
         
         if (currentContent != null) {
-            val spentBerries = progressManager.getSpentBerries()
+            // Simple: just get earned berries directly
+            earnedStars = progressManager.getEarnedBerries()
             
-            if (spentBerries > 0) {
-                // After battle: Show all earned berries (required + optional) out of 30
-                // getAllEarnedStars already subtracts spent berries, giving us berries earned since battle
-                earnedStars = progressManager.getAllEarnedStars(currentContent)
-                totalStars = 30 // Always 30 for post-battle meter
-                android.util.Log.d("BattleHubActivity", "Berry meter (post-battle): $earnedStars / $totalStars (berries earned since battle, $spentBerries baseline)")
-            } else {
-                // Before battle: Show required berries earned out of total required berries
-                // Use getCurrentProgressWithTotals which is the SAME method Layout.kt uses
-                val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
-                earnedStars = progressData.second.first // Required task stars only (already has spent berries subtracted if any)
-                totalStars = progressData.second.second // Total required stars
-                android.util.Log.d("BattleHubActivity", "Berry meter (pre-battle): earnedStars=$earnedStars, totalStars=$totalStars, progressData=$progressData")
-            }
+            // Before battle: Show required berries earned out of total required berries
+            val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
+            totalStars = progressData.second.second // Total required stars
+            
+            android.util.Log.d("BattleHubActivity", "Berry meter: earnedStars=$earnedStars, totalStars=$totalStars")
+
+            android.util.Log.d("BattleHubActivity", "DEBUG updateBerryMeter: currentContent required_tasks count=${currentContent.sections?.sumOf { it.tasks?.size ?: 0 } ?: 0}")
+            android.util.Log.d("BattleHubActivity", "DEBUG updateBerryMeter: progressManager.getCompletedTasksMap() = ${progressManager.getCompletedTasksMap()}")
         } else {
             android.util.Log.w("BattleHubActivity", "CurrentContent is null, using defaults")
             earnedStars = 0
@@ -2328,16 +2431,19 @@ class BattleHubActivity : AppCompatActivity() {
                 null
             }
             if (currentContent != null) {
-                // Get ALL earned stars (required + optional) at battle end WITHOUT subtracting spent berries
-                // This becomes the baseline for the next battle cycle (meter will show 0/30 after battle)
-                val allEarnedStarsAtBattleEnd = progressManager.getAllEarnedStarsWithoutSpentBerries(currentContent)
-                
-                // Set spent berries to all earned stars so meter resets to 0/30 after battle
-                progressManager.setSpentBerries(allEarnedStarsAtBattleEnd)
+                // Simple: reset earned berries to 0 when battle is won
+                progressManager.resetEarnedBerries()
                 // Also store for detecting new required task completions (for reset logic)
                 val requiredEarnedStars = progressManager.getEarnedStarsWithoutSpentBerries(currentContent)
                 progressManager.setEarnedStarsAtBattleEnd(requiredEarnedStars)
-                android.util.Log.d("BattleHubActivity", "Battle won: All berries spent ($allEarnedStarsAtBattleEnd total), meter resets to 0/30")
+                android.util.Log.d("BattleHubActivity", "Battle won: Reset earned berries to 0")
+
+                // Sync berries spent to cloud after battle victory
+                val currentProfile = SettingsManager.readProfile(this) ?: "AM"
+                val cloudStorageManager = CloudStorageManager(this)
+                lifecycleScope.launch {
+                    cloudStorageManager.saveIfEnabled(currentProfile)
+                }
             }
             updateBerryMeter()
             
@@ -2421,14 +2527,30 @@ class BattleHubActivity : AppCompatActivity() {
     
     override fun onResume() {
         super.onResume()
-        android.util.Log.d("BattleHubActivity", "onResume() CALLED - refreshing all displays")
-        // Refresh berry meter when returning to this activity
-        // If berries were spent, check if new required tasks were completed to reset spent berries
+
+        // Sync from cloud when resuming (read latest progress)
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        android.util.Log.d("BattleHubActivity", "Starting cloud sync in onResume for profile $profile")
+        lifecycleScope.launch(Dispatchers.IO) {
+            val syncResult = cloudStorageManager.syncIfEnabled(profile)
+            android.util.Log.d("BattleHubActivity", "Cloud sync completed in onResume (result: $syncResult), updating UI")
+            runOnUiThread {
+                // Refresh UI after sync completes
+                updateBerryMeter()
+                updateEarnButtonsState()
+                updateCountsDisplay()
+                updateUseRewardTimeButton()
+                updatePokedexTitle()
+            }
+        }
+
+        // Handle berry reset logic when returning to this activity
+        // Check if new required tasks were completed since battle ended (when earned berries were reset to 0)
         val progressManager = DailyProgressManager(this)
-        val spentBerries = progressManager.getSpentBerries()
-        android.util.Log.d("BattleHubActivity", "onResume: spentBerries=$spentBerries")
+        val earnedBerries = progressManager.getEarnedBerries()
         
-        if (spentBerries > 0) {
+        // Only check if earned berries is 0 (meaning battle happened and reset occurred)
+        if (earnedBerries == 0) {
             val currentContent = try {
                 val jsonString = mainContentJson ?: ContentUpdateService().getCachedMainContent(this)
                 if (jsonString != null && jsonString.isNotEmpty()) {
@@ -2439,59 +2561,64 @@ class BattleHubActivity : AppCompatActivity() {
             }
             
             if (currentContent != null) {
-                // Calculate actual earned stars (without subtracting spent berries) to compare
+                // Calculate actual earned stars to compare
                 val currentEarnedStars = progressManager.getEarnedStarsWithoutSpentBerries(currentContent)
                 
                 val earnedStarsAtBattleEnd = progressManager.getEarnedStarsAtBattleEnd()
-                // Only reset if NEW required tasks were completed (earned stars increased since battle ended)
+                // Only reset tracking if NEW required tasks were completed (earned stars increased since battle ended)
                 // This prevents optional tasks from resetting the flag
                 if (currentEarnedStars > earnedStarsAtBattleEnd) {
-                    progressManager.resetSpentBerries()
-                    android.util.Log.d("BattleHubActivity", "New required tasks completed (earned stars increased from $earnedStarsAtBattleEnd to $currentEarnedStars), resetting spent berries")
+                    progressManager.resetBattleEndTracking()
+
+                    // Sync to cloud when new required tasks are completed
+                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
+                    val cloudStorageManager = CloudStorageManager(this)
+                    lifecycleScope.launch {
+                        cloudStorageManager.saveIfEnabled(currentProfile)
+                    }
                 }
             }
         }
         // Reload mainContentJson if it's null or empty (may have been cleared)
         if (mainContentJson == null || mainContentJson!!.isEmpty()) {
-            android.util.Log.d("BattleHubActivity", "onResume: mainContentJson is null/empty, reloading from cache")
             mainContentJson = ContentUpdateService().getCachedMainContent(this)
-            android.util.Log.d("BattleHubActivity", "onResume: Reloaded mainContentJson, is ${if (mainContentJson != null && mainContentJson!!.isNotEmpty()) "NOT NULL (length=${mainContentJson!!.length})" else "NULL or EMPTY"}")
         }
-        
+
         // Refresh all displays using persisted data (same as MainActivity)
-        android.util.Log.d("BattleHubActivity", "onResume: Refreshing all displays")
         updateCountsDisplay()
         updateBerryMeter()
         updateEarnButtonsState()
         updatePokedexTitle()
         updateUseRewardTimeButton()
         setupHeaderButtons() // Refresh header buttons on resume
-        android.util.Log.d("BattleHubActivity", "onResume: All displays refreshed")
     }
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        android.util.Log.d("BattleHubActivity", "onActivityResult: requestCode=$requestCode, resultCode=$resultCode")
-        
-        // When returning from TrainingMapActivity, refresh all displays (regardless of result code)
+
+        // When returning from TrainingMapActivity, sync from cloud first, then refresh displays
         // Tasks may have been completed even if the activity was canceled
         if (requestCode == 2001 || requestCode == 2002 || requestCode == 2003) {
-            android.util.Log.d("BattleHubActivity", "Returned from TrainingMapActivity, refreshing displays")
-            
-            // Reload mainContentJson from cache before refreshing displays
+            // Reload mainContentJson from cache before syncing
             if (mainContentJson == null || mainContentJson!!.isEmpty()) {
-                android.util.Log.d("BattleHubActivity", "onActivityResult: mainContentJson is null/empty, reloading from cache")
                 mainContentJson = ContentUpdateService().getCachedMainContent(this)
-                android.util.Log.d("BattleHubActivity", "onActivityResult: Reloaded mainContentJson, is ${if (mainContentJson != null && mainContentJson!!.isNotEmpty()) "NOT NULL (length=${mainContentJson!!.length})" else "NULL or EMPTY"}")
             }
-            
-            // Force refresh by calling update methods directly
-            updateCountsDisplay()
-            updateBerryMeter()
-            updateEarnButtonsState()
-            updatePokedexTitle()
-            updateUseRewardTimeButton()
-            android.util.Log.d("BattleHubActivity", "onActivityResult: All displays refreshed")
+
+            // Sync from cloud to get latest progress, then refresh UI
+            val profile = SettingsManager.readProfile(this) ?: "AM"
+            android.util.Log.d("BattleHubActivity", "Starting cloud sync in onActivityResult for profile $profile")
+            lifecycleScope.launch(Dispatchers.IO) {
+                val syncResult = cloudStorageManager.syncIfEnabled(profile)
+                android.util.Log.d("BattleHubActivity", "Cloud sync completed in onActivityResult (result: $syncResult), updating UI")
+                runOnUiThread {
+                    // Force refresh by calling update methods directly after sync completes
+                    updateCountsDisplay()
+                    updateBerryMeter()
+                    updateEarnButtonsState()
+                    updatePokedexTitle()
+                    updateUseRewardTimeButton()
+                }
+            }
         }
     }
 }

@@ -100,13 +100,44 @@ When you toggle:
 ## Database Schema
 
 The `user_data` table stores:
-- `profile`: "AM" or "BM"
-- `pin`, `email`, `admin_pin`: User settings
+- `profile`: Profile identifier (e.g., "A", "B", "AM", "BM", or custom profile IDs)
 - `completed_tasks`, `completed_task_names`: Daily progress
 - `game_progress`: JSON object mapping game IDs to progress indices
 - `video_progress`: JSON object mapping video files to indices
 - `daily_sessions`: Array of time tracking sessions
 - `last_updated`: Timestamp of last update
+
+The `settings` table stores:
+- `parent_email`: Parent's email address (varchar(128))
+- `pin`: Parent PIN for admin access (varchar(8))
+
+## Daily Reset Functionality
+
+The database includes automatic daily reset functionality:
+
+### Manual Reset (Settings Menu)
+When users select "Reset Progress" from the settings menu, it resets progress **only for the current profile** being used on that tablet:
+- Completed tasks and task names
+- Banked reward minutes
+- Time tracking sessions
+- Preserves: Game progress, Pokemon unlocks, video progress
+
+### Automatic Midnight Reset (Database Trigger)
+A database trigger automatically resets progress for **all profiles** at midnight each night:
+- Resets the same fields as the manual reset for all AM/BM profiles
+- Runs automatically when the date changes
+- Ensures all tablets get fresh progress each day regardless of when they last synced
+
+### Alternative Cron Job Setup
+If your Supabase instance supports pg_cron, you can also set up a scheduled job:
+
+```sql
+-- Enable pg_cron extension (if available)
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+-- Schedule daily reset at midnight
+SELECT cron.schedule('reset-daily-progress', '0 0 * * *', 'SELECT reset_daily_progress();');
+```
 
 ## Security Notes
 

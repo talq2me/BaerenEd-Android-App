@@ -182,7 +182,7 @@ class ReportGenerator(private val context: Context) {
         rewardMinutesUsed: Int = 0
     ): String {
         val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
-        val formattedDate = dateFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(report.date)!!)
+        val formattedDate = dateFormat.format(SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).parse(report.date)!!)
 
         return buildString {
             appendLine("📊 DAILY PROGRESS REPORT")
@@ -428,7 +428,7 @@ class ReportGenerator(private val context: Context) {
         rewardMinutesUsed: Int = 0
     ): String {
         val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
-        val formattedDate = dateFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(report.date)!!)
+        val formattedDate = dateFormat.format(SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).parse(report.date)!!)
 
         return """
             <!DOCTYPE html>

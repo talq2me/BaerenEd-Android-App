@@ -189,6 +189,27 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         @JavascriptInterface
+        fun saveProgress(index: Int) {
+            android.util.Log.d("WebGameActivity", "JavaScript called saveProgress() with index: $index for taskId: $taskId")
+            if (taskId != null) {
+                val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
+                webGameProgress.saveIndex(index)
+            }
+        }
+
+        @JavascriptInterface
+        fun loadProgress(): Int {
+            val index = if (taskId != null) {
+                val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
+                webGameProgress.getCurrentIndex()
+            } else {
+                0
+            }
+            android.util.Log.d("WebGameActivity", "JavaScript called loadProgress() returning index: $index for taskId: $taskId")
+            return index
+        }
+
+        @JavascriptInterface
         fun closeGame() {
             android.util.Log.d("WebGameActivity", "JavaScript called closeGame()")
             runOnUiThread { // Ensure UI operations are on the main thread
@@ -303,25 +324,25 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         @JavascriptInterface
-        fun getPendingBerries(): Int {
+        fun getEarnedBerries(): Int {
             return try {
                 getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                    .getInt("pendingBerries", 0)
+                    .getInt("earnedBerries", 0)
             } catch (e: Exception) {
-                android.util.Log.e("WebGameActivity", "Error getting pending berries", e)
+                android.util.Log.e("WebGameActivity", "Error getting earned berries", e)
                 0
             }
         }
 
         @JavascriptInterface
-        fun clearPendingBerries() {
+        fun resetEarnedBerries() {
             try {
                 getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
                     .edit()
-                    .putInt("pendingBerries", 0)
+                    .putInt("earnedBerries", 0)
                     .apply()
             } catch (e: Exception) {
-                android.util.Log.e("WebGameActivity", "Error clearing pending berries", e)
+                android.util.Log.e("WebGameActivity", "Error resetting earned berries", e)
             }
         }
 
@@ -335,12 +356,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     cacheFile.readText()
                 } else {
                     // Fallback to assets based on current profile
-                    val profile = SettingsManager.readProfile(this@WebGameActivity) ?: "A"
-                    val configFileName = when (profile) {
-                        "A" -> "AM_config.json"
-                        "B" -> "BM_config.json"
-                        else -> "Main_config.json"
-                    }
+                    val profile = SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
+                    val configFileName = "${profile}_config.json"
                     android.util.Log.d("WebGameActivity", "Loading config from assets: $configFileName")
                     val inputStream: InputStream = assets.open("config/$configFileName")
                     val size = inputStream.available()

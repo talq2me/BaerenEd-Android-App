@@ -151,13 +151,28 @@
                     autoplay: 1, rel: 0, controls: 0, modestbranding: 1, enablejsapi: 1,
                     listType: 'playlist', list: playlistId
                 },
-                events: { 'onReady': onPlayerReady }
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
             });
         }
 
         function onPlayerReady(event) {
             setupCustomControls();
             setupPlaylistMenu();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.ENDED) {
+                // Call the Android interface to signal video completion and grant rewards
+                if (window.Android && typeof window.Android.finishVideo === 'function') {
+                    window.Android.finishVideo();
+                } else {
+                    // Fallback for non-Android environments or if interface is not ready
+                    window.parent.postMessage({ type: "videoEnded" }, "*");
+                }
+            }
         }
 
         function setupPlaylistMenu() {

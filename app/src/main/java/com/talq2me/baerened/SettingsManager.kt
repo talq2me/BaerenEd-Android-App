@@ -100,4 +100,50 @@ object SettingsManager {
             Log.e("SettingsManager", "Failed to write email to provider.", e)
         }
     }
+
+    /**
+     * Gets available profiles based on config files in assets
+     * Returns a list of profile IDs (e.g., ["A", "B"]) for profiles that have config files
+     */
+    fun getAvailableProfiles(context: Context): List<String> {
+        val availableProfiles = mutableListOf<String>()
+
+        try {
+            // Check for config files in assets/config/ directory
+            val assetManager = context.assets
+            val configFiles = assetManager.list("config") ?: emptyArray()
+
+            // Look for files matching the pattern: {ProfileId}_config.json
+            configFiles.forEach { filename ->
+                if (filename.endsWith("_config.json")) {
+                    // Extract profile ID from filename (e.g., "AM_config.json" -> "AM")
+                    val profileId = filename.removeSuffix("_config.json")
+                    if (profileId.isNotEmpty()) {
+                        availableProfiles.add(profileId)
+                    }
+                }
+            }
+
+            // Sort profiles for consistent ordering
+            availableProfiles.sort()
+
+        } catch (e: Exception) {
+            Log.e("SettingsManager", "Error detecting available profiles", e)
+            // Fallback to basic profiles if detection fails
+            return listOf("AM", "BM")
+        }
+
+        return availableProfiles
+    }
+
+    /**
+     * Gets display names for profiles
+     * Returns a map of profile ID to display name
+     */
+    fun getProfileDisplayNames(): Map<String, String> {
+        return mapOf(
+            "AM" to "AM Profile",
+            "BM" to "BM Profile"
+        )
+    }
 }

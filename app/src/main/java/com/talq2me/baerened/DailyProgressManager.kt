@@ -52,10 +52,7 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_TOTAL_POSSIBLE_STARS = "total_possible_stars"
         private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
         private const val KEY_LAST_POKEMON_UNLOCK_DATE = "last_pokemon_unlock_date"
-        private const val KEY_ADMIN_PIN = "admin_pin"
-        private const val DEFAULT_ADMIN_PIN = "1981" // Default PIN for first-time setup
-        private const val KEY_BERRIES_SPENT = "berries_spent" // Berries spent on battle
-        private const val KEY_EARNED_STARS_AT_BATTLE_END = "earned_stars_at_battle_end" // Track earned stars when battle ended
+        private const val KEY_EARNED_STARS_AT_BATTLE_END = "earned_stars_at_battle_end" // Track earned stars when battle ended (for reset detection)
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -65,7 +62,7 @@ class DailyProgressManager(private val context: Context) {
      * Gets the current date as a string for daily reset tracking
      */
     private fun getCurrentDateString(): String {
-        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val date = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
         Log.d("DailyProgressManager", "Current date string: $date")
         return date
     }
@@ -74,10 +71,24 @@ class DailyProgressManager(private val context: Context) {
      * Checks if we need to reset progress for a new day
      */
     private fun shouldResetProgress(): Boolean {
-        val lastResetDate = prefs.getString(KEY_LAST_RESET_DATE, "")
+        val lastResetDate = prefs.getString(KEY_LAST_RESET_DATE, "") ?: ""
         val currentDate = getCurrentDateString()
-        val shouldReset = lastResetDate != currentDate
-        Log.d("DailyProgressManager", "Reset check - Last: '$lastResetDate', Current: '$currentDate', Should reset: $shouldReset")
+
+        // If no last reset date, don't reset (first run)
+        if (lastResetDate.isEmpty()) {
+            Log.d("DailyProgressManager", "shouldResetProgress - No last reset date found, not resetting")
+            return false
+        }
+
+        // Compare only the date part (dd-MM-yyyy), not the time
+        val lastDatePart = lastResetDate.split(" ")[0] // Get "dd-MM-yyyy" part
+        val currentDatePart = currentDate.split(" ")[0] // Get "dd-MM-yyyy" part
+
+        val shouldReset = lastDatePart != currentDatePart
+        Log.d("DailyProgressManager", "shouldResetProgress called - Last: '$lastResetDate' (date: $lastDatePart), Current: '$currentDate' (date: $currentDatePart), Should reset: $shouldReset")
+        if (shouldReset) {
+            Log.d("DailyProgressManager", "RESET TRIGGERED: Progress will be reset due to date mismatch")
+        }
         return shouldReset
     }
 
@@ -92,9 +103,11 @@ class DailyProgressManager(private val context: Context) {
             .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(emptyMap<String, String>()))
             .putString(KEY_LAST_RESET_DATE, currentDate)
             .putInt("banked_reward_minutes", 0) // Reset reward bank for new day
-            .putInt(KEY_BERRIES_SPENT, 0) // Reset spent berries for new day
             .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0) // Reset battle end tracking for new day
             .apply()
+        
+        // Reset earned berries for new day
+        resetEarnedBerries()
 
         // Also reset video sequence progress for new day
         resetVideoSequenceProgress()
@@ -322,6 +335,7 @@ class DailyProgressManager(private val context: Context) {
      * For optional tasks: only banks reward time, doesn't affect progress, can be completed multiple times
      */
     fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false, config: MainContent? = null, sectionId: String? = null): Int {
+        Log.d("DailyProgressManager", "markTaskCompletedWithName called: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, sectionId=$sectionId")
         val completedTasks = getCompletedTasks()
 
         // Generate unique task ID that includes section information
@@ -535,8 +549,8 @@ class DailyProgressManager(private val context: Context) {
         val (totalCoins, totalStars) = calculateTotalsFromConfig(config)
         
         // Subtract spent berries (berries used in battle)
-        val spentBerries = getSpentBerries()
-        val displayEarnedStars = (earnedStars - spentBerries).coerceAtLeast(0)
+        // Use simple earned berries counter
+        val displayEarnedStars = getEarnedBerries()
         
         return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
     }
@@ -555,12 +569,8 @@ class DailyProgressManager(private val context: Context) {
         var earnedStars = 0
 
         // This is approximate - in a real implementation, we'd need to track star values per task
-        // For now, just count completed tasks as 1 star each
-        completedTasks.values.forEach { if (it) earnedStars += 1 }
-        
-        // Subtract spent berries (berries used in battle)
-        val spentBerries = getSpentBerries()
-        val displayEarnedStars = (earnedStars - spentBerries).coerceAtLeast(0)
+        // For now, just use the simple earned berries counter
+        val displayEarnedStars = getEarnedBerries()
 
         return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
     }
@@ -591,17 +601,36 @@ class DailyProgressManager(private val context: Context) {
      */
     
     /**
-     * Gets the number of berries spent on battle (persists across screens)
+     * Gets the earned berries count (simple counter that resets to 0 on battle)
      */
-    fun getSpentBerries(): Int {
-        return prefs.getInt(KEY_BERRIES_SPENT, 0)
+    fun getEarnedBerries(): Int {
+        return context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+            .getInt("earnedBerries", 0)
     }
     
     /**
-     * Sets the number of berries spent on battle
+     * Sets the earned berries count
      */
-    fun setSpentBerries(amount: Int) {
-        prefs.edit().putInt(KEY_BERRIES_SPENT, amount).apply()
+    fun setEarnedBerries(amount: Int) {
+        context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+            .edit()
+            .putInt("earnedBerries", amount)
+            .apply()
+    }
+    
+    /**
+     * Adds to earned berries (when tasks complete)
+     */
+    fun addEarnedBerries(amount: Int) {
+        val current = getEarnedBerries()
+        setEarnedBerries(current + amount)
+    }
+    
+    /**
+     * Resets earned berries to 0 (when battle happens)
+     */
+    fun resetEarnedBerries() {
+        setEarnedBerries(0)
     }
     
     /**
@@ -619,10 +648,10 @@ class DailyProgressManager(private val context: Context) {
     }
     
     /**
-     * Resets spent berries (called when new required tasks are completed)
+     * Resets battle end tracking (called when new required tasks are completed)
      */
-    fun resetSpentBerries() {
-        prefs.edit().putInt(KEY_BERRIES_SPENT, 0).putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0).apply()
+    fun resetBattleEndTracking() {
+        prefs.edit().putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0).apply()
     }
     
     /**
@@ -720,8 +749,8 @@ class DailyProgressManager(private val context: Context) {
         }
 
         // Subtract spent berries (berries used in battle)
-        val spentBerries = getSpentBerries()
-        return (earnedStars - spentBerries).coerceAtLeast(0)
+        // Simple: just return earned stars (no subtraction needed)
+        return earnedStars
     }
     
     /**
@@ -810,7 +839,7 @@ class DailyProgressManager(private val context: Context) {
      * Gets the current kid identifier (A or B)
      */
     fun getCurrentKid(): String {
-        return SettingsManager.readProfile(context) ?: "A"
+        return SettingsManager.readProfile(context) ?: "AM"
     }
 
     /**
@@ -821,26 +850,6 @@ class DailyProgressManager(private val context: Context) {
         return earnedCoins >= totalCoins && totalCoins > 0
     }
 
-    /**
-     * Gets the current admin PIN (creates default if none exists)
-     */
-    fun getAdminPin(): String {
-        return prefs.getString(KEY_ADMIN_PIN, DEFAULT_ADMIN_PIN) ?: DEFAULT_ADMIN_PIN
-    }
-
-    /**
-     * Sets a new admin PIN
-     */
-    fun setAdminPin(pin: String) {
-        prefs.edit().putString(KEY_ADMIN_PIN, pin).apply()
-    }
-
-    /**
-     * Validates admin PIN for Pokemon management
-     */
-    fun validateAdminPin(pin: String): Boolean {
-        return pin == getAdminPin()
-    }
 
     /**
      * Unlocks additional Pokemon (admin function)

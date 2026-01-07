@@ -152,7 +152,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupPullToRefresh()
 
         // Initialize activity result launchers
+        android.util.Log.d("MainActivity", "Registering video completion launcher")
         videoCompletionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            android.util.Log.d("MainActivity", "Video completion launcher triggered")
             handleVideoCompletion(result)
         }
 
@@ -200,7 +202,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             val mainContent = getCurrentMainContent() ?: MainContent()
                             val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
                             val currentKid = progressManager.getCurrentKid()
-                            val childName = if (currentKid == "A") "AM" else "BM"
+                            val childName = currentKid
                             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
                             val subject = "Daily Progress Report - $childName - ${progressReport.date}"
                             val emailIntent = buildEmailIntent(parentEmail, subject, report)
@@ -273,7 +275,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 val latest = json.getInt("latestVersionCode")
                 val apkUrl = json.getString("apkUrl")
-                val current = packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
+                val current = packageManager.getPackageInfo(packageName, 0).versionCode
 
                 if (latest > current) {
                     handleUpdateAvailability(latest, apkUrl)
@@ -415,7 +417,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
             packageInfo?.let {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    it.longVersionCode.toInt()
+                    it.versionCode
                 } else {
                     @Suppress("DEPRECATION")
                     it.versionCode
@@ -460,7 +462,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageInfo.longVersionCode.toInt()
+                packageInfo.versionCode
             } else {
                 @Suppress("DEPRECATION")
                 packageInfo.versionCode
@@ -697,8 +699,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun handleVideoCompletion(result: ActivityResult) {
-        android.util.Log.d("MainActivity", "Video result received: resultCode=${result.resultCode}")
-        if (result.resultCode == RESULT_OK && result.data != null) {
+        android.util.Log.d("MainActivity", "VIDEO COMPLETION HANDLER CALLED: resultCode=${result.resultCode}, data=${result.data != null}")
+        // Accept both RESULT_OK and RESULT_CANCELED for videos, as some video types may return CANCELED on completion
+        if ((result.resultCode == RESULT_OK || result.resultCode == RESULT_CANCELED) && result.data != null) {
+            android.util.Log.d("MainActivity", "VIDEO COMPLETION: Processing video completion (resultCode: ${result.resultCode})")
             val taskId = result.data?.getStringExtra("TASK_ID")
             val taskTitle = result.data?.getStringExtra("TASK_TITLE")
             val stars = result.data?.getIntExtra("TASK_STARS", 0) ?: 0
@@ -708,7 +712,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (taskId != null && taskTitle != null) {
                 val indexToPass = if (videoIndex != -1) videoIndex else null
                 layout.handleVideoCompletion(taskId, taskTitle, stars, videoFile, indexToPass)
+
+                // Sync progress to cloud after video completion
+                val profile = SettingsManager.readProfile(this) ?: "AM"
+                android.util.Log.d("MainActivity", "Video completed, triggering cloud sync for profile: $profile")
+                lifecycleScope.launch(Dispatchers.IO) {
+                    CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
+                }
+            } else {
+                android.util.Log.d("MainActivity", "VIDEO COMPLETION: Missing taskId or taskTitle in data")
             }
+        } else {
+            android.util.Log.d("MainActivity", "VIDEO COMPLETION: Ignoring result - wrong resultCode or no data (resultCode=${result.resultCode}, hasData=${result.data != null})")
         }
     }
 
@@ -738,17 +753,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (wasFromBattleHub && stars > 0) {
                 val berriesToAdd = stars // 1 star = 1 berry
                 val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                    .getInt("pendingBerries", 0)
+                    .getInt("earnedBerries", 0)
                 getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
                     .edit()
-                    .putInt("pendingBerries", savedBerries + berriesToAdd)
+                    .putInt("earnedBerries", savedBerries + berriesToAdd)
                     .apply()
                 Log.d(TAG, "Saved $berriesToAdd berries from battle hub game completion")
             }
             
             lifecycleScope.launch(Dispatchers.Main) {
                 layout.handleWebGameCompletion(taskId, sectionId, stars, taskTitle)
-                
+
                 // If game was launched from battle hub or gym map, refresh the embedded views
                 if (wasFromBattleHub || taskId?.startsWith("gymMap_") == true || taskId?.startsWith("trainingMap_") == true) {
                     Log.d(TAG, "Game completed from battle hub, gym map, or training map, refreshing embedded views")
@@ -756,6 +771,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     layout.refreshGymMap()
                     layout.refreshTrainingMap()
                 }
+            }
+
+            // Sync progress to cloud after game completion
+            val profile = SettingsManager.readProfile(this) ?: "A"
+            lifecycleScope.launch(Dispatchers.IO) {
+                CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
             }
         }
     }
@@ -798,6 +819,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             if (taskId != null && taskTitle != null) {
                 layout.handleChromePageCompletion(taskId, taskTitle, stars, sectionId)
+
+                // Sync progress to cloud after chrome page completion
+                val profile = SettingsManager.readProfile(this) ?: "AM"
+                lifecycleScope.launch(Dispatchers.IO) {
+                    CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
+                }
             }
         }
     }
@@ -835,7 +862,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setTitle("Select User Profile")
             .setCancelable(false)
             .setItems(profiles) { _, which ->
-                val selectedProfile = if (which == 0) "A" else "B"
+                val selectedProfile = if (which == 0) "AM" else "BM"
                 SettingsManager.writeProfile(this, selectedProfile)
                 finishAffinity()
                 startActivity(Intent(this, MainActivity::class.java))
@@ -850,7 +877,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         AlertDialog.Builder(this)
             .setTitle("Select User Profile")
             .setItems(profiles) { _, which ->
-                val selectedProfile = if (which == 0) "A" else "B"
+                val selectedProfile = if (which == 0) "AM" else "BM"
                 if (currentProfile != selectedProfile) {
                     SettingsManager.writeProfile(this, selectedProfile)
                     finishAffinity()
@@ -972,7 +999,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val progressManager = DailyProgressManager(this)
 
             val lastResetDate = progressManager.getLastResetDate()
-            val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+            val currentDate = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault()).format(java.util.Date())
 
             if (lastResetDate != currentDate) {
                 progressManager.clearPendingRewardData()
@@ -1096,7 +1123,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     fun getAppVersion(): String {
         return try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            packageInfo.versionName ?: packageInfo.longVersionCode.toString()
+            packageInfo.versionName ?: packageInfo.versionCode.toString()
         } catch (e: Exception) {
             Log.e(TAG, "Error getting app version", e)
             "?"
@@ -1127,7 +1154,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             cloudStorageManager.setCloudStorageEnabled(true)
             val profile = SettingsManager.readProfile(this) ?: "A"
             lifecycleScope.launch(Dispatchers.IO) {
-                val result = cloudStorageManager.uploadToCloud(profile)
+                val result = cloudStorageManager.syncIfEnabled(profile)
                 runOnUiThread {
                     if (result.isSuccess) {
                         Toast.makeText(this@MainActivity, "Cloud storage enabled and synced", Toast.LENGTH_SHORT).show()
@@ -1796,11 +1823,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         when {
             configUrl.contains("AM_config.json") -> {
-                SettingsManager.writeProfile(this, "A")
+                SettingsManager.writeProfile(this, "AM")
                 Toast.makeText(this, "Selected AM profile", Toast.LENGTH_SHORT).show()
             }
             configUrl.contains("BM_config.json") -> {
-                SettingsManager.writeProfile(this, "B")
+                SettingsManager.writeProfile(this, "BM")
                 Toast.makeText(this, "Selected BM profile", Toast.LENGTH_SHORT).show()
             }
             else -> {
