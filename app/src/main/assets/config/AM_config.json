@@ -119,7 +119,7 @@
         {
           "title": "Ten Frame Math",
           "launch": "tenFrameMath",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
           "stars": 3,
           "webGame": true
         },
