@@ -649,6 +649,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 putExtra("launchTask", gameType)
                 putExtra("taskTitle", gameTitle)
                 putExtra("sectionId", sectionId)
+                putExtra("taskStars", task.stars ?: 0)
             }
             startActivity(intent)
             return

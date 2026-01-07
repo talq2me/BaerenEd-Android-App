@@ -135,6 +135,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initialize layout manager
         layout = Layout(this)
 
+        // Check if this activity was launched to handle a specific task (e.g., from TrainingMapActivity)
+        val launchTask = intent.getStringExtra("launchTask")
+        if (launchTask == "googleReadAlong") {
+            val taskTitle = intent.getStringExtra("taskTitle") ?: "Google Read Along"
+            val sectionId = intent.getStringExtra("sectionId")
+            val taskStars = intent.getIntExtra("taskStars", 0)
+            // Create a Task object from the intent extras
+            val task = Task(
+                title = taskTitle,
+                launch = "googleReadAlong",
+                stars = taskStars
+            )
+            // Launch Google Read Along directly
+            launchGoogleReadAlong(task, sectionId)
+            // Don't load main content since we're launching Google Read Along
+            return
+        }
+
         // Setup pull-to-refresh
         setupPullToRefresh()
 
