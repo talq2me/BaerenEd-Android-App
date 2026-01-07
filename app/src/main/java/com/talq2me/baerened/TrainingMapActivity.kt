@@ -302,39 +302,56 @@ class TrainingMapActivity : AppCompatActivity() {
                 
                 withContext(Dispatchers.Main) {
                     progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
-                    
-                    // Generate random positions for gyms
-                    val density = resources.displayMetrics.density
-                    val mapWidth = mapContainer.width.takeIf { it > 0 } ?: (resources.displayMetrics.widthPixels - (32 * density).toInt())
-                    val mapHeight = mapContainer.height.takeIf { it > 0 } ?: (resources.displayMetrics.heightPixels * 0.6).toInt()
-                    val buttonSize = (80 * density).toInt()
-                    val buttonRadius = (40 * density).toInt()
-                    val padding = (20 * density).toInt() // Padding from edges
-                    
-                    // Load icon config
-                    val icons = try {
-                        val inputStream = assets.open("config/icon_config.json")
-                        val configJson = inputStream.bufferedReader().use { it.readText() }
-                        inputStream.close()
-                        Gson().fromJson(configJson, IconConfig::class.java) ?: IconConfig()
-                    } catch (e: Exception) {
-                        IconConfig()
-                    }
-                    
-                    // Generate random positions for gyms (like points of interest on a real map)
-                    // But ensure they don't overlap
-                    val random = kotlin.random.Random
-                    val positions = mutableListOf<Pair<Int, Int>>()
-                    val actualButtonSize = buttonSize
-                    val actualButtonRadius = buttonRadius
-                    
-                    // Minimum distance between button centers (to prevent overlaps)
-                    val minDistance = (buttonSize * 1.5).toInt() // 1.5x button size ensures no overlap
-                    
-                    // Create gym buttons with random positions
-                    val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
-                    
-                    tasks.forEachIndexed { index, task ->
+
+                    // Ensure the container is measured before we place buttons.
+                    // This avoids the first-load "fallback width/height" which caused positions to shift on next reload.
+                    mapContainer.post {
+                        // Generate random positions for gyms
+                        val density = resources.displayMetrics.density
+                        val mapWidth = mapContainer.width.coerceAtLeast(1)
+                        val mapHeight = mapContainer.height.coerceAtLeast(1)
+                        val buttonSize = (80 * density).toInt()
+                        val buttonRadius = (40 * density).toInt()
+                        val padding = (20 * density).toInt() // Padding from edges
+
+                        // Load icon config
+                        val icons = try {
+                            val inputStream = assets.open("config/icon_config.json")
+                            val configJson = inputStream.bufferedReader().use { it.readText() }
+                            inputStream.close()
+                            Gson().fromJson(configJson, IconConfig::class.java) ?: IconConfig()
+                        } catch (e: Exception) {
+                            IconConfig()
+                        }
+
+                        // Deterministic seed so gym positions don't reshuffle on each map reload.
+                        // Include URL because some tasks share the same launch id (e.g., diagramLabeler).
+                        val seedInput = buildString {
+                            append(mapType)
+                            tasks.forEach { t ->
+                                append('|')
+                                append(t.launch ?: "")
+                                append('|')
+                                append(t.url ?: "")
+                                append('|')
+                                append(t.title ?: "")
+                            }
+                        }
+                        val random = kotlin.random.Random(seedInput.hashCode())
+
+                        // Generate random positions for gyms (like points of interest on a real map)
+                        // But ensure they don't overlap
+                        val positions = mutableListOf<Pair<Int, Int>>()
+                        val actualButtonSize = buttonSize
+                        val actualButtonRadius = buttonRadius
+
+                        // Minimum distance between button centers (to prevent overlaps)
+                        val minDistance = (buttonSize * 1.5).toInt() // 1.5x button size ensures no overlap
+
+                        // Create gym buttons with random positions
+                        val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
+
+                        tasks.forEachIndexed { index, task ->
                         val baseTaskId = task.launch ?: ""
                         
                         // For diagramLabeler, we need to get the final URL (after getGameModeUrl processing)
@@ -394,8 +411,10 @@ class TrainingMapActivity : AppCompatActivity() {
                         // Try to find a non-overlapping position
                         while (attempts < maxAttempts && !positionFound) {
                             // Random position within bounds (with padding)
-                            x = padding + random.nextInt(mapWidth - 2 * padding - actualButtonSize)
-                            y = padding + random.nextInt(mapHeight - 2 * padding - actualButtonSize)
+                            val xRange = (mapWidth - 2 * padding - actualButtonSize).coerceAtLeast(1)
+                            val yRange = (mapHeight - 2 * padding - actualButtonSize).coerceAtLeast(1)
+                            x = padding + random.nextInt(xRange)
+                            y = padding + random.nextInt(yRange)
                             
                             val centerX = x + actualButtonRadius
                             val centerY = y + actualButtonRadius
@@ -539,7 +558,8 @@ class TrainingMapActivity : AppCompatActivity() {
                     gymButtons.forEach { (button, _) ->
                         mapContainer.addView(button)
                     }
-                }
+                        }
+                    }
             } catch (e: Exception) {
                 android.util.Log.e("TrainingMapActivity", "Error loading map", e)
                 withContext(Dispatchers.Main) {
@@ -649,6 +669,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 putExtra("launchTask", gameType)
                 putExtra("taskTitle", gameTitle)
                 putExtra("sectionId", sectionId)
+                putExtra("taskStars", task.stars ?: 0)
             }
             startActivity(intent)
             return

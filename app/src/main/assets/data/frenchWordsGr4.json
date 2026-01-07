@@ -1,74 +1,82 @@
 [
-{
-"word": "arrière",
-"sentence": "Je me suis assis à l'arrière de la voiture."
-},
-{
-"word": "en arrière",
-"sentence": "Il faut reculer en arrière pour laisser passer les autres."
-},
-{
-"word": "derrière",
-"sentence": "Le chat se cache derrière le canapé."
-},
-{
-"word": "est",
-"sentence": "Le soleil se lève à l'est chaque matin."
-},
-{
-"word": "ouest",
-"sentence": "Le soleil se couche à l'ouest le soir."
-},
-{
-"word": "kilomètre",
-"sentence": "Nous avons marché un kilomètre pour arriver au parc."
-},
-{
-"word": "matière",
-"sentence": "La science étudie la matière et ses propriétés."
-},
-{
-"word": "objet",
-"sentence": "J'ai trouvé un objet brillant sur le sol."
-},
-{
-"word": "ordinaire",
-"sentence": "C'était un jour ordinaire comme les autres."
-},
-{
-"word": "parfaitement",
-"sentence": "Elle a récité son poème parfaitement devant la classe."
-},
-{
-"word": "plaire",
-"sentence": "Je veux plaire à mes parents avec de bonnes notes."
-},
-{
-"word": "planète",
-"sentence": "La Terre est une planète qui tourne autour du soleil."
-},
-{
-"word": "poème",
-"sentence": "J'ai écrit un beau poème pour ma maman."
-},
-{
-"word": "quatrième",
-"sentence": "Je suis en quatrième année cette année."
-},
-{
-"word": "scène",
-"sentence": "Les acteurs sont montés sur la scène du théâtre."
-},
-{
-"word": "secret",
-"sentence": "J'ai un secret que je ne peux pas révéler."
-},
-{
-"word": "secrète",
-"sentence": "C'est une mission secrète très importante."
-},
-{
-"word": "système",
-"sentence": "Le système solaire comprend huit planètes."
-}
+	{
+		"word": "côte",
+		"sentence": "La côte est rocheuse près du phare."
+	},
+	{
+		"word": "disparaître",
+		"sentence": "Le magicien va faire disparaître le lapin."
+	},
+	{
+		"word": "drôle",
+		"sentence": "Ce dessin est très drôle et me fait rire."
+	},
+	{
+		"word": "être",
+		"sentence": "Il est important d'être patient en classe."
+	},
+	{
+		"word": "gâteau",
+		"sentence": "J'ai préparé un gâteau au chocolat pour ton anniversaire."
+	},
+	{
+		"word": "goût",
+		"sentence": "Le goût de cette soupe est salé et bon."
+	},
+	{
+		"word": "hâte",
+		"sentence": "J'ai hâte de partir en vacances la semaine prochaine."
+	},
+	{
+		"word": "île",
+		"sentence": "Nous avons visité une petite île pendant l'été."
+	},
+	{
+		"word": "même",
+		"sentence": "Nous avons la même trousse à crayons à l'école."
+	},
+	{
+		"word": "naître",
+		"sentence": "Un bébé va naître dans la famille demain."
+	},
+	{
+		"word": "pêche",
+		"sentence": "Mon oncle aime la pêche au bord du lac."
+	},
+	{
+		"word": "prêt",
+		"sentence": "Je suis prêt pour l'examen de maths."
+	},
+	{
+		"word": "prête",
+		"sentence": "Ma sœur est prête pour la compétition."
+	},
+	{
+		"word": "rêve",
+		"sentence": "Mon rêve est de devenir pilote."
+	},
+	{
+		"word": "rôle",
+		"sentence": "Elle joue le rôle principal dans la pièce."
+	},
+	{
+		"word": "sûr",
+		"sentence": "Je suis sûr que tu peux le faire."
+	},
+	{
+		"word": "sûre",
+		"sentence": "Elle est sûre de sa réponse en classe."
+	},
+	{
+		"word": "théâtre",
+		"sentence": "Nous avons visité le théâtre de la ville hier."
+	},
+	{
+		"word": "tôt",
+		"sentence": "Il faut se lever tôt pour attraper le bus."
+	},
+	{
+		"word": "plutôt",
+		"sentence": "Je préfère le thé plutôt que le café."
+	}
 ]

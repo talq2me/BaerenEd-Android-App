@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var readAlongTimeTracker: TimeTracker
     private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
     private lateinit var cloudStorageManager: CloudStorageManager
+    private var wasLaunchedForReadAlong: Boolean = false // Track if we were launched just for Read Along
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
@@ -147,6 +148,28 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Initialize layout manager
         layout = Layout(this)
+
+        // Check if this activity was launched to handle a specific task (e.g., from TrainingMapActivity)
+        val launchTask = intent.getStringExtra("launchTask")
+        if (launchTask == "googleReadAlong") {
+            wasLaunchedForReadAlong = true
+            val taskTitle = intent.getStringExtra("taskTitle") ?: "Google Read Along"
+            val sectionId = intent.getStringExtra("sectionId")
+            val taskStars = intent.getIntExtra("taskStars", 0)
+            // Create a Task object from the intent extras
+            val task = Task(
+                title = taskTitle,
+                launch = "googleReadAlong",
+                stars = taskStars
+            )
+            // Hide loading screen since we're not loading main content
+            loadingProgressBar.visibility = View.GONE
+            titleText.text = ""
+            // Launch Google Read Along directly
+            launchGoogleReadAlong(task, sectionId)
+            // Don't load main content since we're launching Google Read Along
+            return
+        }
 
         // Setup pull-to-refresh
         setupPullToRefresh()
@@ -526,12 +549,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return match?.groupValues?.getOrNull(1)?.toIntOrNull()
     }
 
-    private fun handleReadAlongReturnIfNeeded() {
-        val pendingReward = pendingReadAlongReward ?: return
+    private fun handleReadAlongReturnIfNeeded(): Boolean {
+        val pendingReward = pendingReadAlongReward ?: return false
 
         val wasPaused = readAlongHasBeenPaused || readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
         if (!wasPaused) {
-            return
+            return false
         }
 
         val MIN_READ_ALONG_DURATION_SECONDS = 30L
@@ -577,6 +600,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         clearPendingReadAlongState()
+        return true // Indicate that we handled the Read Along return
     }
 
     private fun persistPendingReadAlongState(reward: PendingReadAlongReward, startTimeMs: Long) {
@@ -1013,7 +1037,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onResume() {
         super.onResume()
         restorePendingReadAlongStateIfNeeded()
-        handleReadAlongReturnIfNeeded()
+        val readAlongHandled = handleReadAlongReturnIfNeeded()
+        
+        // If we were launched just for Read Along and have handled the return, finish to go back to TrainingMapActivity
+        if (wasLaunchedForReadAlong && readAlongHandled) {
+            Log.d(TAG, "Read Along completed, finishing MainActivity to return to TrainingMapActivity")
+            finish()
+            return
+        }
+        
+        // If we were launched just for Read Along but haven't handled return yet, don't try to load/display content
+        if (wasLaunchedForReadAlong) {
+            return
+        }
         
         // Check if battle hub requested to show training map
         val battleHubPrefs = getSharedPreferences("battle_hub_prefs", Context.MODE_PRIVATE)
