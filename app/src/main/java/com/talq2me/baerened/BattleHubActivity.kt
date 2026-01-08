@@ -582,29 +582,8 @@ class BattleHubActivity : AppCompatActivity() {
     }
     
     private fun showUnlockPokemonDialog() {
-        // First show PIN prompt
-        val pinInput = android.widget.EditText(this).apply {
-            hint = "Enter Admin PIN"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
-            setPadding(50, 50, 50, 50)
-        }
-        
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Admin Access")
-            .setMessage("Please enter the PIN to unlock Pokemon.")
-            .setView(pinInput)
-            .setPositiveButton("Enter") { _, _ ->
-                val enteredPin = pinInput.text.toString()
-                val correctPin = SettingsManager.readPin(this) ?: "1981"
-                if (enteredPin == correctPin) {
-                    // PIN is correct, show unlock count dialog
-                    showUnlockCountDialog()
-                } else {
-                    android.widget.Toast.makeText(this, "Incorrect PIN", android.widget.Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        // PIN already verified to access settings, so directly show unlock count dialog
+        showUnlockCountDialog()
     }
     
     private fun showUnlockCountDialog() {
@@ -637,6 +616,21 @@ class BattleHubActivity : AppCompatActivity() {
                 val newCount = progressManager.getUnlockedPokemonCount()
                 
                 android.util.Log.d("BattleHubActivity", "Unlocked $count Pokemon via admin. Previous: $previousCount, New total: $newCount")
+                
+                // Sync to cloud
+                val profile = SettingsManager.readProfile(this) ?: "AM"
+                lifecycleScope.launch {
+                    try {
+                        val result = cloudStorageManager.saveIfEnabled(profile)
+                        if (result.isSuccess) {
+                            android.util.Log.d("BattleHubActivity", "Successfully synced Pokemon unlock to cloud")
+                        } else {
+                            android.util.Log.w("BattleHubActivity", "Failed to sync Pokemon unlock to cloud: ${result.exceptionOrNull()?.message}")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("BattleHubActivity", "Error syncing Pokemon unlock to cloud", e)
+                    }
+                }
                 
                 // Refresh Pokemon data to show new unlocks
                 loadPokemonData()
