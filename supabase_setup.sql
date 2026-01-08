@@ -46,6 +46,11 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Metadata (stored in EST/UTC)
     last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST'),
 
+    
+    reward_apps TEXT, -- JSON array of package names as string
+    blacklisted_apps TEXT, -- JSON array of package names as string
+    white_listed_apps TEXT, -- JSON array of package names as string
+
     -- Ensure one record per profile
     UNIQUE(profile)
 );
@@ -58,6 +63,10 @@ ALTER TABLE user_data ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policy if it exists
 DROP POLICY IF EXISTS "Allow all operations" ON user_data;
+
+--insert default profile data: 
+insert into user_data (profile) values ('AM');
+insert into user_data (profile) values ('BM');
 
 -- Create a policy that allows all operations (for development)
 -- In production, you should create more restrictive policies
@@ -85,8 +94,10 @@ CREATE TRIGGER update_user_data_timestamp
 CREATE TABLE IF NOT EXISTS settings (
     id BIGSERIAL PRIMARY KEY,
     parent_email VARCHAR(128),
-    pin VARCHAR(8)
+    pin VARCHAR(8),
+    aggressive_cleanup BOOLEAN DEFAULT true
 );
+
 
 -- Enable RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
@@ -99,6 +110,10 @@ CREATE POLICY "Allow all operations on settings" ON settings
     FOR ALL
     USING (true)
     WITH CHECK (true);
+
+
+--insert default settings data: 
+insert into settings (parent_email, pin, aggressive_cleanup) values ('parent@gmail.com', '1234', true);
 
 -- Create function to reset daily progress for all profiles
 CREATE OR REPLACE FUNCTION reset_daily_progress()

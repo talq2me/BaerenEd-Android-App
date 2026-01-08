@@ -30,76 +30,75 @@ class RewardSelectionActivity : AppCompatActivity() {
         }
 
         try {
-            // Grant access for the specified time, which also launches BaerenLock
-            Log.d(TAG, "Sending $remainingMinutes minutes to BaerenLock via Intent (should match report)")
-            grantRewardAccess("com.talq2me.baerenlock", remainingMinutes) // Package name is arbitrary here as it's not used by BaerenLock for app-specific rewards
+            val progressManager = DailyProgressManager(this)
+            val currentMinutes = progressManager.getBankedRewardMinutes()
+            
+            if (currentMinutes > 0) {
+                // Sync reward minutes to cloud first (so BaerenLock can read them from the database)
+                // BaerenLock will read the minutes from the cloud database instead of receiving them via Intent
+                // setBankedRewardMinutes will sync to cloud automatically
+                progressManager.setBankedRewardMinutes(currentMinutes)
+                Log.d(TAG, "Synced $currentMinutes minutes to cloud for BaerenLock to read")
+                
+                // Launch BaerenLock without sending minutes via Intent/Broadcast
+                // BaerenLock will read the minutes from the cloud database when it starts
+                launchBaerenLock()
+                
+                // Clear the banked minutes from BaerenEd local storage
+                // Note: We don't sync 0 to cloud here - let BaerenLock manage clearing from cloud when it uses the time
+                // This prevents a race condition where BaerenLock might read 0 before it has a chance to read the actual minutes
+                val profile = progressManager.getCurrentKid()
+                val key = "${profile}_banked_reward_minutes"
+                getSharedPreferences("daily_progress_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putInt(key, 0)
+                    .apply()
+                Log.d(TAG, "Cleared banked reward minutes from BaerenEd local storage (cloud still has minutes for BaerenLock)")
+            } else {
+                Toast.makeText(this, "No reward time available", Toast.LENGTH_SHORT).show()
+            }
 
-            // Close this activity after granting access and launching BaerenLock
+            // Close this activity after launching BaerenLock
             finish()
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error granting reward access or launching BaerenLock", e)
-            Toast.makeText(this, "Error granting reward. Please try again.", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Error launching BaerenLock", e)
+            Toast.makeText(this, "Error launching reward app. Please try again.", Toast.LENGTH_SHORT).show()
             finish() // Ensure the activity finishes even on error
         }
     }
 
-    private fun grantRewardAccess(packageName: String, minutes: Int) {
-        Log.d(TAG, "Granting $minutes minutes to BaerenLock via Intent.")
+    /**
+     * Launches BaerenLock without sending reward minutes via Intent/Broadcast.
+     * BaerenLock will read the reward minutes from the cloud database instead.
+     */
+    private fun launchBaerenLock() {
+        Log.d(TAG, "Launching BaerenLock (it will read reward minutes from cloud database)")
 
-        // Generate a unique transaction ID to prevent double-counting
-        // This ID is used by both Intent and Broadcast, so BaerenLock can deduplicate
-        val transactionId = System.currentTimeMillis()
-
-        // Primary method: Send broadcast first (most reliable)
-        // This ensures BaerenLock receives the reward time even if it's already running
-        sendRewardTimeBroadcast(minutes, transactionId)
-
-        // Secondary method: Try to launch BaerenLock's LauncherActivity directly with explicit Intent
-        // This is more reliable than using ACTION_MAIN + CATEGORY_HOME which may not preserve extras
+        // Try to launch BaerenLock's LauncherActivity directly
         try {
             val launcherIntent = Intent().apply {
                 setClassName("com.talq2me.baerenlock", "com.talq2me.baerenlock.LauncherActivity")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                putExtra(EXTRA_REWARD_MINUTES, minutes)
-                putExtra("reward_transaction_id", transactionId)
+                // No reward minutes in Intent - BaerenLock will read from cloud database
             }
             startActivity(launcherIntent)
-            Log.d(TAG, "Launched BaerenLock LauncherActivity directly with $minutes minutes (transaction ID: $transactionId).")
+            Log.d(TAG, "Launched BaerenLock LauncherActivity (no Intent extras - will read from cloud)")
         } catch (e: Exception) {
             // Fallback: Use HOME intent if direct launch fails
             Log.w(TAG, "Failed to launch BaerenLock directly, trying HOME intent: ${e.message}")
-            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_HOME)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                putExtra(EXTRA_REWARD_MINUTES, minutes)
-                putExtra("reward_transaction_id", transactionId)
+            try {
+                val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    // No reward minutes in Intent - BaerenLock will read from cloud database
+                }
+                startActivity(homeIntent)
+                Log.d(TAG, "Launched BaerenLock via Home Intent (no Intent extras - will read from cloud)")
+            } catch (e2: Exception) {
+                Log.e(TAG, "Failed to launch BaerenLock via HOME intent: ${e2.message}")
+                throw e2 // Re-throw so caller can handle it
             }
-            startActivity(homeIntent)
-            Log.d(TAG, "Launched BaerenLock via Home Intent with $minutes minutes (transaction ID: $transactionId).")
-        }
-
-        // Now that BaerenLock has been launched with the reward minutes, clear them from BaerenEd
-        DailyProgressManager(this).clearBankedRewardMinutes()
-    }
-
-    /**
-     * Sends a broadcast to BaerenLock with reward time as a fallback mechanism.
-     * This ensures BaerenLock receives reward time even if Intent delivery via HOME action fails.
-     * The transaction ID prevents double-counting if both Intent and Broadcast are received.
-     */
-    private fun sendRewardTimeBroadcast(minutes: Int, transactionId: Long) {
-        try {
-            val broadcastIntent = Intent("com.talq2me.baerenlock.ACTION_ADD_REWARD_TIME").apply {
-                putExtra("reward_minutes", minutes)
-                putExtra("reward_transaction_id", transactionId)
-                setPackage("com.talq2me.baerenlock") // Explicitly target BaerenLock
-            }
-            sendBroadcast(broadcastIntent)
-            Log.d(TAG, "Sent broadcast to BaerenLock with $minutes minutes (transaction ID: $transactionId, fallback mechanism)")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error sending reward time broadcast (fallback)", e)
-            // Don't fail the whole operation if broadcast fails
         }
     }
 }

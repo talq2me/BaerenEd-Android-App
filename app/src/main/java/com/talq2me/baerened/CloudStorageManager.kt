@@ -99,6 +99,11 @@ class CloudStorageManager(private val context: Context) {
         // Game indices for all game types (name: index)
         @SerializedName("game_indices") val gameIndices: Map<String, Int> = emptyMap(),
 
+        // App lists (from BaerenLock) - stored as JSON strings in database
+        @SerializedName("reward_apps") val rewardApps: String? = null, // JSON array string
+        @SerializedName("blacklisted_apps") val blacklistedApps: String? = null, // JSON array string
+        @SerializedName("white_listed_apps") val whiteListedApps: String? = null, // JSON array string
+
         // Metadata
         @SerializedName("last_updated") val lastUpdated: String? = null,
     )
@@ -310,26 +315,29 @@ class CloudStorageManager(private val context: Context) {
                     object : TypeToken<List<CloudUserData>>() {}.type
                 )
                 
-                val userData = dataList.firstOrNull()
-                if (userData != null) {
-                    // Check if we should apply cloud data based on timestamps
-                    val shouldApplyCloudData = shouldApplyCloudData(userData, cloudProfile)
-                    Log.d(TAG, "Cloud data last updated: ${userData.lastUpdated}, should apply: $shouldApplyCloudData")
+                    val userData = dataList.firstOrNull()
+                    if (userData != null) {
+                        // Check if we should apply cloud data based on timestamps and content
+                        val shouldApplyCloudData = shouldApplyCloudData(userData, cloudProfile)
+                        Log.d(TAG, "Cloud data last updated: ${userData.lastUpdated}, should apply: $shouldApplyCloudData")
 
-                    if (shouldApplyCloudData) {
-                        applyCloudDataToLocal(userData)
-                        Log.d(TAG, "Applied cloud data to local storage for profile: $cloudProfile")
+                        if (shouldApplyCloudData) {
+                            applyCloudDataToLocal(userData)
+                            Log.d(TAG, "Applied cloud data to local storage for profile: $cloudProfile")
+                        } else {
+                            Log.d(TAG, "Skipped applying cloud data - local data is newer or same day for profile: $cloudProfile")
+                            
+                            // Even if we don't apply all data, still apply app lists if cloud has them and local doesn't
+                            applyAppListsFromCloudIfLocalEmpty(userData)
+                        }
+
+                        prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
+                        Log.d(TAG, "Successfully downloaded data from cloud for profile: $cloudProfile")
+                        Result.success(userData)
                     } else {
-                        Log.d(TAG, "Skipped applying cloud data - local data is newer or same day for profile: $cloudProfile")
+                        Log.d(TAG, "No data found in cloud for profile: $cloudProfile")
+                        Result.success(null)
                     }
-
-                    prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
-                    Log.d(TAG, "Successfully downloaded data from cloud for profile: $cloudProfile")
-                    Result.success(userData)
-                } else {
-                    Log.d(TAG, "No data found in cloud for profile: $cloudProfile")
-                    Result.success(null)
-                }
             } else {
                 val errorBody = response.body?.string() ?: "Unknown error"
                 Log.e(TAG, "Failed to download from cloud: ${response.code} - $errorBody")
@@ -337,6 +345,57 @@ class CloudStorageManager(private val context: Context) {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error downloading from cloud", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Syncs banked reward minutes to cloud user_data table
+     * This is called immediately when banked minutes are updated in BaerenEd
+     */
+    suspend fun syncBankedMinutesToCloud(minutes: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured in BuildConfig"))
+        }
+
+        try {
+            // Get current profile
+            val profile = SettingsManager.readProfile(context) ?: "AM"
+            val cloudProfile = profile // Profile is already in AM/BM format in BaerenEd
+            
+            // Update banked_mins in user_data table
+            val updateMap = mapOf(
+                "banked_mins" to minutes
+            )
+            
+            val json = gson.toJson(updateMap)
+            val baseUrl = "${getSupabaseUrl()}/rest/v1/user_data"
+            val requestBody = json.toRequestBody("application/json".toMediaType())
+            
+            // Update user_data for this profile
+            val updateUrl = "$baseUrl?profile=eq.$cloudProfile"
+            val patchRequest = Request.Builder()
+                .url(updateUrl)
+                .patch(requestBody)
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Prefer", "return=minimal")
+                .build()
+            
+            val patchResponse = client.newCall(patchRequest).execute()
+            if (patchResponse.isSuccessful) {
+                patchResponse.close()
+                Log.d(TAG, "Successfully synced banked minutes to cloud for profile: $cloudProfile, minutes: $minutes")
+                Result.success(Unit)
+            } else {
+                val errorBody = patchResponse.body?.string() ?: "Unknown error"
+                Log.e(TAG, "Failed to sync banked minutes to cloud: ${patchResponse.code} - $errorBody")
+                Log.e(TAG, "Profile: $cloudProfile, URL: $updateUrl, JSON: $json")
+                patchResponse.close()
+                Result.failure(Exception("Sync failed: ${patchResponse.code} - $errorBody"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error syncing banked minutes to cloud", e)
             Result.failure(e)
         }
     }
@@ -563,14 +622,18 @@ class CloudStorageManager(private val context: Context) {
         val practiceTasks = collectPracticeTasksData()
         Log.d(TAG, "Collected practiceTasks: ${practiceTasks.size} tasks")
 
-        // Get progress metrics
-        val possibleStars = progressPrefs.getInt("total_possible_stars", 0)
-        val bankedMins = progressPrefs.getInt("banked_reward_minutes", 0)
+        // Get progress metrics (all profile-specific)
+        val possibleStarsKey = "${localProfileId}_total_possible_stars"
+        val possibleStars = progressPrefs.getInt(possibleStarsKey, 0)
+        // Banked minutes are now profile-specific
+        val bankedMinsKey = "${localProfileId}_banked_reward_minutes"
+        val bankedMins = progressPrefs.getInt(bankedMinsKey, 0)
 
-        // Get berries earned directly from SharedPreferences (simple counter)
+        // Get berries earned directly from SharedPreferences (profile-specific)
+        val berriesKey = "${localProfileId}_earnedBerries"
         val berriesEarned = try {
             context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-                .getInt("earnedBerries", 0)
+                .getInt(berriesKey, 0)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting earned berries", e)
             0
@@ -582,6 +645,13 @@ class CloudStorageManager(private val context: Context) {
 
         // Collect all game indices (games, web games, videos)
         val gameIndices = collectAllGameIndices(localProfileId)
+
+        // Collect app lists from BaerenLock settings (if available)
+        // Note: BaerenLock stores these globally, but we sync them per profile for cloud storage
+        // Profile mapping: A->AM, B->BM
+        val rewardApps = collectAppListFromBaerenLock(profile, "reward_apps")
+        val blacklistedApps = collectAppListFromBaerenLock(profile, "blacklisted_apps")
+        val whiteListedApps = collectAppListFromBaerenLock(profile, "white_listed_apps")
 
         // Format timestamp in ISO 8601 format with EST timezone for Supabase
         // Use manual offset calculation (works with API 23) instead of XXX pattern
@@ -606,6 +676,9 @@ class CloudStorageManager(private val context: Context) {
             berriesEarned = berriesEarned,
             pokemonUnlocked = pokemonUnlocked,
             gameIndices = gameIndices,
+            rewardApps = rewardApps,
+            blacklistedApps = blacklistedApps,
+            whiteListedApps = whiteListedApps,
             lastUpdated = lastUpdated
         )
 
@@ -864,6 +937,184 @@ class CloudStorageManager(private val context: Context) {
     }
 
     /**
+     * Applies app lists from cloud data to BaerenLock if local doesn't have them
+     */
+    private fun applyAppListsFromCloudIfLocalEmpty(data: CloudUserData) {
+        try {
+            val baerenLockContext = context.createPackageContext("com.talq2me.baerenlock", Context.CONTEXT_IGNORE_SECURITY)
+            
+            // Check if local has these lists
+            val rewardPrefs = baerenLockContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            val blacklistPrefs = baerenLockContext.getSharedPreferences("blacklist_prefs", Context.MODE_PRIVATE)
+            val whitelistPrefs = baerenLockContext.getSharedPreferences("whitelist_prefs", Context.MODE_PRIVATE)
+            
+            val localHasReward = rewardPrefs.getStringSet("reward_apps", null)?.isNotEmpty() == true
+            val localHasBlacklist = blacklistPrefs.getStringSet("packages", null)?.isNotEmpty() == true
+            val localHasWhitelist = whitelistPrefs.getStringSet("allowed", null)?.isNotEmpty() == true
+            
+            // Only apply if cloud has data and local doesn't
+            if (!localHasReward && !data.rewardApps.isNullOrBlank()) {
+                try {
+                    val appList = gson.fromJson<List<String>>(data.rewardApps, object : TypeToken<List<String>>() {}.type)
+                    if (appList != null && appList.isNotEmpty()) {
+                        rewardPrefs.edit().putStringSet("reward_apps", appList.toSet()).apply()
+                        Log.d(TAG, "Applied ${appList.size} reward apps from cloud (local was empty)")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error applying reward apps from cloud", e)
+                }
+            }
+            
+            if (!localHasBlacklist && !data.blacklistedApps.isNullOrBlank()) {
+                try {
+                    val appList = gson.fromJson<List<String>>(data.blacklistedApps, object : TypeToken<List<String>>() {}.type)
+                    if (appList != null && appList.isNotEmpty()) {
+                        blacklistPrefs.edit().putStringSet("packages", appList.toSet()).apply()
+                        Log.d(TAG, "Applied ${appList.size} blacklisted apps from cloud (local was empty)")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error applying blacklisted apps from cloud", e)
+                }
+            }
+            
+            if (!localHasWhitelist && !data.whiteListedApps.isNullOrBlank()) {
+                try {
+                    val appList = gson.fromJson<List<String>>(data.whiteListedApps, object : TypeToken<List<String>>() {}.type)
+                    if (appList != null && appList.isNotEmpty()) {
+                        whitelistPrefs.edit().putStringSet("allowed", appList.toSet()).apply()
+                        Log.d(TAG, "Applied ${appList.size} whitelisted apps from cloud (local was empty)")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error applying whitelisted apps from cloud", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "BaerenLock not accessible for app list sync: ${e.message}")
+        }
+    }
+
+    /**
+     * Applies app lists from cloud data to BaerenLock SharedPreferences
+     */
+    private fun applyAppListsToBaerenLock(data: CloudUserData) {
+        try {
+            val baerenLockContext = context.createPackageContext("com.talq2me.baerenlock", Context.CONTEXT_IGNORE_SECURITY)
+            
+            // Apply reward apps
+            data.rewardApps?.let { json ->
+                try {
+                    val appList = gson.fromJson<List<String>>(json, object : TypeToken<List<String>>() {}.type)
+                    if (appList != null && appList.isNotEmpty()) {
+                        val prefs = baerenLockContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                        prefs.edit().putStringSet("reward_apps", appList.toSet()).apply()
+                        Log.d(TAG, "Applied ${appList.size} reward apps to BaerenLock")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error applying reward apps to BaerenLock", e)
+                }
+            }
+            
+            // Apply blacklisted apps
+            data.blacklistedApps?.let { json ->
+                try {
+                    val appList = gson.fromJson<List<String>>(json, object : TypeToken<List<String>>() {}.type)
+                    if (appList != null && appList.isNotEmpty()) {
+                        val prefs = baerenLockContext.getSharedPreferences("blacklist_prefs", Context.MODE_PRIVATE)
+                        prefs.edit().putStringSet("packages", appList.toSet()).apply()
+                        Log.d(TAG, "Applied ${appList.size} blacklisted apps to BaerenLock")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error applying blacklisted apps to BaerenLock", e)
+                }
+            }
+            
+            // Apply whitelisted apps
+            data.whiteListedApps?.let { json ->
+                try {
+                    val appList = gson.fromJson<List<String>>(json, object : TypeToken<List<String>>() {}.type)
+                    if (appList != null && appList.isNotEmpty()) {
+                        val prefs = baerenLockContext.getSharedPreferences("whitelist_prefs", Context.MODE_PRIVATE)
+                        prefs.edit().putStringSet("allowed", appList.toSet()).apply()
+                        Log.d(TAG, "Applied ${appList.size} whitelisted apps to BaerenLock")
+                        // Also refresh RewardManager if accessible
+                        try {
+                            val rewardManagerClass = Class.forName("com.talq2me.baerenlock.RewardManager")
+                            val refreshMethod = rewardManagerClass.getMethod("refreshRewardEligibleApps", Context::class.java)
+                            refreshMethod.invoke(null, baerenLockContext)
+                        } catch (e: Exception) {
+                            // RewardManager not accessible, that's okay
+                            Log.d(TAG, "Could not refresh RewardManager: ${e.message}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error applying whitelisted apps to BaerenLock", e)
+                }
+            }
+        } catch (e: Exception) {
+            // BaerenLock not installed or not accessible - that's okay
+            Log.d(TAG, "BaerenLock not accessible, skipping app list sync: ${e.message}")
+        }
+    }
+
+    /**
+     * Collects app list from BaerenLock SharedPreferences (if BaerenLock is installed)
+     * Note: BaerenLock stores these globally, but we sync them per profile to cloud
+     */
+    private fun collectAppListFromBaerenLock(profile: String, appListType: String): String? {
+        return try {
+            // Try to access BaerenLock's SharedPreferences via package context
+            val baerenLockContext = try {
+                context.createPackageContext("com.talq2me.baerenlock", Context.CONTEXT_IGNORE_SECURITY)
+            } catch (e: Exception) {
+                // BaerenLock not installed or not accessible
+                return null
+            }
+
+            val prefsName = when (appListType) {
+                "reward_apps" -> "settings"
+                "blacklisted_apps" -> "blacklist_prefs"
+                "white_listed_apps" -> "whitelist_prefs"
+                else -> "settings"
+            }
+
+            val keyName = when (appListType) {
+                "reward_apps" -> "reward_apps"
+                "blacklisted_apps" -> "packages"
+                "white_listed_apps" -> "allowed"
+                else -> appListType
+            }
+
+            val prefs = baerenLockContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+            
+            when (appListType) {
+                "reward_apps" -> {
+                    // Reward apps are stored as StringSet via SettingsManager in BaerenLock
+                    // Try to read directly from SharedPreferences
+                    val appSet = prefs.getStringSet(keyName, null)
+                    if (appSet != null && appSet.isNotEmpty()) {
+                        gson.toJson(appSet.toList())
+                    } else {
+                        null
+                    }
+                }
+                "blacklisted_apps", "white_listed_apps" -> {
+                    // Both are stored as StringSet
+                    val appSet = prefs.getStringSet(keyName, null)
+                    if (appSet != null && appSet.isNotEmpty()) {
+                        gson.toJson(appSet.toList())
+                    } else {
+                        null
+                    }
+                }
+                else -> null
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "Could not collect $appListType from BaerenLock: ${e.message}")
+            null
+        }
+    }
+
+    /**
      * Determines if cloud data should be applied to local storage
      * Only apply cloud data if it's from today AND has MORE progress than local data (for cross-device syncing)
      */
@@ -899,6 +1150,31 @@ class CloudStorageManager(private val context: Context) {
                 return false
             }
 
+            // Check if cloud has data that local doesn't have (app lists, etc.)
+            val cloudHasAppLists = !cloudData.rewardApps.isNullOrBlank() || 
+                                  !cloudData.blacklistedApps.isNullOrBlank() || 
+                                  !cloudData.whiteListedApps.isNullOrBlank()
+            
+            // Check if local has any of these app lists
+            val localHasAppLists = try {
+                val baerenLockContext = context.createPackageContext("com.talq2me.baerenlock", Context.CONTEXT_IGNORE_SECURITY)
+                val rewardPrefs = baerenLockContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                val blacklistPrefs = baerenLockContext.getSharedPreferences("blacklist_prefs", Context.MODE_PRIVATE)
+                val whitelistPrefs = baerenLockContext.getSharedPreferences("whitelist_prefs", Context.MODE_PRIVATE)
+                val hasReward = rewardPrefs.getStringSet("reward_apps", null)?.isNotEmpty() == true
+                val hasBlacklist = blacklistPrefs.getStringSet("packages", null)?.isNotEmpty() == true
+                val hasWhitelist = whitelistPrefs.getStringSet("allowed", null)?.isNotEmpty() == true
+                hasReward || hasBlacklist || hasWhitelist
+            } catch (e: Exception) {
+                false // BaerenLock not accessible
+            }
+
+            // If cloud has app lists and local doesn't, apply cloud data
+            if (cloudHasAppLists && !localHasAppLists) {
+                Log.d(TAG, "Cloud has app lists but local doesn't - will apply cloud data")
+                return true
+            }
+
             // Cloud data is from today - now check if it has more progress than local data
             val localCompletedTasks = getLocalCompletedTasksCount(profile)
             val localGameProgress = getLocalGameProgressCount(profile)
@@ -913,9 +1189,10 @@ class CloudStorageManager(private val context: Context) {
             Log.d(TAG, "Progress comparison - Local: tasks=$localCompletedTasks, games=$localGameProgress, videos=$localVideoProgress (total=$localTotalProgress)")
             Log.d(TAG, "Progress comparison - Cloud: tasks=$cloudCompletedTasks, gameIndices=$cloudGameIndices (total=$cloudTotalProgress)")
 
-            // Apply cloud data only if it has more total progress (syncing between devices on the same day)
-            val shouldApply = cloudTotalProgress > localTotalProgress
-            Log.d(TAG, "Should apply cloud data: $shouldApply (cloud has more progress from today)")
+            // Apply cloud data if it has more total progress (syncing between devices on the same day)
+            // OR if local has no progress at all (fresh install, restore from cloud)
+            val shouldApply = cloudTotalProgress > localTotalProgress || localTotalProgress == 0
+            Log.d(TAG, "Should apply cloud data: $shouldApply (cloud has more progress: ${cloudTotalProgress > localTotalProgress}, local has no progress: ${localTotalProgress == 0})")
 
             return shouldApply
 
@@ -926,12 +1203,13 @@ class CloudStorageManager(private val context: Context) {
     }
 
     /**
-     * Gets the count of completed tasks from local storage
+     * Gets the count of completed tasks from local storage for a specific profile
      */
     private fun getLocalCompletedTasksCount(profile: String): Int {
         return try {
             val prefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-            val json = prefs.getString("completed_tasks", "{}") ?: "{}"
+            val key = "${profile}_completed_tasks"
+            val json = prefs.getString(key, "{}") ?: "{}"
             val tasks = gson.fromJson<Map<String, Boolean>>(json, object : TypeToken<Map<String, Boolean>>() {}.type) ?: emptyMap()
             tasks.count { it.value }
         } catch (e: Exception) {
@@ -1001,13 +1279,15 @@ class CloudStorageManager(private val context: Context) {
             // Apply daily progress data
             val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
 
-            // Apply required tasks data - merge with existing local data to avoid overwriting
+            // Apply required tasks data - merge with existing local data to avoid overwriting (profile-specific)
             if (data.requiredTasks?.isNotEmpty() == true) {
-                // Get existing local data
-                val existingCompletedTasksJson = progressPrefs.getString("completed_tasks", "{}") ?: "{}"
+                // Get existing local data (profile-specific)
+                val completedTasksKey = "${localProfile}_completed_tasks"
+                val completedTaskNamesKey = "${localProfile}_completed_task_names"
+                val existingCompletedTasksJson = progressPrefs.getString(completedTasksKey, "{}") ?: "{}"
                 val existingCompletedTasks = gson.fromJson<Map<String, Boolean>>(existingCompletedTasksJson, object : TypeToken<Map<String, Boolean>>() {}.type)?.toMutableMap() ?: mutableMapOf()
 
-                val existingCompletedTaskNamesJson = progressPrefs.getString("completed_task_names", "{}") ?: "{}"
+                val existingCompletedTaskNamesJson = progressPrefs.getString(completedTaskNamesKey, "{}") ?: "{}"
                 val existingCompletedTaskNames = gson.fromJson<Map<String, String>>(existingCompletedTaskNamesJson, object : TypeToken<Map<String, String>>() {}.type)?.toMutableMap() ?: mutableMapOf()
 
                 // Merge cloud data with local data (cloud takes precedence for tasks it knows about)
@@ -1021,26 +1301,29 @@ class CloudStorageManager(private val context: Context) {
                 }
 
                 progressPrefs.edit()
-                    .putString("completed_tasks", gson.toJson(existingCompletedTasks))
-                    .putString("completed_task_names", gson.toJson(existingCompletedTaskNames))
+                    .putString(completedTasksKey, gson.toJson(existingCompletedTasks))
+                    .putString(completedTaskNamesKey, gson.toJson(existingCompletedTaskNames))
                     .apply()
 
-                Log.d(TAG, "Applied ${data.requiredTasks.size} required tasks to local storage")
+                Log.d(TAG, "Applied ${data.requiredTasks.size} required tasks to local storage for profile: $localProfile")
             }
 
-            // Apply other progress metrics
+            // Apply other progress metrics (all profile-specific)
+            val bankedMinsKey = "${localProfile}_banked_reward_minutes"
+            val possibleStarsKey = "${localProfile}_total_possible_stars"
             progressPrefs.edit()
-                .putInt("total_possible_stars", data.possibleStars)
-                .putInt("banked_reward_minutes", data.bankedMins)
+                .putInt(possibleStarsKey, data.possibleStars)
+                .putInt(bankedMinsKey, data.bankedMins)
                 .apply()
 
-            // Apply berries earned (store in pokemonBattleHub preferences where UI expects it)
+            // Apply berries earned (store in pokemonBattleHub preferences where UI expects it, profile-specific)
             try {
+                val berriesKey = "${localProfile}_earnedBerries"
                 context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
                     .edit()
-                    .putInt("earnedBerries", data.berriesEarned)
+                    .putInt(berriesKey, data.berriesEarned)
                     .apply()
-                Log.d(TAG, "Applied berries_earned: ${data.berriesEarned}")
+                Log.d(TAG, "Applied berries_earned: ${data.berriesEarned} for profile: $localProfile")
             } catch (e: Exception) {
                 Log.e(TAG, "Error applying berries to local storage", e)
             }
@@ -1052,6 +1335,9 @@ class CloudStorageManager(private val context: Context) {
 
             // Apply game indices (all types: games, web games, videos)
             applyGameIndicesToLocal(data.gameIndices ?: emptyMap(), localProfile)
+
+            // Apply app lists to BaerenLock (if BaerenLock is installed)
+            applyAppListsToBaerenLock(data)
 
             Log.d(TAG, "Successfully applied cloud data to local storage: requiredTasks=${data.requiredTasks?.size ?: 0}, gameIndices=${data.gameIndices?.size ?: 0}, berries=${data.berriesEarned}")
         } catch (e: Exception) {
@@ -1252,17 +1538,19 @@ class CloudStorageManager(private val context: Context) {
             val context = this.context
             val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
 
-            // Count completed tasks
-            val completedTasksJson = progressPrefs.getString("completed_tasks", "{}") ?: "{}"
+            // Count completed tasks (profile-specific)
+            val completedTasksKey = "${profile}_completed_tasks"
+            val completedTasksJson = progressPrefs.getString(completedTasksKey, "{}") ?: "{}"
             val completedTasks = gson.fromJson<Map<String, Boolean>>(completedTasksJson, object : TypeToken<Map<String, Boolean>>() {}.type) ?: emptyMap()
 
             // Count pokemon unlocked
             val pokemonUnlocked = progressPrefs.getInt("${profile}_pokemon_unlocked", 0)
 
-            // Count berries
+            // Count berries (profile-specific)
+            val berriesKey = "${profile}_earnedBerries"
             val berriesEarned = try {
                 context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-                    .getInt("earnedBerries", 0)
+                    .getInt(berriesKey, 0)
             } catch (e: Exception) {
                 0
             }

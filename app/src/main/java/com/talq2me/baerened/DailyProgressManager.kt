@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,6 +49,7 @@ class DailyProgressManager(private val context: Context) {
 
     companion object {
         private const val PREF_NAME = "daily_progress_prefs"
+        // Note: These keys are now profile-prefixed at runtime (e.g., "${profile}_completed_tasks")
         private const val KEY_COMPLETED_TASKS = "completed_tasks"
         private const val KEY_COMPLETED_TASK_NAMES = "completed_task_names"
         private const val KEY_LAST_RESET_DATE = "last_reset_date"
@@ -97,12 +101,18 @@ class DailyProgressManager(private val context: Context) {
      */
     private fun resetProgressForNewDay() {
         val currentDate = getCurrentDateString()
-        Log.d("DailyProgressManager", "RESETTING progress for new day: $currentDate")
+        val profile = getCurrentKid()
+        val bankedMinsKey = "${profile}_banked_reward_minutes"
+        val completedTasksKey = "${profile}_$KEY_COMPLETED_TASKS"
+        val completedTaskNamesKey = "${profile}_$KEY_COMPLETED_TASK_NAMES"
+        val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
+        Log.d("DailyProgressManager", "RESETTING progress for new day: $currentDate for profile: $profile")
         prefs.edit()
-            .putString(KEY_COMPLETED_TASKS, gson.toJson(emptyMap<String, Boolean>()))
-            .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(emptyMap<String, String>()))
+            .putString(completedTasksKey, gson.toJson(emptyMap<String, Boolean>()))
+            .putString(completedTaskNamesKey, gson.toJson(emptyMap<String, String>()))
             .putString(KEY_LAST_RESET_DATE, currentDate)
-            .putInt("banked_reward_minutes", 0) // Reset reward bank for new day
+            .putInt(bankedMinsKey, 0) // Reset reward bank for new day (profile-specific)
+            .putInt(totalStarsKey, 0) // Reset total possible stars for new day (profile-specific)
             .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0) // Reset battle end tracking for new day
             .apply()
         
@@ -112,15 +122,17 @@ class DailyProgressManager(private val context: Context) {
         // Also reset video sequence progress for new day
         resetVideoSequenceProgress()
 
-        Log.d("DailyProgressManager", "Progress reset completed for date: $currentDate")
+        Log.d("DailyProgressManager", "Progress reset completed for date: $currentDate for profile: $profile")
     }
 
     /**
-     * Clears the banked reward minutes.
+     * Clears the banked reward minutes for the current profile.
      */
     fun clearBankedRewardMinutes() {
-        prefs.edit().putInt("banked_reward_minutes", 0).apply()
-        Log.d("DailyProgressManager", "Banked reward minutes cleared.")
+        val profile = getCurrentKid()
+        val key = "${profile}_banked_reward_minutes"
+        prefs.edit().putInt(key, 0).apply()
+        Log.d("DailyProgressManager", "Banked reward minutes cleared for profile: $profile")
     }
 
     /**
@@ -159,7 +171,9 @@ class DailyProgressManager(private val context: Context) {
             resetProgressForNewDay()
         }
 
-        val json = prefs.getString(KEY_COMPLETED_TASKS, "{}")
+        val profile = getCurrentKid()
+        val key = "${profile}_$KEY_COMPLETED_TASKS"
+        val json = prefs.getString(key, "{}")
         val type = object : TypeToken<MutableMap<String, Boolean>>() {}.type
         return gson.fromJson(json, type) ?: mutableMapOf()
     }
@@ -172,11 +186,13 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Saves the completion status map
+     * Saves the completion status map for the current profile
      */
     private fun saveCompletedTasks(completedTasks: Map<String, Boolean>) {
+        val profile = getCurrentKid()
+        val key = "${profile}_$KEY_COMPLETED_TASKS"
         prefs.edit()
-            .putString(KEY_COMPLETED_TASKS, gson.toJson(completedTasks))
+            .putString(key, gson.toJson(completedTasks))
             .apply()
     }
 
@@ -189,19 +205,23 @@ class DailyProgressManager(private val context: Context) {
             resetProgressForNewDay()
         }
 
-        val json = prefs.getString(KEY_COMPLETED_TASK_NAMES, "{}")
+        val profile = getCurrentKid()
+        val key = "${profile}_$KEY_COMPLETED_TASK_NAMES"
+        val json = prefs.getString(key, "{}")
         val type = object : TypeToken<MutableMap<String, String>>() {}.type
         return gson.fromJson(json, type) ?: mutableMapOf()
     }
 
     /**
-     * Saves a completed task name
+     * Saves a completed task name for the current profile
      */
     private fun saveCompletedTaskName(taskId: String, taskName: String) {
         val completedTaskNames = getCompletedTaskNames()
         completedTaskNames[taskId] = taskName
+        val profile = getCurrentKid()
+        val key = "${profile}_$KEY_COMPLETED_TASK_NAMES"
         prefs.edit()
-            .putString(KEY_COMPLETED_TASK_NAMES, gson.toJson(completedTaskNames))
+            .putString(key, gson.toJson(completedTaskNames))
             .apply()
     }
 
@@ -474,10 +494,12 @@ class DailyProgressManager(private val context: Context) {
             }
         }
 
-        // Cache the totals for performance
+        // Cache the totals for performance (profile-specific)
+        val profile = getCurrentKid()
+        val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
         prefs.edit()
             .putInt("total_coins", totalCoins)
-            .putInt(KEY_TOTAL_POSSIBLE_STARS, totalStars)
+            .putInt(totalStarsKey, totalStars)
             .apply()
 
         Log.d("DailyProgressManager", "Calculated totals from config - Coins: $totalCoins, Stars: $totalStars (required section only)")
@@ -559,8 +581,10 @@ class DailyProgressManager(private val context: Context) {
      * Gets current progress with totals for display (fallback when config not available)
      */
     fun getCurrentProgressWithTotals(): Pair<Pair<Int, Int>, Pair<Int, Int>> {
+        val profile = getCurrentKid()
+        val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
         val totalCoins = prefs.getInt("total_coins", 0)
-        val totalStars = prefs.getInt(KEY_TOTAL_POSSIBLE_STARS, 0)
+        val totalStars = prefs.getInt(totalStarsKey, 0)
 
         // For fallback, we need to calculate earned amounts based on actual star values
         // Since we don't have config, we'll use a simple approximation
@@ -583,10 +607,12 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Gets cached total possible stars (for when config isn't available)
+     * Gets cached total possible stars for the current profile (for when config isn't available)
      */
     fun getCachedTotalPossibleStars(): Int {
-        return prefs.getInt(KEY_TOTAL_POSSIBLE_STARS, 10) // Default to 10 if not calculated
+        val profile = getCurrentKid()
+        val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
+        return prefs.getInt(totalStarsKey, 10) // Default to 10 if not calculated
     }
 
     /**
@@ -604,17 +630,21 @@ class DailyProgressManager(private val context: Context) {
      * Gets the earned berries count (simple counter that resets to 0 on battle)
      */
     fun getEarnedBerries(): Int {
+        val profile = getCurrentKid()
+        val key = "${profile}_earnedBerries"
         return context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-            .getInt("earnedBerries", 0)
+            .getInt(key, 0)
     }
     
     /**
      * Sets the earned berries count
      */
     fun setEarnedBerries(amount: Int) {
+        val profile = getCurrentKid()
+        val key = "${profile}_earnedBerries"
         context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
             .edit()
-            .putInt("earnedBerries", amount)
+            .putInt(key, amount)
             .apply()
     }
     
@@ -920,32 +950,55 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Gets the current banked reward minutes
+     * Gets the current banked reward minutes for the current profile
      */
     fun getBankedRewardMinutes(): Int {
+        val profile = getCurrentKid()
+        val key = "${profile}_banked_reward_minutes"
         return try {
-            prefs.getInt("banked_reward_minutes", 0)
+            prefs.getInt(key, 0)
         } catch (e: ClassCastException) {
             // Handle case where it was previously stored as a String or Float
             try {
-                val floatValue = prefs.getFloat("banked_reward_minutes", 0f)
+                val floatValue = prefs.getFloat(key, 0f)
                 floatValue.toInt()
             } catch (e2: ClassCastException) {
                 // Fallback for extremely old versions or incorrect storage type
-                val stringValue = prefs.getString("banked_reward_minutes", "0")
+                val stringValue = prefs.getString(key, "0")
                 stringValue?.toFloatOrNull()?.toInt() ?: 0
             }
         }
     }
 
     /**
-     * Sets the banked reward minutes
+     * Sets the banked reward minutes for the current profile and syncs to cloud
      */
     fun setBankedRewardMinutes(minutes: Int) {
+        val profile = getCurrentKid()
+        val key = "${profile}_banked_reward_minutes"
         prefs.edit()
-            .remove("banked_reward_minutes") // Explicitly remove to avoid type conflicts
-            .putInt("banked_reward_minutes", minutes)
+            .remove(key) // Explicitly remove to avoid type conflicts
+            .putInt(key, minutes)
             .apply()
+        
+        // Sync to cloud immediately
+        syncBankedMinutesToCloud(minutes)
+    }
+    
+    /**
+     * Syncs banked reward minutes to cloud database
+     */
+    private fun syncBankedMinutesToCloud(minutes: Int) {
+        // Use CloudStorageManager to sync banked_mins to cloud
+        // This runs asynchronously so it doesn't block
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                val cloudStorageManager = CloudStorageManager(context)
+                cloudStorageManager.syncBankedMinutesToCloud(minutes)
+            } catch (e: Exception) {
+                android.util.Log.w("DailyProgressManager", "Could not sync banked minutes to cloud: ${e.message}")
+            }
+        }
     }
 
     /**

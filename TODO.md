@@ -1,6 +1,12 @@
 Webgameactivity does not load json from github first
 
-Google read along launching or launching old battle hub html?
+battle victory screen should not be transparent.
+test wordfishing game again.
+
+je lis
+boukilli
+
+Google read along not tracking time appropriately?
 Tenframe math is hard non ten frame math.
 take picture and upload to cloud?
 remove dependency on baerenSettings

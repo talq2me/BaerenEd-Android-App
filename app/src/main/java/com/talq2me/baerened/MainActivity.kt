@@ -22,7 +22,6 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.talq2me.baerened.GameData
-import com.talq2me.contract.SettingsContract
 
 //Update Checker
 import android.app.DownloadManager
@@ -108,6 +107,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Preload settings from Supabase on startup
+        SettingsManager.preloadSettings(this)
         
         // Initialize cloud storage manager
         cloudStorageManager = CloudStorageManager(this)
