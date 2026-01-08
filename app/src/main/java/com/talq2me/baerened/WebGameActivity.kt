@@ -39,6 +39,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var webView: WebView
     private lateinit var tts: TextToSpeech
     private lateinit var timeTracker: TimeTracker
+    private lateinit var progressManager: DailyProgressManager
     private var gameCompleted = false
     private var taskId: String? = null
     private var sectionId: String? = null
@@ -67,8 +68,10 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Initialize time tracker
         timeTracker = TimeTracker(this)
         
+        // Initialize progress manager
+        progressManager = DailyProgressManager(this)
+        
         // Use unique task ID that includes section info to track separately for required vs optional
-        val progressManager = DailyProgressManager(this)
         val currentTaskId = taskId
         val currentSectionId = sectionId
         val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
@@ -378,8 +381,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         @JavascriptInterface
         fun getEarnedBerries(): Int {
             return try {
-                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                    .getInt("earnedBerries", 0)
+                progressManager.getEarnedBerries()
             } catch (e: Exception) {
                 android.util.Log.e("WebGameActivity", "Error getting earned berries", e)
                 0
@@ -389,10 +391,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         @JavascriptInterface
         fun resetEarnedBerries() {
             try {
-                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                    .edit()
-                    .putInt("earnedBerries", 0)
-                    .apply()
+                progressManager.setEarnedBerries(0)
             } catch (e: Exception) {
                 android.util.Log.e("WebGameActivity", "Error resetting earned berries", e)
             }

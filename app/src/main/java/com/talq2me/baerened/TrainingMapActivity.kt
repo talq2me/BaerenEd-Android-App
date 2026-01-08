@@ -859,14 +859,8 @@ class TrainingMapActivity : AppCompatActivity() {
                         
                         // Add berries to battle hub if task is from required or optional section
                         if (sectionId == "required" || sectionId == "optional") {
-                            val berriesToAdd = earnedStars // 1 star = 1 berry
-                            val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .getInt("earnedBerries", 0)
-                            getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .edit()
-                                .putInt("earnedBerries", savedBerries + berriesToAdd)
-                                .apply()
-                            android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from task completion")
+                            progressManager.addEarnedBerries(earnedStars)
+                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from task completion")
                         }
                     }
                     
@@ -901,14 +895,8 @@ class TrainingMapActivity : AppCompatActivity() {
                         
                         // Add berries to battle hub if task is from required or optional section
                         if (chromeSectionId == "required" || chromeSectionId == "optional") {
-                            val berriesToAdd = earnedStars // 1 star = 1 berry
-                            val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .getInt("earnedBerries", 0)
-                            getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .edit()
-                                .putInt("earnedBerries", savedBerries + berriesToAdd)
-                                .apply()
-                            android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from Chrome page completion")
+                            progressManager.addEarnedBerries(earnedStars)
+                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Chrome page completion")
                         }
                     }
                 }
@@ -952,14 +940,8 @@ class TrainingMapActivity : AppCompatActivity() {
                     
                     // Add berries to battle hub if task is from required or optional section
                     if (gameSectionId == "required" || gameSectionId == "optional") {
-                        val berriesToAdd = earnedStars // 1 star = 1 berry
-                        val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                            .getInt("earnedBerries", 0)
-                        getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                            .edit()
-                            .putInt("earnedBerries", savedBerries + berriesToAdd)
-                            .apply()
-                        android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from game completion")
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from game completion")
                     }
                 }
                 
@@ -996,14 +978,8 @@ class TrainingMapActivity : AppCompatActivity() {
                     
                     // Add berries to battle hub if task is from required or optional section
                     if (videoSectionId == "required" || videoSectionId == "optional") {
-                        val berriesToAdd = earnedStars // 1 star = 1 berry
-                        val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                            .getInt("earnedBerries", 0)
-                        getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                            .edit()
-                            .putInt("earnedBerries", savedBerries + berriesToAdd)
-                            .apply()
-                        android.util.Log.d("TrainingMapActivity", "Added $berriesToAdd berries to battle hub from video completion")
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from video completion")
                     }
                 }
                 
@@ -1084,24 +1060,47 @@ class TrainingMapActivity : AppCompatActivity() {
         return builder.build().toString()
     }
     
+    private fun parseDisableDate(dateString: String?): Calendar? {
+        if (dateString.isNullOrEmpty()) return null
+        
+        return try {
+            // Try parsing format like "Jan 15, 2027" or "Nov 24, 2025"
+            val formatter = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.US)
+            val date = formatter.parse(dateString.trim())
+            if (date != null) {
+                Calendar.getInstance().apply {
+                    time = date
+                    // Set time to start of day for accurate comparison
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+            } else null
+        } catch (e: Exception) {
+            android.util.Log.e("TrainingMapActivity", "Error parsing disable date: $dateString", e)
+            null
+        }
+    }
+    
     private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String?, disable: String?): Boolean {
-        // Use the same visibility logic as Layout.kt
-        if (disable != null && disable.isNotEmpty()) {
-            // Check if disable is a date string - if it's today's date or earlier, disable the task
-            try {
-                val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
-                val disableDate = dateFormat.parse(disable)
+        // Use the same visibility logic as DailyProgressManager
+        // Check disable date first - if current date is before disable date, hide the task
+        if (!disable.isNullOrEmpty()) {
+            val disableDate = parseDisableDate(disable)
+            if (disableDate != null) {
                 val today = Calendar.getInstance().apply {
                     set(Calendar.HOUR_OF_DAY, 0)
                     set(Calendar.MINUTE, 0)
                     set(Calendar.SECOND, 0)
                     set(Calendar.MILLISECOND, 0)
-                }.time
+                }
                 
-                if (disableDate != null && disableDate <= today) {
+                // If today is before the disable date, task is disabled (not visible)
+                if (today.before(disableDate)) {
                     return false
                 }
-            } catch (e: Exception) {
+            } else {
                 // If disable is not a date, treat it as a boolean-like string
                 if (disable.equals("true", ignoreCase = true)) {
                     return false

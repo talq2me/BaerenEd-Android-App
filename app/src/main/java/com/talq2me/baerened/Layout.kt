@@ -450,14 +450,8 @@ class Layout(private val activity: MainActivity) {
                 } ?: false
                 
                 if (isFromRequiredOrOptional) {
-                    val berriesToAdd = earnedStars // 1 star = 1 berry
-                    val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                        .getInt("earnedBerries", 0)
-                    activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                        .edit()
-                        .putInt("earnedBerries", savedBerries + berriesToAdd)
-                        .apply()
-                    android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from main page video task completion")
+                    progressManager.addEarnedBerries(earnedStars)
+                    android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from main page video task completion")
                     // Refresh battle hub to show updated berries
                     refreshBattleHub()
                 }
@@ -524,14 +518,8 @@ class Layout(private val activity: MainActivity) {
 
                 // Add berries to battle hub if task is from required or optional section
                 if (sectionId == "required" || sectionId == "optional") {
-                    val berriesToAdd = earnedStars // 1 star = 1 berry
-                    val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                        .getInt("earnedBerries", 0)
-                    activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                        .edit()
-                        .putInt("earnedBerries", savedBerries + berriesToAdd)
-                        .apply()
-                    android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from main page task completion")
+                    progressManager.addEarnedBerries(earnedStars)
+                    android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from main page task completion")
                     // Refresh battle hub and gym map to show updated state
                     refreshBattleHub()
                     refreshGymMap()
@@ -580,14 +568,8 @@ class Layout(private val activity: MainActivity) {
             
             // Add berries to battle hub if task is from required or optional section
             if (sectionId == "required" || sectionId == "optional") {
-                val berriesToAdd = earnedStars // 1 star = 1 berry
-                val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .getInt("earnedBerries", 0)
-                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt("earnedBerries", savedBerries + berriesToAdd)
-                    .apply()
-                android.util.Log.d(TAG, "Added $berriesToAdd berries to battle hub from main page task completion")
+                progressManager.addEarnedBerries(earnedStars)
+                android.util.Log.d(TAG, "Added $earnedStars berries to battle hub from main page task completion")
                 // Refresh battle hub to show updated berries
                 refreshBattleHub()
             }
@@ -631,14 +613,8 @@ class Layout(private val activity: MainActivity) {
             
             // Add berries to battle hub if task is from required or optional section
             if (sectionId == "required" || sectionId == "optional") {
-                val berriesToAdd = earnedStars // 1 star = 1 berry
-                val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .getInt("earnedBerries", 0)
-                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt("earnedBerries", savedBerries + berriesToAdd)
-                    .apply()
-                android.util.Log.d(TAG, "Added $berriesToAdd berries to battle hub from manual task completion")
+                progressManager.addEarnedBerries(earnedStars)
+                android.util.Log.d(TAG, "Added $earnedStars berries to battle hub from manual task completion")
             }
             
             Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
@@ -1722,14 +1698,8 @@ class Layout(private val activity: MainActivity) {
                             progressManager.addStarsToRewardBank(earnedStars)
                             
                             // Add berries to battle hub (checklist items are from required section)
-                            val berriesToAdd = earnedStars // 1 star = 1 berry
-                            val savedBerries = activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                                .getInt("earnedBerries", 0)
-                            activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                                .edit()
-                                .putInt("earnedBerries", savedBerries + berriesToAdd)
-                                .apply()
-                            android.util.Log.d("Layout", "Added $berriesToAdd berries to battle hub from checklist item completion")
+                            progressManager.addEarnedBerries(earnedStars)
+                            android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from checklist item completion")
                             
                             updateProgressDisplay()
                             // Update visual state - disable and grey out
@@ -2255,10 +2225,7 @@ class Layout(private val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun setEarnedBerries(amount: Int) {
             try {
-                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt("earnedBerries", amount)
-                    .apply()
+                progressManager.setEarnedBerries(amount)
                 android.util.Log.d("Layout", "Set earned berries to $amount")
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error setting earned berries", e)
@@ -2268,8 +2235,7 @@ class Layout(private val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun getEarnedBerries(): Int {
             return try {
-                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .getInt("earnedBerries", 0)
+                progressManager.getEarnedBerries()
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error getting earned berries", e)
                 0
@@ -2279,10 +2245,7 @@ class Layout(private val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun resetEarnedBerries() {
             try {
-                activity.getSharedPreferences("pokemonBattleHub", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt("earnedBerries", 0)
-                    .apply()
+                progressManager.setEarnedBerries(0)
                 android.util.Log.d("Layout", "Reset earned berries to 0")
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error resetting earned berries", e)

@@ -224,14 +224,8 @@ class GameActivity : AppCompatActivity() {
                             (sectionId == "required" || sectionId == "optional")
                         
                         if (shouldAddBerries) {
-                            val berriesToAdd = earnedStars // 1 star = 1 berry
-                            val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .getInt("earnedBerries", 0)
-                            getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                .edit()
-                                .putInt("earnedBerries", savedBerries + berriesToAdd)
-                                .apply()
-                            android.util.Log.d("GameActivity", "Saved $berriesToAdd berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
+                            progressManager.addEarnedBerries(earnedStars)
+                            android.util.Log.d("GameActivity", "Saved $earnedStars berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
                         }
                     }
 

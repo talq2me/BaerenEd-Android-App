@@ -1013,14 +1013,8 @@ class BattleHubActivity : AppCompatActivity() {
                                 progressManager.addStarsToRewardBank(earnedStars)
                                 
                                 // Add berries to battle hub (checklist items are from required section)
-                                val berriesToAdd = earnedStars // 1 star = 1 berry
-                                val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                    .getInt("earnedBerries", 0)
-                                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                                    .edit()
-                                    .putInt("earnedBerries", savedBerries + berriesToAdd)
-                                    .apply()
-                                android.util.Log.d("BattleHubActivity", "Added $berriesToAdd berries to battle hub from checklist item completion")
+                                progressManager.addEarnedBerries(earnedStars)
+                                android.util.Log.d("BattleHubActivity", "Added $earnedStars berries to battle hub from checklist item completion")
                                 
                                 // Update UI
                                 updateCountsDisplay()

@@ -543,11 +543,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun handleReadAlongReturnIfNeeded(): Boolean {
         val pendingReward = pendingReadAlongReward ?: return false
 
-        val wasPaused = readAlongHasBeenPaused || readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
-        if (!wasPaused) {
-            return false
-        }
-
         val MIN_READ_ALONG_DURATION_SECONDS = 30L
         var session: TimeTracker.ActivitySession? = null
         var secondsSpent = 0L
@@ -562,14 +557,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         session = readAlongTimeTracker.endActivity("readalong")
         secondsSpent = session?.durationSeconds ?: 0
 
-        // If TimeTracker didn't have the session, use fallback calculation
+        // If TimeTracker didn't have the session, use fallback calculation based on stored start time
         if (secondsSpent <= 0L) {
             secondsSpent = getStoredReadAlongDurationSeconds()
-            Log.d(TAG, "TimeTracker session not found, using fallback calculation: ${secondsSpent}s")
+            Log.d(TAG, "TimeTracker session not found or duration was 0, using fallback calculation: ${secondsSpent}s")
         }
 
-        Log.d(TAG, "Google Read Along session ended. Time spent: ${secondsSpent}s (required: ${MIN_READ_ALONG_DURATION_SECONDS}s)")
+        Log.d(TAG, "Google Read Along session ended. Time spent: ${secondsSpent}s (required: ${MIN_READ_ALONG_DURATION_SECONDS}s), pendingReward: ${pendingReward.taskTitle}")
 
+        // Always process the return if there's a pending reward - check time requirement
         if (secondsSpent >= MIN_READ_ALONG_DURATION_SECONDS) {
             if (::readAlongTimeTracker.isInitialized && session != null) {
                 readAlongTimeTracker.updateStarsEarned("readalong", pendingReward.stars)
@@ -589,12 +585,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "Great reading! You spent ${secondsSpent}s in Read Along.",
                 Toast.LENGTH_SHORT
             ).show()
+            
+            Log.d(TAG, "ReadAlong task completed successfully: ${pendingReward.taskTitle}, ${secondsSpent}s >= ${MIN_READ_ALONG_DURATION_SECONDS}s")
         } else {
             Toast.makeText(
                 this,
                 "Stay in Google Read Along for at least ${MIN_READ_ALONG_DURATION_SECONDS}s to earn rewards (only ${secondsSpent}s).",
                 Toast.LENGTH_LONG
             ).show()
+            
+            Log.d(TAG, "ReadAlong task NOT completed: ${pendingReward.taskTitle}, ${secondsSpent}s < ${MIN_READ_ALONG_DURATION_SECONDS}s")
         }
 
         clearPendingReadAlongState()
@@ -787,14 +787,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             
             // If game was launched from battle hub, save berries to be added when battle hub reopens
             if (wasFromBattleHub && stars > 0) {
-                val berriesToAdd = stars // 1 star = 1 berry
-                val savedBerries = getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                    .getInt("earnedBerries", 0)
-                getSharedPreferences("pokemonBattleHub", MODE_PRIVATE)
-                    .edit()
-                    .putInt("earnedBerries", savedBerries + berriesToAdd)
-                    .apply()
-                Log.d(TAG, "Saved $berriesToAdd berries from battle hub game completion")
+                val progressManager = DailyProgressManager(this)
+                progressManager.addEarnedBerries(stars)
+                Log.d(TAG, "Saved $stars berries from battle hub game completion")
             }
             
             lifecycleScope.launch(Dispatchers.Main) {
