@@ -497,7 +497,7 @@
         android:id="@+id/victoryOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#80000000"
+        android:background="#CC000000"
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true">
@@ -508,7 +508,7 @@
             android:layout_gravity="center"
             app:cardCornerRadius="20dp"
             app:cardElevation="10dp"
-            app:cardBackgroundColor="#33FFFFFF">
+            app:cardBackgroundColor="#FFFFFF">
 
             <LinearLayout
                 android:layout_width="wrap_content"

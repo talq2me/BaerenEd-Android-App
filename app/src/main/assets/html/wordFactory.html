@@ -331,13 +331,23 @@
         let assembledLetters = [];
         let isFirstAttempt = true;
         let conveyorRunning = false;
+        let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
         let letterBoxes = [];
         let conveyorInterval = null;
 
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            return file || 'englishWordsGr1.json';
+            const fileName = file || 'englishWordsGr1.json';
+            
+            // Detect language from filename - if filename contains "french" (case-insensitive), use French TTS
+            if (fileName.toLowerCase().includes('french')) {
+                ttsLanguage = 'fr-FR';
+            } else {
+                ttsLanguage = 'en-US';
+            }
+            
+            return fileName;
         }
 
         function loadWords(fileName) {
@@ -426,8 +436,15 @@
 
         function playInstruction() {
             const { word, sentence } = currentWord;
-            const textToRead = sentence ? `Pick letters from the conveyor to spell: ${word}. ${sentence}` : `Pick letters from the conveyor to spell: ${word}`;
-            readText(textToRead, 'en-US', 0.8);
+            let textToRead;
+            if (ttsLanguage === 'fr-FR') {
+                // French instructions
+                textToRead = sentence ? `Choisissez les lettres du tapis roulant pour épeler: ${word}. ${sentence}` : `Choisissez les lettres du tapis roulant pour épeler: ${word}`;
+            } else {
+                // English instructions
+                textToRead = sentence ? `Pick letters from the conveyor to spell: ${word}. ${sentence}` : `Pick letters from the conveyor to spell: ${word}`;
+            }
+            readText(textToRead, ttsLanguage, 0.8);
         }
 
         function createAssemblyLine() {

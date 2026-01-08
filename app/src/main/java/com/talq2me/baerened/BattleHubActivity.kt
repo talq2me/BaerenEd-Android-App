@@ -2239,7 +2239,6 @@ class BattleHubActivity : AppCompatActivity() {
                         duration = 800 // Match HTML's 0.8s transition
                         interpolator = AccelerateDecelerateInterpolator()
                     }
-                    bossHPAnimator.start()
                     updateBossHPColor(bossHPPercent)
                     
                     // Update boss power bar with animation
@@ -2248,8 +2247,149 @@ class BattleHubActivity : AppCompatActivity() {
                         duration = 800
                         interpolator = AccelerateDecelerateInterpolator()
                     }
-                    bossPowerAnimator.start()
                     updateBossPowerColor(bossPowerPercent)
+                    
+                    // Track when both animations complete
+                    var hpAnimationComplete = false
+                    var powerAnimationComplete = false
+                    
+                    fun checkAnimationsComplete() {
+                        if (hpAnimationComplete && powerAnimationComplete) {
+                            // Both animations complete, now check if boss is defeated
+                            if (bossHealth <= 0) {
+                                // Wait 3 seconds after animations complete before showing victory
+                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                    clearBattleMessage()
+                                    val bossName = currentBossPokemon?.name ?: "Boss"
+                                    showBattleMessage("$bossName was defeated!")
+                                    
+                                    // Wait a bit, then start defeated animation
+                                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                        // Boss defeated animation (roll over and fade)
+                                        bossPokemonSprite.animate()
+                                            .rotation(180f)
+                                            .translationY(100f)
+                                            .alpha(0.3f)
+                                            .setDuration(1000)
+                                            .withEndAction {
+                                                clearBattleMessage()
+                                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                    showBattleMessage("🎉 Victory! 🎉")
+                                                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                        clearBattleMessage()
+                                                        endBattle(true)
+                                                    }, 1500)
+                                                }, 500)
+                                            }
+                                            .start()
+                                    }, 500) // Small delay before defeated animation
+                                }, 3000) // 3 second delay after animations complete
+                            } else {
+                                // Boss attacks back (only if still alive) - add longer delay between attacks
+                                // Wait for player attack animations to complete, then add delay before boss attacks
+                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                    clearBattleMessage()
+                                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                        showBattleMessage("Boss attacks!")
+                                        
+                                        // Boss attack animation
+                                        bossPokemonSprite.animate()
+                                            .translationX(-50f)
+                                            .scaleX(1.2f)
+                                            .scaleY(1.2f)
+                                            .setDuration(300)
+                                            .withEndAction {
+                                                bossPokemonSprite.animate()
+                                                    .translationX(0f)
+                                                    .scaleX(1f)
+                                                    .scaleY(1f)
+                                                    .setDuration(300)
+                                                    .start()
+                                                
+                                                // Player takes damage - 1-3 less than boss took to make battle much closer
+                                                val playerDamage = (bossDamage - (1..3).random()).coerceAtLeast(1)
+                                                playerHealth = (playerHealth - playerDamage).coerceAtLeast(0)
+                                                playerPowerValue = (playerPowerValue - playerDamage).coerceAtLeast(0)
+                                                
+                                                // Update player HP bar with animation
+                                                val playerHPPercent = (playerHealth * 100 / 100).coerceIn(0, 100)
+                                                val playerHPAnimator = ObjectAnimator.ofInt(playerHP, "progress", playerHP.progress, playerHealth).apply {
+                                                    duration = 800
+                                                    interpolator = AccelerateDecelerateInterpolator()
+                                                }
+                                                playerHPAnimator.start()
+                                                updatePlayerHPColor(playerHPPercent)
+                                                
+                                                // Update player power bar with animation
+                                                val playerPowerPercent = (playerPowerValue * 100 / 100).coerceIn(0, 100)
+                                                val playerPowerAnimator = ObjectAnimator.ofInt(playerPower, "progress", playerPower.progress, playerPowerValue).apply {
+                                                    duration = 800
+                                                    interpolator = AccelerateDecelerateInterpolator()
+                                                }
+                                                playerPowerAnimator.start()
+                                                updatePlayerPowerColor(playerPowerPercent)
+                                                
+                                                // Player hit animation (red flash/fade) - with delay to see animation
+                                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                    // Create red overlay effect by animating alpha with red tint
+                                                    val originalAlpha = playerPokemonSprite.alpha
+                                                    val redTint = android.graphics.Color.argb(150, 255, 0, 0) // Semi-transparent red
+                                                    
+                                                    // Flash effect: fade out, fade in, fade out, fade in
+                                                    playerPokemonSprite.animate()
+                                                        .alpha(0.3f)
+                                                        .setDuration(100)
+                                                        .withEndAction {
+                                                            playerPokemonSprite.animate()
+                                                                .alpha(1f)
+                                                                .setDuration(100)
+                                                                .withEndAction {
+                                                                    playerPokemonSprite.animate()
+                                                                        .alpha(0.3f)
+                                                                        .setDuration(100)
+                                                                        .withEndAction {
+                                                                            playerPokemonSprite.animate()
+                                                                                .alpha(originalAlpha)
+                                                                                .setDuration(100)
+                                                                                .withEndAction {
+                                                                                    clearBattleMessage()
+                                                                                    // Continue to next round
+                                                                                    battleRound(round + 1)
+                                                                                }
+                                                                                .start()
+                                                                        }
+                                                                        .start()
+                                                                }
+                                                                .start()
+                                                        }
+                                                        .start()
+                                                }, 500) // 0.5s delay to see HP bar animation
+                                            }
+                                            .start()
+                                    }, 1500) // 1.5s delay between attacks to see animations
+                                }, 800) // Wait for boss hit shake animation to complete
+                            }
+                        }
+                    }
+                    
+                    // Set up animation listeners to wait for completion
+                    bossHPAnimator.addListener(object : android.animation.AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: android.animation.Animator) {
+                            hpAnimationComplete = true
+                            checkAnimationsComplete()
+                        }
+                    })
+                    
+                    bossPowerAnimator.addListener(object : android.animation.AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: android.animation.Animator) {
+                            powerAnimationComplete = true
+                            checkAnimationsComplete()
+                        }
+                    })
+                    
+                    // Start both animations
+                    bossHPAnimator.start()
+                    bossPowerAnimator.start()
                     
                     // Boss hit animation (red flash/fade) - with delay to see animation
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
@@ -2281,122 +2421,6 @@ class BattleHubActivity : AppCompatActivity() {
                             }
                             .start()
                     }, 500) // 0.5s delay to see HP bar animation
-                    
-                    // Check if boss is defeated
-                    // Wait for: HP bar animation (800ms) + shake animation delay+duration (500ms + 200ms) + longer delay (3s) = ~4500ms total
-                    if (bossHealth <= 0) {
-                        // Wait for all animations to complete, then longer delay (3s) before showing victory
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            clearBattleMessage()
-                            val bossName = currentBossPokemon?.name ?: "Boss"
-                            showBattleMessage("$bossName was defeated!")
-                            
-                            // Wait a bit, then start defeated animation
-                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                // Boss defeated animation (roll over and fade)
-                                bossPokemonSprite.animate()
-                                    .rotation(180f)
-                                    .translationY(100f)
-                                    .alpha(0.3f)
-                                    .setDuration(1000)
-                                    .withEndAction {
-                                        clearBattleMessage()
-                                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                            showBattleMessage("🎉 Victory! 🎉")
-                                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                                clearBattleMessage()
-                                                endBattle(true)
-                                            }, 1500)
-                                        }, 500)
-                                    }
-                                    .start()
-                            }, 500) // Small delay before defeated animation
-                        }, 4500) // Wait for HP bar (800ms) + shake (700ms) + 3s delay = 4500ms total
-                    } else {
-                        // Boss attacks back (only if still alive) - add longer delay between attacks
-                        // Wait for player attack animations to complete, then add delay before boss attacks
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            clearBattleMessage()
-                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                showBattleMessage("Boss attacks!")
-                                
-                                // Boss attack animation
-                                bossPokemonSprite.animate()
-                                    .translationX(-50f)
-                                    .scaleX(1.2f)
-                                    .scaleY(1.2f)
-                                    .setDuration(300)
-                                    .withEndAction {
-                                        bossPokemonSprite.animate()
-                                            .translationX(0f)
-                                            .scaleX(1f)
-                                            .scaleY(1f)
-                                            .setDuration(300)
-                                            .start()
-                                        
-                                        // Player takes damage - 1-3 less than boss took to make battle much closer
-                                        val playerDamage = (bossDamage - (1..3).random()).coerceAtLeast(1)
-                                        playerHealth = (playerHealth - playerDamage).coerceAtLeast(0)
-                                        playerPowerValue = (playerPowerValue - playerDamage).coerceAtLeast(0)
-                                        
-                                        // Update player HP bar with animation
-                                        val playerHPPercent = (playerHealth * 100 / 100).coerceIn(0, 100)
-                                        val playerHPAnimator = ObjectAnimator.ofInt(playerHP, "progress", playerHP.progress, playerHealth).apply {
-                                            duration = 800
-                                            interpolator = AccelerateDecelerateInterpolator()
-                                        }
-                                        playerHPAnimator.start()
-                                        updatePlayerHPColor(playerHPPercent)
-                                        
-                                        // Update player power bar with animation
-                                        val playerPowerPercent = (playerPowerValue * 100 / 100).coerceIn(0, 100)
-                                        val playerPowerAnimator = ObjectAnimator.ofInt(playerPower, "progress", playerPower.progress, playerPowerValue).apply {
-                                            duration = 800
-                                            interpolator = AccelerateDecelerateInterpolator()
-                                        }
-                                        playerPowerAnimator.start()
-                                        updatePlayerPowerColor(playerPowerPercent)
-                                        
-                                        // Player hit animation (red flash/fade) - with delay to see animation
-                                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                            // Create red overlay effect by animating alpha with red tint
-                                            val originalAlpha = playerPokemonSprite.alpha
-                                            val redTint = android.graphics.Color.argb(150, 255, 0, 0) // Semi-transparent red
-                                            
-                                            // Flash effect: fade out, fade in, fade out, fade in
-                                            playerPokemonSprite.animate()
-                                                .alpha(0.3f)
-                                                .setDuration(100)
-                                                .withEndAction {
-                                                    playerPokemonSprite.animate()
-                                                        .alpha(1f)
-                                                        .setDuration(100)
-                                                        .withEndAction {
-                                                            playerPokemonSprite.animate()
-                                                                .alpha(0.3f)
-                                                                .setDuration(100)
-                                                                .withEndAction {
-                                                                    playerPokemonSprite.animate()
-                                                                        .alpha(originalAlpha)
-                                                                        .setDuration(100)
-                                                                        .withEndAction {
-                                                                            clearBattleMessage()
-                                                                            // Continue to next round
-                                                                            battleRound(round + 1)
-                                                                        }
-                                                                        .start()
-                                                                }
-                                                                .start()
-                                                        }
-                                                        .start()
-                                                }
-                                                .start()
-                                        }, 500) // 0.5s delay to see HP bar animation
-                                    }
-                                    .start()
-                            }, 1500) // 1.5s delay between attacks to see animations
-                        }, 800) // Wait for boss hit shake animation to complete
-                    }
                 }
                 .start()
             }, 1500) // 1.5s delay between rounds to see animations

@@ -1,35 +1,43 @@
 [
 
   {
-    "word": "qui",
-    "sentence": "Qui est ton ami?"
+    "word": "un",
+    "sentence": "J'ai un chat."
   },
   {
-    "word": "quatre",
-    "sentence": "J'ai quatre pommes dans mon panier."
+    "word": "une",
+    "sentence": "J'ai une pomme dans mon panier."
   },
   {
-    "word": "pourquoi",
-    "sentence": "Pourquoi es-tu triste?"
+    "word": "Alphabétik",
+    "sentence": "Ordre les mots en ordre alphabétique."
   },
   {
-    "word": "casque",
-    "sentence": "Je porte un casque pour faire du vélo."
+    "word": "ami",
+    "sentence": "Mon ami est allé au cinéma."
   },
   {
-    "word": "pique",
-    "sentence": "La pique du hérisson est pointue."
+    "word": "amie",
+    "sentence": "Hannah est ma bonne amie."
   },
   {
-    "word": "tique",
-    "sentence": "La tique est un petit insecte."
+    "word": "bonjour",
+    "sentence": "Bonjour, comment ça va?"
   },
   {
-    "word": "bique",
-    "sentence": "La bique est une chèvre."
+    "word": "classe",
+    "sentence": "La classe a beaucoup d'élèves."
   },
   {
-    "word": "brique",
-    "sentence": "La brique est rouge et solide."
+    "word": "cour",
+    "sentence": "La cour est grande."
+  },
+  {
+    "word": "école",
+    "sentence": "Nous allons à l'école."
+  },
+  {
+    "word": "vélo", 
+    "sentence": "Je vais à la plage en vélo."
   }
 ]

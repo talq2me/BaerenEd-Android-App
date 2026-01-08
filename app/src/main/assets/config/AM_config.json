@@ -39,7 +39,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 15, 2026",
+          "disable": "Jan 15, 2027",
           "easydays": "mon,tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun"
@@ -50,16 +50,17 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 15, 2026",
-          "easydays": "mon,tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun"
+          "disable": "Jan 1, 2026",
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun"
         },
         {
           "title": "French Vowels",
           "launch": "frenchVowels",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
           "stars": 3,
+          "disable": "Jan 1, 2027",
           "webGame": true
         },
         {
@@ -101,9 +102,26 @@
           "displayDays": "mon"
         },
         {
+          "title": "Snake Catch",
+          "launch": "snakeCatch",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri"
+        },
+        
+        {
+          "title": "Math Hole",
+          "launch": "mathHole",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri"
+        },
+        {
           "title": "Word Garden",
           "launch": "wordGarden",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
           "displayDays": "tue,fri"
@@ -126,7 +144,7 @@
         {
           "title": "Word Fishing",
           "launch": "wordFishing",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
           "displayDays": "wed,sat"
@@ -134,7 +152,7 @@
         {
           "title": "Word Factory",
           "launch": "wordFactory",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
           "displayDays": "thu,sun"
@@ -142,7 +160,7 @@
         {
           "title": "Kung Fu Form",
           "launch": "noviceKungFuVideos",
-          "stars": 3,
+          "stars": 1,
           "video": "SingleStepForm",
           "disable": "Jan 2, 2026",
           "videoSequence": "exact",
@@ -152,13 +170,13 @@
           "title": "Kung Fu",
           "launch": "noviceKungFuVideos",
           "disable": "Jan 2, 2026",
-          "stars": 3,
+          "stars": 1,
           "videoSequence": "sequential"
         },
         {
           "title": "Facile A Lire 2",
           "launch": "facileAlire2",
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 2, 2027",
           "stars": 3,
           "videoSequence": "sequential"
         },
@@ -175,11 +193,13 @@
           "title": "Ufli Home Videos",
           "launch": "uflivideos",
           "stars": 3,
+          "disable": "Jan 2, 2027",
           "videoSequence": "sequential"
         },
         {
           "title": "French UFLI",
           "launch": "frenchUFLI",
+          "disable": "Jan 2, 2027",
           "stars": 3,
           "videoSequence": "sequential"
         }

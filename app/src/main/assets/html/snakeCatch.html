@@ -385,10 +385,12 @@
         let collectedLetters = [];
         let gameArea = null;
         let gameLoop = null;
-        let snakeSpeed = 4; // pixels per frame
+        let snakeSpeed = 4; // pixels per frame (base speed)
+        let snakeDragSpeed = 8; // pixels per frame when dragging (faster)
         let canInteract = true;
         let isPaused = false;
         let isTouching = false;
+        let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
         let letterMovementSpeeds = [];
         let segmentSpacing = 12; // How many path points between segments
         let isCelebrating = false; // Flag for celebration animation
@@ -422,7 +424,16 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            return file || 'englishWordsGr1.json';
+            const fileName = file || 'englishWordsGr1.json';
+            
+            // Detect language from filename - if filename contains "french" (case-insensitive), use French TTS
+            if (fileName.toLowerCase().includes('french')) {
+                ttsLanguage = 'fr-FR';
+            } else {
+                ttsLanguage = 'en-US';
+            }
+            
+            return fileName;
         }
 
         function loadWords(fileName) {
@@ -527,8 +538,15 @@
             // Play instruction
             setTimeout(() => {
                 const { word, sentence } = currentWord;
-                const textToRead = sentence ? `Catch the letters to spell: ${word}. ${sentence}` : `Catch the letters to spell: ${word}`;
-                readText(textToRead, 'en-US', 0.8);
+                let textToRead;
+                if (ttsLanguage === 'fr-FR') {
+                    // French instructions
+                    textToRead = sentence ? `Attrapez les lettres pour épeler: ${word}. ${sentence}` : `Attrapez les lettres pour épeler: ${word}`;
+                } else {
+                    // English instructions
+                    textToRead = sentence ? `Catch the letters to spell: ${word}. ${sentence}` : `Catch the letters to spell: ${word}`;
+                }
+                readText(textToRead, ttsLanguage, 0.8);
             }, 500);
         }
 
@@ -729,11 +747,13 @@
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 if (distance > 5) {
+                    // Use faster speed when dragging, normal speed otherwise
+                    const currentSpeed = isTouching ? snakeDragSpeed : snakeSpeed;
                     // Normalize direction and move towards target
-                    const moveX = (dx / distance) * snakeSpeed;
-                    const moveY = (dy / distance) * snakeSpeed;
+                    const moveX = (dx / distance) * currentSpeed;
+                    const moveY = (dy / distance) * currentSpeed;
                     
-                    snakeDirection = { x: moveX / snakeSpeed, y: moveY / snakeSpeed };
+                    snakeDirection = { x: moveX / currentSpeed, y: moveY / currentSpeed };
                     
                     const newHead = {
                         x: head.x + moveX,
