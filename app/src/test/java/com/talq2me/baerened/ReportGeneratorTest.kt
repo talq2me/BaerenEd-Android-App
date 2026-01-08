@@ -45,7 +45,7 @@ class ReportGeneratorTest {
     }
 
     private fun createSampleProgressReport(): DailyProgressManager.ComprehensiveProgressReport {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
         return DailyProgressManager.ComprehensiveProgressReport(
             date = today,
             earnedCoins = 15,
@@ -286,7 +286,7 @@ class ReportGeneratorTest {
     @Test
     fun `generateDailyReport handles empty report gracefully`() {
         // Given: An empty progress report
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
         val emptyReport = DailyProgressManager.ComprehensiveProgressReport(
             date = today,
             earnedCoins = 0,
@@ -329,7 +329,7 @@ class ReportGeneratorTest {
     @Test
     fun `completed games are shown separately for required and optional sections`() {
         // Given: A progress report with games completed in both required and optional sections
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
         val report = DailyProgressManager.ComprehensiveProgressReport(
             date = today,
             earnedCoins = 6,
@@ -443,7 +443,7 @@ class ReportGeneratorTest {
     @Test
     fun `answer counts in task details match first answer only logic`() {
         // Given: A task with answer counts that should add up correctly
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
         val report = DailyProgressManager.ComprehensiveProgressReport(
             date = today,
             earnedCoins = 3,

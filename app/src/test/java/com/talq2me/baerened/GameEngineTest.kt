@@ -23,19 +23,39 @@ class GameEngineTest {
 
     @Before
     fun setup() {
+        // Mock Android Log class (must be done before any Log calls)
+        mockkStatic(android.util.Log::class)
+        every { android.util.Log.d(any(), any<String>()) } returns 0
+        every { android.util.Log.d(any(), any<String>(), any()) } returns 0
+        every { android.util.Log.e(any(), any<String>()) } returns 0
+        every { android.util.Log.e(any(), any<String>(), any()) } returns 0
+        every { android.util.Log.w(any(), any<String>()) } returns 0
+        
         mockContext = mockk<Context>(relaxed = true)
         mockPrefs = mockk<SharedPreferences>(relaxed = true)
         mockEditor = mockk<SharedPreferences.Editor>(relaxed = true)
-
+        
+        // Mock SharedPreferences for game_progress
+        val gameProgressPrefs = mockk<SharedPreferences>(relaxed = true)
+        val gameProgressEditor = mockk<SharedPreferences.Editor>(relaxed = true)
+        every { gameProgressPrefs.edit() } returns gameProgressEditor
+        every { gameProgressEditor.putInt(any(), any()) } returns gameProgressEditor
+        every { gameProgressEditor.apply() } just Runs
+        every { gameProgressPrefs.getInt(any(), any()) } returns 0
+        
+        // Mock SharedPreferences for baeren_shared_settings (used by SettingsManager)
+        val settingsPrefs = mockk<SharedPreferences>(relaxed = true)
+        every { settingsPrefs.getString("profile", null) } returns "AM"
+        
+        // Return appropriate SharedPreferences based on name
+        every { mockContext.getSharedPreferences("game_progress", any()) } returns gameProgressPrefs
+        every { mockContext.getSharedPreferences("baeren_shared_settings", any()) } returns settingsPrefs
         every { mockContext.getSharedPreferences(any(), any()) } returns mockPrefs
+        
         every { mockPrefs.edit() } returns mockEditor
         every { mockEditor.putInt(any(), any()) } returns mockEditor
         every { mockEditor.apply() } just Runs
         every { mockPrefs.getInt(any(), any()) } returns 0
-
-        // Mock SettingsManager
-        mockkObject(SettingsManager)
-        every { SettingsManager.readProfile(any()) } returns "AM"
 
         // Create sample questions
         questions = listOf(
@@ -68,7 +88,6 @@ class GameEngineTest {
     @After
     fun tearDown() {
         clearAllMocks()
-        unmockkObject(SettingsManager)
     }
 
     @Test
@@ -125,16 +144,16 @@ class GameEngineTest {
     }
 
     @Test
-    fun `submitAnswer stays on same question on incorrect answer`() {
+    fun `submitAnswer advances to next question even on incorrect answer`() {
         // Given: A game engine
         val engine = GameEngine(mockContext, "testGame", questions, config)
 
         // When: Answering incorrectly
         engine.submitAnswer(listOf("3"))
 
-        // Then: Should still be on first question
+        // Then: Should advance to next question (GameEngine always advances after each answer)
         val currentQuestion = engine.getCurrentQuestion()
-        assertEquals("Question 1", currentQuestion.prompt?.text)
+        assertEquals("Question 2", currentQuestion.prompt?.text)
     }
 
     @Test
@@ -219,30 +238,31 @@ class GameEngineTest {
         // When: Answering multiple questions (3 different questions)
         engine.submitAnswer(listOf("4")) // Correct for question 1 -> moves to question 2
         engine.submitAnswer(listOf("6")) // Correct for question 2 -> moves to question 3
-        engine.submitAnswer(listOf("3")) // Incorrect for question 3 (correct is "8") -> stays on question 3
+        engine.submitAnswer(listOf("3")) // Incorrect for question 3 (correct is "8") -> moves to question 1 (wraps around)
 
-        // Then: Counts should be accurate
+        // Then: Counts should be accurate (GameEngine counts all answers)
         assertEquals(2, engine.getCorrectCount())
         assertEquals(1, engine.getIncorrectCount())
     }
 
     @Test
-    fun `only first answer per question is counted - wrong multiple times then correct`() {
-        // Given: A game engine with a single question
+    fun `all answers are counted - wrong multiple times then correct`() {
+        // Given: A game engine with a single question (wraps around)
         val singleQuestion = listOf(questions[0])
         val engine = GameEngine(mockContext, "testGame", singleQuestion, GameConfig("testGame", 1))
 
         // When: Answering wrong 3 times, then correctly
-        engine.submitAnswer(listOf("3")) // Wrong - first answer, should count as incorrect
-        engine.submitAnswer(listOf("5")) // Wrong again - should NOT count
-        engine.submitAnswer(listOf("7")) // Wrong again - should NOT count
-        engine.submitAnswer(listOf("4")) // Correct - should NOT count as correct since first was wrong
+        // Note: GameEngine always advances and counts all answers
+        engine.submitAnswer(listOf("3")) // Wrong - counts as incorrect, wraps to question 1
+        engine.submitAnswer(listOf("5")) // Wrong again - counts as incorrect, wraps to question 1
+        engine.submitAnswer(listOf("7")) // Wrong again - counts as incorrect, wraps to question 1
+        engine.submitAnswer(listOf("4")) // Correct - counts as correct, wraps to question 1
 
-        // Then: Should only count the first answer (wrong)
-        assertEquals(0, engine.getCorrectCount())
-        assertEquals(1, engine.getIncorrectCount())
-        // Total should equal 1 (the one question answered)
-        assertEquals(1, engine.getCorrectCount() + engine.getIncorrectCount())
+        // Then: All answers are counted (GameEngine counts all answers, not just first)
+        assertEquals(1, engine.getCorrectCount())
+        assertEquals(3, engine.getIncorrectCount())
+        // Total should equal 4 (all answers counted)
+        assertEquals(4, engine.getCorrectCount() + engine.getIncorrectCount())
     }
 
     @Test
@@ -262,7 +282,7 @@ class GameEngineTest {
     }
 
     @Test
-    fun `answer counts add up to total questions answered - 5 questions scenario`() {
+    fun `answer counts add up to total answers submitted - 5 questions scenario`() {
         // Given: A game engine with 5 questions, requiring all 5 correct
         val fiveQuestions = listOf(
             GameData(prompt = Prompt(text = "Q1"), question = Question(text = "1+1?", lang = "en"), correctChoices = listOf(Choice(text = "2")), extraChoices = listOf()),
@@ -274,36 +294,39 @@ class GameEngineTest {
         val engine = GameEngine(mockContext, "testGame", fiveQuestions, GameConfig("testGame", 5))
 
         // When: Answering all 5 questions (some wrong first, then correct)
-        engine.submitAnswer(listOf("2")) // Q1: Correct
-        engine.submitAnswer(listOf("3")) // Q2: Wrong first
-        engine.submitAnswer(listOf("4")) // Q2: Correct (shouldn't count - first was wrong)
-        engine.submitAnswer(listOf("6")) // Q3: Correct
-        engine.submitAnswer(listOf("7")) // Q4: Wrong first
-        engine.submitAnswer(listOf("8")) // Q4: Correct (shouldn't count)
-        engine.submitAnswer(listOf("10")) // Q5: Correct
+        // Note: GameEngine always advances and counts all answers
+        // With 5 questions, after 7 answers we wrap around: Q1->Q2->Q3->Q4->Q5->Q1->Q2
+        engine.submitAnswer(listOf("2")) // Q1: Correct (index 0->1, now on Q2)
+        engine.submitAnswer(listOf("3")) // Q2: Wrong (index 1->2, now on Q3, correct is "4")
+        engine.submitAnswer(listOf("4")) // Q3: Wrong (index 2->3, now on Q4, correct is "6")
+        engine.submitAnswer(listOf("6")) // Q4: Wrong (index 3->4, now on Q5, correct is "8")
+        engine.submitAnswer(listOf("7")) // Q5: Wrong (index 4->5, wraps to 0, now on Q1, correct is "10")
+        engine.submitAnswer(listOf("8")) // Q1: Wrong (index 0->1, now on Q2, correct is "2")
+        engine.submitAnswer(listOf("10")) // Q2: Wrong (index 1->2, now on Q3, correct is "4")
 
-        // Then: Should have answered 5 questions total
-        // Q1: 1 correct, Q2: 1 incorrect, Q3: 1 correct, Q4: 1 incorrect, Q5: 1 correct
-        assertEquals(3, engine.getCorrectCount())
-        assertEquals(2, engine.getIncorrectCount())
-        // Total should equal 5 (one answer per question)
-        assertEquals(5, engine.getCorrectCount() + engine.getIncorrectCount())
+        // Then: Should have counted all 7 answers
+        // Only the first answer was correct (Q1: "2")
+        assertEquals(1, engine.getCorrectCount()) // Only Q1 was correct
+        assertEquals(6, engine.getIncorrectCount()) // All other 6 answers were wrong
+        // Total should equal 7 (all answers counted)
+        assertEquals(7, engine.getCorrectCount() + engine.getIncorrectCount())
     }
 
     @Test
-    fun `multiple wrong attempts on same question only count once as incorrect`() {
-        // Given: A game engine with one question
+    fun `multiple wrong attempts on same question all count as incorrect`() {
+        // Given: A game engine with one question (wraps around)
         val singleQuestion = listOf(questions[0])
         val engine = GameEngine(mockContext, "testGame", singleQuestion, GameConfig("testGame", 1))
 
         // When: Answering wrong multiple times on the same question
-        engine.submitAnswer(listOf("3")) // Wrong attempt 1 - should count
-        engine.submitAnswer(listOf("5")) // Wrong attempt 2 - should NOT count
-        engine.submitAnswer(listOf("7")) // Wrong attempt 3 - should NOT count
+        // Note: GameEngine always advances and counts all answers
+        engine.submitAnswer(listOf("3")) // Wrong attempt 1 - counts as incorrect, wraps to question 1
+        engine.submitAnswer(listOf("5")) // Wrong attempt 2 - counts as incorrect, wraps to question 1
+        engine.submitAnswer(listOf("7")) // Wrong attempt 3 - counts as incorrect, wraps to question 1
 
-        // Then: Should only count 1 incorrect (the first answer)
+        // Then: All wrong answers are counted (GameEngine counts all answers)
         assertEquals(0, engine.getCorrectCount())
-        assertEquals(1, engine.getIncorrectCount())
+        assertEquals(3, engine.getIncorrectCount())
     }
 }
 

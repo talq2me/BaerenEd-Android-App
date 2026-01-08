@@ -39,8 +39,16 @@ class DailyProgressManagerTest {
         mockContext = mockk<Context>(relaxed = true)
         mockPrefs = mockk<SharedPreferences>(relaxed = true)
         mockEditor = mockk<SharedPreferences.Editor>(relaxed = true)
-
-        every { mockContext.getSharedPreferences(any(), any()) } returns mockPrefs
+        
+        // Mock SharedPreferences for baeren_shared_settings (used by SettingsManager.readProfile)
+        // This must be set up BEFORE DailyProgressManager is instantiated
+        val settingsPrefs = mockk<SharedPreferences>(relaxed = true)
+        every { settingsPrefs.getString("profile", null) } returns "AM"
+        every { mockContext.getSharedPreferences("baeren_shared_settings", any()) } returns settingsPrefs
+        
+        // Mock SharedPreferences for daily_progress_prefs (used by DailyProgressManager)
+        every { mockContext.getSharedPreferences("daily_progress_prefs", any()) } returns mockPrefs
+        
         every { mockPrefs.edit() } returns mockEditor
         every { mockEditor.putString(any(), any()) } returns mockEditor
         every { mockEditor.putInt(any(), any()) } returns mockEditor
@@ -51,8 +59,8 @@ class DailyProgressManagerTest {
         // Set up date to prevent reset (use today's date)
         val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
         every { mockPrefs.getString("last_reset_date", "") } returns today
-        every { mockPrefs.getString("completed_tasks", "{}") } returns "{}"
-        every { mockPrefs.getString("completed_task_names", "{}") } returns "{}"
+        every { mockPrefs.getString("AM_completed_tasks", "{}") } returns "{}"
+        every { mockPrefs.getString("AM_completed_task_names", "{}") } returns "{}"
 
         progressManager = DailyProgressManager(mockContext)
     }
@@ -90,8 +98,8 @@ class DailyProgressManagerTest {
 
     @Test
     fun `getBankedRewardMinutes returns current banked minutes`() {
-        // Given: Some banked minutes
-        every { mockPrefs.getInt("banked_reward_minutes", 0) } returns 20
+        // Given: Some banked minutes (key is profile-prefixed)
+        every { mockPrefs.getInt("AM_banked_reward_minutes", 0) } returns 20
 
         // When: Getting banked minutes
         val minutes = progressManager.getBankedRewardMinutes()
@@ -102,32 +110,34 @@ class DailyProgressManagerTest {
 
     @Test
     fun `setBankedRewardMinutes sets reward minutes`() {
-        // Given: No initial minutes
-        every { mockPrefs.getInt("banked_reward_minutes", 0) } returns 0
+        // Given: No initial minutes (key is profile-prefixed)
+        every { mockPrefs.getInt("AM_banked_reward_minutes", 0) } returns 0
 
         // When: Setting to 30 minutes
         progressManager.setBankedRewardMinutes(30)
 
-        // Then: Should save the value
-        verify { mockEditor.putInt("banked_reward_minutes", 30) }
+        // Then: Should save the value (key is profile-prefixed)
+        verify { mockEditor.remove("AM_banked_reward_minutes") }
+        verify { mockEditor.putInt("AM_banked_reward_minutes", 30) }
         verify { mockEditor.apply() }
     }
 
     @Test
     fun `addRewardMinutes adds minutes to reward bank`() {
-        // Given: Initial reward minutes
+        // Given: Initial reward minutes (key is profile-prefixed)
         // getBankedRewardMinutes may call getInt multiple times due to error handling
-        every { mockPrefs.getInt("banked_reward_minutes", 0) } returns 5
-        every { mockPrefs.getFloat("banked_reward_minutes", 0f) } throws ClassCastException()
-        every { mockPrefs.getString("banked_reward_minutes", "0") } throws ClassCastException()
+        every { mockPrefs.getInt("AM_banked_reward_minutes", 0) } returns 5
+        every { mockPrefs.getFloat("AM_banked_reward_minutes", 0f) } throws ClassCastException()
+        every { mockPrefs.getString("AM_banked_reward_minutes", "0") } throws ClassCastException()
 
         // When: Adding 10 minutes
         val newTotal = progressManager.addRewardMinutes(10)
 
         // Then: Should return 15 (5 + 10)
         assertEquals(15, newTotal)
-        // Verify it tried to save the new total
-        verify(atLeast = 1) { mockEditor.putInt("banked_reward_minutes", 15) }
+        // Verify it tried to save the new total (key is profile-prefixed)
+        verify(atLeast = 1) { mockEditor.remove("AM_banked_reward_minutes") }
+        verify(atLeast = 1) { mockEditor.putInt("AM_banked_reward_minutes", 15) }
         verify(atLeast = 1) { mockEditor.apply() }
     }
 
