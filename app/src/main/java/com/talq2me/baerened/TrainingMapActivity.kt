@@ -172,14 +172,57 @@ class TrainingMapActivity : AppCompatActivity() {
     private fun loadTasksIntoMap() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Load content
-                val jsonString = ContentUpdateService().getCachedMainContent(this@TrainingMapActivity)
-                    ?: ContentUpdateService().fetchMainContent(this@TrainingMapActivity)?.let {
-                        // Cache it
-                        val prefs = getSharedPreferences("main_content_cache", android.content.Context.MODE_PRIVATE)
-                        prefs.edit().putString("main_content", Gson().toJson(it)).apply()
-                        Gson().toJson(it)
+                val contentUpdateService = ContentUpdateService()
+                val cloudStorageManager = CloudStorageManager(this@TrainingMapActivity)
+                val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
+                
+                // Step 1: Try to fetch latest from GitHub
+                var jsonString: String? = null
+                var contentFromGitHub: MainContent? = null
+                
+                try {
+                    contentFromGitHub = contentUpdateService.fetchMainContent(this@TrainingMapActivity)
+                    if (contentFromGitHub != null) {
+                        // Successfully fetched from GitHub - fetchMainContent already saved to cache
+                        jsonString = Gson().toJson(contentFromGitHub)
+                        android.util.Log.d("TrainingMapActivity", "Successfully fetched config from GitHub, updating user_data table in cloud")
+                        
+                        // Update user_data table in cloud with latest config data
+                        // This will collect tasks from the latest config (which is now in cache) and upload to cloud
+                        try {
+                            val uploadResult = cloudStorageManager.uploadToCloud(profile)
+                            if (uploadResult.isSuccess) {
+                                android.util.Log.d("TrainingMapActivity", "Successfully synced latest config to cloud user_data table")
+                            } else {
+                                android.util.Log.w("TrainingMapActivity", "Failed to sync config to cloud: ${uploadResult.exceptionOrNull()?.message}")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("TrainingMapActivity", "Error syncing config to cloud", e)
+                        }
                     }
+                } catch (e: Exception) {
+                    android.util.Log.w("TrainingMapActivity", "Could not fetch from GitHub: ${e.message}, falling back to cache")
+                }
+                
+                // Step 2: If GitHub failed, use cache/local storage
+                if (jsonString == null || contentFromGitHub == null) {
+                    android.util.Log.d("TrainingMapActivity", "Using cached/local config and attempting to push to cloud")
+                    jsonString = contentUpdateService.getCachedMainContent(this@TrainingMapActivity)
+                    
+                    // Try to push cached data to cloud
+                    if (jsonString != null && jsonString.isNotEmpty()) {
+                        try {
+                            val uploadResult = cloudStorageManager.uploadToCloud(profile)
+                            if (uploadResult.isSuccess) {
+                                android.util.Log.d("TrainingMapActivity", "Successfully pushed cached config to cloud user_data table")
+                            } else {
+                                android.util.Log.w("TrainingMapActivity", "Failed to push cached config to cloud: ${uploadResult.exceptionOrNull()?.message}")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("TrainingMapActivity", "Error pushing cached config to cloud", e)
+                        }
+                    }
+                }
                 
                 currentContent = if (jsonString != null && jsonString.isNotEmpty()) {
                     Gson().fromJson(jsonString, MainContent::class.java)

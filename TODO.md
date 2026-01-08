@@ -1,4 +1,5 @@
 Webgameactivity does not load json from github first
+wordfactory is not giving all letters in the long word on the conveyorbelt
 
 battle victory screen should not be transparent.
 test wordfishing game again.

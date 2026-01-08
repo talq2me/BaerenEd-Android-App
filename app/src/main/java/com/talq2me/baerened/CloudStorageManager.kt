@@ -876,7 +876,8 @@ class CloudStorageManager(private val context: Context) {
     }
 
     /**
-     * Gets all tasks from a specific config section
+     * Gets all tasks from a specific config section, filtered by visibility for today
+     * Only includes tasks that are visible on the current day
      */
     private fun getConfigTasksForSection(sectionId: String): List<Task> {
         try {
@@ -892,10 +893,96 @@ class CloudStorageManager(private val context: Context) {
             val mainContent = gson.fromJson(jsonString, MainContent::class.java)
             val section = mainContent?.sections?.find { it.id == sectionId }
 
-            return section?.tasks?.filterNotNull() ?: emptyList()
+            // Filter tasks by visibility - only include tasks visible today
+            val allTasks = section?.tasks?.filterNotNull() ?: emptyList()
+            val visibleTasks = allTasks.filter { task ->
+                isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+            }
+
+            Log.d(TAG, "getConfigTasksForSection($sectionId): ${allTasks.size} total tasks, ${visibleTasks.size} visible today")
+            return visibleTasks
         } catch (e: Exception) {
             Log.e(TAG, "Error loading config tasks for section: $sectionId", e)
             return emptyList()
+        }
+    }
+
+    /**
+     * Checks if a task should be visible based on day restrictions and disable date
+     * This matches the logic in DailyProgressManager.isTaskVisible()
+     */
+    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null, disable: String? = null): Boolean {
+        // Check disable date first - if current date is before disable date, hide the task
+        if (!disable.isNullOrEmpty()) {
+            val disableDate = parseDisableDate(disable)
+            if (disableDate != null) {
+                val today = java.util.Calendar.getInstance().apply {
+                    set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    set(java.util.Calendar.MINUTE, 0)
+                    set(java.util.Calendar.SECOND, 0)
+                    set(java.util.Calendar.MILLISECOND, 0)
+                }
+                // If today is before the disable date, task is disabled (not visible)
+                if (today.before(disableDate)) {
+                    return false
+                }
+            }
+        }
+
+        val today = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)
+        val todayShort = when (today) {
+            java.util.Calendar.MONDAY -> "mon"
+            java.util.Calendar.TUESDAY -> "tue"
+            java.util.Calendar.WEDNESDAY -> "wed"
+            java.util.Calendar.THURSDAY -> "thu"
+            java.util.Calendar.FRIDAY -> "fri"
+            java.util.Calendar.SATURDAY -> "sat"
+            java.util.Calendar.SUNDAY -> "sun"
+            else -> ""
+        }
+
+        if (!hidedays.isNullOrEmpty()) {
+            if (hidedays.split(",").contains(todayShort)) {
+                return false // Hide if today is in hidedays
+            }
+        }
+
+        // Check displayDays first (if set, only show on those days)
+        if (!displayDays.isNullOrEmpty()) {
+            return displayDays.split(",").contains(todayShort) // Show only if today is in displayDays
+        }
+
+        if (!showdays.isNullOrEmpty()) {
+            return showdays.split(",").contains(todayShort) // Show only if today is in showdays
+        }
+
+        return true // Visible by default if no restrictions
+    }
+
+    /**
+     * Parses a date string in format "Nov 24, 2025" and returns a Calendar instance
+     * Returns null if parsing fails
+     */
+    private fun parseDisableDate(dateString: String?): java.util.Calendar? {
+        if (dateString.isNullOrEmpty()) return null
+        
+        return try {
+            // Try parsing format like "Nov 24, 2025"
+            val formatter = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.US)
+            val date = formatter.parse(dateString.trim())
+            if (date != null) {
+                java.util.Calendar.getInstance().apply {
+                    time = date
+                    // Set time to start of day for accurate comparison
+                    set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    set(java.util.Calendar.MINUTE, 0)
+                    set(java.util.Calendar.SECOND, 0)
+                    set(java.util.Calendar.MILLISECOND, 0)
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing disable date: $dateString", e)
+            null
         }
     }
 
@@ -1292,7 +1379,7 @@ class CloudStorageManager(private val context: Context) {
             // Apply daily progress data
             val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
 
-            // Apply required tasks data - merge with existing local data to avoid overwriting (profile-specific)
+            // Apply required tasks data - merge with existing local data, but ONLY tasks visible today
             if (data.requiredTasks?.isNotEmpty() == true) {
                 // Get existing local data (profile-specific)
                 val completedTasksKey = "${localProfile}_completed_tasks"
@@ -1303,14 +1390,29 @@ class CloudStorageManager(private val context: Context) {
                 val existingCompletedTaskNamesJson = progressPrefs.getString(completedTaskNamesKey, "{}") ?: "{}"
                 val existingCompletedTaskNames = gson.fromJson<Map<String, String>>(existingCompletedTaskNamesJson, object : TypeToken<Map<String, String>>() {}.type)?.toMutableMap() ?: mutableMapOf()
 
-                // Merge cloud data with local data (cloud takes precedence for tasks it knows about)
-                data.requiredTasks.forEach { (taskName, taskProgress) ->
-                    // Try to find the local task ID by matching the task name
-                    val localTaskId = existingCompletedTaskNames.entries.find { it.value == taskName }?.key
-                        ?: taskName.lowercase().replace(" ", "_").replace("-", "_") // fallback to generated ID
+                // CRITICAL: Only apply tasks that are visible today
+                // Get current visible tasks from config to filter cloud data
+                val visibleConfigTasks = getConfigTasksForSection("required")
+                val visibleTaskNames = visibleConfigTasks.mapNotNull { it.title }.toSet()
+                
+                var appliedCount = 0
+                var skippedCount = 0
 
-                    existingCompletedTasks[localTaskId] = taskProgress.status == "complete"
-                    existingCompletedTaskNames[localTaskId] = taskName
+                // Merge cloud data with local data, but only for visible tasks
+                data.requiredTasks.forEach { (taskName, taskProgress) ->
+                    // Only apply if task is visible today
+                    if (visibleTaskNames.contains(taskName)) {
+                        // Find the taskId for this task name from visible config
+                        val task = visibleConfigTasks.find { it.title == taskName }
+                        val taskId = task?.launch ?: taskName.lowercase().replace(" ", "_").replace("-", "_")
+
+                        existingCompletedTasks[taskId] = taskProgress.status == "complete"
+                        existingCompletedTaskNames[taskId] = taskName
+                        appliedCount++
+                    } else {
+                        Log.d(TAG, "Skipping cloud task '$taskName' - not visible today (filtered by visibility rules)")
+                        skippedCount++
+                    }
                 }
 
                 progressPrefs.edit()
@@ -1318,7 +1420,7 @@ class CloudStorageManager(private val context: Context) {
                     .putString(completedTaskNamesKey, gson.toJson(existingCompletedTaskNames))
                     .apply()
 
-                Log.d(TAG, "Applied ${data.requiredTasks.size} required tasks to local storage for profile: $localProfile")
+                Log.d(TAG, "Applied $appliedCount required tasks to local storage for profile: $localProfile (skipped $skippedCount tasks not visible today)")
             }
 
             // Apply other progress metrics (all profile-specific)
