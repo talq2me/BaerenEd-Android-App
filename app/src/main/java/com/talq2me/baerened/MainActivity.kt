@@ -552,13 +552,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         var session: TimeTracker.ActivitySession? = null
         var secondsSpent = 0L
 
-        if (::readAlongTimeTracker.isInitialized) {
-            session = readAlongTimeTracker.endActivity("readalong")
-            secondsSpent = session?.durationSeconds ?: 0
+        // Reinitialize TimeTracker if it was lost (e.g., if MainActivity was destroyed and recreated)
+        if (!::readAlongTimeTracker.isInitialized) {
+            readAlongTimeTracker = TimeTracker(this)
+            Log.d(TAG, "Reinitialized readAlongTimeTracker for ReadAlong return check")
         }
 
+        // Try to get time from TimeTracker first
+        session = readAlongTimeTracker.endActivity("readalong")
+        secondsSpent = session?.durationSeconds ?: 0
+
+        // If TimeTracker didn't have the session, use fallback calculation
         if (secondsSpent <= 0L) {
             secondsSpent = getStoredReadAlongDurationSeconds()
+            Log.d(TAG, "TimeTracker session not found, using fallback calculation: ${secondsSpent}s")
         }
 
         Log.d(TAG, "Google Read Along session ended. Time spent: ${secondsSpent}s (required: ${MIN_READ_ALONG_DURATION_SECONDS}s)")
@@ -622,6 +629,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             sectionId = sectionId
         )
         readAlongHasBeenPaused = readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
+        
+        // Reinitialize TimeTracker if it was lost (e.g., if MainActivity was destroyed and recreated)
+        if (!::readAlongTimeTracker.isInitialized) {
+            readAlongTimeTracker = TimeTracker(this)
+            Log.d(TAG, "Reinitialized readAlongTimeTracker when restoring ReadAlong state")
+        }
     }
 
     private fun clearPendingReadAlongState() {
@@ -637,22 +650,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun getStoredReadAlongDurationSeconds(): Long {
         val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
         if (startTimeMs <= 0L) {
+            Log.w(TAG, "No stored start time found for ReadAlong")
             return 0
         }
-        val elapsedMs = System.currentTimeMillis() - startTimeMs
-        return if (elapsedMs > 0) elapsedMs / 1000 else 0
+        val currentTimeMs = System.currentTimeMillis()
+        val elapsedMs = currentTimeMs - startTimeMs
+        val seconds = if (elapsedMs > 0) elapsedMs / 1000 else 0
+        Log.d(TAG, "Calculated ReadAlong duration from stored time: start=${startTimeMs}, current=${currentTimeMs}, elapsed=${elapsedMs}ms, seconds=${seconds}s")
+        return seconds
     }
     
     override fun onPause() {
         super.onPause()
         if (hasPendingReadAlongSession()) {
             readAlongHasBeenPaused = true
-            readAlongStartTime = android.os.SystemClock.elapsedRealtime()
             readAlongPrefs.edit().putBoolean(KEY_READ_ALONG_HAS_PAUSED, true).apply()
-            if (readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L) <= 0L) {
-                readAlongPrefs.edit().putLong(KEY_READ_ALONG_START_TIME, System.currentTimeMillis()).apply()
+            // Only set start time if it's not already set (don't overwrite existing start time)
+            val existingStartTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
+            if (existingStartTime <= 0L) {
+                val startTime = System.currentTimeMillis()
+                readAlongPrefs.edit().putLong(KEY_READ_ALONG_START_TIME, startTime).apply()
+                Log.d(TAG, "MainActivity paused - Read Along is now active, set start time: $startTime")
+            } else {
+                Log.d(TAG, "MainActivity paused - Read Along is now active, start time already set: $existingStartTime")
             }
-            Log.d(TAG, "MainActivity paused - Read Along is now active")
         }
     }
 

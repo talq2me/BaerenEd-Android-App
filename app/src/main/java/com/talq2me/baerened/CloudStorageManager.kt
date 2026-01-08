@@ -363,9 +363,22 @@ class CloudStorageManager(private val context: Context) {
             val profile = SettingsManager.readProfile(context) ?: "AM"
             val cloudProfile = profile // Profile is already in AM/BM format in BaerenEd
             
-            // Update banked_mins in user_data table
+            // Generate timestamp in the same format as collectLocalData (with milliseconds)
+            val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+            val now = java.util.Date()
+            val offsetMillis = estTimeZone.getOffset(now.time)
+            val offsetHours = offsetMillis / (1000 * 60 * 60)
+            val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
+            val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
+            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
+            dateFormat.timeZone = estTimeZone
+            val lastUpdated = dateFormat.format(now) + offsetString
+            
+            // Update banked_mins AND last_updated timestamp in user_data table
+            // This ensures the timestamp reflects when reward time was last changed
             val updateMap = mapOf(
-                "banked_mins" to minutes
+                "banked_mins" to minutes,
+                "last_updated" to lastUpdated
             )
             
             val json = gson.toJson(updateMap)
@@ -385,7 +398,7 @@ class CloudStorageManager(private val context: Context) {
             val patchResponse = client.newCall(patchRequest).execute()
             if (patchResponse.isSuccessful) {
                 patchResponse.close()
-                Log.d(TAG, "Successfully synced banked minutes to cloud for profile: $cloudProfile, minutes: $minutes")
+                Log.d(TAG, "Successfully synced banked minutes to cloud for profile: $cloudProfile, minutes: $minutes, timestamp: $lastUpdated")
                 Result.success(Unit)
             } else {
                 val errorBody = patchResponse.body?.string() ?: "Unknown error"
@@ -1311,10 +1324,49 @@ class CloudStorageManager(private val context: Context) {
             // Apply other progress metrics (all profile-specific)
             val bankedMinsKey = "${localProfile}_banked_reward_minutes"
             val possibleStarsKey = "${localProfile}_total_possible_stars"
+            
+            // CRITICAL SAFEGUARD: Only apply cloud banked_mins if:
+            // 1. Local is 0 (fresh install/reset), OR
+            // 2. Cloud value is less than or equal to local (prevents giving free reward time)
+            // This respects timestamp logic but prevents cloud from overwriting local 0 with stale cloud data
+            val currentLocalBankedMins = progressPrefs.getInt(bankedMinsKey, 0)
+            val bankedMinsToApply = when {
+                currentLocalBankedMins == 0 -> {
+                    // Local is 0, safe to apply cloud value (fresh install or reset)
+                    // This respects the timestamp logic - if cloud is newer and we're downloading, apply it
+                    Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) because local is 0 (fresh install/reset)")
+                    data.bankedMins
+                }
+                data.bankedMins <= currentLocalBankedMins -> {
+                    // Cloud value is less than or equal to local - safe to apply (won't give free time)
+                    Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) because it's <= local ($currentLocalBankedMins)")
+                    data.bankedMins
+                }
+                else -> {
+                    // Cloud has MORE than local - this could be stale data giving free reward time
+                    // Keep local value to prevent free reward time
+                    Log.w(TAG, "NOT applying cloud banked_mins ($data.bankedMins) because it's > local ($currentLocalBankedMins). Keeping local value to prevent free reward time.")
+                    currentLocalBankedMins
+                }
+            }
+            
             progressPrefs.edit()
                 .putInt(possibleStarsKey, data.possibleStars)
-                .putInt(bankedMinsKey, data.bankedMins)
+                .putInt(bankedMinsKey, bankedMinsToApply)
                 .apply()
+            
+            // If we kept local value and it differs from cloud, sync local to cloud to fix cloud
+            if (bankedMinsToApply != data.bankedMins) {
+                Log.d(TAG, "Local banked_mins ($bankedMinsToApply) differs from cloud ($data.bankedMins), will sync local to cloud to correct cloud data")
+                // Sync local value to cloud to fix stale cloud data
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    try {
+                        syncBankedMinutesToCloud(bankedMinsToApply)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error syncing corrected banked_mins to cloud", e)
+                    }
+                }
+            }
 
             // Apply berries earned (store in pokemonBattleHub preferences where UI expects it, profile-specific)
             try {

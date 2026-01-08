@@ -79,11 +79,42 @@ class ContentUpdateService : Service() {
 
     fun getCachedMainContent(context: Context): String? {
         return try {
-            // First try to read from the same location fetchMainContent saves to (cacheDir with profile-specific filename)
             val url = getContentUrlForChild(context)
             val cacheFileName = url.substring(url.lastIndexOf('/') + 1) // e.g., "AM_config.json"
             val cacheFile = File(context.cacheDir, cacheFileName)
             
+            // CRITICAL: Try GitHub first, then fall back to cache
+            // This ensures we always get the latest config from GitHub
+            try {
+                val request = Request.Builder().url(url).build()
+                // Use a short timeout for quick response (5 seconds)
+                val quickClient = OkHttpClient.Builder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .build()
+                
+                val response = quickClient.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    if (body != null) {
+                        Log.d(TAG, "getCachedMainContent: Successfully fetched from GitHub (length=${body.length})")
+                        // Update cache for next time
+                        try {
+                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
+                            Log.d(TAG, "getCachedMainContent: Updated cache with latest from GitHub")
+                        } catch (e: IOException) {
+                            Log.e(TAG, "getCachedMainContent: Error updating cache", e)
+                        }
+                        return body
+                    }
+                }
+                Log.w(TAG, "getCachedMainContent: GitHub fetch failed with code: ${response.code}, falling back to cache")
+                response.close()
+            } catch (e: Exception) {
+                Log.w(TAG, "getCachedMainContent: Network error fetching from GitHub: ${e.message}, falling back to cache")
+            }
+            
+            // GitHub fetch failed or timed out, try cache
             if (cacheFile.exists()) {
                 val content = cacheFile.readText()
                 Log.d(TAG, "getCachedMainContent: Found content in cacheDir: ${cacheFile.name} (length=${content.length})")

@@ -972,17 +972,33 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Sets the banked reward minutes for the current profile and syncs to cloud
+     * Includes validation to prevent suspicious values
      */
     fun setBankedRewardMinutes(minutes: Int) {
+        // Validate: reward minutes should be non-negative and reasonable (max 1000 minutes = ~16 hours)
+        val validatedMinutes = when {
+            minutes < 0 -> {
+                Log.w("DailyProgressManager", "Attempted to set negative reward minutes ($minutes), setting to 0")
+                0
+            }
+            minutes > 1000 -> {
+                Log.w("DailyProgressManager", "Attempted to set suspiciously high reward minutes ($minutes), capping at 1000")
+                1000
+            }
+            else -> minutes
+        }
+        
         val profile = getCurrentKid()
         val key = "${profile}_banked_reward_minutes"
         prefs.edit()
             .remove(key) // Explicitly remove to avoid type conflicts
-            .putInt(key, minutes)
+            .putInt(key, validatedMinutes)
             .apply()
         
+        Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile")
+        
         // Sync to cloud immediately
-        syncBankedMinutesToCloud(minutes)
+        syncBankedMinutesToCloud(validatedMinutes)
     }
     
     /**
