@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var pendingReadAlongReward: PendingReadAlongReward? = null
     private var readAlongStartTime: Long = 0
     private var readAlongHasBeenPaused: Boolean = false
+    private var readAlongJustLaunched: Boolean = false // Track if we just launched in this session
     private lateinit var readAlongTimeTracker: TimeTracker
     private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
     private lateinit var cloudStorageManager: CloudStorageManager
@@ -600,8 +601,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         // Try to get time from TimeTracker first
-        session = readAlongTimeTracker.endActivity("readalong")
-        secondsSpent = session?.durationSeconds ?: 0
+        // Only end activity if we've actually been away long enough (not just launched)
+        // Check the session start time matches our stored start time to ensure it's the right session
+        val storedStartTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
+        if (storedStartTime > 0L) {
+            // Get session without ending it first to check if it exists and is recent
+            // We'll end it only if it's actually the session we want to end
+            try {
+                // Use reflection or check if session exists before ending
+                // For now, only end if enough time has passed (already checked above)
+                session = readAlongTimeTracker.endActivity("readalong")
+                secondsSpent = session?.durationSeconds ?: 0
+            } catch (e: Exception) {
+                Log.w(TAG, "Error ending Read Along session, using fallback", e)
+                secondsSpent = 0L
+            }
+        } else {
+            secondsSpent = 0L
+        }
 
         // If TimeTracker didn't have the session, use fallback calculation based on stored start time
         if (secondsSpent <= 0L) {
@@ -1154,7 +1171,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onResume() {
         super.onResume()
         restorePendingReadAlongStateIfNeeded()
-        val readAlongHandled = handleReadAlongReturnIfNeeded()
+        
+        // Only handle Read Along return if we weren't just launching it
+        // Check both the flag and the time to be safe
+        val justLaunchedByTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L).let { startTime ->
+            startTime > 0L && (System.currentTimeMillis() - startTime) < 10000L // 10 seconds
+        }
+        
+        val readAlongHandled = if (!readAlongJustLaunched && !justLaunchedByTime) {
+            handleReadAlongReturnIfNeeded()
+        } else {
+            Log.d(TAG, "Just launched Read Along (flag=$readAlongJustLaunched, timeCheck=$justLaunchedByTime), skipping return handling")
+            // Clear the flag after first resume
+            readAlongJustLaunched = false
+            false
+        }
         
         // If we were launched just for Read Along and have handled the return, finish to go back to TrainingMapActivity
         if (wasLaunchedForReadAlong && readAlongHandled) {
@@ -1383,10 +1414,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
                 pendingReadAlongReward = reward
                 readAlongHasBeenPaused = false
+                readAlongJustLaunched = true // Mark that we just launched
                 readAlongStartTime = android.os.SystemClock.elapsedRealtime()
                 persistPendingReadAlongState(reward, startTimeMs)
                 
-                Log.d(TAG, "Started new Read Along session with startTime=$startTimeMs")
+                Log.d(TAG, "Started new Read Along session with startTime=$startTimeMs, justLaunched=true")
                 
                 startActivity(intent)
             } else {

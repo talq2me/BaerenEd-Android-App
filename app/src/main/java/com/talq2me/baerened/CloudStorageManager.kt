@@ -1436,9 +1436,10 @@ class CloudStorageManager(private val context: Context) {
             
             val (bankedMinsToApply, shouldSyncLocalToCloud) = when {
                 localBankedMinsTimestamp.isNullOrEmpty() && currentLocalBankedMins == 0 -> {
-                    // No local timestamp and local is 0 - fresh install/reset, apply cloud value
-                    Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) - no local timestamp, local is 0 (fresh install/reset)")
-                    Pair(data.bankedMins, false)
+                    // No local timestamp and local is 0 - fresh install/reset
+                    // On fresh install, default to 0 to prevent stale cloud data from being applied
+                    Log.d(TAG, "Fresh install detected - setting banked_mins to 0 (cloud had ${data.bankedMins}, but ignoring on fresh install)")
+                    Pair(0, true) // Sync 0 to cloud to clear any stale data
                 }
                 cloudTimestamp.isNullOrEmpty() -> {
                     // No cloud timestamp - keep local value and sync to cloud
