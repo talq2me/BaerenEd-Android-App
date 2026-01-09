@@ -116,7 +116,11 @@ class CloudStorageManager(private val context: Context) {
         @SerializedName("status") val status: String = "incomplete", // "complete" or "incomplete"
         @SerializedName("correct") val correct: Int? = null,
         @SerializedName("incorrect") val incorrect: Int? = null,
-        @SerializedName("questions") val questions: Int? = null
+        @SerializedName("questions") val questions: Int? = null,
+        @SerializedName("showdays") val showdays: String? = null, // Visibility: show on these days
+        @SerializedName("hidedays") val hidedays: String? = null, // Visibility: hide on these days
+        @SerializedName("displayDays") val displayDays: String? = null, // Visibility: display only on these days
+        @SerializedName("disable") val disable: String? = null // Visibility: disable before this date
     )
 
     /**
@@ -127,7 +131,11 @@ class CloudStorageManager(private val context: Context) {
         @SerializedName("times_completed") val timesCompleted: Int = 0,
         @SerializedName("correct") val correct: Int? = null,
         @SerializedName("incorrect") val incorrect: Int? = null,
-        @SerializedName("questions_answered") val questionsAnswered: Int? = null
+        @SerializedName("questions_answered") val questionsAnswered: Int? = null,
+        @SerializedName("showdays") val showdays: String? = null, // Visibility: show on these days
+        @SerializedName("hidedays") val hidedays: String? = null, // Visibility: hide on these days
+        @SerializedName("displayDays") val displayDays: String? = null, // Visibility: display only on these days
+        @SerializedName("disable") val disable: String? = null // Visibility: disable before this date
     )
 
     /**
@@ -776,7 +784,11 @@ class CloudStorageManager(private val context: Context) {
                     status = status,
                     correct = correct,
                     incorrect = incorrect,
-                    questions = questions
+                    questions = questions,
+                    showdays = task.showdays,
+                    hidedays = task.hidedays,
+                    displayDays = task.displayDays,
+                    disable = task.disable
                 )
             }
 
@@ -790,32 +802,30 @@ class CloudStorageManager(private val context: Context) {
 
     /**
      * Collects practice tasks data from local storage, ensuring all config tasks are included
+     * Only includes tasks from the "optional" section, not "bonus" section
      */
     private fun collectPracticeTasksData(): Map<String, PracticeProgress> {
         val practiceTasks = mutableMapOf<String, PracticeProgress>()
 
         try {
-            // Get all tasks from optional and bonus sections for practice tasks
+            // Get only tasks from optional section for practice tasks (bonus tasks are not tracked)
             val optionalTasks = getConfigTasksForSection("optional")
-            val bonusTasks = getConfigTasksForSection("bonus")
-            val allPracticeTasks = optionalTasks + bonusTasks
 
             // Get time tracking sessions to calculate performance data
             val timeTracker = TimeTracker(context)
             val allSessions = timeTracker.getTodaySessionsList()
 
             // For each task in config, create PracticeProgress with real data
-            allPracticeTasks.forEach { task ->
+            optionalTasks.forEach { task ->
                 val taskName = task.title ?: "Unknown Task"
                 val baseTaskId = task.launch ?: taskName.lowercase().replace(" ", "_")
 
-                // For optional/bonus tasks, sessions use unique task IDs with section prefix
+                // For optional tasks, sessions use unique task IDs with section prefix
                 val optionalTaskId = "optional_$baseTaskId"
-                val bonusTaskId = "bonus_$baseTaskId"
 
                 // Find all sessions for this task (could be completed multiple times)
                 val matchingSessions = allSessions.filter { session ->
-                    session.activityId == optionalTaskId || session.activityId == bonusTaskId
+                    session.activityId == optionalTaskId
                 }
 
                 val timesCompleted = matchingSessions.count { it.completed }
@@ -863,11 +873,15 @@ class CloudStorageManager(private val context: Context) {
                     timesCompleted = timesCompleted,
                     correct = correct,
                     incorrect = incorrect,
-                    questionsAnswered = questionsAnswered
+                    questionsAnswered = questionsAnswered,
+                    showdays = task.showdays,
+                    hidedays = task.hidedays,
+                    displayDays = task.displayDays,
+                    disable = task.disable
                 )
             }
 
-            Log.d(TAG, "Collected ${practiceTasks.size} practice tasks from config (${allPracticeTasks.size} total in config)")
+            Log.d(TAG, "Collected ${practiceTasks.size} practice tasks from optional section (${optionalTasks.size} total optional tasks in config)")
         } catch (e: Exception) {
             Log.e(TAG, "Error collecting practice tasks data", e)
         }

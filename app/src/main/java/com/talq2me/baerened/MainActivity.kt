@@ -66,8 +66,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
     private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
+    private val boukiliPrefs by lazy { getSharedPreferences(BOUKILI_PREFS_NAME, Context.MODE_PRIVATE) }
     private lateinit var cloudStorageManager: CloudStorageManager
     private var wasLaunchedForReadAlong: Boolean = false // Track if we were launched just for Read Along
+    private var wasLaunchedForBoukili: Boolean = false // Track if we were launched just for Boukili
 
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
@@ -124,6 +126,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             // Launch Google Read Along directly without loading UI
             launchGoogleReadAlong(task, sectionId)
             // Don't load main content since we're launching Google Read Along
+            finish()
+            return
+        }
+        
+        if (launchTask == "boukili") {
+            wasLaunchedForBoukili = true
+            val taskTitle = intent.getStringExtra("taskTitle") ?: "Boukili"
+            val sectionId = intent.getStringExtra("sectionId")
+            val taskStars = intent.getIntExtra("taskStars", 0)
+            // Create a Task object from the intent extras
+            val task = Task(
+                title = taskTitle,
+                launch = "boukili",
+                stars = taskStars
+            )
+            // Launch Boukili directly without loading UI
+            launchBoukili(task, sectionId)
+            // Don't load main content since we're launching Boukili
             finish()
             return
         }
@@ -628,6 +648,98 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     /**
+     * Simple Boukili completion check.
+     * When BaerenEd comes back to foreground, check if enough time has passed since launch.
+     */
+    private fun checkBoukiliCompletion() {
+        val startTimeMs = boukiliPrefs.getLong(KEY_BOUKILI_START_TIME, -1L)
+        if (startTimeMs <= 0L) {
+            // No pending Boukili session
+            return
+        }
+        
+        val taskId = boukiliPrefs.getString(KEY_BOUKILI_TASK_ID, null) ?: return
+        val taskTitle = boukiliPrefs.getString(KEY_BOUKILI_TASK_TITLE, taskId) ?: taskId
+        val stars = boukiliPrefs.getInt(KEY_BOUKILI_STARS, 0)
+        val sectionId = boukiliPrefs.getString(KEY_BOUKILI_SECTION_ID, null)?.takeIf { it.isNotBlank() }
+        
+        val now = System.currentTimeMillis()
+        val timeElapsedMs = now - startTimeMs
+        val timeElapsedSeconds = timeElapsedMs / 1000
+        val MIN_BOUKILI_DURATION_SECONDS = 30L
+        
+        Log.d(TAG, "Checking Boukili completion: elapsed=${timeElapsedSeconds}s, required=${MIN_BOUKILI_DURATION_SECONDS}s")
+        
+        // Only check if we've been away for at least a few seconds (to avoid checking immediately after launch)
+        if (timeElapsedMs < 2000L) {
+            Log.d(TAG, "Just launched Boukili (< 2s ago), skipping check")
+            return
+        }
+        
+        if (timeElapsedSeconds >= MIN_BOUKILI_DURATION_SECONDS) {
+            // Enough time has passed - mark as complete
+            Log.d(TAG, "✅ Boukili completed! Time spent: ${timeElapsedSeconds}s")
+            
+            // Find the task in current content and mark it complete
+            val currentContent = getCurrentMainContent()
+            if (currentContent != null) {
+                var foundTask: Task? = null
+                var foundSectionId: String? = null
+                
+                currentContent.sections?.forEach { section ->
+                    section.tasks?.forEach { task ->
+                        if (task.launch == "boukili" || task.launch == taskId) {
+                            foundTask = task
+                            foundSectionId = section.id
+                            return@forEach
+                        }
+                    }
+                    if (foundTask != null) {
+                        return@forEach
+                    }
+                }
+                
+                if (foundTask != null) {
+                    layout.handleManualTaskCompletion(
+                        taskId = foundTask!!.launch ?: taskId,
+                        taskTitle = foundTask!!.title ?: taskTitle,
+                        stars = foundTask!!.stars ?: stars,
+                        sectionId = foundSectionId ?: sectionId,
+                        completionMessage = "📚 Boukili completed! Great job reading!"
+                    )
+                    layout.refreshSections()
+                    Toast.makeText(
+                        this,
+                        "Great reading! You spent ${timeElapsedSeconds}s in Boukili.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Log.w(TAG, "Boukili task not found in current content")
+                }
+            } else {
+                Log.w(TAG, "No current content available for Boukili completion")
+            }
+            
+            // Clear the start time
+            boukiliPrefs.edit().remove(KEY_BOUKILI_START_TIME)
+                .remove(KEY_BOUKILI_TASK_ID)
+                .remove(KEY_BOUKILI_TASK_TITLE)
+                .remove(KEY_BOUKILI_STARS)
+                .remove(KEY_BOUKILI_SECTION_ID)
+                .apply()
+        } else {
+            // Not enough time - show message but keep the start time (they can try again)
+            val remainingSeconds = MIN_BOUKILI_DURATION_SECONDS - timeElapsedSeconds
+            Toast.makeText(
+                this,
+                "Stay in Boukili for at least ${MIN_BOUKILI_DURATION_SECONDS}s to earn rewards (only ${timeElapsedSeconds}s). Need ${remainingSeconds}s more.",
+                Toast.LENGTH_LONG
+            ).show()
+            Log.d(TAG, "⚠️ Boukili not completed yet: ${timeElapsedSeconds}s < ${MIN_BOUKILI_DURATION_SECONDS}s")
+        }
+    }
+
+    /**
      * Handles Google Read Along completion notification from BaerenLock.
      * Marks the task as complete if it's found in the current content.
      */
@@ -1006,6 +1118,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Simple Google Read Along completion check
         checkGoogleReadAlongCompletion()
         
+        // Simple Boukili completion check
+        checkBoukiliCompletion()
+        
         // If we were launched just for Read Along and have handled the return, finish to go back to TrainingMapActivity
         if (wasLaunchedForReadAlong) {
             // Check if we just completed it
@@ -1013,6 +1128,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (startTime <= 0L) {
                 // No pending Read Along, we can finish
                 Log.d(TAG, "Read Along completed or cancelled, finishing MainActivity to return to TrainingMapActivity")
+                finish()
+                return
+            }
+            // Still pending, don't load content yet
+            return
+        }
+        
+        // If we were launched just for Boukili and have handled the return, finish to go back to TrainingMapActivity
+        if (wasLaunchedForBoukili) {
+            // Check if we just completed it
+            val startTime = boukiliPrefs.getLong(KEY_BOUKILI_START_TIME, -1L)
+            if (startTime <= 0L) {
+                // No pending Boukili, we can finish
+                Log.d(TAG, "Boukili completed or cancelled, finishing MainActivity to return to TrainingMapActivity")
                 finish()
                 return
             }
@@ -1230,6 +1359,48 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 .remove(KEY_READ_ALONG_TASK_TITLE)
                 .remove(KEY_READ_ALONG_STARS)
                 .remove(KEY_READ_ALONG_SECTION_ID)
+                .apply()
+        }
+    }
+
+    fun launchBoukili(task: Task, sectionId: String?) {
+        android.util.Log.d(TAG, "Launching Boukili for task: ${task.title}")
+        try {
+            val intent = packageManager.getLaunchIntentForPackage("ca.boukili.app")
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                
+                // Simple approach: Just save the start timestamp and task info
+                val taskId = task.launch ?: "boukili"
+                val taskTitle = task.title ?: "Boukili"
+                val stars = task.stars ?: 0
+                val startTimeMs = System.currentTimeMillis()
+                
+                // Save to SharedPreferences
+                boukiliPrefs.edit()
+                    .putString(KEY_BOUKILI_TASK_ID, taskId)
+                    .putString(KEY_BOUKILI_TASK_TITLE, taskTitle)
+                    .putInt(KEY_BOUKILI_STARS, stars)
+                    .putString(KEY_BOUKILI_SECTION_ID, sectionId ?: "")
+                    .putLong(KEY_BOUKILI_START_TIME, startTimeMs)
+                    .apply()
+                
+                Log.d(TAG, "Saved Boukili start time: $startTimeMs for task: $taskTitle")
+                
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Boukili app is not installed", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error launching Boukili", e)
+            Toast.makeText(this, "Error launching Boukili: ${e.message}", Toast.LENGTH_SHORT).show()
+            // Clear the start time on error
+            boukiliPrefs.edit()
+                .remove(KEY_BOUKILI_START_TIME)
+                .remove(KEY_BOUKILI_TASK_ID)
+                .remove(KEY_BOUKILI_TASK_TITLE)
+                .remove(KEY_BOUKILI_STARS)
+                .remove(KEY_BOUKILI_SECTION_ID)
                 .apply()
         }
     }
@@ -1776,6 +1947,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         private const val KEY_READ_ALONG_SECTION_ID = "read_along_section_id"
         private const val KEY_READ_ALONG_START_TIME = "read_along_start_time"
         private const val KEY_READ_ALONG_HAS_PAUSED = "read_along_has_paused"
+        private const val BOUKILI_PREFS_NAME = "boukili_session"
+        private const val KEY_BOUKILI_TASK_ID = "boukili_task_id"
+        private const val KEY_BOUKILI_TASK_TITLE = "boukili_task_title"
+        private const val KEY_BOUKILI_STARS = "boukili_stars"
+        private const val KEY_BOUKILI_SECTION_ID = "boukili_section_id"
+        private const val KEY_BOUKILI_START_TIME = "boukili_start_time"
         
         // GitHub upload configuration
         // GitHub token is encrypted using AES-256-CBC and stored in BuildConfig

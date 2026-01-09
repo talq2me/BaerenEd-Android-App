@@ -718,6 +718,19 @@ class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
+        // Check for Boukili
+        if (task.launch == "boukili") {
+            // Launch MainActivity to handle Boukili (it has the launcher setup)
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("launchTask", gameType)
+                putExtra("taskTitle", gameTitle)
+                putExtra("sectionId", sectionId)
+                putExtra("taskStars", task.stars ?: 0)
+            }
+            startActivity(intent)
+            return
+        }
+        
         // Check for French Book Reader
         if (task.launch == "frenchBookReader") {
             val intent = Intent(this, FrenchBookReaderActivity::class.java)
@@ -1008,6 +1021,9 @@ class TrainingMapActivity : AppCompatActivity() {
         
         // Check for Google Read Along completion
         checkGoogleReadAlongCompletion()
+        
+        // Check for Boukili completion
+        checkBoukiliCompletion()
     }
     
     /**
@@ -1133,6 +1149,132 @@ class TrainingMapActivity : AppCompatActivity() {
                 android.widget.Toast.LENGTH_LONG
             ).show()
             android.util.Log.d("TrainingMapActivity", "⚠️ Google Read Along not completed yet: ${timeElapsedSeconds}s < ${MIN_READ_ALONG_DURATION_SECONDS}s")
+        }
+    }
+    
+    /**
+     * Checks if Boukili was completed when returning to this activity.
+     * Similar logic to MainActivity.checkBoukiliCompletion()
+     */
+    private fun checkBoukiliCompletion() {
+        val boukiliPrefs = getSharedPreferences("boukili_session", android.content.Context.MODE_PRIVATE)
+        val startTimeMs = boukiliPrefs.getLong("boukili_start_time", -1L)
+        
+        if (startTimeMs <= 0L) {
+            // No pending Boukili session
+            android.util.Log.d("TrainingMapActivity", "No pending Boukili session")
+            return
+        }
+        
+        val taskId = boukiliPrefs.getString("boukili_task_id", null) ?: return
+        val taskTitle = boukiliPrefs.getString("boukili_task_title", taskId) ?: taskId
+        val stars = boukiliPrefs.getInt("boukili_stars", 0)
+        val sectionId = boukiliPrefs.getString("boukili_section_id", null)?.takeIf { it.isNotBlank() }
+        
+        val now = System.currentTimeMillis()
+        val timeElapsedMs = now - startTimeMs
+        val timeElapsedSeconds = timeElapsedMs / 1000
+        val MIN_BOUKILI_DURATION_SECONDS = 30L
+        
+        android.util.Log.d("TrainingMapActivity", "Checking Boukili completion: elapsed=${timeElapsedSeconds}s, required=${MIN_BOUKILI_DURATION_SECONDS}s")
+        
+        // Only check if we've been away for at least a few seconds (to avoid checking immediately after launch)
+        if (timeElapsedMs < 2000L) {
+            android.util.Log.d("TrainingMapActivity", "Just launched Boukili (< 2s ago), skipping check")
+            return
+        }
+        
+        if (timeElapsedSeconds >= MIN_BOUKILI_DURATION_SECONDS) {
+            // Enough time has passed - mark as complete
+            android.util.Log.d("TrainingMapActivity", "✅ Boukili completed! Time spent: ${timeElapsedSeconds}s")
+            
+            // Find the task in current content and mark it complete
+            if (currentContent != null) {
+                var foundTask: Task? = null
+                var foundSectionId: String? = null
+                
+                currentContent!!.sections?.forEach { section ->
+                    section.tasks?.forEach { task ->
+                        if (task.launch == "boukili" || task.launch == taskId) {
+                            foundTask = task
+                            foundSectionId = section.id
+                            return@forEach
+                        }
+                    }
+                    if (foundTask != null) {
+                        return@forEach
+                    }
+                }
+                
+                if (foundTask != null) {
+                    val finalTaskId = foundTask!!.launch ?: taskId
+                    val finalTaskTitle = foundTask!!.title ?: taskTitle
+                    val finalStars = foundTask!!.stars ?: stars
+                    val finalSectionId = foundSectionId ?: sectionId ?: mapType
+                    
+                    // Mark task as completed
+                    val isRequiredTask = finalSectionId == "required"
+                    val earnedStars = progressManager.markTaskCompletedWithName(
+                        finalTaskId,
+                        finalTaskTitle,
+                        finalStars,
+                        isRequiredTask,
+                        currentContent,
+                        finalSectionId
+                    )
+                    
+                    // Add stars to reward bank
+                    if (earnedStars > 0) {
+                        progressManager.addStarsToRewardBank(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank from Boukili completion")
+                        
+                        // Add berries to battle hub if task is from required or optional section
+                        if (finalSectionId == "required" || finalSectionId == "optional") {
+                            progressManager.addEarnedBerries(earnedStars)
+                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Boukili completion")
+                        }
+                    }
+                    
+                    // Sync progress to cloud
+                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
+                    val cloudStorageManager = CloudStorageManager(this)
+                    lifecycleScope.launch {
+                        cloudStorageManager.saveIfEnabled(currentProfile)
+                    }
+                    
+                    // Refresh the map to show updated completion status
+                    mapContainer.removeAllViews()
+                    loadTasksIntoMap()
+                    
+                    android.widget.Toast.makeText(
+                        this,
+                        "Great reading! You spent ${timeElapsedSeconds}s in Boukili.",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    android.util.Log.w("TrainingMapActivity", "Boukili task not found in current content")
+                }
+            } else {
+                android.util.Log.w("TrainingMapActivity", "No current content available for Boukili completion")
+            }
+            
+            // Clear the start time
+            boukiliPrefs.edit()
+                .remove("boukili_start_time")
+                .remove("boukili_task_id")
+                .remove("boukili_task_title")
+                .remove("boukili_stars")
+                .remove("boukili_section_id")
+                .apply()
+        } else {
+            // Not enough time - show message but keep the start time (they can try again)
+            val remainingSeconds = MIN_BOUKILI_DURATION_SECONDS - timeElapsedSeconds
+            android.widget.Toast.makeText(
+                this,
+                "Stay in Boukili for at least ${MIN_BOUKILI_DURATION_SECONDS}s to earn rewards (only ${timeElapsedSeconds}s). Need ${remainingSeconds}s more.",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            android.util.Log.d("TrainingMapActivity", "⚠️ Boukili not completed yet: ${timeElapsedSeconds}s < ${MIN_BOUKILI_DURATION_SECONDS}s")
         }
     }
     

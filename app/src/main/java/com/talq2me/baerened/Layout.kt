@@ -1054,6 +1054,10 @@ class Layout(private val activity: MainActivity) {
                 android.util.Log.d("Layout", "Launching Google Read Along from battle hub")
                 activity.launchGoogleReadAlong(task, sectionId)
             }
+            else if (task.launch == "boukili") {
+                android.util.Log.d("Layout", "Launching Boukili from battle hub")
+                activity.launchBoukili(task, sectionId)
+            }
             else if (task.launch == "frenchBookReader") {
                 android.util.Log.d("Layout", "Launching French Book Reader from battle hub")
                 val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
@@ -1611,6 +1615,9 @@ class Layout(private val activity: MainActivity) {
                     } else if (task.launch == "googleReadAlong") {
                         android.util.Log.d("Layout", "Launching Google Read Along with tracking")
                         activity.launchGoogleReadAlong(task, sectionId)
+                    } else if (task.launch == "boukili") {
+                        android.util.Log.d("Layout", "Launching Boukili with tracking")
+                        activity.launchBoukili(task, sectionId)
                     } else if (task.launch == "frenchBookReader") {
                         android.util.Log.d("Layout", "Launching French Book Reader")
                         val intent = Intent(activity, FrenchBookReaderActivity::class.java)
@@ -1879,6 +1886,10 @@ class Layout(private val activity: MainActivity) {
         else if (task.launch == "googleReadAlong") {
             android.util.Log.d("Layout", "Launching Google Read Along")
             activity.launchGoogleReadAlong(task, sectionId)
+        }
+        else if (task.launch == "boukili") {
+            android.util.Log.d("Layout", "Launching Boukili")
+            activity.launchBoukili(task, sectionId)
         }
         else if (task.launch == "frenchBookReader") {
             android.util.Log.d("Layout", "Launching French Book Reader")

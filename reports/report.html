@@ -335,6 +335,65 @@
             }
         }
 
+        // Checks if a task should be visible based on day restrictions and disable date
+        // This matches the logic in DailyProgressManager.isTaskVisible() and CloudStorageManager.isTaskVisible()
+        function isTaskVisible(showdays, hidedays, displayDays, disable) {
+            // Check disable date first - if current date is before disable date, hide the task
+            if (disable) {
+                try {
+                    // Parse date format like "Nov 24, 2025" or ISO format
+                    let disableDate;
+                    // Try parsing as "MMM dd, yyyy" format first
+                    const dateMatch = disable.match(/(\w{3})\s+(\d{1,2}),\s+(\d{4})/);
+                    if (dateMatch) {
+                        // Format: "Nov 24, 2025"
+                        const months = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+                                       jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11};
+                        const month = months[dateMatch[1].toLowerCase()];
+                        const day = parseInt(dateMatch[2]);
+                        const year = parseInt(dateMatch[3]);
+                        disableDate = new Date(year, month, day);
+                    } else {
+                        // Try parsing as ISO or other standard formats
+                        disableDate = new Date(disable);
+                    }
+                    
+                    if (disableDate && !isNaN(disableDate.getTime())) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        disableDate.setHours(0, 0, 0, 0);
+                        
+                        // If today is before the disable date, task is disabled (not visible)
+                        if (today < disableDate) {
+                            return false;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error parsing disable date:', disable, e);
+                }
+            }
+
+            const today = new Date().getDay();
+            const todayShort = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][today];
+
+            if (hidedays) {
+                if (hidedays.split(',').map(d => d.trim()).includes(todayShort)) {
+                    return false; // Hide if today is in hidedays
+                }
+            }
+
+            // Check displayDays first (if set, only show on those days)
+            if (displayDays) {
+                return displayDays.split(',').map(d => d.trim()).includes(todayShort); // Show only if today is in displayDays
+            }
+
+            if (showdays) {
+                return showdays.split(',').map(d => d.trim()).includes(todayShort); // Show only if today is in showdays
+            }
+
+            return true; // Visible by default if no restrictions
+        }
+
         // Display the report
         function displayReport(userData) {
             document.getElementById('loading').style.display = 'none';
@@ -350,12 +409,27 @@
             document.getElementById('reportDate').textContent = `Report Date: ${lastReset}`;
 
             // Parse JSONB data
-            const requiredTasks = userData.required_tasks || {};
-            const practiceTasks = userData.practice_tasks || {};
+            const allRequiredTasks = userData.required_tasks || {};
+            const allPracticeTasks = userData.practice_tasks || {};
             const berriesEarned = userData.berries_earned || 0;
             const possibleStars = userData.possible_stars || 0;
 
-            // Calculate completion metrics
+            // Filter tasks by visibility - only show tasks visible today
+            const requiredTasks = {};
+            for (const [taskName, task] of Object.entries(allRequiredTasks)) {
+                if (isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)) {
+                    requiredTasks[taskName] = task;
+                }
+            }
+
+            const practiceTasks = {};
+            for (const [taskName, task] of Object.entries(allPracticeTasks)) {
+                if (isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)) {
+                    practiceTasks[taskName] = task;
+                }
+            }
+
+            // Calculate completion metrics using filtered tasks
             const requiredTaskKeys = Object.keys(requiredTasks);
             const completedRequired = requiredTaskKeys.filter(key => {
                 const task = requiredTasks[key];
