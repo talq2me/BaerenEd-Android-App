@@ -1425,48 +1425,76 @@ class CloudStorageManager(private val context: Context) {
 
             // Apply other progress metrics (all profile-specific)
             val bankedMinsKey = "${localProfile}_banked_reward_minutes"
+            val bankedMinsTimestampKey = "${localProfile}_banked_reward_minutes_timestamp"
             val possibleStarsKey = "${localProfile}_total_possible_stars"
             
-            // CRITICAL SAFEGUARD: Only apply cloud banked_mins if:
-            // 1. Local is 0 (fresh install/reset), OR
-            // 2. Cloud value is less than or equal to local (prevents giving free reward time)
-            // This respects timestamp logic but prevents cloud from overwriting local 0 with stale cloud data
+            // TIMESTAMP-BASED SYNC: Compare local banked_mins timestamp vs cloud last_updated timestamp
+            // Apply whichever is newer (most recent timestamp wins)
             val currentLocalBankedMins = progressPrefs.getInt(bankedMinsKey, 0)
-            val bankedMinsToApply = when {
-                currentLocalBankedMins == 0 -> {
-                    // Local is 0, safe to apply cloud value (fresh install or reset)
-                    // This respects the timestamp logic - if cloud is newer and we're downloading, apply it
-                    Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) because local is 0 (fresh install/reset)")
-                    data.bankedMins
+            val localBankedMinsTimestamp = progressPrefs.getString(bankedMinsTimestampKey, null)
+            val cloudTimestamp = data.lastUpdated
+            
+            val (bankedMinsToApply, shouldSyncLocalToCloud) = when {
+                localBankedMinsTimestamp.isNullOrEmpty() && currentLocalBankedMins == 0 -> {
+                    // No local timestamp and local is 0 - fresh install/reset, apply cloud value
+                    Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) - no local timestamp, local is 0 (fresh install/reset)")
+                    Pair(data.bankedMins, false)
                 }
-                data.bankedMins <= currentLocalBankedMins -> {
-                    // Cloud value is less than or equal to local - safe to apply (won't give free time)
-                    Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) because it's <= local ($currentLocalBankedMins)")
-                    data.bankedMins
+                cloudTimestamp.isNullOrEmpty() -> {
+                    // No cloud timestamp - keep local value and sync to cloud
+                    Log.d(TAG, "Keeping local banked_mins ($currentLocalBankedMins) - cloud has no timestamp")
+                    Pair(currentLocalBankedMins, true)
                 }
                 else -> {
-                    // Cloud has MORE than local - this could be stale data giving free reward time
-                    // Keep local value to prevent free reward time
-                    Log.w(TAG, "NOT applying cloud banked_mins ($data.bankedMins) because it's > local ($currentLocalBankedMins). Keeping local value to prevent free reward time.")
-                    currentLocalBankedMins
+                    // Both have timestamps - compare and use the newer one
+                    try {
+                        val localTime = if (!localBankedMinsTimestamp.isNullOrEmpty()) {
+                            parseTimestamp(localBankedMinsTimestamp)
+                        } else {
+                            // No local timestamp but local has value - treat as very old (0) to prefer cloud
+                            0L
+                        }
+                        val cloudTime = parseTimestamp(cloudTimestamp)
+                        
+                        if (cloudTime > localTime) {
+                            // Cloud is newer - apply cloud value
+                            Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) - cloud timestamp ($cloudTimestamp) is newer than local ($localBankedMinsTimestamp)")
+                            Pair(data.bankedMins, false)
+                        } else {
+                            // Local is newer or equal - keep local value and sync to cloud
+                            Log.d(TAG, "Keeping local banked_mins ($currentLocalBankedMins) - local timestamp ($localBankedMinsTimestamp) is newer than or equal to cloud ($cloudTimestamp)")
+                            Pair(currentLocalBankedMins, true)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error comparing timestamps for banked_mins, keeping local value", e)
+                        Pair(currentLocalBankedMins, true)
+                    }
                 }
             }
             
+            // Update local storage with the chosen value
             progressPrefs.edit()
                 .putInt(possibleStarsKey, data.possibleStars)
                 .putInt(bankedMinsKey, bankedMinsToApply)
                 .apply()
             
-            // If we kept local value and it differs from cloud, sync local to cloud to fix cloud
-            if (bankedMinsToApply != data.bankedMins) {
-                Log.d(TAG, "Local banked_mins ($bankedMinsToApply) differs from cloud ($data.bankedMins), will sync local to cloud to correct cloud data")
-                // Sync local value to cloud to fix stale cloud data
+            // If we kept local value and it differs from cloud, sync local to cloud
+            if (shouldSyncLocalToCloud && bankedMinsToApply != data.bankedMins) {
+                Log.d(TAG, "Local banked_mins ($bankedMinsToApply) differs from cloud ($data.bankedMins), syncing local to cloud")
                 kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                     try {
                         syncBankedMinutesToCloud(bankedMinsToApply)
                     } catch (e: Exception) {
-                        Log.e(TAG, "Error syncing corrected banked_mins to cloud", e)
+                        Log.e(TAG, "Error syncing local banked_mins to cloud", e)
                     }
+                }
+            } else if (bankedMinsToApply != currentLocalBankedMins) {
+                // We applied cloud value - update local timestamp to match cloud timestamp
+                if (!cloudTimestamp.isNullOrEmpty()) {
+                    progressPrefs.edit()
+                        .putString(bankedMinsTimestampKey, cloudTimestamp)
+                        .apply()
+                    Log.d(TAG, "Updated local banked_mins timestamp to match cloud: $cloudTimestamp")
                 }
             }
 

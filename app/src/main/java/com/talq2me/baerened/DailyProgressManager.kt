@@ -990,14 +990,28 @@ class DailyProgressManager(private val context: Context) {
         
         val profile = getCurrentKid()
         val key = "${profile}_banked_reward_minutes"
+        val timestampKey = "${profile}_banked_reward_minutes_timestamp"
+        
+        // Generate timestamp in ISO 8601 format with EST timezone (same format as cloud)
+        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+        val now = java.util.Date()
+        val offsetMillis = estTimeZone.getOffset(now.time)
+        val offsetHours = offsetMillis / (1000 * 60 * 60)
+        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
+        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
+        dateFormat.timeZone = estTimeZone
+        val timestamp = dateFormat.format(now) + offsetString
+        
         prefs.edit()
             .remove(key) // Explicitly remove to avoid type conflicts
             .putInt(key, validatedMinutes)
+            .putString(timestampKey, timestamp) // Store timestamp for this update
             .apply()
         
-        Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile")
+        Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile, timestamp: $timestamp")
         
-        // Sync to cloud immediately
+        // Sync to cloud immediately (this will also update cloud timestamp)
         syncBankedMinutesToCloud(validatedMinutes)
     }
     
