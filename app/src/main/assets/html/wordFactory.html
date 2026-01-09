@@ -95,7 +95,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            animation: moveConveyor 24s linear infinite; /* 1/2 speed - was 12s, now 24s */
+            animation: moveConveyor 8s linear infinite; /* Faster speed - was 24s, now 8s */
         }
         .letter-box:hover {
             transform: scale(1.2);
@@ -477,31 +477,23 @@
                 box.style.animationPlayState = 'running';
             });
             
-            // Create letter pool ensuring ALL word letters are included
-            // Start with all letters from the word (each letter appears at least once)
+            // Create letter pool using ONLY letters from the word (in random order)
             const wordLetters = currentWord.word.toLowerCase().split('');
             
-            // Get random extra letters (excluding letters already in the word to avoid duplicates)
-            const allLetters = 'abcdefghijklmnopqrstuvwxyz'.split('');
-            const wordLetterSet = new Set(wordLetters);
-            const availableExtra = allLetters.filter(letter => !wordLetterSet.has(letter));
-            const shuffledExtra = availableExtra.sort(() => 0.5 - Math.random());
-            
-            // Create pool: ALL word letters + extra letters, then shuffle
-            // Pool size should be at least word length + some extras, but minimum 8
-            const minPoolSize = Math.max(8, wordLetters.length + 5);
-            const extraCount = Math.max(5, minPoolSize - wordLetters.length);
-            const letterPool = [...wordLetters, ...shuffledExtra.slice(0, extraCount)];
-            
-            // Shuffle the pool so word letters are mixed with extra letters
+            // Shuffle the word letters to randomize their order on the conveyor belt
+            const letterPool = [...wordLetters];
             for (let i = letterPool.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [letterPool[i], letterPool[j]] = [letterPool[j], letterPool[i]];
             }
             
-            // Ensure pool is at least 8 letters (repeat if needed)
-            while (letterPool.length < 8) {
-                letterPool.push(...wordLetters, ...shuffledExtra.slice(0, 5));
+            // Extend the pool to ensure continuous flow (repeat word letters as needed)
+            // Make sure pool is long enough for continuous conveyor belt
+            const minPoolSize = Math.max(wordLetters.length * 2, 12);
+            while (letterPool.length < minPoolSize) {
+                // Add another shuffled copy of word letters
+                const shuffled = [...wordLetters].sort(() => 0.5 - Math.random());
+                letterPool.push(...shuffled);
             }
             
             let letterIndex = 0;
@@ -514,7 +506,7 @@
                 const letter = letterPool[letterIndex % letterPool.length];
                 createLetterBox(letter);
                 letterIndex++;
-            }, 3000); // 24s animation / 8 tiles = 3s per tile (1/2 speed)
+            }, 1000); // 8s animation / 8 tiles = 1s per tile (faster speed)
         }
 
         function stopConveyor() {
@@ -555,7 +547,7 @@
                     const index = letterBoxes.indexOf(box);
                     if (index > -1) letterBoxes.splice(index, 1);
                 }
-            }, 24000); // Match animation duration (24s)
+            }, 8000); // Match animation duration (8s)
         }
 
         function pickLetter(box, letter) {
