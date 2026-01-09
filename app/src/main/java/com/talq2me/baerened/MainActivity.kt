@@ -262,14 +262,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Register Google Read Along completion receiver (from BaerenLock)
         readAlongCompleteReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
+                Log.d(TAG, "📬 Broadcast received: action=${intent?.action}, package=${intent?.`package`}")
                 if (intent?.action == "com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE") {
                     val taskId = intent.getStringExtra("task_id") ?: "googleReadAlong"
                     val taskTitle = intent.getStringExtra("task_title") ?: "Google Read Along"
                     val durationSeconds = intent.getLongExtra("duration_seconds", 30L)
-                    Log.d(TAG, "Received Google Read Along completion from BaerenLock: task=$taskId, duration=${durationSeconds}s")
+                    Log.d(TAG, "✅ Received Google Read Along completion from BaerenLock: task=$taskId, title=$taskTitle, duration=${durationSeconds}s")
                     
                     // Handle completion - find the task and mark it complete
                     handleReadAlongCompletionFromBaerenLock(taskId, taskTitle)
+                } else {
+                    Log.d(TAG, "⚠️ Broadcast action mismatch: expected=com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE, got=${intent?.action}")
                 }
             }
         }
@@ -572,21 +575,25 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d(TAG, "Reinitialized readAlongTimeTracker for ReadAlong return check")
         }
 
-        // Check if we've actually been away long enough to treat this as a return
-        // If we just launched (within last 10 seconds), don't handle return yet
+        // Get the start time for this session
         val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
-        if (startTimeMs > 0L) {
-            val timeSinceStart = System.currentTimeMillis() - startTimeMs
-            val MIN_TIME_TO_TREAT_AS_RETURN_MS = 10 * 1000L // 10 seconds
-            
-            if (timeSinceStart < MIN_TIME_TO_TREAT_AS_RETURN_MS) {
-                // We just launched, don't treat this as a return yet
-                Log.d(TAG, "Just launched Google Read Along (${timeSinceStart/1000}s ago), not treating as return yet")
-                return false
-            }
+        if (startTimeMs <= 0L) {
+            Log.d(TAG, "No start time found for Read Along session, not treating as return")
+            return false
         }
-
-        // Check if we were actually paused (went to background) before treating as return
+        
+        val now = System.currentTimeMillis()
+        val timeSinceStart = now - startTimeMs
+        val MIN_TIME_TO_TREAT_AS_RETURN_MS = 30 * 1000L // Must be away for at least 30 seconds
+        
+        // Only treat as return if we've been away for at least the minimum duration
+        // This prevents ending tracking immediately after launch
+        if (timeSinceStart < MIN_TIME_TO_TREAT_AS_RETURN_MS) {
+            Log.d(TAG, "Not enough time has passed since Read Along launch (${timeSinceStart/1000}s < ${MIN_TIME_TO_TREAT_AS_RETURN_MS/1000}s), not treating as return yet")
+            return false
+        }
+        
+        // Also check if we were actually paused (went to background)
         if (!readAlongHasBeenPaused) {
             Log.d(TAG, "Google Read Along hasn't been paused yet, not treating as return")
             return false
@@ -1340,6 +1347,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 
+                // Clear any old pending state before starting a new session
+                // This prevents handleReadAlongReturnIfNeeded from ending an old session
+                val oldPendingReward = pendingReadAlongReward
+                if (oldPendingReward != null) {
+                    Log.d(TAG, "Clearing old pending Read Along state before launching new session")
+                    // End any old tracking session if it exists
+                    if (::readAlongTimeTracker.isInitialized) {
+                        try {
+                            readAlongTimeTracker.endActivity("readalong")
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Error ending old Read Along session", e)
+                        }
+                    }
+                    clearPendingReadAlongState()
+                }
+                
                 // Initialize time tracker
                 readAlongTimeTracker = TimeTracker(this)
                 
@@ -1350,6 +1373,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 
                 // Start tracking time
                 val taskTitle = task.title ?: "Google Read Along"
+                val startTimeMs = System.currentTimeMillis()
                 readAlongTimeTracker.startActivity(uniqueTaskId, "readalong", taskTitle)
                 val reward = PendingReadAlongReward(
                     taskId = taskId,
@@ -1360,7 +1384,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 pendingReadAlongReward = reward
                 readAlongHasBeenPaused = false
                 readAlongStartTime = android.os.SystemClock.elapsedRealtime()
-                persistPendingReadAlongState(reward, System.currentTimeMillis())
+                persistPendingReadAlongState(reward, startTimeMs)
+                
+                Log.d(TAG, "Started new Read Along session with startTime=$startTimeMs")
                 
                 startActivity(intent)
             } else {
