@@ -4,6 +4,8 @@ wordfactory is conveyorbelt only include letters in the word in random order so 
 battle victory screen should not be transparent.
 test wordfishing game again.
 
+make a 'complete all tasks' button that completes all tasks in the db and grants all berries/stars/time.
+
 je lis
 boukilli
 

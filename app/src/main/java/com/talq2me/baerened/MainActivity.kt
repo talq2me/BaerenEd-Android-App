@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
     private lateinit var downloadReceiver: BroadcastReceiver
+    private lateinit var readAlongCompleteReceiver: BroadcastReceiver
     private val downloadCheckHandler = Handler(Looper.getMainLooper())
     private var downloadCheckRunnable: Runnable? = null
     private var downloadProgressDialog: AlertDialog? = null
@@ -256,6 +257,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
         ContextCompat.registerReceiver(this, downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            ContextCompat.RECEIVER_NOT_EXPORTED)
+
+        // Register Google Read Along completion receiver (from BaerenLock)
+        readAlongCompleteReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == "com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE") {
+                    val taskId = intent.getStringExtra("task_id") ?: "googleReadAlong"
+                    val taskTitle = intent.getStringExtra("task_title") ?: "Google Read Along"
+                    val durationSeconds = intent.getLongExtra("duration_seconds", 30L)
+                    Log.d(TAG, "Received Google Read Along completion from BaerenLock: task=$taskId, duration=${durationSeconds}s")
+                    
+                    // Handle completion - find the task and mark it complete
+                    handleReadAlongCompletionFromBaerenLock(taskId, taskTitle)
+                }
+            }
+        }
+        ContextCompat.registerReceiver(this, readAlongCompleteReceiver, 
+            IntentFilter("com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE"),
             ContextCompat.RECEIVER_NOT_EXPORTED)
 
     }
@@ -553,6 +572,26 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.d(TAG, "Reinitialized readAlongTimeTracker for ReadAlong return check")
         }
 
+        // Check if we've actually been away long enough to treat this as a return
+        // If we just launched (within last 10 seconds), don't handle return yet
+        val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
+        if (startTimeMs > 0L) {
+            val timeSinceStart = System.currentTimeMillis() - startTimeMs
+            val MIN_TIME_TO_TREAT_AS_RETURN_MS = 10 * 1000L // 10 seconds
+            
+            if (timeSinceStart < MIN_TIME_TO_TREAT_AS_RETURN_MS) {
+                // We just launched, don't treat this as a return yet
+                Log.d(TAG, "Just launched Google Read Along (${timeSinceStart/1000}s ago), not treating as return yet")
+                return false
+            }
+        }
+
+        // Check if we were actually paused (went to background) before treating as return
+        if (!readAlongHasBeenPaused) {
+            Log.d(TAG, "Google Read Along hasn't been paused yet, not treating as return")
+            return false
+        }
+
         // Try to get time from TimeTracker first
         session = readAlongTimeTracker.endActivity("readalong")
         secondsSpent = session?.durationSeconds ?: 0
@@ -599,6 +638,70 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         clearPendingReadAlongState()
         return true // Indicate that we handled the Read Along return
+    }
+
+    /**
+     * Handles Google Read Along completion notification from BaerenLock.
+     * Marks the task as complete if it's found in the current content.
+     */
+    private fun handleReadAlongCompletionFromBaerenLock(taskId: String, taskTitle: String) {
+        try {
+            Log.d(TAG, "Handling Google Read Along completion from BaerenLock: taskId=$taskId, taskTitle=$taskTitle")
+            
+            // Get current content to find the task
+            val currentContent = getCurrentMainContent() ?: run {
+                Log.w(TAG, "No current content available for Read Along completion")
+                return
+            }
+            
+            // Find the Google Read Along task in the content
+            var foundTask: Task? = null
+            var foundSectionId: String? = null
+            
+            // Search through all sections to find the Google Read Along task
+            currentContent.sections?.forEach { section ->
+                section.tasks?.forEach { task ->
+                    if (task.launch == "googleReadAlong" || task.launch == taskId) {
+                        foundTask = task
+                        foundSectionId = section.id
+                        return@forEach
+                    }
+                }
+                if (foundTask != null) {
+                    return@forEach
+                }
+            }
+            
+            if (foundTask != null) {
+                val task = foundTask!!
+                val stars = task.stars ?: 0
+                
+                // Mark task as complete
+                layout.handleManualTaskCompletion(
+                    taskId = task.launch ?: taskId,
+                    taskTitle = task.title ?: taskTitle,
+                    stars = stars,
+                    sectionId = foundSectionId,
+                    completionMessage = "📚 Google Read Along completed! Great job reading!"
+                )
+                
+                // Refresh sections to update UI
+                layout.refreshSections()
+                
+                // Show toast notification
+                Toast.makeText(
+                    this,
+                    "Great reading! Google Read Along task completed!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                
+                Log.d(TAG, "Google Read Along task marked as complete: taskId=$taskId, foundSectionId=$foundSectionId, stars=$stars")
+            } else {
+                Log.w(TAG, "Google Read Along task not found in current content: taskId=$taskId")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error handling Read Along completion from BaerenLock", e)
+        }
     }
 
     private fun persistPendingReadAlongState(reward: PendingReadAlongReward, startTimeMs: Long) {
@@ -1785,6 +1888,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (::downloadReceiver.isInitialized) {
             try {
                 unregisterReceiver(downloadReceiver)
+            } catch (e: Exception) {
+                // Receiver may not be registered
+            }
+        }
+        if (::readAlongCompleteReceiver.isInitialized) {
+            try {
+                unregisterReceiver(readAlongCompleteReceiver)
             } catch (e: Exception) {
                 // Receiver may not be registered
             }
