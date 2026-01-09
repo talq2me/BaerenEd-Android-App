@@ -757,6 +757,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         )
         readAlongHasBeenPaused = readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
         
+        // Check if we just launched by checking the start time
+        val startTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
+        if (startTime > 0L && (System.currentTimeMillis() - startTime) < 10000L) {
+            readAlongJustLaunched = true
+            Log.d(TAG, "Restored Read Along state - detected recent launch, setting justLaunched=true")
+        }
+        
         // Reinitialize TimeTracker if it was lost (e.g., if MainActivity was destroyed and recreated)
         if (!::readAlongTimeTracker.isInitialized) {
             readAlongTimeTracker = TimeTracker(this)
@@ -1382,17 +1389,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // This prevents handleReadAlongReturnIfNeeded from ending an old session
                 val oldPendingReward = pendingReadAlongReward
                 if (oldPendingReward != null) {
-                    Log.d(TAG, "Clearing old pending Read Along state before launching new session")
-                    // End any old tracking session if it exists
+                    Log.d(TAG, "Clearing old pending Read Along state before launching new session (old session was: ${oldPendingReward.taskTitle})")
+                    // End any old tracking session if it exists (silently, this is just cleanup)
                     if (::readAlongTimeTracker.isInitialized) {
                         try {
-                            readAlongTimeTracker.endActivity("readalong")
+                            val oldSession = readAlongTimeTracker.endActivity("readalong")
+                            if (oldSession != null) {
+                                Log.d(TAG, "Cleaned up old Read Along session (duration: ${oldSession.durationSeconds}s) - this is expected when starting a new session")
+                            }
                         } catch (e: Exception) {
                             Log.w(TAG, "Error ending old Read Along session", e)
                         }
                     }
                     clearPendingReadAlongState()
                 }
+                
+                // Set flag BEFORE doing anything else to prevent onResume from handling return
+                readAlongJustLaunched = true
                 
                 // Initialize time tracker
                 readAlongTimeTracker = TimeTracker(this)
@@ -1414,7 +1427,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
                 pendingReadAlongReward = reward
                 readAlongHasBeenPaused = false
-                readAlongJustLaunched = true // Mark that we just launched
+                // readAlongJustLaunched already set above
                 readAlongStartTime = android.os.SystemClock.elapsedRealtime()
                 persistPendingReadAlongState(reward, startTimeMs)
                 
