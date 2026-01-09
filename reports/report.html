@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Progress Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header h2 {
+            font-size: 1.5em;
+            font-weight: normal;
+            margin-bottom: 10px;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: #f0f8ff;
+            margin: 8px 0;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-item.incomplete {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .task-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .task-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .achievement {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 20px;
+            color: #c62828;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status-complete {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-incomplete {
+            background: #ffccbc;
+            color: #d84315;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Daily Progress Report</h1>
+            <h2 id="childName">Loading...</h2>
+            <p id="reportDate">Loading date...</p>
+            <a href="index.html" class="back-button">← Back to Selection</a>
+        </div>
+
+        <div id="loading" class="loading">
+            <p>Loading report data...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="reportContent" style="display: none;">
+            <!-- Overall Progress -->
+            <div class="section">
+                <h3>🎯 Overall Progress</h3>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="completionRate">0%</div>
+                        <div class="metric-label">Completion Rate</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="starsEarned">0/0</div>
+                        <div class="metric-label">Stars Earned</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="berriesEarned">0</div>
+                        <div class="metric-label">Berries Earned</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="requiredIncomplete">0</div>
+                        <div class="metric-label">Required Tasks Incomplete</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+                </div>
+            </div>
+
+            <!-- Required Tasks -->
+            <div class="section">
+                <h3>✅ Required Tasks</h3>
+                <ul class="task-list" id="requiredTasks"></ul>
+            </div>
+
+            <!-- Practice Tasks -->
+            <div class="section">
+                <h3>🎯 Extra Practice Tasks</h3>
+                <ul class="task-list" id="practiceTasks"></ul>
+            </div>
+
+            <!-- Task Details Table -->
+            <div class="section">
+                <h3>📋 Task Details</h3>
+                <table id="taskDetailsTable">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Status</th>
+                            <th>Correct</th>
+                            <th>Incorrect</th>
+                            <th>Questions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskDetailsBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Achievements & Insights -->
+            <div class="section">
+                <h3>🏆 Achievements & Insights</h3>
+                <div id="achievements"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get kid from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const kid = urlParams.get('kid') || 'AM';
+
+        // Load Supabase configuration
+        const supabaseUrl = localStorage.getItem('supabaseUrl');
+        const supabaseKey = localStorage.getItem('supabaseKey');
+
+        // Check if configured
+        if (!supabaseUrl || !supabaseKey) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML = 
+                '<strong>Configuration Required:</strong> Please go back to the home page and configure your Supabase URL and API Key.';
+            document.getElementById('childName').textContent = kid;
+            return;
+        }
+
+        // Fetch data from Supabase
+        async function fetchReportData() {
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}&select=*`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data || data.length === 0) {
+                    throw new Error(`No data found for profile: ${kid}`);
+                }
+
+                const userData = data[0];
+                displayReport(userData);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('childName').textContent = kid;
+            }
+        }
+
+        // Display the report
+        function displayReport(userData) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('reportContent').style.display = 'block';
+            document.getElementById('childName').textContent = kid;
+
+            // Format date
+            const lastReset = userData.last_reset ? new Date(userData.last_reset).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }) : 'Today';
+            document.getElementById('reportDate').textContent = `Report Date: ${lastReset}`;
+
+            // Parse JSONB data
+            const requiredTasks = userData.required_tasks || {};
+            const practiceTasks = userData.practice_tasks || {};
+            const berriesEarned = userData.berries_earned || 0;
+            const possibleStars = userData.possible_stars || 0;
+
+            // Calculate completion metrics
+            const requiredTaskKeys = Object.keys(requiredTasks);
+            const completedRequired = requiredTaskKeys.filter(key => {
+                const task = requiredTasks[key];
+                return task && (task.status === 'complete' || task.completed === true);
+            }).length;
+            const totalRequired = requiredTaskKeys.length;
+            const completionRate = totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 0;
+            const incompleteRequired = totalRequired - completedRequired;
+
+            // Display metrics
+            document.getElementById('completionRate').textContent = `${completionRate}%`;
+            document.getElementById('starsEarned').textContent = `${completedRequired}/${possibleStars || totalRequired}`;
+            document.getElementById('berriesEarned').textContent = berriesEarned;
+            document.getElementById('requiredIncomplete').textContent = incompleteRequired;
+            document.getElementById('progressFill').style.width = `${completionRate}%`;
+            document.getElementById('progressFill').textContent = `${completionRate}%`;
+
+            // Display required tasks
+            const requiredTasksList = document.getElementById('requiredTasks');
+            requiredTasksList.innerHTML = '';
+            
+            if (requiredTaskKeys.length === 0) {
+                requiredTasksList.innerHTML = '<li class="task-item"><span class="task-name">No required tasks found</span></li>';
+            } else {
+                requiredTaskKeys.forEach(taskKey => {
+                    const task = requiredTasks[taskKey];
+                    const isComplete = task && (task.status === 'complete' || task.completed === true);
+                    const correct = task?.correct || 0;
+                    const incorrect = task?.incorrect || 0;
+                    const questions = task?.questions || 0;
+
+                    const li = document.createElement('li');
+                    li.className = `task-item ${isComplete ? '' : 'incomplete'}`;
+                    
+                    const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const answerInfo = questions > 0 ? `   ${correct} ✅   ${incorrect} ❌` : '';
+                    
+                    li.innerHTML = `
+                        <span class="task-name">${taskName} ${isComplete ? '✓' : ''}</span>
+                        <span class="task-info">${answerInfo}</span>
+                    `;
+                    requiredTasksList.appendChild(li);
+                });
+            }
+
+            // Display practice tasks
+            const practiceTasksList = document.getElementById('practiceTasks');
+            practiceTasksList.innerHTML = '';
+            
+            const practiceTaskKeys = Object.keys(practiceTasks);
+            if (practiceTaskKeys.length === 0) {
+                practiceTasksList.innerHTML = '<li class="task-item"><span class="task-name">No practice tasks found</span></li>';
+            } else {
+                practiceTaskKeys.forEach(taskKey => {
+                    const task = practiceTasks[taskKey];
+                    const timesCompleted = task?.times_completed || 0;
+                    const correct = task?.correct || 0;
+                    const incorrect = task?.incorrect || 0;
+                    const questionsAnswered = task?.questions_answered || 0;
+
+                    const li = document.createElement('li');
+                    li.className = 'task-item';
+                    
+                    const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const answerInfo = questionsAnswered > 0 ? `   ${correct} ✅   ${incorrect} ❌` : '';
+                    const timesInfo = timesCompleted > 0 ? ` (Completed ${timesCompleted} time${timesCompleted > 1 ? 's' : ''})` : '';
+                    
+                    li.innerHTML = `
+                        <span class="task-name">${taskName}${timesInfo}</span>
+                        <span class="task-info">${answerInfo}</span>
+                    `;
+                    practiceTasksList.appendChild(li);
+                });
+            }
+
+            // Display task details table
+            const taskDetailsBody = document.getElementById('taskDetailsBody');
+            taskDetailsBody.innerHTML = '';
+            
+            // Add required tasks to table
+            requiredTaskKeys.forEach(taskKey => {
+                const task = requiredTasks[taskKey];
+                const isComplete = task && (task.status === 'complete' || task.completed === true);
+                const correct = task?.correct || 0;
+                const incorrect = task?.incorrect || 0;
+                const questions = task?.questions || 0;
+                const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${taskName}</strong> (Required)</td>
+                    <td><span class="status-badge ${isComplete ? 'status-complete' : 'status-incomplete'}">${isComplete ? 'Complete' : 'Incomplete'}</span></td>
+                    <td>${correct}</td>
+                    <td>${incorrect}</td>
+                    <td>${questions}</td>
+                `;
+                taskDetailsBody.appendChild(tr);
+            });
+
+            // Add practice tasks to table
+            practiceTaskKeys.forEach(taskKey => {
+                const task = practiceTasks[taskKey];
+                const timesCompleted = task?.times_completed || 0;
+                const correct = task?.correct || 0;
+                const incorrect = task?.incorrect || 0;
+                const questionsAnswered = task?.questions_answered || 0;
+                const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${taskName}</strong> (Practice)</td>
+                    <td><span class="status-badge status-complete">Completed ${timesCompleted}x</span></td>
+                    <td>${correct}</td>
+                    <td>${incorrect}</td>
+                    <td>${questionsAnswered}</td>
+                `;
+                taskDetailsBody.appendChild(tr);
+            });
+
+            // Display achievements
+            const achievementsDiv = document.getElementById('achievements');
+            achievementsDiv.innerHTML = '';
+            
+            const achievements = [];
+            
+            if (completionRate >= 80) {
+                achievements.push('🌟 Excellent progress! Keep up the great work!');
+            } else if (completionRate >= 60) {
+                achievements.push('👍 Good progress! Almost there!');
+            } else if (completionRate >= 40) {
+                achievements.push('📈 Making progress! Try completing a few more tasks.');
+            } else {
+                achievements.push('💪 Every bit of progress counts! Keep trying!');
+            }
+
+            if (completedRequired === totalRequired && totalRequired > 0) {
+                achievements.push('🌟 All required tasks completed today!');
+            }
+
+            if (berriesEarned > 0) {
+                achievements.push(`🍓 Earned ${berriesEarned} berr${berriesEarned > 1 ? 'ies' : 'y'} today!`);
+            }
+
+            achievements.forEach(achievement => {
+                const div = document.createElement('div');
+                div.className = 'achievement';
+                div.textContent = achievement;
+                achievementsDiv.appendChild(div);
+            });
+        }
+
+        // Fetch data on page load
+        fetchReportData();
+    </script>
+</body>
+</html>
