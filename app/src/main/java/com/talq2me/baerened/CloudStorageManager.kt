@@ -363,16 +363,8 @@ class CloudStorageManager(private val context: Context) {
             val profile = SettingsManager.readProfile(context) ?: "AM"
             val cloudProfile = profile // Profile is already in AM/BM format in BaerenEd
             
-            // Generate timestamp in the same format as collectLocalData (with milliseconds)
-            val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-            val now = java.util.Date()
-            val offsetMillis = estTimeZone.getOffset(now.time)
-            val offsetHours = offsetMillis / (1000 * 60 * 60)
-            val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-            val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
-            dateFormat.timeZone = estTimeZone
-            val lastUpdated = dateFormat.format(now) + offsetString
+            // Generate timestamp in EST timezone (consistent with all local storage)
+            val lastUpdated = generateESTTimestamp()
             
             // Update banked_mins AND last_updated timestamp in user_data table
             // This ensures the timestamp reflects when reward time was last changed
@@ -533,6 +525,22 @@ class CloudStorageManager(private val context: Context) {
     }
 
     /**
+     * Generates a timestamp in ISO 8601 format with EST timezone.
+     * This ensures all local timestamps use EST, matching cloud timestamps.
+     */
+    private fun generateESTTimestamp(): String {
+        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+        val now = java.util.Date()
+        val offsetMillis = estTimeZone.getOffset(now.time)
+        val offsetHours = offsetMillis / (1000 * 60 * 60)
+        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
+        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
+        dateFormat.timeZone = estTimeZone
+        return dateFormat.format(now) + offsetString
+    }
+    
+    /**
      * Converts ISO timestamp string to local display format
      */
     private fun formatTimestampForDisplay(isoTimestamp: String?): String {
@@ -667,16 +675,8 @@ class CloudStorageManager(private val context: Context) {
         val whiteListedApps = collectAppListFromBaerenLock(profile, "white_listed_apps")
 
         // Format timestamp in ISO 8601 format with EST timezone for Supabase
-        // Use manual offset calculation (works with API 23) instead of XXX pattern
-        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-        val now = java.util.Date()
-        val offsetMillis = estTimeZone.getOffset(now.time)
-        val offsetHours = offsetMillis / (1000 * 60 * 60)
-        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
-        dateFormat.timeZone = estTimeZone
-        val lastUpdated = dateFormat.format(now) + offsetString
+        // Generate timestamp in EST timezone (consistent with all local storage)
+        val lastUpdated = generateESTTimestamp()
 
         // Create cloud data
         val cloudData = CloudUserData(
@@ -1439,6 +1439,12 @@ class CloudStorageManager(private val context: Context) {
                     // No local timestamp and local is 0 - fresh install/reset
                     // On fresh install, default to 0 to prevent stale cloud data from being applied
                     Log.d(TAG, "Fresh install detected - setting banked_mins to 0 (cloud had ${data.bankedMins}, but ignoring on fresh install)")
+                    // Set EST timestamp to prevent cloud value from being applied again
+                    val estTimestamp = generateESTTimestamp()
+                    progressPrefs.edit()
+                        .putString(bankedMinsTimestampKey, estTimestamp)
+                        .apply()
+                    Log.d(TAG, "Set initial banked_mins_timestamp in EST ($estTimestamp) to prevent cloud value from being applied again")
                     Pair(0, true) // Sync 0 to cloud to clear any stale data
                 }
                 cloudTimestamp.isNullOrEmpty() -> {

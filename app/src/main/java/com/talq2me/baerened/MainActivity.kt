@@ -65,12 +65,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var contentUpdateService: ContentUpdateService
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
-    private var readAlongLaunchTime: Long? = null
-    private var pendingReadAlongReward: PendingReadAlongReward? = null
-    private var readAlongStartTime: Long = 0
-    private var readAlongHasBeenPaused: Boolean = false
-    private var readAlongJustLaunched: Boolean = false // Track if we just launched in this session
-    private lateinit var readAlongTimeTracker: TimeTracker
     private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
     private lateinit var cloudStorageManager: CloudStorageManager
     private var wasLaunchedForReadAlong: Boolean = false // Track if we were launched just for Read Along
@@ -78,7 +72,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private val updateJsonUrl = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/version.json"
     private var downloadId: Long = -1
     private lateinit var downloadReceiver: BroadcastReceiver
-    private lateinit var readAlongCompleteReceiver: BroadcastReceiver
     private val downloadCheckHandler = Handler(Looper.getMainLooper())
     private var downloadCheckRunnable: Runnable? = null
     private var downloadProgressDialog: AlertDialog? = null
@@ -258,27 +251,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
         ContextCompat.registerReceiver(this, downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-            ContextCompat.RECEIVER_NOT_EXPORTED)
-
-        // Register Google Read Along completion receiver (from BaerenLock)
-        readAlongCompleteReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                Log.d(TAG, "📬 Broadcast received: action=${intent?.action}, package=${intent?.`package`}")
-                if (intent?.action == "com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE") {
-                    val taskId = intent.getStringExtra("task_id") ?: "googleReadAlong"
-                    val taskTitle = intent.getStringExtra("task_title") ?: "Google Read Along"
-                    val durationSeconds = intent.getLongExtra("duration_seconds", 30L)
-                    Log.d(TAG, "✅ Received Google Read Along completion from BaerenLock: task=$taskId, title=$taskTitle, duration=${durationSeconds}s")
-                    
-                    // Handle completion - find the task and mark it complete
-                    handleReadAlongCompletionFromBaerenLock(taskId, taskTitle)
-                } else {
-                    Log.d(TAG, "⚠️ Broadcast action mismatch: expected=com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE, got=${intent?.action}")
-                }
-            }
-        }
-        ContextCompat.registerReceiver(this, readAlongCompleteReceiver, 
-            IntentFilter("com.talq2me.baerened.ACTION_READ_ALONG_COMPLETE"),
             ContextCompat.RECEIVER_NOT_EXPORTED)
 
     }
@@ -563,252 +535,105 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return match?.groupValues?.getOrNull(1)?.toIntOrNull()
     }
 
-    private fun handleReadAlongReturnIfNeeded(): Boolean {
-        val pendingReward = pendingReadAlongReward ?: return false
-
-        val MIN_READ_ALONG_DURATION_SECONDS = 30L
-        var session: TimeTracker.ActivitySession? = null
-        var secondsSpent = 0L
-
-        // Reinitialize TimeTracker if it was lost (e.g., if MainActivity was destroyed and recreated)
-        if (!::readAlongTimeTracker.isInitialized) {
-            readAlongTimeTracker = TimeTracker(this)
-            Log.d(TAG, "Reinitialized readAlongTimeTracker for ReadAlong return check")
-        }
-
-        // Get the start time for this session
+    /**
+     * Simple Google Read Along completion check.
+     * When BaerenEd comes back to foreground, check if enough time has passed since launch.
+     */
+    private fun checkGoogleReadAlongCompletion() {
         val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
         if (startTimeMs <= 0L) {
-            Log.d(TAG, "No start time found for Read Along session, not treating as return")
-            return false
+            // No pending Read Along session
+            return
         }
+        
+        val taskId = readAlongPrefs.getString(KEY_READ_ALONG_TASK_ID, null) ?: return
+        val taskTitle = readAlongPrefs.getString(KEY_READ_ALONG_TASK_TITLE, taskId) ?: taskId
+        val stars = readAlongPrefs.getInt(KEY_READ_ALONG_STARS, 0)
+        val sectionId = readAlongPrefs.getString(KEY_READ_ALONG_SECTION_ID, null)?.takeIf { it.isNotBlank() }
         
         val now = System.currentTimeMillis()
-        val timeSinceStart = now - startTimeMs
-        val MIN_TIME_TO_TREAT_AS_RETURN_MS = 30 * 1000L // Must be away for at least 30 seconds
+        val timeElapsedMs = now - startTimeMs
+        val timeElapsedSeconds = timeElapsedMs / 1000
+        val MIN_READ_ALONG_DURATION_SECONDS = 30L
         
-        // Only treat as return if we've been away for at least the minimum duration
-        // This prevents ending tracking immediately after launch
-        if (timeSinceStart < MIN_TIME_TO_TREAT_AS_RETURN_MS) {
-            Log.d(TAG, "Not enough time has passed since Read Along launch (${timeSinceStart/1000}s < ${MIN_TIME_TO_TREAT_AS_RETURN_MS/1000}s), not treating as return yet")
-            return false
+        Log.d(TAG, "Checking Google Read Along completion: elapsed=${timeElapsedSeconds}s, required=${MIN_READ_ALONG_DURATION_SECONDS}s")
+        
+        // Only check if we've been away for at least a few seconds (to avoid checking immediately after launch)
+        if (timeElapsedMs < 2000L) {
+            Log.d(TAG, "Just launched Read Along (< 2s ago), skipping check")
+            return
         }
         
-        // Also check if we were actually paused (went to background)
-        if (!readAlongHasBeenPaused) {
-            Log.d(TAG, "Google Read Along hasn't been paused yet, not treating as return")
-            return false
-        }
-
-        // Try to get time from TimeTracker first
-        // Only end activity if we've actually been away long enough (not just launched)
-        // Check the session start time matches our stored start time to ensure it's the right session
-        val storedStartTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
-        if (storedStartTime > 0L) {
-            // Get session without ending it first to check if it exists and is recent
-            // We'll end it only if it's actually the session we want to end
-            try {
-                // Use reflection or check if session exists before ending
-                // For now, only end if enough time has passed (already checked above)
-                session = readAlongTimeTracker.endActivity("readalong")
-                secondsSpent = session?.durationSeconds ?: 0
-            } catch (e: Exception) {
-                Log.w(TAG, "Error ending Read Along session, using fallback", e)
-                secondsSpent = 0L
-            }
-        } else {
-            secondsSpent = 0L
-        }
-
-        // If TimeTracker didn't have the session, use fallback calculation based on stored start time
-        if (secondsSpent <= 0L) {
-            secondsSpent = getStoredReadAlongDurationSeconds()
-            Log.d(TAG, "TimeTracker session not found or duration was 0, using fallback calculation: ${secondsSpent}s")
-        }
-
-        Log.d(TAG, "Google Read Along session ended. Time spent: ${secondsSpent}s (required: ${MIN_READ_ALONG_DURATION_SECONDS}s), pendingReward: ${pendingReward.taskTitle}")
-
-        // Always process the return if there's a pending reward - check time requirement
-        if (secondsSpent >= MIN_READ_ALONG_DURATION_SECONDS) {
-            if (::readAlongTimeTracker.isInitialized && session != null) {
-                readAlongTimeTracker.updateStarsEarned("readalong", pendingReward.stars)
+        if (timeElapsedSeconds >= MIN_READ_ALONG_DURATION_SECONDS) {
+            // Enough time has passed - mark as complete
+            Log.d(TAG, "✅ Google Read Along completed! Time spent: ${timeElapsedSeconds}s")
+            
+            // Find the task in current content and mark it complete
+            val currentContent = getCurrentMainContent()
+            if (currentContent != null) {
+                var foundTask: Task? = null
+                var foundSectionId: String? = null
+                
+                currentContent.sections?.forEach { section ->
+                    section.tasks?.forEach { task ->
+                        if (task.launch == "googleReadAlong" || task.launch == taskId) {
+                            foundTask = task
+                            foundSectionId = section.id
+                            return@forEach
+                        }
+                    }
+                    if (foundTask != null) {
+                        return@forEach
+                    }
+                }
+                
+                if (foundTask != null) {
+                    layout.handleManualTaskCompletion(
+                        taskId = foundTask!!.launch ?: taskId,
+                        taskTitle = foundTask!!.title ?: taskTitle,
+                        stars = foundTask!!.stars ?: stars,
+                        sectionId = foundSectionId ?: sectionId,
+                        completionMessage = "📚 Google Read Along completed! Great job reading!"
+                    )
+                    layout.refreshSections()
+                    Toast.makeText(
+                        this,
+                        "Great reading! You spent ${timeElapsedSeconds}s in Read Along.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Log.w(TAG, "Google Read Along task not found in current content")
+                }
+            } else {
+                Log.w(TAG, "No current content available for Read Along completion")
             }
             
-            layout.handleManualTaskCompletion(
-                pendingReward.taskId,
-                pendingReward.taskTitle,
-                pendingReward.stars,
-                pendingReward.sectionId,
-                "📚 Google Read Along completed! Great job reading!"
-            )
-            // Explicitly refresh sections to ensure UI updates
-            layout.refreshSections()
-            Toast.makeText(
-                this,
-                "Great reading! You spent ${secondsSpent}s in Read Along.",
-                Toast.LENGTH_SHORT
-            ).show()
-            
-            Log.d(TAG, "ReadAlong task completed successfully: ${pendingReward.taskTitle}, ${secondsSpent}s >= ${MIN_READ_ALONG_DURATION_SECONDS}s")
+            // Clear the start time
+            readAlongPrefs.edit().remove(KEY_READ_ALONG_START_TIME)
+                .remove(KEY_READ_ALONG_TASK_ID)
+                .remove(KEY_READ_ALONG_TASK_TITLE)
+                .remove(KEY_READ_ALONG_STARS)
+                .remove(KEY_READ_ALONG_SECTION_ID)
+                .apply()
         } else {
+            // Not enough time - show message but keep the start time (they can try again)
+            val remainingSeconds = MIN_READ_ALONG_DURATION_SECONDS - timeElapsedSeconds
             Toast.makeText(
                 this,
-                "Stay in Google Read Along for at least ${MIN_READ_ALONG_DURATION_SECONDS}s to earn rewards (only ${secondsSpent}s).",
+                "Stay in Google Read Along for at least ${MIN_READ_ALONG_DURATION_SECONDS}s to earn rewards (only ${timeElapsedSeconds}s). Need ${remainingSeconds}s more.",
                 Toast.LENGTH_LONG
             ).show()
-            
-            Log.d(TAG, "ReadAlong task NOT completed: ${pendingReward.taskTitle}, ${secondsSpent}s < ${MIN_READ_ALONG_DURATION_SECONDS}s")
+            Log.d(TAG, "⚠️ Google Read Along not completed yet: ${timeElapsedSeconds}s < ${MIN_READ_ALONG_DURATION_SECONDS}s")
         }
-
-        clearPendingReadAlongState()
-        return true // Indicate that we handled the Read Along return
     }
 
     /**
      * Handles Google Read Along completion notification from BaerenLock.
      * Marks the task as complete if it's found in the current content.
      */
-    private fun handleReadAlongCompletionFromBaerenLock(taskId: String, taskTitle: String) {
-        try {
-            Log.d(TAG, "Handling Google Read Along completion from BaerenLock: taskId=$taskId, taskTitle=$taskTitle")
-            
-            // Get current content to find the task
-            val currentContent = getCurrentMainContent() ?: run {
-                Log.w(TAG, "No current content available for Read Along completion")
-                return
-            }
-            
-            // Find the Google Read Along task in the content
-            var foundTask: Task? = null
-            var foundSectionId: String? = null
-            
-            // Search through all sections to find the Google Read Along task
-            currentContent.sections?.forEach { section ->
-                section.tasks?.forEach { task ->
-                    if (task.launch == "googleReadAlong" || task.launch == taskId) {
-                        foundTask = task
-                        foundSectionId = section.id
-                        return@forEach
-                    }
-                }
-                if (foundTask != null) {
-                    return@forEach
-                }
-            }
-            
-            if (foundTask != null) {
-                val task = foundTask!!
-                val stars = task.stars ?: 0
-                
-                // Mark task as complete
-                layout.handleManualTaskCompletion(
-                    taskId = task.launch ?: taskId,
-                    taskTitle = task.title ?: taskTitle,
-                    stars = stars,
-                    sectionId = foundSectionId,
-                    completionMessage = "📚 Google Read Along completed! Great job reading!"
-                )
-                
-                // Refresh sections to update UI
-                layout.refreshSections()
-                
-                // Show toast notification
-                Toast.makeText(
-                    this,
-                    "Great reading! Google Read Along task completed!",
-                    Toast.LENGTH_SHORT
-                ).show()
-                
-                Log.d(TAG, "Google Read Along task marked as complete: taskId=$taskId, foundSectionId=$foundSectionId, stars=$stars")
-            } else {
-                Log.w(TAG, "Google Read Along task not found in current content: taskId=$taskId")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error handling Read Along completion from BaerenLock", e)
-        }
-    }
-
-    private fun persistPendingReadAlongState(reward: PendingReadAlongReward, startTimeMs: Long) {
-        readAlongPrefs.edit()
-            .putString(KEY_READ_ALONG_TASK_ID, reward.taskId)
-            .putString(KEY_READ_ALONG_TASK_TITLE, reward.taskTitle)
-            .putInt(KEY_READ_ALONG_STARS, reward.stars)
-            .putString(KEY_READ_ALONG_SECTION_ID, reward.sectionId ?: "")
-            .putLong(KEY_READ_ALONG_START_TIME, startTimeMs)
-            .putBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
-            .apply()
-    }
-
-    private fun restorePendingReadAlongStateIfNeeded() {
-        if (pendingReadAlongReward != null) {
-            return
-        }
-
-        val taskId = readAlongPrefs.getString(KEY_READ_ALONG_TASK_ID, null) ?: return
-        val taskTitle = readAlongPrefs.getString(KEY_READ_ALONG_TASK_TITLE, taskId) ?: taskId
-        val stars = readAlongPrefs.getInt(KEY_READ_ALONG_STARS, 0)
-        val sectionId = readAlongPrefs.getString(KEY_READ_ALONG_SECTION_ID, null)?.takeIf { it.isNotBlank() }
-
-        pendingReadAlongReward = PendingReadAlongReward(
-            taskId = taskId,
-            taskTitle = taskTitle,
-            stars = stars,
-            sectionId = sectionId
-        )
-        readAlongHasBeenPaused = readAlongPrefs.getBoolean(KEY_READ_ALONG_HAS_PAUSED, false)
-        
-        // Check if we just launched by checking the start time
-        val startTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
-        if (startTime > 0L && (System.currentTimeMillis() - startTime) < 10000L) {
-            readAlongJustLaunched = true
-            Log.d(TAG, "Restored Read Along state - detected recent launch, setting justLaunched=true")
-        }
-        
-        // Reinitialize TimeTracker if it was lost (e.g., if MainActivity was destroyed and recreated)
-        if (!::readAlongTimeTracker.isInitialized) {
-            readAlongTimeTracker = TimeTracker(this)
-            Log.d(TAG, "Reinitialized readAlongTimeTracker when restoring ReadAlong state")
-        }
-    }
-
-    private fun clearPendingReadAlongState() {
-        pendingReadAlongReward = null
-        readAlongHasBeenPaused = false
-        readAlongPrefs.edit().clear().apply()
-    }
-
-    private fun hasPendingReadAlongSession(): Boolean {
-        return pendingReadAlongReward != null || readAlongPrefs.contains(KEY_READ_ALONG_TASK_ID)
-    }
-
-    private fun getStoredReadAlongDurationSeconds(): Long {
-        val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
-        if (startTimeMs <= 0L) {
-            Log.w(TAG, "No stored start time found for ReadAlong")
-            return 0
-        }
-        val currentTimeMs = System.currentTimeMillis()
-        val elapsedMs = currentTimeMs - startTimeMs
-        val seconds = if (elapsedMs > 0) elapsedMs / 1000 else 0
-        Log.d(TAG, "Calculated ReadAlong duration from stored time: start=${startTimeMs}, current=${currentTimeMs}, elapsed=${elapsedMs}ms, seconds=${seconds}s")
-        return seconds
-    }
-    
     override fun onPause() {
         super.onPause()
-        if (hasPendingReadAlongSession()) {
-            readAlongHasBeenPaused = true
-            readAlongPrefs.edit().putBoolean(KEY_READ_ALONG_HAS_PAUSED, true).apply()
-            // Only set start time if it's not already set (don't overwrite existing start time)
-            val existingStartTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
-            if (existingStartTime <= 0L) {
-                val startTime = System.currentTimeMillis()
-                readAlongPrefs.edit().putLong(KEY_READ_ALONG_START_TIME, startTime).apply()
-                Log.d(TAG, "MainActivity paused - Read Along is now active, set start time: $startTime")
-            } else {
-                Log.d(TAG, "MainActivity paused - Read Along is now active, start time already set: $existingStartTime")
-            }
-        }
+        // No special handling needed - the start time is already saved when launching
     }
 
     private fun isDeviceOwner(): Boolean {
@@ -1177,32 +1002,21 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
-        restorePendingReadAlongStateIfNeeded()
         
-        // Only handle Read Along return if we weren't just launching it
-        // Check both the flag and the time to be safe
-        val justLaunchedByTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L).let { startTime ->
-            startTime > 0L && (System.currentTimeMillis() - startTime) < 10000L // 10 seconds
-        }
-        
-        val readAlongHandled = if (!readAlongJustLaunched && !justLaunchedByTime) {
-            handleReadAlongReturnIfNeeded()
-        } else {
-            Log.d(TAG, "Just launched Read Along (flag=$readAlongJustLaunched, timeCheck=$justLaunchedByTime), skipping return handling")
-            // Clear the flag after first resume
-            readAlongJustLaunched = false
-            false
-        }
+        // Simple Google Read Along completion check
+        checkGoogleReadAlongCompletion()
         
         // If we were launched just for Read Along and have handled the return, finish to go back to TrainingMapActivity
-        if (wasLaunchedForReadAlong && readAlongHandled) {
-            Log.d(TAG, "Read Along completed, finishing MainActivity to return to TrainingMapActivity")
-            finish()
-            return
-        }
-        
-        // If we were launched just for Read Along but haven't handled return yet, don't try to load/display content
         if (wasLaunchedForReadAlong) {
+            // Check if we just completed it
+            val startTime = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
+            if (startTime <= 0L) {
+                // No pending Read Along, we can finish
+                Log.d(TAG, "Read Along completed or cancelled, finishing MainActivity to return to TrainingMapActivity")
+                finish()
+                return
+            }
+            // Still pending, don't load content yet
             return
         }
         
@@ -1385,53 +1199,22 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 
-                // Clear any old pending state before starting a new session
-                // This prevents handleReadAlongReturnIfNeeded from ending an old session
-                val oldPendingReward = pendingReadAlongReward
-                if (oldPendingReward != null) {
-                    Log.d(TAG, "Clearing old pending Read Along state before launching new session (old session was: ${oldPendingReward.taskTitle})")
-                    // End any old tracking session if it exists (silently, this is just cleanup)
-                    if (::readAlongTimeTracker.isInitialized) {
-                        try {
-                            val oldSession = readAlongTimeTracker.endActivity("readalong")
-                            if (oldSession != null) {
-                                Log.d(TAG, "Cleaned up old Read Along session (duration: ${oldSession.durationSeconds}s) - this is expected when starting a new session")
-                            }
-                        } catch (e: Exception) {
-                            Log.w(TAG, "Error ending old Read Along session", e)
-                        }
-                    }
-                    clearPendingReadAlongState()
-                }
-                
-                // Set flag BEFORE doing anything else to prevent onResume from handling return
-                readAlongJustLaunched = true
-                
-                // Initialize time tracker
-                readAlongTimeTracker = TimeTracker(this)
-                
-                // Use unique task ID that includes section info to track separately for required vs optional
-                val progressManager = DailyProgressManager(this)
+                // Simple approach: Just save the start timestamp and task info
                 val taskId = task.launch ?: "googleReadAlong"
-                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, sectionId ?: "unknown")
-                
-                // Start tracking time
                 val taskTitle = task.title ?: "Google Read Along"
+                val stars = task.stars ?: 0
                 val startTimeMs = System.currentTimeMillis()
-                readAlongTimeTracker.startActivity(uniqueTaskId, "readalong", taskTitle)
-                val reward = PendingReadAlongReward(
-                    taskId = taskId,
-                    taskTitle = taskTitle,
-                    stars = task.stars ?: 0,
-                    sectionId = sectionId
-                )
-                pendingReadAlongReward = reward
-                readAlongHasBeenPaused = false
-                // readAlongJustLaunched already set above
-                readAlongStartTime = android.os.SystemClock.elapsedRealtime()
-                persistPendingReadAlongState(reward, startTimeMs)
                 
-                Log.d(TAG, "Started new Read Along session with startTime=$startTimeMs, justLaunched=true")
+                // Save to SharedPreferences
+                readAlongPrefs.edit()
+                    .putString(KEY_READ_ALONG_TASK_ID, taskId)
+                    .putString(KEY_READ_ALONG_TASK_TITLE, taskTitle)
+                    .putInt(KEY_READ_ALONG_STARS, stars)
+                    .putString(KEY_READ_ALONG_SECTION_ID, sectionId ?: "")
+                    .putLong(KEY_READ_ALONG_START_TIME, startTimeMs)
+                    .apply()
+                
+                Log.d(TAG, "Saved Google Read Along start time: $startTimeMs for task: $taskTitle")
                 
                 startActivity(intent)
             } else {
@@ -1440,8 +1223,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } catch (e: Exception) {
             Log.e(TAG, "Error launching Google Read Along", e)
             Toast.makeText(this, "Error launching Google Read Along: ${e.message}", Toast.LENGTH_SHORT).show()
-            pendingReadAlongReward = null
-            clearPendingReadAlongState()
+            // Clear the start time on error
+            readAlongPrefs.edit()
+                .remove(KEY_READ_ALONG_START_TIME)
+                .remove(KEY_READ_ALONG_TASK_ID)
+                .remove(KEY_READ_ALONG_TASK_TITLE)
+                .remove(KEY_READ_ALONG_STARS)
+                .remove(KEY_READ_ALONG_SECTION_ID)
+                .apply()
         }
     }
 
@@ -1963,13 +1752,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // Receiver may not be registered
             }
         }
-        if (::readAlongCompleteReceiver.isInitialized) {
-            try {
-                unregisterReceiver(readAlongCompleteReceiver)
-            } catch (e: Exception) {
-                // Receiver may not be registered
-            }
-        }
         super.onDestroy()
     }
 
@@ -2217,12 +1999,5 @@ data class Game(
     val estimatedTime: Int,
     val totalQuestions: Int? = null,
     val blockOutlines: Boolean = false
-)
-
-data class PendingReadAlongReward(
-    val taskId: String,
-    val taskTitle: String,
-    val stars: Int,
-    val sectionId: String?
 )
 

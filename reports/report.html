@@ -302,16 +302,6 @@
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
 
-        // Check if configured
-        if (!supabaseUrl || !supabaseKey) {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error').innerHTML = 
-                '<strong>Configuration Required:</strong> Please go back to the home page and configure your Supabase URL and API Key.';
-            document.getElementById('childName').textContent = kid;
-            return;
-        }
-
         // Fetch data from Supabase
         async function fetchReportData() {
             try {
@@ -517,8 +507,16 @@
             });
         }
 
-        // Fetch data on page load
-        fetchReportData();
+        // Check if configured and fetch data on page load
+        if (!supabaseUrl || !supabaseKey) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML = 
+                '<strong>Configuration Required:</strong> Please go back to the home page and configure your Supabase URL and API Key.';
+            document.getElementById('childName').textContent = kid;
+        } else {
+            fetchReportData();
+        }
     </script>
 </body>
 </html>
