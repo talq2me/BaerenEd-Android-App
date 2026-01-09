@@ -1463,6 +1463,8 @@ class CloudStorageManager(private val context: Context) {
                         }
                         val cloudTime = parseTimestamp(cloudTimestamp)
                         
+                        Log.d(TAG, "Comparing timestamps - local: $localBankedMinsTimestamp ($localTime), cloud: $cloudTimestamp ($cloudTime)")
+                        
                         if (cloudTime > localTime) {
                             // Cloud is newer - apply cloud value
                             Log.d(TAG, "Applying cloud banked_mins ($data.bankedMins) - cloud timestamp ($cloudTimestamp) is newer than local ($localBankedMinsTimestamp)")
@@ -1762,19 +1764,33 @@ class CloudStorageManager(private val context: Context) {
             
             // Check if it has timezone indicator
             val hasZ = timestamp.endsWith("Z")
-            val hasPlusOffset = timestamp.contains("+", ignoreCase = false) && timestamp.indexOf("+") > 10 // + after the date part
-            val hasMinusOffset = timestamp.contains("-", ignoreCase = false) && timestamp.indexOf("-", startIndex = 19) > 0 // - after the time part
+            
+            // Find timezone offset - look for +/- after the time part (after seconds/milliseconds)
+            // Format: "2026-01-09T14:30:00.123-05:00" or "2026-01-09T14:30:00.123+05:00"
+            val timePartEnd = timestamp.indexOf('.')
+            val timeEndIndex = if (timePartEnd > 0) {
+                // Has milliseconds - find the end of milliseconds
+                val millisEnd = timestamp.indexOfAny(charArrayOf('+', '-', 'Z'), timePartEnd)
+                if (millisEnd > 0) millisEnd else timestamp.length
+            } else {
+                // No milliseconds - find ':' after seconds
+                val secondsColon = timestamp.lastIndexOf(':')
+                if (secondsColon > 0) secondsColon + 3 else timestamp.length
+            }
+            
+            val plusIndex = timestamp.indexOf("+", timeEndIndex)
+            val minusIndex = timestamp.indexOf("-", timeEndIndex)
+            val hasPlusOffset = plusIndex > 0
+            val hasMinusOffset = minusIndex > 0
             
             if (timestamp.contains("T") && (hasZ || hasPlusOffset || hasMinusOffset)) {
                 // Extract timezone offset
                 val timezonePart = when {
                     hasZ -> "+00:00"
                     hasPlusOffset -> {
-                        val plusIndex = timestamp.indexOf("+")
                         timestamp.substring(plusIndex + 1)
                     }
                     hasMinusOffset -> {
-                        val minusIndex = timestamp.indexOf("-", startIndex = 19)
                         "-" + timestamp.substring(minusIndex + 1)
                     }
                     else -> "+00:00"
@@ -1783,11 +1799,8 @@ class CloudStorageManager(private val context: Context) {
                 // Extract clean timestamp (date and time without timezone)
                 val cleanTimestamp = when {
                     hasZ -> timestamp.substringBefore("Z")
-                    hasPlusOffset -> timestamp.substringBefore("+")
-                    hasMinusOffset -> {
-                        val minusIndex = timestamp.indexOf("-", startIndex = 19)
-                        timestamp.substring(0, minusIndex)
-                    }
+                    hasPlusOffset -> timestamp.substring(0, plusIndex)
+                    hasMinusOffset -> timestamp.substring(0, minusIndex)
                     else -> timestamp
                 }
                 
