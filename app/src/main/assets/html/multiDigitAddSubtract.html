@@ -695,6 +695,8 @@
                         const carryInput = document.createElement('input');
                         carryInput.type = 'text';
                         carryInput.className = 'digit-cell input';
+                        carryInput.readOnly = true; // Prevent Android keyboard
+                        carryInput.inputMode = 'none'; // Additional protection
                         carryInput.style.width = '40px';
                         carryInput.style.height = '35px';
                         carryInput.style.fontSize = '1.2rem';
@@ -770,6 +772,8 @@
                         const borrowInput = document.createElement('input');
                         borrowInput.type = 'text';
                         borrowInput.className = 'digit-cell input';
+                        borrowInput.readOnly = true; // Prevent Android keyboard
+                        borrowInput.inputMode = 'none'; // Additional protection
                         borrowInput.style.width = '40px';
                         borrowInput.style.height = '35px';
                         borrowInput.style.fontSize = '1.2rem';
@@ -791,6 +795,8 @@
                             const nineInput = document.createElement('input');
                             nineInput.type = 'text';
                             nineInput.className = 'digit-cell input';
+                            nineInput.readOnly = true; // Prevent Android keyboard
+                            nineInput.inputMode = 'none'; // Additional protection
                             nineInput.style.width = '40px';
                             nineInput.style.height = '35px';
                             nineInput.style.fontSize = '1.2rem';
@@ -860,6 +866,8 @@
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.className = 'digit-cell input';
+                input.readOnly = true; // Prevent Android keyboard
+                input.inputMode = 'none'; // Additional protection
                 input.maxLength = 1;
                 // displayPos: 0 = leftmost, answerLen-1 = rightmost (ones)
                 input.dataset.position = displayPos;
@@ -1410,6 +1418,7 @@
             });
             
             // Track focused input
+            // The readonly attribute on inputs prevents the Android keyboard from appearing
             document.addEventListener('focusin', (e) => {
                 if (e.target.classList.contains('input')) {
                     currentFocusedInput = e.target;
