@@ -1545,20 +1545,54 @@ class CloudStorageManager(private val context: Context) {
 
     /**
      * Gets the local last updated timestamp for comparison with cloud data
-     * Returns the most recent timestamp from local data sources
+     * Returns the stored timestamp from local data, or generates one if not stored
      */
-    private fun getLocalLastUpdatedTimestamp(): String {
-        // Use current time as local timestamp since we're always collecting fresh data
-        // Format in ISO 8601 in EST (same format as we send to Supabase)
-        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-        val now = java.util.Date()
-        val offsetMillis = estTimeZone.getOffset(now.time)
-        val offsetHours = offsetMillis / (1000 * 60 * 60)
-        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
-        dateFormat.timeZone = estTimeZone
-        return dateFormat.format(now) + offsetString
+    private fun getLocalLastUpdatedTimestamp(profile: String): String {
+        // Try to get stored timestamp from SharedPreferences
+        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+        val storedTimestampKey = "${profile}_last_updated_timestamp"
+        val storedTimestamp = progressPrefs.getString(storedTimestampKey, null)
+        
+        if (!storedTimestamp.isNullOrEmpty()) {
+            return storedTimestamp
+        }
+        
+        // No stored timestamp - generate one based on last_reset_date if available
+        val lastResetDate = progressPrefs.getString("last_reset_date", null)
+        if (!lastResetDate.isNullOrEmpty()) {
+            try {
+                val parseFormat = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault())
+                parseFormat.timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                val parsedDate = parseFormat.parse(lastResetDate)
+                if (parsedDate != null) {
+                    // Format as ISO 8601 in EST
+                    val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                    val offsetMillis = estTimeZone.getOffset(parsedDate.time)
+                    val offsetHours = offsetMillis / (1000 * 60 * 60)
+                    val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
+                    val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
+                    val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                    dateFormat.timeZone = estTimeZone
+                    return dateFormat.format(parsedDate) + offsetString
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing last_reset_date for timestamp: $lastResetDate", e)
+            }
+        }
+        
+        // Fallback: use current time (but this should rarely happen)
+        return generateESTTimestamp()
+    }
+    
+    /**
+     * Stores the local last updated timestamp after applying cloud data
+     */
+    private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
+        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+        val storedTimestampKey = "${profile}_last_updated_timestamp"
+        progressPrefs.edit()
+            .putString(storedTimestampKey, timestamp)
+            .apply()
     }
 
     /**
@@ -1577,11 +1611,21 @@ class CloudStorageManager(private val context: Context) {
             // Apply daily progress data
             val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
 
-            // Apply required tasks data - merge with existing local data, but ONLY tasks visible today
-            if (data.requiredTasks?.isNotEmpty() == true) {
+            // Apply required tasks data
+            // CRITICAL: If cloud has empty required_tasks, this represents a reset - CLEAR local tasks
+            val completedTasksKey = "${localProfile}_completed_tasks"
+            val completedTaskNamesKey = "${localProfile}_completed_task_names"
+            
+            if (data.requiredTasks?.isEmpty() != false) {
+                // Cloud has empty required_tasks - this is a reset, clear local tasks
+                progressPrefs.edit()
+                    .putString(completedTasksKey, gson.toJson(emptyMap<String, Boolean>()))
+                    .putString(completedTaskNamesKey, gson.toJson(emptyMap<String, String>()))
+                    .apply()
+                Log.d(TAG, "Cloud reset detected - cleared local required tasks for profile: $localProfile")
+            } else {
+                // Cloud has tasks - merge with existing local data, but ONLY tasks visible today
                 // Get existing local data (profile-specific)
-                val completedTasksKey = "${localProfile}_completed_tasks"
-                val completedTaskNamesKey = "${localProfile}_completed_task_names"
                 val existingCompletedTasksJson = progressPrefs.getString(completedTasksKey, "{}") ?: "{}"
                 val existingCompletedTasks = gson.fromJson<Map<String, Boolean>>(existingCompletedTasksJson, object : TypeToken<Map<String, Boolean>>() {}.type)?.toMutableMap() ?: mutableMapOf()
 
@@ -1706,17 +1750,26 @@ class CloudStorageManager(private val context: Context) {
             }
 
             // Apply berries earned (store in pokemonBattleHub preferences where UI expects it, profile-specific)
-            // IMPORTANT: Only apply cloud berries if they're HIGHER than local berries
-            // This prevents overwriting local progress with outdated cloud data
+            // CRITICAL: If cloud represents a reset (berries=0), apply it. Otherwise, only apply if cloud is higher.
             try {
                 val berriesKey = "${localProfile}_earnedBerries"
                 val prefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
                 val localBerries = prefs.getInt(berriesKey, 0)
                 
-                // Only apply cloud berries if they're higher than local (preserve local progress)
-                val berriesToApply = if (data.berriesEarned > localBerries) {
+                // Check if this is a reset (cloud has empty required_tasks and berries=0)
+                val isCloudReset = (data.requiredTasks?.isEmpty() != false && 
+                                  data.berriesEarned == 0 && 
+                                  data.bankedMins == 0)
+                
+                val berriesToApply = if (isCloudReset) {
+                    // This is a reset - apply cloud value (0)
+                    Log.d(TAG, "Cloud reset detected - applying cloud berries (0) instead of preserving local ($localBerries)")
+                    data.berriesEarned
+                } else if (data.berriesEarned > localBerries) {
+                    // Cloud has higher berries - apply cloud value
                     data.berriesEarned
                 } else {
+                    // Preserve local progress
                     localBerries
                 }
                 
@@ -1742,6 +1795,13 @@ class CloudStorageManager(private val context: Context) {
 
             // Apply app lists to BaerenLock (if BaerenLock is installed)
             applyAppListsToBaerenLock(data)
+            
+            // CRITICAL: Store the cloud timestamp as local timestamp after applying cloud data
+            // This prevents re-uploading local data immediately after applying cloud reset
+            if (!data.lastUpdated.isNullOrEmpty()) {
+                setLocalLastUpdatedTimestamp(localProfile, data.lastUpdated)
+                Log.d(TAG, "Stored cloud timestamp as local timestamp: ${data.lastUpdated}")
+            }
 
             Log.d(TAG, "Successfully applied cloud data to local storage: requiredTasks=${data.requiredTasks?.size ?: 0}, gameIndices=${data.gameIndices?.size ?: 0}, berries=${data.berriesEarned}")
         } catch (e: Exception) {
@@ -1812,7 +1872,7 @@ class CloudStorageManager(private val context: Context) {
             val cloudDataResult = downloadFromCloud(profile)
             val cloudUserData = if (cloudDataResult.isSuccess) cloudDataResult.getOrNull() else null
 
-            val localTimestamp = getLocalLastUpdatedTimestamp()
+            val localTimestamp = getLocalLastUpdatedTimestamp(profile)
             val cloudTimestamp = cloudUserData?.lastUpdated
 
             Log.d(TAG, "Sync timestamps - Local: $localTimestamp, Cloud: $cloudTimestamp")
