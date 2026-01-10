@@ -5,6 +5,9 @@
 -- Note: If upgrading from previous version, you may need to run:
 -- ALTER TABLE user_data ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING last_updated AT TIME ZONE 'UTC' AT TIME ZONE 'GMT';
 -- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING last_reset AT TIME ZONE 'UTC' AT TIME ZONE 'EST';
+--
+-- Upgrade script to add checklist_items column (run this if the column doesn't exist):
+-- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS checklist_items JSONB DEFAULT '{}'::jsonb;
 
 -- Drop existing trigger and functions if they exist (for clean re-run)
 DROP TRIGGER IF EXISTS daily_progress_reset_trigger ON user_data;
@@ -30,6 +33,9 @@ CREATE TABLE IF NOT EXISTS user_data (
 
     -- Practice tasks progress (JSONB: { "taskName": { "times_completed": int, "correct": int, "incorrect": int, "questions_answered": int } })
     practice_tasks JSONB DEFAULT '{}'::jsonb,
+
+    -- Checklist items progress (JSONB: { "itemName": { "done": bool, "stars": int, "displayDays": string } })
+    checklist_items JSONB DEFAULT '{}'::jsonb,
 
     -- Progress metrics
     possible_stars INTEGER DEFAULT 0,

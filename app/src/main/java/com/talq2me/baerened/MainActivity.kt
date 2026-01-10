@@ -1625,12 +1625,28 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun resetAllProgress() {
         try {
-            // Just trigger the same reset that happens daily
+            // Reset local progress
             val progressManager = DailyProgressManager(this)
             progressManager.resetAllProgress()
             
             // Also reset TimeTracker (it resets daily too)
             TimeTracker(this).clearAllData()
+            
+            // Reset progress in cloud database if cloud storage is enabled
+            val profile = SettingsManager.readProfile(this) ?: "AM"
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val cloudStorageManager = CloudStorageManager(this@MainActivity)
+                    if (cloudStorageManager.isCloudStorageEnabled()) {
+                        val resetResult = cloudStorageManager.resetProgressInCloud(profile)
+                        if (!resetResult.isSuccess) {
+                            Log.e(TAG, "Failed to reset progress in cloud: ${resetResult.exceptionOrNull()?.message}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error resetting progress in cloud", e)
+                }
+            }
             
             // Refresh the UI
             layout.refreshProgressDisplay()

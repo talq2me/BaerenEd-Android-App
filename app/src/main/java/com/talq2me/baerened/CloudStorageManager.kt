@@ -406,6 +406,76 @@ class CloudStorageManager(private val context: Context) {
     }
 
     /**
+     * Resets daily progress in the cloud database for a specific profile
+     * This clears required_tasks, resets checklist_items done status, berries_earned, and banked_mins
+     */
+    suspend fun resetProgressInCloud(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured in BuildConfig"))
+        }
+
+        try {
+            val cloudProfile = profile
+            
+            // Generate timestamp in EST timezone
+            val lastUpdated = generateESTTimestamp()
+            val lastReset = generateESTTimestamp()
+            
+            // Get current checklist items from local data to preserve structure but clear done status
+            // We use collectLocalData to get the current checklist items structure
+            val localData = collectLocalData(profile)
+            val resetChecklistItems = localData.checklistItems.mapValues { (_, item) ->
+                // Keep structure but set done=false
+                mapOf(
+                    "done" to false,
+                    "stars" to item.stars,
+                    "displayDays" to item.displayDays
+                )
+            }
+            
+            // Create update map with all reset values
+            val resetData = mapOf(
+                "required_tasks" to emptyMap<String, Any>(),
+                "checklist_items" to resetChecklistItems,
+                "berries_earned" to 0,
+                "banked_mins" to 0,
+                "last_reset" to lastReset,
+                "last_updated" to lastUpdated
+            )
+            
+            val json = gson.toJson(resetData)
+            val baseUrl = "${getSupabaseUrl()}/rest/v1/user_data"
+            val requestBody = json.toRequestBody("application/json".toMediaType())
+            
+            // Update user_data for this profile
+            val updateUrl = "$baseUrl?profile=eq.$cloudProfile"
+            val patchRequest = Request.Builder()
+                .url(updateUrl)
+                .patch(requestBody)
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
+                .build()
+            
+            val patchResponse = client.newCall(patchRequest).execute()
+            if (patchResponse.isSuccessful) {
+                patchResponse.close()
+                Log.d(TAG, "Successfully reset progress in cloud for profile: $cloudProfile")
+                Result.success(Unit)
+            } else {
+                val errorBody = patchResponse.body?.string() ?: "Unknown error"
+                Log.e(TAG, "Failed to reset progress in cloud: ${patchResponse.code} - $errorBody")
+                patchResponse.close()
+                Result.failure(Exception("Reset failed: ${patchResponse.code} - $errorBody"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resetting progress in cloud", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Uploads settings (pin and email) to the settings table
      */
     suspend fun uploadSettingsToCloud(): Result<Unit> = withContext(Dispatchers.IO) {
@@ -1364,6 +1434,43 @@ class CloudStorageManager(private val context: Context) {
             if (cloudHasAppLists && !localHasAppLists) {
                 Log.d(TAG, "Cloud has app lists but local doesn't - will apply cloud data")
                 return true
+            }
+
+            // Check if cloud data represents a reset (empty required_tasks, berries=0, etc.)
+            // If cloud's last_reset is newer than local's last_reset, apply the reset
+            val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+            val localLastResetString = progressPrefs.getString("last_reset_date", null)
+            val cloudLastResetString = cloudData.lastReset
+            
+            if (!cloudLastResetString.isNullOrEmpty() && !localLastResetString.isNullOrEmpty()) {
+                try {
+                    // Parse local reset date (format: "dd-MM-yyyy hh:mm:ss a")
+                    val localResetTime = try {
+                        val parseFormat = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault())
+                        parseFormat.timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                        parseFormat.parse(localLastResetString)?.time ?: 0L
+                    } catch (e: Exception) {
+                        0L
+                    }
+                    
+                    // Parse cloud reset timestamp (ISO format)
+                    val cloudResetTime = parseTimestamp(cloudLastResetString)
+                    
+                    // If cloud's reset timestamp is newer, this is a reset - apply it
+                    if (cloudResetTime > localResetTime && cloudResetTime > 0 && localResetTime > 0) {
+                        val cloudIsReset = (cloudData.requiredTasks?.isEmpty() != false && 
+                                           cloudData.berriesEarned == 0 && 
+                                           cloudData.bankedMins == 0)
+                        
+                        if (cloudIsReset) {
+                            Log.d(TAG, "Cloud data represents a reset (last_reset: $cloudLastResetString is newer than local: $localLastResetString) - will apply reset")
+                            return true
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error comparing reset timestamps", e)
+                    // Fall through to progress comparison
+                }
             }
 
             // Cloud data is from today - now check if it has more progress than local data
