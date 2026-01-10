@@ -95,7 +95,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            animation: moveConveyor 8s linear infinite; /* Faster speed - was 24s, now 8s */
+            animation: moveConveyor 20s linear infinite; /* Faster speed - was 24s, now 8s */
         }
         .letter-box:hover {
             transform: scale(1.2);
@@ -280,10 +280,6 @@
                 <div class="factory-line" id="factoryLine">
                     <div class="conveyor-belt"></div>
                 </div>
-                <div class="factory-controls">
-                    <button class="control-button" onclick="startConveyor()">▶ Start Conveyor</button>
-                    <button class="control-button" onclick="stopConveyor()">⏸ Stop Conveyor</button>
-                </div>
                 <div class="assembly-line" id="assemblyLine"></div>
             </div>
             <div class="factory-right">
@@ -431,6 +427,14 @@
             document.getElementById('factoryLine').querySelectorAll('.letter-box').forEach(box => box.remove());
             createAssemblyLine();
             
+            // Stop any running conveyor from previous word
+            stopConveyor();
+            
+            // Auto-start the conveyor belt for this word
+            setTimeout(() => {
+                startConveyor();
+            }, 500);
+            
             setTimeout(playInstruction, 500);
         }
 
@@ -506,7 +510,7 @@
                 const letter = letterPool[letterIndex % letterPool.length];
                 createLetterBox(letter);
                 letterIndex++;
-            }, 1000); // 8s animation / 8 tiles = 1s per tile (faster speed)
+            }, 2000); // 8s animation / 8 tiles = 1s per tile (faster speed)
         }
 
         function stopConveyor() {
@@ -547,7 +551,7 @@
                     const index = letterBoxes.indexOf(box);
                     if (index > -1) letterBoxes.splice(index, 1);
                 }
-            }, 8000); // Match animation duration (8s)
+            }, 20000); // Match animation duration (8s)
         }
 
         function pickLetter(box, letter) {

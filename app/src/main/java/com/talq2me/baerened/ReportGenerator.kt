@@ -312,12 +312,13 @@ class ReportGenerator(private val context: Context) {
             // Get checklist items from visible config only
             val progressManager = DailyProgressManager(context)
             val visibleConfig = report.config?.let { progressManager.filterVisibleContent(it) }
-            val checklistItems = mutableListOf<Pair<String, Boolean>>() // itemName to isCompleted
+            val checklistItems = mutableListOf<Triple<String, Boolean, Int>>() // itemName, isCompleted, stars
             visibleConfig?.sections?.forEach { section ->
                 section.items?.forEach { item ->
                     val itemId = item.id ?: "checkbox_${item.label}"
                     val isCompleted = report.completedTasks.contains(itemId)
-                    checklistItems.add(Pair(item.label ?: itemId, isCompleted))
+                    val stars = item.stars ?: 0
+                    checklistItems.add(Triple(item.label ?: itemId, isCompleted, stars))
                 }
             }
 
@@ -329,13 +330,6 @@ class ReportGenerator(private val context: Context) {
                 completedRequiredTasks.forEach { task ->
                     val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
-                }
-                // Add completed checklist items
-                val completedChecklistItems = checklistItems.filter { it.second }
-                if (completedChecklistItems.isNotEmpty()) {
-                    completedChecklistItems.forEach { item ->
-                        appendLine("  ✓ ${item.first}")
-                    }
                 }
                 appendLine()
             }
@@ -349,12 +343,18 @@ class ReportGenerator(private val context: Context) {
                     val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                     appendLine("  ${task.taskName}: $timeInfo${task.answerInfo}")
                 }
-                // Add incomplete checklist items
-                val incompleteChecklistItems = checklistItems.filter { !it.second }
-                if (incompleteChecklistItems.isNotEmpty()) {
-                    incompleteChecklistItems.forEach { item ->
-                        appendLine("  ✓ ${item.first}")
-                    }
+                appendLine()
+            }
+            
+            // Checklist Items (separate section)
+            if (checklistItems.isNotEmpty()) {
+                appendLine("📋 CHECKLIST ITEMS")
+                appendLine("-".repeat(30))
+                checklistItems.forEach { item ->
+                    val (label, isCompleted, stars) = item
+                    val status = if (isCompleted) "✓" else "○"
+                    val starsText = if (stars > 0) " (${stars}⭐)" else ""
+                    appendLine("  $status $label$starsText")
                 }
                 appendLine()
             }
@@ -575,12 +575,13 @@ class ReportGenerator(private val context: Context) {
                     // Get checklist items from visible config only
                     val progressManager = DailyProgressManager(context)
                     val visibleConfig = report.config?.let { progressManager.filterVisibleContent(it) }
-                    val checklistItems = mutableListOf<Pair<String, Boolean>>()
+                    val checklistItems = mutableListOf<Triple<String, Boolean, Int>>() // itemName, isCompleted, stars
                     visibleConfig?.sections?.forEach { section ->
                         section.items?.forEach { item ->
                             val itemId = item.id ?: "checkbox_${item.label}"
                             val isCompleted = report.completedTasks.contains(itemId)
-                            checklistItems.add(Pair(item.label ?: itemId, isCompleted))
+                            val stars = item.stars ?: 0
+                            checklistItems.add(Triple(item.label ?: itemId, isCompleted, stars))
                         }
                     }
                     
@@ -600,11 +601,6 @@ class ReportGenerator(private val context: Context) {
                             completedRequiredTasks.forEach { task ->
                                 append("""<li class="task-item">${task.taskName}: ${task.timeSpentFormatted}${task.answerInfo}</li>""")
                             }
-                            // Add completed checklist items
-                            val completedChecklistItems = checklistItems.filter { it.second }
-                            completedChecklistItems.forEach { item ->
-                                append("""<li class="task-item">✓ ${item.first}</li>""")
-                            }
                             append("""</ul>
                             </div>""")
                         }
@@ -617,10 +613,20 @@ class ReportGenerator(private val context: Context) {
                                 val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                                 append("""<li class="task-item">${task.taskName}: $timeInfo${task.answerInfo}</li>""")
                             }
-                            // Add incomplete checklist items
-                            val incompleteChecklistItems = checklistItems.filter { !it.second }
-                            incompleteChecklistItems.forEach { item ->
-                                append("""<li class="task-item">✓ ${item.first}</li>""")
+                            append("""</ul>
+                            </div>""")
+                        }
+                        
+                        // Checklist Items (separate section)
+                        if (checklistItems.isNotEmpty()) {
+                            append("""<div class="section">
+                                <h3>📋 Checklist Items</h3>
+                                <ul class="task-list">""")
+                            checklistItems.forEach { item ->
+                                val (label, isCompleted, stars) = item
+                                val status = if (isCompleted) "✓" else "○"
+                                val starsText = if (stars > 0) " <span style='color: #ffcc00;'>($stars⭐)</span>" else ""
+                                append("""<li class="task-item">$status $label$starsText</li>""")
                             }
                             append("""</ul>
                             </div>""")
@@ -740,12 +746,13 @@ class ReportGenerator(private val context: Context) {
             // Get checklist items from visible config only
             val progressManager = DailyProgressManager(context)
             val visibleConfig = report.config?.let { progressManager.filterVisibleContent(it) }
-            val checklistItems = mutableListOf<Pair<String, Boolean>>()
+            val checklistItems = mutableListOf<Triple<String, Boolean, Int>>() // itemName, isCompleted, stars
             visibleConfig?.sections?.forEach { section ->
                 section.items?.forEach { item ->
                     val itemId = item.id ?: "checkbox_${item.label}"
                     val isCompleted = report.completedTasks.contains(itemId)
-                    checklistItems.add(Pair(item.label ?: itemId, isCompleted))
+                    val stars = item.stars ?: 0
+                    checklistItems.add(Triple(item.label ?: itemId, isCompleted, stars))
                 }
             }
             
@@ -764,11 +771,6 @@ class ReportGenerator(private val context: Context) {
                     val correctInfo = if (task.isVideoTask || task.isChromePageTask) "" else ",${task.correctAnswers},${task.incorrectAnswers}"
                     appendLine("${task.taskName},${task.timeSpentFormatted}$correctInfo")
                 }
-                // Add completed checklist items
-                val completedChecklistItems = checklistItems.filter { it.second }
-                completedChecklistItems.forEach { item ->
-                    appendLine("✓ ${item.first},,,")
-                }
                 appendLine()
             }
             
@@ -780,10 +782,17 @@ class ReportGenerator(private val context: Context) {
                     val correctInfo = if (task.isVideoTask || task.isChromePageTask) "" else ",${task.correctAnswers},${task.incorrectAnswers}"
                     appendLine("${task.taskName},$timeInfo$correctInfo")
                 }
-                // Add incomplete checklist items
-                val incompleteChecklistItems = checklistItems.filter { !it.second }
-                incompleteChecklistItems.forEach { item ->
-                    appendLine("${item.first},,,")
+                appendLine()
+            }
+            
+            // Checklist Items (separate section for CSV)
+            if (checklistItems.isNotEmpty()) {
+                appendLine("Checklist Items")
+                appendLine("Item,Status,Stars")
+                checklistItems.forEach { item ->
+                    val (label, isCompleted, stars) = item
+                    val status = if (isCompleted) "Complete" else "Incomplete"
+                    appendLine("$label,$status,$stars")
                 }
                 appendLine()
             }
@@ -848,20 +857,23 @@ class ReportGenerator(private val context: Context) {
                 val incompleteRequiredTasks = taskDetails.filter { it.isRequired && !it.isCompleted }
                 
                 // Get checklist items
-                val checklistItems = mutableListOf<Pair<String, Boolean>>()
-                report.config?.sections?.forEach { section ->
+                val progressManager = DailyProgressManager(context)
+                val visibleConfig = report.config?.let { progressManager.filterVisibleContent(it) }
+                val checklistItems = mutableListOf<Triple<String, Boolean, Int>>() // itemName, isCompleted, stars
+                visibleConfig?.sections?.forEach { section ->
                     section.items?.forEach { item ->
                         val itemId = item.id ?: "checkbox_${item.label}"
                         val isCompleted = report.completedTasks.contains(itemId)
-                        checklistItems.add(Pair(item.label ?: itemId, isCompleted))
+                        val stars = item.stars ?: 0
+                        checklistItems.add(Triple(item.label ?: itemId, isCompleted, stars))
                     }
                 }
                 
                 // Separate optional and bonus tasks
-                val optionalTasks = taskDetails.filter { !it.isRequired && report.config?.sections?.any { section -> 
+                val optionalTasks = taskDetails.filter { !it.isRequired && visibleConfig?.sections?.any { section -> 
                     section.id == "optional" && section.tasks?.any { task -> task.launch == it.taskId } == true 
                 } == true }
-                val bonusTasks = taskDetails.filter { !it.isRequired && report.config?.sections?.any { section -> 
+                val bonusTasks = taskDetails.filter { !it.isRequired && visibleConfig?.sections?.any { section -> 
                     section.id == "bonus" && section.tasks?.any { task -> task.launch == it.taskId } == true 
                 } == true }
                 
@@ -871,13 +883,6 @@ class ReportGenerator(private val context: Context) {
                         append(completedRequiredTasks.joinToString("\n            ") { 
                             "• ${it.taskName}: ${it.timeSpentFormatted}${it.answerInfo}" 
                         })
-                        // Add completed checklist items
-                        val completedChecklistItems = checklistItems.filter { it.second }
-                        if (completedChecklistItems.isNotEmpty()) {
-                            completedChecklistItems.forEach { item ->
-                                append("\n            • ✓ ${item.first}")
-                            }
-                        }
                         append("\n\n            ")
                     }
                     
@@ -887,13 +892,18 @@ class ReportGenerator(private val context: Context) {
                             val timeInfo = if (task.timeSpentSeconds > 0) task.timeSpentFormatted else "0s"
                             "• ${task.taskName}: $timeInfo${task.answerInfo}"
                         })
-                            // Add incomplete checklist items
-                            val incompleteChecklistItems = checklistItems.filter { !it.second }
-                            if (incompleteChecklistItems.isNotEmpty()) {
-                                incompleteChecklistItems.forEach { item ->
-                                    append("\n            • ✓ ${item.first}")
-                                }
-                            }
+                        append("\n\n            ")
+                    }
+                    
+                    // Checklist Items (separate section for email)
+                    if (checklistItems.isNotEmpty()) {
+                        append("📋 CHECKLIST ITEMS:\n            ")
+                        checklistItems.forEach { item ->
+                            val (label, isCompleted, stars) = item
+                            val status = if (isCompleted) "✓" else "○"
+                            val starsText = if (stars > 0) " (${stars}⭐)" else ""
+                            append("\n            • $status $label$starsText")
+                        }
                         append("\n\n            ")
                     }
                     

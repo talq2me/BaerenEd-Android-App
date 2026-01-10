@@ -2156,7 +2156,8 @@ data class ChecklistItem(
     val done: Boolean? = null,
     val id: String? = null,
     val showdays: String? = null,
-    val hidedays: String? = null
+    val hidedays: String? = null,
+    val displayDays: String? = null
 )
 
 data class ProfileButton(

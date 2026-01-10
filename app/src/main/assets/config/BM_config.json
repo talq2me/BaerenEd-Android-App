@@ -178,8 +178,9 @@
       "title": "Checklist",
       "description": "Mark each one when done",
       "items": [
-        { "label": "French Reading", "stars": 0, "done": false, "id": "bm_french_reading" },
+        { "label": "French Reading", "stars": 0, "done": false, "id": "bm_french_reading", "displayDays": "thu,fri,sat,sun,mon,tue" },
         { "label": "Laundry", "stars": 0, "done": false, "id": "bm_laundry" },
+        { "label": "Speech", "stars": 0, "done": false, "id": "bm_speech" },
         { "label": "Practice Kung Fu", "stars": 0, "done": false, "id": "bm_practice_kung_fu" },
         { "label": "Push Ups: Pushes 22 reg & 5 knuckle", "stars": 0, "done": false, "id": "bm_push_ups" },
         { "label": "Practice piano", "stars": 0, "done": false, "id": "bm_practice_piano" }

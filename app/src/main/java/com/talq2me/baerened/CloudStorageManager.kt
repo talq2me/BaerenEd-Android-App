@@ -88,6 +88,9 @@ class CloudStorageManager(private val context: Context) {
         // Practice tasks progress (name: # times_completed, #correct/#incorrect, #questions_answered)
         @SerializedName("practice_tasks") val practiceTasks: Map<String, PracticeProgress> = emptyMap(),
 
+        // Checklist items progress (name: done status, stars, display days)
+        @SerializedName("checklist_items") val checklistItems: Map<String, ChecklistItemProgress> = emptyMap(),
+
         // Progress metrics
         @SerializedName("possible_stars") val possibleStars: Int = 0,
         @SerializedName("banked_mins") val bankedMins: Int = 0,
@@ -136,6 +139,16 @@ class CloudStorageManager(private val context: Context) {
         @SerializedName("hidedays") val hidedays: String? = null, // Visibility: hide on these days
         @SerializedName("displayDays") val displayDays: String? = null, // Visibility: display only on these days
         @SerializedName("disable") val disable: String? = null // Visibility: disable before this date
+    )
+
+    /**
+     * Data class for checklist item progress
+     * Fields are nullable to allow omitting them from JSON when not applicable
+     */
+    data class ChecklistItemProgress(
+        @SerializedName("done") val done: Boolean = false, // Whether the checklist item is done
+        @SerializedName("stars") val stars: Int = 0, // Star count for this item
+        @SerializedName("displayDays") val displayDays: String? = null // Visibility: display only on these days
     )
 
     /**
@@ -651,6 +664,10 @@ class CloudStorageManager(private val context: Context) {
         val practiceTasks = collectPracticeTasksData()
         Log.d(TAG, "Collected practiceTasks: ${practiceTasks.size} tasks")
 
+        // Collect checklist items data
+        val checklistItems = collectChecklistItemsData(progressManager.getCompletedTasksMap())
+        Log.d(TAG, "Collected checklistItems: ${checklistItems.size} items")
+
         // Get progress metrics (all profile-specific)
         val possibleStarsKey = "${localProfileId}_total_possible_stars"
         val possibleStars = progressPrefs.getInt(possibleStarsKey, 0)
@@ -692,6 +709,7 @@ class CloudStorageManager(private val context: Context) {
             lastReset = lastResetDate,
             requiredTasks = requiredTasks,
             practiceTasks = practiceTasks,
+            checklistItems = checklistItems,
             possibleStars = possibleStars,
             bankedMins = bankedMins,
             berriesEarned = berriesEarned,
@@ -887,6 +905,67 @@ class CloudStorageManager(private val context: Context) {
         }
 
         return practiceTasks
+    }
+
+    /**
+     * Collects checklist items data from config, including done status, stars, and display days
+     */
+    private fun collectChecklistItemsData(completedTasks: Map<String, Boolean>): Map<String, ChecklistItemProgress> {
+        val checklistItems = mutableMapOf<String, ChecklistItemProgress>()
+
+        try {
+            // Get checklist items from config
+            val checklistSection = getConfigChecklistSection()
+
+            // For each checklist item in config, create ChecklistItemProgress
+            checklistSection?.items?.forEach { item ->
+                val itemLabel = item.label ?: "Unknown Item"
+                val itemId = item.id ?: "checkbox_$itemLabel"
+                
+                // Check if this item is done
+                val isDone = completedTasks[itemId] == true
+                
+                // Get stars from config
+                val stars = item.stars ?: 0
+                
+                // Get display days from config (if any)
+                val displayDays = item.displayDays
+
+                checklistItems[itemLabel] = ChecklistItemProgress(
+                    done = isDone,
+                    stars = stars,
+                    displayDays = displayDays
+                )
+            }
+
+            Log.d(TAG, "Collected ${checklistItems.size} checklist items from config")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error collecting checklist items data", e)
+        }
+
+        return checklistItems
+    }
+
+    /**
+     * Gets checklist section from config
+     */
+    private fun getConfigChecklistSection(): Section? {
+        try {
+            // Load config content
+            val contentUpdateService = ContentUpdateService()
+            val jsonString = contentUpdateService.getCachedMainContent(context)
+
+            if (jsonString.isNullOrEmpty()) {
+                Log.w(TAG, "No cached main content available for checklist section")
+                return null
+            }
+
+            val mainContent = gson.fromJson(jsonString, MainContent::class.java)
+            return mainContent?.sections?.find { it.id == "checklist" }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading checklist section from config", e)
+            return null
+        }
     }
 
     /**
