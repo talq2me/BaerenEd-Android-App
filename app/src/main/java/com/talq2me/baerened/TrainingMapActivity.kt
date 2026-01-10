@@ -647,30 +647,10 @@ class TrainingMapActivity : AppCompatActivity() {
             // Get final URL with mode parameter processed (for easydays/harddays/extremedays)
             var finalGameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
             
-            // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
-            if (finalGameUrl.contains("talq2me.github.io") && finalGameUrl.contains("/html/")) {
-                val uri = android.net.Uri.parse(finalGameUrl)
-                val fileName = finalGameUrl.substringAfterLast("/").substringBefore("?")
-                
-                // Check if file exists in assets first
-                try {
-                    val assetManager = assets
-                    val assetPath = "html/$fileName"
-                    val inputStream = assetManager.open(assetPath)
-                    inputStream.close()
-                    
-                    // File exists in assets, convert to local asset URL
-                    // Preserve all query parameters including diagram and mode
-                    val queryParams = uri.query
-                    finalGameUrl = if (queryParams != null) {
-                        "file:///android_asset/html/$fileName?$queryParams"
-                    } else {
-                        "file:///android_asset/html/$fileName"
-                    }
-                } catch (e: java.io.IOException) {
-                    // File doesn't exist in assets, keep GitHub Pages URL
-                }
-            }
+            // IMPORTANT: Always use GitHub Pages URL first - never convert to local assets
+            // GitHub is the source of truth. WebView will naturally fall back to local cache if needed.
+            // Only local assets are used if GitHub URL is not available (offline/no network).
+            android.util.Log.d("TrainingMapActivity", "Using GitHub Pages URL (will load from GitHub first): $finalGameUrl")
             
             // For diagramLabeler, make taskId unique if diagram parameter exists
             // Use the final URL (after mode processing) to extract diagram parameter

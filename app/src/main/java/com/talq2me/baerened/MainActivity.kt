@@ -616,6 +616,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         completionMessage = "📚 Google Read Along completed! Great job reading!"
                     )
                     layout.refreshSections()
+                    
+                    // Sync progress to cloud after task completion (including berries)
+                    val profile = SettingsManager.readProfile(this) ?: "AM"
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
+                    }
+                    
                     Toast.makeText(
                         this,
                         "Great reading! You spent ${timeElapsedSeconds}s in Read Along.",
@@ -708,6 +715,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         completionMessage = "📚 Boukili completed! Great job reading!"
                     )
                     layout.refreshSections()
+                    
+                    // Sync progress to cloud after task completion (including berries)
+                    val profile = SettingsManager.readProfile(this) ?: "AM"
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
+                    }
+                    
                     Toast.makeText(
                         this,
                         "Great reading! You spent ${timeElapsedSeconds}s in Boukili.",
@@ -1206,6 +1220,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             try {
                 val content = contentUpdateService.fetchMainContent(this@MainActivity)
                 if (content != null) {
+                    // CRITICAL: Always sync config tasks to cloud database when config is loaded from GitHub
+                    // This ensures required_tasks and practice_tasks columns are populated for reporting
+                    val profile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
+                    try {
+                        val uploadResult = cloudStorageManager.uploadToCloud(profile)
+                        if (uploadResult.isSuccess) {
+                            Log.d(TAG, "Successfully synced config tasks to cloud database after loading from GitHub")
+                        } else {
+                            Log.w(TAG, "Failed to sync config tasks to cloud: ${uploadResult.exceptionOrNull()?.message}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error syncing config tasks to cloud", e)
+                    }
+                    
                     withContext(Dispatchers.Main) {
                         displayContent(content)
                         loadingProgressBar.visibility = View.GONE

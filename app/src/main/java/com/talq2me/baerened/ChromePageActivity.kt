@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
@@ -13,6 +15,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsServiceConnection
 import androidx.browser.customtabs.CustomTabsSession
 import androidx.core.content.ContextCompat
+import java.util.UUID
 
 class ChromePageActivity : AppCompatActivity() {
 
@@ -31,6 +34,8 @@ class ChromePageActivity : AppCompatActivity() {
     private lateinit var timeTracker: TimeTracker
     private var pageVisited = false
     private lateinit var webGameProgress: WebGameProgress
+    private var isJeLisRewardTimeSetup = false
+    private var targetUri: Uri? = null
 
     companion object {
         const val EXTRA_URL = "url"
@@ -58,6 +63,12 @@ class ChromePageActivity : AppCompatActivity() {
             return
         }
 
+        // For Je Lis, ensure reward time is available before launching Chrome
+        // This prevents the confusing flow where Chrome gets blocked, then redirects to BaerenLock
+        if (taskId == "jeLis") {
+            ensureRewardTimeForJeLis()
+        }
+
         // Initialize time tracker
         timeTracker = TimeTracker(this)
 
@@ -79,7 +90,94 @@ class ChromePageActivity : AppCompatActivity() {
         val pageName = taskTitle ?: taskId ?: url ?: "Web Page"
         timeTracker.startActivity(uniqueTaskId, "chromepage", pageName)
 
-        val targetUri = Uri.parse(url)
+        targetUri = Uri.parse(url)
+
+        // For Je Lis, wait for reward time setup before launching Chrome
+        if (taskId == "jeLis" && !isJeLisRewardTimeSetup) {
+            // Wait for reward time to be set up, then launch Chrome
+            // Give BaerenLock a moment to process the reward time broadcast
+            Handler(Looper.getMainLooper()).postDelayed({
+                launchChromeAfterRewardTimeSetup()
+            }, 800) // Give BaerenLock 800ms to process reward time from broadcast/cloud
+            return
+        }
+
+        // Connect to Custom Tabs service to better track timing
+        connectAndLaunchChrome()
+    }
+
+    private fun ensureRewardTimeForJeLis() {
+        try {
+            val progressManager = DailyProgressManager(this)
+            val currentMinutes = progressManager.getBankedRewardMinutes()
+            
+            if (currentMinutes > 0) {
+                Log.d(TAG, "Je Lis detected: Found $currentMinutes banked reward minutes, syncing to cloud")
+                
+                // Sync reward minutes to cloud (so BaerenLock can read them)
+                // This is the same pattern used by RewardSelectionActivity
+                progressManager.setBankedRewardMinutes(currentMinutes)
+                
+                // Send broadcast to BaerenLock to start reward time (background operation)
+                // This doesn't bring BaerenLock to foreground
+                try {
+                    val transactionId = UUID.randomUUID().mostSignificantBits
+                    val broadcastIntent = Intent("com.talq2me.baerenlock.ACTION_ADD_REWARD_TIME").apply {
+                        setPackage("com.talq2me.baerenlock")
+                        putExtra("reward_minutes", currentMinutes)
+                        putExtra("reward_transaction_id", transactionId)
+                    }
+                    sendBroadcast(broadcastIntent)
+                    Log.d(TAG, "Sent broadcast to BaerenLock to start reward time for Je Lis ($currentMinutes minutes)")
+                    
+                    // Clear the banked minutes from BaerenEd local storage AFTER successful sync to cloud
+                    // This matches the pattern used in RewardSelectionActivity
+                    // BaerenLock will manage clearing from cloud when it uses the time
+                    // Only clear if we successfully synced to cloud and sent the broadcast
+                    val profile = progressManager.getCurrentKid()
+                    val key = "${profile}_banked_reward_minutes"
+                    getSharedPreferences("daily_progress_prefs", MODE_PRIVATE)
+                        .edit()
+                        .putInt(key, 0)
+                        .apply()
+                    Log.d(TAG, "Cleared banked reward minutes from BaerenEd local storage (cloud still has minutes for BaerenLock)")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to send broadcast to BaerenLock", e)
+                    // Don't clear banked minutes if broadcast failed - BaerenLock will read from cloud
+                    // The minutes are already synced to cloud, so BaerenLock can still use them
+                    Log.d(TAG, "Banked minutes remain in BaerenEd (already synced to cloud for BaerenLock)")
+                }
+            } else {
+                Log.d(TAG, "Je Lis detected: No banked reward minutes available")
+                // BaerenLock might already have reward time available
+            }
+            
+            // Mark as setup so Chrome can launch
+            // We give BaerenLock a moment to process the broadcast, then launch Chrome
+            isJeLisRewardTimeSetup = true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error ensuring reward time for Je Lis", e)
+            // Continue anyway - launch Chrome and let BaerenLock handle blocking if needed
+            // Don't clear any banked minutes on error - preserve existing reward management
+            isJeLisRewardTimeSetup = true
+        }
+    }
+
+    private fun launchChromeAfterRewardTimeSetup() {
+        if (targetUri == null) {
+            Log.e(TAG, "targetUri is null, cannot launch Chrome")
+            finish()
+            return
+        }
+        connectAndLaunchChrome()
+    }
+
+    private fun connectAndLaunchChrome() {
+        if (targetUri == null) {
+            Log.e(TAG, "targetUri is null, cannot launch Chrome")
+            finish()
+            return
+        }
 
         // Connect to Custom Tabs service to better track timing
         customTabsServiceConnection = object : CustomTabsServiceConnection() {
@@ -87,7 +185,7 @@ class ChromePageActivity : AppCompatActivity() {
                 customTabsClient = client
                 customTabsClient?.warmup(0L)
                 customTabsSession = customTabsClient?.newSession(null)
-                launchCustomTab(targetUri)
+                launchCustomTab(targetUri!!)
             }
 
             override fun onServiceDisconnected(name: ComponentName) {
@@ -105,7 +203,7 @@ class ChromePageActivity : AppCompatActivity() {
         if (!connected) {
             // Fallback: launch without service connection
             Log.w(TAG, "Could not bind to Custom Tabs service, launching directly")
-            launchCustomTab(targetUri)
+            launchCustomTab(targetUri!!)
         }
     }
 

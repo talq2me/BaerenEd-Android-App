@@ -615,6 +615,14 @@ class Layout(private val activity: MainActivity) {
             if (sectionId == "required" || sectionId == "optional") {
                 progressManager.addEarnedBerries(earnedStars)
                 android.util.Log.d(TAG, "Added $earnedStars berries to battle hub from manual task completion")
+                
+                // Sync berries to cloud immediately after adding them
+                val profile = SettingsManager.readProfile(activity) ?: "AM"
+                val cloudStorageManager = CloudStorageManager(activity)
+                // Use GlobalScope since Layout doesn't have lifecycle scope
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    cloudStorageManager.saveIfEnabled(profile)
+                }
             }
             
             Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
@@ -1007,33 +1015,11 @@ class Layout(private val activity: MainActivity) {
                 }
                 
                 val intent = android.content.Intent(activity, WebGameActivity::class.java).apply {
+                    // IMPORTANT: Always use GitHub Pages URL first - never convert to local assets
+                    // GitHub is the source of truth. WebView will naturally fall back to local cache if needed.
+                    // Only local assets are used if GitHub URL is not available (offline/no network).
                     var finalGameUrl = gameUrl
-                    // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
-                    if (finalGameUrl.contains("talq2me.github.io") && finalGameUrl.contains("/html/")) {
-                        val uri = android.net.Uri.parse(finalGameUrl)
-                        val fileName = finalGameUrl.substringAfterLast("/").substringBefore("?")
-                        
-                        // Check if file exists in assets first
-                        try {
-                            val assetManager = activity.assets
-                            val assetPath = "html/$fileName"
-                            val inputStream = assetManager.open(assetPath)
-                            inputStream.close()
-                            
-                            // File exists in assets, convert to local asset URL
-                            val queryParams = uri.query
-                            finalGameUrl = if (queryParams != null) {
-                                "file:///android_asset/html/$fileName?$queryParams"
-                            } else {
-                                "file:///android_asset/html/$fileName"
-                            }
-                            android.util.Log.d("Layout", "Converted to local asset URL: $finalGameUrl (file exists)")
-                        } catch (e: java.io.IOException) {
-                            // File doesn't exist in assets, keep GitHub Pages URL
-                            android.util.Log.d("Layout", "File not in assets, using GitHub Pages URL: $finalGameUrl")
-                            // Keep the original GitHub URL - don't convert it
-                        }
-                    }
+                    android.util.Log.d("Layout", "Using GitHub Pages URL (will load from GitHub first): $finalGameUrl")
                     putExtra(WebGameActivity.EXTRA_GAME_URL, finalGameUrl)
                     putExtra(WebGameActivity.EXTRA_TASK_ID, uniqueTaskId)  // Use unique taskId with diagram parameter
                     putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)
@@ -1707,6 +1693,14 @@ class Layout(private val activity: MainActivity) {
                             // Add berries to battle hub (checklist items are from required section)
                             progressManager.addEarnedBerries(earnedStars)
                             android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from checklist item completion")
+                            
+                            // Sync berries to cloud immediately after adding them
+                            val profile = SettingsManager.readProfile(activity) ?: "AM"
+                            val cloudStorageManager = CloudStorageManager(activity)
+                            // Use GlobalScope since Layout doesn't have lifecycle scope
+                            kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                cloudStorageManager.saveIfEnabled(profile)
+                            }
                             
                             updateProgressDisplay()
                             // Update visual state - disable and grey out

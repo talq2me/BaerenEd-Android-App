@@ -695,6 +695,9 @@
                         const carryInput = document.createElement('input');
                         carryInput.type = 'text';
                         carryInput.className = 'digit-cell input';
+                        carryInput.setAttribute('readonly', 'readonly'); // Prevent Android keyboard (HTML attribute)
+                        carryInput.setAttribute('inputmode', 'none'); // Additional protection (HTML attribute)
+                        carryInput.setAttribute('readOnly', 'true'); // JavaScript property for compatibility
                         carryInput.readOnly = true; // Prevent Android keyboard
                         carryInput.inputMode = 'none'; // Additional protection
                         carryInput.style.width = '40px';
@@ -772,6 +775,8 @@
                         const borrowInput = document.createElement('input');
                         borrowInput.type = 'text';
                         borrowInput.className = 'digit-cell input';
+                        borrowInput.setAttribute('readonly', 'readonly'); // Prevent Android keyboard (HTML attribute)
+                        borrowInput.setAttribute('inputmode', 'none'); // Additional protection (HTML attribute)
                         borrowInput.readOnly = true; // Prevent Android keyboard
                         borrowInput.inputMode = 'none'; // Additional protection
                         borrowInput.style.width = '40px';
@@ -795,6 +800,8 @@
                             const nineInput = document.createElement('input');
                             nineInput.type = 'text';
                             nineInput.className = 'digit-cell input';
+                            nineInput.setAttribute('readonly', 'readonly'); // Prevent Android keyboard (HTML attribute)
+                            nineInput.setAttribute('inputmode', 'none'); // Additional protection (HTML attribute)
                             nineInput.readOnly = true; // Prevent Android keyboard
                             nineInput.inputMode = 'none'; // Additional protection
                             nineInput.style.width = '40px';
@@ -866,8 +873,10 @@
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.className = 'digit-cell input';
-                input.readOnly = true; // Prevent Android keyboard
-                input.inputMode = 'none'; // Additional protection
+                input.setAttribute('readonly', 'readonly'); // Prevent Android keyboard (HTML attribute)
+                input.setAttribute('inputmode', 'none'); // Additional protection (HTML attribute)
+                input.readOnly = true; // Prevent Android keyboard (JavaScript property)
+                input.inputMode = 'none'; // Additional protection (JavaScript property)
                 input.maxLength = 1;
                 // displayPos: 0 = leftmost, answerLen-1 = rightmost (ones)
                 input.dataset.position = displayPos;

@@ -732,8 +732,9 @@ class CloudStorageManager(private val context: Context) {
         val requiredTasks = mutableMapOf<String, TaskProgress>()
 
         try {
-            // First, get all tasks from config to ensure we have complete list
-            val configTasks = getConfigTasksForSection("required")
+            // CRITICAL: Get ALL tasks from config (not filtered by visibility) for database syncing
+            // This ensures all tasks are in the database for reporting even if not visible today
+            val configTasks = getConfigTasksForSection("required", filterByVisibility = false)
 
             // Read completed task names to get existing task details
             val completedTaskNamesJson = progressPrefs.getString("completed_task_names", "{}") ?: "{}"
@@ -826,8 +827,10 @@ class CloudStorageManager(private val context: Context) {
         val practiceTasks = mutableMapOf<String, PracticeProgress>()
 
         try {
-            // Get only tasks from optional section for practice tasks (bonus tasks are not tracked)
-            val optionalTasks = getConfigTasksForSection("optional")
+            // CRITICAL: Get ALL tasks from optional section (not filtered by visibility) for database syncing
+            // This ensures all tasks are in the database for reporting even if not visible today
+            // Only includes tasks from the "optional" section, not "bonus" section
+            val optionalTasks = getConfigTasksForSection("optional", filterByVisibility = false)
 
             // Get time tracking sessions to calculate performance data
             val timeTracker = TimeTracker(context)
@@ -973,6 +976,15 @@ class CloudStorageManager(private val context: Context) {
      * Only includes tasks that are visible on the current day
      */
     private fun getConfigTasksForSection(sectionId: String): List<Task> {
+        return getConfigTasksForSection(sectionId, filterByVisibility = true)
+    }
+
+    /**
+     * Gets all tasks from a specific config section
+     * @param sectionId The section ID ("required" or "optional")
+     * @param filterByVisibility If true, only returns tasks visible today. If false, returns ALL tasks for database syncing
+     */
+    private fun getConfigTasksForSection(sectionId: String, filterByVisibility: Boolean): List<Task> {
         try {
             // Load config content
             val contentUpdateService = ContentUpdateService()
@@ -986,8 +998,17 @@ class CloudStorageManager(private val context: Context) {
             val mainContent = gson.fromJson(jsonString, MainContent::class.java)
             val section = mainContent?.sections?.find { it.id == sectionId }
 
-            // Filter tasks by visibility - only include tasks visible today
+            // Get all tasks from section
             val allTasks = section?.tasks?.filterNotNull() ?: emptyList()
+            
+            // For database syncing, return ALL tasks (not filtered by visibility)
+            // This ensures all tasks are in the database for reporting even if not visible today
+            if (!filterByVisibility) {
+                Log.d(TAG, "getConfigTasksForSection($sectionId, filterByVisibility=false): Returning ALL ${allTasks.size} tasks for database sync")
+                return allTasks
+            }
+            
+            // Filter tasks by visibility - only include tasks visible today
             val visibleTasks = allTasks.filter { task ->
                 isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
             }
@@ -1601,13 +1622,28 @@ class CloudStorageManager(private val context: Context) {
             }
 
             // Apply berries earned (store in pokemonBattleHub preferences where UI expects it, profile-specific)
+            // IMPORTANT: Only apply cloud berries if they're HIGHER than local berries
+            // This prevents overwriting local progress with outdated cloud data
             try {
                 val berriesKey = "${localProfile}_earnedBerries"
-                context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt(berriesKey, data.berriesEarned)
-                    .apply()
-                Log.d(TAG, "Applied berries_earned: ${data.berriesEarned} for profile: $localProfile")
+                val prefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+                val localBerries = prefs.getInt(berriesKey, 0)
+                
+                // Only apply cloud berries if they're higher than local (preserve local progress)
+                val berriesToApply = if (data.berriesEarned > localBerries) {
+                    data.berriesEarned
+                } else {
+                    localBerries
+                }
+                
+                if (berriesToApply != localBerries) {
+                    prefs.edit()
+                        .putInt(berriesKey, berriesToApply)
+                        .apply()
+                    Log.d(TAG, "Applied berries_earned: $berriesToApply (cloud: ${data.berriesEarned}, local: $localBerries) for profile: $localProfile")
+                } else {
+                    Log.d(TAG, "Preserved local berries: $localBerries (cloud: ${data.berriesEarned} is lower or equal) for profile: $localProfile")
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Error applying berries to local storage", e)
             }
