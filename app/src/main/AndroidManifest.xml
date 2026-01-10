@@ -14,6 +14,8 @@
         <provider android:authorities="com.talq2me.baeren.settingsprovider" />
         <!-- Declare visibility for Google Read Along -->
         <package android:name="com.google.android.apps.seekh" />
+        <!-- Declare visibility for Boukili app -->
+        <package android:name="ca.boukili.app" />
 
     </queries>
 

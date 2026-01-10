@@ -1365,10 +1365,54 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     fun launchBoukili(task: Task, sectionId: String?) {
         android.util.Log.d(TAG, "Launching Boukili for task: ${task.title}")
+        val packageName = "ca.boukili.app"
+        
         try {
-            val intent = packageManager.getLaunchIntentForPackage("ca.boukili.app")
+            // Check if package is installed first
+            val packageInfo = try {
+                packageManager.getPackageInfo(packageName, 0)
+                true
+            } catch (e: android.content.pm.PackageManager.NameNotFoundException) {
+                false
+            }
+            
+            if (!packageInfo) {
+                Log.w(TAG, "Boukili app (package: $packageName) is not installed")
+                Toast.makeText(this, "Boukili app is not installed", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Try to get launch intent
+            var intent = packageManager.getLaunchIntentForPackage(packageName)
+            
+            // If getLaunchIntentForPackage returns null (can happen on Android 11+ due to package visibility),
+            // try querying for launcher activities
+            if (intent == null) {
+                Log.d(TAG, "getLaunchIntentForPackage returned null, querying for launcher activities")
+                try {
+                    val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_LAUNCHER)
+                        setPackage(packageName)
+                    }
+                    val resolveInfos = packageManager.queryIntentActivities(launcherIntent, 0)
+                    if (resolveInfos.isNotEmpty()) {
+                        val resolveInfo = resolveInfos[0]
+                        val activityInfo = resolveInfo.activityInfo
+                        intent = Intent().apply {
+                            setClassName(activityInfo.packageName, activityInfo.name)
+                        }
+                        Log.d(TAG, "Found launcher activity: ${activityInfo.name}")
+                    } else {
+                        Log.w(TAG, "No launcher activities found for package: $packageName")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to query launcher activities for Boukili", e)
+                }
+            }
+            
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 
                 // Simple approach: Just save the start timestamp and task info
                 val taskId = task.launch ?: "boukili"
@@ -1386,11 +1430,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     .apply()
                 
                 Log.d(TAG, "Saved Boukili start time: $startTimeMs for task: $taskTitle")
+                Log.d(TAG, "Starting Boukili with intent: $intent")
                 
                 startActivity(intent)
             } else {
-                Toast.makeText(this, "Boukili app is not installed", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Could not create launch intent for Boukili")
+                Toast.makeText(this, "Unable to launch Boukili app", Toast.LENGTH_SHORT).show()
             }
+        } catch (e: android.content.ActivityNotFoundException) {
+            Log.e(TAG, "Activity not found for Boukili", e)
+            Toast.makeText(this, "Boukili app is not available", Toast.LENGTH_SHORT).show()
+            // Clear the start time on error
+            boukiliPrefs.edit()
+                .remove(KEY_BOUKILI_START_TIME)
+                .remove(KEY_BOUKILI_TASK_ID)
+                .remove(KEY_BOUKILI_TASK_TITLE)
+                .remove(KEY_BOUKILI_STARS)
+                .remove(KEY_BOUKILI_SECTION_ID)
+                .apply()
         } catch (e: Exception) {
             Log.e(TAG, "Error launching Boukili", e)
             Toast.makeText(this, "Error launching Boukili: ${e.message}", Toast.LENGTH_SHORT).show()
