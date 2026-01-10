@@ -1221,14 +1221,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val content = contentUpdateService.fetchMainContent(this@MainActivity)
                 if (content != null) {
                     // CRITICAL: Always sync config tasks to cloud database when config is loaded from GitHub
-                    // This ensures required_tasks and practice_tasks columns are populated for reporting
+                    // This ensures required_tasks, practice_tasks, and checklist_items columns are populated for reporting
+                    // Wait a brief moment to ensure config is fully cached
+                    kotlinx.coroutines.delay(100)
                     val profile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
                     try {
                         val uploadResult = cloudStorageManager.uploadToCloud(profile)
-                        if (uploadResult.isSuccess) {
-                            Log.d(TAG, "Successfully synced config tasks to cloud database after loading from GitHub")
-                        } else {
-                            Log.w(TAG, "Failed to sync config tasks to cloud: ${uploadResult.exceptionOrNull()?.message}")
+                        if (!uploadResult.isSuccess) {
+                            val errorMsg = uploadResult.exceptionOrNull()?.message ?: "Unknown error"
+                            Log.e(TAG, "Failed to sync config tasks to cloud: $errorMsg")
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error syncing config tasks to cloud", e)

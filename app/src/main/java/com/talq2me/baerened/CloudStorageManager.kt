@@ -163,7 +163,6 @@ class CloudStorageManager(private val context: Context) {
      */
     fun setCloudStorageEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_USE_CLOUD, enabled).apply()
-        Log.d(TAG, "Cloud storage ${if (enabled) "enabled" else "disabled"}")
     }
 
     /**
@@ -194,41 +193,29 @@ class CloudStorageManager(private val context: Context) {
             return@withContext Result.failure(Exception("Supabase not configured in BuildConfig"))
         }
 
-        Log.d(TAG, "uploadToCloud called for profile: $profile")
-
         try {
             // Use profile name directly (no conversion)
             val cloudProfile = profile
             val userData = collectLocalData(profile)
             
-            // Log timestamp values before serialization
-            Log.d(TAG, "Uploading data for profile $cloudProfile")
-            Log.d(TAG, "last_reset timestamp: ${userData.lastReset}")
-            Log.d(TAG, "last_updated timestamp: ${userData.lastUpdated}")
+            // Log task counts for debugging config sync
+            Log.d(TAG, "Uploading to cloud: profile=$cloudProfile, requiredTasks=${userData.requiredTasks.size}, practiceTasks=${userData.practiceTasks.size}, checklistItems=${userData.checklistItems.size}")
             
             val json = gson.toJson(userData)
-
-            Log.d(TAG, "Uploading data for profile $cloudProfile, JSON length: ${json.length}")
-            Log.d(TAG, "Upload data preview: ${json.take(500)}...")
 
             // Check if Supabase is configured
             val url = getSupabaseUrl()
             val key = getSupabaseKey()
             if (url.isEmpty() || key.isEmpty()) {
-                Log.e(TAG, "Supabase not configured - URL: '${url.isNotEmpty()}', Key: '${key.isNotEmpty()}'")
+                Log.e(TAG, "Supabase not configured")
                 return@withContext Result.failure(Exception("Supabase not configured"))
             }
-            Log.d(TAG, "Supabase configured - URL: $url, Key length: ${key.length}")
 
             val baseUrl = "${getSupabaseUrl()}/rest/v1/user_data"
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
-            Log.d(TAG, "POST URL: $baseUrl")
-            Log.d(TAG, "POST headers: apikey=${getSupabaseKey().take(10)}..., Authorization=Bearer ${getSupabaseKey().take(10)}...")
-
             // First check if record exists
             val checkUrl = "$baseUrl?profile=eq.$cloudProfile&select=profile"
-            Log.d(TAG, "CHECK URL: $checkUrl")
 
             val checkRequest = Request.Builder()
                 .url(checkUrl)
@@ -237,18 +224,15 @@ class CloudStorageManager(private val context: Context) {
                 .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
                 .build()
 
-            Log.d(TAG, "Checking if record exists for profile: $cloudProfile")
             val checkResponse = client.newCall(checkRequest).execute()
             val checkResponseBody = checkResponse.body?.string() ?: "[]"
             checkResponse.close()
 
             val recordExists = checkResponseBody != "[]" && checkResponseBody.isNotBlank()
-            Log.d(TAG, "Record exists check - response: ${checkResponseBody.take(100)}, exists: $recordExists")
 
             if (recordExists) {
                 // Record exists, try UPDATE (PATCH)
                 val patchUrl = "$baseUrl?profile=eq.$cloudProfile"
-                Log.d(TAG, "PATCH URL: $patchUrl")
 
                 val patchRequest = Request.Builder()
                     .url(patchUrl)
@@ -259,24 +243,20 @@ class CloudStorageManager(private val context: Context) {
                     .addHeader("Prefer", "return=minimal")
                     .build()
 
-                Log.d(TAG, "Attempting PATCH for existing record")
                 val patchResponse = client.newCall(patchRequest).execute()
-                Log.d(TAG, "PATCH response code: ${patchResponse.code}")
 
                 if (patchResponse.isSuccessful) {
-                    Log.d(TAG, "PATCH succeeded - updated existing record")
                     prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
                     patchResponse.close()
                     return@withContext Result.success(Unit)
                 } else {
                     val patchErrorBody = patchResponse.body?.string()
-                    Log.e(TAG, "PATCH failed with code: ${patchResponse.code}, body: $patchErrorBody")
+                    Log.e(TAG, "Upload failed (PATCH): ${patchResponse.code} - $patchErrorBody")
                     patchResponse.close()
                     return@withContext Result.failure(Exception("PATCH failed with code: ${patchResponse.code}"))
                 }
             } else {
                 // Record doesn't exist, try INSERT (POST)
-                Log.d(TAG, "Record doesn't exist, trying POST to create new record")
                 val postRequest = Request.Builder()
                     .url(baseUrl)
                     .post(requestBody)
@@ -289,13 +269,12 @@ class CloudStorageManager(private val context: Context) {
                 val postResponse = client.newCall(postRequest).execute()
 
                 if (postResponse.isSuccessful) {
-                    Log.d(TAG, "POST succeeded - created new record")
                     prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
                     postResponse.close()
                     return@withContext Result.success(Unit)
                 } else {
                     val postErrorBody = postResponse.body?.string()
-                    Log.e(TAG, "POST failed with code: ${postResponse.code}, body: $postErrorBody")
+                    Log.e(TAG, "Upload failed (POST): ${postResponse.code} - $postErrorBody")
                     postResponse.close()
                     return@withContext Result.failure(Exception("POST failed with code: ${postResponse.code}"))
                 }
@@ -586,7 +565,6 @@ class CloudStorageManager(private val context: Context) {
      * Collects all local data for a profile into CloudUserData
      */
     private fun collectLocalData(profile: String): CloudUserData {
-        Log.d(TAG, "collectLocalData called with profile: $profile")
         val cloudProfile = profile
         val localProfileId = profile
 
@@ -658,15 +636,12 @@ class CloudStorageManager(private val context: Context) {
 
         // Collect required tasks data
         val requiredTasks = collectRequiredTasksData(progressPrefs, progressManager.getCompletedTasksMap())
-        Log.d(TAG, "Collected requiredTasks: ${requiredTasks.size} tasks")
 
         // Collect practice tasks data (games/videos/webgames as practice tasks)
         val practiceTasks = collectPracticeTasksData()
-        Log.d(TAG, "Collected practiceTasks: ${practiceTasks.size} tasks")
 
         // Collect checklist items data
         val checklistItems = collectChecklistItemsData(progressManager.getCompletedTasksMap())
-        Log.d(TAG, "Collected checklistItems: ${checklistItems.size} items")
 
         // Get progress metrics (all profile-specific)
         val possibleStarsKey = "${localProfileId}_total_possible_stars"
@@ -684,7 +659,6 @@ class CloudStorageManager(private val context: Context) {
             Log.e(TAG, "Error getting earned berries", e)
             0
         }
-        Log.d(TAG, "Collected berriesEarned: $berriesEarned")
 
         // Get Pokemon data
         val pokemonUnlocked = progressPrefs.getInt("${localProfileId}_$KEY_POKEMON_UNLOCKED", 0)
@@ -721,7 +695,6 @@ class CloudStorageManager(private val context: Context) {
             lastUpdated = lastUpdated
         )
 
-        Log.d(TAG, "Created CloudUserData: profile=$cloudProfile, requiredTasks=${requiredTasks.size}, practiceTasks=${practiceTasks.size}, gameIndices=${gameIndices.size}")
         return cloudData
     }
 
@@ -811,7 +784,6 @@ class CloudStorageManager(private val context: Context) {
                 )
             }
 
-            Log.d(TAG, "Collected ${requiredTasks.size} required tasks from config (${configTasks.size} total in config)")
         } catch (e: Exception) {
             Log.e(TAG, "Error collecting required tasks data", e)
         }
@@ -902,7 +874,6 @@ class CloudStorageManager(private val context: Context) {
                 )
             }
 
-            Log.d(TAG, "Collected ${practiceTasks.size} practice tasks from optional section (${optionalTasks.size} total optional tasks in config)")
         } catch (e: Exception) {
             Log.e(TAG, "Error collecting practice tasks data", e)
         }
@@ -918,10 +889,19 @@ class CloudStorageManager(private val context: Context) {
 
         try {
             // Get checklist items from config
+            // CRITICAL: Get ALL checklist items (not filtered by visibility) for database syncing
+            // This ensures all checklist items are in the database for reporting even if not visible today
             val checklistSection = getConfigChecklistSection()
 
+            if (checklistSection == null) {
+                Log.w(TAG, "Checklist section not found in config")
+                return checklistItems
+            }
+
+            val allItems = checklistSection.items?.filterNotNull() ?: emptyList()
+
             // For each checklist item in config, create ChecklistItemProgress
-            checklistSection?.items?.forEach { item ->
+            allItems.forEach { item ->
                 val itemLabel = item.label ?: "Unknown Item"
                 val itemId = item.id ?: "checkbox_$itemLabel"
                 
@@ -940,10 +920,9 @@ class CloudStorageManager(private val context: Context) {
                     displayDays = displayDays
                 )
             }
-
-            Log.d(TAG, "Collected ${checklistItems.size} checklist items from config")
         } catch (e: Exception) {
             Log.e(TAG, "Error collecting checklist items data", e)
+            e.printStackTrace()
         }
 
         return checklistItems
@@ -1004,7 +983,6 @@ class CloudStorageManager(private val context: Context) {
             // For database syncing, return ALL tasks (not filtered by visibility)
             // This ensures all tasks are in the database for reporting even if not visible today
             if (!filterByVisibility) {
-                Log.d(TAG, "getConfigTasksForSection($sectionId, filterByVisibility=false): Returning ALL ${allTasks.size} tasks for database sync")
                 return allTasks
             }
             
@@ -1013,7 +991,6 @@ class CloudStorageManager(private val context: Context) {
                 isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
             }
 
-            Log.d(TAG, "getConfigTasksForSection($sectionId): ${allTasks.size} total tasks, ${visibleTasks.size} visible today")
             return visibleTasks
         } catch (e: Exception) {
             Log.e(TAG, "Error loading config tasks for section: $sectionId", e)
