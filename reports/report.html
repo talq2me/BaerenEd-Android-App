@@ -262,27 +262,16 @@
                 <ul class="task-list" id="requiredTasks"></ul>
             </div>
 
+            <!-- Checklist Items -->
+            <div class="section">
+                <h3>📋 Checklist Items</h3>
+                <ul class="task-list" id="checklistItems"></ul>
+            </div>
+
             <!-- Practice Tasks -->
             <div class="section">
                 <h3>🎯 Extra Practice Tasks</h3>
                 <ul class="task-list" id="practiceTasks"></ul>
-            </div>
-
-            <!-- Task Details Table -->
-            <div class="section">
-                <h3>📋 Task Details</h3>
-                <table id="taskDetailsTable">
-                    <thead>
-                        <tr>
-                            <th>Task</th>
-                            <th>Status</th>
-                            <th>Correct</th>
-                            <th>Incorrect</th>
-                            <th>Questions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="taskDetailsBody"></tbody>
-                </table>
             </div>
 
             <!-- Achievements & Insights -->
@@ -411,6 +400,7 @@
             // Parse JSONB data
             const allRequiredTasks = userData.required_tasks || {};
             const allPracticeTasks = userData.practice_tasks || {};
+            const allChecklistItems = userData.checklist_items || {};
             const berriesEarned = userData.berries_earned || 0;
             const possibleStars = userData.possible_stars || 0;
 
@@ -475,6 +465,34 @@
                 });
             }
 
+            // Display checklist items
+            const checklistItemsList = document.getElementById('checklistItems');
+            checklistItemsList.innerHTML = '';
+            
+            const checklistItemKeys = Object.keys(allChecklistItems);
+            if (checklistItemKeys.length === 0) {
+                checklistItemsList.innerHTML = '<li class="task-item"><span class="task-name">No checklist items found</span></li>';
+            } else {
+                checklistItemKeys.forEach(itemKey => {
+                    const item = allChecklistItems[itemKey];
+                    const isComplete = item && (item.done === true || item.completed === true);
+                    const stars = item?.stars || 0;
+
+                    const li = document.createElement('li');
+                    li.className = `task-item ${isComplete ? '' : 'incomplete'}`;
+                    
+                    const itemName = itemKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const starsText = stars > 0 ? ` (${stars}⭐)` : '';
+                    const statusText = isComplete ? '✓' : '○';
+                    
+                    li.innerHTML = `
+                        <span class="task-name">${statusText} ${itemName}${starsText}</span>
+                        <span class="task-info">${isComplete ? 'Complete' : 'Incomplete'}</span>
+                    `;
+                    checklistItemsList.appendChild(li);
+                });
+            }
+
             // Display practice tasks
             const practiceTasksList = document.getElementById('practiceTasks');
             practiceTasksList.innerHTML = '';
@@ -504,50 +522,6 @@
                     practiceTasksList.appendChild(li);
                 });
             }
-
-            // Display task details table
-            const taskDetailsBody = document.getElementById('taskDetailsBody');
-            taskDetailsBody.innerHTML = '';
-            
-            // Add required tasks to table
-            requiredTaskKeys.forEach(taskKey => {
-                const task = requiredTasks[taskKey];
-                const isComplete = task && (task.status === 'complete' || task.completed === true);
-                const correct = task?.correct || 0;
-                const incorrect = task?.incorrect || 0;
-                const questions = task?.questions || 0;
-                const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${taskName}</strong> (Required)</td>
-                    <td><span class="status-badge ${isComplete ? 'status-complete' : 'status-incomplete'}">${isComplete ? 'Complete' : 'Incomplete'}</span></td>
-                    <td>${correct}</td>
-                    <td>${incorrect}</td>
-                    <td>${questions}</td>
-                `;
-                taskDetailsBody.appendChild(tr);
-            });
-
-            // Add practice tasks to table
-            practiceTaskKeys.forEach(taskKey => {
-                const task = practiceTasks[taskKey];
-                const timesCompleted = task?.times_completed || 0;
-                const correct = task?.correct || 0;
-                const incorrect = task?.incorrect || 0;
-                const questionsAnswered = task?.questions_answered || 0;
-                const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${taskName}</strong> (Practice)</td>
-                    <td><span class="status-badge status-complete">Completed ${timesCompleted}x</span></td>
-                    <td>${correct}</td>
-                    <td>${incorrect}</td>
-                    <td>${questionsAnswered}</td>
-                `;
-                taskDetailsBody.appendChild(tr);
-            });
 
             // Display achievements
             const achievementsDiv = document.getElementById('achievements');
