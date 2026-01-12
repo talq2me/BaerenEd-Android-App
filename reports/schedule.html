@@ -237,17 +237,17 @@
                     
                     if (disableDate && !isNaN(disableDate.getTime())) {
                         // Check if task is disabled on this day of the week
-                        // For simplicity, if task has a disable date in the past, we don't show it
-                        // If it's a future date, we show it based on day restrictions
+                        // If disable date is in the future, task is disabled (not visible)
+                        // If disable date is in the past, task is enabled and we check day restrictions
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         disableDate.setHours(0, 0, 0, 0);
                         
-                        // If disable date is in the past, don't show task
-                        if (today > disableDate) {
+                        // If today is before the disable date, task is disabled (not visible)
+                        if (today < disableDate) {
                             return false;
                         }
-                        // If disable date is today or in the future, check day restrictions normally
+                        // If disable date has passed, check day restrictions normally
                     }
                 } catch (e) {
                     console.warn('Error parsing disable date:', disable, e);
