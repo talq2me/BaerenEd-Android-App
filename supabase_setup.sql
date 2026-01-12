@@ -2,12 +2,35 @@
 -- Run this SQL in your Supabase SQL Editor to create the necessary table
 -- This script is designed to be re-runnable
 
+-- ============================================================================
+-- UPGRADE SCRIPT: Remove timezone from timestamp fields
+-- ============================================================================
+-- If upgrading from a version that had TIMESTAMP WITH TIME ZONE, run these
+-- commands to convert all timestamp fields to TIMESTAMP(3) without timezone.
+-- All timestamps are stored in EST and should be compared as EST times.
+-- The code expects timestamps without timezone suffixes (e.g., no +00:00 or -05:00).
+--
+-- Run these ALTER statements to remove timezone from timestamp fields:
+--
+-- ALTER TABLE settings ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'EST');
+-- ALTER TABLE user_data ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'EST');
+-- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING (last_reset AT TIME ZONE 'EST');
+-- ALTER TABLE devices ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'EST');
+-- ALTER TABLE devices ALTER COLUMN baerenlock_last_health_check TYPE TIMESTAMP(3) USING (baerenlock_last_health_check AT TIME ZONE 'EST');
+--
+-- ============================================================================
+-- Previous upgrade scripts (for reference):
+--
 -- Note: If upgrading from previous version, you may need to run:
 -- ALTER TABLE user_data ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING last_updated AT TIME ZONE 'UTC' AT TIME ZONE 'GMT';
 -- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING last_reset AT TIME ZONE 'UTC' AT TIME ZONE 'EST';
 --
 -- Upgrade script to add checklist_items column (run this if the column doesn't exist):
 -- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS checklist_items JSONB DEFAULT '{}'::jsonb;
+--
+-- NOTE: Health check columns were moved from settings -> user_data -> devices table
+-- Health checks are device-specific, not profile-specific
+-- See migrate_health_check_to_devices.sql for the latest migration script
 
 -- Drop existing trigger and functions if they exist (for clean re-run)
 DROP TRIGGER IF EXISTS daily_progress_reset_trigger ON user_data;
@@ -57,6 +80,9 @@ CREATE TABLE IF NOT EXISTS user_data (
     blacklisted_apps TEXT, -- JSON array of package names as string
     white_listed_apps TEXT, -- JSON array of package names as string
 
+    -- NOTE: BaerenLock health check information is stored in devices table (per device, not per profile)
+    -- See migrate_health_check_to_devices.sql for migration if upgrading from older version
+
     -- Ensure one record per profile
     UNIQUE(profile)
 );
@@ -101,7 +127,8 @@ CREATE TABLE IF NOT EXISTS settings (
     id BIGSERIAL PRIMARY KEY,
     parent_email VARCHAR(128),
     pin VARCHAR(8),
-    aggressive_cleanup BOOLEAN DEFAULT true
+    aggressive_cleanup BOOLEAN DEFAULT true,
+    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST')
 );
 
 
@@ -117,6 +144,20 @@ CREATE POLICY "Allow all operations on settings" ON settings
     USING (true)
     WITH CHECK (true);
 
+-- Optional: Create a function to automatically update last_updated timestamp for settings
+CREATE OR REPLACE FUNCTION update_settings_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.last_updated = NOW() AT TIME ZONE 'EST';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to automatically update last_updated on settings table
+CREATE TRIGGER update_settings_timestamp
+    BEFORE UPDATE ON settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_settings_timestamp();
 
 --insert default settings data: 
 insert into settings (parent_email, pin, aggressive_cleanup) values ('parent@gmail.com', '1234', true);
@@ -191,3 +232,50 @@ CREATE TRIGGER daily_progress_reset_trigger
     FOR EACH ROW
     EXECUTE FUNCTION check_daily_reset();
 
+-- Add devices table to store active profile per device
+-- This allows BaerenLock and BaerenEd to sync the active profile between apps on the same device
+
+-- Create the devices table
+CREATE TABLE IF NOT EXISTS devices (
+    device_id TEXT PRIMARY KEY, -- Android device ID (ANDROID_ID from Settings.Secure)
+    device_name TEXT, -- User-friendly device name (e.g., "Samsung Galaxy Tab", "Pixel 5")
+    active_profile TEXT NOT NULL DEFAULT 'AM', -- Active profile: "AM" or "BM"
+
+    -- BaerenLock health check information (per profile/device)
+    baerenlock_health_status TEXT, -- "healthy" or "unhealthy"
+    baerenlock_health_issues TEXT, -- Description of health issues (e.g., "Accessibility service is disabled")
+    baerenlock_last_health_check TIMESTAMP(3), -- Timestamp of last health check
+    
+    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST')
+);
+
+-- Create index on device_id for faster lookups (though it's already the primary key)
+CREATE INDEX IF NOT EXISTS idx_devices_device_id ON devices(device_id);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policy if it exists
+DROP POLICY IF EXISTS "Allow all operations on devices" ON devices;
+
+-- Allow all operations (for development)
+-- In production, you should create more restrictive policies
+CREATE POLICY "Allow all operations on devices" ON devices
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
+-- Create a function to automatically update last_updated timestamp for devices
+CREATE OR REPLACE FUNCTION update_devices_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.last_updated = NOW() AT TIME ZONE 'EST';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to automatically update last_updated on devices table
+CREATE TRIGGER update_devices_timestamp
+    BEFORE UPDATE ON devices
+    FOR EACH ROW
+    EXECUTE FUNCTION update_devices_timestamp();

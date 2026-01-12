@@ -119,6 +119,82 @@
             font-size: 0.9em;
             margin-top: 10px;
         }
+
+        .health-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .health-status {
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .health-status:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .health-status.healthy {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .health-status.unhealthy {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .health-status.unknown {
+            background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+            color: white;
+        }
+
+        .health-status-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .health-status-time {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .health-details {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: none;
+            text-align: left;
+        }
+
+        .health-details.show {
+            display: block;
+        }
+
+        .health-details h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .health-details p {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .health-loading {
+            text-align: center;
+            color: #666;
+            padding: 15px;
+        }
     </style>
 </head>
 <body>
@@ -131,6 +207,19 @@
             <a href="report.html?kid=BM" class="kid-button">View BM's Report</a>
             <a href="schedule.html" class="kid-button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📅 View Weekly Schedule</a>
             <a href="banked_time.html" class="kid-button" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);">⏰ View Banked Time</a>
+            <a href="task_manager.html" class="kid-button" style="background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);">🎯 Task Manager</a>
+        </div>
+
+        <div class="health-section">
+            <h3>🛡️ BaerenLock Status</h3>
+            <div id="healthStatus" class="health-status unknown" onclick="toggleHealthDetails()">
+                <div class="health-status-title">Loading...</div>
+                <div class="health-status-time"></div>
+            </div>
+            <div id="healthDetails" class="health-details">
+                <h4>Health Check Details by Profile</h4>
+                <div id="healthProfiles"></div>
+            </div>
         </div>
 
         <div class="config-section">
@@ -160,13 +249,135 @@
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
                 alert('Configuration saved!');
+                loadHealthStatus(); // Reload health status after saving config
             } else {
                 alert('Please enter both Supabase URL and API Key');
             }
         }
 
-        // Load config on page load
+        // Load health status from Supabase user_data table
+        async function loadHealthStatus() {
+            const url = localStorage.getItem('supabaseUrl');
+            const key = localStorage.getItem('supabaseKey');
+            
+            if (!url || !key) {
+                updateHealthStatus('unknown', 'Configuration required', null);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${url}/rest/v1/user_data?select=profile,baerenlock_health_status,baerenlock_health_issues,baerenlock_last_health_check&order=profile`, {
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const profiles = data;
+                    // Determine overall status: unhealthy if ANY profile is unhealthy
+                    const overallStatus = profiles.some(p => p.baerenlock_health_status === 'unhealthy') ? 'unhealthy' : 
+                                         profiles.some(p => p.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
+                    updateHealthStatus(overallStatus, profiles);
+                } else {
+                    updateHealthStatus('unknown', []);
+                }
+            } catch (error) {
+                console.error('Error loading health status:', error);
+                updateHealthStatus('unknown', []);
+            }
+        }
+
+        // Update health status display
+        function updateHealthStatus(status, profiles) {
+            const statusElement = document.getElementById('healthStatus');
+            const titleElement = statusElement.querySelector('.health-status-title');
+            const timeElement = statusElement.querySelector('.health-status-time');
+            const profilesElement = document.getElementById('healthProfiles');
+
+            // Remove all status classes
+            statusElement.classList.remove('healthy', 'unhealthy', 'unknown');
+            statusElement.classList.add(status);
+
+            // Set overall title
+            let title = 'All systems operational';
+            if (status === 'unhealthy') {
+                const unhealthyCount = profiles.filter(p => p.baerenlock_health_status === 'unhealthy').length;
+                title = `${unhealthyCount} profile${unhealthyCount > 1 ? 's' : ''} with issues`;
+            } else if (status === 'unknown') {
+                title = 'No health data available';
+            }
+            titleElement.textContent = title;
+
+            // Set overall last check time (most recent)
+            const allLastChecks = profiles
+                .map(p => p.baerenlock_last_health_check ? new Date(p.baerenlock_last_health_check).getTime() : 0)
+                .filter(t => t > 0);
+            if (allLastChecks.length > 0) {
+                const mostRecent = new Date(Math.max(...allLastChecks));
+                timeElement.textContent = `Last checked: ${mostRecent.toLocaleString()}`;
+            } else {
+                timeElement.textContent = 'No check data available';
+            }
+
+            // Build per-profile details
+            profilesElement.innerHTML = '';
+            if (profiles.length === 0) {
+                profilesElement.innerHTML = '<p>No health data available for any profile</p>';
+            } else {
+                profiles.forEach(profile => {
+                    const profileDiv = document.createElement('div');
+                    profileDiv.style.marginBottom = '15px';
+                    profileDiv.style.padding = '10px';
+                    profileDiv.style.background = '#fff';
+                    profileDiv.style.borderRadius = '6px';
+                    profileDiv.style.border = '1px solid #ddd';
+                    
+                    const profileName = profile.profile || 'Unknown';
+                    const profileStatus = profile.baerenlock_health_status || 'unknown';
+                    const profileIssues = profile.baerenlock_health_issues || null;
+                    const profileLastCheck = profile.baerenlock_last_health_check || null;
+                    
+                    let statusColor = '#666';
+                    let statusText = 'Unknown';
+                    if (profileStatus === 'healthy') {
+                        statusColor = '#4CAF50';
+                        statusText = 'Healthy';
+                    } else if (profileStatus === 'unhealthy') {
+                        statusColor = '#f44336';
+                        statusText = 'Unhealthy';
+                    }
+                    
+                    profileDiv.innerHTML = `
+                        <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
+                            Profile ${profileName}: <span style="color: ${statusColor}">${statusText}</span>
+                        </div>
+                        ${profileIssues ? `<div style="color: #d32f2f; margin-bottom: 5px; font-size: 0.9em;">Issues: ${profileIssues}</div>` : '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No issues detected</div>'}
+                        ${profileLastCheck ? `<div style="color: #666; font-size: 0.85em;">Last checked: ${new Date(profileLastCheck).toLocaleString()}</div>` : '<div style="color: #999; font-size: 0.85em;">No check data available</div>'}
+                    `;
+                    
+                    profilesElement.appendChild(profileDiv);
+                });
+            }
+        }
+
+        // Toggle health details visibility
+        function toggleHealthDetails() {
+            const details = document.getElementById('healthDetails');
+            details.classList.toggle('show');
+        }
+
+        // Load config and health status on page load
         loadConfig();
+        loadHealthStatus();
+        
+        // Refresh health status every 30 seconds
+        setInterval(loadHealthStatus, 30000);
     </script>
 </body>
 </html>
