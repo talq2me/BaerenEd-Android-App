@@ -53,49 +53,61 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
-        .kids-container {
+        .schedule-header {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .kid-schedule {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .kid-schedule h2 {
-            color: #333;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             margin-bottom: 20px;
+        }
+
+        .schedule-header h2 {
+            color: #333;
             font-size: 1.8em;
             border-bottom: 3px solid #667eea;
             padding-bottom: 10px;
+            margin: 0;
         }
 
-        .week-calendar {
+        .schedule-header .am-header {
+            text-align: left;
+        }
+
+        .schedule-header .bm-header {
+            text-align: right;
+        }
+
+        .kids-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .day-row {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
         }
 
         .day-column {
             background: #f8f9fa;
             border-radius: 8px;
             padding: 10px;
-            min-height: 200px;
+            min-height: 100px;
         }
 
         .day-header {
             font-weight: bold;
-            font-size: 0.9em;
+            font-size: 1em;
             color: #667eea;
             margin-bottom: 10px;
             text-align: center;
             padding-bottom: 8px;
             border-bottom: 2px solid #667eea;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
         }
 
         .task-item {
@@ -159,14 +171,12 @@
             padding: 20px;
         }
 
-        @media (max-width: 1200px) {
-            .kids-container {
+        @media (max-width: 768px) {
+            .schedule-header {
                 grid-template-columns: 1fr;
             }
-        }
-
-        @media (max-width: 768px) {
-            .week-calendar {
+            
+            .day-row {
                 grid-template-columns: 1fr;
             }
             
@@ -190,9 +200,7 @@
 
         <div id="error" class="error" style="display: none;"></div>
 
-        <div id="scheduleContent" style="display: none;">
-            <div class="kids-container" id="kidsContainer"></div>
-        </div>
+        <div id="scheduleContent" style="display: none;"></div>
     </div>
 
     <script>
@@ -391,70 +399,97 @@
             return visibleDays;
         }
 
-        // Creates HTML for a single kid's schedule
-        function createKidSchedule(kid, schedule) {
-            const kidDiv = document.createElement('div');
-            kidDiv.className = 'kid-schedule';
+        // Creates a task item element
+        function createTaskItem(task) {
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
             
-            const kidName = kid === 'AM' ? 'AM' : 'BM';
-            kidDiv.innerHTML = `<h2>${kidName}'s Schedule</h2>`;
+            const isComplete = task.status === 'complete' || task.completed === true;
+            if (isComplete) {
+                taskItem.classList.add('complete');
+            } else {
+                taskItem.classList.add('incomplete');
+            }
+
+            const taskNameDiv = document.createElement('div');
+            taskNameDiv.className = 'task-name';
+            const formattedName = task.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            taskNameDiv.textContent = formattedName;
+            taskItem.appendChild(taskNameDiv);
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `task-status ${isComplete ? 'status-complete' : 'status-incomplete'}`;
+            let statusText = isComplete ? '✓ Complete' : '○ Incomplete';
+            // Add stars for checklist items
+            if (task.type === 'checklist' && task.stars > 0) {
+                statusText += ` (${task.stars}⭐)`;
+            }
+            statusDiv.textContent = statusText;
+            taskItem.appendChild(statusDiv);
+
+            return taskItem;
+        }
+
+        // Creates a day column with tasks
+        function createDayColumn(dayName, tasks) {
+            const dayColumn = document.createElement('div');
+            dayColumn.className = 'day-column';
             
-            const calendarDiv = document.createElement('div');
-            calendarDiv.className = 'week-calendar';
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'day-header';
+            dayHeader.textContent = dayName;
+            dayColumn.appendChild(dayHeader);
+
+            if (tasks.length === 0) {
+                const noTasks = document.createElement('div');
+                noTasks.className = 'no-tasks';
+                noTasks.textContent = 'No tasks';
+                dayColumn.appendChild(noTasks);
+            } else {
+                tasks.forEach(task => {
+                    dayColumn.appendChild(createTaskItem(task));
+                });
+            }
+
+            return dayColumn;
+        }
+
+        // Creates the combined schedule with AM and BM side by side
+        function createCombinedSchedule(amSchedule, bmSchedule) {
+            const scheduleContainer = document.createElement('div');
+            
+            // Create header row
+            const headerRow = document.createElement('div');
+            headerRow.className = 'schedule-header';
+            headerRow.innerHTML = `
+                <h2 class="am-header">AM's Schedule</h2>
+                <h2 class="bm-header">BM's Schedule</h2>
+            `;
+            scheduleContainer.appendChild(headerRow);
+
+            // Create day rows
+            const daysContainer = document.createElement('div');
+            daysContainer.className = 'kids-container';
 
             daysOfWeek.forEach((dayName, dayIndex) => {
-                const dayColumn = document.createElement('div');
-                dayColumn.className = 'day-column';
+                const dayRow = document.createElement('div');
+                dayRow.className = 'day-row';
                 
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'day-header';
-                dayHeader.textContent = dayName;
-                dayColumn.appendChild(dayHeader);
-
-                const tasks = schedule[dayIndex];
-                if (tasks.length === 0) {
-                    const noTasks = document.createElement('div');
-                    noTasks.className = 'no-tasks';
-                    noTasks.textContent = 'No tasks';
-                    dayColumn.appendChild(noTasks);
-                } else {
-                    tasks.forEach(task => {
-                        const taskItem = document.createElement('div');
-                        taskItem.className = 'task-item';
-                        
-                        const isComplete = task.status === 'complete' || task.completed === true;
-                        if (isComplete) {
-                            taskItem.classList.add('complete');
-                        } else {
-                            taskItem.classList.add('incomplete');
-                        }
-
-                        const taskNameDiv = document.createElement('div');
-                        taskNameDiv.className = 'task-name';
-                        const formattedName = task.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                        taskNameDiv.textContent = formattedName;
-                        taskItem.appendChild(taskNameDiv);
-
-                        const statusDiv = document.createElement('div');
-                        statusDiv.className = `task-status ${isComplete ? 'status-complete' : 'status-incomplete'}`;
-                        let statusText = isComplete ? '✓ Complete' : '○ Incomplete';
-                        // Add stars for checklist items
-                        if (task.type === 'checklist' && task.stars > 0) {
-                            statusText += ` (${task.stars}⭐)`;
-                        }
-                        statusDiv.textContent = statusText;
-                        taskItem.appendChild(statusDiv);
-
-                        dayColumn.appendChild(taskItem);
-                    });
-                }
-
-                calendarDiv.appendChild(dayColumn);
-
+                // AM column (left)
+                const amTasks = amSchedule[dayIndex] || [];
+                const amColumn = createDayColumn(dayName, amTasks);
+                dayRow.appendChild(amColumn);
+                
+                // BM column (right)
+                const bmTasks = bmSchedule[dayIndex] || [];
+                const bmColumn = createDayColumn(dayName, bmTasks);
+                dayRow.appendChild(bmColumn);
+                
+                daysContainer.appendChild(dayRow);
             });
 
-            kidDiv.appendChild(calendarDiv);
-            return kidDiv;
+            scheduleContainer.appendChild(daysContainer);
+            return scheduleContainer;
         }
 
         // Main function to load and display schedules
@@ -488,34 +523,20 @@
                 const amSchedule = organizeTasksByDay(amData.tasks, amData.checklistItems || {});
                 const bmSchedule = organizeTasksByDay(bmData.tasks, bmData.checklistItems || {});
 
-                // Create schedule displays
-                const kidsContainer = document.getElementById('kidsContainer');
-                kidsContainer.innerHTML = '';
+                // Create combined schedule display
+                const scheduleContent = document.getElementById('scheduleContent');
+                scheduleContent.innerHTML = '';
 
                 const amHasData = Object.keys(amData.tasks).length > 0 || Object.keys(amData.checklistItems || {}).length > 0;
-                if (amHasData) {
-                    kidsContainer.appendChild(createKidSchedule('AM', amSchedule));
-                } else {
-                    const amDiv = document.createElement('div');
-                    amDiv.className = 'kid-schedule';
-                    amDiv.innerHTML = `
-                        <h2>AM's Schedule</h2>
-                        <div class="no-tasks">No required tasks or checklist items found for AM</div>
-                    `;
-                    kidsContainer.appendChild(amDiv);
-                }
-
                 const bmHasData = Object.keys(bmData.tasks).length > 0 || Object.keys(bmData.checklistItems || {}).length > 0;
-                if (bmHasData) {
-                    kidsContainer.appendChild(createKidSchedule('BM', bmSchedule));
+
+                if (amHasData || bmHasData) {
+                    scheduleContent.appendChild(createCombinedSchedule(amSchedule, bmSchedule));
                 } else {
-                    const bmDiv = document.createElement('div');
-                    bmDiv.className = 'kid-schedule';
-                    bmDiv.innerHTML = `
-                        <h2>BM's Schedule</h2>
-                        <div class="no-tasks">No required tasks or checklist items found for BM</div>
-                    `;
-                    kidsContainer.appendChild(bmDiv);
+                    const noDataDiv = document.createElement('div');
+                    noDataDiv.className = 'error';
+                    noDataDiv.innerHTML = '<strong>No Data:</strong> No required tasks or checklist items found for either child.';
+                    scheduleContent.appendChild(noDataDiv);
                 }
 
                 document.getElementById('scheduleContent').style.display = 'block';
