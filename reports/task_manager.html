@@ -427,11 +427,71 @@
 
         // Store current task data
         let taskData = {
-            AM: {},
-            BM: {}
+            AM: { required_tasks: {}, checklist_items: {} },
+            BM: { required_tasks: {}, checklist_items: {} }
         };
 
-        // Fetch tasks from Supabase
+        // Days of the week mapping
+        const daysShortOriginal = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+        // Checks if a task/item is visible today
+        function isTaskVisibleToday(showdays, hidedays, displayDays, disable) {
+            const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const dayShort = daysShortOriginal[today];
+
+            // Check disable date first
+            if (disable) {
+                try {
+                    let disableDate;
+                    const dateMatch = disable.match(/(\w{3})\s+(\d{1,2}),\s+(\d{4})/);
+                    if (dateMatch) {
+                        const months = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+                                       jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11};
+                        const month = months[dateMatch[1].toLowerCase()];
+                        const day = parseInt(dateMatch[2]);
+                        const year = parseInt(dateMatch[3]);
+                        disableDate = new Date(year, month, day);
+                    } else {
+                        disableDate = new Date(disable);
+                    }
+                    
+                    if (disableDate && !isNaN(disableDate.getTime())) {
+                        const todayDate = new Date();
+                        todayDate.setHours(0, 0, 0, 0);
+                        disableDate.setHours(0, 0, 0, 0);
+                        
+                        // If today is before the disable date, task is disabled (not visible)
+                        if (todayDate < disableDate) {
+                            return false;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error parsing disable date:', disable, e);
+                }
+            }
+
+            // Check hidedays
+            if (hidedays) {
+                if (hidedays.split(',').map(d => d.trim().toLowerCase()).includes(dayShort)) {
+                    return false; // Hide if today is in hidedays
+                }
+            }
+
+            // Check displayDays (if set, only show on those days)
+            if (displayDays) {
+                return displayDays.split(',').map(d => d.trim().toLowerCase()).includes(dayShort);
+            }
+
+            // Check showdays
+            if (showdays) {
+                return showdays.split(',').map(d => d.trim().toLowerCase()).includes(dayShort);
+            }
+
+            // Default: visible on all days if no restrictions
+            return true;
+        }
+
+        // Fetch tasks and checklist items from Supabase
         async function loadTasks() {
             const supabaseUrl = localStorage.getItem('supabaseUrl');
             const supabaseKey = localStorage.getItem('supabaseKey');
@@ -450,7 +510,7 @@
                 document.getElementById('success').style.display = 'none';
                 document.getElementById('content').style.display = 'none';
 
-                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?select=profile,required_tasks&order=profile`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?select=profile,required_tasks,checklist_items&order=profile`, {
                     headers: {
                         'apikey': supabaseKey,
                         'Authorization': `Bearer ${supabaseKey}`,
@@ -465,14 +525,15 @@
                 const data = await response.json();
                 
                 // Initialize task data
-                taskData.AM = {};
-                taskData.BM = {};
+                taskData.AM = { required_tasks: {}, checklist_items: {} };
+                taskData.BM = { required_tasks: {}, checklist_items: {} };
 
                 // Process each profile
                 data.forEach(profileData => {
                     const profile = profileData.profile;
                     if (profile === 'AM' || profile === 'BM') {
-                        taskData[profile] = profileData.required_tasks || {};
+                        taskData[profile].required_tasks = profileData.required_tasks || {};
+                        taskData[profile].checklist_items = profileData.checklist_items || {};
                     }
                 });
 
@@ -494,15 +555,31 @@
             displayProfileTasks('BM', taskData.BM);
         }
 
-        // Display tasks for a specific profile
-        function displayProfileTasks(profile, tasks) {
+        // Display tasks for a specific profile (filtered by visibility today)
+        function displayProfileTasks(profile, data) {
             const tasksList = document.getElementById(`${profile.toLowerCase()}Tasks`);
             tasksList.innerHTML = '';
 
-            const taskKeys = Object.keys(tasks);
+            // Filter required tasks by visibility today
+            const visibleRequiredTasks = {};
+            for (const [taskKey, task] of Object.entries(data.required_tasks || {})) {
+                if (isTaskVisibleToday(task.showdays, task.hidedays, task.displayDays, task.disable)) {
+                    visibleRequiredTasks[taskKey] = task;
+                }
+            }
+
+            // Filter checklist items by visibility today
+            const visibleChecklistItems = {};
+            for (const [itemKey, item] of Object.entries(data.checklist_items || {})) {
+                if (isTaskVisibleToday(item.showdays, item.hidedays, item.displayDays, item.disable)) {
+                    visibleChecklistItems[itemKey] = item;
+                }
+            }
+
+            const totalItems = Object.keys(visibleRequiredTasks).length + Object.keys(visibleChecklistItems).length;
             
-            if (taskKeys.length === 0) {
-                tasksList.innerHTML = '<li class="no-tasks">No required tasks found for this profile</li>';
+            if (totalItems === 0) {
+                tasksList.innerHTML = '<li class="no-tasks">No visible required tasks or checklist items found for this profile today</li>';
                 updateStats(profile, 0, 0, 0);
                 return;
             }
@@ -510,8 +587,8 @@
             let completeCount = 0;
             let incompleteCount = 0;
 
-            taskKeys.forEach(taskKey => {
-                const task = tasks[taskKey];
+            // Display required tasks
+            Object.entries(visibleRequiredTasks).forEach(([taskKey, task]) => {
                 const isComplete = task && (task.status === 'complete' || task.completed === true);
                 
                 if (isComplete) completeCount++;
@@ -533,14 +610,42 @@
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" ${isComplete ? 'checked' : ''} 
-                               onchange="toggleTask('${profile}', '${taskKey}', this.checked)">
+                               onchange="toggleTask('${profile}', '${taskKey}', this.checked, 'required_tasks')">
                         <span class="toggle-slider"></span>
                     </label>
                 `;
                 tasksList.appendChild(li);
             });
 
-            updateStats(profile, completeCount, incompleteCount, taskKeys.length);
+            // Display checklist items
+            Object.entries(visibleChecklistItems).forEach(([itemKey, item]) => {
+                const isComplete = item && (item.done === true || item.status === 'complete');
+                
+                if (isComplete) completeCount++;
+                else incompleteCount++;
+
+                const li = document.createElement('li');
+                li.className = `task-item ${isComplete ? 'complete' : 'incomplete'}`;
+                
+                const itemName = itemKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const stars = item?.stars || 0;
+                const details = stars > 0 ? `${stars} ⭐` : '';
+
+                li.innerHTML = `
+                    <div class="task-info">
+                        <div class="task-name">${itemName} (Checklist)</div>
+                        ${details ? `<div class="task-details">${details}</div>` : ''}
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" ${isComplete ? 'checked' : ''} 
+                               onchange="toggleChecklistItem('${profile}', '${itemKey}', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                `;
+                tasksList.appendChild(li);
+            });
+
+            updateStats(profile, completeCount, incompleteCount, totalItems);
         }
 
         // Update statistics for a profile
@@ -551,17 +656,36 @@
         }
 
         // Toggle task status
-        function toggleTask(profile, taskKey, isComplete) {
-            if (!taskData[profile][taskKey]) {
+        function toggleTask(profile, taskKey, isComplete, type = 'required_tasks') {
+            if (!taskData[profile][type][taskKey]) {
                 // Create new task entry if it doesn't exist
-                taskData[profile][taskKey] = {
+                taskData[profile][type][taskKey] = {
                     status: isComplete ? 'complete' : 'incomplete'
                 };
             } else {
                 // Update existing task
-                taskData[profile][taskKey] = {
-                    ...taskData[profile][taskKey],
+                taskData[profile][type][taskKey] = {
+                    ...taskData[profile][type][taskKey],
                     status: isComplete ? 'complete' : 'incomplete'
+                };
+            }
+
+            // Update display immediately
+            displayProfileTasks(profile, taskData[profile]);
+        }
+
+        // Toggle checklist item status
+        function toggleChecklistItem(profile, itemKey, isComplete) {
+            if (!taskData[profile].checklist_items[itemKey]) {
+                // Create new checklist item entry if it doesn't exist
+                taskData[profile].checklist_items[itemKey] = {
+                    done: isComplete
+                };
+            } else {
+                // Update existing checklist item
+                taskData[profile].checklist_items[itemKey] = {
+                    ...taskData[profile].checklist_items[itemKey],
+                    done: isComplete
                 };
             }
 
@@ -615,7 +739,7 @@
         }
 
         // Update a single profile in the database
-        async function updateProfile(profile, tasks) {
+        async function updateProfile(profile, data) {
             const supabaseUrl = localStorage.getItem('supabaseUrl');
             const supabaseKey = localStorage.getItem('supabaseKey');
 
@@ -628,7 +752,8 @@
                     'Prefer': 'return=minimal'
                 },
                 body: JSON.stringify({
-                    required_tasks: tasks
+                    required_tasks: data.required_tasks,
+                    checklist_items: data.checklist_items
                 })
             });
 

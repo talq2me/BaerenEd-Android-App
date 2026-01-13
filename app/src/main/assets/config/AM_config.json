@@ -74,6 +74,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
           "stars": 3,
           "webGame": true,
+          "totalQuestions": 5,
           "displayDays": "thu"
         },
         {
@@ -121,6 +122,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
           "stars": 3,
           "webGame": true,
+          "totalQuestions": 5,
           "displayDays": "tue,fri"
         },
         {
@@ -136,7 +138,8 @@
           "launch": "numberLineMath",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
           "stars": 3,
-          "webGame": true
+          "webGame": true,
+          "totalQuestions": 5
         },
         
         {
@@ -144,7 +147,8 @@
           "launch": "tenFrameMath",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
           "stars": 3,
-          "webGame": true
+          "webGame": true,
+          "totalQuestions": 5
         },
         {
           "title": "Word Fishing",

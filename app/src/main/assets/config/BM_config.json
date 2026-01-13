@@ -27,7 +27,7 @@
           "title": "Translation",
           "launch": "translation",
           "stars": 3,
-          "totalQuestions": 7
+          "totalQuestions": 5
         },
         {
           "title": "French Stories",
@@ -39,7 +39,7 @@
           "title": "Congugation",
           "launch": "conjugation",
           "stars": 3,
-          "totalQuestions": 7
+          "totalQuestions": 5
         },
         {
           "title": "Times Tables",
@@ -53,7 +53,8 @@
           "launch": "multiDigitAddSubtract",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
           "stars": 3,
-          "webGame": true
+          "webGame": true,
+          "totalQuestions": 5
         },
         {
           "title": "Time Telling",
@@ -61,6 +62,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
           "stars": 3,
           "webGame": true,
+          "totalQuestions": 5,
           "displayDays": "thu"
         },
         {
