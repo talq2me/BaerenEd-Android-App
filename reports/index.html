@@ -255,7 +255,7 @@
             }
         }
 
-        // Load health status from Supabase user_data table
+        // Load health status from Supabase devices table
         async function loadHealthStatus() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
@@ -266,7 +266,8 @@
             }
 
             try {
-                const response = await fetch(`${url}/rest/v1/user_data?select=profile,baerenlock_health_status,baerenlock_health_issues,baerenlock_last_health_check&order=profile`, {
+                // Query devices table - health data is stored per device, not per profile
+                const response = await fetch(`${url}/rest/v1/devices?select=device_id,device_name,active_profile,baerenlock_health_status,baerenlock_health_issues,baerenlock_last_health_check&order=active_profile,device_name`, {
                     headers: {
                         'apikey': key,
                         'Authorization': `Bearer ${key}`
@@ -279,11 +280,12 @@
 
                 const data = await response.json();
                 if (data && data.length > 0) {
-                    const profiles = data;
-                    // Determine overall status: unhealthy if ANY profile is unhealthy
-                    const overallStatus = profiles.some(p => p.baerenlock_health_status === 'unhealthy') ? 'unhealthy' : 
-                                         profiles.some(p => p.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
-                    updateHealthStatus(overallStatus, profiles);
+                    // Group devices by active_profile for display
+                    const devices = data;
+                    // Determine overall status: unhealthy if ANY device is unhealthy
+                    const overallStatus = devices.some(d => d.baerenlock_health_status === 'unhealthy') ? 'unhealthy' : 
+                                         devices.some(d => d.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
+                    updateHealthStatus(overallStatus, devices);
                 } else {
                     updateHealthStatus('unknown', []);
                 }
@@ -307,16 +309,16 @@
             // Set overall title
             let title = 'All systems operational';
             if (status === 'unhealthy') {
-                const unhealthyCount = profiles.filter(p => p.baerenlock_health_status === 'unhealthy').length;
-                title = `${unhealthyCount} profile${unhealthyCount > 1 ? 's' : ''} with issues`;
+                const unhealthyCount = profiles.filter(d => d.baerenlock_health_status === 'unhealthy').length;
+                title = `${unhealthyCount} device${unhealthyCount > 1 ? 's' : ''} with issues`;
             } else if (status === 'unknown') {
                 title = 'No health data available';
             }
             titleElement.textContent = title;
 
-            // Set overall last check time (most recent)
+            // Set overall last check time (most recent across all devices)
             const allLastChecks = profiles
-                .map(p => p.baerenlock_last_health_check ? new Date(p.baerenlock_last_health_check).getTime() : 0)
+                .map(d => d.baerenlock_last_health_check ? new Date(d.baerenlock_last_health_check).getTime() : 0)
                 .filter(t => t > 0);
             if (allLastChecks.length > 0) {
                 const mostRecent = new Date(Math.max(...allLastChecks));
@@ -325,23 +327,34 @@
                 timeElement.textContent = 'No check data available';
             }
 
-            // Build per-profile details
+            // Build per-device details (grouped by active_profile)
             profilesElement.innerHTML = '';
             if (profiles.length === 0) {
-                profilesElement.innerHTML = '<p>No health data available for any profile</p>';
+                profilesElement.innerHTML = '<p>No health data available for any device</p>';
             } else {
-                profiles.forEach(profile => {
+                // Group devices by active_profile
+                const devicesByProfile = {};
+                profiles.forEach(device => {
+                    const profile = device.active_profile || 'Unknown';
+                    if (!devicesByProfile[profile]) {
+                        devicesByProfile[profile] = [];
+                    }
+                    devicesByProfile[profile].push(device);
+                });
+                
+                // Display devices grouped by profile
+                Object.keys(devicesByProfile).sort().forEach(profile => {
+                    const devices = devicesByProfile[profile];
                     const profileDiv = document.createElement('div');
-                    profileDiv.style.marginBottom = '15px';
-                    profileDiv.style.padding = '10px';
+                    profileDiv.style.marginBottom = '20px';
+                    profileDiv.style.padding = '15px';
                     profileDiv.style.background = '#fff';
-                    profileDiv.style.borderRadius = '6px';
-                    profileDiv.style.border = '1px solid #ddd';
+                    profileDiv.style.borderRadius = '8px';
+                    profileDiv.style.border = '2px solid #ddd';
                     
-                    const profileName = profile.profile || 'Unknown';
-                    const profileStatus = profile.baerenlock_health_status || 'unknown';
-                    const profileIssues = profile.baerenlock_health_issues || null;
-                    const profileLastCheck = profile.baerenlock_last_health_check || null;
+                    // Determine profile-level status (unhealthy if ANY device is unhealthy)
+                    const profileStatus = devices.some(d => d.baerenlock_health_status === 'unhealthy') ? 'unhealthy' : 
+                                         devices.some(d => d.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
                     
                     let statusColor = '#666';
                     let statusText = 'Unknown';
@@ -353,12 +366,41 @@
                         statusText = 'Unhealthy';
                     }
                     
+                    let devicesHtml = '<div style="margin-top: 10px;">';
+                    devices.forEach(device => {
+                        const deviceStatus = device.baerenlock_health_status || 'unknown';
+                        const deviceIssues = device.baerenlock_health_issues || null;
+                        const deviceLastCheck = device.baerenlock_last_health_check || null;
+                        const deviceName = device.device_name || device.device_id || 'Unknown Device';
+                        
+                        let deviceStatusColor = '#666';
+                        let deviceStatusText = 'Unknown';
+                        if (deviceStatus === 'healthy') {
+                            deviceStatusColor = '#4CAF50';
+                            deviceStatusText = 'Healthy';
+                        } else if (deviceStatus === 'unhealthy') {
+                            deviceStatusColor = '#f44336';
+                            deviceStatusText = 'Unhealthy';
+                        }
+                        
+                        devicesHtml += `
+                            <div style="margin-bottom: 10px; padding: 10px; background: #f9f9f9; border-radius: 6px; border-left: 3px solid ${deviceStatusColor};">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                                    ${deviceName}: <span style="color: ${deviceStatusColor}">${deviceStatusText}</span>
+                                </div>
+                                ${deviceIssues ? `<div style="color: #d32f2f; margin-bottom: 5px; font-size: 0.9em;">Issues: ${deviceIssues}</div>` : '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No issues detected</div>'}
+                                ${deviceLastCheck ? `<div style="color: #666; font-size: 0.85em;">Last checked: ${new Date(deviceLastCheck).toLocaleString()}</div>` : '<div style="color: #999; font-size: 0.85em;">No check data available</div>'}
+                            </div>
+                        `;
+                    });
+                    devicesHtml += '</div>';
+                    
                     profileDiv.innerHTML = `
-                        <div style="font-weight: 600; color: #333; margin-bottom: 8px;">
-                            Profile ${profileName}: <span style="color: ${statusColor}">${statusText}</span>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 10px; font-size: 1.1em;">
+                            Profile ${profile}: <span style="color: ${statusColor}">${statusText}</span>
+                            <span style="font-size: 0.85em; color: #666; font-weight: normal;">(${devices.length} device${devices.length > 1 ? 's' : ''})</span>
                         </div>
-                        ${profileIssues ? `<div style="color: #d32f2f; margin-bottom: 5px; font-size: 0.9em;">Issues: ${profileIssues}</div>` : '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No issues detected</div>'}
-                        ${profileLastCheck ? `<div style="color: #666; font-size: 0.85em;">Last checked: ${new Date(profileLastCheck).toLocaleString()}</div>` : '<div style="color: #999; font-size: 0.85em;">No check data available</div>'}
+                        ${devicesHtml}
                     `;
                     
                     profilesElement.appendChild(profileDiv);

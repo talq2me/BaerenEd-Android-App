@@ -431,6 +431,15 @@
             BM: { required_tasks: {}, checklist_items: {} }
         };
 
+        // Store current berries and banked minutes for each profile
+        let profileMetrics = {
+            AM: { berries_earned: 0, banked_mins: 0 },
+            BM: { berries_earned: 0, banked_mins: 0 }
+        };
+
+        // Store config for task stars (if available)
+        let taskConfig = null;
+
         // Days of the week mapping
         const daysShortOriginal = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -510,7 +519,7 @@
                 document.getElementById('success').style.display = 'none';
                 document.getElementById('content').style.display = 'none';
 
-                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?select=profile,required_tasks,checklist_items&order=profile`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?select=profile,required_tasks,checklist_items,berries_earned,banked_mins&order=profile`, {
                     headers: {
                         'apikey': supabaseKey,
                         'Authorization': `Bearer ${supabaseKey}`,
@@ -527,6 +536,8 @@
                 // Initialize task data
                 taskData.AM = { required_tasks: {}, checklist_items: {} };
                 taskData.BM = { required_tasks: {}, checklist_items: {} };
+                profileMetrics.AM = { berries_earned: 0, banked_mins: 0 };
+                profileMetrics.BM = { berries_earned: 0, banked_mins: 0 };
 
                 // Process each profile
                 data.forEach(profileData => {
@@ -534,6 +545,8 @@
                     if (profile === 'AM' || profile === 'BM') {
                         taskData[profile].required_tasks = profileData.required_tasks || {};
                         taskData[profile].checklist_items = profileData.checklist_items || {};
+                        profileMetrics[profile].berries_earned = profileData.berries_earned || 0;
+                        profileMetrics[profile].banked_mins = profileData.banked_mins || 0;
                     }
                 });
 
@@ -655,8 +668,42 @@
             document.getElementById(`${profile.toLowerCase()}Total`).textContent = total;
         }
 
+        // Convert stars to minutes (matches Android logic)
+        function convertStarsToMinutes(stars) {
+            if (stars <= 0) return 0;
+            if (stars === 1) return 1;
+            if (stars === 2) return 3;
+            if (stars === 3) return 5;
+            // For 4+ stars, calculate using 3-star = 5 minutes ratio
+            const fullSetsOf3 = Math.floor(stars / 3);
+            const remainingStars = stars % 3;
+            return (fullSetsOf3 * 5) + (remainingStars === 1 ? 1 : remainingStars === 2 ? 3 : 0);
+        }
+
+        // Get stars for a task (from config or default)
+        function getTaskStars(taskName) {
+            // Try to get from config if available
+            if (taskConfig && taskConfig.sections) {
+                for (const section of taskConfig.sections) {
+                    if (section.tasks) {
+                        for (const task of section.tasks) {
+                            if (task.title === taskName || task.launch === taskName) {
+                                return task.stars || task.estimatedTime || 1;
+                            }
+                        }
+                    }
+                }
+            }
+            // Default: 1 star per task
+            return 1;
+        }
+
         // Toggle task status
         function toggleTask(profile, taskKey, isComplete, type = 'required_tasks') {
+            const wasComplete = taskData[profile][type][taskKey] && 
+                               (taskData[profile][type][taskKey].status === 'complete' || 
+                                taskData[profile][type][taskKey].completed === true);
+            
             if (!taskData[profile][type][taskKey]) {
                 // Create new task entry if it doesn't exist
                 taskData[profile][type][taskKey] = {
@@ -670,12 +717,43 @@
                 };
             }
 
+            // Update berries and time if task was just completed (wasn't complete before, now is)
+            if (isComplete && !wasComplete) {
+                // taskKey is the task title (as stored in required_tasks map)
+                const stars = getTaskStars(taskKey);
+                const minutes = convertStarsToMinutes(stars);
+                
+                // Add stars to berries_earned (for required tasks)
+                if (type === 'required_tasks') {
+                    profileMetrics[profile].berries_earned += stars;
+                }
+                
+                // Add minutes to banked_mins
+                profileMetrics[profile].banked_mins += minutes;
+            } else if (!isComplete && wasComplete) {
+                // Task was uncompleted - subtract berries and time
+                // taskKey is the task title (as stored in required_tasks map)
+                const stars = getTaskStars(taskKey);
+                const minutes = convertStarsToMinutes(stars);
+                
+                // Subtract stars from berries_earned (for required tasks)
+                if (type === 'required_tasks') {
+                    profileMetrics[profile].berries_earned = Math.max(0, profileMetrics[profile].berries_earned - stars);
+                }
+                
+                // Subtract minutes from banked_mins
+                profileMetrics[profile].banked_mins = Math.max(0, profileMetrics[profile].banked_mins - minutes);
+            }
+
             // Update display immediately
             displayProfileTasks(profile, taskData[profile]);
         }
 
         // Toggle checklist item status
         function toggleChecklistItem(profile, itemKey, isComplete) {
+            const wasComplete = taskData[profile].checklist_items[itemKey] && 
+                               taskData[profile].checklist_items[itemKey].done === true;
+            
             if (!taskData[profile].checklist_items[itemKey]) {
                 // Create new checklist item entry if it doesn't exist
                 taskData[profile].checklist_items[itemKey] = {
@@ -687,6 +765,30 @@
                     ...taskData[profile].checklist_items[itemKey],
                     done: isComplete
                 };
+            }
+
+            // Update berries and time if checklist item was just completed
+            if (isComplete && !wasComplete) {
+                const item = taskData[profile].checklist_items[itemKey];
+                const stars = item.stars || 1; // Use stars from item or default to 1
+                const minutes = convertStarsToMinutes(stars);
+                
+                // Add stars to berries_earned
+                profileMetrics[profile].berries_earned += stars;
+                
+                // Add minutes to banked_mins
+                profileMetrics[profile].banked_mins += minutes;
+            } else if (!isComplete && wasComplete) {
+                // Checklist item was uncompleted - subtract berries and time
+                const item = taskData[profile].checklist_items[itemKey];
+                const stars = item.stars || 1;
+                const minutes = convertStarsToMinutes(stars);
+                
+                // Subtract stars from berries_earned
+                profileMetrics[profile].berries_earned = Math.max(0, profileMetrics[profile].berries_earned - stars);
+                
+                // Subtract minutes from banked_mins
+                profileMetrics[profile].banked_mins = Math.max(0, profileMetrics[profile].banked_mins - minutes);
             }
 
             // Update display immediately
@@ -753,7 +855,9 @@
                 },
                 body: JSON.stringify({
                     required_tasks: data.required_tasks,
-                    checklist_items: data.checklist_items
+                    checklist_items: data.checklist_items,
+                    berries_earned: profileMetrics[profile].berries_earned,
+                    banked_mins: profileMetrics[profile].banked_mins
                 })
             });
 
