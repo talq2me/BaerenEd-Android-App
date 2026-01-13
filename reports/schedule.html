@@ -60,6 +60,12 @@
             margin-bottom: 20px;
         }
 
+        @media (max-width: 768px) {
+            .schedule-header {
+                gap: 10px;
+            }
+        }
+
         .schedule-header h2 {
             color: #333;
             font-size: 1.8em;
@@ -88,6 +94,12 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .day-row {
+                gap: 10px;
+            }
         }
 
         .day-column {
@@ -173,15 +185,41 @@
 
         @media (max-width: 768px) {
             .schedule-header {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .schedule-header h2 {
+                font-size: 1.3em;
             }
             
             .day-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
             }
             
             .day-column {
                 min-height: auto;
+                padding: 8px;
+            }
+            
+            .day-header {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+            
+            .task-item {
+                padding: 6px;
+                font-size: 0.8em;
+                margin-bottom: 6px;
+            }
+            
+            .task-name {
+                font-size: 0.9em;
+            }
+            
+            .task-status {
+                font-size: 0.7em;
             }
         }
     </style>

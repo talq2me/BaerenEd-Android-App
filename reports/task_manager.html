@@ -438,7 +438,10 @@
         };
 
         // Store config for task stars (if available)
-        let taskConfig = null;
+        let taskConfigs = {
+            AM: null,
+            BM: null
+        };
 
         // Days of the week mapping
         const daysShortOriginal = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -500,6 +503,45 @@
             return true;
         }
 
+        // Load config files to get star values (optional - will use defaults if not available)
+        async function loadConfigs() {
+            try {
+                // Try multiple possible paths for config files
+                const configPaths = [
+                    '../../app/src/main/assets/config/',
+                    '../app/src/main/assets/config/',
+                    'app/src/main/assets/config/'
+                ];
+                
+                const configFiles = ['AM_config.json', 'BM_config.json'];
+                const profiles = ['AM', 'BM'];
+                
+                for (let i = 0; i < configPaths.length; i++) {
+                    const basePath = configPaths[i];
+                    let loaded = 0;
+                    
+                    for (let j = 0; j < configFiles.length; j++) {
+                        if (!taskConfigs[profiles[j]]) {
+                            try {
+                                const response = await fetch(basePath + configFiles[j]);
+                                if (response.ok) {
+                                    taskConfigs[profiles[j]] = await response.json();
+                                    loaded++;
+                                }
+                            } catch (e) {
+                                // Try next path
+                            }
+                        }
+                    }
+                    
+                    if (loaded === 2) break; // Both configs loaded, stop trying
+                }
+            } catch (error) {
+                console.warn('Could not load config files for star values. Using defaults or stored values:', error);
+                // Continue without configs - will use defaults or values stored in task data
+            }
+        }
+
         // Fetch tasks and checklist items from Supabase
         async function loadTasks() {
             const supabaseUrl = localStorage.getItem('supabaseUrl');
@@ -518,6 +560,9 @@
                 document.getElementById('error').style.display = 'none';
                 document.getElementById('success').style.display = 'none';
                 document.getElementById('content').style.display = 'none';
+
+                // Load configs first to get star values
+                await loadConfigs();
 
                 const response = await fetch(`${supabaseUrl}/rest/v1/user_data?select=profile,required_tasks,checklist_items,berries_earned,banked_mins&order=profile`, {
                     headers: {
@@ -680,20 +725,38 @@
             return (fullSetsOf3 * 5) + (remainingStars === 1 ? 1 : remainingStars === 2 ? 3 : 0);
         }
 
-        // Get stars for a task (from config or default)
-        function getTaskStars(taskName) {
+        // Get stars for a task (from task data, config, or default)
+        function getTaskStars(taskName, taskData, profile) {
+            // First, check if stars are stored in the task data itself
+            if (taskData && taskData.stars) {
+                return taskData.stars;
+            }
+            
+            // Normalize task name for matching (remove underscores, lowercase)
+            const normalizedTaskName = taskName.replace(/_/g, ' ').toLowerCase();
+            
             // Try to get from config if available
-            if (taskConfig && taskConfig.sections) {
-                for (const section of taskConfig.sections) {
+            const config = taskConfigs[profile];
+            if (config && config.sections) {
+                for (const section of config.sections) {
                     if (section.tasks) {
                         for (const task of section.tasks) {
-                            if (task.title === taskName || task.launch === taskName) {
+                            // Match by title or launch (normalized)
+                            const taskTitle = (task.title || '').toLowerCase();
+                            const taskLaunch = (task.launch || '').toLowerCase();
+                            
+                            if (taskTitle === normalizedTaskName || 
+                                taskLaunch === normalizedTaskName ||
+                                taskTitle === taskName.toLowerCase() ||
+                                taskLaunch === taskName.toLowerCase() ||
+                                task.launch === taskName) {
                                 return task.stars || task.estimatedTime || 1;
                             }
                         }
                     }
                 }
             }
+            
             // Default: 1 star per task
             return 1;
         }
@@ -704,41 +767,44 @@
                                (taskData[profile][type][taskKey].status === 'complete' || 
                                 taskData[profile][type][taskKey].completed === true);
             
+            // Get stars before updating (to preserve if already stored)
+            const existingStars = taskData[profile][type][taskKey]?.stars;
+            const stars = existingStars || getTaskStars(taskKey, taskData[profile][type][taskKey], profile);
+            
             if (!taskData[profile][type][taskKey]) {
-                // Create new task entry if it doesn't exist
+                // Create new task entry if it doesn't exist, store stars for future reference
                 taskData[profile][type][taskKey] = {
-                    status: isComplete ? 'complete' : 'incomplete'
+                    status: isComplete ? 'complete' : 'incomplete',
+                    stars: stars // Store stars in task data
                 };
             } else {
-                // Update existing task
+                // Update existing task, preserve stars if not already set
                 taskData[profile][type][taskKey] = {
                     ...taskData[profile][type][taskKey],
-                    status: isComplete ? 'complete' : 'incomplete'
+                    status: isComplete ? 'complete' : 'incomplete',
+                    stars: taskData[profile][type][taskKey].stars || stars // Keep existing stars or use calculated
                 };
             }
 
             // Update berries and time if task was just completed (wasn't complete before, now is)
+            // Use stars from task data (now stored above)
+            const task = taskData[profile][type][taskKey];
+            const taskStars = task.stars || getTaskStars(taskKey, task, profile);
+            const minutes = convertStarsToMinutes(taskStars);
+            
             if (isComplete && !wasComplete) {
-                // taskKey is the task title (as stored in required_tasks map)
-                const stars = getTaskStars(taskKey);
-                const minutes = convertStarsToMinutes(stars);
-                
-                // Add stars to berries_earned (for required tasks)
+                // Add stars to berries_earned (1 star = 1 berry = 1 coin)
                 if (type === 'required_tasks') {
-                    profileMetrics[profile].berries_earned += stars;
+                    profileMetrics[profile].berries_earned += taskStars;
                 }
                 
-                // Add minutes to banked_mins
+                // Add minutes to banked_mins (1 star = 1 min, 2 stars = 3 mins, 3 stars = 5 mins)
                 profileMetrics[profile].banked_mins += minutes;
             } else if (!isComplete && wasComplete) {
                 // Task was uncompleted - subtract berries and time
-                // taskKey is the task title (as stored in required_tasks map)
-                const stars = getTaskStars(taskKey);
-                const minutes = convertStarsToMinutes(stars);
-                
-                // Subtract stars from berries_earned (for required tasks)
+                // Subtract stars from berries_earned
                 if (type === 'required_tasks') {
-                    profileMetrics[profile].berries_earned = Math.max(0, profileMetrics[profile].berries_earned - stars);
+                    profileMetrics[profile].berries_earned = Math.max(0, profileMetrics[profile].berries_earned - taskStars);
                 }
                 
                 // Subtract minutes from banked_mins
