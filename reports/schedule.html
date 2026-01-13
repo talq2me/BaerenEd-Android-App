@@ -315,23 +315,22 @@
                 const data = await response.json();
                 
                 if (!data || data.length === 0) {
-                    return { kid, tasks: {}, checklistItems: {} };
+                    return { kid, tasks: {} };
                 }
 
                 return { 
                     kid, 
-                    tasks: data[0].required_tasks || {},
-                    checklistItems: data[0].checklist_items || {}
+                    tasks: data[0].required_tasks || {}
                 };
             } catch (error) {
                 console.error(`Error fetching data for ${kid}:`, error);
-                return { kid, tasks: {}, checklistItems: {}, error: error.message };
+                return { kid, tasks: {}, error: error.message };
             }
         }
 
         // Organizes tasks by day of the week
         // Returns schedule with days ordered starting from current day (0 = today, 1 = tomorrow, etc.)
-        function organizeTasksByDay(tasks, checklistItems) {
+        function organizeTasksByDay(tasks) {
             const schedule = {
                 0: [], // Today
                 1: [], // Tomorrow
@@ -354,20 +353,6 @@
                 });
             }
 
-            // Add checklist items
-            for (const [itemName, item] of Object.entries(checklistItems)) {
-                const visibleDays = getVisibleDaysForChecklistItem(item);
-                visibleDays.forEach(dayIndex => {
-                    schedule[dayIndex].push({
-                        name: itemName,
-                        status: item.done ? 'complete' : 'incomplete',
-                        completed: item.done,
-                        stars: item.stars || 0,
-                        type: 'checklist'
-                    });
-                });
-            }
-
             // Sort tasks within each day alphabetically
             for (let i = 0; i < 7; i++) {
                 schedule[i].sort((a, b) => a.name.localeCompare(b.name));
@@ -376,28 +361,6 @@
             return schedule;
         }
 
-        // Determines which days a checklist item is visible on
-        // Returns array of indices (0-6) where 0 = today, 1 = tomorrow, etc.
-        function getVisibleDaysForChecklistItem(item) {
-            const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-            const visibleDays = [];
-            if (item.displayDays) {
-                const displayDaysList = item.displayDays.split(',').map(d => d.trim().toLowerCase());
-                for (let i = 0; i < 7; i++) {
-                    const actualDayIndex = (today + i) % 7;
-                    const dayShort = daysShortOriginal[actualDayIndex];
-                    if (displayDaysList.includes(dayShort)) {
-                        visibleDays.push(i); // Store relative day index (0 = today)
-                    }
-                }
-            } else {
-                // If no displayDays specified, show on all days
-                for (let i = 0; i < 7; i++) {
-                    visibleDays.push(i);
-                }
-            }
-            return visibleDays;
-        }
 
         // Creates a task item element
         function createTaskItem(task) {
@@ -520,22 +483,22 @@
                 }
 
                 // Organize tasks by day for each kid
-                const amSchedule = organizeTasksByDay(amData.tasks, amData.checklistItems || {});
-                const bmSchedule = organizeTasksByDay(bmData.tasks, bmData.checklistItems || {});
+                const amSchedule = organizeTasksByDay(amData.tasks);
+                const bmSchedule = organizeTasksByDay(bmData.tasks);
 
                 // Create combined schedule display
                 const scheduleContent = document.getElementById('scheduleContent');
                 scheduleContent.innerHTML = '';
 
-                const amHasData = Object.keys(amData.tasks).length > 0 || Object.keys(amData.checklistItems || {}).length > 0;
-                const bmHasData = Object.keys(bmData.tasks).length > 0 || Object.keys(bmData.checklistItems || {}).length > 0;
+                const amHasData = Object.keys(amData.tasks).length > 0;
+                const bmHasData = Object.keys(bmData.tasks).length > 0;
 
                 if (amHasData || bmHasData) {
                     scheduleContent.appendChild(createCombinedSchedule(amSchedule, bmSchedule));
                 } else {
                     const noDataDiv = document.createElement('div');
                     noDataDiv.className = 'error';
-                    noDataDiv.innerHTML = '<strong>No Data:</strong> No required tasks or checklist items found for either child.';
+                    noDataDiv.innerHTML = '<strong>No Data:</strong> No required tasks found for either child.';
                     scheduleContent.appendChild(noDataDiv);
                 }
 
