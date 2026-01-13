@@ -49,9 +49,10 @@ class DailyProgressManager(private val context: Context) {
 
     companion object {
         private const val PREF_NAME = "daily_progress_prefs"
-        // Note: These keys are now profile-prefixed at runtime (e.g., "${profile}_completed_tasks")
-        private const val KEY_COMPLETED_TASKS = "completed_tasks"
-        private const val KEY_COMPLETED_TASK_NAMES = "completed_task_names"
+        // Note: These keys are now profile-prefixed at runtime (e.g., "${profile}_required_tasks")
+        private const val KEY_REQUIRED_TASKS = "required_tasks" // NEW: Uses cloud format (task names → TaskProgress)
+        private const val KEY_COMPLETED_TASKS = "completed_tasks" // OLD: Deprecated, kept for migration
+        private const val KEY_COMPLETED_TASK_NAMES = "completed_task_names" // OLD: Deprecated, kept for migration
         private const val KEY_LAST_RESET_DATE = "last_reset_date"
         private const val KEY_TOTAL_POSSIBLE_STARS = "total_possible_stars"
         private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
@@ -61,6 +62,12 @@ class DailyProgressManager(private val context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val gson = Gson()
+
+    init {
+        // Run migration on initialization if needed
+        val profile = getCurrentKid()
+        TaskProgressMigration.migrateIfNeeded(context, profile)
+    }
 
     /**
      * Gets the current date as a string for daily reset tracking
@@ -163,65 +170,47 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Gets the completion status map for today
+     * Gets the required tasks map for today (NEW: Uses cloud format - task names → TaskProgress)
      */
-    private fun getCompletedTasks(): MutableMap<String, Boolean> {
+    private fun getRequiredTasks(): MutableMap<String, TaskProgress> {
         // Always check if we need to reset before returning data
         if (shouldResetProgress()) {
             resetProgressForNewDay()
         }
 
         val profile = getCurrentKid()
-        val key = "${profile}_$KEY_COMPLETED_TASKS"
-        val json = prefs.getString(key, "{}")
-        val type = object : TypeToken<MutableMap<String, Boolean>>() {}.type
+        val key = "${profile}_$KEY_REQUIRED_TASKS"
+        val json = prefs.getString(key, "{}") ?: "{}"
+        val type = object : TypeToken<MutableMap<String, TaskProgress>>() {}.type
         return gson.fromJson(json, type) ?: mutableMapOf()
     }
 
     /**
      * Gets the completion status map for today (public method for batch reads)
+     * NEW: Returns Map<String, TaskProgress> with task names as keys
+     * For backward compatibility, also provides a method that returns Map<String, Boolean>
      */
     fun getCompletedTasksMap(): Map<String, Boolean> {
-        return getCompletedTasks()
+        // Convert new format to old format for backward compatibility during transition
+        val requiredTasks = getRequiredTasks()
+        return requiredTasks.mapValues { it.value.status == "complete" }
     }
 
     /**
-     * Saves the completion status map for the current profile
+     * Gets the required tasks map in new format (task names → TaskProgress)
      */
-    private fun saveCompletedTasks(completedTasks: Map<String, Boolean>) {
+    fun getRequiredTasksMap(): Map<String, TaskProgress> {
+        return getRequiredTasks()
+    }
+
+    /**
+     * Saves the required tasks map for the current profile (NEW: Uses cloud format)
+     */
+    private fun saveRequiredTasks(requiredTasks: Map<String, TaskProgress>) {
         val profile = getCurrentKid()
-        val key = "${profile}_$KEY_COMPLETED_TASKS"
+        val key = "${profile}_$KEY_REQUIRED_TASKS"
         prefs.edit()
-            .putString(key, gson.toJson(completedTasks))
-            .apply()
-    }
-
-    /**
-     * Gets the completed task names map
-     */
-    private fun getCompletedTaskNames(): MutableMap<String, String> {
-        // Always check if we need to reset before returning data
-        if (shouldResetProgress()) {
-            resetProgressForNewDay()
-        }
-
-        val profile = getCurrentKid()
-        val key = "${profile}_$KEY_COMPLETED_TASK_NAMES"
-        val json = prefs.getString(key, "{}")
-        val type = object : TypeToken<MutableMap<String, String>>() {}.type
-        return gson.fromJson(json, type) ?: mutableMapOf()
-    }
-
-    /**
-     * Saves a completed task name for the current profile
-     */
-    private fun saveCompletedTaskName(taskId: String, taskName: String) {
-        val completedTaskNames = getCompletedTaskNames()
-        completedTaskNames[taskId] = taskName
-        val profile = getCurrentKid()
-        val key = "${profile}_$KEY_COMPLETED_TASK_NAMES"
-        prefs.edit()
-            .putString(key, gson.toJson(completedTaskNames))
+            .putString(key, gson.toJson(requiredTasks))
             .apply()
     }
 
@@ -356,9 +345,9 @@ class DailyProgressManager(private val context: Context) {
      */
     fun markTaskCompletedWithName(taskId: String, taskName: String, stars: Int, isRequiredTask: Boolean = false, config: MainContent? = null, sectionId: String? = null): Int {
         Log.d("DailyProgressManager", "markTaskCompletedWithName called: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, sectionId=$sectionId")
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
 
-        // Generate unique task ID that includes section information
+        // Generate unique task ID that includes section information (for optional tasks)
         val uniqueTaskId = getUniqueTaskId(taskId, sectionId)
 
         // Determine if this is actually a required task based on the section ID first
@@ -371,58 +360,106 @@ class DailyProgressManager(private val context: Context) {
         }
 
         Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, uniqueTaskId=$uniqueTaskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, actualIsRequired=$actualIsRequired, sectionId=$sectionId")
-        Log.d("DailyProgressManager", "Current completed tasks: ${completedTasks.keys}")
+        Log.d("DailyProgressManager", "Current required tasks: ${requiredTasks.keys}")
 
         if (actualIsRequired) {
             // Required tasks: only award once per day, counts toward progress
-            // Use original taskId for required tasks (not uniqueTaskId) so progress tracking works correctly
-            if (completedTasks[taskId] != true) {
-                completedTasks[taskId] = true
-                saveCompletedTasks(completedTasks)
-                saveCompletedTaskName(taskId, taskName)
+            // NEW: Use task name as key (cloud format)
+            val existingProgress = requiredTasks[taskName]
+            if (existingProgress?.status != "complete") {
+                // Get task from config to preserve visibility fields
+                val task = findTaskInConfig(taskId, config)
+                val taskProgress = TaskProgress(
+                    status = "complete",
+                    correct = null, // Will be updated by TimeTracker if available
+                    incorrect = null,
+                    questions = null,
+                    showdays = task?.showdays,
+                    hidedays = task?.hidedays,
+                    displayDays = task?.displayDays,
+                    disable = task?.disable
+                )
+                requiredTasks[taskName] = taskProgress
+                saveRequiredTasks(requiredTasks)
                 Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress)")
                 return stars
             }
-            Log.d("DailyProgressManager", "Required task $taskId already completed today")
+            Log.d("DailyProgressManager", "Required task $taskId ($taskName) already completed today")
             return 0
         } else {
             // Optional tasks: ALWAYS award stars each time completed, banks reward time but doesn't affect progress
-            // Use uniqueTaskId so optional tasks are tracked separately from required tasks
-            // Optional tasks can be completed multiple times and always award stars for reward time
-            // We still track completion for UI purposes, but it doesn't prevent future completions
-            completedTasks[uniqueTaskId] = true
-            saveCompletedTasks(completedTasks)
-            saveCompletedTaskName(uniqueTaskId, taskName)
-            Log.d("DailyProgressManager", "Optional task $uniqueTaskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time")
+            // NEW: For optional tasks, we still use task name as key, but they're tracked separately
+            // Note: Optional tasks are stored in practice_tasks in cloud, but for now we'll store them locally too
+            // For simplicity, we'll use the task name as key (same as required tasks)
+            val task = findTaskInConfig(taskId, config)
+            val taskProgress = TaskProgress(
+                status = "complete", // Optional tasks can be completed multiple times
+                correct = null,
+                incorrect = null,
+                questions = null,
+                showdays = task?.showdays,
+                hidedays = task?.hidedays,
+                displayDays = task?.displayDays,
+                disable = task?.disable
+            )
+            requiredTasks[taskName] = taskProgress
+            saveRequiredTasks(requiredTasks)
+            Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time")
             return stars  // Always return stars for optional tasks, regardless of previous completions
         }
     }
 
     /**
+     * Finds a task in config by task ID (task.launch)
+     */
+    private fun findTaskInConfig(taskId: String, config: MainContent?): Task? {
+        if (config == null) return null
+        return config.sections?.flatMap { it.tasks?.filterNotNull() ?: emptyList() }
+            ?.find { (it.launch ?: "") == taskId }
+    }
+
+    /**
      * Checks if a task is completed today
+     * NEW: Looks up by task name instead of task ID
      */
     fun isTaskCompleted(taskId: String): Boolean {
-        val completedTasks = getCompletedTasks()
-        val isCompleted = completedTasks[taskId] == true
-        Log.d("DailyProgressManager", "isTaskCompleted: taskId=$taskId, isCompleted=$isCompleted, all completed tasks: ${completedTasks.keys}")
+        // Need to find task name from config or use taskId as fallback
+        val config = try {
+            val contentUpdateService = ContentUpdateService()
+            val configJson = contentUpdateService.getCachedMainContent(context)
+            if (!configJson.isNullOrEmpty()) {
+                gson.fromJson(configJson, MainContent::class.java)
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+        
+        val task = findTaskInConfig(taskId, config)
+        val taskName = task?.title ?: taskId // Fallback to taskId if name not found
+        
+        val requiredTasks = getRequiredTasks()
+        val isCompleted = requiredTasks[taskName]?.status == "complete"
+        Log.d("DailyProgressManager", "isTaskCompleted: taskId=$taskId, taskName=$taskName, isCompleted=$isCompleted, all required tasks: ${requiredTasks.keys}")
         return isCompleted
     }
 
     /**
      * Gets current progress (earned stars / total possible stars)
+     * NEW: Uses cloud format
      */
     fun getCurrentProgress(totalPossibleStars: Int): Pair<Int, Int> {
-        val completedTasks = getCompletedTasks()
-        val earnedStars = completedTasks.values.count { it } // Count completed tasks
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
+        val earnedStars = requiredTasks.values.count { it.status == "complete" } // Count completed tasks
         return Pair(earnedStars, totalPossibleStars)
     }
 
     /**
      * Gets current progress with actual star values from config
      * Only counts required section tasks for progress
+     * NEW: Uses task names from cloud format
      */
     fun getCurrentProgressWithActualStars(config: MainContent): Pair<Int, Int> {
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedStars = 0
 
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
@@ -431,11 +468,12 @@ class DailyProgressManager(private val context: Context) {
             // Only count required section tasks for progress
             if (section.id == "required") {
                 section.tasks?.forEach { task ->
-                    val taskId = task.launch ?: "unknown_task"
+                    val taskName = task.title ?: "Unknown Task"
                     val stars = task.stars ?: 0
 
                     // Only required tasks contribute to progress
-                    if (completedTasks[taskId] == true && stars > 0) {
+                    // NEW: Look up by task name instead of task ID
+                    if (requiredTasks[taskName]?.status == "complete" && stars > 0) {
                         earnedStars += stars
                     }
                 }
@@ -443,12 +481,13 @@ class DailyProgressManager(private val context: Context) {
             // Note: Optional section tasks are not counted for progress, but they still bank reward time
 
             section.items?.forEach { item ->
-                val itemId = item.id ?: "checkbox_${item.label}"
+                val itemName = item.label ?: "Unknown Item"
                 val stars = item.stars ?: 0
 
                 // All checklist items contribute to total stars in config
                 // For progress tracking, count if completed today
-                if (completedTasks[itemId] == true && stars > 0) {
+                // NEW: Look up by item name (label) instead of item ID
+                if (requiredTasks[itemName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                 }
             }
@@ -518,7 +557,7 @@ class DailyProgressManager(private val context: Context) {
      * Gets current progress with both coins and stars
      */
     fun getCurrentProgress(totalCoins: Int, totalStars: Int): Pair<Pair<Int, Int>, Pair<Int, Int>> {
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedCoins = 0
         var earnedStars = 0
 
@@ -530,9 +569,10 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Gets current progress with both coins and stars using actual values
      * Only counts required section tasks for progress
+     * NEW: Uses task names from cloud format
      */
     fun getCurrentProgressWithCoinsAndStars(config: MainContent): Pair<Pair<Int, Int>, Pair<Int, Int>> {
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedCoins = 0
         var earnedStars = 0
 
@@ -542,26 +582,27 @@ class DailyProgressManager(private val context: Context) {
             // Only count required section tasks for progress
             if (section.id == "required") {
                 section.tasks?.forEach { task ->
-                    val taskId = task.launch ?: "unknown_task"
+                    val taskName = task.title ?: "Unknown Task"
                     val stars = task.stars ?: 0
-                    val isCompleted = completedTasks[taskId] == true
+                    val isCompleted = requiredTasks[taskName]?.status == "complete"
 
-                    Log.d("DailyProgressManager", "getCurrentProgressWithCoinsAndStars: taskId=$taskId, stars=$stars, isCompleted=$isCompleted, completedTasks keys=${completedTasks.keys}")
+                    Log.d("DailyProgressManager", "getCurrentProgressWithCoinsAndStars: taskName=$taskName, stars=$stars, isCompleted=$isCompleted, requiredTasks keys=${requiredTasks.keys}")
 
                     if (isCompleted && stars > 0) {
                         earnedStars += stars
                         earnedCoins += stars // Required tasks award coins equal to their stars
-                        Log.d("DailyProgressManager", "Added to progress: taskId=$taskId, stars=$stars, total earnedStars=$earnedStars, total earnedCoins=$earnedCoins")
+                        Log.d("DailyProgressManager", "Added to progress: taskName=$taskName, stars=$stars, total earnedStars=$earnedStars, total earnedCoins=$earnedCoins")
                     }
                 }
             }
             // Note: Optional section tasks are not counted for progress, but they still bank reward time
 
             section.items?.forEach { item ->
-                val itemId = item.id ?: "checkbox_${item.label}"
+                val itemName = item.label ?: "Unknown Item"
                 val stars = item.stars ?: 0
 
-                if (completedTasks[itemId] == true && stars > 0) {
+                // NEW: Look up by item name (label) instead of item ID
+                if (requiredTasks[itemName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                     earnedCoins += stars  // ALL checklist items award coins
                 }
@@ -588,7 +629,7 @@ class DailyProgressManager(private val context: Context) {
 
         // For fallback, we need to calculate earned amounts based on actual star values
         // Since we don't have config, we'll use a simple approximation
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedCoins = 0
         var earnedStars = 0
 
@@ -687,9 +728,10 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Gets earned stars WITHOUT subtracting spent berries (for internal calculations)
      * This is used when we need to know the actual earned stars before battle spending
+     * NEW: Uses task names from cloud format
      */
     fun getEarnedStarsWithoutSpentBerries(config: MainContent): Int {
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedStars = 0
 
         val visibleContent = filterVisibleContent(config)
@@ -698,20 +740,22 @@ class DailyProgressManager(private val context: Context) {
             // Only count required section tasks for progress
             if (section.id == "required") {
                 section.tasks?.forEach { task ->
-                    val taskId = task.launch ?: "unknown_task"
+                    val taskName = task.title ?: "Unknown Task"
                     val stars = task.stars ?: 0
 
-                    if (completedTasks[taskId] == true && stars > 0) {
+                    // NEW: Look up by task name instead of task ID
+                    if (requiredTasks[taskName]?.status == "complete" && stars > 0) {
                         earnedStars += stars
                     }
                 }
             }
 
             section.items?.forEach { item ->
-                val itemId = item.id ?: "checkbox_${item.label}"
+                val itemName = item.label ?: "Unknown Item"
                 val stars = item.stars ?: 0
 
-                if (completedTasks[itemId] == true && stars > 0) {
+                // NEW: Look up by item name (label) instead of item ID
+                if (requiredTasks[itemName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                 }
             }
@@ -723,9 +767,10 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Gets ALL earned stars including both required and optional tasks (for berry display)
      * This counts stars from all completed tasks regardless of section
+     * NEW: Uses task names from cloud format
      */
     fun getAllEarnedStars(config: MainContent): Int {
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedStars = 0
 
         val visibleContent = filterVisibleContent(config)
@@ -733,46 +778,22 @@ class DailyProgressManager(private val context: Context) {
         visibleContent.sections?.forEach { section ->
             // Count stars from ALL sections (required, optional, bonus)
             section.tasks?.forEach { task ->
-                val baseTaskId = task.launch ?: "unknown_task"
+                val taskName = task.title ?: "Unknown Task"
                 val stars = task.stars ?: 0
                 
-                // For optional/bonus tasks, use unique task ID with section prefix
-                // For required tasks, use base taskId
-                val taskIdToCheck = if (section.id == "required") {
-                    baseTaskId
-                } else {
-                    getUniqueTaskId(baseTaskId, section.id)
-                }
-                
-                // Special handling for diagramLabeler to use the diagram parameter in the unique ID
-                var finalTaskId = taskIdToCheck
-                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                    // Extract diagram parameter from URL if present
-                    val url = task.url
-                    if (url.contains("diagram=")) {
-                        val diagramParam = url.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                        if (diagramParam.isNotEmpty()) {
-                            finalTaskId = if (section.id == "required") {
-                                "${baseTaskId}_$diagramParam"
-                            } else {
-                                "${section.id}_${baseTaskId}_$diagramParam"
-                            }
-                        }
-                    }
-                }
-                
-                // Check if task is completed using the appropriate ID
-                if (completedTasks[finalTaskId] == true && stars > 0) {
+                // NEW: Look up by task name (cloud format uses names as keys)
+                if (requiredTasks[taskName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                 }
             }
 
             // Count checklist items from all sections
             section.items?.forEach { item ->
-                val itemId = item.id ?: "checkbox_${item.label}"
+                val itemName = item.label ?: "Unknown Item"
                 val stars = item.stars ?: 0
 
-                if (completedTasks[itemId] == true && stars > 0) {
+                // NEW: Look up by item name (label) instead of item ID
+                if (requiredTasks[itemName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                 }
             }
@@ -786,9 +807,10 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Gets ALL earned stars including both required and optional tasks WITHOUT subtracting spent berries
      * This is used to get the baseline total when a battle ends
+     * NEW: Uses task names from cloud format
      */
     fun getAllEarnedStarsWithoutSpentBerries(config: MainContent): Int {
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         var earnedStars = 0
 
         val visibleContent = filterVisibleContent(config)
@@ -796,46 +818,23 @@ class DailyProgressManager(private val context: Context) {
         visibleContent.sections?.forEach { section ->
             // Count stars from ALL sections (required, optional, bonus)
             section.tasks?.forEach { task ->
-                val baseTaskId = task.launch ?: "unknown_task"
+                val taskName = task.title ?: "Unknown Task"
                 val stars = task.stars ?: 0
                 
-                // For optional/bonus tasks, use unique task ID with section prefix
-                // For required tasks, use base taskId
-                val taskIdToCheck = if (section.id == "required") {
-                    baseTaskId
-                } else {
-                    getUniqueTaskId(baseTaskId, section.id)
-                }
-                
-                // Special handling for diagramLabeler to use the diagram parameter in the unique ID
-                var finalTaskId = taskIdToCheck
-                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                    // Extract diagram parameter from URL if present
-                    val url = task.url
-                    if (url.contains("diagram=")) {
-                        val diagramParam = url.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                        if (diagramParam.isNotEmpty()) {
-                            finalTaskId = if (section.id == "required") {
-                                "${baseTaskId}_$diagramParam"
-                            } else {
-                                "${section.id}_${baseTaskId}_$diagramParam"
-                            }
-                        }
-                    }
-                }
-                
-                // Check if task is completed using the appropriate ID
-                if (completedTasks[finalTaskId] == true && stars > 0) {
+                // NEW: Look up by task name (cloud format uses names as keys)
+                // All tasks use their title as the key
+                if (requiredTasks[taskName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                 }
             }
 
             // Count checklist items from all sections
             section.items?.forEach { item ->
-                val itemId = item.id ?: "checkbox_${item.label}"
+                val itemName = item.label ?: "Unknown Item"
                 val stars = item.stars ?: 0
 
-                if (completedTasks[itemId] == true && stars > 0) {
+                // NEW: Look up by item name (label) instead of item ID
+                if (requiredTasks[itemName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
                 }
             }
@@ -850,11 +849,35 @@ class DailyProgressManager(private val context: Context) {
      */
 
     /**
+     * Converts local profile (A/B) to cloud profile format (AM/BM)
+     * If already in cloud format, returns as-is
+     */
+    private fun toCloudProfile(profile: String?): String {
+        return when (profile) {
+            "A" -> "AM"
+            "B" -> "BM"
+            else -> profile ?: "AM" // Default to AM if null, or return as-is if already AM/BM
+        }
+    }
+
+    /**
      * Gets the current number of unlocked Pokemon for the current kid
      */
     fun getUnlockedPokemonCount(): Int {
         val kid = getCurrentKid()
-        return prefs.getInt("${kid}_$KEY_POKEMON_UNLOCKED", 0)
+        val cloudKid = toCloudProfile(kid)
+        // Check both formats for backward compatibility
+        val count = prefs.getInt("${cloudKid}_$KEY_POKEMON_UNLOCKED", 0)
+        if (count == 0 && kid != cloudKid) {
+            // Try old format as fallback
+            val oldCount = prefs.getInt("${kid}_$KEY_POKEMON_UNLOCKED", 0)
+            if (oldCount > 0) {
+                // Migrate to new format
+                setUnlockedPokemonCount(oldCount)
+                return oldCount
+            }
+        }
+        return count
     }
 
     /**
@@ -862,11 +885,12 @@ class DailyProgressManager(private val context: Context) {
      */
     fun setUnlockedPokemonCount(count: Int) {
         val kid = getCurrentKid()
-        prefs.edit().putInt("${kid}_$KEY_POKEMON_UNLOCKED", count).apply()
+        val cloudKid = toCloudProfile(kid)
+        prefs.edit().putInt("${cloudKid}_$KEY_POKEMON_UNLOCKED", count).apply()
     }
 
     /**
-     * Gets the current kid identifier (A or B)
+     * Gets the current kid identifier (A or B, or AM/BM if already converted)
      */
     fun getCurrentKid(): String {
         return SettingsManager.readProfile(context) ?: "AM"
@@ -1137,10 +1161,12 @@ class DailyProgressManager(private val context: Context) {
         val progressData = getCurrentProgressWithCoinsAndStars(config)
         val (earnedCoins, totalCoins) = progressData.first
         val (earnedStars, totalStars) = progressData.second
-        val completedTasks = getCompletedTasks()
+        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
 
-        // Get the stored completed task names
-        val completedTaskNames = getCompletedTaskNames()
+        // NEW: Task names are now the keys in requiredTasks map
+        // Convert to old format for backward compatibility with ComprehensiveProgressReport
+        val completedTasks = requiredTasks.mapValues { it.value.status == "complete" }
+        val completedTaskNames = requiredTasks.keys.associateWith { it } // Names are keys
 
         // Get time tracking data
         val todaySummary = timeTracker.getTodaySummary()

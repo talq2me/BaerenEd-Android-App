@@ -229,7 +229,17 @@
         let currentStoryIndex = 0;
         let correctCount = 0;
         let incorrectCount = 0;
-        let maxQuestions = 5;
+        // Check for totalQuestions URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
+        let maxQuestions = 5; // Default value
+        if (totalQuestionsParam) {
+            const parsed = parseInt(totalQuestionsParam, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                maxQuestions = parsed;
+                console.log('Using totalQuestions from URL parameter:', maxQuestions);
+            }
+        }
         let currentStory = null;
         let selectedOption = null;
         let isFirstAttempt = true;

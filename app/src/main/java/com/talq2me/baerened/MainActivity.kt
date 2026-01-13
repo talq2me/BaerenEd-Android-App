@@ -104,6 +104,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Check for profile changes from cloud devices table and apply locally
+        // This should be called BEFORE preloadSettings to ensure correct profile is used
+        SettingsManager.checkAndApplyProfileFromCloud(this)
         // Preload settings from Supabase on startup
         SettingsManager.preloadSettings(this)
         
@@ -1128,6 +1131,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
+        
+        // Check for profile changes from cloud devices table and apply locally
+        SettingsManager.checkAndApplyProfileFromCloud(this)
         
         // Simple Google Read Along completion check
         checkGoogleReadAlongCompletion()

@@ -410,7 +410,18 @@
         let correctCount = 0;
         let incorrectCount = 0;
         let questionsCompleted = 0;
-        let maxQuestions = 10;
+        // Check for totalQuestions URL parameter first
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
+        let maxQuestions = 10; // Default value
+        if (totalQuestionsParam) {
+            const parsed = parseInt(totalQuestionsParam, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                maxQuestions = parsed;
+                console.log('Using totalQuestions from URL parameter:', maxQuestions);
+            }
+        }
+        
         let numbers = [];
         let isDragging = false;
         let dragOffset = { x: 0, y: 0 };
@@ -439,28 +450,30 @@
                 }
                 
                 const config = JSON.parse(configJson);
-                const urlParams = new URLSearchParams(window.location.search);
                 const taskId = urlParams.get('taskId');
                 
-                if (config.sections) {
-                    for (const section of config.sections) {
-                        if (section.tasks) {
-                            for (const task of section.tasks) {
-                                if (task.questionsToComplete) {
-                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
-                                    break;
-                                }
-                                if (task.totalQuestions) {
-                                    maxQuestions = parseInt(task.totalQuestions, 10) || maxQuestions;
-                                    break;
+                // Only use config values if URL parameter was not provided
+                if (!totalQuestionsParam) {
+                    if (config.sections) {
+                        for (const section of config.sections) {
+                            if (section.tasks) {
+                                for (const task of section.tasks) {
+                                    if (task.questionsToComplete) {
+                                        maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                        break;
+                                    }
+                                    if (task.totalQuestions) {
+                                        maxQuestions = parseInt(task.totalQuestions, 10) || maxQuestions;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                
-                if (config.questionsToComplete) {
-                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    
+                    if (config.questionsToComplete) {
+                        maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    }
                 }
             } catch (e) {
                 console.log('Using default maxQuestions:', maxQuestions);

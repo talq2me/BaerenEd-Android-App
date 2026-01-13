@@ -40,8 +40,19 @@ class TrainingMapActivity : AppCompatActivity() {
         
         progressManager = DailyProgressManager(this)
         
-        // Create the map view
-        createMapView()
+        // Sync from cloud first to ensure local data is up to date
+        // This ensures that when the trainer map loads, it shows the most recent data
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        val cloudStorageManager = CloudStorageManager(this)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val syncResult = cloudStorageManager.syncIfEnabled(profile)
+            android.util.Log.d("TrainingMapActivity", "Cloud sync completed in onCreate (result: $syncResult), creating map")
+            withContext(Dispatchers.Main) {
+                // Create the map view after sync completes
+                // This ensures the map shows the latest data from cloud
+                createMapView()
+            }
+        }
     }
     
     private fun createMapView() {
@@ -185,20 +196,7 @@ class TrainingMapActivity : AppCompatActivity() {
                     if (contentFromGitHub != null) {
                         // Successfully fetched from GitHub - fetchMainContent already saved to cache
                         jsonString = Gson().toJson(contentFromGitHub)
-                        android.util.Log.d("TrainingMapActivity", "Successfully fetched config from GitHub, updating user_data table in cloud")
-                        
-                        // Update user_data table in cloud with latest config data
-                        // This will collect tasks from the latest config (which is now in cache) and upload to cloud
-                        try {
-                            val uploadResult = cloudStorageManager.uploadToCloud(profile)
-                            if (uploadResult.isSuccess) {
-                                android.util.Log.d("TrainingMapActivity", "Successfully synced latest config to cloud user_data table")
-                            } else {
-                                android.util.Log.w("TrainingMapActivity", "Failed to sync config to cloud: ${uploadResult.exceptionOrNull()?.message}")
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("TrainingMapActivity", "Error syncing config to cloud", e)
-                        }
+                        android.util.Log.d("TrainingMapActivity", "Successfully fetched config from GitHub")
                     }
                 } catch (e: Exception) {
                     android.util.Log.w("TrainingMapActivity", "Could not fetch from GitHub: ${e.message}, falling back to cache")
@@ -206,22 +204,8 @@ class TrainingMapActivity : AppCompatActivity() {
                 
                 // Step 2: If GitHub failed, use cache/local storage
                 if (jsonString == null || contentFromGitHub == null) {
-                    android.util.Log.d("TrainingMapActivity", "Using cached/local config and attempting to push to cloud")
+                    android.util.Log.d("TrainingMapActivity", "Using cached/local config")
                     jsonString = contentUpdateService.getCachedMainContent(this@TrainingMapActivity)
-                    
-                    // Try to push cached data to cloud
-                    if (jsonString != null && jsonString.isNotEmpty()) {
-                        try {
-                            val uploadResult = cloudStorageManager.uploadToCloud(profile)
-                            if (uploadResult.isSuccess) {
-                                android.util.Log.d("TrainingMapActivity", "Successfully pushed cached config to cloud user_data table")
-                            } else {
-                                android.util.Log.w("TrainingMapActivity", "Failed to push cached config to cloud: ${uploadResult.exceptionOrNull()?.message}")
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("TrainingMapActivity", "Error pushing cached config to cloud", e)
-                        }
-                    }
                 }
                 
                 currentContent = if (jsonString != null && jsonString.isNotEmpty()) {
@@ -256,6 +240,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 if (mapType == "optional") {
                     val allCompleted = tasks.all { task ->
                         val baseTaskId = task.launch ?: ""
+                        val taskTitle = task.title ?: ""
                         
                         // For diagramLabeler, use final URL to get correct diagram parameter
                         if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
@@ -269,8 +254,8 @@ class TrainingMapActivity : AppCompatActivity() {
                             }
                         }
                         
-                        val taskId = "${mapType}_$baseTaskId"
-                        completedTasksMap[taskId] == true
+                        // Use task title as key (matches how tasks are stored in required_tasks)
+                        completedTasksMap[taskTitle] == true
                     }
                     
                     // If all optional tasks are completed, reset them all (never ending)
@@ -278,6 +263,7 @@ class TrainingMapActivity : AppCompatActivity() {
                         val allCompletedTasks = progressManager.getCompletedTasksMap().toMutableMap()
                         tasks.forEach { task ->
                             val baseTaskId = task.launch ?: ""
+                            val taskTitle = task.title ?: ""
                             
                             // For diagramLabeler, use final URL to get correct diagram parameter
                             if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
@@ -291,16 +277,18 @@ class TrainingMapActivity : AppCompatActivity() {
                                     }
                                 }
                             } else {
-                                val taskId = "${mapType}_$baseTaskId"
-                                // Clear completion status by removing from map
-                                allCompletedTasks.remove(taskId)
+                                // Use task title as key (matches how tasks are stored in required_tasks)
+                                allCompletedTasks.remove(taskTitle)
                             }
                         }
                         // Save the updated map
-                        val prefs = getSharedPreferences("daily_progress", android.content.Context.MODE_PRIVATE)
+                        // CRITICAL: Use the same SharedPreferences name as DailyProgressManager
+                        val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
+                        val prefs = getSharedPreferences("daily_progress_prefs", android.content.Context.MODE_PRIVATE)
                         val gson = Gson()
+                        val completedTasksKey = "${profile}_completed_tasks"
                         prefs.edit()
-                            .putString("completed_tasks", gson.toJson(allCompletedTasks))
+                            .putString(completedTasksKey, gson.toJson(allCompletedTasks))
                             .apply()
                         // Refresh the completed tasks map after resetting
                         completedTasksMap.clear()
@@ -311,6 +299,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 // Calculate progress
                 val completedCount = tasks.count { task ->
                     val baseTaskId = task.launch ?: ""
+                    val taskTitle = task.title ?: ""
                     
                     // For diagramLabeler, we need to get the final URL (after getGameModeUrl processing)
                     // to extract the correct diagram parameter for tracking
@@ -333,14 +322,8 @@ class TrainingMapActivity : AppCompatActivity() {
                         }
                     }
                     
-                    // For non-diagramLabeler tasks, use standard tracking
-                    val taskId = if (mapType == "required") {
-                        baseTaskId
-                    } else {
-                        "${mapType}_$baseTaskId"
-                    }
-                    
-                    completedTasksMap[taskId] == true
+                    // For non-diagramLabeler tasks, use task title as key (matches how tasks are stored in required_tasks)
+                    completedTasksMap[taskTitle] == true
                 }
                 
                 withContext(Dispatchers.Main) {
@@ -382,20 +365,26 @@ class TrainingMapActivity : AppCompatActivity() {
                         }
                         val random = kotlin.random.Random(seedInput.hashCode())
 
-                        // Generate random positions for gyms (like points of interest on a real map)
+                        // Generate positions for gyms (like points of interest on a real map)
                         // But ensure they don't overlap
                         val positions = mutableListOf<Pair<Int, Int>>()
                         val actualButtonSize = buttonSize
                         val actualButtonRadius = buttonRadius
 
                         // Minimum distance between button centers (to prevent overlaps)
-                        val minDistance = (buttonSize * 1.5).toInt() // 1.5x button size ensures no overlap
+                        // Increased to 2.0x for better spacing, especially with many tasks
+                        val minDistance = (buttonSize * 2.0).toInt()
 
-                        // Create gym buttons with random positions
+                        // For many tasks (like practice tasks), use a grid-based approach to guarantee no overlaps
+                        // For fewer tasks, use random placement for a more natural look
+                        val useGridLayout = tasks.size > 15
+                        
+                        // Create gym buttons with positions
                         val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
 
                         tasks.forEachIndexed { index, task ->
                         val baseTaskId = task.launch ?: ""
+                        val taskTitle = task.title ?: ""
                         
                         // For diagramLabeler, we need to get the final URL (after getGameModeUrl processing)
                         // to extract the correct diagram parameter for tracking
@@ -417,77 +406,110 @@ class TrainingMapActivity : AppCompatActivity() {
                                     // Only check the unique ID to track each diagram separately
                                     isCompleted = completedTasksMap[uniqueTaskId] == true
                                 } else {
-                                    // No diagram parameter value, use standard tracking
-                                    val taskId = if (mapType == "required") {
-                                        baseTaskId
-                                    } else {
-                                        "${mapType}_$baseTaskId"
-                                    }
-                                    isCompleted = completedTasksMap[taskId] == true
+                                    // No diagram parameter value, use task title as key
+                                    isCompleted = completedTasksMap[taskTitle] == true
                                 }
                             } else {
-                                // No diagram parameter found, use standard tracking
-                                val taskId = if (mapType == "required") {
-                                    baseTaskId
-                                } else {
-                                    "${mapType}_$baseTaskId"
-                                }
-                                isCompleted = completedTasksMap[taskId] == true
+                                // No diagram parameter found, use task title as key
+                                isCompleted = completedTasksMap[taskTitle] == true
                             }
                         } else {
-                            // For non-diagramLabeler tasks, use standard tracking
-                            val taskId = if (mapType == "required") {
-                                baseTaskId
-                            } else {
-                                "${mapType}_$baseTaskId"
-                            }
-                            isCompleted = completedTasksMap[taskId] == true
+                            // For non-diagramLabeler tasks, use task title as key (matches how tasks are stored in required_tasks)
+                            isCompleted = completedTasksMap[taskTitle] == true
                         }
                         
-                        // Generate random position that doesn't overlap with existing buttons
+                        // Generate position that doesn't overlap with existing buttons
                         var x: Int = padding
                         var y: Int = padding
-                        var attempts = 0
-                        val maxAttempts = 200 // Increased attempts for better distribution
-                        var positionFound = false
                         
-                        // Try to find a non-overlapping position
-                        while (attempts < maxAttempts && !positionFound) {
-                            // Random position within bounds (with padding)
-                            val xRange = (mapWidth - 2 * padding - actualButtonSize).coerceAtLeast(1)
-                            val yRange = (mapHeight - 2 * padding - actualButtonSize).coerceAtLeast(1)
-                            x = padding + random.nextInt(xRange)
-                            y = padding + random.nextInt(yRange)
+                        if (useGridLayout) {
+                            // Grid-based layout for many tasks - guarantees no overlaps
+                            val availableWidth = mapWidth - 2 * padding
+                            val availableHeight = mapHeight - 2 * padding
+                            
+                            // Calculate grid dimensions to fit all tasks
+                            val cols = Math.ceil(Math.sqrt(tasks.size.toDouble())).toInt()
+                            val rows = Math.ceil(tasks.size.toDouble() / cols).toInt()
+                            
+                            val cellWidth = availableWidth / cols
+                            val cellHeight = availableHeight / rows
+                            
+                            // Ensure cells are large enough for buttons with spacing
+                            val minCellSize = minDistance
+                            if (cellWidth < minCellSize || cellHeight < minCellSize) {
+                                // Fallback: recalculate with minimum cell size
+                                val maxCols = availableWidth / minCellSize
+                                val maxRows = availableHeight / minCellSize
+                                val adjustedCols = Math.min(maxCols, Math.ceil(Math.sqrt(tasks.size.toDouble())).toInt())
+                                val adjustedRows = Math.ceil(tasks.size.toDouble() / adjustedCols).toInt()
+                                
+                                val col = index % adjustedCols
+                                val row = index / adjustedCols
+                                
+                                val adjustedCellWidth = if (adjustedCols > 0) availableWidth / adjustedCols else minCellSize
+                                val adjustedCellHeight = if (adjustedRows > 0) availableHeight / adjustedRows else minCellSize
+                                
+                                // Center button within cell
+                                x = padding + (col * adjustedCellWidth) + (adjustedCellWidth - actualButtonSize) / 2
+                                y = padding + (row * adjustedCellHeight) + (adjustedCellHeight - actualButtonSize) / 2
+                            } else {
+                                val col = index % cols
+                                val row = index / cols
+                                
+                                // Center button within cell
+                                x = padding + (col * cellWidth) + (cellWidth - actualButtonSize) / 2
+                                y = padding + (row * cellHeight) + (cellHeight - actualButtonSize) / 2
+                            }
                             
                             val centerX = x + actualButtonRadius
                             val centerY = y + actualButtonRadius
+                            positions.add(Pair(centerX, centerY))
+                        } else {
+                            // Random placement for fewer tasks (more natural look)
+                            var attempts = 0
+                            val maxAttempts = 500 // Increased attempts for better distribution
+                            var positionFound = false
                             
-                            // Check if this position overlaps with any existing button
-                            val overlaps = positions.any { (existingX, existingY) ->
-                                val dx = existingX - centerX
-                                val dy = existingY - centerY
-                                val distance = Math.sqrt((dx * dx + dy * dy).toDouble())
-                                distance < minDistance
+                            // Try to find a non-overlapping position
+                            while (attempts < maxAttempts && !positionFound) {
+                                // Random position within bounds (with padding)
+                                val xRange = (mapWidth - 2 * padding - actualButtonSize).coerceAtLeast(1)
+                                val yRange = (mapHeight - 2 * padding - actualButtonSize).coerceAtLeast(1)
+                                x = padding + random.nextInt(xRange)
+                                y = padding + random.nextInt(yRange)
+                                
+                                val centerX = x + actualButtonRadius
+                                val centerY = y + actualButtonRadius
+                                
+                                // Check if this position overlaps with any existing button
+                                val overlaps = positions.any { (existingX, existingY) ->
+                                    val dx = existingX - centerX
+                                    val dy = existingY - centerY
+                                    val distance = Math.sqrt((dx * dx + dy * dy).toDouble())
+                                    distance < minDistance
+                                }
+                                
+                                if (!overlaps) {
+                                    positionFound = true
+                                    positions.add(Pair(centerX, centerY)) // Store center position
+                                } else {
+                                    attempts++
+                                }
                             }
                             
-                            if (!overlaps) {
-                                positionFound = true
-                                positions.add(Pair(centerX, centerY)) // Store center position
-                            } else {
-                                attempts++
+                            // If we couldn't find a non-overlapping position after maxAttempts, use a fallback position
+                            if (!positionFound) {
+                                // Fallback: space them out in a spiral pattern from center
+                                val angle = (index * 2 * Math.PI / tasks.size) + (random.nextDouble() * 0.5)
+                                val radius = Math.min(mapWidth, mapHeight) * 0.3 * (1.0 + index * 0.1)
+                                val fallbackX = (mapWidth / 2 + radius * Math.cos(angle) - actualButtonRadius).toInt()
+                                val fallbackY = (mapHeight / 2 + radius * Math.sin(angle) - actualButtonRadius).toInt()
+                                x = fallbackX.coerceIn(padding, mapWidth - padding - actualButtonSize)
+                                y = fallbackY.coerceIn(padding, mapHeight - padding - actualButtonSize)
+                                val centerX = x + actualButtonRadius
+                                val centerY = y + actualButtonRadius
+                                positions.add(Pair(centerX, centerY))
                             }
-                        }
-                        
-                        // If we couldn't find a non-overlapping position after maxAttempts, use a fallback position
-                        if (!positionFound) {
-                            // Fallback: space them out in a spiral pattern from center
-                            val angle = (index * 2 * Math.PI / tasks.size) + (random.nextDouble() * 0.5)
-                            val radius = Math.min(mapWidth, mapHeight) * 0.3 * (1.0 + index * 0.1)
-                            val fallbackX = (mapWidth / 2 + radius * Math.cos(angle) - actualButtonRadius).toInt()
-                            val fallbackY = (mapHeight / 2 + radius * Math.sin(angle) - actualButtonRadius).toInt()
-                            x = fallbackX.coerceIn(padding, mapWidth - padding - actualButtonSize)
-                            y = fallbackY.coerceIn(padding, mapHeight - padding - actualButtonSize)
-                            positions.add(Pair(x + actualButtonRadius, y + actualButtonRadius))
                         }
                         
                         // Create gym button container (FrameLayout to layer emoji and text)
@@ -646,6 +668,13 @@ class TrainingMapActivity : AppCompatActivity() {
         if (task.webGame == true && !task.url.isNullOrEmpty()) {
             // Get final URL with mode parameter processed (for easydays/harddays/extremedays)
             var finalGameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+            
+            // Append totalQuestions parameter if specified in config
+            if (task.totalQuestions != null) {
+                val separator = if (finalGameUrl.contains("?")) "&" else "?"
+                finalGameUrl = "$finalGameUrl${separator}totalQuestions=${task.totalQuestions}"
+                android.util.Log.d("TrainingMapActivity", "Added totalQuestions=${task.totalQuestions} to URL: $finalGameUrl")
+            }
             
             // IMPORTANT: Always use GitHub Pages URL first - never convert to local assets
             // GitHub is the source of truth. WebView will naturally fall back to local cache if needed.
@@ -999,11 +1028,25 @@ class TrainingMapActivity : AppCompatActivity() {
         super.onResume()
         android.util.Log.d("TrainingMapActivity", "onResume called")
         
-        // Check for Google Read Along completion
-        checkGoogleReadAlongCompletion()
-        
-        // Check for Boukili completion
-        checkBoukiliCompletion()
+        // Sync from cloud first to ensure local data is up to date
+        // This ensures that if a task was completed and saved to cloud, we get the latest data
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        val cloudStorageManager = CloudStorageManager(this)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val syncResult = cloudStorageManager.syncIfEnabled(profile)
+            android.util.Log.d("TrainingMapActivity", "Cloud sync completed in onResume (result: $syncResult), refreshing map")
+            withContext(Dispatchers.Main) {
+                // Refresh the map after sync to show updated completion status
+                // This ensures the map shows updated completion status after sync
+                createMapView()
+                
+                // Check for Google Read Along completion after map refresh
+                checkGoogleReadAlongCompletion()
+                
+                // Check for Boukili completion after map refresh
+                checkBoukiliCompletion()
+            }
+        }
     }
     
     /**

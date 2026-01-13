@@ -477,16 +477,6 @@
                             android:textSize="12sp"
                             android:background="@drawable/button_rounded" />
                     </LinearLayout>
-                    
-                    <!-- Use Reward Time Button (shown when reward minutes available) -->
-                    <Button
-                        android:id="@+id/useRewardTimeButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="🎮 Use Reward Time (0 mins)"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/button_rounded"
-                        android:visibility="gone" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>

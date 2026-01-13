@@ -372,7 +372,18 @@
         let problems = [];
         let currentProblemIndex = 0;
         let canAnswer = true;
-        let maxQuestions = 10;
+        // Check for totalQuestions URL parameter first
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
+        let maxQuestions = 10; // Default value
+        if (totalQuestionsParam) {
+            const parsed = parseInt(totalQuestionsParam, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                maxQuestions = parsed;
+                console.log('Using totalQuestions from URL parameter:', maxQuestions);
+            }
+        }
+        
         let questionsCompleted = 0;
         let borrows = {}; // Track which positions have been borrowed
         let carries = {}; // Track which positions have carries
@@ -402,21 +413,24 @@
                 
                 const config = JSON.parse(configJson);
                 
-                if (config.sections) {
-                    for (const section of config.sections) {
-                        if (section.tasks) {
-                            for (const task of section.tasks) {
-                                if (task.questionsToComplete) {
-                                    maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
-                                    break;
+                // Only use config values if URL parameter was not provided
+                if (!totalQuestionsParam) {
+                    if (config.sections) {
+                        for (const section of config.sections) {
+                            if (section.tasks) {
+                                for (const task of section.tasks) {
+                                    if (task.questionsToComplete) {
+                                        maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                
-                if (config.questionsToComplete) {
-                    maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    
+                    if (config.questionsToComplete) {
+                        maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    }
                 }
             } catch (e) {
                 console.log('Using default maxQuestions:', maxQuestions);
@@ -1449,7 +1463,11 @@
         
         window.addEventListener('load', () => {
             loadConfig();
-            document.getElementById('maxQuestions').textContent = maxQuestions;
+            // Update maxQuestions element after config is loaded
+            const maxQuestionsElement = document.getElementById('maxQuestions');
+            if (maxQuestionsElement) {
+                maxQuestionsElement.textContent = maxQuestions;
+            }
             generateProblems();
             setupNumberPad();
             loadNextProblem();

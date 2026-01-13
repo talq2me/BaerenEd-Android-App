@@ -45,29 +45,6 @@ class Layout(private val activity: MainActivity) {
     // Runnable for pending section setup to prevent duplicates
     private var pendingSectionsSetup: Runnable? = null
 
-    // Icon configuration
-    private var iconConfig: IconConfig? = null
-    
-    data class IconConfig(
-        val starsIcon: String = "🍍",
-        val coinsIcon: String = "🪙"
-    )
-    
-    private fun loadIconConfig(): IconConfig {
-        if (iconConfig == null) {
-            try {
-                val inputStream = activity.assets.open("config/icon_config.json")
-                val configJson = inputStream.bufferedReader().use { it.readText() }
-                inputStream.close()
-                iconConfig = Gson().fromJson(configJson, IconConfig::class.java) ?: IconConfig()
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error loading icon config", e)
-                iconConfig = IconConfig() // Use defaults
-            }
-        }
-        return iconConfig!!
-    }
-
     /**
      * Display the main content by setting up all UI components
      */
@@ -266,7 +243,7 @@ class Layout(private val activity: MainActivity) {
         // Get actual banked reward minutes (not recalculated from stars)
         val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-        val icons = loadIconConfig()
+        val icons = IconConfigLoader.loadIconConfig(activity)
         progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
         progressBar.max = totalCoins
         progressBar.progress = earnedCoins
@@ -302,7 +279,7 @@ class Layout(private val activity: MainActivity) {
             // Get actual banked reward minutes (not recalculated from stars)
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-            val icons = loadIconConfig()
+            val icons = IconConfigLoader.loadIconConfig(activity)
             progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn coins and stars!"
             progressBar.max = totalCoins
             progressBar.progress = earnedCoins
@@ -331,7 +308,7 @@ class Layout(private val activity: MainActivity) {
             // Get actual banked reward minutes (not recalculated from stars)
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-            val icons = loadIconConfig()
+            val icons = IconConfigLoader.loadIconConfig(activity)
             progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn coins and stars!"
             progressBar.max = totalCoins
             progressBar.progress = earnedCoins
@@ -825,80 +802,7 @@ class Layout(private val activity: MainActivity) {
         return builder.build().toString()
     }
 
-    /**
-     * Parses a date string in format "Nov 24, 2025" and returns a Calendar instance
-     * Returns null if parsing fails
-     */
-    private fun parseDisableDate(dateString: String?): Calendar? {
-        if (dateString.isNullOrEmpty()) return null
-        
-        return try {
-            // Try parsing format like "Nov 24, 2025"
-            val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.US)
-            val date = formatter.parse(dateString.trim())
-            if (date != null) {
-                Calendar.getInstance().apply {
-                    time = date
-                    // Set time to start of day for accurate comparison
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-            } else null
-        } catch (e: Exception) {
-            android.util.Log.e("Layout", "Error parsing disable date: $dateString", e)
-            null
-        }
-    }
-
-    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String? = null, disable: String? = null): Boolean {
-        // Check disable date first - if current date is before disable date, hide the task
-        if (!disable.isNullOrEmpty()) {
-            val disableDate = parseDisableDate(disable)
-            if (disableDate != null) {
-                val today = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                // If today is before the disable date, task is disabled (not visible)
-                if (today.before(disableDate)) {
-                    return false
-                }
-            }
-        }
-
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-        val todayShort = when (today) {
-            Calendar.MONDAY -> "mon"
-            Calendar.TUESDAY -> "tue"
-            Calendar.WEDNESDAY -> "wed"
-            Calendar.THURSDAY -> "thu"
-            Calendar.FRIDAY -> "fri"
-            Calendar.SATURDAY -> "sat"
-            Calendar.SUNDAY -> "sun"
-            else -> ""
-        }
-
-        if (!hidedays.isNullOrEmpty()) {
-            if (hidedays.split(",").contains(todayShort)) {
-                return false // Hide if today is in hidedays
-            }
-        }
-
-        // Check displayDays first (if set, only show on those days)
-        if (!displayDays.isNullOrEmpty()) {
-            return displayDays.split(",").contains(todayShort) // Show only if today is in displayDays
-        }
-
-        if (!showdays.isNullOrEmpty()) {
-            return showdays.split(",").contains(todayShort) // Show only if today is in showdays
-        }
-
-        return true // Visible by default if no restrictions
-    }
+    // Removed duplicate isTaskVisible and parseDisableDate methods - now using TaskVisibilityChecker
 
     private fun handleVideoSequenceTask(task: Task, sectionId: String?) {
         val videoSequence = task.videoSequence ?: return
@@ -1005,7 +909,15 @@ class Layout(private val activity: MainActivity) {
                 // For diagramLabeler and similar games with URL parameters, make taskId unique
                 // Extract diagram parameter from URL if present (e.g., ?diagram=digestiveSystem)
                 var uniqueTaskId = taskLaunchId
-                val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                
+                // Append totalQuestions parameter if specified in config
+                if (task.totalQuestions != null) {
+                    val separator = if (gameUrl.contains("?")) "&" else "?"
+                    gameUrl = "$gameUrl${separator}totalQuestions=${task.totalQuestions}"
+                    android.util.Log.d("Layout", "Added totalQuestions=${task.totalQuestions} to URL: $gameUrl")
+                }
+                
                 if (taskLaunchId == "diagramLabeler" && gameUrl.contains("diagram=")) {
                     val diagramParam = gameUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
                     if (diagramParam.isNotEmpty()) {
@@ -1415,11 +1327,11 @@ class Layout(private val activity: MainActivity) {
                     setPadding(0, 0, 0, 0)
                 }
 
-                // Filter visible tasks and defer to next frame to avoid blocking
-                sectionLayout.post {
-                    val visibleTasks = tasks.filter { task -> 
-                        isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable) 
-                    }
+                    // Filter visible tasks and defer to next frame to avoid blocking
+                    sectionLayout.post {
+                        val visibleTasks = tasks.filter { task -> 
+                            TaskVisibilityChecker.isTaskVisible(task)
+                        }
                     
                     // Always create incrementally, one row per frame
                     createTaskRowsIncrementally(
@@ -1439,7 +1351,7 @@ class Layout(private val activity: MainActivity) {
         section.items?.let { items ->
             items.forEach { item ->
                 // Only add checklist item view if it's visible today
-                if (isTaskVisible(item.showdays, item.hidedays)) {
+                if (TaskVisibilityChecker.isItemVisible(item)) {
                     val itemView = createChecklistItemView(item, completedTasksMap)
                     sectionLayout.addView(itemView)
                 }
@@ -1494,7 +1406,7 @@ class Layout(private val activity: MainActivity) {
             minimumHeight = tileHeight
 
             // Create the stars indicator first, so we can position the text above it
-            val icons = loadIconConfig()
+            val icons = IconConfigLoader.loadIconConfig(activity)
             val starsView = TextView(activity).apply {
                 id = View.generateViewId() // Important for RelativeLayout rules
                 text = icons.starsIcon.repeat(task.stars ?: 1)
@@ -1650,7 +1562,7 @@ class Layout(private val activity: MainActivity) {
             }
 
             // Create stars view (right next to label)
-            val icons = loadIconConfig()
+            val icons = IconConfigLoader.loadIconConfig(activity)
             val starsView = TextView(activity).apply {
                 text = if (item.stars != null && item.stars!! > 0) icons.starsIcon.repeat(item.stars!!) else ""
                 textSize = 16f
@@ -1824,7 +1736,15 @@ class Layout(private val activity: MainActivity) {
             // For diagramLabeler and similar games with URL parameters, make taskId unique
             // Extract diagram parameter from URL if present (e.g., ?diagram=digestiveSystem)
             var uniqueTaskId = taskLaunchId
-            val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+            var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+            
+            // Append totalQuestions parameter if specified in config
+            if (task.totalQuestions != null) {
+                val separator = if (gameUrl.contains("?")) "&" else "?"
+                gameUrl = "$gameUrl${separator}totalQuestions=${task.totalQuestions}"
+                android.util.Log.d("Layout", "Added totalQuestions=${task.totalQuestions} to URL: $gameUrl")
+            }
+            
             if (taskLaunchId == "diagramLabeler" && gameUrl.contains("diagram=")) {
                 val diagramParam = gameUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
                 if (diagramParam.isNotEmpty()) {
@@ -2109,7 +2029,7 @@ class Layout(private val activity: MainActivity) {
                     val requiredTasks = requiredSection?.tasks?.filter { task ->
                         task.title != null && 
                         task.launch != null && 
-                        isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+                        TaskVisibilityChecker.isTaskVisible(task)
                     } ?: emptyList()
                     android.util.Log.d("Layout", "Returning ${requiredTasks.size} visible required tasks for gym map (out of ${requiredSection?.tasks?.size ?: 0} total)")
                     com.google.gson.Gson().toJson(requiredTasks)
@@ -2708,7 +2628,7 @@ class Layout(private val activity: MainActivity) {
         val tasks = section?.tasks?.filter { task ->
             task.title != null && 
             task.launch != null && 
-            isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+            TaskVisibilityChecker.isTaskVisible(task)
         } ?: emptyList()
         
         if (tasks.isEmpty()) {
@@ -2815,7 +2735,7 @@ class Layout(private val activity: MainActivity) {
         val padding = (20 * density).toInt() // Padding from edges
         
         // Load icon config for stars icon
-        val icons = loadIconConfig()
+        val icons = IconConfigLoader.loadIconConfig(activity)
         
         // Generate random positions for gym buttons
         val random = kotlin.random.Random
@@ -2989,7 +2909,7 @@ class Layout(private val activity: MainActivity) {
             val optionalTasks = optionalSection?.tasks?.filter { task ->
                 task.title != null && 
                 task.launch != null && 
-                isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
+                TaskVisibilityChecker.isTaskVisible(task)
             } ?: emptyList()
             
             if (optionalTasks.isNotEmpty()) {

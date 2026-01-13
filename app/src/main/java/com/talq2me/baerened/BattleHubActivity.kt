@@ -54,7 +54,6 @@ class BattleHubActivity : AppCompatActivity() {
     private lateinit var berryFill: LinearLayout
     private lateinit var berryCount: TextView
     private lateinit var battleButton: Button
-    private lateinit var useRewardTimeButton: Button
     private lateinit var trainingChecklistButton: Button
     private lateinit var victoryOverlay: FrameLayout
     private lateinit var victoryPokemonSprite: ImageView
@@ -124,7 +123,6 @@ class BattleHubActivity : AppCompatActivity() {
             updateBerryMeter()
             updateEarnButtonsState()
             updateCountsDisplay()
-            updateUseRewardTimeButton()
             updatePokedexTitle()
             setupHeaderButtons() // Setup header buttons after views are ready
         }
@@ -133,7 +131,6 @@ class BattleHubActivity : AppCompatActivity() {
         updateBerryMeter()
         updateEarnButtonsState()
         updateCountsDisplay()
-        updateUseRewardTimeButton()
         updatePokedexTitle()
         setupHeaderButtons()
     }
@@ -248,17 +245,6 @@ class BattleHubActivity : AppCompatActivity() {
         }
     }
     
-    private fun updateUseRewardTimeButton() {
-        val progressManager = DailyProgressManager(this)
-        val rewardMinutes = progressManager.getBankedRewardMinutes()
-        
-        if (rewardMinutes > 0) {
-            useRewardTimeButton.visibility = View.VISIBLE
-            useRewardTimeButton.text = "🎮 Use Reward Time ($rewardMinutes mins)"
-        } else {
-            useRewardTimeButton.visibility = View.GONE
-        }
-    }
     
     private lateinit var headerButtonsLeft: LinearLayout
     private lateinit var headerButtonsRight: LinearLayout
@@ -292,7 +278,6 @@ class BattleHubActivity : AppCompatActivity() {
         earnExtraBerriesButton = findViewById(R.id.earnExtraBerriesButton)
         bonusTrainingButton = findViewById(R.id.bonusTrainingButton)
         trainingChecklistButton = findViewById(R.id.trainingChecklistButton)
-        useRewardTimeButton = findViewById(R.id.useRewardTimeButton)
         victoryOverlay = findViewById(R.id.victoryOverlay)
         victoryPokemonSprite = findViewById(R.id.victoryPokemonSprite)
         victoryPokemonName = findViewById(R.id.victoryPokemonName)
@@ -819,7 +804,6 @@ class BattleHubActivity : AppCompatActivity() {
                     val newTotal = progressManager.addRewardMinutes(minutes)
                     // Refresh counts display to show updated minutes
                     updateCountsDisplay()
-                    updateUseRewardTimeButton()
                     android.widget.Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", android.widget.Toast.LENGTH_LONG).show()
                 } else {
                     android.widget.Toast.makeText(this, "Please enter a valid number of minutes", android.widget.Toast.LENGTH_SHORT).show()
@@ -875,10 +859,6 @@ class BattleHubActivity : AppCompatActivity() {
             showTrainingChecklist()
         }
         
-        // Use Reward Time button
-        useRewardTimeButton.setOnClickListener {
-            useRewardTime()
-        }
     }
     
     private fun showTrainingChecklist() {
@@ -1446,20 +1426,6 @@ class BattleHubActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun useRewardTime() {
-        val progressManager = DailyProgressManager(this)
-        val rewardMinutes = progressManager.getBankedRewardMinutes()
-        
-        if (rewardMinutes > 0) {
-            // Launch RewardSelectionActivity
-            val intent = Intent(this, RewardSelectionActivity::class.java).apply {
-                putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes)
-            }
-            startActivity(intent)
-        } else {
-            android.widget.Toast.makeText(this, "No reward time available", android.widget.Toast.LENGTH_SHORT).show()
-        }
-    }
     
     private fun updateEarnButtonsState() {
         val currentContent = try {
@@ -2540,6 +2506,16 @@ class BattleHubActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        // CRITICAL: Check for profile changes from cloud BEFORE syncing data
+        // This ensures we use the correct profile for the sync
+        val profileChanged = SettingsManager.checkAndApplyProfileFromCloud(this)
+        
+        // If profile changed, refresh the header title immediately
+        if (profileChanged) {
+            updateTitle()
+            android.util.Log.d("BattleHubActivity", "Profile changed, refreshed header title")
+        }
+
         // Sync from cloud when resuming (read latest progress)
         val profile = SettingsManager.readProfile(this) ?: "AM"
         android.util.Log.d("BattleHubActivity", "Starting cloud sync in onResume for profile $profile")
@@ -2551,8 +2527,9 @@ class BattleHubActivity : AppCompatActivity() {
                 updateBerryMeter()
                 updateEarnButtonsState()
                 updateCountsDisplay()
-                updateUseRewardTimeButton()
                 updatePokedexTitle()
+                // Also refresh header in case profile changed during sync
+                updateTitle()
             }
         }
 
@@ -2601,7 +2578,6 @@ class BattleHubActivity : AppCompatActivity() {
         updateBerryMeter()
         updateEarnButtonsState()
         updatePokedexTitle()
-        updateUseRewardTimeButton()
         setupHeaderButtons() // Refresh header buttons on resume
     }
     
@@ -2628,7 +2604,6 @@ class BattleHubActivity : AppCompatActivity() {
                     updateBerryMeter()
                     updateEarnButtonsState()
                     updatePokedexTitle()
-                    updateUseRewardTimeButton()
                 }
             }
         }

@@ -336,6 +336,16 @@
             const file = urlParams.get('file');
             const fileName = file || 'englishWordsGr1.json';
             
+            // Check for totalQuestions URL parameter
+            const totalQuestionsParam = urlParams.get('totalQuestions');
+            if (totalQuestionsParam) {
+                const parsed = parseInt(totalQuestionsParam, 10);
+                if (!isNaN(parsed) && parsed > 0) {
+                    maxQuestions = parsed;
+                    console.log('Using totalQuestions from URL parameter:', maxQuestions);
+                }
+            }
+            
             // Detect language from filename - if filename contains "french" (case-insensitive), use French TTS
             if (fileName.toLowerCase().includes('french')) {
                 ttsLanguage = 'fr-FR';
