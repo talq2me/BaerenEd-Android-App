@@ -121,9 +121,12 @@
         }
 
         .health-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 1px solid #eee;
+            margin-top: 0;
+            margin-bottom: 30px;
+            padding-top: 0;
+            padding-bottom: 30px;
+            border-top: none;
+            border-bottom: 1px solid #eee;
         }
 
         .health-status {
@@ -202,14 +205,6 @@
         <h1>📊 Parent Progress Report</h1>
         <p class="subtitle">Select a child to view their progress</p>
 
-        <div class="kid-selector">
-            <a href="report.html?kid=AM" class="kid-button">View AM's Report</a>
-            <a href="report.html?kid=BM" class="kid-button">View BM's Report</a>
-            <a href="schedule.html" class="kid-button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📅 View Weekly Schedule</a>
-            <a href="banked_time.html" class="kid-button" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);">⏰ View Banked Time</a>
-            <a href="task_manager.html" class="kid-button" style="background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);">🎯 Task Manager</a>
-        </div>
-
         <div class="health-section">
             <h3>🛡️ BaerenLock Status</h3>
             <div id="healthStatus" class="health-status unknown" onclick="toggleHealthDetails()">
@@ -220,6 +215,14 @@
                 <h4>Health Check Details by Profile</h4>
                 <div id="healthProfiles"></div>
             </div>
+        </div>
+
+        <div class="kid-selector">
+            <a href="report.html?kid=AM" class="kid-button">View AM's Report</a>
+            <a href="report.html?kid=BM" class="kid-button">View BM's Report</a>
+            <a href="schedule.html" class="kid-button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📅 View Weekly Schedule</a>
+            <a href="banked_time.html" class="kid-button" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);">⏰ View Banked Time</a>
+            <a href="task_manager.html" class="kid-button" style="background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);">🎯 Task Manager</a>
         </div>
 
         <div class="config-section">
