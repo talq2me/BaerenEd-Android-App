@@ -144,16 +144,16 @@ class GameEngineTest {
     }
 
     @Test
-    fun `submitAnswer advances to next question even on incorrect answer`() {
+    fun `submitAnswer does not advance to next question on incorrect answer`() {
         // Given: A game engine
         val engine = GameEngine(mockContext, "testGame", questions, config)
 
         // When: Answering incorrectly
         engine.submitAnswer(listOf("3"))
 
-        // Then: Should advance to next question (GameEngine always advances after each answer)
+        // Then: Should stay on same question (GameEngine only advances on correct answer)
         val currentQuestion = engine.getCurrentQuestion()
-        assertEquals("Question 2", currentQuestion.prompt?.text)
+        assertEquals("Question 1", currentQuestion.prompt?.text)
     }
 
     @Test
@@ -238,11 +238,13 @@ class GameEngineTest {
         // When: Answering multiple questions (3 different questions)
         engine.submitAnswer(listOf("4")) // Correct for question 1 -> moves to question 2
         engine.submitAnswer(listOf("6")) // Correct for question 2 -> moves to question 3
-        engine.submitAnswer(listOf("3")) // Incorrect for question 3 (correct is "8") -> moves to question 1 (wraps around)
+        engine.submitAnswer(listOf("3")) // Incorrect for question 3 (correct is "8") -> stays on question 3
 
-        // Then: Counts should be accurate (GameEngine counts all answers)
+        // Then: Counts should be accurate (only first answer per question counts)
         assertEquals(2, engine.getCorrectCount())
         assertEquals(1, engine.getIncorrectCount())
+        // Total should equal 3 (one answer per question)
+        assertEquals(3, engine.getCorrectCount() + engine.getIncorrectCount())
     }
 
     @Test
@@ -252,17 +254,17 @@ class GameEngineTest {
         val engine = GameEngine(mockContext, "testGame", singleQuestion, GameConfig("testGame", 1))
 
         // When: Answering wrong 3 times, then correctly
-        // Note: GameEngine always advances and counts all answers
-        engine.submitAnswer(listOf("3")) // Wrong - counts as incorrect, wraps to question 1
-        engine.submitAnswer(listOf("5")) // Wrong again - counts as incorrect, wraps to question 1
-        engine.submitAnswer(listOf("7")) // Wrong again - counts as incorrect, wraps to question 1
-        engine.submitAnswer(listOf("4")) // Correct - counts as correct, wraps to question 1
+        // Note: GameEngine only counts the FIRST answer per question
+        engine.submitAnswer(listOf("3")) // Wrong - counts as incorrect (first answer), stays on question 1
+        engine.submitAnswer(listOf("5")) // Wrong again - doesn't count (already answered), stays on question 1
+        engine.submitAnswer(listOf("7")) // Wrong again - doesn't count (already answered), stays on question 1
+        engine.submitAnswer(listOf("4")) // Correct - doesn't count (already answered), advances (wraps to question 1)
 
-        // Then: All answers are counted (GameEngine counts all answers, not just first)
-        assertEquals(1, engine.getCorrectCount())
-        assertEquals(3, engine.getIncorrectCount())
-        // Total should equal 4 (all answers counted)
-        assertEquals(4, engine.getCorrectCount() + engine.getIncorrectCount())
+        // Then: Only first answer (incorrect) is counted
+        assertEquals(0, engine.getCorrectCount())
+        assertEquals(1, engine.getIncorrectCount()) // Only first answer counted (was incorrect)
+        // Total should equal 1 (one question, one answer counted)
+        assertEquals(1, engine.getCorrectCount() + engine.getIncorrectCount())
     }
 
     @Test
@@ -294,39 +296,63 @@ class GameEngineTest {
         val engine = GameEngine(mockContext, "testGame", fiveQuestions, GameConfig("testGame", 5))
 
         // When: Answering all 5 questions (some wrong first, then correct)
-        // Note: GameEngine always advances and counts all answers
-        // With 5 questions, after 7 answers we wrap around: Q1->Q2->Q3->Q4->Q5->Q1->Q2
-        engine.submitAnswer(listOf("2")) // Q1: Correct (index 0->1, now on Q2)
-        engine.submitAnswer(listOf("3")) // Q2: Wrong (index 1->2, now on Q3, correct is "4")
-        engine.submitAnswer(listOf("4")) // Q3: Wrong (index 2->3, now on Q4, correct is "6")
-        engine.submitAnswer(listOf("6")) // Q4: Wrong (index 3->4, now on Q5, correct is "8")
-        engine.submitAnswer(listOf("7")) // Q5: Wrong (index 4->5, wraps to 0, now on Q1, correct is "10")
-        engine.submitAnswer(listOf("8")) // Q1: Wrong (index 0->1, now on Q2, correct is "2")
-        engine.submitAnswer(listOf("10")) // Q2: Wrong (index 1->2, now on Q3, correct is "4")
+        // Note: GameEngine only counts the FIRST answer per question
+        engine.submitAnswer(listOf("2")) // Q1: Correct (index 0->1, now on Q2) - counts as 1 correct (first answer)
+        engine.submitAnswer(listOf("3")) // Q2: Wrong (stays on Q2, correct is "4") - counts as 1 incorrect (first answer)
+        engine.submitAnswer(listOf("4")) // Q2: Correct (index 1->2, now on Q3) - doesn't count (already answered)
+        engine.submitAnswer(listOf("5")) // Q3: Wrong (stays on Q3, correct is "6") - counts as 1 incorrect (first answer)
+        engine.submitAnswer(listOf("6")) // Q3: Correct (index 2->3, now on Q4) - doesn't count (already answered)
+        engine.submitAnswer(listOf("7")) // Q4: Wrong (stays on Q4, correct is "8") - counts as 1 incorrect (first answer)
+        engine.submitAnswer(listOf("8")) // Q4: Correct (index 3->4, now on Q5) - doesn't count (already answered)
+        engine.submitAnswer(listOf("9")) // Q5: Wrong (stays on Q5, correct is "10") - counts as 1 incorrect (first answer)
+        engine.submitAnswer(listOf("10")) // Q5: Correct (index 4->5, wraps to 0, now on Q1) - doesn't count (already answered)
 
-        // Then: Should have counted all 7 answers
-        // Only the first answer was correct (Q1: "2")
-        assertEquals(1, engine.getCorrectCount()) // Only Q1 was correct
-        assertEquals(6, engine.getIncorrectCount()) // All other 6 answers were wrong
-        // Total should equal 7 (all answers counted)
-        assertEquals(7, engine.getCorrectCount() + engine.getIncorrectCount())
+        // Then: Only first answer per question counts
+        // Q1: correct (first answer), Q2: incorrect (first answer), Q3: incorrect (first answer),
+        // Q4: incorrect (first answer), Q5: incorrect (first answer)
+        assertEquals(1, engine.getCorrectCount()) // Only Q1 was correct on first try
+        assertEquals(4, engine.getIncorrectCount()) // Q2, Q3, Q4, Q5 were incorrect on first try
+        // Total should equal 5 (one answer per question)
+        assertEquals(5, engine.getCorrectCount() + engine.getIncorrectCount())
     }
 
     @Test
-    fun `multiple wrong attempts on same question all count as incorrect`() {
+    fun `multiple wrong attempts on same question only first counts as incorrect`() {
         // Given: A game engine with one question (wraps around)
         val singleQuestion = listOf(questions[0])
         val engine = GameEngine(mockContext, "testGame", singleQuestion, GameConfig("testGame", 1))
 
         // When: Answering wrong multiple times on the same question
-        // Note: GameEngine always advances and counts all answers
-        engine.submitAnswer(listOf("3")) // Wrong attempt 1 - counts as incorrect, wraps to question 1
-        engine.submitAnswer(listOf("5")) // Wrong attempt 2 - counts as incorrect, wraps to question 1
-        engine.submitAnswer(listOf("7")) // Wrong attempt 3 - counts as incorrect, wraps to question 1
+        // Note: GameEngine only counts the first answer per question
+        engine.submitAnswer(listOf("3")) // Wrong attempt 1 - counts as incorrect (first answer), stays on question 1
+        engine.submitAnswer(listOf("5")) // Wrong attempt 2 - doesn't count (already answered), stays on question 1
+        engine.submitAnswer(listOf("7")) // Wrong attempt 3 - doesn't count (already answered), stays on question 1
 
-        // Then: All wrong answers are counted (GameEngine counts all answers)
+        // Then: Only first wrong answer is counted
         assertEquals(0, engine.getCorrectCount())
-        assertEquals(3, engine.getIncorrectCount())
+        assertEquals(1, engine.getIncorrectCount()) // Only first answer counted (was incorrect)
+        // Total should equal 1 (one question, one answer counted)
+        assertEquals(1, engine.getCorrectCount() + engine.getIncorrectCount())
+    }
+
+    @Test
+    fun `correct plus incorrect equals number of questions`() {
+        // Given: A game engine with 3 questions
+        val engine = GameEngine(mockContext, "testGame", questions, GameConfig("testGame", 3))
+
+        // When: Answering all questions (some correct on first try, some wrong then correct)
+        // Q1: correct answer is "4", Q2: correct answer is "6", Q3: correct answer is "8"
+        engine.submitAnswer(listOf("4")) // Q1: Correct on first try -> counts as correct, advances to Q2
+        engine.submitAnswer(listOf("3")) // Q2: Wrong on first try -> counts as incorrect, stays on Q2
+        engine.submitAnswer(listOf("6")) // Q2: Correct on retry -> doesn't count (already answered), advances to Q3
+        engine.submitAnswer(listOf("7")) // Q3: Wrong on first try -> counts as incorrect, stays on Q3
+        engine.submitAnswer(listOf("8")) // Q3: Correct on retry -> doesn't count (already answered), advances
+
+        // Then: correct + incorrect should equal number of questions
+        assertEquals(1, engine.getCorrectCount()) // Q1 was correct on first try
+        assertEquals(2, engine.getIncorrectCount()) // Q2 and Q3 were incorrect on first try
+        assertEquals(3, questions.size) // 3 questions total
+        assertEquals(questions.size, engine.getCorrectCount() + engine.getIncorrectCount()) // Should equal number of questions
     }
 }
 

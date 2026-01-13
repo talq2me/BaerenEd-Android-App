@@ -272,8 +272,35 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
             val lastUpdated = syncService.generateESTTimestamp()
             val lastReset = syncService.generateESTTimestamp()
             
-            // Get current checklist items from local data to preserve structure but clear done status
+            // Get current local data to preserve structure but reset progress
             val localData = dataCollector.collectLocalData(profile)
+            
+            // Reset required_tasks: preserve visibility fields but reset status and progress
+            val resetRequiredTasks = localData.requiredTasks.mapValues { (_, taskProgress) ->
+                mapOf(
+                    "status" to "incomplete",
+                    "correct" to 0,
+                    "incorrect" to 0,
+                    "questions" to 0,
+                    "stars" to (taskProgress.stars ?: 0),
+                    "showdays" to taskProgress.showdays,
+                    "hidedays" to taskProgress.hidedays,
+                    "displayDays" to taskProgress.displayDays,
+                    "disable" to taskProgress.disable
+                )
+            }
+            
+            // Reset practice_tasks: reset all progress to 0
+            val resetPracticeTasks = localData.practiceTasks.mapValues { (_, practiceProgress) ->
+                mapOf(
+                    "times_completed" to 0,
+                    "correct" to 0,
+                    "incorrect" to 0,
+                    "questions_answered" to 0
+                )
+            }
+            
+            // Reset checklist items: preserve structure but clear done status
             val resetChecklistItems = localData.checklistItems.mapValues { (_, item) ->
                 // Keep structure but set done=false
                 mapOf(
@@ -285,7 +312,8 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
             
             // Create update map with all reset values
             val resetData = mapOf(
-                "required_tasks" to emptyMap<String, Any>(),
+                "required_tasks" to resetRequiredTasks,
+                "practice_tasks" to resetPracticeTasks,
                 "checklist_items" to resetChecklistItems,
                 "berries_earned" to 0,
                 "banked_mins" to 0,
@@ -294,6 +322,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
             )
             
             syncService.resetProgressInCloud(profile, resetData)
+            Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error resetting progress in cloud", e)
             Result.failure(e)

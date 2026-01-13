@@ -28,6 +28,7 @@ import kotlinx.coroutines.*
 class BattleHubActivity : AppCompatActivity() {
 
     private lateinit var cloudStorageManager: CloudStorageManager
+    private var loadingDialog: android.app.ProgressDialog? = null
 
     data class ParsedPokemon(
         val prefix: Int,
@@ -83,7 +84,62 @@ class BattleHubActivity : AppCompatActivity() {
         
         // Initialize managers
         cloudStorageManager = CloudStorageManager(this)
-
+        
+        // Initialize views immediately so onResume() can safely update them
+        initializeViews()
+        
+        val progressManager = DailyProgressManager(this)
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        
+        // Check if daily reset is needed and perform it if necessary
+        lifecycleScope.launch(Dispatchers.IO) {
+            val resetNeeded = progressManager.checkIfResetNeeded(profile)
+            if (resetNeeded) {
+                // Show loading spinner on main thread
+                withContext(Dispatchers.Main) {
+                    showLoadingSpinner("Resetting daily progress...")
+                }
+                
+                // Perform reset and sync to cloud
+                val timestamp = progressManager.performDailyResetAndSync(profile)
+                if (timestamp != null) {
+                    android.util.Log.d("BattleHubActivity", "Daily reset completed, timestamp: $timestamp")
+                } else {
+                    android.util.Log.e("BattleHubActivity", "Daily reset failed - timestamp not received")
+                }
+                
+                // Hide loading spinner and finish loading
+                withContext(Dispatchers.Main) {
+                    hideLoadingSpinner()
+                    finishLoadingBattleHub()
+                }
+            } else {
+                // No reset needed, just finish loading
+                withContext(Dispatchers.Main) {
+                    finishLoadingBattleHub()
+                }
+            }
+        }
+    }
+    
+    private fun showLoadingSpinner(message: String) {
+        runOnUiThread {
+            loadingDialog = android.app.ProgressDialog(this@BattleHubActivity).apply {
+                setMessage(message)
+                setCancelable(false)
+                show()
+            }
+        }
+    }
+    
+    private fun hideLoadingSpinner() {
+        runOnUiThread {
+            loadingDialog?.dismiss()
+            loadingDialog = null
+        }
+    }
+    
+    private fun finishLoadingBattleHub() {
         // Get MainContent from Intent extra if available
         mainContentJson = intent.getStringExtra("mainContentJson")
         // Fallback to ContentUpdateService if not in Intent
@@ -104,7 +160,7 @@ class BattleHubActivity : AppCompatActivity() {
             root.setBackgroundColor(0xFF667EEA.toInt())
         }
         
-        initializeViews()
+        // Views are already initialized in onCreate(), just finish setup
         updateTitle()
         setupAnimations()
         setupClickListeners()
@@ -117,6 +173,16 @@ class BattleHubActivity : AppCompatActivity() {
         pokedexToggle.rotation = -90f
         
         loadPokemonData()
+        
+        // Check if we should open the checklist dialog
+        if (intent.getBooleanExtra("openChecklist", false)) {
+            // Clear the flag so it doesn't open again on resume
+            intent.removeExtra("openChecklist")
+            // Show checklist dialog after a short delay to ensure views are ready
+            berryFill.postDelayed({
+                showTrainingChecklist()
+            }, 300)
+        }
         
         // Update berry meter after view is laid out (to get proper parent width)
         berryFill.post {

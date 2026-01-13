@@ -50,7 +50,7 @@ class CloudSyncService {
     /**
      * Gets Supabase API key from BuildConfig
      */
-    private fun getSupabaseKey(): String {
+    fun getSupabaseKey(): String {
         return try {
             BuildConfig.SUPABASE_KEY.ifBlank { "" }
         } catch (e: Exception) {

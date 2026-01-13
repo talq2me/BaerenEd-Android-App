@@ -92,6 +92,8 @@ object TaskProgressMigration {
                     ?: findTaskNameFromConfig(taskId, config)
                     ?: taskId // Fallback to taskId if name not found
 
+                // Get task from config to get stars value
+                val task = findTaskFromConfig(taskId, config)
                 // Create TaskProgress from Boolean
                 val taskProgress = TaskProgress(
                     status = if (isCompleted) "complete" else "incomplete",
@@ -99,6 +101,7 @@ object TaskProgressMigration {
                     correct = null,
                     incorrect = null,
                     questions = null,
+                    stars = task?.stars, // Get stars from config if available
                     // We don't have visibility data in old format
                     showdays = null,
                     hidedays = null,
@@ -135,5 +138,15 @@ object TaskProgressMigration {
         return config.sections?.flatMap { it.tasks?.filterNotNull() ?: emptyList() }
             ?.find { (it.launch ?: "") == taskId }
             ?.title
+    }
+
+    /**
+     * Finds task from config by task ID (task.launch) to get star value
+     */
+    private fun findTaskFromConfig(taskId: String, config: MainContent?): Task? {
+        if (config == null) return null
+
+        return config.sections?.flatMap { it.tasks?.filterNotNull() ?: emptyList() }
+            ?.find { (it.launch ?: "") == taskId }
     }
 }

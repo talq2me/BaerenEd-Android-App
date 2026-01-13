@@ -223,6 +223,7 @@ class ProgressDataCollector(private val context: Context) {
                     correct = existingProgress?.correct ?: correct,
                     incorrect = existingProgress?.incorrect ?: incorrect,
                     questions = existingProgress?.questions ?: questions,
+                    stars = existingProgress?.stars ?: task.stars, // Preserve stars from existing progress or get from config
                     // Preserve visibility fields from existing progress or get from config
                     showdays = existingProgress?.showdays ?: task.showdays,
                     hidedays = existingProgress?.hidedays ?: task.hidedays,

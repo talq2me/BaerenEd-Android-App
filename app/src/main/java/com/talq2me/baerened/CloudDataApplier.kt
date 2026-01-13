@@ -77,6 +77,7 @@ class CloudDataApplier(
                             correct = taskProgress.correct,
                             incorrect = taskProgress.incorrect,
                             questions = taskProgress.questions,
+                            stars = task?.stars ?: taskProgress.stars, // Preserve stars from config or existing data
                             showdays = task?.showdays ?: taskProgress.showdays,
                             hidedays = task?.hidedays ?: taskProgress.hidedays,
                             displayDays = task?.displayDays ?: taskProgress.displayDays,
@@ -138,6 +139,55 @@ class CloudDataApplier(
             if (!data.lastUpdated.isNullOrEmpty()) {
                 onTimestampSet?.invoke(localProfile, data.lastUpdated)
                 Log.d(TAG, "Stored cloud timestamp as local timestamp: ${data.lastUpdated}")
+            }
+            
+            // CRITICAL: Store the cloud's last_reset as local last_reset_date
+            // This ensures shouldResetProgress() can check against the cloud's last_reset
+            if (!data.lastReset.isNullOrEmpty()) {
+                try {
+                    // Convert from ISO 8601 format to local format (dd-MM-yyyy hh:mm:ss a)
+                    val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                    
+                    // Strip timezone offset and milliseconds if present
+                    // Handle formats like: "2026-01-12T07:40:28", "2026-01-12T07:40:28.123", "2026-01-12T07:40:28-05:00", "2026-01-12T07:40:28Z"
+                    var timestampToParse = data.lastReset
+                    
+                    // Remove timezone offset (at the end: +HH:MM, -HH:MM, or Z)
+                    if (timestampToParse.endsWith("Z")) {
+                        timestampToParse = timestampToParse.substringBeforeLast('Z')
+                    } else if (timestampToParse.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))) {
+                        // Find the last occurrence of + or - followed by digits (timezone offset)
+                        val lastPlus = timestampToParse.lastIndexOf('+')
+                        val lastMinus = timestampToParse.lastIndexOf('-')
+                        val offsetStart = if (lastPlus > lastMinus) lastPlus else lastMinus
+                        if (offsetStart > 10) { // Must be after the date part (YYYY-MM-DD is 10 chars)
+                            timestampToParse = timestampToParse.substring(0, offsetStart)
+                        }
+                    }
+                    
+                    // Remove milliseconds if present
+                    if (timestampToParse.contains('.')) {
+                        timestampToParse = timestampToParse.substringBefore('.')
+                    }
+                    
+                    // Parse the timestamp (format: yyyy-MM-ddTHH:mm:ss)
+                    val parseFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                    parseFormat.timeZone = estTimeZone
+                    val parsedDate = parseFormat.parse(timestampToParse)
+                    if (parsedDate != null) {
+                        val localFormat = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault())
+                        localFormat.timeZone = estTimeZone
+                        val localDateString = localFormat.format(parsedDate)
+                        
+                        // CRITICAL: Always overwrite local last_reset_date with cloud's value (cloud is source of truth)
+                        progressPrefs.edit()
+                            .putString("last_reset_date", localDateString)
+                            .apply()
+                        Log.d(TAG, "Stored cloud last_reset as local last_reset_date: $localDateString (from cloud: ${data.lastReset})")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error converting cloud last_reset to local format: ${data.lastReset}", e)
+                }
             }
 
             Log.d(TAG, "Successfully applied cloud data to local storage: requiredTasks=${data.requiredTasks?.size ?: 0}, gameIndices=${data.gameIndices?.size ?: 0}, berries=${data.berriesEarned}")

@@ -26,6 +26,7 @@ class TrainingMapActivity : AppCompatActivity() {
     private lateinit var progressManager: DailyProgressManager
     private var currentContent: MainContent? = null
     private var lastLaunchedGameSectionId: String? = null // Store section ID of last launched game
+    private var loadingDialog: android.app.ProgressDialog? = null
     
     data class IconConfig(
         val starsIcon: String = "🍍",
@@ -39,20 +40,59 @@ class TrainingMapActivity : AppCompatActivity() {
         mapType = intent.getStringExtra("mapType") ?: "required"
         
         progressManager = DailyProgressManager(this)
-        
-        // Sync from cloud first to ensure local data is up to date
-        // This ensures that when the trainer map loads, it shows the most recent data
         val profile = SettingsManager.readProfile(this) ?: "AM"
-        val cloudStorageManager = CloudStorageManager(this)
+        
+        // Check if daily reset is needed and perform it if necessary
         lifecycleScope.launch(Dispatchers.IO) {
-            val syncResult = cloudStorageManager.syncIfEnabled(profile)
-            android.util.Log.d("TrainingMapActivity", "Cloud sync completed in onCreate (result: $syncResult), creating map")
-            withContext(Dispatchers.Main) {
-                // Create the map view after sync completes
-                // This ensures the map shows the latest data from cloud
-                createMapView()
+            val resetNeeded = progressManager.checkIfResetNeeded(profile)
+            if (resetNeeded) {
+                // Show loading spinner on main thread
+                withContext(Dispatchers.Main) {
+                    showLoadingSpinner("Resetting daily progress...")
+                }
+                
+                // Perform reset and sync to cloud
+                val timestamp = progressManager.performDailyResetAndSync(profile)
+                if (timestamp != null) {
+                    android.util.Log.d("TrainingMapActivity", "Daily reset completed, timestamp: $timestamp")
+                } else {
+                    android.util.Log.e("TrainingMapActivity", "Daily reset failed - timestamp not received")
+                }
+                
+                // Hide loading spinner and finish loading
+                withContext(Dispatchers.Main) {
+                    hideLoadingSpinner()
+                    finishLoadingTrainingMap()
+                }
+            } else {
+                // No reset needed, just finish loading
+                withContext(Dispatchers.Main) {
+                    finishLoadingTrainingMap()
+                }
             }
         }
+    }
+    
+    private fun showLoadingSpinner(message: String) {
+        runOnUiThread {
+            loadingDialog = android.app.ProgressDialog(this@TrainingMapActivity).apply {
+                setMessage(message)
+                setCancelable(false)
+                show()
+            }
+        }
+    }
+    
+    private fun hideLoadingSpinner() {
+        runOnUiThread {
+            loadingDialog?.dismiss()
+            loadingDialog = null
+        }
+    }
+    
+    private fun finishLoadingTrainingMap() {
+        // Create the map view
+        createMapView()
     }
     
     private fun createMapView() {
@@ -223,11 +263,35 @@ class TrainingMapActivity : AppCompatActivity() {
                 
                 // Get tasks for this map type
                 val section = currentContent!!.sections?.find { it.id == mapType }
-                val tasks = section?.tasks?.filter { task ->
+                val baseTasks = section?.tasks?.filter { task ->
                     task.title != null && 
                     task.launch != null && 
                     isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
                 } ?: emptyList()
+                
+                // For required map, also include checklist items as required tasks
+                val checklistTasks = if (mapType == "required") {
+                    val checklistSection = currentContent!!.sections?.find { it.id == "checklist" }
+                    checklistSection?.items?.filter { item ->
+                        item.label != null &&
+                        isTaskVisible(item.showdays, item.hidedays, item.displayDays, null)
+                    }?.map { item ->
+                        // Convert ChecklistItem to Task-like structure for display
+                        Task(
+                            title = item.label,
+                            launch = "checklist_${item.id ?: item.label}",
+                            stars = item.stars ?: 0,
+                            showdays = item.showdays,
+                            hidedays = item.hidedays,
+                            displayDays = item.displayDays
+                        )
+                    } ?: emptyList()
+                } else {
+                    emptyList()
+                }
+                
+                // Combine regular tasks and checklist tasks
+                val tasks = baseTasks + checklistTasks
                 
                 if (tasks.isEmpty()) {
                     withContext(Dispatchers.Main) {
@@ -301,6 +365,12 @@ class TrainingMapActivity : AppCompatActivity() {
                     val baseTaskId = task.launch ?: ""
                     val taskTitle = task.title ?: ""
                     
+                    // Check if this is a checklist item
+                    if (baseTaskId.startsWith("checklist_")) {
+                        // For checklist items, use the label as the key (matches how they're stored)
+                        return@count completedTasksMap[taskTitle] == true
+                    }
+                    
                     // For diagramLabeler, we need to get the final URL (after getGameModeUrl processing)
                     // to extract the correct diagram parameter for tracking
                     if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
@@ -363,7 +433,8 @@ class TrainingMapActivity : AppCompatActivity() {
                                 append(t.title ?: "")
                             }
                         }
-                        val random = kotlin.random.Random(seedInput.hashCode())
+                        val seedHash = seedInput.hashCode()
+                        val random = kotlin.random.Random(seedHash)
 
                         // Generate positions for gyms (like points of interest on a real map)
                         // But ensure they don't overlap
@@ -372,12 +443,12 @@ class TrainingMapActivity : AppCompatActivity() {
                         val actualButtonRadius = buttonRadius
 
                         // Minimum distance between button centers (to prevent overlaps)
-                        // Increased to 2.0x for better spacing, especially with many tasks
-                        val minDistance = (buttonSize * 2.0).toInt()
+                        // Increased to 2.2x for better spacing, especially with many tasks
+                        val minDistance = (buttonSize * 2.2).toInt()
 
-                        // For many tasks (like practice tasks), use a grid-based approach to guarantee no overlaps
-                        // For fewer tasks, use random placement for a more natural look
-                        val useGridLayout = tasks.size > 15
+                        // Always use grid-based layout to guarantee no overlaps
+                        // Grid layout ensures reliable positioning without any overlapping tasks
+                        val useGridLayout = true
                         
                         // Create gym buttons with positions
                         val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
@@ -392,6 +463,9 @@ class TrainingMapActivity : AppCompatActivity() {
                         if (mapType == "bonus") {
                             // Bonus tasks are never completed
                             isCompleted = false
+                        } else if (baseTaskId.startsWith("checklist_")) {
+                            // For checklist items, use the label as the key (matches how they're stored)
+                            isCompleted = completedTasksMap[taskTitle] == true
                         } else if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
                             // Get the final URL with mode parameter processed
                             val finalUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
@@ -539,8 +613,18 @@ class TrainingMapActivity : AppCompatActivity() {
                             
                             if (!isCompleted) {
                                 setOnClickListener {
-                                    // Launch task using Layout's launch logic
-                                    launchTask(task, mapType)
+                                    // Check if this is a checklist item
+                                    if (baseTaskId.startsWith("checklist_")) {
+                                        // For checklist items, open the checklist dialog
+                                        // Navigate back to BattleHubActivity which will show the checklist
+                                        val intent = Intent(this@TrainingMapActivity, BattleHubActivity::class.java).apply {
+                                            putExtra("openChecklist", true)
+                                        }
+                                        startActivity(intent)
+                                    } else {
+                                        // Launch task using Layout's launch logic
+                                        launchTask(task, mapType)
+                                    }
                                 }
                             }
                         }
@@ -582,6 +666,7 @@ class TrainingMapActivity : AppCompatActivity() {
                     }
                     
                     // Create custom view to draw dashed lines connecting the gyms
+                    // Use random connections to create an interesting network effect
                     val pathView = object : View(this@TrainingMapActivity) {
                         override fun onDraw(canvas: android.graphics.Canvas) {
                             super.onDraw(canvas)
@@ -590,16 +675,39 @@ class TrainingMapActivity : AppCompatActivity() {
                             
                             val paint = android.graphics.Paint().apply {
                                 color = android.graphics.Color.parseColor("#ffffff")
-                                strokeWidth = (4 * density)
+                                strokeWidth = (3 * density)
                                 style = android.graphics.Paint.Style.STROKE
-                                pathEffect = android.graphics.DashPathEffect(floatArrayOf(20f * density, 10f * density), 0f)
-                                alpha = 180 // Semi-transparent
+                                pathEffect = android.graphics.DashPathEffect(floatArrayOf(15f * density, 8f * density), 0f)
+                                alpha = 150 // Semi-transparent so lines don't obscure buttons
                             }
                             
-                            // Draw lines connecting each gym to the next one (creating a pathway)
-                            for (i in 0 until positions.size - 1) {
-                                val start = positions[i]
-                                val end = positions[i + 1]
+                            // Create random connections between tasks
+                            // Each task connects to 1-3 other random tasks to create a network
+                            val connections = mutableSetOf<Pair<Int, Int>>()
+                            val connectionRandom = kotlin.random.Random(seedHash)
+                            
+                            // Ensure each task has at least one connection
+                            for (i in positions.indices) {
+                                val numConnections = connectionRandom.nextInt(1, 4) // 1-3 connections per task
+                                var connectionsMade = 0
+                                var attempts = 0
+                                
+                                while (connectionsMade < numConnections && attempts < 20) {
+                                    val targetIndex = connectionRandom.nextInt(positions.size)
+                                    if (targetIndex != i) {
+                                        val connection = if (i < targetIndex) Pair(i, targetIndex) else Pair(targetIndex, i)
+                                        if (connections.add(connection)) {
+                                            connectionsMade++
+                                        }
+                                    }
+                                    attempts++
+                                }
+                            }
+                            
+                            // Draw all connections
+                            connections.forEach { (startIdx, endIdx) ->
+                                val start = positions[startIdx]
+                                val end = positions[endIdx]
                                 canvas.drawLine(
                                     start.first.toFloat(),
                                     start.second.toFloat(),
@@ -1027,6 +1135,12 @@ class TrainingMapActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         android.util.Log.d("TrainingMapActivity", "onResume called")
+        
+        // Only sync and refresh if map is already initialized (after reset check completes)
+        if (!::mapContainer.isInitialized) {
+            android.util.Log.d("TrainingMapActivity", "onResume: Map not initialized yet, skipping refresh")
+            return
+        }
         
         // Sync from cloud first to ensure local data is up to date
         // This ensures that if a task was completed and saved to cloud, we get the latest data

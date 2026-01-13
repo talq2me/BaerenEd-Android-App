@@ -54,6 +54,7 @@ data class TaskProgress(
     @SerializedName("correct") val correct: Int? = null,
     @SerializedName("incorrect") val incorrect: Int? = null,
     @SerializedName("questions") val questions: Int? = null,
+    @SerializedName("stars") val stars: Int? = null, // Star value for this task (from config)
     @SerializedName("showdays") val showdays: String? = null, // Visibility: show on these days
     @SerializedName("hidedays") val hidedays: String? = null, // Visibility: hide on these days
     @SerializedName("displayDays") val displayDays: String? = null, // Visibility: display only on these days

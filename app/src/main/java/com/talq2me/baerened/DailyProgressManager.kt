@@ -8,6 +8,8 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -54,6 +56,7 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_COMPLETED_TASKS = "completed_tasks" // OLD: Deprecated, kept for migration
         private const val KEY_COMPLETED_TASK_NAMES = "completed_task_names" // OLD: Deprecated, kept for migration
         private const val KEY_LAST_RESET_DATE = "last_reset_date"
+        private const val KEY_PROFILE_LAST_RESET = "profile_last_reset" // Profile-specific reset timestamp (format: 2026-01-13 13:13:05.332)
         private const val KEY_TOTAL_POSSIBLE_STARS = "total_possible_stars"
         private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
         private const val KEY_LAST_POKEMON_UNLOCK_DATE = "last_pokemon_unlock_date"
@@ -80,23 +83,129 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Checks if we need to reset progress for a new day
+     * CRITICAL: Checks the cloud's last_reset timestamp if cloud is enabled
      */
     private fun shouldResetProgress(): Boolean {
-        val lastResetDate = prefs.getString(KEY_LAST_RESET_DATE, "") ?: ""
+        val profile = getCurrentKid()
         val currentDate = getCurrentDateString()
+        val currentDatePart = currentDate.split(" ")[0] // Get "dd-MM-yyyy" part
+        
+        // ALWAYS try to get last_reset from cloud first if cloud is enabled (this is the source of truth)
+        // Only fall back to local if cloud check fails or cloud not enabled
+        var lastResetDate: String? = null
+        var lastResetSource = "local"
+        
+        val isMainThread = android.os.Looper.getMainLooper().thread == Thread.currentThread()
+        
+        // Try to check cloud first (if not on main thread to avoid NetworkOnMainThreadException)
+        if (!isMainThread) {
+            try {
+                val cloudStorageManager = CloudStorageManager(context)
+                if (cloudStorageManager.isCloudStorageEnabled()) {
+                    // Fetch only last_reset from cloud (more efficient than downloading all data)
+                    // Use Dispatchers.IO to run on background thread
+                    kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+                        val syncService = CloudSyncService()
+                        if (syncService.isConfigured()) {
+                            try {
+                                val url = "${syncService.getSupabaseUrl()}/rest/v1/user_data?profile=eq.$profile&select=last_reset"
+                                val client = syncService.getClient()
+                                val supabaseKey = try {
+                                    syncService.getSupabaseKey()
+                                } catch (e: Exception) {
+                                    Log.e("DailyProgressManager", "Error reading Supabase key", e)
+                                    ""
+                                }
+                                val request = okhttp3.Request.Builder()
+                                    .url(url)
+                                    .get()
+                                    .addHeader("apikey", supabaseKey)
+                                    .addHeader("Authorization", "Bearer $supabaseKey")
+                                    .build()
+                                
+                                val response = client.newCall(request).execute()
+                                if (response.isSuccessful) {
+                                    val responseBody = response.body?.string() ?: "[]"
+                                    val dataList: List<Map<String, String?>> = gson.fromJson(
+                                        responseBody,
+                                        object : TypeToken<List<Map<String, String?>>>() {}.type
+                                    )
+                                    
+                                    val cloudLastReset = dataList.firstOrNull()?.get("last_reset")
+                                    response.close()
+                                    
+                                    if (!cloudLastReset.isNullOrEmpty()) {
+                                        // Convert cloud's ISO 8601 timestamp to local format
+                                        try {
+                                            val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                                            
+                                            // Strip timezone offset and milliseconds if present
+                                            // Handle formats like: "2026-01-12T07:40:28", "2026-01-12T07:40:28.123", "2026-01-12T07:40:28-05:00", "2026-01-12T07:40:28Z"
+                                            var timestampToParse = cloudLastReset
+                                            
+                                            // Remove timezone offset (at the end: +HH:MM, -HH:MM, or Z)
+                                            if (timestampToParse.endsWith("Z")) {
+                                                timestampToParse = timestampToParse.substringBeforeLast('Z')
+                                            } else if (timestampToParse.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))) {
+                                                // Find the last occurrence of + or - followed by digits (timezone offset)
+                                                val lastPlus = timestampToParse.lastIndexOf('+')
+                                                val lastMinus = timestampToParse.lastIndexOf('-')
+                                                val offsetStart = if (lastPlus > lastMinus) lastPlus else lastMinus
+                                                if (offsetStart > 10) { // Must be after the date part (YYYY-MM-DD is 10 chars)
+                                                    timestampToParse = timestampToParse.substring(0, offsetStart)
+                                                }
+                                            }
+                                            
+                                            // Remove milliseconds if present
+                                            if (timestampToParse.contains('.')) {
+                                                timestampToParse = timestampToParse.substringBefore('.')
+                                            }
+                                            
+                                            // Parse the timestamp (format: yyyy-MM-ddTHH:mm:ss)
+                                            val parseFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                                            parseFormat.timeZone = estTimeZone
+                                            val parsedDate = parseFormat.parse(timestampToParse)
+                                            if (parsedDate != null) {
+                                                val localFormat = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault())
+                                                localFormat.timeZone = estTimeZone
+                                                lastResetDate = localFormat.format(parsedDate)
+                                                lastResetSource = "cloud"
+                                                Log.d("DailyProgressManager", "Fetched last_reset from cloud: $lastResetDate (cloud timestamp: $cloudLastReset)")
+                                            }
+                                        } catch (e: Exception) {
+                                            Log.e("DailyProgressManager", "Error parsing cloud last_reset: $cloudLastReset", e)
+                                        }
+                                    }
+                                } else {
+                                    response.close()
+                                }
+                            } catch (e: Exception) {
+                                Log.e("DailyProgressManager", "Error fetching last_reset from cloud", e)
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("DailyProgressManager", "Error checking cloud for last_reset", e)
+            }
+        }
+        
+        // Fall back to local last_reset_date if cloud fetch failed, cloud not enabled, or on main thread
+        if (lastResetDate == null) {
+            lastResetDate = prefs.getString(KEY_LAST_RESET_DATE, "") ?: ""
+        }
 
-        // If no last reset date, don't reset (first run)
+        // If no last reset date found anywhere, trigger reset (no reset has happened yet)
         if (lastResetDate.isEmpty()) {
-            Log.d("DailyProgressManager", "shouldResetProgress - No last reset date found, not resetting")
-            return false
+            Log.d("DailyProgressManager", "shouldResetProgress - No last reset date found ($lastResetSource), triggering reset")
+            return true
         }
 
         // Compare only the date part (dd-MM-yyyy), not the time
         val lastDatePart = lastResetDate.split(" ")[0] // Get "dd-MM-yyyy" part
-        val currentDatePart = currentDate.split(" ")[0] // Get "dd-MM-yyyy" part
 
         val shouldReset = lastDatePart != currentDatePart
-        Log.d("DailyProgressManager", "shouldResetProgress called - Last: '$lastResetDate' (date: $lastDatePart), Current: '$currentDate' (date: $currentDatePart), Should reset: $shouldReset")
+        Log.d("DailyProgressManager", "shouldResetProgress called - Last: '$lastResetDate' (date: $lastDatePart, source: $lastResetSource), Current: '$currentDate' (date: $currentDatePart), Should reset: $shouldReset")
         if (shouldReset) {
             Log.d("DailyProgressManager", "RESET TRIGGERED: Progress will be reset due to date mismatch")
         }
@@ -105,6 +214,7 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Resets progress for a new day
+     * CRITICAL: Resets required_tasks (new format), berries, banked_mins, and syncs to cloud
      */
     private fun resetProgressForNewDay() {
         val currentDate = getCurrentDateString()
@@ -113,23 +223,311 @@ class DailyProgressManager(private val context: Context) {
         val completedTasksKey = "${profile}_$KEY_COMPLETED_TASKS"
         val completedTaskNamesKey = "${profile}_$KEY_COMPLETED_TASK_NAMES"
         val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
+        val requiredTasksKey = "${profile}_$KEY_REQUIRED_TASKS"
+        
         Log.d("DailyProgressManager", "RESETTING progress for new day: $currentDate for profile: $profile")
+        
+        // Reset local progress (shared implementation)
+        resetLocalProgressOnly(profile)
+
+        // Sync reset to cloud (this will update last_reset, last_updated, berries_earned, banked_mins, required_tasks, practice_tasks)
+        // Generate timestamp before reset to use for local update
+        val syncService = CloudSyncService()
+        val resetTimestamp = syncService.generateESTTimestamp()
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val cloudStorageManager = CloudStorageManager(context)
+                if (cloudStorageManager.isCloudStorageEnabled()) {
+                    val resetResult = cloudStorageManager.resetProgressInCloud(profile)
+                    if (resetResult.isSuccess) {
+                        // Update local timestamp to match cloud after successful reset
+                        // Use the timestamp that was generated (same one sent to database)
+                        setLocalLastUpdatedTimestamp(profile, resetTimestamp)
+                        Log.d("DailyProgressManager", "Successfully synced daily reset to cloud for profile: $profile, timestamp: $resetTimestamp")
+                    } else {
+                        Log.e("DailyProgressManager", "Failed to sync daily reset to cloud: ${resetResult.exceptionOrNull()?.message}")
+                    }
+                } else {
+                    // Cloud not enabled, just update local timestamp
+                    setLocalLastUpdatedTimestamp(profile, resetTimestamp)
+                    Log.d("DailyProgressManager", "Cloud not enabled, updated local timestamp only: $resetTimestamp")
+                }
+            } catch (e: Exception) {
+                Log.e("DailyProgressManager", "Error syncing daily reset to cloud", e)
+            }
+        }
+
+        Log.d("DailyProgressManager", "Progress reset completed for date: $currentDate for profile: $profile")
+    }
+    
+    /**
+     * Helper function to set local last updated timestamp (used after cloud reset)
+     */
+    private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
+        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+        val storedTimestampKey = "${profile}_last_updated_timestamp"
+        progressPrefs.edit()
+            .putString(storedTimestampKey, timestamp)
+            .apply()
+    }
+    
+    /**
+     * Checks if profile_last_reset exists and is today's date
+     * Format: yyyy-MM-dd HH:mm:ss.SSS (e.g., "2026-01-13 13:13:05.332")
+     * Returns true if reset is needed (profile_last_reset doesn't exist or is not today)
+     */
+    suspend fun checkIfResetNeeded(profile: String): Boolean = withContext(Dispatchers.IO) {
+        val profileLastResetKey = "${profile}_$KEY_PROFILE_LAST_RESET"
+        val profileLastReset = prefs.getString(profileLastResetKey, null)
+        
+        if (profileLastReset == null) {
+            Log.d("DailyProgressManager", "checkIfResetNeeded: profile_last_reset not found for $profile - reset needed")
+            return@withContext true
+        }
+        
+        // Parse the timestamp and check if it's today
+        try {
+            val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+            timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+            val resetDate = timestampFormat.parse(profileLastReset)
+            
+            if (resetDate == null) {
+                Log.w("DailyProgressManager", "checkIfResetNeeded: Failed to parse profile_last_reset: $profileLastReset - reset needed")
+                return@withContext true
+            }
+            
+            // Get today's date in EST
+            val today = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
+            val resetCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
+            resetCalendar.time = resetDate
+            
+            val isToday = today.get(Calendar.YEAR) == resetCalendar.get(Calendar.YEAR) &&
+                         today.get(Calendar.DAY_OF_YEAR) == resetCalendar.get(Calendar.DAY_OF_YEAR)
+            
+            Log.d("DailyProgressManager", "checkIfResetNeeded: profile_last_reset=$profileLastReset, isToday=$isToday")
+            return@withContext !isToday
+        } catch (e: Exception) {
+            Log.e("DailyProgressManager", "checkIfResetNeeded: Error parsing profile_last_reset: $profileLastReset", e)
+            return@withContext true
+        }
+    }
+    
+    /**
+     * Performs daily reset: resets local progress, syncs to cloud, gets timestamp back, and stores it
+     * Returns the timestamp that was stored (format: yyyy-MM-dd HH:mm:ss.SSS)
+     */
+    suspend fun performDailyResetAndSync(profile: String): String? = withContext(Dispatchers.IO) {
+        Log.d("DailyProgressManager", "performDailyResetAndSync: Starting reset for profile: $profile")
+        
+        // Reset local progress first
+        resetProgressForNewDaySync(profile)
+        
+        // Sync reset to cloud and get the timestamp back
+        val cloudStorageManager = CloudStorageManager(context)
+        val syncService = CloudSyncService()
+        
+        if (cloudStorageManager.isCloudStorageEnabled()) {
+            try {
+                // Perform reset in cloud
+                val resetResult = cloudStorageManager.resetProgressInCloud(profile)
+                if (resetResult.isSuccess) {
+                    // Query cloud to get the last_reset timestamp that was set
+                    val url = "${syncService.getSupabaseUrl()}/rest/v1/user_data?profile=eq.$profile&select=last_reset"
+                    val client = syncService.getClient()
+                    val supabaseKey = syncService.getSupabaseKey()
+                    val request = okhttp3.Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("apikey", supabaseKey)
+                        .addHeader("Authorization", "Bearer $supabaseKey")
+                        .build()
+                    
+                    val response = client.newCall(request).execute()
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: "[]"
+                        val dataList: List<Map<String, String?>> = gson.fromJson(
+                            responseBody,
+                            object : TypeToken<List<Map<String, String?>>>() {}.type
+                        )
+                        
+                        val cloudLastReset = dataList.firstOrNull()?.get("last_reset")
+                        response.close()
+                        
+                        if (!cloudLastReset.isNullOrEmpty()) {
+                            // Convert cloud's ISO 8601 timestamp to our format (yyyy-MM-dd HH:mm:ss.SSS)
+                            try {
+                                val estTimeZone = TimeZone.getTimeZone("America/New_York")
+                                
+                                // Strip timezone offset and parse
+                                var timestampToParse = cloudLastReset
+                                if (timestampToParse.endsWith("Z")) {
+                                    timestampToParse = timestampToParse.substringBeforeLast('Z')
+                                } else if (timestampToParse.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))) {
+                                    val lastPlus = timestampToParse.lastIndexOf('+')
+                                    val lastMinus = timestampToParse.lastIndexOf('-')
+                                    val offsetStart = if (lastPlus > lastMinus) lastPlus else lastMinus
+                                    if (offsetStart > 10) {
+                                        timestampToParse = timestampToParse.substring(0, offsetStart)
+                                    }
+                                }
+                                
+                                // Parse ISO format and convert to our format
+                                // Handle milliseconds - preserve them if present
+                                val hasMillis = timestampToParse.contains('.')
+                                val millisPart = if (hasMillis) {
+                                    val millisStr = timestampToParse.substringAfter('.')
+                                    // Get up to 3 digits of milliseconds
+                                    if (millisStr.length >= 3) {
+                                        millisStr.substring(0, 3)
+                                    } else {
+                                        millisStr.padEnd(3, '0')
+                                    }
+                                } else {
+                                    "000"
+                                }
+                                
+                                val timestampWithoutMillis = if (hasMillis) {
+                                    timestampToParse.substringBefore('.')
+                                } else {
+                                    timestampToParse
+                                }
+                                
+                                val parseFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                                parseFormat.timeZone = estTimeZone
+                                val parsedDate = parseFormat.parse(timestampWithoutMillis)
+                                
+                                if (parsedDate != null) {
+                                    // Format to yyyy-MM-dd HH:mm:ss.SSS (preserve milliseconds from cloud)
+                                    val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                                    outputFormat.timeZone = estTimeZone
+                                    val formattedTimestamp = "${outputFormat.format(parsedDate)}.$millisPart"
+                                    
+                                    // Store as profile_last_reset
+                                    val profileLastResetKey = "${profile}_$KEY_PROFILE_LAST_RESET"
+                                    prefs.edit()
+                                        .putString(profileLastResetKey, formattedTimestamp)
+                                        .apply()
+                                    
+                                    Log.d("DailyProgressManager", "performDailyResetAndSync: Stored profile_last_reset=$formattedTimestamp (from cloud: $cloudLastReset)")
+                                    return@withContext formattedTimestamp
+                                }
+                            } catch (e: Exception) {
+                                Log.e("DailyProgressManager", "performDailyResetAndSync: Error parsing cloud timestamp: $cloudLastReset", e)
+                            }
+                        }
+                    } else {
+                        response.close()
+                    }
+                } else {
+                    Log.e("DailyProgressManager", "performDailyResetAndSync: Failed to reset in cloud: ${resetResult.exceptionOrNull()?.message}")
+                }
+            } catch (e: Exception) {
+                Log.e("DailyProgressManager", "performDailyResetAndSync: Error during cloud reset/sync", e)
+            }
+        } else {
+            // Cloud not enabled - generate timestamp locally
+            val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+            timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+            val formattedTimestamp = timestampFormat.format(Date())
+            
+            val profileLastResetKey = "${profile}_$KEY_PROFILE_LAST_RESET"
+            prefs.edit()
+                .putString(profileLastResetKey, formattedTimestamp)
+                .apply()
+            
+            Log.d("DailyProgressManager", "performDailyResetAndSync: Cloud not enabled, stored local timestamp: $formattedTimestamp")
+            return@withContext formattedTimestamp
+        }
+        
+        return@withContext null
+    }
+    
+    /**
+     * Internal function to reset local progress only (no cloud sync)
+     * Used by performDailyResetAndSync to reset before syncing to cloud
+     */
+    private fun resetProgressForNewDaySync(profile: String) {
+        resetLocalProgressOnly(profile)
+    }
+    
+    /**
+     * Internal helper to reset local progress only (shared by resetProgressForNewDay and resetProgressForNewDaySync)
+     * 
+     * WHAT GETS RESET:
+     * - required_tasks: status → "incomplete", correct/incorrect/questions → 0 (preserves visibility fields: showdays, hidedays, displayDays, disable, stars)
+     * - completed_tasks (old format): cleared
+     * - completed_task_names (old format): cleared
+     * - banked_reward_minutes: → 0
+     * - total_possible_stars: → 0
+     * - earned_stars_at_battle_end: → 0
+     * - earned_berries: → 0 (via resetEarnedBerries())
+     * - TimeTracker sessions: cleared (this resets practice_tasks locally)
+     * - last_reset_date: updated to current date/time
+     * 
+     * WHAT DOES NOT GET RESET (preserved):
+     * - Video sequence progress (persistent across days)
+     * - Pokemon unlocks
+     * - Other persistent data
+     * 
+     * @param profile The profile to reset
+     */
+    private fun resetLocalProgressOnly(profile: String) {
+        val currentDate = getCurrentDateString()
+        val bankedMinsKey = "${profile}_banked_reward_minutes"
+        val completedTasksKey = "${profile}_$KEY_COMPLETED_TASKS"
+        val completedTaskNamesKey = "${profile}_$KEY_COMPLETED_TASK_NAMES"
+        val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
+        val requiredTasksKey = "${profile}_$KEY_REQUIRED_TASKS"
+        
+        Log.d("DailyProgressManager", "resetLocalProgressOnly: Resetting local progress for profile: $profile")
+        
+        // Get current required_tasks directly from SharedPreferences
+        val requiredTasksJson = prefs.getString(requiredTasksKey, "{}") ?: "{}"
+        val type = object : TypeToken<MutableMap<String, TaskProgress>>() {}.type
+        val currentRequiredTasks: Map<String, TaskProgress> = gson.fromJson(requiredTasksJson, type) ?: emptyMap()
+        
+        // Reset required_tasks: preserve visibility fields but reset status and progress
+        val resetRequiredTasks = currentRequiredTasks.mapValues { (_, taskProgress) ->
+            TaskProgress(
+                status = "incomplete",
+                correct = 0,
+                incorrect = 0,
+                questions = 0,
+                stars = taskProgress.stars,
+                showdays = taskProgress.showdays,
+                hidedays = taskProgress.hidedays,
+                displayDays = taskProgress.displayDays,
+                disable = taskProgress.disable
+            )
+        }
+        
+        // Reset local storage
         prefs.edit()
             .putString(completedTasksKey, gson.toJson(emptyMap<String, Boolean>()))
             .putString(completedTaskNamesKey, gson.toJson(emptyMap<String, String>()))
+            .putString(requiredTasksKey, gson.toJson(resetRequiredTasks))
             .putString(KEY_LAST_RESET_DATE, currentDate)
-            .putInt(bankedMinsKey, 0) // Reset reward bank for new day (profile-specific)
-            .putInt(totalStarsKey, 0) // Reset total possible stars for new day (profile-specific)
-            .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0) // Reset battle end tracking for new day
+            .putInt(bankedMinsKey, 0)
+            .putInt(totalStarsKey, 0)
+            .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0)
             .apply()
         
-        // Reset earned berries for new day
+        // Reset earned berries
         resetEarnedBerries()
-
-        // Also reset video sequence progress for new day
-        resetVideoSequenceProgress()
-
-        Log.d("DailyProgressManager", "Progress reset completed for date: $currentDate for profile: $profile")
+        
+        // NOTE: Video sequence progress is NOT reset - it persists across days
+        // (resetVideoSequenceProgress() is a no-op that just logs this fact)
+        
+        // Clear TimeTracker sessions (this effectively resets practice_tasks locally)
+        try {
+            TimeTracker(context).clearAllData()
+            Log.d("DailyProgressManager", "Cleared TimeTracker sessions for daily reset")
+        } catch (e: Exception) {
+            Log.e("DailyProgressManager", "Error clearing TimeTracker sessions", e)
+        }
+        
+        Log.d("DailyProgressManager", "resetLocalProgressOnly: Local reset completed")
     }
 
     /**
@@ -367,13 +765,15 @@ class DailyProgressManager(private val context: Context) {
             // NEW: Use task name as key (cloud format)
             val existingProgress = requiredTasks[taskName]
             if (existingProgress?.status != "complete") {
-                // Get task from config to preserve visibility fields
+                // Get task from config to preserve visibility fields and get star value
                 val task = findTaskInConfig(taskId, config)
+                val taskStars = task?.stars ?: stars // Use stars from config if available, otherwise use passed stars
                 val taskProgress = TaskProgress(
                     status = "complete",
                     correct = null, // Will be updated by TimeTracker if available
                     incorrect = null,
                     questions = null,
+                    stars = taskStars, // Store stars value for future reference
                     showdays = task?.showdays,
                     hidedays = task?.hidedays,
                     displayDays = task?.displayDays,
@@ -381,7 +781,7 @@ class DailyProgressManager(private val context: Context) {
                 )
                 requiredTasks[taskName] = taskProgress
                 saveRequiredTasks(requiredTasks)
-                Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress)")
+                Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress), stored $taskStars stars in TaskProgress")
                 return stars
             }
             Log.d("DailyProgressManager", "Required task $taskId ($taskName) already completed today")
@@ -392,11 +792,13 @@ class DailyProgressManager(private val context: Context) {
             // Note: Optional tasks are stored in practice_tasks in cloud, but for now we'll store them locally too
             // For simplicity, we'll use the task name as key (same as required tasks)
             val task = findTaskInConfig(taskId, config)
+            val taskStars = task?.stars ?: stars // Use stars from config if available, otherwise use passed stars
             val taskProgress = TaskProgress(
                 status = "complete", // Optional tasks can be completed multiple times
                 correct = null,
                 incorrect = null,
                 questions = null,
+                stars = taskStars, // Store stars value for future reference
                 showdays = task?.showdays,
                 hidedays = task?.hidedays,
                 displayDays = task?.displayDays,
@@ -404,7 +806,7 @@ class DailyProgressManager(private val context: Context) {
             )
             requiredTasks[taskName] = taskProgress
             saveRequiredTasks(requiredTasks)
-            Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time")
+            Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time, stored $taskStars stars in TaskProgress")
             return stars  // Always return stars for optional tasks, regardless of previous completions
         }
     }

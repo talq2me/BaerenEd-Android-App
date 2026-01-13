@@ -13,8 +13,8 @@ class GameEngine(
     private var currentIndex = progress.getCurrentIndex()
     private var correctCount = 0
     private var incorrectCount = 0
-    // Track which questions have been answered incorrectly (to only count once per question)
-    private val questionsWithIncorrectAttempts = mutableSetOf<Int>()
+    // Track which questions have been answered (to only count first answer per question)
+    private val answeredQuestions = mutableSetOf<Int>()
 
     init {
         android.util.Log.d("GameEngine", "GameEngine initialized for launchId: $launchId, loaded currentIndex: $currentIndex, questions: ${questions.size}, requiredCorrect: ${config.requiredCorrectAnswers}")
@@ -34,24 +34,30 @@ class GameEngine(
 
         android.util.Log.d("GameEngine", "submitAnswer - currentIndex: $currentIndex, wrappedIndex: $currentWrappedIndex, question: ${questions[currentWrappedIndex].question?.text?.take(50)}...")
 
-        // Count answers for scoring (correct/incorrect)
+        // Only count the FIRST answer per question (correct or incorrect)
+        val isFirstAnswer = !answeredQuestions.contains(currentWrappedIndex)
+        
+        if (isFirstAnswer) {
+            // This is the first answer for this question - count it
+            answeredQuestions.add(currentWrappedIndex)
+            if (isCorrect) {
+                correctCount++
+                android.util.Log.d("GameEngine", "Answer submitted - correct on first try, correctCount: $correctCount/${config.requiredCorrectAnswers}")
+            } else {
+                incorrectCount++
+                android.util.Log.d("GameEngine", "Answer submitted - incorrect on first try, incorrectCount: $incorrectCount")
+            }
+        } else {
+            android.util.Log.d("GameEngine", "Answer submitted - question already answered (not counting), isCorrect: $isCorrect")
+        }
+
+        // Only advance to next question when answer is correct
         if (isCorrect) {
-            correctCount++
-            // Remove from incorrect set if it was there (user eventually got it right)
-            questionsWithIncorrectAttempts.remove(currentWrappedIndex)
-            // Only advance to next question when answer is correct
             currentIndex++
             progress.saveIndex(currentIndex)
-            android.util.Log.d("GameEngine", "Answer submitted - correct: $isCorrect, correctCount: $correctCount/${config.requiredCorrectAnswers}, advanced currentIndex to: $currentIndex")
+            android.util.Log.d("GameEngine", "Advanced currentIndex to: $currentIndex")
         } else {
-            // Only count incorrect once per question (first time we get it wrong)
-            if (!questionsWithIncorrectAttempts.contains(currentWrappedIndex)) {
-                questionsWithIncorrectAttempts.add(currentWrappedIndex)
-                incorrectCount++
-                android.util.Log.d("GameEngine", "Answer submitted - correct: $isCorrect, first incorrect attempt for this question, incorrectCount: $incorrectCount, staying on currentIndex: $currentIndex")
-            } else {
-                android.util.Log.d("GameEngine", "Answer submitted - correct: $isCorrect, retry attempt (not counting), staying on currentIndex: $currentIndex")
-            }
+            android.util.Log.d("GameEngine", "Staying on currentIndex: $currentIndex (answer was incorrect)")
         }
 
         return isCorrect
