@@ -248,3 +248,32 @@ CREATE TRIGGER update_devices_timestamp
     BEFORE UPDATE ON devices
     FOR EACH ROW
     EXECUTE FUNCTION update_devices_timestamp();
+
+-- Create the image_uploads table to store photos of completed work
+-- This allows parents to verify that children completed tasks (e.g., spelling on paper)
+CREATE TABLE IF NOT EXISTS image_uploads (
+    id BIGSERIAL PRIMARY KEY,
+    profile TEXT NOT NULL, -- "AM" or "BM"
+    task TEXT NOT NULL, -- Task name (e.g., "englishSpellingJumblePhoto", "frenchSpellingJumblePhoto")
+    image TEXT NOT NULL, -- Base64 encoded image data
+    capture_date_time TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST'), -- When the photo was taken/uploaded (in EST)
+    
+    -- Ensure one image per profile/task combination (new uploads overwrite previous ones)
+    UNIQUE(profile, task)
+);
+
+-- Create index on profile and task for faster lookups
+CREATE INDEX IF NOT EXISTS idx_image_uploads_profile_task ON image_uploads(profile, task);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE image_uploads ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policy if it exists
+DROP POLICY IF EXISTS "Allow all operations on image_uploads" ON image_uploads;
+
+-- Allow all operations (for development)
+-- In production, you should create more restrictive policies
+CREATE POLICY "Allow all operations on image_uploads" ON image_uploads
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);

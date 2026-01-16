@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Photos Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .photo-section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .photo-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 10px;
+        }
+
+        .photo-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .photo-label {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .photo-image {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+        }
+
+        .no-photo {
+            padding: 40px;
+            background: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .photo-meta {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Spelling Photos Report</h1>
+            <p>View photos of completed spelling work</p>
+            <a href="index.html" class="back-button">← Back to Reports</a>
+        </div>
+
+        <div class="photo-section">
+            <h2>Profile AM</h2>
+            
+            <div class="photo-container">
+                <div class="photo-label">English Spelling Jumble</div>
+                <div id="amEnglish" class="loading">Loading...</div>
+            </div>
+
+            <div class="photo-container">
+                <div class="photo-label">French Spelling Jumble</div>
+                <div id="amFrench" class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div class="photo-section">
+            <h2>Profile BM</h2>
+            
+            <div class="photo-container">
+                <div class="photo-label">English Spelling Jumble</div>
+                <div id="bmEnglish" class="loading">Loading...</div>
+            </div>
+
+            <div class="photo-container">
+                <div class="photo-label">French Spelling Jumble</div>
+                <div id="bmFrench" class="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Photo configurations: profile, task name, and display element ID
+        const photoConfigs = [
+            { profile: 'AM', task: 'englishSpellingJumblePhoto', elementId: 'amEnglish' },
+            { profile: 'AM', task: 'frenchSpellingJumblePhoto', elementId: 'amFrench' },
+            { profile: 'BM', task: 'englishSpellingJumblePhoto', elementId: 'bmEnglish' },
+            { profile: 'BM', task: 'frenchSpellingJumblePhoto', elementId: 'bmFrench' }
+        ];
+
+        async function loadSpellingPhotos() {
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseKey');
+
+            if (!supabaseUrl || !supabaseKey) {
+                photoConfigs.forEach(config => {
+                    const element = document.getElementById(config.elementId);
+                    element.innerHTML = '<div class="error">Configuration required. Please set Supabase URL and API Key in the main reports page.</div>';
+                });
+                return;
+            }
+
+            // Load each photo
+            for (const config of photoConfigs) {
+                await loadPhoto(config, supabaseUrl, supabaseKey);
+            }
+        }
+
+        async function loadPhoto(config, supabaseUrl, supabaseKey) {
+            const element = document.getElementById(config.elementId);
+            
+            try {
+                // Query image_uploads table for the specific profile and task
+                const response = await fetch(
+                    `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${config.profile}&task=eq.${config.task}&select=image,capture_date_time`,
+                    {
+                        headers: {
+                            'apikey': supabaseKey,
+                            'Authorization': `Bearer ${supabaseKey}`
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data && data.length > 0 && data[0].image) {
+                    // Photo exists - display it
+                    const photoData = data[0];
+                    const captureDate = photoData.capture_date_time 
+                        ? new Date(photoData.capture_date_time).toLocaleString()
+                        : 'Date unknown';
+                    
+                    element.innerHTML = `
+                        <img src="${photoData.image}" alt="${config.profile} - ${config.task}" class="photo-image">
+                        <div class="photo-meta">Uploaded: ${captureDate}</div>
+                    `;
+                } else {
+                    // No photo found
+                    element.innerHTML = '<div class="no-photo">No photo uploaded yet</div>';
+                }
+            } catch (error) {
+                console.error(`Error loading photo for ${config.profile} ${config.task}:`, error);
+                element.innerHTML = '<div class="error">Error loading photo. Please check your configuration.</div>';
+            }
+        }
+
+        // Load photos when page loads
+        document.addEventListener('DOMContentLoaded', loadSpellingPhotos);
+    </script>
+</body>
+</html>
