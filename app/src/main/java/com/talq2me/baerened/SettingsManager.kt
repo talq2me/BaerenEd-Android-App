@@ -797,11 +797,13 @@ object SettingsManager {
      * Checks for profile changes from cloud devices table and applies them locally if different
      * This allows BaerenLock and BaerenEd to sync the active profile between apps
      * Should be called on app startup/resume, BEFORE other operations that depend on profile
-     * This version is synchronous with a timeout to ensure it completes before other code runs
+     * This version is asynchronous to avoid blocking the main thread (e.g., in onResume)
+     * Returns immediately - profile changes will be applied in background if detected
      */
     fun checkAndApplyProfileFromCloud(context: Context): Boolean {
-        // Use runBlocking with a timeout to ensure this completes before other operations run
-        return runBlocking {
+        // Run asynchronously to avoid blocking the main thread
+        // Return false immediately - profile changes will be applied in background
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 withTimeout(5000) { // 5 second timeout
                     val cloudProfileData = getActiveProfileFromCloud(context)
@@ -862,7 +864,7 @@ object SettingsManager {
                                 apply()
                             }
                             Log.d(TAG, "Applied cloud profile to local storage: ${cloudProfileData.profile} with cloud timestamp: $cloudTimestamp")
-                            return@withTimeout true // Profile was changed
+                            // Profile was changed - could notify listeners here if needed
                         } else if (!shouldApplyCloud && cloudProfileData.profile != currentProfile && localTimestamp != null) {
                             // Only sync local to cloud if local has a timestamp (proving it was set locally)
                             // If neither has timestamp, we already applied cloud above, so don't sync local
@@ -879,18 +881,16 @@ object SettingsManager {
                                 putString("profile", cloudProfileData.profile)
                                 apply()
                             }
-                            return@withTimeout true
                         }
                     }
-                    return@withTimeout false // Profile was not changed
                 }
             } catch (e: TimeoutCancellationException) {
                 Log.w(TAG, "Timeout checking profile from cloud: ${e.message}")
-                false
             } catch (e: Exception) {
                 Log.w(TAG, "Error checking profile from cloud: ${e.message}")
-                false
             }
         }
+        // Return false immediately since operation is now async
+        return false
     }
 }

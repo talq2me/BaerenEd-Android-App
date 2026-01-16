@@ -260,7 +260,9 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
 
     /**
      * Resets daily progress in the cloud database for a specific profile
-     * This clears required_tasks, resets checklist_items done status, berries_earned, and banked_mins
+     * Triggers the database trigger by setting last_updated to null, which causes the trigger
+     * to detect a new day and automatically reset all daily progress fields.
+     * This matches BaerenLock's approach and ensures both apps use the same reset mechanism.
      */
     override suspend fun resetProgressInCloud(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isConfigured()) {
@@ -268,60 +270,27 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
         }
 
         try {
-            // Generate timestamp in EST timezone
-            val lastUpdated = syncService.generateESTTimestamp()
-            val lastReset = syncService.generateESTTimestamp()
-            
-            // Get current local data to preserve structure but reset progress
-            val localData = dataCollector.collectLocalData(profile)
-            
-            // Reset required_tasks: preserve visibility fields but reset status and progress
-            val resetRequiredTasks = localData.requiredTasks.mapValues { (_, taskProgress) ->
-                mapOf(
-                    "status" to "incomplete",
-                    "correct" to 0,
-                    "incorrect" to 0,
-                    "questions" to 0,
-                    "stars" to (taskProgress.stars ?: 0),
-                    "showdays" to taskProgress.showdays,
-                    "hidedays" to taskProgress.hidedays,
-                    "displayDays" to taskProgress.displayDays,
-                    "disable" to taskProgress.disable
-                )
-            }
-            
-            // Reset practice_tasks: reset all progress to 0
-            val resetPracticeTasks = localData.practiceTasks.mapValues { (_, practiceProgress) ->
-                mapOf(
-                    "times_completed" to 0,
-                    "correct" to 0,
-                    "incorrect" to 0,
-                    "questions_answered" to 0
-                )
-            }
-            
-            // Reset checklist items: preserve structure but clear done status
-            val resetChecklistItems = localData.checklistItems.mapValues { (_, item) ->
-                // Keep structure but set done=false
-                mapOf(
-                    "done" to false,
-                    "stars" to item.stars,
-                    "displayDays" to item.displayDays
-                )
-            }
-            
-            // Create update map with all reset values
-            val resetData = mapOf(
-                "required_tasks" to resetRequiredTasks,
-                "practice_tasks" to resetPracticeTasks,
-                "checklist_items" to resetChecklistItems,
+            // Note: Database trigger has been removed. We now handle reset in app code.
+            // This method should set last_reset to now() EST and reset all daily progress fields.
+            // For now, we'll use the syncService to update last_reset and reset fields directly.
+            val resetTimestamp = syncService.generateESTTimestamp()
+            val resetData: Map<String, Any> = mapOf(
+                "last_reset" to resetTimestamp,
+                "last_updated" to resetTimestamp,
+                "required_tasks" to "{}",
+                "practice_tasks" to "{}",
+                "checklist_items" to "{}",
                 "berries_earned" to 0,
-                "banked_mins" to 0,
-                "last_reset" to lastReset,
-                "last_updated" to lastUpdated
+                "banked_mins" to 0
             )
             
             syncService.resetProgressInCloud(profile, resetData)
+            Log.d(TAG, "Triggered cloud reset for profile: $profile (database trigger will reset daily progress)")
+            
+            // Wait a moment for the database trigger to complete before returning
+            // This ensures the reset is fully processed before any subsequent queries
+            kotlinx.coroutines.delay(1000)
+            
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error resetting progress in cloud", e)

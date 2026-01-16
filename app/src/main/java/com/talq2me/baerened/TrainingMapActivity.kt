@@ -42,31 +42,30 @@ class TrainingMapActivity : AppCompatActivity() {
         progressManager = DailyProgressManager(this)
         val profile = SettingsManager.readProfile(this) ?: "AM"
         
-        // Check if daily reset is needed and perform it if necessary
+        // Run daily_reset_process() and then cloud_sync() according to requirements
         lifecycleScope.launch(Dispatchers.IO) {
-            val resetNeeded = progressManager.checkIfResetNeeded(profile)
-            if (resetNeeded) {
+            try {
                 // Show loading spinner on main thread
                 withContext(Dispatchers.Main) {
-                    showLoadingSpinner("Resetting daily progress...")
+                    showLoadingSpinner("Syncing progress...")
                 }
                 
-                // Perform reset and sync to cloud
-                val timestamp = progressManager.performDailyResetAndSync(profile)
-                if (timestamp != null) {
-                    android.util.Log.d("TrainingMapActivity", "Daily reset completed, timestamp: $timestamp")
-                } else {
-                    android.util.Log.e("TrainingMapActivity", "Daily reset failed - timestamp not received")
-                }
+                // Perform daily reset process and cloud sync
+                val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
+                resetAndSyncManager.dailyResetProcessAndSync(profile)
+                
+                android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed for profile: $profile")
                 
                 // Hide loading spinner and finish loading
                 withContext(Dispatchers.Main) {
                     hideLoadingSpinner()
                     finishLoadingTrainingMap()
                 }
-            } else {
-                // No reset needed, just finish loading
+            } catch (e: Exception) {
+                android.util.Log.e("TrainingMapActivity", "Error during daily reset and sync", e)
+                // Hide loading spinner even on error
                 withContext(Dispatchers.Main) {
+                    hideLoadingSpinner()
                     finishLoadingTrainingMap()
                 }
             }
@@ -615,12 +614,8 @@ class TrainingMapActivity : AppCompatActivity() {
                                 setOnClickListener {
                                     // Check if this is a checklist item
                                     if (baseTaskId.startsWith("checklist_")) {
-                                        // For checklist items, open the checklist dialog
-                                        // Navigate back to BattleHubActivity which will show the checklist
-                                        val intent = Intent(this@TrainingMapActivity, BattleHubActivity::class.java).apply {
-                                            putExtra("openChecklist", true)
-                                        }
-                                        startActivity(intent)
+                                        // For checklist items, show completion dialog and mark as complete
+                                        handleChecklistTaskCompletion(task)
                                     } else {
                                         // Launch task using Layout's launch logic
                                         launchTask(task, mapType)
@@ -955,81 +950,84 @@ class TrainingMapActivity : AppCompatActivity() {
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // Handle task completion and refresh the map
-        if (resultCode == RESULT_OK && data != null) {
+        
+        // Handle ChromePageActivity result (requestCode 1001)
+        if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
+            val chromeTaskId = data.getStringExtra(ChromePageActivity.EXTRA_TASK_ID)
+            val chromeSectionId = data.getStringExtra(ChromePageActivity.EXTRA_SECTION_ID)
+            val chromeStars = data.getIntExtra(ChromePageActivity.EXTRA_STARS, 0)
+            val chromeTaskTitle = data.getStringExtra(ChromePageActivity.EXTRA_TASK_TITLE)
+            
+            if (!chromeTaskId.isNullOrEmpty()) {
+                val progressManager = DailyProgressManager(this)
+                val displayTitle = chromeTaskTitle ?: "Chrome Page: $chromeTaskId"
+                val isRequiredTask = chromeSectionId == "required"
+                
+                // Mark task as completed and get earned stars
+                val earnedStars = progressManager.markTaskCompletedWithName(
+                    chromeTaskId,
+                    displayTitle,
+                    chromeStars,
+                    isRequiredTask,
+                    currentContent,
+                    chromeSectionId
+                )
+                
+                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
+                if (earnedStars > 0) {
+                    progressManager.addStarsToRewardBank(earnedStars)
+                    
+                    // Add berries to battle hub if task is from required or optional section
+                    if (chromeSectionId == "required" || chromeSectionId == "optional") {
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Chrome page completion")
+                    }
+                }
+                
+                android.util.Log.d("TrainingMapActivity", "Marked Chrome page task as completed: taskId=$chromeTaskId, sectionId=$chromeSectionId, stars=$chromeStars, earnedStars=$earnedStars")
+            }
+        }
+        
+        // Handle WebGameActivity result (requestCode 1002)
+        if (requestCode == 1002 && resultCode == RESULT_OK && data != null) {
             val taskId = data.getStringExtra(WebGameActivity.EXTRA_TASK_ID)
             val sectionId = data.getStringExtra(WebGameActivity.EXTRA_SECTION_ID)
             val stars = data.getIntExtra(WebGameActivity.EXTRA_STARS, 0)
             val taskTitle = data.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
             
-                // Mark task as completed (same logic as Layout.handleWebGameCompletion)
-                if (!taskId.isNullOrEmpty()) {
-                    val progressManager = DailyProgressManager(this)
-                    
-                    // Use task title from parameter or create default
-                    val displayTitle = taskTitle ?: "Web Game: $taskId"
-                    
-                    // Determine if task is required based on section ID
-                    val isRequiredTask = sectionId == "required"
-                    
-                    // Mark task as completed and get earned stars
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        taskId,
-                        displayTitle,
-                        stars,
-                        isRequiredTask,
-                        currentContent,  // Pass config to verify section
-                        sectionId  // Pass section ID to create unique task IDs
-                    )
-                    
-                    // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
-                    if (earnedStars > 0) {
-                        progressManager.addStarsToRewardBank(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
-                        
-                        // Add berries to battle hub if task is from required or optional section
-                        if (sectionId == "required" || sectionId == "optional") {
-                            progressManager.addEarnedBerries(earnedStars)
-                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from task completion")
-                        }
-                    }
-                    
-                    android.util.Log.d("TrainingMapActivity", "Marked task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, earnedStars=$earnedStars")
-                }
-            
-            // Also handle ChromePageActivity result
-            if (requestCode == 1001) {
-                val chromeTaskId = data.getStringExtra(ChromePageActivity.EXTRA_TASK_ID)
-                val chromeSectionId = data.getStringExtra(ChromePageActivity.EXTRA_SECTION_ID)
-                val chromeStars = data.getIntExtra(ChromePageActivity.EXTRA_STARS, 0)
-                val chromeTaskTitle = data.getStringExtra(ChromePageActivity.EXTRA_TASK_TITLE)
+            // Mark task as completed (same logic as Layout.handleWebGameCompletion)
+            if (!taskId.isNullOrEmpty()) {
+                val progressManager = DailyProgressManager(this)
                 
-                if (!chromeTaskId.isNullOrEmpty()) {
-                    val progressManager = DailyProgressManager(this)
-                    val displayTitle = chromeTaskTitle ?: "Chrome Page: $chromeTaskId"
-                    val isRequiredTask = chromeSectionId == "required"
+                // Use task title from parameter or create default
+                val displayTitle = taskTitle ?: "Web Game: $taskId"
+                
+                // Determine if task is required based on section ID
+                val isRequiredTask = sectionId == "required"
+                
+                // Mark task as completed and get earned stars
+                val earnedStars = progressManager.markTaskCompletedWithName(
+                    taskId,
+                    displayTitle,
+                    stars,
+                    isRequiredTask,
+                    currentContent,  // Pass config to verify section
+                    sectionId  // Pass section ID to create unique task IDs
+                )
+                
+                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
+                if (earnedStars > 0) {
+                    progressManager.addStarsToRewardBank(earnedStars)
+                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
                     
-                    // Mark task as completed and get earned stars
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        chromeTaskId,
-                        displayTitle,
-                        chromeStars,
-                        isRequiredTask,
-                        currentContent,
-                        chromeSectionId
-                    )
-                    
-                    // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
-                    if (earnedStars > 0) {
-                        progressManager.addStarsToRewardBank(earnedStars)
-                        
-                        // Add berries to battle hub if task is from required or optional section
-                        if (chromeSectionId == "required" || chromeSectionId == "optional") {
-                            progressManager.addEarnedBerries(earnedStars)
-                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Chrome page completion")
-                        }
+                    // Add berries to battle hub if task is from required or optional section
+                    if (sectionId == "required" || sectionId == "optional") {
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from task completion")
                     }
                 }
+                
+                android.util.Log.d("TrainingMapActivity", "Marked web game task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, earnedStars=$earnedStars")
             }
         }
         
@@ -1118,8 +1116,9 @@ class TrainingMapActivity : AppCompatActivity() {
         }
         
         // Refresh the map when returning from any task to show updated completion status
-        if (requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004) {
-            // Sync progress to cloud after task completion
+        // Only refresh if the task was completed (RESULT_OK) to avoid unnecessary refreshes
+        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004) && resultCode == RESULT_OK) {
+            // Sync progress to cloud after task completion (async, doesn't block UI refresh)
             val currentProfile = SettingsManager.readProfile(this) ?: "AM"
             val cloudStorageManager = CloudStorageManager(this)
             lifecycleScope.launch {
@@ -1127,6 +1126,7 @@ class TrainingMapActivity : AppCompatActivity() {
             }
 
             // Reload tasks into map to show updated completion status
+            // Completion is saved synchronously, so this will show the updated state
             mapContainer.removeAllViews()
             loadTasksIntoMap()
         }
@@ -1142,13 +1142,16 @@ class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
-        // Sync from cloud first to ensure local data is up to date
-        // This ensures that if a task was completed and saved to cloud, we get the latest data
+        // Run daily_reset_process() and then cloud_sync() when resuming
         val profile = SettingsManager.readProfile(this) ?: "AM"
-        val cloudStorageManager = CloudStorageManager(this)
         lifecycleScope.launch(Dispatchers.IO) {
-            val syncResult = cloudStorageManager.syncIfEnabled(profile)
-            android.util.Log.d("TrainingMapActivity", "Cloud sync completed in onResume (result: $syncResult), refreshing map")
+            try {
+                val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
+                resetAndSyncManager.dailyResetProcessAndSync(profile)
+                android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed in onResume for profile $profile")
+            } catch (e: Exception) {
+                android.util.Log.e("TrainingMapActivity", "Error during daily reset and sync in onResume", e)
+            }
             withContext(Dispatchers.Main) {
                 // Refresh the map after sync to show updated completion status
                 // This ensures the map shows updated completion status after sync
@@ -1698,6 +1701,81 @@ class TrainingMapActivity : AppCompatActivity() {
             android.util.Log.e("TrainingMapActivity", "Error launching playlist player", e)
             android.widget.Toast.makeText(this, "Error playing playlist", android.widget.Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    /**
+     * Handles checklist task completion - shows dialog and marks task as complete with rewards
+     */
+    private fun handleChecklistTaskCompletion(task: Task) {
+        val taskName = task.title ?: "Checklist Task"
+        val taskId = task.launch ?: ""
+        val stars = task.stars ?: 0
+        
+        // Extract checklist item ID from launch ID (format: "checklist_<itemId>")
+        val itemId = if (taskId.startsWith("checklist_")) {
+            taskId.substringAfter("checklist_")
+        } else {
+            taskId
+        }
+        
+        // Load icon config for stars display
+        val icons = try {
+            val inputStream = assets.open("config/icon_config.json")
+            val configJson = inputStream.bufferedReader().use { it.readText() }
+            inputStream.close()
+            Gson().fromJson(configJson, IconConfig::class.java) ?: IconConfig()
+        } catch (e: Exception) {
+            IconConfig()
+        }
+        
+        // Build message with stars if applicable
+        val message = if (stars > 0) {
+            "Yay! You completed $taskName!\n\nEarned $stars ${icons.starsIcon}"
+        } else {
+            "Yay! You completed $taskName!"
+        }
+        
+        // Show completion dialog
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("✨ Task Completed! ✨")
+            .setMessage(message)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                
+                // Mark task as completed and grant rewards
+                if (stars > 0) {
+                    // Award stars when task is completed
+                    val earnedStars = progressManager.markTaskCompletedWithName(
+                        itemId,
+                        taskName,
+                        stars,
+                        true,  // isRequired - checklist items behave like required tasks
+                        currentContent  // Pass config to verify
+                    )
+                    if (earnedStars > 0) {
+                        // Add stars to reward bank
+                        progressManager.addStarsToRewardBank(earnedStars)
+                        
+                        // Add berries to battle hub (checklist items are from required section)
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries from checklist item completion")
+                    }
+                } else {
+                    // Items with 0 stars should still be marked as completed for tracking
+                    progressManager.markTaskCompletedWithName(
+                        itemId,
+                        taskName,
+                        0,
+                        true,  // isRequired - checklist items behave like required tasks
+                        currentContent
+                    )
+                }
+                
+                // Reload the map to show the task as completed
+                loadTasksIntoMap()
+            }
+            .setCancelable(true)
+            .show()
     }
 }
 

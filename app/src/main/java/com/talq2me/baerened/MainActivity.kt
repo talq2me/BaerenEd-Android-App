@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     launchRewardSelectionActivity(minutes)
                 }
             } else if (timeSinceEmailLaunch <= 500) {
-                Log.w(TAG, "Email callback fired too quickly (${timeSinceEmailLaunch}ms), email may not have opened. Retrying...")
+                Log.w(MainActivity.TAG, "Email callback fired too quickly (${timeSinceEmailLaunch}ms), email may not have opened. Retrying...")
                 // Email didn't actually open, try again or show error
                 rewardEmailInFlight = false
                 val minutes = getPendingRewardMinutes()
@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 return@registerForActivityResult
                             }
                         } catch (e: Exception) {
-                            Log.e(TAG, "Error retrying email", e)
+                            Log.e(MainActivity.TAG, "Error retrying email", e)
                         }
                     }
                     // If retry fails, just launch BaerenLock
@@ -1631,26 +1631,18 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun resetAllProgress() {
         try {
-            // Reset local progress
-            val progressManager = DailyProgressManager(this)
-            progressManager.resetAllProgress()
-            
-            // Also reset TimeTracker (it resets daily too)
-            TimeTracker(this).clearAllData()
-            
-            // Reset progress in cloud database if cloud storage is enabled
             val profile = SettingsManager.readProfile(this) ?: "AM"
+            val resetAndSyncManager = DailyResetAndSyncManager(this)
+            
+            // Set last_reset to yesterday to force reset on next screen load
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val cloudStorageManager = CloudStorageManager(this@MainActivity)
-                    if (cloudStorageManager.isCloudStorageEnabled()) {
-                        val resetResult = cloudStorageManager.resetProgressInCloud(profile)
-                        if (!resetResult.isSuccess) {
-                            Log.e(TAG, "Failed to reset progress in cloud: ${resetResult.exceptionOrNull()?.message}")
-                        }
+                    resetAndSyncManager.setLastResetToYesterday(profile)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, "Progress will be reset on next screen load", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error resetting progress in cloud", e)
+                    Log.e(MainActivity.TAG, "Error resetting progress in cloud", e)
                 }
             }
             
@@ -1659,9 +1651,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             layout.refreshSections()
             
             Toast.makeText(this, "Progress has been reset", Toast.LENGTH_LONG).show()
-            Log.d(TAG, "Progress reset completed")
+            Log.d(MainActivity.TAG, "Progress reset completed")
         } catch (e: Exception) {
-            Log.e(TAG, "Error resetting progress", e)
+            Log.e(MainActivity.TAG, "Error resetting progress", e)
             Toast.makeText(this, "Error resetting progress: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
@@ -1810,7 +1802,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             putExtra("sms_body", message)
         }
         
-        if (smsIntent.resolveActivity(packageManager) != null) {
+        if (smsIntent.resolveActivity(this@MainActivity.packageManager) != null) {
             return smsIntent
         }
         
@@ -1835,7 +1827,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val encryptedToken = BuildConfig.ENCRYPTED_GITHUB_TOKEN
             
             if (encryptedToken.isEmpty()) {
-                Log.w(TAG, "GitHub token encryption not configured")
+                Log.w(MainActivity.TAG, "GitHub token encryption not configured")
                 return ""
             }
             
@@ -1870,7 +1862,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             
             String(unpaddedBytes, Charsets.UTF_8)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to decrypt GitHub token", e)
+            Log.e(MainActivity.TAG, "Failed to decrypt GitHub token", e)
             ""
         }
     }
@@ -1890,25 +1882,25 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         
         // Check if GitHub token is configured
         if (githubToken.isBlank()) {
-            Toast.makeText(this, "Report upload not configured. Contact administrator.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@MainActivity, "Report upload not configured. Contact administrator.", Toast.LENGTH_SHORT).show()
             launchRewardSelectionActivity(rewardMinutes)
             return
         }
         
         // Show progress (optional, for feedback)
-        val progressDialog = AlertDialog.Builder(this)
+        val progressDialog = AlertDialog.Builder(this@MainActivity)
             .setTitle("Uploading Report")
             .setMessage("Please wait...")
             .setCancelable(false)
             .create()
         progressDialog.show()
         
-        lifecycleScope.launch(Dispatchers.IO) {
+        this@MainActivity.lifecycleScope.launch(Dispatchers.IO) {
             val client = OkHttpClient()
             try {
                 // Create simple filename - one file per kid, always overwrite
                 val fileName = "$childName.txt"
-                val filePath = "$GITHUB_REPORTS_PATH/$fileName"
+                val filePath = "${MainActivity.GITHUB_REPORTS_PATH}/$fileName"
                 
                 // Full report content (subject + report)
                 val fullReport = "$subject\n\n$report"
@@ -1918,7 +1910,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val base64Content = Base64.encodeToString(contentBytes, Base64.NO_WRAP)
                 
                 // GitHub API endpoint
-                val apiUrl = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/contents/$filePath"
+                val apiUrl = "https://api.github.com/repos/${MainActivity.GITHUB_OWNER}/${MainActivity.GITHUB_REPO}/contents/$filePath"
                 
                 // Check if file exists first (to get SHA for update)
                 // If file doesn't exist, GitHub API will create it; if it exists, we'll overwrite it
@@ -1938,13 +1930,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 val fileInfo = JSONObject(checkBody)
                                 existingSha = fileInfo.optString("sha", null)
                                 isUpdate = true
-                                Log.d(TAG, "File exists, will overwrite. SHA: $existingSha")
+                                Log.d(MainActivity.TAG, "File exists, will overwrite. SHA: $existingSha")
                             }
                         }
                     }
                 } catch (e: Exception) {
                     // File doesn't exist, will create new - this is fine
-                    Log.d(TAG, "File doesn't exist yet, will create new file")
+                    Log.d(MainActivity.TAG, "File doesn't exist yet, will create new file")
                 }
                 
                 // Create JSON payload for GitHub API
@@ -1976,12 +1968,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 // Execute request
                 client.newCall(request).execute().use { response ->
                     val responseBody = response.body?.string()
-                    withContext(Dispatchers.Main) {
-                        progressDialog.dismiss()
-                        
-                        if (response.isSuccessful) {
-                            Log.d(TAG, "Report uploaded successfully to GitHub: $filePath")
-                            Toast.makeText(this@MainActivity, "Report uploaded!", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    
+                    if (response.isSuccessful) {
+                        Log.d(MainActivity.TAG, "Report uploaded successfully to GitHub: $filePath")
+                        Toast.makeText(this@MainActivity, "Report uploaded!", Toast.LENGTH_SHORT).show()
                             
                             // Successfully uploaded, immediately grant reward
                             rewardEmailInFlight = false
@@ -1989,7 +1981,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 triggerPendingRewardLaunch(force = true)
                             }, 500)
                         } else {
-                            Log.e(TAG, "GitHub upload failed: ${response.code} - $responseBody")
+                            Log.e(MainActivity.TAG, "GitHub upload failed: ${response.code} - $responseBody")
                             val errorMsg = try {
                                 val errorJson = JSONObject(responseBody ?: "{}")
                                 errorJson.optString("message", "Upload failed")
@@ -2004,7 +1996,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error uploading report to GitHub", e)
+                Log.e(MainActivity.TAG, "Error uploading report to GitHub", e)
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
                     Toast.makeText(this@MainActivity, "Upload error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -2035,32 +2027,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     companion object {
-        private const val TAG = "MainActivity"
-        private const val MIN_READ_ALONG_DURATION_MS = 30_000L
-        private const val UPDATE_PREFS_NAME = "update_manager"
-        private const val KEY_PENDING_VERSION = "pending_version"
-        private const val KEY_PENDING_URL = "pending_url"
-        private const val KEY_PENDING_FILE_NAME = "pending_file_name"
-        private const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
-        private const val APK_FILE_PREFIX = "myapp-update"
-        private const val REWARD_PREFS_NAME = "reward_manager"
-        private const val KEY_PENDING_REWARD_MINUTES = "pending_reward_minutes"
-        private val VERSION_IN_NAME_REGEX = Regex("v(\\d+)")
-        private const val GMAIL_PACKAGE = "com.google.android.gm"
-        private const val GMAIL_COMPOSE_CLASS = "com.google.android.gm.ComposeActivityGmail"
-        private const val READ_ALONG_PREFS_NAME = "read_along_session"
-        private const val KEY_READ_ALONG_TASK_ID = "read_along_task_id"
-        private const val KEY_READ_ALONG_TASK_TITLE = "read_along_task_title"
-        private const val KEY_READ_ALONG_STARS = "read_along_stars"
-        private const val KEY_READ_ALONG_SECTION_ID = "read_along_section_id"
-        private const val KEY_READ_ALONG_START_TIME = "read_along_start_time"
-        private const val KEY_READ_ALONG_HAS_PAUSED = "read_along_has_paused"
-        private const val BOUKILI_PREFS_NAME = "boukili_session"
-        private const val KEY_BOUKILI_TASK_ID = "boukili_task_id"
-        private const val KEY_BOUKILI_TASK_TITLE = "boukili_task_title"
-        private const val KEY_BOUKILI_STARS = "boukili_stars"
-        private const val KEY_BOUKILI_SECTION_ID = "boukili_section_id"
-        private const val KEY_BOUKILI_START_TIME = "boukili_start_time"
+        const val TAG = "MainActivity"
+        internal const val MIN_READ_ALONG_DURATION_MS = 30_000L
+        internal const val UPDATE_PREFS_NAME = "update_manager"
+        internal const val KEY_PENDING_VERSION = "pending_version"
+        internal const val KEY_PENDING_URL = "pending_url"
+        internal const val KEY_PENDING_FILE_NAME = "pending_file_name"
+        internal const val KEY_PENDING_DOWNLOAD_ID = "pending_download_id"
+        internal const val APK_FILE_PREFIX = "myapp-update"
+        internal const val REWARD_PREFS_NAME = "reward_manager"
+        internal const val KEY_PENDING_REWARD_MINUTES = "pending_reward_minutes"
+        internal val VERSION_IN_NAME_REGEX = Regex("v(\\d+)")
+        internal const val GMAIL_PACKAGE = "com.google.android.gm"
+        internal const val GMAIL_COMPOSE_CLASS = "com.google.android.gm.ComposeActivityGmail"
+        internal const val READ_ALONG_PREFS_NAME = "read_along_session"
+        internal const val KEY_READ_ALONG_TASK_ID = "read_along_task_id"
+        internal const val KEY_READ_ALONG_TASK_TITLE = "read_along_task_title"
+        internal const val KEY_READ_ALONG_STARS = "read_along_stars"
+        internal const val KEY_READ_ALONG_SECTION_ID = "read_along_section_id"
+        internal const val KEY_READ_ALONG_START_TIME = "read_along_start_time"
+        internal const val KEY_READ_ALONG_HAS_PAUSED = "read_along_has_paused"
+        internal const val BOUKILI_PREFS_NAME = "boukili_session"
+        internal const val KEY_BOUKILI_TASK_ID = "boukili_task_id"
+        internal const val KEY_BOUKILI_TASK_TITLE = "boukili_task_title"
+        internal const val KEY_BOUKILI_STARS = "boukili_stars"
+        internal const val KEY_BOUKILI_SECTION_ID = "boukili_section_id"
+        internal const val KEY_BOUKILI_START_TIME = "boukili_start_time"
         
         // GitHub upload configuration
         // GitHub token is encrypted using AES-256-CBC and stored in BuildConfig

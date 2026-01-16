@@ -67,9 +67,16 @@ class DailyProgressManager(private val context: Context) {
     private val gson = Gson()
 
     init {
-        // Run migration on initialization if needed
-        val profile = getCurrentKid()
-        TaskProgressMigration.migrateIfNeeded(context, profile)
+        // Run migration asynchronously to avoid blocking the main thread during onCreate
+        // Migration is only needed once per profile, so we can safely defer it
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val profile = getCurrentKid()
+                TaskProgressMigration.migrateIfNeeded(context, profile)
+            } catch (e: Exception) {
+                Log.e("DailyProgressManager", "Error during async migration", e)
+            }
+        }
     }
 
     /**
@@ -603,6 +610,7 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Saves the required tasks map for the current profile (NEW: Uses cloud format)
+     * Also updates local.profile.last_updated timestamp
      */
     private fun saveRequiredTasks(requiredTasks: Map<String, TaskProgress>) {
         val profile = getCurrentKid()
@@ -610,6 +618,11 @@ class DailyProgressManager(private val context: Context) {
         prefs.edit()
             .putString(key, gson.toJson(requiredTasks))
             .apply()
+        
+        // Update local.profile.last_updated to now() EST when tasks are saved
+        val syncService = CloudSyncService()
+        val nowISO = syncService.generateESTTimestamp()
+        setLocalLastUpdatedTimestamp(profile, nowISO)
     }
 
     /**

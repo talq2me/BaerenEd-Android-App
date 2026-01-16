@@ -88,34 +88,32 @@ class BattleHubActivity : AppCompatActivity() {
         // Initialize views immediately so onResume() can safely update them
         initializeViews()
         
-        val progressManager = DailyProgressManager(this)
         val profile = SettingsManager.readProfile(this) ?: "AM"
         
-        // Check if daily reset is needed and perform it if necessary
+        // Run daily_reset_process() and then cloud_sync() according to requirements
         lifecycleScope.launch(Dispatchers.IO) {
-            val resetNeeded = progressManager.checkIfResetNeeded(profile)
-            if (resetNeeded) {
+            try {
                 // Show loading spinner on main thread
                 withContext(Dispatchers.Main) {
-                    showLoadingSpinner("Resetting daily progress...")
+                    showLoadingSpinner("Syncing progress...")
                 }
                 
-                // Perform reset and sync to cloud
-                val timestamp = progressManager.performDailyResetAndSync(profile)
-                if (timestamp != null) {
-                    android.util.Log.d("BattleHubActivity", "Daily reset completed, timestamp: $timestamp")
-                } else {
-                    android.util.Log.e("BattleHubActivity", "Daily reset failed - timestamp not received")
-                }
+                // Perform daily reset process and cloud sync
+                val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
+                resetAndSyncManager.dailyResetProcessAndSync(profile)
+                
+                android.util.Log.d("BattleHubActivity", "Daily reset and sync completed for profile: $profile")
                 
                 // Hide loading spinner and finish loading
                 withContext(Dispatchers.Main) {
                     hideLoadingSpinner()
                     finishLoadingBattleHub()
                 }
-            } else {
-                // No reset needed, just finish loading
+            } catch (e: Exception) {
+                android.util.Log.e("BattleHubActivity", "Error during daily reset and sync", e)
+                // Hide loading spinner even on error
                 withContext(Dispatchers.Main) {
+                    hideLoadingSpinner()
                     finishLoadingBattleHub()
                 }
             }
@@ -837,12 +835,18 @@ class BattleHubActivity : AppCompatActivity() {
                     "This is the same as the daily reset. Game progress, Pokemon unlocks, and video progress will be preserved.")
             .setPositiveButton("Reset All") { _, _ ->
                 try {
-                    val progressManager = DailyProgressManager(this)
-                    progressManager.resetAllProgress()
-                    TimeTracker(this).clearAllData()
-                    android.widget.Toast.makeText(this, "Progress has been reset", android.widget.Toast.LENGTH_LONG).show()
-                    updateBerryMeter()
-                    updateEarnButtonsState()
+                    val profile = SettingsManager.readProfile(this) ?: "AM"
+                    val resetAndSyncManager = DailyResetAndSyncManager(this)
+                    
+                    // Set last_reset to yesterday to force reset on next screen load
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        resetAndSyncManager.setLastResetToYesterday(profile)
+                        withContext(Dispatchers.Main) {
+                            android.widget.Toast.makeText(this@BattleHubActivity, "Progress will be reset on next screen load", android.widget.Toast.LENGTH_LONG).show()
+                            updateBerryMeter()
+                            updateEarnButtonsState()
+                        }
+                    }
                 } catch (e: Exception) {
                     android.util.Log.e("BattleHubActivity", "Error resetting progress", e)
                     android.widget.Toast.makeText(this, "Error resetting progress: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
@@ -2574,20 +2578,26 @@ class BattleHubActivity : AppCompatActivity() {
 
         // CRITICAL: Check for profile changes from cloud BEFORE syncing data
         // This ensures we use the correct profile for the sync
-        val profileChanged = SettingsManager.checkAndApplyProfileFromCloud(this)
+        // Note: This is now async to avoid blocking main thread, so we always refresh title after a brief delay
+        SettingsManager.checkAndApplyProfileFromCloud(this)
         
-        // If profile changed, refresh the header title immediately
-        if (profileChanged) {
+        // Refresh title after a short delay to allow async profile check to complete
+        // This ensures UI updates if profile changed (profile changes are rare, so slight delay is acceptable)
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             updateTitle()
-            android.util.Log.d("BattleHubActivity", "Profile changed, refreshed header title")
-        }
+        }, 100)
 
-        // Sync from cloud when resuming (read latest progress)
+        // Run daily_reset_process() and then cloud_sync() when resuming
         val profile = SettingsManager.readProfile(this) ?: "AM"
-        android.util.Log.d("BattleHubActivity", "Starting cloud sync in onResume for profile $profile")
+        android.util.Log.d("BattleHubActivity", "Starting daily reset and sync in onResume for profile $profile")
         lifecycleScope.launch(Dispatchers.IO) {
-            val syncResult = cloudStorageManager.syncIfEnabled(profile)
-            android.util.Log.d("BattleHubActivity", "Cloud sync completed in onResume (result: $syncResult), updating UI")
+            try {
+                val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
+                resetAndSyncManager.dailyResetProcessAndSync(profile)
+                android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onResume for profile $profile")
+            } catch (e: Exception) {
+                android.util.Log.e("BattleHubActivity", "Error during daily reset and sync in onResume", e)
+            }
             runOnUiThread {
                 // Refresh UI after sync completes
                 updateBerryMeter()
@@ -2658,12 +2668,17 @@ class BattleHubActivity : AppCompatActivity() {
                 mainContentJson = ContentUpdateService().getCachedMainContent(this)
             }
 
-            // Sync from cloud to get latest progress, then refresh UI
+            // Run daily_reset_process() and then cloud_sync() to get latest progress, then refresh UI
             val profile = SettingsManager.readProfile(this) ?: "AM"
-            android.util.Log.d("BattleHubActivity", "Starting cloud sync in onActivityResult for profile $profile")
+            android.util.Log.d("BattleHubActivity", "Starting daily reset and sync in onActivityResult for profile $profile")
             lifecycleScope.launch(Dispatchers.IO) {
-                val syncResult = cloudStorageManager.syncIfEnabled(profile)
-                android.util.Log.d("BattleHubActivity", "Cloud sync completed in onActivityResult (result: $syncResult), updating UI")
+                try {
+                    val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
+                    resetAndSyncManager.dailyResetProcessAndSync(profile)
+                    android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onActivityResult for profile $profile")
+                } catch (e: Exception) {
+                    android.util.Log.e("BattleHubActivity", "Error during daily reset and sync in onActivityResult", e)
+                }
                 runOnUiThread {
                     // Force refresh by calling update methods directly after sync completes
                     updateCountsDisplay()

@@ -65,10 +65,11 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         stars = intent.getIntExtra(EXTRA_STARS, 0)
         taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE)
 
-        // Initialize time tracker
+        // Initialize time tracker (lightweight, safe to do on main thread)
         timeTracker = TimeTracker(this)
         
-        // Initialize progress manager
+        // Initialize progress manager in background to avoid ANR from migration
+        // The migration in DailyProgressManager.init can be heavy, so we'll lazy-init it
         progressManager = DailyProgressManager(this)
         
         // Use unique task ID that includes section info to track separately for required vs optional

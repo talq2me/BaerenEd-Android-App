@@ -196,41 +196,10 @@ $$;
 -- Alternative: If pg_cron is not available, you can create a manual trigger
 -- that checks the date on each update and resets if it's a new day
 
--- Create function to automatically reset progress when date changes
-CREATE OR REPLACE FUNCTION check_daily_reset()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    today_date TEXT;
-    stored_reset_date TEXT;
-BEGIN
-    -- Get current date in YYYY-MM-DD format for comparison
-    today_date := CURRENT_DATE::TEXT;
-
-    -- Only reset if the stored date is different from today
-    -- This prevents resetting on every update, only resets when it's actually a new day
-    -- Compare the date part of the stored timestamp with today's date (in EST)
-    IF OLD.last_reset IS NULL OR DATE(OLD.last_reset AT TIME ZONE 'EST') != DATE(NOW() AT TIME ZONE 'EST') THEN
-        -- It's a new day! Reset the progress in the NEW record before it's saved
-        NEW.required_tasks := '{}'::jsonb;
-        NEW.practice_tasks := '{}'::jsonb;
-        NEW.last_reset := NOW() AT TIME ZONE 'EST';
-        NEW.berries_earned := 0;
-        NEW.last_updated := NOW() AT TIME ZONE 'EST';
-
-        RAISE NOTICE 'Database auto-reset: Progress reset for profile % on new day % (was %)', NEW.profile, today_date, stored_reset_date;
-    END IF;
-
-    RETURN NEW;
-END;
-$$;
-
--- Create trigger that runs on every update to check for daily reset
-CREATE TRIGGER daily_progress_reset_trigger
-    BEFORE UPDATE ON user_data
-    FOR EACH ROW
-    EXECUTE FUNCTION check_daily_reset();
+-- NOTE: Daily reset trigger has been removed.
+-- Daily reset is now handled by the app code (daily_reset_process() method).
+-- The app compares local.profile.last_reset with cloud.profile.last_reset to determine when to reset.
+-- To manually trigger a reset, set cloud.profile.last_reset and local.profile.last_reset to now() at EST - 1 day.
 
 -- Add devices table to store active profile per device
 -- This allows BaerenLock and BaerenEd to sync the active profile between apps on the same device

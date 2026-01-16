@@ -455,7 +455,7 @@ class TaskLauncher(
             val videoMap2 = gson2.fromJson(videoJson, Map::class.java) as Map<String, String>
             val videoId = videoMap2[videoNameToPlay]
 
-            if (videoId != null) {
+            if (videoId != null && videoId.isNotEmpty()) {
                 val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                     putExtra(YouTubePlayerActivity.EXTRA_VIDEO_ID, videoId)
                     putExtra(YouTubePlayerActivity.EXTRA_VIDEO_TITLE, videoNameToPlay)
@@ -469,6 +469,9 @@ class TaskLauncher(
                 }
 
                 resultHandler?.launchActivity(intent, 1003) ?: (context as? Activity)?.startActivityForResult(intent, 1003)
+            } else {
+                Log.e(TAG, "Video not found: $videoNameToPlay in JSON")
+                Toast.makeText(context, "Video not found: $videoNameToPlay", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error handling sequential video", e)
