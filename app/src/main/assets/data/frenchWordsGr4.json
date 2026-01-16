@@ -1,82 +1,86 @@
 [
 	{
-		"word": "côte",
-		"sentence": "La côte est rocheuse près du phare."
+		"word": "adorer",
+		"sentence": "Je veux adorer tous les animaux du zoo."
 	},
 	{
-		"word": "disparaître",
-		"sentence": "Le magicien va faire disparaître le lapin."
+		"word": "aube",
+		"sentence": "L'aube arrive tôt en été."
 	},
 	{
-		"word": "drôle",
-		"sentence": "Ce dessin est très drôle et me fait rire."
+		"word": "automobile",
+		"sentence": "L'automobile est garée devant la maison."
 	},
 	{
-		"word": "être",
-		"sentence": "Il est important d'être patient en classe."
+		"word": "autre",
+		"sentence": "J'ai besoin d'un autre crayon pour dessiner."
 	},
 	{
-		"word": "gâteau",
-		"sentence": "J'ai préparé un gâteau au chocolat pour ton anniversaire."
+		"word": "chocolat",
+		"sentence": "Le chocolat fond rapidement au soleil."
 	},
 	{
-		"word": "goût",
-		"sentence": "Le goût de cette soupe est salé et bon."
+		"word": "énorme",
+		"sentence": "Cette montagne est énorme et impressionnante."
 	},
 	{
-		"word": "hâte",
-		"sentence": "J'ai hâte de partir en vacances la semaine prochaine."
+		"word": "guimauve",
+		"sentence": "La guimauve est douce et sucrée."
 	},
 	{
-		"word": "île",
-		"sentence": "Nous avons visité une petite île pendant l'été."
+		"word": "normal",
+		"sentence": "Ce comportement est normal pour un enfant."
 	},
 	{
-		"word": "même",
-		"sentence": "Nous avons la même trousse à crayons à l'école."
+		"word": "normaux",
+		"sentence": "Ces résultats sont normaux pour cette classe."
 	},
 	{
-		"word": "naître",
-		"sentence": "Un bébé va naître dans la famille demain."
+		"word": "normale",
+		"sentence": "Cette situation est normale en hiver."
 	},
 	{
-		"word": "pêche",
-		"sentence": "Mon oncle aime la pêche au bord du lac."
+		"word": "normales",
+		"sentence": "Ces températures sont normales pour le printemps."
 	},
 	{
-		"word": "prêt",
-		"sentence": "Je suis prêt pour l'examen de maths."
+		"word": "numéro",
+		"sentence": "Le numéro est écrit sur la porte de la classe."
 	},
 	{
-		"word": "prête",
-		"sentence": "Ma sœur est prête pour la compétition."
+		"word": "odeur",
+		"sentence": "L'odeur des fleurs est très agréable."
 	},
 	{
-		"word": "rêve",
-		"sentence": "Mon rêve est de devenir pilote."
+		"word": "opéra",
+		"sentence": "L'opéra commence à huit heures ce soir."
 	},
 	{
-		"word": "rôle",
-		"sentence": "Elle joue le rôle principal dans la pièce."
+		"word": "piano",
+		"sentence": "Le piano se trouve dans le salon de la maison."
 	},
 	{
-		"word": "sûr",
-		"sentence": "Je suis sûr que tu peux le faire."
+		"word": "profiter",
+		"sentence": "Je veux profiter de cette belle journée dehors."
 	},
 	{
-		"word": "sûre",
-		"sentence": "Elle est sûre de sa réponse en classe."
+		"word": "rideau",
+		"sentence": "Le rideau cache la fenêtre de ma chambre."
 	},
 	{
-		"word": "théâtre",
-		"sentence": "Nous avons visité le théâtre de la ville hier."
+		"word": "sauf",
+		"sentence": "Tous les élèves sont présents sauf Marie aujourd'hui."
 	},
 	{
-		"word": "tôt",
-		"sentence": "Il faut se lever tôt pour attraper le bus."
+		"word": "sauter",
+		"sentence": "Les enfants aiment sauter dans les flaques d'eau."
 	},
 	{
-		"word": "plutôt",
-		"sentence": "Je préfère le thé plutôt que le café."
+		"word": "travail",
+		"sentence": "Le travail est terminé pour aujourd'hui."
+	},
+	{
+		"word": "travaux",
+		"sentence": "Les travaux de construction commencent demain matin."
 	}
 ]
