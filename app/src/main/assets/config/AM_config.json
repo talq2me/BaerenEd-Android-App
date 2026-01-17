@@ -55,6 +55,17 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 1, 2027",
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun"
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpellingPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
           "disable": "Jan 1, 2026",
           "extremedays": "mon,tue,wed",
           "easydays": "thu,fri",
