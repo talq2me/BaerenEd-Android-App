@@ -136,6 +136,7 @@
         
         <div>
             <button class="camera-button" id="takePictureBtn" onclick="openCamera()">📷 Take Picture</button>
+            <button class="button" onclick="testAndroidInterface()" style="margin-top: 10px; font-size: 16px; padding: 10px 20px;">🔍 Test Android Interface</button>
         </div>
         
         <div class="camera-container hidden" id="cameraContainer">
@@ -283,11 +284,61 @@
             readText(textToRead, 'en-US', 0.8);
         }
 
+        // Callback functions for camera - must be on window object
+        window.onCameraSuccess = function(imageBase64) {
+            if (imageBase64) {
+                capturedImageBase64 = imageBase64.startsWith('data:image') 
+                    ? imageBase64 
+                    : 'data:image/jpeg;base64,' + imageBase64;
+                document.getElementById('imagePreview').src = capturedImageBase64;
+                document.getElementById('cameraContainer').classList.remove('hidden');
+                document.getElementById('takePictureBtn').textContent = '📷 Retake Picture';
+                hideMessage();
+            } else {
+                showMessage('No image captured. Please try again.', 'error');
+            }
+        };
+
+        window.onCameraError = function(error) {
+            showMessage('Failed to open camera. Please try again.', 'error');
+            console.error('Camera error:', error);
+        };
+
         function openCamera() {
-            const cameraInput = document.getElementById('cameraInput');
-            cameraInput.click();
+            console.log('openCamera() called');
+            showMessage('Opening camera...', 'info');
+            
+            console.log('window.Android exists:', typeof window.Android !== 'undefined');
+            if (window.Android) {
+                console.log('window.Android.openCamera type:', typeof window.Android.openCamera);
+                console.log('Available Android methods:', Object.keys(window.Android));
+            }
+            
+            if (window.Android && typeof window.Android.openCamera === 'function') {
+                console.log('Calling Android.openCamera with callbacks: onCameraSuccess, onCameraError');
+                try {
+                    window.Android.openCamera('onCameraSuccess', 'onCameraError');
+                    console.log('Android.openCamera called successfully');
+                    // Message will be updated by callback
+                } catch (e) {
+                    console.error('Error calling Android.openCamera:', e);
+                    showMessage('Error opening camera: ' + e.message, 'error');
+                }
+            } else {
+                console.log('Android interface not available, using HTML5 fallback');
+                showMessage('Android interface not available - using fallback', 'info');
+                // Fallback for web testing - use HTML5 file input
+                const cameraInput = document.getElementById('cameraInput');
+                if (cameraInput) {
+                    cameraInput.click();
+                } else {
+                    console.error('Camera input element not found');
+                    showMessage('Camera not available', 'error');
+                }
+            }
         }
 
+        // Fallback handler for HTML5 file input (web testing only)
         document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -378,9 +429,61 @@
             console.log('Upload data:', uploadData);
         }
 
+        // Test Android interface availability
+        function testAndroidInterface() {
+            let testResults = [];
+            testResults.push('=== Android Interface Test ===');
+            testResults.push('window.Android exists: ' + (typeof window.Android !== 'undefined'));
+            
+            if (window.Android) {
+                testResults.push('✓ Android interface available!');
+                testResults.push('Available methods: ' + Object.keys(window.Android).join(', '));
+                testResults.push('openCamera type: ' + typeof window.Android.openCamera);
+                
+                // Test if we can call other methods
+                if (typeof window.Android.readText === 'function') {
+                    testResults.push('✓ readText method is available');
+                }
+                if (typeof window.Android.getCurrentProfile === 'function') {
+                    try {
+                        const profile = window.Android.getCurrentProfile();
+                        testResults.push('✓ getCurrentProfile available, result: ' + profile);
+                    } catch (e) {
+                        testResults.push('✗ getCurrentProfile error: ' + e.message);
+                    }
+                }
+                
+                // Try to manually test openCamera
+                if (typeof window.Android.openCamera === 'function') {
+                    testResults.push('✓ openCamera method is available');
+                } else {
+                    testResults.push('✗ openCamera method NOT found!');
+                }
+                
+                // Log to console AND show message
+                console.log(testResults.join('\n'));
+                showMessage(testResults.join('<br>'), 'info');
+            } else {
+                testResults.push('✗ Android interface NOT available!');
+                console.error(testResults.join('\n'));
+                showMessage(testResults.join('<br>'), 'error');
+            }
+        }
+
+        // Also test when window loads
+        window.addEventListener('load', function() {
+            console.log('Window loaded, testing Android interface...');
+            setTimeout(testAndroidInterface, 500);
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded');
             const config = getGameConfig();
             loadWords(config);
+            
+            // Test Android interface after a short delay to ensure WebView is fully loaded
+            setTimeout(testAndroidInterface, 1000);
+            setTimeout(testAndroidInterface, 3000); // Test again after 3 seconds
         });
     </script>
 </body>

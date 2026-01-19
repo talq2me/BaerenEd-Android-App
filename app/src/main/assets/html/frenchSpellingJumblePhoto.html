@@ -283,11 +283,57 @@
             readText(textToRead, 'fr-FR', 0.8);
         }
 
+        // Callback functions for camera - must be on window object
+        window.onCameraSuccess = function(imageBase64) {
+            if (imageBase64) {
+                capturedImageBase64 = imageBase64.startsWith('data:image') 
+                    ? imageBase64 
+                    : 'data:image/jpeg;base64,' + imageBase64;
+                document.getElementById('imagePreview').src = capturedImageBase64;
+                document.getElementById('cameraContainer').classList.remove('hidden');
+                document.getElementById('takePictureBtn').textContent = '📷 Reprendre une photo';
+                hideMessage();
+            } else {
+                showMessage('Aucune image capturée. Veuillez réessayer.', 'error');
+            }
+        };
+
+        window.onCameraError = function(error) {
+            showMessage('Impossible d\'ouvrir l\'appareil photo. Veuillez réessayer.', 'error');
+            console.error('Camera error:', error);
+        };
+
         function openCamera() {
-            const cameraInput = document.getElementById('cameraInput');
-            cameraInput.click();
+            console.log('openCamera() called');
+            console.log('window.Android exists:', typeof window.Android !== 'undefined');
+            if (window.Android) {
+                console.log('window.Android.openCamera type:', typeof window.Android.openCamera);
+                console.log('Available Android methods:', Object.keys(window.Android));
+            }
+            
+            if (window.Android && typeof window.Android.openCamera === 'function') {
+                console.log('Calling Android.openCamera with callbacks: onCameraSuccess, onCameraError');
+                try {
+                    window.Android.openCamera('onCameraSuccess', 'onCameraError');
+                    console.log('Android.openCamera called successfully');
+                } catch (e) {
+                    console.error('Error calling Android.openCamera:', e);
+                    showMessage('Erreur lors de l\'ouverture de l\'appareil photo: ' + e.message, 'error');
+                }
+            } else {
+                console.log('Android interface not available, using HTML5 fallback');
+                // Fallback for web testing - use HTML5 file input
+                const cameraInput = document.getElementById('cameraInput');
+                if (cameraInput) {
+                    cameraInput.click();
+                } else {
+                    console.error('Camera input element not found');
+                    showMessage('Appareil photo non disponible', 'error');
+                }
+            }
         }
 
+        // Fallback handler for HTML5 file input (web testing only)
         document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
