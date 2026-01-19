@@ -1,43 +1,42 @@
 [
-
   {
-    "word": "un",
-    "sentence": "J'ai un chat."
+    "word": "sac",
+    "sentence": "Je mets mon livre dans mon sac."
   },
   {
-    "word": "une",
-    "sentence": "J'ai une pomme dans mon panier."
+    "word": "porte",
+    "sentence": "La porte est ouverte."
   },
   {
-    "word": "Alphabétik",
-    "sentence": "Ordre les mots en ordre alphabétique."
+    "word": "pomme",
+    "sentence": "La pomme est rouge."
   },
   {
-    "word": "ami",
-    "sentence": "Mon ami est allé au cinéma."
+    "word": "lune",
+    "sentence": "La lune brille dans le ciel."
   },
   {
-    "word": "amie",
-    "sentence": "Hannah est ma bonne amie."
+    "word": "fille",
+    "sentence": "La fille joue dans le parc."
   },
   {
-    "word": "bonjour",
-    "sentence": "Bonjour, comment ça va?"
+    "word": "garçon",
+    "sentence": "Le garçon lit un livre."
   },
   {
-    "word": "classe",
-    "sentence": "La classe a beaucoup d'élèves."
+    "word": "robe",
+    "sentence": "Elle porte une belle robe."
   },
   {
-    "word": "cour",
-    "sentence": "La cour est grande."
+    "word": "père",
+    "sentence": "Mon père travaille beaucoup."
   },
   {
-    "word": "école",
-    "sentence": "Nous allons à l'école."
+    "word": "mère",
+    "sentence": "Ma mère cuisine bien."
   },
   {
-    "word": "vélo", 
-    "sentence": "Je vais à la plage en vélo."
+    "word": "bébé",
+    "sentence": "Le bébé dort paisiblement."
   }
 ]
