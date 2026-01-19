@@ -600,27 +600,68 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun launchCamera() {
         android.util.Log.d("WebGameActivity", "launchCamera() called")
+        
+        // Try ACTION_IMAGE_CAPTURE first
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        
+        // Add explicit flags to ensure it works on all devices
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        
+        // List all apps that can handle camera intents for debugging
+        val cameraActivities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        android.util.Log.d("WebGameActivity", "Found ${cameraActivities.size} camera apps")
+        cameraActivities.forEachIndexed { index, resolveInfo ->
+            android.util.Log.d("WebGameActivity", "Camera app $index: ${resolveInfo.activityInfo.packageName}/${resolveInfo.activityInfo.name}")
+        }
+        
         val resolved = intent.resolveActivity(packageManager)
-        android.util.Log.d("WebGameActivity", "Camera intent resolved: ${resolved != null}")
+        android.util.Log.d("WebGameActivity", "Camera intent resolved: ${resolved != null}, component: ${resolved?.className}")
+        
         if (resolved != null) {
-            android.util.Log.d("WebGameActivity", "Starting camera activity for result")
-            startActivityForResult(intent, CAMERA_REQUEST_CODE)
-        } else {
-            android.util.Log.e("WebGameActivity", "No camera app available")
-            // No camera app available
-            cameraErrorCallback?.let { callback ->
-                runOnUiThread {
-                    android.util.Log.d("WebGameActivity", "Calling error callback: $callback")
-                    webView.evaluateJavascript(
-                        "if (typeof $callback === 'function') $callback('No camera app available');",
-                        null
-                    )
-                }
+            android.util.Log.d("WebGameActivity", "Starting camera activity for result with component: ${resolved.className}")
+            try {
+                startActivityForResult(intent, CAMERA_REQUEST_CODE)
+                android.util.Log.d("WebGameActivity", "Camera activity started successfully")
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error starting camera activity", e)
+                handleCameraError("Failed to launch camera: ${e.message}")
             }
-            cameraSuccessCallback = null
-            cameraErrorCallback = null
-            Toast.makeText(this, "No camera app available", Toast.LENGTH_SHORT).show()
+        } else {
+            android.util.Log.e("WebGameActivity", "No camera app available - resolved activity is null")
+            handleCameraError("No camera app available. Please install a camera app.")
+        }
+    }
+    
+    private fun handleCameraError(message: String) {
+        val errorCallback = cameraErrorCallback
+        cameraSuccessCallback = null
+        cameraErrorCallback = null
+        
+        runOnUiThread {
+            android.util.Log.d("WebGameActivity", "Handling camera error, calling callback: $errorCallback")
+            if (errorCallback != null) {
+                // Properly escape the callback name and error message for JavaScript
+                val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                val escapedMsg = message.replace("\\", "\\\\")
+                    .replace("'", "\\'")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                
+                val jsCode = """
+                    if (typeof window['$escapedCallback'] === 'function') {
+                        window['$escapedCallback']('$escapedMsg');
+                    } else {
+                        console.error('Callback function $escapedCallback not found on window object');
+                    }
+                """.trimIndent()
+                
+                android.util.Log.d("WebGameActivity", "Executing JavaScript error callback")
+                webView.evaluateJavascript(jsCode, null)
+            } else {
+                android.util.Log.e("WebGameActivity", "No error callback stored!")
+            }
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
     }
 
