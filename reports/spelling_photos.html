@@ -289,8 +289,11 @@
                     // Create unique ID for this image
                     const imageId = `img-${config.profile}-${config.task}`;
                     
+                    // Store full resolution image source in data attribute
+                    const escapedImageSrc = imageSrc.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                    
                     element.innerHTML = `
-                        <img id="${imageId}" src="${imageSrc}" alt="${config.profile} - ${config.task}" class="photo-image" onclick="showFullScreen('${imageId}')">
+                        <img id="${imageId}" src="${imageSrc}" alt="${config.profile} - ${config.task}" class="photo-image" data-full-image="${escapedImageSrc}" onclick="showFullScreen('${imageId}')">
                         <div class="photo-meta">Uploaded: ${captureDate}</div>
                     `;
                 } else {
@@ -306,6 +309,13 @@
         function showFullScreen(imageId) {
             const img = document.getElementById(imageId);
             if (!img) return;
+
+            // Get the full resolution image from data attribute (original from database)
+            const fullImageSrc = img.getAttribute('data-full-image');
+            if (!fullImageSrc) {
+                console.error('Full image source not found');
+                return;
+            }
 
             // Create modal if it doesn't exist
             let modal = document.getElementById('imageModal');
@@ -327,9 +337,15 @@
                 });
             }
 
-            // Set image and show modal
+            // Set full resolution image and show modal
             const modalImg = document.getElementById('modalImage');
-            modalImg.src = img.src;
+            // Use the full resolution image from database, not the displayed thumbnail
+            modalImg.src = fullImageSrc;
+            // Remove any size constraints to show full resolution
+            modalImg.style.maxWidth = 'none';
+            modalImg.style.maxHeight = 'none';
+            modalImg.style.width = 'auto';
+            modalImg.style.height = 'auto';
             modal.classList.add('show');
             
             // Prevent body scroll
