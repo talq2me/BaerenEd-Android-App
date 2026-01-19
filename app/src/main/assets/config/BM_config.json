@@ -88,9 +88,9 @@
           "extremedays": "sat,sun,mon"
         },
         {
-          "title": "Fr Spelling",
-          "launch": "frSpellingPhoto",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr4.json",
+          "title": "Eng Spelling",
+          "launch": "engSpellingPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
           "easydays": "tue,wed",
