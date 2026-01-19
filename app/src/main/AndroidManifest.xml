@@ -16,6 +16,11 @@
         <package android:name="com.google.android.apps.seekh" />
         <!-- Declare visibility for Boukili app -->
         <package android:name="ca.boukili.app" />
+        
+        <!-- Allow querying for camera apps -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
 
     </queries>
 
