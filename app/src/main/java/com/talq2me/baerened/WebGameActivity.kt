@@ -679,19 +679,27 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 
                 // Read full resolution image from file
                 val imageFile = cameraImageFile
-                if (imageFile != null && imageFile.exists()) {
+                android.util.Log.d("WebGameActivity", "Checking image file: path=${imageFile?.absolutePath}, exists=${imageFile?.exists()}, length=${imageFile?.length()}")
+                
+                if (imageFile != null && imageFile.exists() && imageFile.length() > 0) {
                     try {
-                        // Read the full resolution image file
-                        val imageUri = FileProvider.getUriForFile(
-                            this,
-                            "${packageName}.fileprovider",
-                            imageFile
-                        )
-                        
-                        // Load bitmap from file at full resolution
-                        val inputStream = contentResolver.openInputStream(imageUri)
-                        val imageBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-                        inputStream?.close()
+                        // Try reading directly from file first (simpler, more reliable)
+                        var imageBitmap: Bitmap? = null
+                        try {
+                            android.util.Log.d("WebGameActivity", "Attempting to read bitmap directly from file")
+                            imageBitmap = android.graphics.BitmapFactory.decodeFile(imageFile.absolutePath)
+                        } catch (e: Exception) {
+                            android.util.Log.w("WebGameActivity", "Direct file read failed, trying FileProvider", e)
+                            // Fallback to FileProvider method
+                            val imageUri = FileProvider.getUriForFile(
+                                this,
+                                "${packageName}.fileprovider",
+                                imageFile
+                            )
+                            val inputStream = contentResolver.openInputStream(imageUri)
+                            imageBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+                            inputStream?.close()
+                        }
                         
                         if (imageBitmap != null) {
                             android.util.Log.d("WebGameActivity", "Full resolution bitmap loaded: ${imageBitmap.width}x${imageBitmap.height}")
@@ -752,13 +760,33 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         }
                     }
                 } else {
-                    android.util.Log.e("WebGameActivity", "Image file not found or not created")
-                    cameraErrorCallback?.let { callback ->
-                        runOnUiThread {
-                            webView.evaluateJavascript(
-                                "if (typeof window.$callback === 'function') window.$callback('Image file not found'); else console.error('Callback function $callback not found');",
-                                null
-                            )
+                    android.util.Log.e("WebGameActivity", "Image file not found or not created. File: ${imageFile?.absolutePath}, Exists: ${imageFile?.exists()}, Length: ${imageFile?.length()}")
+                    // Try fallback: check if camera saved to a different location or use thumbnail from Intent
+                    val thumbnail = data?.extras?.get("data") as? Bitmap
+                    if (thumbnail != null) {
+                        android.util.Log.d("WebGameActivity", "Using thumbnail as fallback: ${thumbnail.width}x${thumbnail.height}")
+                        val base64 = bitmapToBase64(thumbnail)
+                        cameraSuccessCallback?.let { callback ->
+                            runOnUiThread {
+                                val jsonBase64 = base64.replace("\\", "\\\\")
+                                    .replace("\"", "\\\"")
+                                    .replace("\n", "\\n")
+                                    .replace("\r", "\\r")
+                                webView.evaluateJavascript(
+                                    "if (typeof window.$callback === 'function') window.$callback('data:image/jpeg;base64,$jsonBase64'); else console.error('Callback function $callback not found');",
+                                    null
+                                )
+                            }
+                        }
+                    } else {
+                        cameraErrorCallback?.let { callback ->
+                            runOnUiThread {
+                                val errorMsg = "Image file not found. Path: ${imageFile?.absolutePath}"
+                                webView.evaluateJavascript(
+                                    "if (typeof window.$callback === 'function') window.$callback('Image file not found'); else console.error('Callback function $callback not found');",
+                                    null
+                                )
+                            }
                         }
                     }
                 }
@@ -795,34 +823,77 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun launchCamera() {
         android.util.Log.d("WebGameActivity", "launchCamera() called")
         
-        // Try ACTION_IMAGE_CAPTURE first
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        
-        // Add explicit flags to ensure it works on all devices
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        
-        // List all apps that can handle camera intents for debugging
-        val cameraActivities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        android.util.Log.d("WebGameActivity", "Found ${cameraActivities.size} camera apps")
-        cameraActivities.forEachIndexed { index, resolveInfo ->
-            android.util.Log.d("WebGameActivity", "Camera app $index: ${resolveInfo.activityInfo.packageName}/${resolveInfo.activityInfo.name}")
-        }
-        
-        val resolved = intent.resolveActivity(packageManager)
-        android.util.Log.d("WebGameActivity", "Camera intent resolved: ${resolved != null}, component: ${resolved?.className}")
-        
-        if (resolved != null) {
-            android.util.Log.d("WebGameActivity", "Starting camera activity for result with component: ${resolved.className}")
-            try {
-                startActivityForResult(intent, CAMERA_REQUEST_CODE)
-                android.util.Log.d("WebGameActivity", "Camera activity started successfully")
+        // Create a file to store the full resolution image - use original working path
+        try {
+            val imageFile = File(getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), 
+                "spelling_photo_${System.currentTimeMillis()}.jpg")
+            
+            // Create parent directories if they don't exist
+            imageFile.parentFile?.mkdirs()
+            
+            android.util.Log.d("WebGameActivity", "Image file path: ${imageFile.absolutePath}")
+            
+            cameraImageFile = imageFile
+            
+            // Get URI for the file using FileProvider
+            val imageUri = try {
+                FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    imageFile
+                )
             } catch (e: Exception) {
-                android.util.Log.e("WebGameActivity", "Error starting camera activity", e)
-                handleCameraError("Failed to launch camera: ${e.message}")
+                android.util.Log.e("WebGameActivity", "Error getting FileProvider URI", e)
+                cameraImageFile = null
+                handleCameraError("Error setting up file provider: ${e.message}")
+                return
             }
-        } else {
-            android.util.Log.e("WebGameActivity", "No camera app available - resolved activity is null")
-            handleCameraError("No camera app available. Please install a camera app.")
+            
+            android.util.Log.d("WebGameActivity", "FileProvider URI: $imageUri")
+            
+            // Create camera intent with full resolution output
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+                addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            
+            // Grant temporary permission to camera apps
+            val resInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            for (resolveInfo in resInfoList) {
+                val packageName = resolveInfo.activityInfo.packageName
+                grantUriPermission(packageName, imageUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            
+            // List all apps that can handle camera intents for debugging
+            val cameraActivities = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            android.util.Log.d("WebGameActivity", "Found ${cameraActivities.size} camera apps")
+            cameraActivities.forEachIndexed { index, resolveInfo ->
+                android.util.Log.d("WebGameActivity", "Camera app $index: ${resolveInfo.activityInfo.packageName}/${resolveInfo.activityInfo.name}")
+            }
+            
+            val resolved = intent.resolveActivity(packageManager)
+            android.util.Log.d("WebGameActivity", "Camera intent resolved: ${resolved != null}, component: ${resolved?.className}")
+            
+            if (resolved != null) {
+                android.util.Log.d("WebGameActivity", "Starting camera activity for result with component: ${resolved.className}")
+                try {
+                    startActivityForResult(intent, CAMERA_REQUEST_CODE)
+                    android.util.Log.d("WebGameActivity", "Camera activity started successfully")
+                } catch (e: Exception) {
+                    android.util.Log.e("WebGameActivity", "Error starting camera activity", e)
+                    cameraImageFile = null
+                    handleCameraError("Failed to launch camera: ${e.message}")
+                }
+            } else {
+                android.util.Log.e("WebGameActivity", "No camera app available - resolved activity is null")
+                cameraImageFile = null
+                handleCameraError("No camera app available. Please install a camera app.")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("WebGameActivity", "Error setting up camera file", e)
+            cameraImageFile = null
+            handleCameraError("Error setting up camera: ${e.message}")
         }
     }
     
