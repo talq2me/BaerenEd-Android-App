@@ -304,6 +304,23 @@
             console.error('Camera error:', error);
         };
 
+        // Callback functions for upload - must be on window object
+        window.onUploadSuccess = function() {
+            showMessage('✓ Photo uploaded successfully!', 'success');
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 2000);
+        };
+
+        window.onUploadError = function(error) {
+            showMessage('✗ Upload failed: ' + error, 'error');
+            console.error('Upload error:', error);
+        };
+
         function openCamera() {
             console.log('openCamera() called');
             showMessage('Opening camera...', 'info');
@@ -400,33 +417,21 @@
             // Try Android interface first
             if (window.Android && typeof window.Android.uploadImageToSupabase === 'function') {
                 try {
+                    console.log('Calling Android.uploadImageToSupabase');
                     window.Android.uploadImageToSupabase(
                         JSON.stringify(uploadData),
-                        function(success) {
-                            if (success) {
-                                showMessage('✓ Photo uploaded successfully!', 'success');
-                                setTimeout(() => {
-                                    if (window.parent && window.parent !== window) {
-                                        window.parent.postMessage({ type: 'closeModal' }, '*');
-                                    } else {
-                                        history.back();
-                                    }
-                                }, 2000);
-                            } else {
-                                showMessage('✗ Upload failed. Please try again.', 'error');
-                            }
-                        }
+                        'onUploadSuccess',
+                        'onUploadError'
                     );
                     return;
                 } catch (e) {
-                    console.warn('Android upload interface error:', e);
+                    console.error('Android upload interface error:', e);
+                    showMessage('Error calling upload: ' + e.message, 'error');
                 }
+            } else {
+                console.error('uploadImageToSupabase method not available');
+                showMessage('Upload functionality requires Android interface.', 'error');
             }
-
-            // Fallback to fetch API (requires Supabase endpoint/function)
-            // This would need to be implemented on the backend
-            showMessage('Upload functionality requires Android interface or backend endpoint.', 'error');
-            console.log('Upload data:', uploadData);
         }
 
         // Test Android interface availability

@@ -25,9 +25,12 @@ import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.Locale
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 import android.util.Base64
 
@@ -493,6 +496,137 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         @JavascriptInterface
         fun getCurrentProfile(): String {
             return SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
+        }
+
+        @JavascriptInterface
+        fun uploadImageToSupabase(jsonData: String, successCallback: String, errorCallback: String) {
+            android.util.Log.d("WebGameActivity", "JavaScript called uploadImageToSupabase()")
+            android.util.Log.d("WebGameActivity", "Success callback: $successCallback, Error callback: $errorCallback")
+            
+            // Run upload in background thread
+            Thread {
+                try {
+                    // Parse JSON data
+                    val uploadData = JSONObject(jsonData)
+                    val profile = uploadData.getString("profile")
+                    val task = uploadData.getString("task")
+                    val imageBase64 = uploadData.getString("image")
+                    val captureDateTime = uploadData.getString("capture_date_time")
+                    
+                    android.util.Log.d("WebGameActivity", "Uploading image for profile: $profile, task: $task")
+                    
+                    // Remove data:image/jpeg;base64, prefix if present
+                    val base64Image = if (imageBase64.startsWith("data:image")) {
+                        imageBase64.substring(imageBase64.indexOf(",") + 1)
+                    } else {
+                        imageBase64
+                    }
+                    
+                    // Get Supabase configuration from BuildConfig (same package, direct access)
+                    val supabaseUrl = try {
+                        BuildConfig.SUPABASE_URL
+                    } catch (e: Exception) {
+                        android.util.Log.e("WebGameActivity", "Supabase URL not configured", e)
+                        runOnUiThread {
+                            val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                            webView.evaluateJavascript(
+                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
+                                null
+                            )
+                        }
+                        return@Thread
+                    }
+                    
+                    val supabaseKey = try {
+                        BuildConfig.SUPABASE_KEY
+                    } catch (e: Exception) {
+                        android.util.Log.e("WebGameActivity", "Supabase key not configured", e)
+                        runOnUiThread {
+                            val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                            webView.evaluateJavascript(
+                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
+                                null
+                            )
+                        }
+                        return@Thread
+                    }
+                    
+                    if (supabaseUrl.isBlank() || supabaseKey.isBlank()) {
+                        android.util.Log.e("WebGameActivity", "Supabase URL or key is blank")
+                        runOnUiThread {
+                            val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                            webView.evaluateJavascript(
+                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
+                                null
+                            )
+                        }
+                        return@Thread
+                    }
+                    
+                    // Create JSON body for UPSERT (Supabase will merge on conflict with unique constraint)
+                    val requestBody = JSONObject().apply {
+                        put("profile", profile)
+                        put("task", task)
+                        put("image", base64Image)
+                        put("capture_date_time", captureDateTime)
+                    }
+                    
+                    // Use UPSERT: POST with Prefer: resolution=merge-duplicates
+                    // This will INSERT if new, UPDATE if (profile, task) already exists
+                    val url = "$supabaseUrl/rest/v1/image_uploads"
+                    val mediaType = "application/json".toMediaType()
+                    val body = requestBody.toString().toRequestBody(mediaType)
+                    
+                    val request = Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .addHeader("apikey", supabaseKey)
+                        .addHeader("Authorization", "Bearer $supabaseKey")
+                        .addHeader("Content-Type", "application/json")
+                        .addHeader("Prefer", "resolution=merge-duplicates")
+                        .build()
+                    
+                    android.util.Log.d("WebGameActivity", "Sending POST request to: $url")
+                    
+                    val response = httpClient.newCall(request).execute()
+                    val responseBody = response.body?.string()
+                    
+                    android.util.Log.d("WebGameActivity", "Upload response code: ${response.code}")
+                    
+                    if (response.isSuccessful) {
+                        android.util.Log.d("WebGameActivity", "Upload successful")
+                        runOnUiThread {
+                            val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
+                            webView.evaluateJavascript(
+                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']();",
+                                null
+                            )
+                        }
+                    } else {
+                        android.util.Log.e("WebGameActivity", "Upload failed: ${response.code}, body: $responseBody")
+                        val errorMsg = (responseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
+                        runOnUiThread {
+                            val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                            webView.evaluateJavascript(
+                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
+                                null
+                            )
+                        }
+                    }
+                    response.close()
+                    
+                } catch (e: Exception) {
+                    android.util.Log.e("WebGameActivity", "Error uploading image", e)
+                    runOnUiThread {
+                        val errorMsg = (e.message ?: "Unknown error").replace("'", "\\'").replace("\"", "\\\"")
+                        val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                        webView.evaluateJavascript(
+                            "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
+                            null
+                        )
+                    }
+                }
+            }.start()
         }
     }
 

@@ -303,6 +303,23 @@
             console.error('Camera error:', error);
         };
 
+        // Callback functions for upload - must be on window object
+        window.onUploadSuccess = function() {
+            showMessage('✓ Photo téléversée avec succès!', 'success');
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 2000);
+        };
+
+        window.onUploadError = function(error) {
+            showMessage('✗ Le téléversement a échoué: ' + error, 'error');
+            console.error('Upload error:', error);
+        };
+
         function openCamera() {
             console.log('openCamera() called');
             console.log('window.Android exists:', typeof window.Android !== 'undefined');
@@ -395,33 +412,21 @@
             // Try Android interface first
             if (window.Android && typeof window.Android.uploadImageToSupabase === 'function') {
                 try {
+                    console.log('Calling Android.uploadImageToSupabase');
                     window.Android.uploadImageToSupabase(
                         JSON.stringify(uploadData),
-                        function(success) {
-                            if (success) {
-                                showMessage('✓ Photo téléversée avec succès!', 'success');
-                                setTimeout(() => {
-                                    if (window.parent && window.parent !== window) {
-                                        window.parent.postMessage({ type: 'closeModal' }, '*');
-                                    } else {
-                                        history.back();
-                                    }
-                                }, 2000);
-                            } else {
-                                showMessage('✗ Le téléversement a échoué. Veuillez réessayer.', 'error');
-                            }
-                        }
+                        'onUploadSuccess',
+                        'onUploadError'
                     );
                     return;
                 } catch (e) {
-                    console.warn('Android upload interface error:', e);
+                    console.error('Android upload interface error:', e);
+                    showMessage('Erreur lors de l\'appel de téléversement: ' + e.message, 'error');
                 }
+            } else {
+                console.error('uploadImageToSupabase method not available');
+                showMessage('La fonctionnalité de téléversement nécessite une interface Android.', 'error');
             }
-
-            // Fallback to fetch API (requires Supabase endpoint/function)
-            // This would need to be implemented on the backend
-            showMessage('La fonctionnalité de téléversement nécessite une interface Android ou un point de terminaison backend.', 'error');
-            console.log('Upload data:', uploadData);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
