@@ -306,6 +306,10 @@
         // Callback functions for upload - must be on window object
         window.onUploadSuccess = function() {
             showMessage('✓ Photo téléversée avec succès!', 'success');
+            // Mark task as complete
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(1, 0); // 1 correct, 0 incorrect
+            }
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

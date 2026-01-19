@@ -87,6 +87,73 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             margin: 10px 0;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .photo-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .photo-image:active {
+            transform: scale(0.98);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            animation: zoomIn 0.3s;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .modal-close:active {
+            transform: scale(0.95);
         }
 
         .no-photo {
@@ -213,8 +280,17 @@
                         ? new Date(photoData.capture_date_time).toLocaleString()
                         : 'Date unknown';
                     
+                    // Ensure image has proper data URI prefix
+                    let imageSrc = photoData.image;
+                    if (!imageSrc.startsWith('data:image')) {
+                        imageSrc = 'data:image/jpeg;base64,' + imageSrc;
+                    }
+                    
+                    // Create unique ID for this image
+                    const imageId = `img-${config.profile}-${config.task}`;
+                    
                     element.innerHTML = `
-                        <img src="${photoData.image}" alt="${config.profile} - ${config.task}" class="photo-image">
+                        <img id="${imageId}" src="${imageSrc}" alt="${config.profile} - ${config.task}" class="photo-image" onclick="showFullScreen('${imageId}')">
                         <div class="photo-meta">Uploaded: ${captureDate}</div>
                     `;
                 } else {
@@ -226,6 +302,54 @@
                 element.innerHTML = '<div class="error">Error loading photo. Please check your configuration.</div>';
             }
         }
+
+        function showFullScreen(imageId) {
+            const img = document.getElementById(imageId);
+            if (!img) return;
+
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('imageModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'imageModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <span class="modal-close" onclick="closeFullScreen()">&times;</span>
+                    <img class="modal-content" id="modalImage" src="" alt="Full size image">
+                `;
+                document.body.appendChild(modal);
+                
+                // Close on background click
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeFullScreen();
+                    }
+                });
+            }
+
+            // Set image and show modal
+            const modalImg = document.getElementById('modalImage');
+            modalImg.src = img.src;
+            modal.classList.add('show');
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFullScreen() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeFullScreen();
+            }
+        });
 
         // Load photos when page loads
         document.addEventListener('DOMContentLoaded', loadSpellingPhotos);

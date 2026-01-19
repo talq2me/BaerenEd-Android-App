@@ -136,7 +136,6 @@
         
         <div>
             <button class="camera-button" id="takePictureBtn" onclick="openCamera()">📷 Take Picture</button>
-            <button class="button" onclick="testAndroidInterface()" style="margin-top: 10px; font-size: 16px; padding: 10px 20px;">🔍 Test Android Interface</button>
         </div>
         
         <div class="camera-container hidden" id="cameraContainer">
@@ -307,6 +306,10 @@
         // Callback functions for upload - must be on window object
         window.onUploadSuccess = function() {
             showMessage('✓ Photo uploaded successfully!', 'success');
+            // Mark task as complete
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(1, 0); // 1 correct, 0 incorrect
+            }
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');
@@ -434,61 +437,10 @@
             }
         }
 
-        // Test Android interface availability
-        function testAndroidInterface() {
-            let testResults = [];
-            testResults.push('=== Android Interface Test ===');
-            testResults.push('window.Android exists: ' + (typeof window.Android !== 'undefined'));
-            
-            if (window.Android) {
-                testResults.push('✓ Android interface available!');
-                testResults.push('Available methods: ' + Object.keys(window.Android).join(', '));
-                testResults.push('openCamera type: ' + typeof window.Android.openCamera);
-                
-                // Test if we can call other methods
-                if (typeof window.Android.readText === 'function') {
-                    testResults.push('✓ readText method is available');
-                }
-                if (typeof window.Android.getCurrentProfile === 'function') {
-                    try {
-                        const profile = window.Android.getCurrentProfile();
-                        testResults.push('✓ getCurrentProfile available, result: ' + profile);
-                    } catch (e) {
-                        testResults.push('✗ getCurrentProfile error: ' + e.message);
-                    }
-                }
-                
-                // Try to manually test openCamera
-                if (typeof window.Android.openCamera === 'function') {
-                    testResults.push('✓ openCamera method is available');
-                } else {
-                    testResults.push('✗ openCamera method NOT found!');
-                }
-                
-                // Log to console AND show message
-                console.log(testResults.join('\n'));
-                showMessage(testResults.join('<br>'), 'info');
-            } else {
-                testResults.push('✗ Android interface NOT available!');
-                console.error(testResults.join('\n'));
-                showMessage(testResults.join('<br>'), 'error');
-            }
-        }
-
-        // Also test when window loads
-        window.addEventListener('load', function() {
-            console.log('Window loaded, testing Android interface...');
-            setTimeout(testAndroidInterface, 500);
-        });
-
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM Content Loaded');
             const config = getGameConfig();
             loadWords(config);
-            
-            // Test Android interface after a short delay to ensure WebView is fully loaded
-            setTimeout(testAndroidInterface, 1000);
-            setTimeout(testAndroidInterface, 3000); // Test again after 3 seconds
         });
     </script>
 </body>
