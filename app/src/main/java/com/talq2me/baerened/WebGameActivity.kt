@@ -2,7 +2,10 @@ package com.talq2me.baerened
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.MediaStore
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.webkit.JavascriptInterface
@@ -13,6 +16,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.FileOutputStream
@@ -23,6 +29,7 @@ import java.io.File
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
+import android.util.Base64
 
 class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -34,6 +41,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val EXTRA_TASK_TITLE = "task_title"
         const val RESULT_LAUNCH_GAME = 100
         const val RESULT_EXTRA_GAME_ID = "game_id_to_launch"
+        const val CAMERA_PERMISSION_REQUEST_CODE = 1001
+        const val CAMERA_REQUEST_CODE = 1002
     }
 
     private lateinit var webView: WebView
@@ -45,6 +54,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var sectionId: String? = null
     private var stars: Int = 0
     private var taskTitle: String? = null
+    private var cameraSuccessCallback: String? = null
+    private var cameraErrorCallback: String? = null
     
     // HTTP client for fetching JSON from GitHub
     private val httpClient = OkHttpClient.Builder()
@@ -116,6 +127,17 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 android.util.Log.d("WebGameActivity", "Game page finished loading: $url")
+                // Inject a test script to verify Android interface is accessible
+                view?.evaluateJavascript("""
+                    setTimeout(function() {
+                        console.log('=== Page Finished - Android Interface Check ===');
+                        console.log('window.Android exists:', typeof window.Android !== 'undefined');
+                        if (window.Android) {
+                            console.log('Available methods:', Object.keys(window.Android));
+                            console.log('openCamera available:', typeof window.Android.openCamera === 'function');
+                        }
+                    }, 500);
+                """.trimIndent(), null)
             }
 
             override fun onReceivedError(
@@ -423,11 +445,182 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 "{}"
             }
         }
+
+        @JavascriptInterface
+        fun openCamera(successCallback: String, errorCallback: String) {
+            android.util.Log.d("WebGameActivity", "JavaScript called openCamera() with callbacks: $successCallback, $errorCallback")
+            runOnUiThread {
+                try {
+                    // Store callbacks for later use
+                    cameraSuccessCallback = successCallback
+                    cameraErrorCallback = errorCallback
+                    android.util.Log.d("WebGameActivity", "Stored callbacks: success=$successCallback, error=$errorCallback")
+                    
+                    // Check camera permission
+                    val hasPermission = ContextCompat.checkSelfPermission(
+                        this@WebGameActivity,
+                        android.Manifest.permission.CAMERA
+                    ) == PackageManager.PERMISSION_GRANTED
+                    
+                    android.util.Log.d("WebGameActivity", "Camera permission granted: $hasPermission")
+                    
+                    if (hasPermission) {
+                        android.util.Log.d("WebGameActivity", "Launching camera...")
+                        launchCamera()
+                    } else {
+                        android.util.Log.d("WebGameActivity", "Requesting camera permission...")
+                        // Request camera permission
+                        ActivityCompat.requestPermissions(
+                            this@WebGameActivity,
+                            arrayOf(android.Manifest.permission.CAMERA),
+                            CAMERA_PERMISSION_REQUEST_CODE
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("WebGameActivity", "Error in openCamera", e)
+                    errorCallback.let { callback ->
+                        webView.evaluateJavascript(
+                            "if (typeof $callback === 'function') $callback('Error: ${e.message}');",
+                            null
+                        )
+                    }
+                    cameraSuccessCallback = null
+                    cameraErrorCallback = null
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun getCurrentProfile(): String {
+            return SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
+        }
     }
 
     override fun onInit(status: Int) {
         if (status != TextToSpeech.SUCCESS) {
             android.util.Log.e("WebGameActivity", "TTS initialization failed")
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        android.util.Log.d("WebGameActivity", "onRequestPermissionsResult: requestCode=$requestCode")
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            android.util.Log.d("WebGameActivity", "Camera permission granted: $granted")
+            if (granted) {
+                launchCamera()
+            } else {
+                // Permission denied - notify JavaScript
+                android.util.Log.e("WebGameActivity", "Camera permission denied")
+                cameraErrorCallback?.let { callback ->
+                    runOnUiThread {
+                        webView.evaluateJavascript(
+                            "if (typeof window.$callback === 'function') window.$callback('Camera permission denied'); else console.error('Callback function $callback not found');",
+                            null
+                        )
+                    }
+                }
+                cameraSuccessCallback = null
+                cameraErrorCallback = null
+                Toast.makeText(this, "Camera permission is required to take pictures", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        android.util.Log.d("WebGameActivity", "onActivityResult: requestCode=$requestCode, resultCode=$resultCode")
+        if (requestCode == CAMERA_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                android.util.Log.d("WebGameActivity", "Camera result OK, extracting bitmap")
+                val imageBitmap = data?.extras?.get("data") as? Bitmap
+                if (imageBitmap != null) {
+                    android.util.Log.d("WebGameActivity", "Bitmap extracted: ${imageBitmap.width}x${imageBitmap.height}")
+                    // Convert bitmap to base64
+                    val base64 = bitmapToBase64(imageBitmap)
+                    android.util.Log.d("WebGameActivity", "Bitmap converted to base64, length: ${base64.length}")
+                    // Call JavaScript success callback
+                    cameraSuccessCallback?.let { callback ->
+                        runOnUiThread {
+                            android.util.Log.d("WebGameActivity", "Calling success callback: $callback")
+                            // Escape the base64 string for JavaScript - need to escape JSON properly
+                            val jsonBase64 = base64.replace("\\", "\\\\")
+                                .replace("\"", "\\\"")
+                                .replace("\n", "\\n")
+                                .replace("\r", "\\r")
+                            webView.evaluateJavascript(
+                                "if (typeof window.$callback === 'function') window.$callback('data:image/jpeg;base64,$jsonBase64'); else console.error('Callback function $callback not found');",
+                                null
+                            )
+                        }
+                    } ?: run {
+                        android.util.Log.e("WebGameActivity", "No success callback stored!")
+                    }
+                } else {
+                    android.util.Log.e("WebGameActivity", "No bitmap in camera result")
+                    // No image captured
+                    cameraErrorCallback?.let { callback ->
+                        runOnUiThread {
+                            webView.evaluateJavascript(
+                                "if (typeof window.$callback === 'function') window.$callback('No image captured'); else console.error('Callback function $callback not found');",
+                                null
+                            )
+                        }
+                    }
+                }
+            } else {
+                android.util.Log.d("WebGameActivity", "Camera result cancelled or error: $resultCode")
+                // User cancelled or error
+                cameraErrorCallback?.let { callback ->
+                    runOnUiThread {
+                        webView.evaluateJavascript(
+                            "if (typeof window.$callback === 'function') window.$callback('Camera cancelled'); else console.error('Callback function $callback not found');",
+                            null
+                        )
+                    }
+                }
+            }
+            // Clear callbacks
+            cameraSuccessCallback = null
+            cameraErrorCallback = null
+        }
+    }
+
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+        val byteArray = outputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.NO_WRAP)
+    }
+
+    private fun launchCamera() {
+        android.util.Log.d("WebGameActivity", "launchCamera() called")
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val resolved = intent.resolveActivity(packageManager)
+        android.util.Log.d("WebGameActivity", "Camera intent resolved: ${resolved != null}")
+        if (resolved != null) {
+            android.util.Log.d("WebGameActivity", "Starting camera activity for result")
+            startActivityForResult(intent, CAMERA_REQUEST_CODE)
+        } else {
+            android.util.Log.e("WebGameActivity", "No camera app available")
+            // No camera app available
+            cameraErrorCallback?.let { callback ->
+                runOnUiThread {
+                    android.util.Log.d("WebGameActivity", "Calling error callback: $callback")
+                    webView.evaluateJavascript(
+                        "if (typeof $callback === 'function') $callback('No camera app available');",
+                        null
+                    )
+                }
+            }
+            cameraSuccessCallback = null
+            cameraErrorCallback = null
+            Toast.makeText(this, "No camera app available", Toast.LENGTH_SHORT).show()
         }
     }
 
