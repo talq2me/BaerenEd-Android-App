@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -33,6 +34,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 import android.util.Base64
+import android.net.Uri
+import android.graphics.BitmapFactory
 
 class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -59,6 +62,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var taskTitle: String? = null
     private var cameraSuccessCallback: String? = null
     private var cameraErrorCallback: String? = null
+    private var cameraImageFile: File? = null // Store file path for full resolution image
     
     // HTTP client for fetching JSON from GitHub
     private val httpClient = OkHttpClient.Builder()
@@ -671,37 +675,88 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         android.util.Log.d("WebGameActivity", "onActivityResult: requestCode=$requestCode, resultCode=$resultCode")
         if (requestCode == CAMERA_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                android.util.Log.d("WebGameActivity", "Camera result OK, extracting bitmap")
-                val imageBitmap = data?.extras?.get("data") as? Bitmap
-                if (imageBitmap != null) {
-                    android.util.Log.d("WebGameActivity", "Bitmap extracted: ${imageBitmap.width}x${imageBitmap.height}")
-                    // Convert bitmap to base64
-                    val base64 = bitmapToBase64(imageBitmap)
-                    android.util.Log.d("WebGameActivity", "Bitmap converted to base64, length: ${base64.length}")
-                    // Call JavaScript success callback
-                    cameraSuccessCallback?.let { callback ->
-                        runOnUiThread {
-                            android.util.Log.d("WebGameActivity", "Calling success callback: $callback")
-                            // Escape the base64 string for JavaScript - need to escape JSON properly
-                            val jsonBase64 = base64.replace("\\", "\\\\")
-                                .replace("\"", "\\\"")
-                                .replace("\n", "\\n")
-                                .replace("\r", "\\r")
-                            webView.evaluateJavascript(
-                                "if (typeof window.$callback === 'function') window.$callback('data:image/jpeg;base64,$jsonBase64'); else console.error('Callback function $callback not found');",
-                                null
-                            )
+                android.util.Log.d("WebGameActivity", "Camera result OK, reading full resolution image from file")
+                
+                // Read full resolution image from file
+                val imageFile = cameraImageFile
+                if (imageFile != null && imageFile.exists()) {
+                    try {
+                        // Read the full resolution image file
+                        val imageUri = FileProvider.getUriForFile(
+                            this,
+                            "${packageName}.fileprovider",
+                            imageFile
+                        )
+                        
+                        // Load bitmap from file at full resolution
+                        val inputStream = contentResolver.openInputStream(imageUri)
+                        val imageBitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+                        inputStream?.close()
+                        
+                        if (imageBitmap != null) {
+                            android.util.Log.d("WebGameActivity", "Full resolution bitmap loaded: ${imageBitmap.width}x${imageBitmap.height}")
+                            // Convert bitmap to base64 (full resolution)
+                            val base64 = bitmapToBase64(imageBitmap)
+                            android.util.Log.d("WebGameActivity", "Bitmap converted to base64, length: ${base64.length}")
+                            
+                            // Clean up - delete temporary file after reading
+                            try {
+                                imageFile.delete()
+                                android.util.Log.d("WebGameActivity", "Temporary camera file deleted")
+                            } catch (e: Exception) {
+                                android.util.Log.w("WebGameActivity", "Could not delete temp file", e)
+                            }
+                            
+                            // Call JavaScript success callback
+                            cameraSuccessCallback?.let { callback ->
+                                runOnUiThread {
+                                    android.util.Log.d("WebGameActivity", "Calling success callback: $callback")
+                                    // Escape the base64 string for JavaScript - need to escape JSON properly
+                                    val jsonBase64 = base64.replace("\\", "\\\\")
+                                        .replace("\"", "\\\"")
+                                        .replace("\n", "\\n")
+                                        .replace("\r", "\\r")
+                                    webView.evaluateJavascript(
+                                        "if (typeof window.$callback === 'function') window.$callback('data:image/jpeg;base64,$jsonBase64'); else console.error('Callback function $callback not found');",
+                                        null
+                                    )
+                                }
+                            } ?: run {
+                                android.util.Log.e("WebGameActivity", "No success callback stored!")
+                            }
+                        } else {
+                            android.util.Log.e("WebGameActivity", "Could not decode bitmap from file")
+                            // Clean up file
+                            try { imageFile.delete() } catch (e: Exception) {}
+                            cameraErrorCallback?.let { callback ->
+                                runOnUiThread {
+                                    webView.evaluateJavascript(
+                                        "if (typeof window.$callback === 'function') window.$callback('Could not read image file'); else console.error('Callback function $callback not found');",
+                                        null
+                                    )
+                                }
+                            }
                         }
-                    } ?: run {
-                        android.util.Log.e("WebGameActivity", "No success callback stored!")
+                    } catch (e: Exception) {
+                        android.util.Log.e("WebGameActivity", "Error reading image file", e)
+                        // Clean up file
+                        try { imageFile.delete() } catch (ex: Exception) {}
+                        cameraErrorCallback?.let { callback ->
+                            runOnUiThread {
+                                val errorMsg = (e.message ?: "Error reading image").replace("'", "\\'")
+                                webView.evaluateJavascript(
+                                    "if (typeof window.$callback === 'function') window.$callback('$errorMsg'); else console.error('Callback function $callback not found');",
+                                    null
+                                )
+                            }
+                        }
                     }
                 } else {
-                    android.util.Log.e("WebGameActivity", "No bitmap in camera result")
-                    // No image captured
+                    android.util.Log.e("WebGameActivity", "Image file not found or not created")
                     cameraErrorCallback?.let { callback ->
                         runOnUiThread {
                             webView.evaluateJavascript(
-                                "if (typeof window.$callback === 'function') window.$callback('No image captured'); else console.error('Callback function $callback not found');",
+                                "if (typeof window.$callback === 'function') window.$callback('Image file not found'); else console.error('Callback function $callback not found');",
                                 null
                             )
                         }
@@ -709,6 +764,10 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             } else {
                 android.util.Log.d("WebGameActivity", "Camera result cancelled or error: $resultCode")
+                // Clean up file if it was created
+                cameraImageFile?.let { file ->
+                    try { file.delete() } catch (e: Exception) {}
+                }
                 // User cancelled or error
                 cameraErrorCallback?.let { callback ->
                     runOnUiThread {
@@ -719,9 +778,10 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 }
             }
-            // Clear callbacks
+            // Clear callbacks and file reference
             cameraSuccessCallback = null
             cameraErrorCallback = null
+            cameraImageFile = null
         }
     }
 
