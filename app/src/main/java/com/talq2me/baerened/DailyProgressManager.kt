@@ -1302,6 +1302,20 @@ class DailyProgressManager(private val context: Context) {
         val kid = getCurrentKid()
         val cloudKid = toCloudProfile(kid)
         prefs.edit().putInt("${cloudKid}_$KEY_POKEMON_UNLOCKED", count).apply()
+        
+        // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
+        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+        val now = java.util.Date()
+        val offsetMillis = estTimeZone.getOffset(now.time)
+        val offsetHours = offsetMillis / (1000 * 60 * 60)
+        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
+        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
+        dateFormat.timeZone = estTimeZone
+        val lastUpdatedTimestamp = dateFormat.format(now) + offsetString
+        
+        prefs.edit().putString("${cloudKid}_last_updated_timestamp", lastUpdatedTimestamp).apply()
+        Log.d("DailyProgressManager", "Set unlocked Pokemon count to $count for profile: $cloudKid, updated last_updated: $lastUpdatedTimestamp")
     }
 
     /**
@@ -1442,13 +1456,19 @@ class DailyProgressManager(private val context: Context) {
         dateFormat.timeZone = estTimeZone
         val timestamp = dateFormat.format(now) + offsetString
         
+        // Update last_updated timestamp (in EST format) as per Daily Reset Logic
+        // Reuse the same timestamp since both represent "now" in EST
+        val lastUpdatedKey = "${profile}_last_updated"
+        val lastUpdatedTimestamp = timestamp
+        
         prefs.edit()
             .remove(key) // Explicitly remove to avoid type conflicts
             .putInt(key, validatedMinutes)
             .putString(timestampKey, timestamp) // Store timestamp for this update
+            .putString(lastUpdatedKey, lastUpdatedTimestamp) // Update last_updated to trigger cloud sync
             .apply()
         
-        Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile, timestamp: $timestamp")
+        Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile, timestamp: $timestamp, last_updated: $lastUpdatedTimestamp")
         
         // Sync to cloud immediately (this will also update cloud timestamp)
         syncBankedMinutesToCloud(validatedMinutes)

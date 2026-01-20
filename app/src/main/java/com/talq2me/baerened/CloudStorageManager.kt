@@ -222,7 +222,8 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                     
                     if (cloudTimestamp != null) {
                         val prefs = context.getSharedPreferences("baeren_shared_settings", Context.MODE_PRIVATE)
-                        val localTimestamp = prefs.getString("banked_mins_timestamp", null)
+                        // Use profile-specific timestamp key to match DailyProgressManager
+                        val localTimestamp = prefs.getString("${profile}_banked_reward_minutes_timestamp", null)
                         
                         if (localTimestamp != null) {
                             val cloudIsNewer = compareTimestamps(cloudTimestamp, localTimestamp) > 0

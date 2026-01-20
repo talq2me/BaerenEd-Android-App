@@ -404,6 +404,9 @@ object SettingsManager {
         }
         Log.d(TAG, "Profile written: $newProfile, timestamp: $timestamp")
         
+        // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
+        updateLastUpdatedTimestamp(context, newProfile)
+        
         // Sync to cloud devices table asynchronously
         syncActiveProfileToCloudAsync(context, newProfile)
     }
@@ -429,6 +432,18 @@ object SettingsManager {
         val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
         dateFormat.timeZone = estTimeZone
         return dateFormat.format(now) + offsetString
+    }
+    
+    /**
+     * Updates last_updated timestamp in daily_progress_prefs to trigger cloud sync
+     * This is called whenever settings that should sync to cloud are changed (as per Daily Reset Logic)
+     */
+    private fun updateLastUpdatedTimestamp(context: Context, profile: String) {
+        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+        val timestamp = generateESTTimestamp()
+        val key = "${profile}_last_updated_timestamp"
+        progressPrefs.edit().putString(key, timestamp).apply()
+        Log.d(TAG, "Updated last_updated timestamp for profile $profile: $timestamp")
     }
     
     /**
@@ -559,6 +574,10 @@ object SettingsManager {
         prefs.edit().putString("settings_timestamp", timestamp).apply()
         Log.d(TAG, "PIN written, timestamp: $timestamp")
         
+        // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
+        val profile = readProfile(context) ?: "AM"
+        updateLastUpdatedTimestamp(context, profile)
+        
         // Save to local storage immediately for offline persistence
         saveSettingsToLocal(context, updatedSettings)
         
@@ -644,6 +663,10 @@ object SettingsManager {
         val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putString("settings_timestamp", timestamp).apply()
         Log.d(TAG, "Email written, timestamp: $timestamp")
+        
+        // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
+        val profile = readProfile(context) ?: "AM"
+        updateLastUpdatedTimestamp(context, profile)
         
         // Save to local storage immediately for offline persistence
         saveSettingsToLocal(context, updatedSettings)

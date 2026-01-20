@@ -567,7 +567,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         return@Thread
                     }
                     
-                    // Create JSON body for UPSERT (Supabase will merge on conflict with unique constraint)
+                    // Create JSON body for UPSERT
                     val requestBody = JSONObject().apply {
                         put("profile", profile)
                         put("task", task)
@@ -575,30 +575,71 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         put("capture_date_time", captureDateTime)
                     }
                     
-                    // Use UPSERT: POST with Prefer: resolution=merge-duplicates
-                    // This will INSERT if new, UPDATE if (profile, task) already exists
-                    val url = "$supabaseUrl/rest/v1/image_uploads"
                     val mediaType = "application/json".toMediaType()
                     val body = requestBody.toString().toRequestBody(mediaType)
                     
-                    val request = Request.Builder()
-                        .url(url)
-                        .post(body)
+                    android.util.Log.d("WebGameActivity", "Uploading image (profile=$profile, task=$task)")
+                    
+                    // Try PATCH first (UPDATE if exists)
+                    val patchUrl = "$supabaseUrl/rest/v1/image_uploads?profile=eq.$profile&task=eq.$task"
+                    val patchRequest = Request.Builder()
+                        .url(patchUrl)
+                        .patch(body)
                         .addHeader("apikey", supabaseKey)
                         .addHeader("Authorization", "Bearer $supabaseKey")
                         .addHeader("Content-Type", "application/json")
-                        .addHeader("Prefer", "resolution=merge-duplicates")
+                        .addHeader("Prefer", "return=representation")
                         .build()
                     
-                    android.util.Log.d("WebGameActivity", "Sending POST request to: $url")
-                    
-                    val response = httpClient.newCall(request).execute()
+                    android.util.Log.d("WebGameActivity", "Trying PATCH first: $patchUrl")
+                    var response = httpClient.newCall(patchRequest).execute()
                     val responseBody = response.body?.string()
+                    android.util.Log.d("WebGameActivity", "PATCH response code: ${response.code}")
                     
-                    android.util.Log.d("WebGameActivity", "Upload response code: ${response.code}")
-                    
-                    if (response.isSuccessful) {
-                        android.util.Log.d("WebGameActivity", "Upload successful")
+                    // If PATCH returns 404 or 0 rows updated, do INSERT
+                    if (response.code == 404 || (response.isSuccessful && responseBody != null && responseBody == "[]")) {
+                        android.util.Log.d("WebGameActivity", "Record doesn't exist, doing INSERT")
+                        response.close()
+                        
+                        // INSERT new record
+                        val postUrl = "$supabaseUrl/rest/v1/image_uploads"
+                        val postRequest = Request.Builder()
+                            .url(postUrl)
+                            .post(body)
+                            .addHeader("apikey", supabaseKey)
+                            .addHeader("Authorization", "Bearer $supabaseKey")
+                            .addHeader("Content-Type", "application/json")
+                            .addHeader("Prefer", "return=representation")
+                            .build()
+                        
+                        android.util.Log.d("WebGameActivity", "Sending POST request: $postUrl")
+                        response = httpClient.newCall(postRequest).execute()
+                        val postResponseBody = response.body?.string()
+                        android.util.Log.d("WebGameActivity", "POST response code: ${response.code}")
+                        
+                        if (response.isSuccessful) {
+                            android.util.Log.d("WebGameActivity", "INSERT successful")
+                            runOnUiThread {
+                                val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
+                                webView.evaluateJavascript(
+                                    "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']();",
+                                    null
+                                )
+                            }
+                        } else {
+                            android.util.Log.e("WebGameActivity", "INSERT failed: ${response.code}, body: $postResponseBody")
+                            val errorMsg = (postResponseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
+                            runOnUiThread {
+                                val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                                webView.evaluateJavascript(
+                                    "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
+                                    null
+                                )
+                            }
+                        }
+                    } else if (response.isSuccessful) {
+                        // PATCH succeeded - record was updated
+                        android.util.Log.d("WebGameActivity", "UPDATE successful")
                         runOnUiThread {
                             val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
                             webView.evaluateJavascript(
@@ -607,7 +648,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             )
                         }
                     } else {
-                        android.util.Log.e("WebGameActivity", "Upload failed: ${response.code}, body: $responseBody")
+                        // PATCH failed for some other reason
+                        android.util.Log.e("WebGameActivity", "PATCH failed: ${response.code}, body: $responseBody")
                         val errorMsg = (responseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
