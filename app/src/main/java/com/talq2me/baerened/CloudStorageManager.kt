@@ -221,7 +221,8 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                     val cloudTimestamp = userData?.get("last_updated") as? String
                     
                     if (cloudTimestamp != null) {
-                        val prefs = context.getSharedPreferences("baeren_shared_settings", Context.MODE_PRIVATE)
+                        // Read from daily_progress_prefs to match where DailyProgressManager stores the timestamp
+                        val prefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
                         // Use profile-specific timestamp key to match DailyProgressManager
                         val localTimestamp = prefs.getString("${profile}_banked_reward_minutes_timestamp", null)
                         
