@@ -75,6 +75,7 @@
           "launch": "engSpellPhoto",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
           "stars": 3,
+          "disable": "Jan 1, 2027",
           "webGame": true,
           "extremedays": "mon,tue,wed",
           "easydays": "thu,fri",

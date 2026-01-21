@@ -1,185 +1,86 @@
 [
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴🔴🔴"
+      "text": "7 + 8 = ?"
     },
     "correctChoices": [
       {
-        "text": "4"
+        "text": "15"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "14"
       },
       {
-        "text": "9"
+        "text": "16"
       },
       {
-        "text": "6"
+        "text": "13"
       },
       {
-        "text": "2"
+        "text": "17"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴"
+      "text": "12 - 5 = ?"
     },
     "correctChoices": [
-      {
-        "text": "2"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "1"
-      },
       {
         "text": "7"
-      },
-      {
-        "text": "10"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴 - 🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "1"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "6"
       },
       {
         "text": "8"
-      },
-      {
-        "text": "9"
-      },
-      {
-        "text": "10"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴🔴🔴🔴 - 🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "4"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "1"
-      },
-      {
-        "text": "0"
-      },
-      {
-        "text": "2"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴🔴🔴 - 🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "3"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "1"
-      },
-      {
-        "text": "0"
       },
       {
         "text": "5"
       },
       {
-        "text": "2"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "1"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "4"
-      },
-      {
-        "text": "5"
-      },
-      {
-        "text": "6"
-      },
-      {
-        "text": "10"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? "
-    },
-    "correctChoices": [
-      {
-        "text": "0"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "8"
-      },
-      {
         "text": "9"
-      },
-      {
-        "text": "6"
-      },
-      {
-        "text": "10"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴 + 🔴"
+      "text": "9 + 6 = ?"
     },
     "correctChoices": [
       {
-        "text": "3"
+        "text": "15"
       }
     ],
     "extraChoices": [
       {
-        "text": "8"
+        "text": "14"
       },
+      {
+        "text": "16"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "17"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "16 - 8 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
       {
         "text": "7"
       },
@@ -188,51 +89,6 @@
       },
       {
         "text": "6"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴 + 🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "2"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "4"
-      },
-      {
-        "text": "1"
-      },
-      {
-        "text": "8"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? "
-    },
-    "correctChoices": [
-      {
-        "text": "0"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "4"
-      },
-      {
-        "text": "1"
       },
       {
         "text": "10"
@@ -241,22 +97,94 @@
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴"
+      "text": "5 + 9 = ?"
     },
     "correctChoices": [
       {
-        "text": "2"
+        "text": "14"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "13"
       },
       {
-        "text": "4"
+        "text": "15"
       },
       {
-        "text": "0"
+        "text": "12"
+      },
+      {
+        "text": "16"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "11 - 4 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "7"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "6"
+      },
+      {
+        "text": "8"
+      },
+      {
+        "text": "5"
+      },
+      {
+        "text": "9"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "8 + 7 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "15"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "14"
+      },
+      {
+        "text": "16"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "17"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "14 - 6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
+      },
+      {
+        "text": "9"
+      },
+      {
+        "text": "6"
       },
       {
         "text": "10"
@@ -265,89 +193,122 @@
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴 + 🔴🔴🔴"
+      "text": "6 + 9 = ?"
     },
     "correctChoices": [
       {
-        "text": "4"
+        "text": "15"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "14"
       },
       {
-        "text": "0"
+        "text": "16"
       },
       {
-        "text": "9"
+        "text": "13"
       },
       {
-        "text": "2"
+        "text": "17"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? "
+      "text": "13 - 7 = ?"
     },
     "correctChoices": [
       {
-        "text": "0"
+        "text": "6"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
-      },
-      {
-        "text": "4"
-      },
-      {
-        "text": "8"
+        "text": "5"
       },
       {
         "text": "7"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴 + 🔴🔴🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "5"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "1"
       },
       {
         "text": "8"
       },
       {
-        "text": "9"
+        "text": "4"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴🔴 + 🔴🔴"
+      "text": "Is 9 greater than 6?"
     },
     "correctChoices": [
       {
-        "text": "5"
+        "text": "Yes"
       }
     ],
     "extraChoices": [
       {
-        "text": "4"
+        "text": "No"
       },
+      {
+        "text": "Equal"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Is 5 less than 8?"
+    },
+    "correctChoices": [
+      {
+        "text": "Yes"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "No"
+      },
+      {
+        "text": "Equal"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "What comes next? 5, 10, 15, ?"
+    },
+    "correctChoices": [
+      {
+        "text": "20"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "16"
+      },
+      {
+        "text": "18"
+      },
+      {
+        "text": "19"
+      },
+      {
+        "text": "21"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "What comes next? 2, 4, 6, ?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
       {
         "text": "7"
       },
@@ -356,51 +317,30 @@
       },
       {
         "text": "10"
+      },
+      {
+        "text": "5"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴"
+      "text": "17 - 9 = ?"
     },
     "correctChoices": [
       {
-        "text": "1"
+        "text": "8"
       }
     ],
     "extraChoices": [
       {
-        "text": "4"
-      },
-      {
-        "text": "8"
-      },
-      {
-        "text": "0"
-      },
-      {
-        "text": "6"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "1"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "8"
+        "text": "7"
       },
       {
         "text": "9"
+      },
+      {
+        "text": "6"
       },
       {
         "text": "10"
@@ -409,17 +349,38 @@
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴🔴🔴 - "
+      "text": "4 + 12 = ?"
     },
     "correctChoices": [
       {
-        "text": "4"
+        "text": "16"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "15"
       },
+      {
+        "text": "17"
+      },
+      {
+        "text": "14"
+      },
+      {
+        "text": "18"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "15 - 7 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
       {
         "text": "7"
       },
@@ -427,175 +388,286 @@
         "text": "9"
       },
       {
-        "text": "2"
+        "text": "6"
+      },
+      {
+        "text": "10"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴🔴"
+      "text": "8 + 9 = ?"
     },
     "correctChoices": [
       {
-        "text": "3"
+        "text": "17"
       }
     ],
     "extraChoices": [
       {
-        "text": "1"
+        "text": "16"
+      },
+      {
+        "text": "18"
+      },
+      {
+        "text": "15"
+      },
+      {
+        "text": "19"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "What is missing? 6 + ? = 14"
+    },
+    "correctChoices": [
+      {
+        "text": "8"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "7"
       },
       {
         "text": "9"
       },
       {
-        "text": "5"
+        "text": "6"
       },
       {
-        "text": "6"
+        "text": "10"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? "
+      "text": "What is missing? ? - 5 = 9"
     },
     "correctChoices": [
       {
-        "text": "0"
+        "text": "14"
       }
     ],
     "extraChoices": [
       {
-        "text": "4"
+        "text": "13"
       },
+      {
+        "text": "15"
+      },
+      {
+        "text": "12"
+      },
+      {
+        "text": "16"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "7 + 11 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "18"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "17"
+      },
+      {
+        "text": "19"
+      },
+      {
+        "text": "16"
+      },
+      {
+        "text": "20"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "19 - 6 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "13"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "12"
+      },
+      {
+        "text": "14"
+      },
+      {
+        "text": "11"
+      },
+      {
+        "text": "15"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "What comes next? 10, 12, 14, ?"
+    },
+    "correctChoices": [
+      {
+        "text": "16"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "15"
+      },
+      {
+        "text": "17"
+      },
+      {
+        "text": "13"
+      },
+      {
+        "text": "18"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Is 11 greater than 8?"
+    },
+    "correctChoices": [
+      {
+        "text": "Yes"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "No"
+      },
+      {
+        "text": "Equal"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Is 4 less than 10?"
+    },
+    "correctChoices": [
+      {
+        "text": "Yes"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "No"
+      },
+      {
+        "text": "Equal"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "3 + 14 = ?"
+    },
+    "correctChoices": [
+      {
+        "text": "17"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "16"
+      },
+      {
+        "text": "18"
+      },
+      {
+        "text": "15"
+      },
+      {
+        "text": "19"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "18 - 9 = ?"
+    },
+    "correctChoices": [
       {
         "text": "9"
-      },
-      {
-        "text": "6"
-      },
-      {
-        "text": "2"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴🔴🔴 + 🔴🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "6"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "8"
       },
       {
-        "text": "1"
+        "text": "10"
       },
       {
         "text": "7"
       },
       {
-        "text": "5"
+        "text": "11"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴🔴"
+      "text": "What is missing? 9 + ? = 16"
     },
     "correctChoices": [
       {
-        "text": "3"
+        "text": "7"
       }
     ],
     "extraChoices": [
       {
+        "text": "6"
+      },
+      {
         "text": "8"
       },
       {
-        "text": "0"
+        "text": "5"
       },
       {
         "text": "9"
-      },
-      {
-        "text": "6"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴"
+      "text": "What comes next? 0, 5, 10, 15, ?"
     },
     "correctChoices": [
       {
-        "text": "2"
+        "text": "20"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "16"
       },
       {
-        "text": "4"
+        "text": "18"
       },
       {
-        "text": "8"
+        "text": "19"
       },
       {
-        "text": "5"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "2"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "3"
-      },
-      {
-        "text": "8"
-      },
-      {
-        "text": "5"
-      },
-      {
-        "text": "6"
-      }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "How many dots? 🔴🔴"
-    },
-    "correctChoices": [
-      {
-        "text": "2"
-      }
-    ],
-    "extraChoices": [
-      {
-        "text": "1"
-      },
-      {
-        "text": "0"
-      },
-      {
-        "text": "9"
-      },
-      {
-        "text": "6"
+        "text": "21"
       }
     ]
   },
@@ -865,46 +937,46 @@
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴"
+      "text": "10 + 7 = ?"
     },
     "correctChoices": [
       {
-        "text": "1"
+        "text": "17"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "16"
       },
       {
-        "text": "9"
+        "text": "18"
       },
       {
-        "text": "5"
+        "text": "15"
       },
       {
-        "text": "6"
+        "text": "19"
       }
     ]
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴🔴"
+      "text": "13 - 5 = ?"
     },
     "correctChoices": [
       {
-        "text": "3"
+        "text": "8"
       }
     ],
     "extraChoices": [
       {
-        "text": "1"
+        "text": "7"
+      },
+      {
+        "text": "9"
       },
       {
         "text": "6"
-      },
-      {
-        "text": "2"
       },
       {
         "text": "10"
@@ -913,25 +985,25 @@
   },
   {
     "prompt": {
-      "text": "How many dots? 🔴🔴"
+      "text": "What is missing? ? + 4 = 13"
     },
     "correctChoices": [
       {
-        "text": "2"
+        "text": "9"
       }
     ],
     "extraChoices": [
       {
-        "text": "3"
+        "text": "8"
       },
       {
-        "text": "8"
+        "text": "10"
       },
       {
         "text": "7"
       },
       {
-        "text": "6"
+        "text": "11"
       }
     ]
   },
