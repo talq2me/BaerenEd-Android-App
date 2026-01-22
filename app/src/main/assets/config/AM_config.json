@@ -428,6 +428,11 @@
           "title": "Bill Nye S5",
           "launch": "PLPRHyuvWJ00aY9ADp6BllXvnTFxBT7YI8",
           "videoSequence": "playlist"
+        },
+        {
+          "title": "Printing Practice",
+          "launch": "printing",
+          "stars": 3
         }
       ]
     }
