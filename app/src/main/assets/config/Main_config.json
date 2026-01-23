@@ -12,6 +12,11 @@
       "title": "BM Tasks",
       "icon": "https://yourcdn.com/icons/moon.png",
       "configUrl": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/BM_config.json"
+    },
+    {
+      "title": "TE Tasks",
+      "icon": "https://yourcdn.com/icons/star.png",
+      "configUrl": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/TE_config.json"
     }
   ]
 }

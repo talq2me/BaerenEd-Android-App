@@ -54,12 +54,18 @@ class ProgressDataCollector(private val context: Context) {
         val possibleStars = progressPrefs.getInt(possibleStarsKey, 0)
         val bankedMinsKey = "${localProfileId}_banked_reward_minutes"
         val bankedMins = progressPrefs.getInt(bankedMinsKey, 0)
+        
+        // CRITICAL: Log what we're reading
+        Log.d(TAG, "CRITICAL: Reading bankedMins from SharedPreferences: $bankedMins (key: $bankedMinsKey) for profile: $localProfileId")
 
         // Get berries earned directly from SharedPreferences (profile-specific)
         val berriesKey = "${localProfileId}_earnedBerries"
         val berriesEarned = try {
-            context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+            val berries = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
                 .getInt(berriesKey, 0)
+            // CRITICAL: Log what we're reading
+            Log.d(TAG, "CRITICAL: Reading berries_earned from SharedPreferences: $berries (key: $berriesKey) for profile: $localProfileId")
+            berries
         } catch (e: Exception) {
             Log.e(TAG, "Error getting earned berries", e)
             0

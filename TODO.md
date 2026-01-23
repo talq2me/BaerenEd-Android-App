@@ -1,4 +1,5 @@
-
+remove checklist button
+remove 2 extra options in baerened settings>profiles
 
 
 wordfactory is conveyorbelt only include letters in the word in random order so it doens't take too long.

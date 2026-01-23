@@ -1,0 +1,446 @@
+{
+  "version": "2025-10-04",
+  "header": {
+    "buttons": [
+      {"label": "My Pokedex", "action": "openPokedex"},
+      {"label": "Ask for Time", "action": "askForTime"},
+      {"label": "Settings", "action": "settings"}
+    ]
+  },
+  "title": "Daily Homework Dashboard TE",
+
+  "progress": {
+    "starsEarned": 6,
+    "starsGoal": 10,
+    "message": "Earn stars to unlock your pokemon!"
+  },
+
+  "sections": [
+    {
+      "id": "required",
+      "title": "Required Tasks",
+      "description": "Complete all of these first!",
+      "tasks": [
+        {
+          "title": "Google Read Along",
+          "launch": "googleReadAlong",
+          "stars": 3
+        },
+        {
+          "title": "Boukili",
+          "launch": "boukili",
+          "stars": 3
+        },
+        {
+          "title": "Math",
+          "launch": "jkmath",
+          "stars": 3,
+          "totalQuestions": 5,
+          "displayDays": "mon,wed,fri"
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Jan 15, 2027",
+          "easydays": "mon,tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun"
+        },
+        {
+          "title": "Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=englishWordsGr1.json",
+          "stars": 3
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Jan 1, 2027",
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun"
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpellPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun"
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpellPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "disable": "Jan 1, 2027",
+          "webGame": true,
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun"
+        },
+        {
+          "title": "French Vowels",
+          "launch": "frenchVowels",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
+          "stars": 3,
+          "disable": "Jan 1, 2027",
+          "webGame": true
+        },
+        {
+          "title": "Time Telling",
+          "launch": "timeTelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5,
+          "displayDays": "thu"
+        },
+        {
+          "title": "Handwriting",
+          "launch": "handwriting",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
+          "stars": 3,
+          "disable": "Jan 15, 2026",
+          "webGame": true
+        },
+        {
+          "title": "Money Game",
+          "launch": "canadianMoneyEasy",
+          "stars": 3,
+          "totalQuestions": 5,
+          "displayDays": "tue"
+        },
+        {
+          "title": "Sentence Builder",
+          "launch": "englishSentences",
+          "stars": 3,
+          "totalQuestions": 3,
+          "blockOutlines": true
+        },
+        {
+          "title": "UFLI Words",
+          "launch": "ufliLessonData",
+          "stars": 3,
+          "totalQuestions": 5,
+          "blockOutlines": true,
+          "displayDays": "mon"
+        },
+        {
+          "title": "Snake Catch",
+          "launch": "snakeCatch",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri"
+        },
+
+        {
+          "title": "Math Hole",
+          "launch": "mathHole",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5,
+          "displayDays": "tue,fri"
+        },
+        {
+          "title": "Word Garden",
+          "launch": "wordGarden",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri"
+        },
+        {
+          "title": "Number Line Math",
+          "launch": "numberLineMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
+        },
+
+        {
+          "title": "Ten Frame Math",
+          "launch": "tenFrameMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Word Fishing",
+          "launch": "wordFishing",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "wed,sat"
+        },
+        {
+          "title": "Word Factory",
+          "launch": "wordFactory",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "thu,sun"
+        },
+        {
+          "title": "Kung Fu Form",
+          "launch": "noviceKungFuVideos",
+          "stars": 1,
+          "video": "SingleStepForm",
+          "disable": "Jan 2, 2026",
+          "videoSequence": "exact",
+          "displayDays": "sat"
+        },
+        {
+          "title": "Kung Fu",
+          "launch": "noviceKungFuVideos",
+          "disable": "Jan 2, 2026",
+          "stars": 1,
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "Facile A Lire 2",
+          "launch": "facileAlire2",
+          "disable": "Jan 2, 2027",
+          "stars": 3,
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "Google Classroom",
+          "launch": "googleClassroom",
+          "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
+          "stars": 3,
+          "chromePage": true,
+          "disable": "Jan 2, 2026",
+          "displayDays": "tue,fri"
+        },
+        {
+          "title": "Ufli Home Videos",
+          "launch": "uflivideos",
+          "stars": 3,
+          "disable": "Jan 2, 2027",
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "French UFLI",
+          "launch": "frenchUFLI",
+          "disable": "Jan 2, 2027",
+          "stars": 3,
+          "videoSequence": "sequential"
+        }
+      ]
+    },
+    {
+      "id": "checklist",
+      "title": "Checklist",
+      "description": "Mark each one when done",
+      "items": [
+        { "label": "Laundry", "stars": 1, "done": false, "id": "te_laundry" },
+        { "label": "Printing", "stars": 1, "done": false, "id": "te_printing" },
+        { "label": "Push ups: 15", "stars": 1, "done": false, "id": "te_push_ups" },
+        { "label": "Practice Kung Fu", "stars": 1, "done": false, "id": "te_practice_kung_fu" },
+        { "label": "Practice piano", "stars": 1, "done": false, "id": "te_practice_piano" }
+      ]
+    },
+    {
+      "id": "optional",
+      "title": "Extra Practice",
+      "description": "Optional tasks for more stars",
+      "tasks": [
+        {
+          "title": "Sight Words",
+          "launch": "sightWords",
+          "stars": 1,
+          "totalQuestions": 1
+        },
+        {
+          "title": "Math",
+          "launch": "jkmath",
+          "stars": 1,
+          "totalQuestions": 1
+        },
+        {
+          "title": "Sk Spellings",
+          "launch": "skSpelling",
+          "stars": 1,
+          "totalQuestions": 1
+        },
+        {
+          "title": "French Vowels",
+          "launch": "frenchVowels",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Time Telling",
+          "launch": "timeTelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Money Game",
+          "launch": "canadianMoneyEasy",
+          "stars": 1,
+          "totalQuestions": 1
+        },
+        {
+          "title": "Sentence Builder",
+          "launch": "englishSentences",
+          "stars": 1,
+          "totalQuestions": 1,
+          "blockOutlines": true
+        },
+        {
+          "title": "Ufli Home Videos",
+          "launch": "uflivideos",
+          "stars": 3,
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "UFLI Words",
+          "launch": "ufliLessonData",
+          "stars": 1,
+          "totalQuestions": 1,
+          "blockOutlines": true
+        }
+      ]
+    },
+    {
+      "id": "bonus",
+      "title": "Bonus Games",
+      "description": "Just for fun!",
+      "tasks": [
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Soda Pop",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Your Idol",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Golden",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "What It Sounds Like",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "How its Done",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "Take Down",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "kpop demon hunters",
+          "launch": "kpop",
+          "video": "What It Sounds Like",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "Mia Prep Gr 2 Reading",
+          "launch": "PLvJNSf-7NfrO21IXNGcDvHnSLUCq2nW9g",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Mia Prep Gr 2 Math",
+          "launch": "PLvJNSf-7NfrMwOT3dPTb2zXmcRAYzl9rX",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bluey",
+          "launch": "PL8QD6oFoDT8ZgR8vqV0LzSqWMD4HuZmnV",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "PJ Mask",
+          "launch": "PL32Hee-K_Qi9lT_5veXubI_FFJBDcvIP3",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Caillou",
+          "launch": "PLW1D29VIaBLihdWAChnj6pHDsnqp-w_-J",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Peppa Pig",
+          "launch": "PLwQp67ldSPkTHZ64YTCCbsHjhfbUnimpU",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Pokemon",
+          "launch": "PLVXmcWvDTic8tklSxa-yjywytmHrRVwxj",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Smurfs",
+          "launch": "PLEMKcYFLxBRCGy1HOTeh2z-4kHINkecy_",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Simon",
+          "launch": "PL5Y2erQEGaocoKEoCkI5uvrS1bmuId2tx",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Number Blocks",
+          "launch": "PLf7phGIMEHXqyT3mujiBxrZxA84_Zdk7L",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S1-2",
+          "launch": "PLPRHyuvWJ00a0gANRvcKGKL3i7GkqTfC8",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S3",
+          "launch": "PLPRHyuvWJ00aJ_8mB8conTRfmhooujIRt",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S4",
+          "launch": "PLPRHyuvWJ00YlKSWfJnX3pd21VvTJdU6h",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Bill Nye S5",
+          "launch": "PLPRHyuvWJ00aY9ADp6BllXvnTFxBT7YI8",
+          "videoSequence": "playlist"
+        },
+        {
+          "title": "Printing Practice",
+          "launch": "printing",
+          "stars": 3
+        }
+      ]
+    }
+  ]
+}

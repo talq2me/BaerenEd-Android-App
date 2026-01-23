@@ -97,8 +97,9 @@ ALTER TABLE user_data ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all operations" ON user_data;
 
 --insert default profile data: 
-insert into user_data (profile) values ('AM');
-insert into user_data (profile) values ('BM');
+insert into user_data (profile) values ('AM') ON CONFLICT (profile) DO NOTHING;
+insert into user_data (profile) values ('BM') ON CONFLICT (profile) DO NOTHING;
+INSERT INTO user_data (profile) VALUES ('TE') ON CONFLICT (profile) DO NOTHING;
 
 -- Create a policy that allows all operations (for development)
 -- In production, you should create more restrictive policies

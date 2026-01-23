@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#F5F5F5">
+
+    <!-- Sentence display -->
+    <TextView
+        android:id="@+id/sentenceTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:fontFamily="sans-serif" />
+
+    <!-- Current word to draw -->
+    <TextView
+        android:id="@+id/wordTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="36sp"
+        android:textColor="#333333"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:fontFamily="sans-serif-bold"
+        android:textStyle="bold" />
+
+    <!-- Stars and progress -->
+    <TextView
+        android:id="@+id/starsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="#FF6B35"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:fontFamily="sans-serif-medium" />
+
+    <!-- Drawing canvas with lined paper -->
+    <com.talq2me.baerened.DrawingCanvasView
+        android:id="@+id/drawingCanvas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp"
+        android:background="#FFFFFF" />
+
+    <!-- Tool buttons row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="8dp">
+
+        <Button
+            android:id="@+id/penButton"
+            android:text="✏️ Pen"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:textSize="18sp"
+            android:background="@drawable/button_rounded_primary"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/eraserButton"
+            android:text="🧹 Eraser"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:textSize="18sp"
+            android:background="@drawable/button_rounded_secondary"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:text="🗑️ Clear"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:textSize="18sp"
+            android:background="@drawable/button_rounded_secondary"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Check button -->
+    <Button
+        android:id="@+id/checkButton"
+        android:text="✓ Check"
+        android:layout_width="match_parent"
+        android:layout_height="84dp"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:background="@drawable/button_rounded_success"
+        android:textColor="#FFFFFF"
+        android:fontFamily="sans-serif-medium" />
+
+</LinearLayout>

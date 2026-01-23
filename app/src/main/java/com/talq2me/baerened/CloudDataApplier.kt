@@ -103,11 +103,20 @@ class CloudDataApplier(
             val bankedMinsKey = "${localProfile}_banked_reward_minutes"
             val possibleStarsKey = "${localProfile}_total_possible_stars"
             
+            // CRITICAL: Log what we're about to write
+            val oldBankedMins = progressPrefs.getInt(bankedMinsKey, -999)
+            Log.d(TAG, "CRITICAL: About to apply bankedMins from cloud - old value: $oldBankedMins, new value: ${data.bankedMins} for profile: $localProfile")
+            
+            // CRITICAL: Use commit() instead of apply() to ensure synchronous write
+            // This prevents race conditions where data might be read before it's written
             progressPrefs.edit()
                 .putInt(possibleStarsKey, data.possibleStars)
                 .putInt(bankedMinsKey, data.bankedMins)
-                .apply()
+                .commit()
             
+            // CRITICAL: Verify what was actually written
+            val writtenBankedMins = progressPrefs.getInt(bankedMinsKey, -999)
+            Log.d(TAG, "CRITICAL: After applying, bankedMins value in SharedPreferences: $writtenBankedMins (expected: ${data.bankedMins}) for profile: $localProfile")
             Log.d(TAG, "Applied progress metrics from cloud - possibleStars: ${data.possibleStars}, bankedMins: ${data.bankedMins} for profile: $localProfile")
 
             // Apply berries earned (store in pokemonBattleHub preferences where UI expects it, profile-specific)
@@ -115,9 +124,20 @@ class CloudDataApplier(
             try {
                 val berriesKey = "${localProfile}_earnedBerries"
                 val prefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+                
+                // CRITICAL: Log what we're about to write
+                val oldBerries = prefs.getInt(berriesKey, -999)
+                Log.d(TAG, "CRITICAL: About to apply berries_earned from cloud - old value: $oldBerries, new value: ${data.berriesEarned} for profile: $localProfile")
+                
+                // CRITICAL: Use commit() instead of apply() to ensure synchronous write
+                // This prevents race conditions where data might be read before it's written
                 prefs.edit()
                     .putInt(berriesKey, data.berriesEarned)
-                    .apply()
+                    .commit()
+                
+                // CRITICAL: Verify what was actually written
+                val writtenBerries = prefs.getInt(berriesKey, -999)
+                Log.d(TAG, "CRITICAL: After applying, berries_earned value in SharedPreferences: $writtenBerries (expected: ${data.berriesEarned}) for profile: $localProfile")
                 Log.d(TAG, "Applied berries_earned from cloud: ${data.berriesEarned} for profile: $localProfile")
             } catch (e: Exception) {
                 Log.e(TAG, "Error applying berries to local storage", e)

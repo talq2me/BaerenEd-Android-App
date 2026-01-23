@@ -976,12 +976,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun getOrCreateProfile(): String? {
         SettingsManager.readProfile(this)?.let { return it }
 
-        val profiles = arrayOf("Profile A", "Profile B")
+        val availableProfiles = SettingsManager.getAvailableProfiles(this)
+        val displayNames = SettingsManager.getProfileDisplayNames()
+        val profileDisplayNames = availableProfiles.map { displayNames[it] ?: "Profile $it" }.toTypedArray()
         AlertDialog.Builder(this)
             .setTitle("Select User Profile")
             .setCancelable(false)
-            .setItems(profiles) { _, which ->
-                val selectedProfile = if (which == 0) "AM" else "BM"
+            .setItems(profileDisplayNames) { _, which ->
+                val selectedProfile = availableProfiles[which]
                 SettingsManager.writeProfile(this, selectedProfile)
                 finishAffinity()
                 startActivity(Intent(this, MainActivity::class.java))
@@ -991,12 +993,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showChangeProfileDialog() {
-        val profiles = arrayOf("Profile A", "Profile B")
+        val availableProfiles = SettingsManager.getAvailableProfiles(this)
+        val displayNames = SettingsManager.getProfileDisplayNames()
+        val profileDisplayNames = availableProfiles.map { displayNames[it] ?: "Profile $it" }.toTypedArray()
         val currentProfile = SettingsManager.readProfile(this)
         AlertDialog.Builder(this)
             .setTitle("Select User Profile")
-            .setItems(profiles) { _, which ->
-                val selectedProfile = if (which == 0) "AM" else "BM"
+            .setItems(profileDisplayNames) { _, which ->
+                val selectedProfile = availableProfiles[which]
                 if (currentProfile != selectedProfile) {
                     SettingsManager.writeProfile(this, selectedProfile)
                     finishAffinity()
@@ -1676,7 +1680,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
 
             val currentKid = progressManager.getCurrentKid()
-            val childName = if (currentKid == "A") "AM" else "BM"
+            val childName = when (currentKid) { "A" -> "AM"; "B" -> "BM"; else -> currentKid }
 
             val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
 
@@ -1724,7 +1728,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
 
             val currentKid = progressManager.getCurrentKid()
-            val childName = if (currentKid == "A") "AM" else "BM"
+            val childName = when (currentKid) { "A" -> "AM"; "B" -> "BM"; else -> currentKid }
 
             // Log the reward minutes being used for the report (should match what's sent to BaerenLock)
             Log.d(TAG, "Generating report with reward minutes: $rewardMinutes (will be sent to BaerenLock)")
@@ -2086,6 +2090,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     return
                 }
 
+                // Check if this is the printing game (doesn't need JSON)
+                if (game.type == "printing") {
+                    launchPrintingGame(game, sectionId, battleHubTaskId)
+                    return
+                }
+
                 if (gameContent != null) {
                     launchGameActivity(game, gameContent, sectionId, battleHubTaskId)
                 } else {
@@ -2104,20 +2114,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         Log.d(TAG, "Selecting profile with config URL: $configUrl")
 
-        when {
-            configUrl.contains("AM_config.json") -> {
-                SettingsManager.writeProfile(this, "AM")
-                Toast.makeText(this, "Selected AM profile", Toast.LENGTH_SHORT).show()
-            }
-            configUrl.contains("BM_config.json") -> {
-                SettingsManager.writeProfile(this, "BM")
-                Toast.makeText(this, "Selected BM profile", Toast.LENGTH_SHORT).show()
-            }
+        val profileId = when {
+            configUrl.contains("AM_config.json") -> "AM"
+            configUrl.contains("BM_config.json") -> "BM"
+            configUrl.contains("TE_config.json") -> "TE"
             else -> {
-                Toast.makeText(this, "Unknown profile configuration", Toast.LENGTH_SHORT).show()
-                return
+                // Generic: extract from {ProfileId}_config.json
+                val match = Regex("([A-Z]{2})_config\\.json").find(configUrl)
+                if (match != null) {
+                    match.groupValues[1]
+                } else {
+                    Toast.makeText(this, "Unknown profile configuration", Toast.LENGTH_SHORT).show()
+                    return
+                }
             }
         }
+        SettingsManager.writeProfile(this, profileId)
+        Toast.makeText(this, "Selected $profileId profile", Toast.LENGTH_SHORT).show()
 
         contentUpdateService.clearCache(this)
 
@@ -2135,6 +2148,28 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setPositiveButton("OK") { _, _ -> }
             .setCancelable(false)
             .show()
+    }
+
+    private fun launchPrintingGame(game: Game, sectionId: String?, battleHubTaskId: String?) {
+        val gameType = game.type
+        val gameTitle = game.title
+        val stars = game.estimatedTime
+        val isRequired = sectionId == "required"
+        
+        val intent = Intent(this, PrintingGameActivity::class.java).apply {
+            putExtra("GAME_TYPE", gameType)
+            putExtra("GAME_TITLE", gameTitle)
+            putExtra("GAME_STARS", stars)
+            putExtra("IS_REQUIRED_GAME", isRequired)
+            sectionId?.let { putExtra("SECTION_ID", it) }
+            battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+        }
+        
+        if (battleHubTaskId != null) {
+            gameCompletionLauncher.launch(intent)
+        } else {
+            startActivity(intent)
+        }
     }
 
     private fun launchGameActivity(game: Game, gameContent: String, sectionId: String? = null, battleHubTaskId: String? = null) {

@@ -711,7 +711,7 @@ object SettingsManager {
         } catch (e: Exception) {
             Log.e(TAG, "Error detecting available profiles", e)
             // Fallback to basic profiles if detection fails
-            return listOf("AM", "BM")
+            return listOf("AM", "BM", "TE")
         }
 
         return availableProfiles
@@ -724,7 +724,8 @@ object SettingsManager {
     fun getProfileDisplayNames(): Map<String, String> {
         return mapOf(
             "AM" to "AM Profile",
-            "BM" to "BM Profile"
+            "BM" to "BM Profile",
+            "TE" to "TE Profile"
         )
     }
 

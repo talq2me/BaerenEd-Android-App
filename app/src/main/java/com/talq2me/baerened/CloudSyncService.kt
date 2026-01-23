@@ -2,6 +2,10 @@ package com.talq2me.baerened
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -288,10 +292,27 @@ class CloudSyncService {
 
             if (response.isSuccessful) {
                 val responseBody = response.body?.string() ?: "[]"
-                val dataList: List<CloudUserData> = gson.fromJson(
-                    responseBody,
-                    object : TypeToken<List<CloudUserData>>() {}.type
-                )
+                
+                // CRITICAL: Handle JSONB fields that might be returned as strings (double-encoded)
+                // Supabase sometimes returns JSONB columns as JSON strings instead of objects
+                Log.d(TAG, "Raw response body length: ${responseBody.length}")
+                val fixedResponseBody = try {
+                    fixJsonbStringFields(responseBody)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error fixing JSONB fields, using original response: ${e.message}")
+                    responseBody
+                }
+                
+                val dataList: List<CloudUserData> = try {
+                    gson.fromJson(
+                        fixedResponseBody,
+                        object : TypeToken<List<CloudUserData>>() {}.type
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing response after fixing JSONB fields")
+                    Log.e(TAG, "Response body (first 500 chars): ${fixedResponseBody.take(500)}")
+                    throw e
+                }
 
                 val userData = dataList.firstOrNull()
                 response.close()
@@ -425,6 +446,77 @@ class CloudSyncService {
         } catch (e: Exception) {
             Log.e(TAG, "Error resetting progress in cloud", e)
             Result.failure(e)
+        }
+    }
+    
+    /**
+     * Fixes JSONB fields that are returned as JSON strings instead of objects.
+     * Supabase sometimes returns JSONB columns as escaped JSON strings, which causes
+     * Gson parsing errors. This function converts those string fields back to objects.
+     * 
+     * @param jsonResponse The raw JSON response from Supabase
+     * @return Fixed JSON string with JSONB fields converted from strings to objects
+     */
+    private fun fixJsonbStringFields(jsonResponse: String): String {
+        try {
+            val jsonElement = JsonParser.parseString(jsonResponse)
+            
+            // If it's an array (list of user_data records)
+            if (jsonElement.isJsonArray) {
+                val jsonArray = jsonElement.asJsonArray
+                jsonArray.forEach { element ->
+                    if (element.isJsonObject) {
+                        fixJsonbFieldsInObject(element.asJsonObject)
+                    }
+                }
+            } else if (jsonElement.isJsonObject) {
+                // If it's a single object
+                fixJsonbFieldsInObject(jsonElement.asJsonObject)
+            }
+            
+            return gson.toJson(jsonElement)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error fixing JSONB string fields, returning original response: ${e.message}")
+            return jsonResponse
+        }
+    }
+    
+    /**
+     * Recursively fixes JSONB fields in a JsonObject that are stored as strings.
+     * Fields that should be objects: required_tasks, practice_tasks, checklist_items, game_indices
+     */
+    private fun fixJsonbFieldsInObject(obj: JsonObject) {
+        // List of JSONB fields that should be objects, not strings
+        val jsonbFields = listOf("required_tasks", "practice_tasks", "checklist_items", "game_indices")
+        
+        jsonbFields.forEach { fieldName ->
+            val field = obj.get(fieldName)
+            if (field != null) {
+                if (field.isJsonPrimitive && field.asJsonPrimitive.isString) {
+                    try {
+                        // Parse the string as JSON
+                        val stringValue = field.asString
+                        if (stringValue.isNotBlank() && stringValue != "null") {
+                            val parsedJson = JsonParser.parseString(stringValue)
+                            obj.add(fieldName, parsedJson)
+                            Log.d(TAG, "Fixed JSONB field '$fieldName' from string to object")
+                        } else {
+                            // Empty string or "null" should be an empty object
+                            obj.add(fieldName, JsonObject())
+                            Log.d(TAG, "Fixed JSONB field '$fieldName' from empty/null string to empty object")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Error parsing JSONB field '$fieldName' as JSON, setting to empty object: ${e.message}")
+                        // If parsing fails, set it to empty object to prevent crash
+                        obj.add(fieldName, JsonObject())
+                    }
+                } else if (field.isJsonNull) {
+                    // Null field should be an empty object
+                    obj.add(fieldName, JsonObject())
+                    Log.d(TAG, "Fixed JSONB field '$fieldName' from null to empty object")
+                }
+                // If it's already an object or array, leave it as is
+            }
         }
     }
 }

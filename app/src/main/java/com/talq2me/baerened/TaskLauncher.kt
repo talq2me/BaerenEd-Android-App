@@ -84,6 +84,14 @@ class TaskLauncher(
             task.launch == "frenchBookReader" -> {
                 launchFrenchBookReader(resultHandler)
             }
+            // Printing Game
+            task.launch == "printing" -> {
+                launchPrintingGame(task, sectionId, sourceTaskId, resultHandler)
+            }
+            // Spelling OCR Game
+            task.launch == "spellingOCR" -> {
+                launchSpellingOCRGame(task, sectionId, sourceTaskId, resultHandler)
+            }
             // Regular game tasks
             else -> {
                 launchGameTask(task, sectionId, sourceTaskId, resultHandler)
@@ -239,6 +247,84 @@ class TaskLauncher(
         Log.d(TAG, "Launching French Book Reader")
         val intent = Intent(context, FrenchBookReaderActivity::class.java)
         resultHandler?.launchActivity(intent) ?: (context as? Activity)?.startActivity(intent)
+    }
+
+    /**
+     * Launch Printing Game
+     */
+    private fun launchPrintingGame(task: Task, sectionId: String, sourceTaskId: String?, resultHandler: ActivityResultHandler?) {
+        Log.d(TAG, "Launching Printing Game: ${task.title}")
+        val gameType = task.launch ?: "printing"
+        val gameTitle = task.title ?: "Printing Practice"
+        val stars = task.stars ?: 1
+        
+        // Determine if game is required (check if in required section)
+        val isRequired = sectionId == "required"
+        
+        val intent = Intent(context, PrintingGameActivity::class.java).apply {
+            putExtra("GAME_TYPE", gameType)
+            putExtra("GAME_TITLE", gameTitle)
+            putExtra("GAME_STARS", stars)
+            putExtra("IS_REQUIRED_GAME", isRequired)
+            putExtra("SECTION_ID", sectionId)
+            sourceTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+        }
+        
+        resultHandler?.launchActivity(intent, 1005) ?: (context as? Activity)?.startActivityForResult(intent, 1005)
+    }
+
+    /**
+     * Launch Spelling OCR Game
+     */
+    private fun launchSpellingOCRGame(task: Task, sectionId: String, sourceTaskId: String?, resultHandler: ActivityResultHandler?) {
+        Log.d(TAG, "Launching Spelling OCR Game: ${task.title}")
+        val gameType = task.launch ?: "spellingOCR"
+        val gameTitle = task.title ?: "Spelling OCR"
+        val stars = task.stars ?: 1
+        
+        // Determine if game is required (check if in required section)
+        val isRequired = sectionId == "required"
+        
+        // Get word file from task config, default to englishWordsGr1.json
+        val wordFile = when {
+            task.url == null -> {
+                Log.d(TAG, "Task URL is null, using default: englishWordsGr1.json")
+                "englishWordsGr1.json"
+            }
+            task.url.contains("file=") -> {
+                // Extract filename from URL like "file=englishWordsGr1.json" or "?file=englishWordsGr1.json&other=params"
+                val extracted = task.url.substringAfter("file=").substringBefore("&").trim()
+                if (extracted.isNotEmpty() && extracted.endsWith(".json")) {
+                    Log.d(TAG, "Extracted word file from URL: $extracted")
+                    extracted
+                } else {
+                    Log.w(TAG, "Extracted value '$extracted' doesn't look like a JSON file, using default")
+                    "englishWordsGr1.json"
+                }
+            }
+            task.url.endsWith(".json") -> {
+                // URL is just the filename
+                Log.d(TAG, "URL is just the filename: ${task.url}")
+                task.url
+            }
+            else -> {
+                Log.w(TAG, "URL format not recognized: ${task.url}, using default")
+                "englishWordsGr1.json"
+            }
+        }
+        Log.d(TAG, "Spelling OCR word file: $wordFile")
+        
+        val intent = Intent(context, SpellingOCRActivity::class.java).apply {
+            putExtra("GAME_TYPE", gameType)
+            putExtra("GAME_TITLE", gameTitle)
+            putExtra("GAME_STARS", stars)
+            putExtra("IS_REQUIRED_GAME", isRequired)
+            putExtra("SECTION_ID", sectionId)
+            putExtra("WORD_FILE", wordFile)
+            sourceTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+        }
+        
+        resultHandler?.launchActivity(intent, 1006) ?: (context as? Activity)?.startActivityForResult(intent, 1006)
     }
 
     /**

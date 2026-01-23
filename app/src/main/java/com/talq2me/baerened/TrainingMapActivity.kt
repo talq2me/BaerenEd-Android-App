@@ -850,6 +850,42 @@ class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
+        // Check for Printing Game (doesn't need JSON)
+        if (gameType == "printing") {
+            val game = Game(
+                id = gameType,
+                title = gameTitle,
+                description = "Educational activity",
+                type = gameType,
+                iconUrl = "",
+                requiresRewardTime = false,
+                difficulty = "Easy",
+                estimatedTime = task.stars ?: 1,
+                totalQuestions = task.totalQuestions,
+                blockOutlines = task.blockOutlines ?: false
+            )
+            launchPrintingGame(game, sectionId)
+            return
+        }
+        
+        // Check for Spelling OCR Game (doesn't need JSON)
+        if (gameType == "spellingOCR") {
+            val game = Game(
+                id = gameType,
+                title = gameTitle,
+                description = "Educational activity",
+                type = gameType,
+                iconUrl = "",
+                requiresRewardTime = false,
+                difficulty = "Easy",
+                estimatedTime = task.stars ?: 1,
+                totalQuestions = task.totalQuestions,
+                blockOutlines = task.blockOutlines ?: false
+            )
+            launchSpellingOCRGame(game, sectionId, task)
+            return
+        }
+        
         // Handle regular game content - use same logic as Layout.kt
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -899,6 +935,54 @@ class TrainingMapActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+    
+    private fun launchPrintingGame(game: Game, sectionId: String) {
+        val gameType = game.type
+        val gameTitle = game.title
+        val stars = game.estimatedTime
+        val isRequired = sectionId == "required"
+        
+        val intent = Intent(this, PrintingGameActivity::class.java).apply {
+            putExtra("GAME_TYPE", gameType)
+            putExtra("GAME_TITLE", gameTitle)
+            putExtra("GAME_STARS", stars)
+            putExtra("IS_REQUIRED_GAME", isRequired)
+            putExtra("SECTION_ID", sectionId)
+        }
+        
+        startActivityForResult(intent, 1005) // Use 1005 for PrintingGameActivity
+    }
+    
+    private fun launchSpellingOCRGame(game: Game, sectionId: String, task: Task) {
+        val gameType = game.type
+        val gameTitle = game.title
+        val stars = game.estimatedTime
+        val isRequired = sectionId == "required"
+        
+        // Extract word file from task URL, default to englishWordsGr1.json
+        val wordFile = when {
+            task.url == null -> "englishWordsGr1.json"
+            task.url.contains("file=") -> {
+                val extracted = task.url.substringAfter("file=").substringBefore("&").trim()
+                if (extracted.isNotEmpty() && extracted.endsWith(".json")) extracted else "englishWordsGr1.json"
+            }
+            task.url.endsWith(".json") -> task.url
+            else -> "englishWordsGr1.json"
+        }
+        
+        android.util.Log.d("TrainingMapActivity", "Launching Spelling OCR Game with word file: $wordFile")
+        
+        val intent = Intent(this, SpellingOCRActivity::class.java).apply {
+            putExtra("GAME_TYPE", gameType)
+            putExtra("GAME_TITLE", gameTitle)
+            putExtra("GAME_STARS", stars)
+            putExtra("IS_REQUIRED_GAME", isRequired)
+            putExtra("SECTION_ID", sectionId)
+            putExtra("WORD_FILE", wordFile)
+        }
+        
+        startActivityForResult(intent, 1006) // Use 1006 for SpellingOCRActivity
     }
     
     private fun launchGameActivity(game: Game, gameContent: String, sectionId: String) {
@@ -1031,6 +1115,98 @@ class TrainingMapActivity : AppCompatActivity() {
             }
         }
         
+        // Handle PrintingGameActivity result (same format as GameActivity)
+        if (requestCode == 1005 && resultCode == RESULT_OK && data != null) {
+            val gameType = data.getStringExtra("GAME_TYPE")
+            val gameStars = data.getIntExtra("GAME_STARS", 0)
+            
+            // Use the stored section ID from when we launched the game
+            val gameSectionId = lastLaunchedGameSectionId ?: mapType
+            
+            if (!gameType.isNullOrEmpty()) {
+                // Find the task in currentContent to get its title
+                var gameTitle = "Game: $gameType"
+                currentContent?.sections?.forEach { section ->
+                    section.tasks?.find { it.launch == gameType }?.let { task ->
+                        gameTitle = task.title ?: gameTitle
+                    }
+                }
+                
+                val progressManager = DailyProgressManager(this)
+                val isRequiredTask = gameSectionId == "required"
+                
+                // Mark task as completed and get earned stars
+                val earnedStars = progressManager.markTaskCompletedWithName(
+                    gameType,
+                    gameTitle,
+                    gameStars,
+                    isRequiredTask,
+                    currentContent,
+                    gameSectionId
+                )
+                
+                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
+                if (earnedStars > 0) {
+                    progressManager.addStarsToRewardBank(earnedStars)
+                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
+                    
+                    // Add berries to battle hub if task is from required or optional section
+                    if (gameSectionId == "required" || gameSectionId == "optional") {
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from printing game completion")
+                    }
+                }
+                
+                android.util.Log.d("TrainingMapActivity", "Marked printing game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
+            }
+        }
+        
+        // Handle SpellingOCRActivity result (same format as PrintingGameActivity)
+        if (requestCode == 1006 && resultCode == RESULT_OK && data != null) {
+            val gameType = data.getStringExtra("GAME_TYPE")
+            val gameStars = data.getIntExtra("GAME_STARS", 0)
+            
+            // Use the stored section ID from when we launched the game
+            val gameSectionId = lastLaunchedGameSectionId ?: mapType
+            
+            if (!gameType.isNullOrEmpty()) {
+                // Find the task in currentContent to get its title
+                var gameTitle = "Game: $gameType"
+                currentContent?.sections?.forEach { section ->
+                    section.tasks?.find { it.launch == gameType }?.let { task ->
+                        gameTitle = task.title ?: gameTitle
+                    }
+                }
+                
+                val progressManager = DailyProgressManager(this)
+                val isRequiredTask = gameSectionId == "required"
+                
+                // Mark task as completed and get earned stars
+                val earnedStars = progressManager.markTaskCompletedWithName(
+                    gameType,
+                    gameTitle,
+                    gameStars,
+                    isRequiredTask,
+                    currentContent,
+                    gameSectionId
+                )
+                
+                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
+                if (earnedStars > 0) {
+                    progressManager.addStarsToRewardBank(earnedStars)
+                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
+                    
+                    // Add berries to battle hub if task is from required or optional section
+                    if (gameSectionId == "required" || gameSectionId == "optional") {
+                        progressManager.addEarnedBerries(earnedStars)
+                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from spelling OCR game completion")
+                    }
+                }
+                
+                android.util.Log.d("TrainingMapActivity", "Marked spelling OCR game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
+            }
+        }
+        
         // Handle GameActivity result
         if (requestCode == 1004 && resultCode == RESULT_OK && data != null) {
             val gameType = data.getStringExtra("GAME_TYPE")
@@ -1117,7 +1293,7 @@ class TrainingMapActivity : AppCompatActivity() {
         
         // Refresh the map when returning from any task to show updated completion status
         // Only refresh if the task was completed (RESULT_OK) to avoid unnecessary refreshes
-        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004) && resultCode == RESULT_OK) {
+        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005) && resultCode == RESULT_OK) {
             // Sync progress to cloud after task completion (async, doesn't block UI refresh)
             val currentProfile = SettingsManager.readProfile(this) ?: "AM"
             val cloudStorageManager = CloudStorageManager(this)

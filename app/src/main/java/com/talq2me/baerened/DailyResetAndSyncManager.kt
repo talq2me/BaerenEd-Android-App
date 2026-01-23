@@ -84,6 +84,8 @@ class DailyResetAndSyncManager(private val context: Context) {
                 // Cloud not available after retries
                 Log.d(TAG, "Cloud last_reset not available after retries, calling reset_local()")
                 resetLocal(profile)
+                // CRITICAL: Immediately push reset to cloud to prevent overwrite
+                pushResetToCloud(profile)
             }
             isTodayInEST(cloudLastReset) -> {
                 // Cloud is today, attempt cloud sync
@@ -94,6 +96,8 @@ class DailyResetAndSyncManager(private val context: Context) {
                 // Cloud is older than today
                 Log.d(TAG, "Cloud last_reset is older than today: $cloudLastReset, calling reset_local()")
                 resetLocal(profile)
+                // CRITICAL: Immediately push reset to cloud to prevent overwrite
+                pushResetToCloud(profile)
             }
         }
     }
@@ -133,6 +137,9 @@ class DailyResetAndSyncManager(private val context: Context) {
      * - If equal or cloud not found -> do nothing
      * - If local is newer -> call update_cloud_with_local()
      * - If cloud is newer -> call update_local_with_cloud()
+     * 
+     * CRITICAL: If local last_reset is today and cloud last_reset is older, always push to cloud
+     * to ensure reset values (berries=0, banked_mins=0) are not overwritten.
      */
     private suspend fun cloudSync(profile: String) = withContext(Dispatchers.IO) {
         Log.d(TAG, "cloud_sync() started for profile: $profile")
@@ -142,6 +149,24 @@ class DailyResetAndSyncManager(private val context: Context) {
             return@withContext
         }
         
+        // CRITICAL: Check if a reset just happened (local last_reset is today but cloud is older)
+        // In this case, we must push to cloud to ensure reset values are saved
+        try {
+            val localLastReset = getLocalLastReset(profile)
+            val cloudLastReset = getCloudLastReset(profile)
+            val localResetIsToday = isTodayInEST(localLastReset)
+            val cloudResetIsOlder = cloudLastReset != null && !isTodayInEST(cloudLastReset)
+            
+            if (localResetIsToday && cloudResetIsOlder) {
+                Log.d(TAG, "CRITICAL: Reset just happened (local today, cloud older), pushing reset to cloud immediately")
+                updateCloudWithLocal(profile)
+                return@withContext
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking reset status, proceeding with normal sync", e)
+            // Continue with normal sync if check fails
+        }
+        
         val localLastUpdated = getLocalLastUpdatedTimestamp(profile)
         val cloudLastUpdated = getCloudLastUpdated(profile)
         
@@ -149,6 +174,14 @@ class DailyResetAndSyncManager(private val context: Context) {
             Log.d(TAG, "Cloud last_updated not found, doing nothing")
             return@withContext
         }
+        
+        // CRITICAL: Log timestamp comparison details for debugging
+        val localTime = parseISOTimestampAsEST(localLastUpdated)
+        val cloudTime = parseISOTimestampAsEST(cloudLastUpdated)
+        Log.d(TAG, "cloud_sync() timestamp comparison:")
+        Log.d(TAG, "  Local: $localLastUpdated (parsed: $localTime)")
+        Log.d(TAG, "  Cloud: $cloudLastUpdated (parsed: $cloudTime)")
+        Log.d(TAG, "  Difference: ${localTime - cloudTime}ms (positive = local newer)")
         
         // Compare timestamps (both in EST)
         val comparison = compareTimestamps(localLastUpdated, cloudLastUpdated)
@@ -161,13 +194,66 @@ class DailyResetAndSyncManager(private val context: Context) {
             comparison > 0 -> {
                 // Local is newer
                 Log.d(TAG, "Local is newer ($localLastUpdated > $cloudLastUpdated), calling update_cloud_with_local()")
+                // CRITICAL: Before pushing local to cloud, verify that local data actually changed
+                // If cloud was just applied, local should match cloud, so we shouldn't push
+                val localData = dataCollector.collectLocalData(profile)
+                val cloudDataResult = syncService.downloadUserData(profile)
+                if (cloudDataResult.isSuccess) {
+                    val cloudData = cloudDataResult.getOrNull()
+                    if (cloudData != null) {
+                        // Check if data actually differs (excluding timestamp)
+                        val dataDiffers = localData.berriesEarned != cloudData.berriesEarned ||
+                                localData.bankedMins != cloudData.bankedMins ||
+                                localData.requiredTasks != cloudData.requiredTasks ||
+                                localData.practiceTasks != cloudData.practiceTasks
+                        
+                        if (!dataDiffers) {
+                            Log.w(TAG, "CRITICAL: Local timestamp is newer but data matches cloud - this shouldn't happen!")
+                            Log.w(TAG, "  This suggests local timestamp was incorrectly updated after cloud sync")
+                            Log.w(TAG, "  Skipping update_cloud_with_local() to prevent overwriting cloud data")
+                            // Update local timestamp to match cloud to prevent this from happening again
+                            setLocalLastUpdatedTimestamp(profile, cloudLastUpdated)
+                            Log.d(TAG, "  Updated local timestamp to match cloud: $cloudLastUpdated")
+                            return@withContext
+                        }
+                    }
+                }
                 updateCloudWithLocal(profile)
             }
             else -> {
                 // Cloud is newer
                 Log.d(TAG, "Cloud is newer ($cloudLastUpdated > $localLastUpdated), calling update_local_with_cloud()")
                 updateLocalWithCloud(profile)
+                // CRITICAL: After applying cloud data, verify timestamp was stored correctly
+                val storedTimestamp = getLocalLastUpdatedTimestamp(profile)
+                if (storedTimestamp != cloudLastUpdated) {
+                    Log.e(TAG, "CRITICAL: After update_local_with_cloud(), local timestamp ($storedTimestamp) doesn't match cloud ($cloudLastUpdated)")
+                    Log.e(TAG, "  This suggests timestamp was overwritten - fixing by setting to cloud timestamp")
+                    setLocalLastUpdatedTimestamp(profile, cloudLastUpdated)
+                } else {
+                    Log.d(TAG, "Verified: Local timestamp correctly matches cloud after update_local_with_cloud()")
+                }
             }
+        }
+    }
+    
+    /**
+     * Immediately pushes reset values to cloud after resetLocal() is called.
+     * This prevents cloud sync from overwriting the reset with old cloud data.
+     */
+    private suspend fun pushResetToCloud(profile: String) = withContext(Dispatchers.IO) {
+        if (!cloudStorageManager.isCloudStorageEnabled() || !syncService.isConfigured()) {
+            Log.d(TAG, "Cloud storage disabled, skipping pushResetToCloud()")
+            return@withContext
+        }
+        
+        try {
+            Log.d(TAG, "pushResetToCloud() started for profile: $profile")
+            updateCloudWithLocal(profile)
+            Log.d(TAG, "pushResetToCloud() completed for profile: $profile")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error pushing reset to cloud, will retry in cloud_sync()", e)
+            // Don't throw - allow cloud_sync() to retry later
         }
     }
     
@@ -197,8 +283,14 @@ class DailyResetAndSyncManager(private val context: Context) {
             // Get the stored local last_updated timestamp (should already be set)
             val localLastUpdated = getLocalLastUpdatedTimestamp(profile)
             
+            // CRITICAL: Log what data we're about to push
+            Log.d(TAG, "CRITICAL: About to collect local data for upload to cloud for profile: $profile")
+            
             // Collect all local data
             val localData = dataCollector.collectLocalData(profile)
+            
+            // CRITICAL: Log what data was collected
+            Log.d(TAG, "CRITICAL: Collected local data - berriesEarned: ${localData.berriesEarned}, bankedMins: ${localData.bankedMins}, requiredTasks size: ${localData.requiredTasks.size} for profile: $profile")
             
             // Override the generated timestamp with the stored local timestamp
             // This ensures we use the same timestamp that was stored when the data was modified
@@ -233,8 +325,29 @@ class DailyResetAndSyncManager(private val context: Context) {
             if (result.isSuccess) {
                 val cloudData = result.getOrNull()
                 if (cloudData != null) {
+                    // CRITICAL: Log what we're about to apply
+                    Log.d(TAG, "CRITICAL: About to apply cloud data - berriesEarned: ${cloudData.berriesEarned}, bankedMins: ${cloudData.bankedMins}, requiredTasks size: ${cloudData.requiredTasks.size} for profile: $profile")
+                    
                     // Apply cloud data to local (all or nothing)
                     dataApplier.applyCloudDataToLocal(cloudData)
+                    
+                    // CRITICAL: Verify the data was actually written correctly
+                    val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+                    val bankedMinsKey = "${profile}_banked_reward_minutes"
+                    val writtenBankedMins = progressPrefs.getInt(bankedMinsKey, -999)
+                    
+                    val berriesPrefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+                    val berriesKey = "${profile}_earnedBerries"
+                    val writtenBerries = berriesPrefs.getInt(berriesKey, -999)
+                    
+                    Log.d(TAG, "CRITICAL: After applyCloudDataToLocal() - written bankedMins: $writtenBankedMins (expected: ${cloudData.bankedMins}), written berries: $writtenBerries (expected: ${cloudData.berriesEarned}) for profile: $profile")
+                    
+                    if (writtenBankedMins != cloudData.bankedMins || writtenBerries != cloudData.berriesEarned) {
+                        Log.e(TAG, "CRITICAL ERROR: Data mismatch after applying cloud data! This should never happen!")
+                        Log.e(TAG, "  Expected: bankedMins=${cloudData.bankedMins}, berries=${cloudData.berriesEarned}")
+                        Log.e(TAG, "  Actual: bankedMins=$writtenBankedMins, berries=$writtenBerries")
+                    }
+                    
                     Log.d(TAG, "update_local_with_cloud() completed successfully for profile: $profile")
                 } else {
                     Log.w(TAG, "update_local_with_cloud() - cloud data is null")
@@ -254,11 +367,15 @@ class DailyResetAndSyncManager(private val context: Context) {
      * - Always check GitHub first (source of truth)
      * - If GitHub JSON found, overwrite local copy
      * - Update local.profile.last_updated to now() EST if GitHub JSON was found
+     *   BUT ONLY if this is being called from resetLocal() (not from cloud sync)
      * - Build required_tasks, practice_tasks, checklist_items from JSON
      * - Preserve existing progress when updating
+     * 
+     * @param updateTimestamp If true, update local.profile.last_updated to now() EST when GitHub JSON is found.
+     *                        Should be false when called after update_local_with_cloud() to preserve the cloud timestamp.
      */
-    private suspend fun getContentFromJson(profile: String) = withContext(Dispatchers.IO) {
-        Log.d(TAG, "get_content_from_json() started for profile: $profile")
+    private suspend fun getContentFromJson(profile: String, updateTimestamp: Boolean = true) = withContext(Dispatchers.IO) {
+        Log.d(TAG, "get_content_from_json() started for profile: $profile, updateTimestamp: $updateTimestamp")
         
         val contentUpdateService = ContentUpdateService()
         
@@ -276,9 +393,15 @@ class DailyResetAndSyncManager(private val context: Context) {
             Log.d(TAG, "GitHub JSON found, overwriting local copy")
             contentUpdateService.saveMainContentToCache(context, githubJson)
             
-            // Update local.profile.last_updated to now() EST
-            val nowISO = generateESTISOTimestamp()
-            setLocalLastUpdatedTimestamp(profile, nowISO)
+            // CRITICAL: Only update timestamp if explicitly requested (e.g., from resetLocal())
+            // Do NOT update if this is called after update_local_with_cloud() to preserve cloud timestamp
+            if (updateTimestamp) {
+                val nowISO = generateESTISOTimestamp()
+                setLocalLastUpdatedTimestamp(profile, nowISO)
+                Log.d(TAG, "Updated local.profile.last_updated to now() EST: $nowISO")
+            } else {
+                Log.d(TAG, "Skipping timestamp update to preserve cloud timestamp")
+            }
         }
         
         // Use local JSON (now updated from GitHub if available)
