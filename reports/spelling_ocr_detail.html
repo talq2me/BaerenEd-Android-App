@@ -64,6 +64,17 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             align-items: start;
         }
+        
+        @media (max-width: 768px) {
+            .entry-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .entry-info {
+                text-align: center;
+            }
+        }
 
         .entry-info {
             text-align: left;
@@ -102,11 +113,19 @@
 
         .entry-image {
             max-width: 100%;
-            max-height: 400px;
+            max-height: 1200px;
+            width: auto;
+            height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        @media (max-width: 768px) {
+            .entry-image {
+                max-height: 800px;
+            }
         }
 
         .entry-image:hover {
