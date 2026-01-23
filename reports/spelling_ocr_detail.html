@@ -210,34 +210,88 @@
         async function loadSpellingSubmissions() {
             try {
                 // Query image_uploads table for entries matching the profile and game pattern
+                // Use ilike (case-insensitive) and proper URL encoding
                 const taskPattern = `${game}-`;
-                const response = await fetch(
-                    `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&task=like.${taskPattern}%25&select=task,image,capture_date_time&order=task`,
-                    {
-                        headers: {
-                            'apikey': supabaseKey,
-                            'Authorization': `Bearer ${supabaseKey}`
-                        }
+                const encodedPattern = encodeURIComponent(taskPattern) + '%25';
+                
+                const queryUrl = `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&task=ilike.${encodedPattern}&select=task,image,capture_date_time&order=task`;
+                console.log('Querying:', queryUrl);
+                
+                const response = await fetch(queryUrl, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
                     }
-                );
+                });
+
+                console.log('Response status:', response.status);
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    
+                    // Try alternative query without LIKE if the first one fails
+                    console.log('Trying alternative query without pattern matching...');
+                    const altResponse = await fetch(
+                        `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&select=task,image,capture_date_time&order=task`,
+                        {
+                            headers: {
+                                'apikey': supabaseKey,
+                                'Authorization': `Bearer ${supabaseKey}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+                    
+                    if (!altResponse.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    }
+                    
+                    // Filter client-side if LIKE doesn't work
+                    const allData = await altResponse.json();
+                    const data = allData.filter(entry => entry.task && entry.task.startsWith(taskPattern));
+                    console.log('Filtered data:', data);
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    if (!data || data.length === 0) {
+                        document.getElementById('noData').style.display = 'block';
+                        return;
+                    }
+                    
+                    // Continue with filtered data
+                    displayEntries(data);
+                    return;
                 }
 
                 const data = await response.json();
+                console.log('Data received:', data);
+                
                 document.getElementById('loading').style.display = 'none';
 
                 if (!data || data.length === 0) {
                     document.getElementById('noData').style.display = 'block';
                     return;
                 }
+                
+                displayEntries(data);
 
-                // Parse and display entries
-                const container = document.getElementById('entriesContainer');
-                container.innerHTML = '';
+            } catch (error) {
+                console.error('Error loading spelling submissions:', error);
+                document.getElementById('loading').innerHTML = `Error loading submissions: ${error.message}. Please check your configuration and browser console for details.`;
+                document.getElementById('loading').style.color = '#f44336';
+            }
+        }
+        
+        function displayEntries(data) {
 
-                data.forEach(entry => {
+            // Parse and display entries
+            const container = document.getElementById('entriesContainer');
+            container.innerHTML = '';
+
+            data.forEach(entry => {
                     // Parse task: "EngSpellingOCR-01-uncooked-X" or "EngSpellingOCR-01-uncooked-✓"
                     const taskParts = entry.task.split('-');
                     if (taskParts.length < 4) return;
@@ -267,16 +321,10 @@
                     img.onclick = () => showModal(img.src);
                     imageDiv.appendChild(img);
 
-                    entryDiv.appendChild(infoDiv);
-                    entryDiv.appendChild(imageDiv);
-                    container.appendChild(entryDiv);
-                });
-
-            } catch (error) {
-                console.error('Error loading spelling submissions:', error);
-                document.getElementById('loading').innerHTML = 'Error loading submissions. Please check your configuration.';
-                document.getElementById('loading').style.color = '#f44336';
-            }
+                entryDiv.appendChild(infoDiv);
+                entryDiv.appendChild(imageDiv);
+                container.appendChild(entryDiv);
+            });
         }
 
         // Modal functionality
