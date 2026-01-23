@@ -200,14 +200,13 @@
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
 
-        if (!supabaseUrl || !supabaseKey) {
-            document.getElementById('loading').innerHTML = 'Please configure Supabase URL and API Key in the main reports page.';
-            document.getElementById('loading').style.color = '#f44336';
-            return;
-        }
-
         // Load spelling submissions
         async function loadSpellingSubmissions() {
+            if (!supabaseUrl || !supabaseKey) {
+                document.getElementById('loading').innerHTML = 'Please configure Supabase URL and API Key in the main reports page.';
+                document.getElementById('loading').style.color = '#f44336';
+                return;
+            }
             try {
                 // Query image_uploads table for entries matching the profile and game pattern
                 // Use ilike (case-insensitive) and proper URL encoding
