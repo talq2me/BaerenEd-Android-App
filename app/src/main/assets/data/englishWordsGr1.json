@@ -1,22 +1,5 @@
 [
   { "word": "that", "sentence": "That is my favorite toy." },
-  { "word": "then", "sentence": "First I eat, then I play." },
-  { "word": "them", "sentence": "I gave them a cookie." },
-  { "word": "this", "sentence": "This is my book." },
-  { "word": "than", "sentence": "I am bigger than my sister." },
-  { "word": "they", "sentence": "They are my friends." },
-  { "word": "their", "sentence": "Their dog is very cute." },
-  { "word": "thin", "sentence": "The stick is very thin." },
-  { "word": "thud", "sentence": "I heard a thud when it fell." },
-  { "word": "bath", "sentence": "I take a bath at night." },
-  { "word": "with", "sentence": "I play with my friends." },
-  { "word": "cloth", "sentence": "I wipe with a soft cloth." },
-  { "word": "tenth", "sentence": "I am the tenth in line." },
-  { "word": "moth", "sentence": "The moth flies at night." },
-  { "word": "math", "sentence": "I like to do math." },
-  { "word": "path", "sentence": "We walk on the path." },
-  { "word": "thick", "sentence": "The book is very thick." },
-  { "word": "tick", "sentence": "The clock goes tick tock." },
-  { "word": "sick", "sentence": "I feel sick today." },
-  { "word": "were", "sentence": "We were at the park." }
+  { "word": "then", "sentence": "First I eat, then I play." }
+
 ]

@@ -54,37 +54,25 @@
         }
 
         .entry-container {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 20px;
             background: white;
             margin: 20px 0;
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            align-items: start;
-        }
-        
-        @media (max-width: 768px) {
-            .entry-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .entry-info {
-                text-align: center;
-            }
         }
 
         .entry-info {
-            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .entry-number {
             font-size: 1.5em;
             font-weight: 600;
             color: #333;
-            margin-bottom: 10px;
         }
 
         .entry-word {
@@ -109,6 +97,7 @@
 
         .entry-image-container {
             text-align: center;
+            width: 100%;
         }
 
         .entry-image {
@@ -339,9 +328,9 @@
                     img.onclick = () => showModal(img.src);
                     imageDiv.appendChild(img);
 
-                entryDiv.appendChild(infoDiv);
-                entryDiv.appendChild(imageDiv);
-                container.appendChild(entryDiv);
+                    entryDiv.appendChild(infoDiv);
+                    entryDiv.appendChild(imageDiv);
+                    container.appendChild(entryDiv);
             });
         }
 
