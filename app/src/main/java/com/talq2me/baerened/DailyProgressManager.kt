@@ -653,6 +653,19 @@ class DailyProgressManager(private val context: Context) {
         val syncService = CloudSyncService()
         val nowISO = syncService.generateESTTimestamp()
         setLocalLastUpdatedTimestamp(profile, nowISO)
+        
+        // CRITICAL: According to Daily Reset Logic.md line 105, after updating last_updated,
+        // we must call update_cloud_with_local() to push task completions to cloud immediately
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val resetAndSyncManager = DailyResetAndSyncManager(context)
+                resetAndSyncManager.updateLocalTimestampAndSyncToCloud(profile)
+                Log.d("DailyProgressManager", "CRITICAL: Triggered cloud sync after task completion for profile: $profile")
+            } catch (e: Exception) {
+                Log.e("DailyProgressManager", "CRITICAL: Error syncing task completion to cloud", e)
+                // Don't throw - allow retry on next screen load
+            }
+        }
     }
 
     /**

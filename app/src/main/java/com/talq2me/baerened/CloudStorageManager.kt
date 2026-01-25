@@ -567,21 +567,32 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
             }
             
             // Parse the base time as EST (America/New_York timezone)
-            // Handle both 2 and 3 decimal places for milliseconds (cloud may have 2, local may have 3)
-            val dateFormat = if (baseTimestamp.contains('.') && baseTimestamp.substringAfter('.').length == 2) {
-                // 2 decimal places (e.g., "2026-01-12T17:34:57.48")
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS", java.util.Locale.getDefault()).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("America/New_York")
-                }
-            } else {
-                // 3 decimal places or no milliseconds
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault()).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+            // Try multiple formats: with milliseconds (3 or 2 decimal places), without milliseconds
+            val formats = listOf(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss.SS",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd HH:mm:ss.SSS",
+                "yyyy-MM-dd HH:mm:ss.SS",
+                "yyyy-MM-dd HH:mm:ss"
+            )
+            
+            for (formatStr in formats) {
+                try {
+                    val dateFormat = java.text.SimpleDateFormat(formatStr, java.util.Locale.getDefault()).apply {
+                        timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                    }
+                    val date = dateFormat.parse(baseTimestamp)
+                    if (date != null) {
+                        return date.time
+                    }
+                } catch (e: Exception) {
+                    // Try next format
                 }
             }
             
-            val date = dateFormat.parse(baseTimestamp)
-            return date?.time ?: 0L
+            // If all formats failed, return 0
+            return 0L
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing timestamp as EST: $timestamp", e)
             0L

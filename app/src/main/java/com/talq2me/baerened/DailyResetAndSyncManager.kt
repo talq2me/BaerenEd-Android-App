@@ -562,17 +562,27 @@ class DailyResetAndSyncManager(private val context: Context) {
             }
         }
         
+        // Calculate possible_stars: sum of stars from required tasks visible today
+        val possibleStars = requiredTasks.values.sumOf { taskProgress ->
+            if (isTaskVisibleToday(taskProgress.showdays, taskProgress.hidedays, taskProgress.displayDays, taskProgress.disable)) {
+                taskProgress.stars ?: 0
+            } else {
+                0
+            }
+        }
+        
         // Save to SharedPreferences - use commit() to ensure data is written before cloud sync
         val saved = progressPrefs.edit()
             .putString("${profile}_required_tasks", gson.toJson(requiredTasks))
             .putString("${profile}_practice_tasks", gson.toJson(practiceTasks))
             .putString("${profile}_checklist_items", gson.toJson(checklistItems))
+            .putInt("${profile}_total_possible_stars", possibleStars)
             .commit()
         
         if (!saved) {
             Log.e(TAG, "CRITICAL: Failed to save task structures to SharedPreferences!")
         } else {
-            Log.d(TAG, "Built task structures: required=${requiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}")
+            Log.d(TAG, "Built task structures: required=${requiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}, possible_stars=$possibleStars")
         }
     }
     
@@ -642,17 +652,27 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         updatedRequiredTasks.keys.removeAll { it !in configTaskNames }
         
+        // Calculate possible_stars: sum of stars from required tasks visible today
+        val possibleStars = updatedRequiredTasks.values.sumOf { taskProgress ->
+            if (isTaskVisibleToday(taskProgress.showdays, taskProgress.hidedays, taskProgress.displayDays, taskProgress.disable)) {
+                taskProgress.stars ?: 0
+            } else {
+                0
+            }
+        }
+        
         // Save to SharedPreferences - use commit() to ensure data is written before cloud sync
         val saved = progressPrefs.edit()
             .putString("${profile}_required_tasks", gson.toJson(updatedRequiredTasks))
             .putString("${profile}_practice_tasks", gson.toJson(practiceTasks))
             .putString("${profile}_checklist_items", gson.toJson(checklistItems))
+            .putInt("${profile}_total_possible_stars", possibleStars)
             .commit()
         
         if (!saved) {
             Log.e(TAG, "CRITICAL: Failed to save updated task structures to SharedPreferences!")
         } else {
-            Log.d(TAG, "Updated task structures: required=${updatedRequiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}")
+            Log.d(TAG, "Updated task structures: required=${updatedRequiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}, possible_stars=$possibleStars")
         }
     }
     
@@ -1035,21 +1055,101 @@ class DailyResetAndSyncManager(private val context: Context) {
                 }
             }
             
-            val parseFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-            parseFormat.timeZone = TimeZone.getTimeZone("America/New_York")
-            val parsedDate = parseFormat.parse(baseTimestamp)
+            // Try multiple formats: with milliseconds, without milliseconds, with 2 decimal places
+            val formats = listOf(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss.SS",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd HH:mm:ss.SSS",
+                "yyyy-MM-dd HH:mm:ss"
+            )
+            
+            var parsedDate: java.util.Date? = null
+            for (formatStr in formats) {
+                try {
+                    val parseFormat = SimpleDateFormat(formatStr, Locale.getDefault())
+                    parseFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+                    parsedDate = parseFormat.parse(baseTimestamp)
+                    if (parsedDate != null) break
+                } catch (e: Exception) {
+                    // Try next format
+                }
+            }
             
             if (parsedDate != null) {
                 val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
                 outputFormat.timeZone = TimeZone.getTimeZone("America/New_York")
                 outputFormat.format(parsedDate)
             } else {
+                Log.e(TAG, "Could not parse timestamp with any format: $isoTimestamp")
                 generateESTTimestampString()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error converting from ISO timestamp: $isoTimestamp", e)
             generateESTTimestampString()
         }
+    }
+    
+    /**
+     * Checks if a task is visible today based on showdays, hidedays, displayDays, and disable fields.
+     * This matches the logic in DailyProgressManager.isTaskVisible().
+     */
+    private fun isTaskVisibleToday(showdays: String?, hidedays: String?, displayDays: String?, disable: String?): Boolean {
+        // Check disable date first - if current date is before disable date, hide the task
+        if (!disable.isNullOrEmpty()) {
+            try {
+                val disableDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).parse(disable)
+                if (disableDate != null) {
+                    val today = Calendar.getInstance().apply {
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    // If today is before the disable date, task is disabled (not visible)
+                    if (today.before(Calendar.getInstance().apply {
+                        time = disableDate
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    })) {
+                        return false
+                    }
+                }
+            } catch (e: Exception) {
+                // Invalid disable date format, ignore
+            }
+        }
+
+        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val todayShort = when (today) {
+            Calendar.MONDAY -> "mon"
+            Calendar.TUESDAY -> "tue"
+            Calendar.WEDNESDAY -> "wed"
+            Calendar.THURSDAY -> "thu"
+            Calendar.FRIDAY -> "fri"
+            Calendar.SATURDAY -> "sat"
+            Calendar.SUNDAY -> "sun"
+            else -> ""
+        }
+
+        if (!hidedays.isNullOrEmpty()) {
+            if (hidedays.split(",").contains(todayShort)) {
+                return false // Hide if today is in hidedays
+            }
+        }
+
+        // Check displayDays first (if set, only show on those days)
+        if (!displayDays.isNullOrEmpty()) {
+            return displayDays.split(",").contains(todayShort) // Show only if today is in displayDays
+        }
+
+        if (!showdays.isNullOrEmpty()) {
+            return showdays.split(",").contains(todayShort) // Show only if today is in showdays
+        }
+
+        return true // Visible by default if no restrictions
     }
     
     /**
