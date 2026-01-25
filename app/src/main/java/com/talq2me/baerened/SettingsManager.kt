@@ -416,7 +416,13 @@ object SettingsManager {
      */
     private fun getLocalProfileTimestamp(context: Context): String? {
         val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString("profile_timestamp", null)
+        val raw = prefs.getString("profile_timestamp", null) ?: return null
+        val normalized = normalizeTimestampToDbFormat(raw)
+        if (normalized != raw) {
+            prefs.edit().putString("profile_timestamp", normalized).apply()
+            Log.d(TAG, "Normalized profile_timestamp from '$raw' to '$normalized'")
+        }
+        return normalized
     }
     
     /**
@@ -425,13 +431,25 @@ object SettingsManager {
     private fun generateESTTimestamp(): String {
         val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
         val now = java.util.Date()
-        val offsetMillis = estTimeZone.getOffset(now.time)
-        val offsetHours = offsetMillis / (1000 * 60 * 60)
-        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.getDefault())
         dateFormat.timeZone = estTimeZone
-        return dateFormat.format(now) + offsetString
+        return dateFormat.format(now)
+    }
+
+    /**
+     * Normalizes timestamps to DB format (yyyy-MM-dd HH:mm:ss.SSS, EST, no offset).
+     */
+    private fun normalizeTimestampToDbFormat(timestamp: String): String {
+        val needsNormalize = timestamp.contains('T') || timestamp.endsWith("Z") || timestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))
+        if (!needsNormalize) return timestamp
+
+        val parsedMillis = parseTimestampForComparison(timestamp)
+        if (parsedMillis <= 0L) return timestamp
+
+        val estZone = java.util.TimeZone.getTimeZone("America/New_York")
+        val df = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.getDefault())
+        df.timeZone = estZone
+        return df.format(java.util.Date(parsedMillis))
     }
     
     /**
@@ -463,38 +481,38 @@ object SettingsManager {
      */
     private fun parseTimestampForComparison(timestamp: String): Long {
         return try {
-            // All timestamps are stored in EST, regardless of the offset suffix
-            // Strip any offset or Z suffix and parse the base time as EST
-            val baseTimestamp = when {
+            // Normalize timestamp: strip timezone suffixes and convert 'T' to space.
+            var baseTimestamp = when {
                 timestamp.endsWith("Z") -> timestamp.substring(0, timestamp.length - 1)
                 timestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$")) -> {
-                    val timePartEnd = timestamp.indexOf('.')
-                    val timeEndIndex = if (timePartEnd > 0) {
-                        val millisEnd = timestamp.indexOfAny(charArrayOf('+', '-'), timePartEnd)
-                        if (millisEnd > 0) millisEnd else timestamp.length
-                    } else {
-                        val secondsColon = timestamp.lastIndexOf(':')
-                        if (secondsColon > 0) {
-                            val offsetStart = timestamp.indexOfAny(charArrayOf('+', '-'), secondsColon)
-                            if (offsetStart > 0) offsetStart else timestamp.length
-                        } else {
-                            timestamp.length
-                        }
-                    }
-                    timestamp.substring(0, timeEndIndex)
+                    val offsetStart = timestamp.lastIndexOfAny(charArrayOf('+', '-'))
+                    if (offsetStart > 10) timestamp.substring(0, offsetStart) else timestamp
                 }
                 else -> timestamp
             }
-            
-            // Parse the base time as EST (America/New_York timezone)
-            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault()).apply {
-                timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+            baseTimestamp = baseTimestamp.replace('T', ' ')
+
+            val estZone = java.util.TimeZone.getTimeZone("America/New_York")
+            val formats = listOf(
+                "yyyy-MM-dd HH:mm:ss.SSS",
+                "yyyy-MM-dd HH:mm:ss.SS",
+                "yyyy-MM-dd HH:mm:ss"
+            )
+            for (pattern in formats) {
+                try {
+                    val df = java.text.SimpleDateFormat(pattern, java.util.Locale.getDefault())
+                    df.timeZone = estZone
+                    val parsed = df.parse(baseTimestamp)
+                    if (parsed != null) {
+                        val result = parsed.time
+                        Log.d(TAG, "parseTimestampForComparison: $timestamp -> base=$baseTimestamp -> $result (parsed as EST)")
+                        return result
+                    }
+                } catch (_: Exception) {
+                    // try next pattern
+                }
             }
-            
-            val date = dateFormat.parse(baseTimestamp)
-            val result = date?.time ?: 0L
-            Log.d(TAG, "parseTimestampForComparison: $timestamp -> base=$baseTimestamp -> $result (parsed as EST)")
-            return result
+            0L
         } catch (e: Exception) {
             Log.w(TAG, "Error parsing timestamp for comparison: $timestamp", e)
             0L

@@ -3,6 +3,7 @@ package com.talq2me.baerened
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
@@ -489,6 +490,13 @@ class TrainingMapActivity : AppCompatActivity() {
                         } else {
                             // For non-diagramLabeler tasks, use task title as key (matches how tasks are stored in required_tasks)
                             isCompleted = completedTasksMap[taskTitle] == true
+                            // CRITICAL: Log task completion check
+                            if (taskTitle.isNotEmpty()) {
+                                Log.d("TrainingMapActivity", "CRITICAL: Checking completion for task: '$taskTitle' (taskId: $baseTaskId)")
+                                Log.d("TrainingMapActivity", "CRITICAL: completedTasksMap['$taskTitle'] = ${completedTasksMap[taskTitle]}")
+                                Log.d("TrainingMapActivity", "CRITICAL: isCompleted = $isCompleted")
+                                Log.d("TrainingMapActivity", "CRITICAL: All keys in completedTasksMap: ${completedTasksMap.keys}")
+                            }
                         }
                         
                         // Generate position that doesn't overlap with existing buttons

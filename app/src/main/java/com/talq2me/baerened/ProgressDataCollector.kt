@@ -85,8 +85,26 @@ class ProgressDataCollector(private val context: Context) {
         // Format timestamp in ISO 8601 format with EST timezone for Supabase
         val lastUpdated = generateESTTimestamp()
 
+        // CRITICAL: Log what we're about to return
+        Log.d(TAG, "CRITICAL: Creating CloudUserData for profile: $cloudProfile")
+        Log.d(TAG, "  requiredTasks size: ${requiredTasks.size}")
+        Log.d(TAG, "  practiceTasks size: ${practiceTasks.size}")
+        Log.d(TAG, "  checklistItems size: ${checklistItems.size}")
+        Log.d(TAG, "  gameIndices size: ${gameIndices.size}")
+        Log.d(TAG, "  berriesEarned: $berriesEarned, bankedMins: $bankedMins")
+        
+        if (requiredTasks.isNotEmpty()) {
+            Log.d(TAG, "  Sample required task names: ${requiredTasks.keys.take(5).joinToString()}")
+        }
+        if (practiceTasks.isNotEmpty()) {
+            Log.d(TAG, "  Sample practice task names: ${practiceTasks.keys.take(5).joinToString()}")
+        }
+        if (gameIndices.isNotEmpty()) {
+            Log.d(TAG, "  Sample game indices: ${gameIndices.entries.take(5).joinToString { "${it.key}=${it.value}" }}")
+        }
+
         // Create cloud data
-        return CloudUserData(
+        val cloudData = CloudUserData(
             profile = cloudProfile,
             lastReset = lastResetDate,
             requiredTasks = requiredTasks,
@@ -102,6 +120,15 @@ class ProgressDataCollector(private val context: Context) {
             whiteListedApps = whiteListedApps,
             lastUpdated = lastUpdated
         )
+        
+        // CRITICAL: Verify the data is actually in the object
+        Log.d(TAG, "CRITICAL: CloudUserData created - verifying data is present")
+        Log.d(TAG, "  cloudData.requiredTasks.size: ${cloudData.requiredTasks.size}")
+        Log.d(TAG, "  cloudData.practiceTasks.size: ${cloudData.practiceTasks.size}")
+        Log.d(TAG, "  cloudData.checklistItems.size: ${cloudData.checklistItems.size}")
+        Log.d(TAG, "  cloudData.gameIndices.size: ${cloudData.gameIndices.size}")
+        
+        return cloudData
     }
 
     /**
@@ -164,13 +191,19 @@ class ProgressDataCollector(private val context: Context) {
             // NEW: Read directly from new format (task names → TaskProgress)
             val requiredTasksKey = "${profile}_required_tasks"
             val requiredTasksJson = progressPrefs.getString(requiredTasksKey, "{}") ?: "{}"
+            Log.d(TAG, "CRITICAL: Reading required_tasks from local storage for profile: $profile")
+            Log.d(TAG, "  JSON from SharedPreferences: $requiredTasksJson")
+            
             val existingRequiredTasks: Map<String, TaskProgress> = gson.fromJson(
                 requiredTasksJson,
                 object : TypeToken<Map<String, TaskProgress>>() {}.type
             ) ?: emptyMap()
+            
+            Log.d(TAG, "  Parsed existing tasks count: ${existingRequiredTasks.size}")
 
             // CRITICAL: Get ALL tasks from config (not filtered by visibility) for database syncing
             val configTasks = getConfigTasksForSection("required", filterByVisibility = false)
+            Log.d(TAG, "  Config tasks count: ${configTasks.size}")
 
             // Get time tracking sessions to calculate correct/incorrect answers
             val timeTracker = TimeTracker(context)
@@ -237,9 +270,15 @@ class ProgressDataCollector(private val context: Context) {
                     disable = existingProgress?.disable ?: task.disable
                 )
             }
+            
+            Log.d(TAG, "CRITICAL: Final requiredTasks count after collection: ${requiredTasks.size}")
+            if (requiredTasks.isNotEmpty()) {
+                Log.d(TAG, "  Sample task names: ${requiredTasks.keys.take(3).joinToString()}")
+            }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error collecting required tasks data", e)
+            e.printStackTrace()
         }
 
         return requiredTasks

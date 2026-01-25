@@ -24,18 +24,20 @@
         {
           "title": "Google Read Along",
           "launch": "googleReadAlong",
-          "stars": 3
+          "stars": 3,
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Boukili",
           "launch": "boukili",
-          "stars": 3
+          "stars": 3,
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Math",
           "launch": "jkmath",
           "stars": 3,
-          "totalQuestions": 5,
+          "totalQuestions": 1,
           "displayDays": "mon,wed,fri"
         },
         {
@@ -74,7 +76,8 @@
           "webGame": true,
           "extremedays": "mon,tue,wed",
           "easydays": "thu,fri",
-          "harddays": "sat,sun"
+          "harddays": "sat,sun",
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Eng Spelling",
@@ -102,14 +105,15 @@
           "stars": 3,
           "webGame": true,
           "totalQuestions": 5,
-          "displayDays": "thu"
+          "displayDays": "thu",
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Handwriting",
           "launch": "handwriting",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
           "stars": 3,
-          "disable": "Jan 15, 2026",
+          "disable": "Jan 15, 2027",
           "webGame": true
         },
         {
@@ -117,14 +121,16 @@
           "launch": "canadianMoneyEasy",
           "stars": 3,
           "totalQuestions": 5,
-          "displayDays": "tue"
+          "displayDays": "tue",
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Sentence Builder",
           "launch": "englishSentences",
           "stars": 3,
           "totalQuestions": 3,
-          "blockOutlines": true
+          "blockOutlines": true,
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "UFLI Words",
@@ -132,6 +138,7 @@
           "stars": 3,
           "totalQuestions": 5,
           "blockOutlines": true,
+          "disable": "Jan 15, 2027",
           "displayDays": "mon"
         },
         {
@@ -140,7 +147,8 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "displayDays": "tue,fri"
+          "displayDays": "tue,fri",
+          "disable": "Jan 15, 2027"
         },
 
         {
@@ -150,7 +158,8 @@
           "stars": 3,
           "webGame": true,
           "totalQuestions": 5,
-          "displayDays": "tue,fri"
+          "displayDays": "tue,fri",
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Word Garden",
@@ -158,7 +167,8 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "displayDays": "tue,fri"
+          "displayDays": "tue,fri",
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Number Line Math",
@@ -166,6 +176,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 15, 2027",
           "totalQuestions": 5
         },
 
@@ -175,6 +186,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 15, 2027",
           "totalQuestions": 5
         },
         {
@@ -183,6 +195,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 15, 2027",
           "displayDays": "wed,sat"
         },
         {
@@ -191,6 +204,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
+          "disable": "Jan 15, 2027",
           "displayDays": "thu,sun"
         },
         {
@@ -198,21 +212,21 @@
           "launch": "noviceKungFuVideos",
           "stars": 1,
           "video": "SingleStepForm",
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 15, 2027",
           "videoSequence": "exact",
           "displayDays": "sat"
         },
         {
           "title": "Kung Fu",
           "launch": "noviceKungFuVideos",
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 15, 2027",
           "stars": 1,
           "videoSequence": "sequential"
         },
         {
           "title": "Facile A Lire 2",
           "launch": "facileAlire2",
-          "disable": "Jan 2, 2027",
+          "disable": "Jan 15, 2027",
           "stars": 3,
           "videoSequence": "sequential"
         },
@@ -222,7 +236,7 @@
           "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
           "stars": 3,
           "chromePage": true,
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 15, 2027",
           "displayDays": "tue,fri"
         },
         {

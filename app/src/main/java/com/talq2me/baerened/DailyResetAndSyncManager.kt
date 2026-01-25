@@ -24,7 +24,7 @@ class DailyResetAndSyncManager(private val context: Context) {
         private const val TAG = "DailyResetAndSyncManager"
         private const val PREF_NAME = "daily_progress_prefs"
         private const val KEY_PROFILE_LAST_RESET = "profile_last_reset" // Format: yyyy-MM-dd HH:mm:ss.SSS (EST)
-        private const val KEY_LAST_UPDATED = "last_updated_timestamp" // Format: ISO 8601 with EST timezone
+        private const val KEY_LAST_UPDATED = "last_updated_timestamp" // Format: yyyy-MM-dd HH:mm:ss.SSS (EST)
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -45,6 +45,9 @@ class DailyResetAndSyncManager(private val context: Context) {
      */
     suspend fun dailyResetProcessAndSync(profile: String) = withContext(Dispatchers.IO) {
         Log.d(TAG, "Starting daily_reset_process() and cloud_sync() for profile: $profile")
+        
+        // Normalize any legacy local timestamps to EST DB format (no offset).
+        normalizeAllTimestamps()
         
         // Step 1: Run daily_reset_process()
         dailyResetProcess(profile)
@@ -68,6 +71,17 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         val localLastReset = getLocalLastReset(profile)
         val isLocalToday = isTodayInEST(localLastReset)
+        
+        // Check if required_tasks is empty - if so, populate it even if last_reset is today
+        val progressPrefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val requiredTasksKey = "${profile}_required_tasks"
+        val existingRequiredTasksJson = progressPrefs.getString(requiredTasksKey, null)
+        val hasRequiredTasks = existingRequiredTasksJson != null && existingRequiredTasksJson.isNotEmpty() && existingRequiredTasksJson != "{}"
+        
+        if (!hasRequiredTasks) {
+            Log.d(TAG, "required_tasks is empty, calling get_content_from_json() to populate")
+            getContentFromJson(profile, updateTimestamp = true) // update timestamp and populate tasks
+        }
         
         if (isLocalToday) {
             Log.d(TAG, "Local last_reset is today, no reset needed")
@@ -156,7 +170,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             val cloudLastReset = getCloudLastReset(profile)
             val localResetIsToday = isTodayInEST(localLastReset)
             val cloudResetIsOlder = cloudLastReset != null && !isTodayInEST(cloudLastReset)
-            
+
             if (localResetIsToday && cloudResetIsOlder) {
                 Log.d(TAG, "CRITICAL: Reset just happened (local today, cloud older), pushing reset to cloud immediately")
                 updateCloudWithLocal(profile)
@@ -166,15 +180,15 @@ class DailyResetAndSyncManager(private val context: Context) {
             Log.w(TAG, "Error checking reset status, proceeding with normal sync", e)
             // Continue with normal sync if check fails
         }
-        
+
         val localLastUpdated = getLocalLastUpdatedTimestamp(profile)
         val cloudLastUpdated = getCloudLastUpdated(profile)
-        
+
         if (cloudLastUpdated == null) {
             Log.d(TAG, "Cloud last_updated not found, doing nothing")
             return@withContext
         }
-        
+
         // CRITICAL: Log timestamp comparison details for debugging
         val localTime = parseISOTimestampAsEST(localLastUpdated)
         val cloudTime = parseISOTimestampAsEST(cloudLastUpdated)
@@ -182,10 +196,10 @@ class DailyResetAndSyncManager(private val context: Context) {
         Log.d(TAG, "  Local: $localLastUpdated (parsed: $localTime)")
         Log.d(TAG, "  Cloud: $cloudLastUpdated (parsed: $cloudTime)")
         Log.d(TAG, "  Difference: ${localTime - cloudTime}ms (positive = local newer)")
-        
+
         // Compare timestamps (both in EST)
         val comparison = compareTimestamps(localLastUpdated, cloudLastUpdated)
-        
+
         when {
             comparison == 0 -> {
                 // Timestamps are equal
@@ -206,7 +220,7 @@ class DailyResetAndSyncManager(private val context: Context) {
                                 localData.bankedMins != cloudData.bankedMins ||
                                 localData.requiredTasks != cloudData.requiredTasks ||
                                 localData.practiceTasks != cloudData.practiceTasks
-                        
+
                         if (!dataDiffers) {
                             Log.w(TAG, "CRITICAL: Local timestamp is newer but data matches cloud - this shouldn't happen!")
                             Log.w(TAG, "  This suggests local timestamp was incorrectly updated after cloud sync")
@@ -330,11 +344,58 @@ class DailyResetAndSyncManager(private val context: Context) {
                     
                     // Apply cloud data to local (all or nothing)
                     dataApplier.applyCloudDataToLocal(cloudData)
+
+                    // If local required_tasks are empty, rebuild from GitHub content and update last_updated.
+                    // This matches the spec: empty local tasks should be populated from GitHub, then synced.
+                    val progressPrefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                    val requiredTasksKey = "${profile}_required_tasks"
+                    val requiredTasksJson = progressPrefs.getString(requiredTasksKey, "{}") ?: "{}"
+                    val requiredTasksMap = gson.fromJson<Map<String, TaskProgress>>(
+                        requiredTasksJson,
+                        object : TypeToken<Map<String, TaskProgress>>() {}.type
+                    ) ?: emptyMap()
+
+                    if (requiredTasksMap.isEmpty()) {
+                        Log.w(TAG, "CRITICAL: Local required_tasks empty after applying cloud data - refreshing from GitHub")
+                        getContentFromJson(profile, updateTimestamp = true)
+                        
+                        // CRITICAL: Verify tasks were actually written after getContentFromJson()
+                        val progressPrefsAfter = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                        val requiredTasksJsonAfter = progressPrefsAfter.getString(requiredTasksKey, "{}") ?: "{}"
+                        val requiredTasksMapAfter = gson.fromJson<Map<String, TaskProgress>>(
+                            requiredTasksJsonAfter,
+                            object : TypeToken<Map<String, TaskProgress>>() {}.type
+                        ) ?: emptyMap()
+                        
+                        if (requiredTasksMapAfter.isEmpty()) {
+                            Log.e(TAG, "CRITICAL ERROR: Tasks still empty after getContentFromJson()! This should never happen!")
+                        } else {
+                            Log.d(TAG, "CRITICAL: Successfully populated ${requiredTasksMapAfter.size} tasks from GitHub after cloud sync")
+                            
+                            // CRITICAL: After populating from GitHub, local last_updated was updated.
+                            // We must now push to cloud since local is now newer (has tasks, cloud has empty).
+                            // Check if local is now newer than cloud and push immediately.
+                            val localLastUpdatedAfter = getLocalLastUpdatedTimestamp(profile)
+                            val cloudLastUpdatedAfter = getCloudLastUpdated(profile)
+                            
+                            if (cloudLastUpdatedAfter != null) {
+                                val comparisonAfter = compareTimestamps(localLastUpdatedAfter, cloudLastUpdatedAfter)
+                                if (comparisonAfter > 0) {
+                                    Log.d(TAG, "CRITICAL: After populating from GitHub, local is newer ($localLastUpdatedAfter > $cloudLastUpdatedAfter), pushing to cloud immediately")
+                                    updateCloudWithLocal(profile)
+                                } else {
+                                    Log.w(TAG, "CRITICAL: After populating from GitHub, local timestamp ($localLastUpdatedAfter) is not newer than cloud ($cloudLastUpdatedAfter) - this shouldn't happen!")
+                                }
+                            } else {
+                                Log.w(TAG, "CRITICAL: Cloud last_updated is null, cannot push populated tasks to cloud")
+                            }
+                        }
+                    }
                     
                     // CRITICAL: Verify the data was actually written correctly
-                    val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+                    val progressPrefsVerify = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
                     val bankedMinsKey = "${profile}_banked_reward_minutes"
-                    val writtenBankedMins = progressPrefs.getInt(bankedMinsKey, -999)
+                    val writtenBankedMins = progressPrefsVerify.getInt(bankedMinsKey, -999)
                     
                     val berriesPrefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
                     val berriesKey = "${profile}_earnedBerries"
@@ -501,14 +562,18 @@ class DailyResetAndSyncManager(private val context: Context) {
             }
         }
         
-        // Save to SharedPreferences
-        progressPrefs.edit()
+        // Save to SharedPreferences - use commit() to ensure data is written before cloud sync
+        val saved = progressPrefs.edit()
             .putString("${profile}_required_tasks", gson.toJson(requiredTasks))
             .putString("${profile}_practice_tasks", gson.toJson(practiceTasks))
             .putString("${profile}_checklist_items", gson.toJson(checklistItems))
-            .apply()
+            .commit()
         
-        Log.d(TAG, "Built task structures: required=${requiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}")
+        if (!saved) {
+            Log.e(TAG, "CRITICAL: Failed to save task structures to SharedPreferences!")
+        } else {
+            Log.d(TAG, "Built task structures: required=${requiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}")
+        }
     }
     
     /**
@@ -577,14 +642,18 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         updatedRequiredTasks.keys.removeAll { it !in configTaskNames }
         
-        // Save to SharedPreferences
-        progressPrefs.edit()
+        // Save to SharedPreferences - use commit() to ensure data is written before cloud sync
+        val saved = progressPrefs.edit()
             .putString("${profile}_required_tasks", gson.toJson(updatedRequiredTasks))
             .putString("${profile}_practice_tasks", gson.toJson(practiceTasks))
             .putString("${profile}_checklist_items", gson.toJson(checklistItems))
-            .apply()
+            .commit()
         
-        Log.d(TAG, "Updated task structures: required=${updatedRequiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}")
+        if (!saved) {
+            Log.e(TAG, "CRITICAL: Failed to save updated task structures to SharedPreferences!")
+        } else {
+            Log.d(TAG, "Updated task structures: required=${updatedRequiredTasks.size}, practice=${practiceTasks.size}, checklist=${checklistItems.size}")
+        }
     }
     
     /**
@@ -683,10 +752,16 @@ class DailyResetAndSyncManager(private val context: Context) {
      * Gets cloud last_reset from Supabase
      */
     private suspend fun getCloudLastReset(profile: String): String? = withContext(Dispatchers.IO) {
-        if (!syncService.isConfigured()) return@withContext null
+        if (!syncService.isConfigured()) {
+            Log.w(TAG, "Supabase not configured, cannot get cloud last_reset")
+            return@withContext null
+        }
         
         try {
-            val url = "${syncService.getSupabaseUrl()}/rest/v1/user_data?profile=eq.$profile&select=last_reset"
+            val baseUrl = syncService.getSupabaseUrl()
+            val url = "$baseUrl/rest/v1/user_data?profile=eq.$profile&select=last_reset"
+            Log.d(TAG, "Attempting to fetch cloud last_reset from: $baseUrl (profile: $profile)")
+            
             val client = syncService.getClient()
             val supabaseKey = syncService.getSupabaseKey()
             val request = okhttp3.Request.Builder()
@@ -712,10 +787,24 @@ class DailyResetAndSyncManager(private val context: Context) {
                     return@withContext convertFromISOTimestamp(cloudLastReset)
                 }
             } else {
+                val errorBody = response.body?.string() ?: "No error body"
+                Log.e(TAG, "Failed to get cloud last_reset: HTTP ${response.code} - $errorBody")
                 response.close()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting cloud last_reset", e)
+            Log.e(TAG, "Error getting cloud last_reset: ${e.javaClass.simpleName} - ${e.message}", e)
+            // Log more details about network errors
+            if (e is java.net.UnknownHostException) {
+                Log.e(TAG, "  DNS resolution failed - cannot resolve Supabase hostname")
+                Log.w(TAG, "  This is expected when offline or when DNS cannot resolve the Supabase domain.")
+                Log.w(TAG, "  The app will continue using local data. Cloud sync will work when connectivity is restored.")
+            } else if (e is java.net.SocketTimeoutException) {
+                Log.e(TAG, "  Connection timeout - Supabase server not responding")
+            } else if (e is java.net.ConnectException) {
+                Log.e(TAG, "  Connection refused - cannot connect to Supabase server")
+            } else if (e is java.io.IOException) {
+                Log.e(TAG, "  Network I/O error: ${e.message}")
+            }
         }
         
         null
@@ -725,10 +814,16 @@ class DailyResetAndSyncManager(private val context: Context) {
      * Gets cloud last_updated from Supabase
      */
     private suspend fun getCloudLastUpdated(profile: String): String? = withContext(Dispatchers.IO) {
-        if (!syncService.isConfigured()) return@withContext null
+        if (!syncService.isConfigured()) {
+            Log.w(TAG, "Supabase not configured, cannot get cloud last_updated")
+            return@withContext null
+        }
         
         try {
-            val url = "${syncService.getSupabaseUrl()}/rest/v1/user_data?profile=eq.$profile&select=last_updated"
+            val baseUrl = syncService.getSupabaseUrl()
+            val url = "$baseUrl/rest/v1/user_data?profile=eq.$profile&select=last_updated"
+            Log.d(TAG, "Attempting to fetch cloud last_updated from: $baseUrl (profile: $profile)")
+            
             val client = syncService.getClient()
             val supabaseKey = syncService.getSupabaseKey()
             val request = okhttp3.Request.Builder()
@@ -750,10 +845,24 @@ class DailyResetAndSyncManager(private val context: Context) {
                 
                 return@withContext dataList.firstOrNull()?.get("last_updated")
             } else {
+                val errorBody = response.body?.string() ?: "No error body"
+                Log.e(TAG, "Failed to get cloud last_updated: HTTP ${response.code} - $errorBody")
                 response.close()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting cloud last_updated", e)
+            Log.e(TAG, "Error getting cloud last_updated: ${e.javaClass.simpleName} - ${e.message}", e)
+            // Log more details about network errors
+            if (e is java.net.UnknownHostException) {
+                Log.e(TAG, "  DNS resolution failed - cannot resolve Supabase hostname")
+                Log.w(TAG, "  This is expected when offline or when DNS cannot resolve the Supabase domain.")
+                Log.w(TAG, "  The app will continue using local data. Cloud sync will work when connectivity is restored.")
+            } else if (e is java.net.SocketTimeoutException) {
+                Log.e(TAG, "  Connection timeout - Supabase server not responding")
+            } else if (e is java.net.ConnectException) {
+                Log.e(TAG, "  Connection refused - cannot connect to Supabase server")
+            } else if (e is java.io.IOException) {
+                Log.e(TAG, "  Network I/O error: ${e.message}")
+            }
         }
         
         null
@@ -770,10 +879,71 @@ class DailyResetAndSyncManager(private val context: Context) {
     
     /**
      * Sets local last_updated timestamp
+     * Uses commit() to ensure timestamp is written synchronously before cloud sync
      */
     private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
         val key = "${profile}_$KEY_LAST_UPDATED"
-        prefs.edit().putString(key, timestamp).apply()
+        val saved = prefs.edit().putString(key, timestamp).commit()
+        if (!saved) {
+            Log.e(TAG, "CRITICAL: Failed to save last_updated timestamp for profile: $profile")
+        }
+    }
+
+    /**
+     * Normalizes local timestamps to EST DB format (yyyy-MM-dd HH:mm:ss.SSS, no offset).
+     * This prevents offset/ISO variants from causing bad comparisons.
+     */
+    private fun normalizeAllTimestamps() {
+        val prefsNames = listOf(
+            PREF_NAME,
+            "pokemonBattleHub",
+            "settings",
+            "game_progress",
+            "web_game_progress",
+            "video_progress",
+            "read_along_session",
+            "boukili_session",
+            "baeren_shared_settings"
+        )
+        prefsNames.forEach { name ->
+            val targetPrefs = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+            normalizeTimestampPrefs(targetPrefs, name)
+        }
+    }
+
+    private fun normalizeTimestampPrefs(targetPrefs: SharedPreferences, prefsName: String) {
+        val all = targetPrefs.all
+        if (all.isEmpty()) return
+
+        val estZone = TimeZone.getTimeZone("America/New_York")
+        val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).apply {
+            timeZone = estZone
+        }
+        val editor = targetPrefs.edit()
+        var changed = false
+
+        all.forEach { (key, value) ->
+            val raw = value as? String ?: return@forEach
+            val isTimestampKey = key.contains("timestamp") || key.contains("last_updated") || key.contains("last_reset")
+            if (!isTimestampKey) return@forEach
+
+            val needsNormalize = raw.contains('T') || raw.endsWith("Z") || raw.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))
+            if (!needsNormalize) return@forEach
+
+            val parsedMillis = parseISOTimestampAsEST(raw)
+            if (parsedMillis <= 0L) return@forEach
+
+            val normalized = outputFormat.format(Date(parsedMillis))
+            if (normalized != raw) {
+                editor.putString(key, normalized)
+                changed = true
+                Log.d(TAG, "Normalized $prefsName.$key from '$raw' to '$normalized'")
+            }
+        }
+
+        if (changed) {
+            editor.apply()
+        }
     }
     
     /**
@@ -786,28 +956,41 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Parses ISO timestamp as EST (milliseconds since epoch)
+     * Parses timestamp as EST (milliseconds since epoch).
+     * Accepts both DB format (yyyy-MM-dd HH:mm:ss.SSS) and ISO variants.
      */
     private fun parseISOTimestampAsEST(timestamp: String): Long {
         return try {
-            // Strip timezone suffix and parse as EST
-            var baseTimestamp = timestamp
-            if (baseTimestamp.endsWith("Z")) {
-                baseTimestamp = baseTimestamp.substringBeforeLast('Z')
-            } else if (baseTimestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))) {
-                val lastPlus = baseTimestamp.lastIndexOf('+')
-                val lastMinus = baseTimestamp.lastIndexOf('-')
-                val offsetStart = if (lastPlus > lastMinus) lastPlus else lastMinus
-                if (offsetStart > 10) {
-                    baseTimestamp = baseTimestamp.substring(0, offsetStart)
+            // Normalize: strip timezone suffix and convert 'T' to space.
+            var baseTimestamp = when {
+                timestamp.endsWith("Z") -> timestamp.substringBeforeLast('Z')
+                timestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$")) -> {
+                    val offsetStart = timestamp.lastIndexOfAny(charArrayOf('+', '-'))
+                    if (offsetStart > 10) timestamp.substring(0, offsetStart) else timestamp
+                }
+                else -> timestamp
+            }
+            baseTimestamp = baseTimestamp.replace('T', ' ')
+
+            val estZone = TimeZone.getTimeZone("America/New_York")
+            val formats = listOf(
+                "yyyy-MM-dd HH:mm:ss.SSS",
+                "yyyy-MM-dd HH:mm:ss.SS",
+                "yyyy-MM-dd HH:mm:ss"
+            )
+            for (pattern in formats) {
+                try {
+                    val df = SimpleDateFormat(pattern, Locale.getDefault())
+                    df.timeZone = estZone
+                    val parsed = df.parse(baseTimestamp)
+                    if (parsed != null) return parsed.time
+                } catch (_: Exception) {
+                    // try next pattern
                 }
             }
-            
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-            dateFormat.timeZone = TimeZone.getTimeZone("America/New_York")
-            dateFormat.parse(baseTimestamp)?.time ?: 0L
+            0L
         } catch (e: Exception) {
-            Log.e(TAG, "Error parsing ISO timestamp: $timestamp", e)
+            Log.e(TAG, "Error parsing timestamp: $timestamp", e)
             0L
         }
     }
@@ -822,38 +1005,17 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Generates EST timestamp in ISO 8601 format with timezone offset
+     * Generates EST timestamp in database format (no timezone suffix).
      */
     private fun generateESTISOTimestamp(): String {
-        return syncService.generateESTTimestamp()
+        return generateESTTimestampString()
     }
     
     /**
-     * Converts EST timestamp string (yyyy-MM-dd HH:mm:ss.SSS) to ISO format
+     * Converts EST timestamp string to database format (no timezone suffix).
      */
     private fun convertToISOTimestamp(estTimestamp: String): String {
-        return try {
-            val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-            timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
-            val date = timestampFormat.parse(estTimestamp)
-            
-            if (date != null) {
-                val estTimeZone = TimeZone.getTimeZone("America/New_York")
-                val offsetMillis = estTimeZone.getOffset(date.time)
-                val offsetHours = offsetMillis / (1000 * 60 * 60)
-                val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-                val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-                
-                val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-                isoFormat.timeZone = estTimeZone
-                isoFormat.format(date) + offsetString
-            } else {
-                generateESTISOTimestamp()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error converting to ISO timestamp", e)
-            generateESTISOTimestamp()
-        }
+        return estTimestamp
     }
     
     /**

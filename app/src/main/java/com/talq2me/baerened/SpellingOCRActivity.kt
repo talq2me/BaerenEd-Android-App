@@ -23,6 +23,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -327,10 +328,10 @@ class SpellingOCRActivity : AppCompatActivity() {
                     showNextWord()
                 }, 2000)
             } else {
-                Toast.makeText(this, "Moving to next word. Your answer has been saved for review.", Toast.LENGTH_SHORT).show()
+                // No message - just move to next word silently
                 android.os.Handler().postDelayed({
                     showNextWord()
-                }, 1500)
+                }, 500)
             }
         }
     }
@@ -691,37 +692,54 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     
     private fun completeGame() {
+        // Load config to pass to markTaskCompletedWithName (needed to find task and update properly)
+        val contentUpdateService = ContentUpdateService()
+        val configJson = contentUpdateService.getCachedMainContent(this)
+        val config = if (!configJson.isNullOrEmpty()) {
+            try {
+                Gson().fromJson(configJson, MainContent::class.java)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error parsing config JSON", e)
+                null
+            }
+        } else {
+            null
+        }
+        
+        Log.d(TAG, "CRITICAL: About to mark task as complete - gameType: '$gameType', gameTitle: '$gameTitle', isRequiredGame: $isRequiredGame, sectionId: $sectionId")
         val earnedStars = progressManager.markTaskCompletedWithName(
-            gameType, gameTitle, gameStars, isRequiredGame, null, sectionId
+            gameType, gameTitle, gameStars, isRequiredGame, config, sectionId
         )
+        Log.d(TAG, "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
         
         if (earnedStars > 0) {
             val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
             timeTracker.updateStarsEarned("game", earnedStars)
             
+            // Add berries if task is from required or optional section (or battle hub)
             if (battleHubTaskId != null || sectionId == "required" || sectionId == "optional") {
                 progressManager.addEarnedBerries(earnedStars)
+                Log.d(TAG, "Added $earnedStars berries to battle hub")
             }
         }
         
-        // Sync to cloud
+        // Sync to cloud (update_cloud_with_local according to Daily Reset Logic)
         val currentProfile = SettingsManager.readProfile(this) ?: "AM"
         val cloudStorageManager = CloudStorageManager(this)
         lifecycleScope.launch {
+            // saveIfEnabled calls update_cloud_with_local if cloud is enabled
             cloudStorageManager.saveIfEnabled(currentProfile)
         }
         
-        // Return result if launched from battle hub
-        if (battleHubTaskId != null) {
-            val resultIntent = android.content.Intent().apply {
-                putExtra("BATTLE_HUB_TASK_ID", battleHubTaskId)
-                putExtra("GAME_TYPE", gameType)
-                putExtra("GAME_STARS", earnedStars)
-            }
-            setResult(RESULT_OK, resultIntent)
+        // Return result for TrainingMapActivity (always set result, not just for battle hub)
+        val resultIntent = android.content.Intent().apply {
+            putExtra("GAME_TYPE", gameType)
+            putExtra("GAME_STARS", earnedStars)
+            battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
         }
+        setResult(RESULT_OK, resultIntent)
         
-        Toast.makeText(this, "🎉🎆 Excellent! You spelled all words correctly! 🎆🎉", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "🎉🎆 Great job! You completed all the spelling words! 🎆🎉", Toast.LENGTH_LONG).show()
         
         android.os.Handler().postDelayed({
             finish()

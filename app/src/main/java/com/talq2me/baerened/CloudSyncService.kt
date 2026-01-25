@@ -73,18 +73,15 @@ class CloudSyncService {
     }
 
     /**
-     * Generates EST timestamp in ISO 8601 format
+     * Generates EST timestamp in database format (no timezone suffix).
+     * Format: yyyy-MM-dd HH:mm:ss.SSS (EST)
      */
     fun generateESTTimestamp(): String {
         val estTimeZone = TimeZone.getTimeZone("America/New_York")
         val now = Date()
-        val offsetMillis = estTimeZone.getOffset(now.time)
-        val offsetHours = offsetMillis / (1000 * 60 * 60)
-        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
         dateFormat.timeZone = estTimeZone
-        return dateFormat.format(now) + offsetString
+        return dateFormat.format(now)
     }
 
     /**
@@ -136,6 +133,19 @@ class CloudSyncService {
             }
             
             val json = gson.toJson(data)
+            
+            // CRITICAL: Log what we're about to upload
+            Log.d(TAG, "CRITICAL: About to upload data for profile: ${data.profile}")
+            Log.d(TAG, "  requiredTasks size: ${data.requiredTasks.size}")
+            Log.d(TAG, "  practiceTasks size: ${data.practiceTasks.size}")
+            Log.d(TAG, "  checklistItems size: ${data.checklistItems.size}")
+            Log.d(TAG, "  gameIndices size: ${data.gameIndices.size}")
+            Log.d(TAG, "  berriesEarned: ${data.berriesEarned}, bankedMins: ${data.bankedMins}")
+            
+            // Log a sample of the JSON (first 2000 chars to see the structure)
+            val jsonPreview = if (json.length > 2000) json.take(2000) + "..." else json
+            Log.d(TAG, "  JSON preview: $jsonPreview")
+            
             val baseUrl = "${getSupabaseUrl()}/rest/v1/user_data"
             val requestBody = json.toRequestBody("application/json".toMediaType())
 
@@ -225,45 +235,35 @@ class CloudSyncService {
      */
     private fun parseTimestamp(timestamp: String): Long {
         return try {
-            // All timestamps are stored in EST, regardless of the offset suffix
-            // Strip any offset or Z suffix and parse the base time as EST
-            val baseTimestamp = when {
+            // All timestamps should be EST without timezone suffix, but accept ISO variants defensively.
+            // Strip timezone suffixes and normalize 'T' to space.
+            var baseTimestamp = when {
                 timestamp.endsWith("Z") -> timestamp.substring(0, timestamp.length - 1)
                 timestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$")) -> {
-                    val timePartEnd = timestamp.indexOf('.')
-                    val timeEndIndex = if (timePartEnd > 0) {
-                        val millisEnd = timestamp.indexOfAny(charArrayOf('+', '-'), timePartEnd)
-                        if (millisEnd > 0) millisEnd else timestamp.length
-                    } else {
-                        val secondsColon = timestamp.lastIndexOf(':')
-                        if (secondsColon > 0) {
-                            val offsetStart = timestamp.indexOfAny(charArrayOf('+', '-'), secondsColon)
-                            if (offsetStart > 0) offsetStart else timestamp.length
-                        } else {
-                            timestamp.length
-                        }
-                    }
-                    timestamp.substring(0, timeEndIndex)
+                    val offsetStart = timestamp.lastIndexOfAny(charArrayOf('+', '-'))
+                    if (offsetStart > 10) timestamp.substring(0, offsetStart) else timestamp
                 }
                 else -> timestamp
             }
-            
-            // Parse the base time as EST (America/New_York timezone)
-            // Handle both 2 and 3 decimal places for milliseconds
-            val dateFormat = if (baseTimestamp.contains('.') && baseTimestamp.substringAfter('.').length == 2) {
-                // 2 decimal places (e.g., "2026-01-12T17:34:57.48")
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS", java.util.Locale.getDefault()).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("America/New_York")
-                }
-            } else {
-                // 3 decimal places or no milliseconds
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault()).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+            baseTimestamp = baseTimestamp.replace('T', ' ')
+
+            val estZone = TimeZone.getTimeZone("America/New_York")
+            val formats = listOf(
+                "yyyy-MM-dd HH:mm:ss.SSS",
+                "yyyy-MM-dd HH:mm:ss.SS",
+                "yyyy-MM-dd HH:mm:ss"
+            )
+            for (pattern in formats) {
+                try {
+                    val df = SimpleDateFormat(pattern, Locale.getDefault())
+                    df.timeZone = estZone
+                    val parsed = df.parse(baseTimestamp)
+                    if (parsed != null) return parsed.time
+                } catch (_: Exception) {
+                    // try next pattern
                 }
             }
-            
-            val date = dateFormat.parse(baseTimestamp)
-            return date?.time ?: 0L
+            0L
         } catch (e: Exception) {
             Log.w(TAG, "Error parsing timestamp for comparison: $timestamp", e)
             0L

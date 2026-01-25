@@ -43,11 +43,12 @@ class CloudDataApplier(
             val requiredTasksKey = "${localProfile}_required_tasks"
             
             if (data.requiredTasks?.isEmpty() != false) {
-                // Cloud has empty required_tasks - this is a reset, clear local tasks
+                // Cloud has empty/null required_tasks - set local to empty as per spec.
+                // The caller (updateLocalWithCloud) will check if local is empty and populate from GitHub.
                 progressPrefs.edit()
-                    .putString(requiredTasksKey, gson.toJson(emptyMap<String, TaskProgress>()))
+                    .remove(requiredTasksKey)
                     .apply()
-                Log.d(TAG, "Cloud reset detected - cleared local required tasks for profile: $localProfile")
+                Log.d(TAG, "Cloud required_tasks is empty/null - cleared local required_tasks for profile: $localProfile (will be populated from GitHub by caller)")
             } else {
                 // Cloud has tasks - merge with existing local data, but ONLY tasks visible today
                 // Get existing local data in NEW format (task names → TaskProgress)

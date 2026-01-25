@@ -187,7 +187,17 @@ class DailyProgressManager(private val context: Context) {
                                     response.close()
                                 }
                             } catch (e: Exception) {
-                                Log.e("DailyProgressManager", "Error fetching last_reset from cloud", e)
+                                Log.e("DailyProgressManager", "Error fetching last_reset from cloud: ${e.javaClass.simpleName} - ${e.message}", e)
+                                // Log more details about network errors
+                                if (e is java.net.UnknownHostException) {
+                                    Log.e("DailyProgressManager", "  DNS resolution failed - cannot resolve Supabase hostname")
+                                } else if (e is java.net.SocketTimeoutException) {
+                                    Log.e("DailyProgressManager", "  Connection timeout - Supabase server not responding")
+                                } else if (e is java.net.ConnectException) {
+                                    Log.e("DailyProgressManager", "  Connection refused - cannot connect to Supabase server")
+                                } else if (e is java.io.IOException) {
+                                    Log.e("DailyProgressManager", "  Network I/O error: ${e.message}")
+                                }
                             }
                         }
                     }
@@ -598,7 +608,10 @@ class DailyProgressManager(private val context: Context) {
     fun getCompletedTasksMap(): Map<String, Boolean> {
         // Convert new format to old format for backward compatibility during transition
         val requiredTasks = getRequiredTasks()
-        return requiredTasks.mapValues { it.value.status == "complete" }
+        val completedMap = requiredTasks.mapValues { it.value.status == "complete" }
+        Log.d("DailyProgressManager", "CRITICAL: getCompletedTasksMap() - requiredTasks keys: ${requiredTasks.keys}")
+        Log.d("CRITICAL", "CRITICAL: getCompletedTasksMap() - completed tasks: ${completedMap.filter { it.value }.keys}")
+        return completedMap
     }
 
     /**
@@ -615,9 +628,26 @@ class DailyProgressManager(private val context: Context) {
     private fun saveRequiredTasks(requiredTasks: Map<String, TaskProgress>) {
         val profile = getCurrentKid()
         val key = "${profile}_$KEY_REQUIRED_TASKS"
-        prefs.edit()
-            .putString(key, gson.toJson(requiredTasks))
-            .apply()
+        val json = gson.toJson(requiredTasks)
+        
+        Log.d("DailyProgressManager", "CRITICAL: Saving required tasks for profile: $profile")
+        Log.d("DailyProgressManager", "CRITICAL: JSON being saved: $json")
+        Log.d("DailyProgressManager", "CRITICAL: Task keys being saved: ${requiredTasks.keys}")
+        
+        // CRITICAL: Use commit() instead of apply() to ensure synchronous write
+        // This prevents race conditions where TrainingMapActivity might read before data is written
+        val success = prefs.edit()
+            .putString(key, json)
+            .commit()
+        
+        if (!success) {
+            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save required tasks!")
+        } else {
+            Log.d("DailyProgressManager", "CRITICAL: Successfully saved required tasks")
+            // Verify what was actually saved
+            val savedJson = prefs.getString(key, "{}")
+            Log.d("DailyProgressManager", "CRITICAL: Verified saved JSON: $savedJson")
+        }
         
         // Update local.profile.last_updated to now() EST when tasks are saved
         val syncService = CloudSyncService()
@@ -794,7 +824,9 @@ class DailyProgressManager(private val context: Context) {
                 )
                 requiredTasks[taskName] = taskProgress
                 saveRequiredTasks(requiredTasks)
-                Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress), stored $taskStars stars in TaskProgress")
+                Log.d("DailyProgressManager", "CRITICAL: Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress), stored $taskStars stars in TaskProgress")
+                Log.d("DailyProgressManager", "CRITICAL: Saved task with key: '$taskName', status: '${taskProgress.status}'")
+                Log.d("DailyProgressManager", "CRITICAL: Current required tasks keys after save: ${requiredTasks.keys}")
                 return stars
             }
             Log.d("DailyProgressManager", "Required task $taskId ($taskName) already completed today")
