@@ -865,7 +865,112 @@ class DailyProgressManager(private val context: Context) {
             requiredTasks[taskName] = taskProgress
             saveRequiredTasks(requiredTasks)
             Log.d("DailyProgressManager", "Optional task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time, stored $taskStars stars in TaskProgress")
+            
+            // Increment cumulative times_completed for this practice task in database
+            incrementPracticeTaskTimesCompleted(taskName)
+            
+            // Check if all practice tasks are completed and reset them if so
+            if (config != null) {
+                checkAndResetPracticeTasksIfAllCompleted(config)
+            }
+            
             return stars  // Always return stars for optional tasks, regardless of previous completions
+        }
+    }
+    
+    /**
+     * Increments the cumulative times_completed for a practice task.
+     * This is called each time a practice task is completed to track total completions in the database.
+     */
+    private fun incrementPracticeTaskTimesCompleted(taskName: String) {
+        try {
+            val profile = getCurrentKid()
+            val cumulativeKey = "${profile}_practice_tasks_cumulative_times"
+            
+            // Get current cumulative times_completed from SharedPreferences
+            val cumulativeJson = prefs.getString(cumulativeKey, "{}") ?: "{}"
+            val cumulativeType = object : TypeToken<MutableMap<String, Int>>() {}.type
+            val cumulativeTimes = gson.fromJson<MutableMap<String, Int>>(cumulativeJson, cumulativeType) ?: mutableMapOf()
+            
+            // Increment for this task
+            val currentCount = cumulativeTimes[taskName] ?: 0
+            cumulativeTimes[taskName] = currentCount + 1
+            
+            // Save cumulative times_completed
+            prefs.edit()
+                .putString(cumulativeKey, gson.toJson(cumulativeTimes))
+                .apply()
+            
+            Log.d("DailyProgressManager", "Incremented cumulative times_completed for '$taskName': $currentCount -> ${cumulativeTimes[taskName]}")
+        } catch (e: Exception) {
+            Log.e("DailyProgressManager", "Error incrementing practice task times_completed", e)
+        }
+    }
+    
+    /**
+     * Checks if all visible practice tasks (optional section) are completed.
+     * If all are completed, increments cumulative times_completed for each in storage and resets them.
+     */
+    fun checkAndResetPracticeTasksIfAllCompleted(config: MainContent) {
+        try {
+            // Get all visible optional tasks from config
+            val optionalSection = config.sections?.find { it.id == "optional" }
+            val visibleOptionalTasks = optionalSection?.tasks?.filter { task ->
+                task.title != null && 
+                task.launch != null && 
+                TaskVisibilityChecker.isTaskVisible(task)
+            } ?: emptyList()
+            
+            if (visibleOptionalTasks.isEmpty()) {
+                Log.d("DailyProgressManager", "No visible optional tasks to check")
+                return
+            }
+            
+            // Check if all visible optional tasks are completed (via TimeTracker sessions)
+            val timeTracker = TimeTracker(context)
+            val allSessions = timeTracker.getTodaySessionsList()
+            
+            val allCompleted = visibleOptionalTasks.all { task ->
+                val baseTaskId = task.launch ?: ""
+                val optionalTaskId = "optional_$baseTaskId"
+                val hasCompletedSession = allSessions.any { session ->
+                    session.activityId == optionalTaskId && session.completed
+                }
+                hasCompletedSession
+            }
+            
+            if (allCompleted) {
+                Log.d("DailyProgressManager", "All ${visibleOptionalTasks.size} visible practice tasks are completed - resetting them")
+                
+                // Clear TimeTracker sessions for optional tasks (this makes them appear uncompleted on the map)
+                // Note: Cumulative times_completed is already being incremented each time a task is completed,
+                // so we just need to clear the sessions to reset the visual state
+                timeTracker.clearSessionsForActivityPrefix("optional_")
+                Log.d("DailyProgressManager", "Cleared TimeTracker sessions for optional tasks - they will now appear uncompleted on the map")
+                
+                // Trigger cloud sync to update practice_tasks in database with current cumulative counts
+                val profile = getCurrentKid()
+                val cloudStorageManager = CloudStorageManager(context)
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        cloudStorageManager.saveIfEnabled(profile)
+                        Log.d("DailyProgressManager", "Synced practice_tasks to cloud after reset")
+                    } catch (e: Exception) {
+                        Log.e("DailyProgressManager", "Error syncing practice_tasks to cloud", e)
+                    }
+                }
+            } else {
+                val completedCount = visibleOptionalTasks.count { task ->
+                    val baseTaskId = task.launch ?: ""
+                    val optionalTaskId = "optional_$baseTaskId"
+                    allSessions.any { session ->
+                        session.activityId == optionalTaskId && session.completed
+                    }
+                }
+                Log.d("DailyProgressManager", "Practice tasks not all completed: $completedCount/${visibleOptionalTasks.size} completed")
+            }
+        } catch (e: Exception) {
+            Log.e("DailyProgressManager", "Error checking/resetting practice tasks", e)
         }
     }
 

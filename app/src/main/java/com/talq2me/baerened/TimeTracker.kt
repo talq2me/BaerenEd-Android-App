@@ -297,4 +297,16 @@ class TimeTracker(private val context: Context) {
         prefs.edit().clear().apply()
         Log.d("TimeTracker", "Cleared all time tracking data")
     }
+    
+    /**
+     * Clears sessions for specific activity IDs (e.g., all optional tasks)
+     * @param activityIdPrefix The prefix to match (e.g., "optional_" to clear all optional task sessions)
+     */
+    fun clearSessionsForActivityPrefix(activityIdPrefix: String) {
+        val sessions = getTodaySessions()
+        val filteredSessions = sessions.filter { !it.activityId.startsWith(activityIdPrefix) }
+        saveTodaySessions(filteredSessions)
+        val clearedCount = sessions.size - filteredSessions.size
+        Log.d("TimeTracker", "Cleared $clearedCount sessions with prefix '$activityIdPrefix' (kept ${filteredSessions.size} sessions)")
+    }
 }

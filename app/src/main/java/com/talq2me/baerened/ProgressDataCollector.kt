@@ -312,7 +312,21 @@ class ProgressDataCollector(private val context: Context) {
                     session.activityId == optionalTaskId
                 }
 
-                val timesCompleted = matchingSessions.count { it.completed }
+                // Get current cycle completions from sessions
+                val currentCycleCompletions = matchingSessions.count { it.completed }
+                
+                // Get cumulative times_completed from storage (from previous cycles)
+                val profile = SettingsManager.readProfile(context) ?: "AM"
+                val cumulativeKey = "${profile}_practice_tasks_cumulative_times"
+                val prefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+                val cumulativeJson = prefs.getString(cumulativeKey, "{}") ?: "{}"
+                val cumulativeType = object : com.google.gson.reflect.TypeToken<Map<String, Int>>() {}.type
+                val cumulativeTimes = com.google.gson.Gson().fromJson<Map<String, Int>>(cumulativeJson, cumulativeType) ?: emptyMap()
+                val cumulativeCount = cumulativeTimes[taskName] ?: 0
+                
+                // Total times_completed = cumulative (from previous cycles) + current cycle
+                val timesCompleted = cumulativeCount + currentCycleCompletions
+                
                 val totalCorrect = matchingSessions.sumOf { it.correctAnswers }
                 val totalIncorrect = matchingSessions.sumOf { it.incorrectAnswers }
 

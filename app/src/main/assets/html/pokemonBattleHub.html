@@ -1588,12 +1588,15 @@
                                 
                                 console.log('Boss defeated! Health:', bossHealth);
                                 
-                                // Boss defeated - show message first
+                                // Wait for player attack animation to fully complete first
+                                // The player attack animation takes 300ms forward + 300ms back = 600ms total
+                                // Plus the boss hit shake animation which takes 400ms (4 flashes of 100ms each)
+                                // So we wait for all animations to complete before showing defeated message
                                 setTimeout(() => {
                                     showBattleMessage(`${bossPokemon.name} was defeated!`);
                                     console.log('Showing defeated message');
                                     
-                                    // Wait for message to be visible, then play defeated animation
+                                    // Wait for message to be visible, then start shake animation
                                     setTimeout(() => {
                                         // Make sure boss sprite exists and is visible
                                         if (bossSprite) {
@@ -1605,30 +1608,50 @@
                                             // Remove any conflicting classes first
                                             bossSprite.classList.remove('attacking', 'hit');
                                             
-                                            // Add defeated class to trigger animation
-                                            bossSprite.classList.add('defeated');
-                                            console.log('Defeated class added to boss sprite');
+                                            // Boss shake animation (shake left/right before rolling over)
+                                            let shakeCount = 0;
+                                            const maxShakes = 4;
+                                            const shakeDistance = 20;
                                             
-                                            // Wait for defeated animation to fully complete (1s animation + extra time to see it)
-                                            setTimeout(() => {
-                                                console.log('Defeated animation should be complete');
-                                                // Clear the defeated message before showing victory
-                                                clearBattleMessage();
-                                                // Small delay before victory message to ensure animation is visible
-                                                setTimeout(() => {
-                                                    if (battleEnded) { // Double check flag
-                                                        console.log('Calling endBattle');
-                                                        endBattle(true);
-                                                    }
-                                                }, 500);
-                                            }, 1500);
+                                            function doShake() {
+                                                if (shakeCount >= maxShakes) {
+                                                    // Shake complete, now roll over and grey out
+                                                    bossSprite.classList.add('defeated');
+                                                    console.log('Defeated class added to boss sprite');
+                                                    
+                                                    // Wait for defeated animation to fully complete (1s animation + extra time to see it)
+                                                    setTimeout(() => {
+                                                        console.log('Defeated animation should be complete');
+                                                        // Clear the defeated message before showing victory
+                                                        clearBattleMessage();
+                                                        // Small delay before victory message to ensure animation is visible
+                                                        setTimeout(() => {
+                                                            if (battleEnded) { // Double check flag
+                                                                console.log('Calling endBattle');
+                                                                endBattle(true);
+                                                            }
+                                                        }, 500);
+                                                    }, 1500);
+                                                    return;
+                                                }
+                                                
+                                                const direction = shakeCount % 2 === 0 ? shakeDistance : -shakeDistance;
+                                                bossSprite.style.transition = 'transform 0.1s ease';
+                                                bossSprite.style.transform = `translateX(${direction}px)`;
+                                                
+                                                shakeCount++;
+                                                setTimeout(doShake, 100);
+                                            }
+                                            
+                                            // Start shake animation
+                                            doShake();
                                         } else {
                                             console.error('Boss sprite not found!');
                                             // Fallback: just end battle
                                             endBattle(true);
                                         }
-                                    }, 1000);
-                                }, 500);
+                                    }, 1000); // Wait 1 second for defeated message to be visible
+                                }, 1000); // Wait 1 second after HP animations complete to ensure player attack is fully done
                                 return; // Don't continue with boss attack
                             }
                             

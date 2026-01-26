@@ -1511,74 +1511,83 @@ class BattleHubActivity : AppCompatActivity() {
             val progressManager = DailyProgressManager(this)
             val completedTasksMap = progressManager.getCompletedTasksMap()
             
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: completedTasksMap keys: ${completedTasksMap.keys}")
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: completedTasksMap size: ${completedTasksMap.size}")
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: completed tasks (true): ${completedTasksMap.filter { it.value }.keys}")
+            
             // Check if all required tasks are completed
             val requiredSection = currentContent.sections?.find { it.id == "required" }
-            val requiredTasks = requiredSection?.tasks?.filter { task ->
-                task.title != null && 
-                task.launch != null && 
-                isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)
-            } ?: emptyList()
+            val allRequiredTasks = requiredSection?.tasks ?: emptyList()
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: allRequiredTasks count (before filtering): ${allRequiredTasks.size}")
             
-            val allRequiredCompleted = requiredTasks.isNotEmpty() && requiredTasks.all { task ->
-                val baseTaskId = task.launch ?: ""
-                var taskId = baseTaskId
+            val requiredTasks = allRequiredTasks.filter { task ->
+                val hasTitle = task.title != null
+                val hasLaunch = task.launch != null
+                val isVisible = TaskVisibilityChecker.isTaskVisible(task)
                 
-                // Handle diagramLabeler with unique IDs
-                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                    val originalUrl = task.url
-                    if (originalUrl.contains("diagram=")) {
-                        val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                        if (diagramParam.isNotEmpty()) {
-                            taskId = "${baseTaskId}_$diagramParam"
-                        }
-                    }
+                // Log tasks that are being filtered out
+                if (!isVisible && hasTitle && hasLaunch) {
+                    android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: Filtering out task '${task.title}' (disable: ${task.disable}, showdays: ${task.showdays}, hidedays: ${task.hidedays}, displayDays: ${task.displayDays})")
                 }
                 
-                completedTasksMap[taskId] == true
+                hasTitle && hasLaunch && isVisible
             }
+            
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: requiredTasks count (after filtering): ${requiredTasks.size}")
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: requiredTasks titles: ${requiredTasks.map { it.title }}")
+            
+            // Handle duplicate task titles by using a Set of unique task names
+            // If a task appears multiple times, we only need to check it once
+            val uniqueRequiredTaskNames = requiredTasks.mapNotNull { it.title }.toSet()
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: uniqueRequiredTaskNames count: ${uniqueRequiredTaskNames.size}, names: $uniqueRequiredTaskNames")
+            
+            val allUniqueTasksCompleted = uniqueRequiredTaskNames.isNotEmpty() && uniqueRequiredTaskNames.all { taskName ->
+                // Use task name as key (matches how markTaskCompletedWithName stores tasks)
+                val completed = completedTasksMap[taskName] == true
+                android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: unique task '$taskName' completed: $completed (value in map: ${completedTasksMap[taskName]})")
+                completed
+            }
+            
+            // Also check tasks that might not have titles (fallback to task ID)
+            val tasksWithoutTitles = requiredTasks.filter { it.title.isNullOrEmpty() }
+            val allTasksWithoutTitlesCompleted = if (tasksWithoutTitles.isNotEmpty()) {
+                android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: Found ${tasksWithoutTitles.size} tasks without titles, checking by ID")
+                tasksWithoutTitles.all { task ->
+                    val baseTaskId = task.launch ?: ""
+                    var taskId = baseTaskId
+                    
+                    // Handle diagramLabeler with unique IDs
+                    if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
+                        val originalUrl = task.url
+                        if (originalUrl.contains("diagram=")) {
+                            val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
+                            if (diagramParam.isNotEmpty()) {
+                                taskId = "${baseTaskId}_$diagramParam"
+                            }
+                        }
+                    }
+                    
+                    val completed = completedTasksMap[taskId] == true
+                    android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: task without title (ID: $taskId) completed: $completed")
+                    completed
+                }
+            } else {
+                true // No tasks without titles, so this check passes
+            }
+            
+            val allRequiredCompleted = allUniqueTasksCompleted && allTasksWithoutTitlesCompleted
+            
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: allRequiredCompleted: $allRequiredCompleted")
             
             // Enable/disable earn Extra berries button based on required tasks completion
             earnExtraBerriesButton.isEnabled = allRequiredCompleted
             earnExtraBerriesButton.alpha = if (allRequiredCompleted) 1f else 0.5f
+        } else {
+            android.util.Log.w("BattleHubActivity", "updateEarnButtonsState: currentContent is null, cannot check task completion")
         }
     }
     
-    private fun isTaskVisible(showdays: String?, hidedays: String?, displayDays: String?, disable: String?): Boolean {
-        // Same logic as in Layout.kt
-        if (disable != null) {
-            try {
-                val disableDate = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.getDefault()).parse(disable)
-                val today = java.util.Calendar.getInstance()
-                today.set(java.util.Calendar.HOUR_OF_DAY, 0)
-                today.set(java.util.Calendar.MINUTE, 0)
-                today.set(java.util.Calendar.SECOND, 0)
-                today.set(java.util.Calendar.MILLISECOND, 0)
-                if (disableDate != null && today.time.after(disableDate)) {
-                    return false
-                }
-            } catch (e: Exception) {
-                // Ignore parse errors
-            }
-        }
-        
-        val dayOfWeek = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)
-        val dayNames = arrayOf("sun", "mon", "tue", "wed", "thu", "fri", "sat")
-        val currentDay = dayNames[dayOfWeek - 1]
-        
-        if (hidedays != null && hidedays.split(",").any { it.trim().lowercase() == currentDay }) {
-            return false
-        }
-        
-        if (displayDays != null) {
-            return displayDays.split(",").any { it.trim().lowercase() == currentDay }
-        }
-        
-        if (showdays != null) {
-            return showdays.split(",").any { it.trim().lowercase() == currentDay }
-        }
-        
-        return true
-    }
+    // Removed isTaskVisible() - now using TaskVisibilityChecker for consistency with Layout.kt
     
     private fun togglePokedex(toggleView: TextView) {
         isPokedexExpanded = !isPokedexExpanded
@@ -2244,76 +2253,113 @@ class BattleHubActivity : AppCompatActivity() {
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             showBattleMessage("You attack!")
             
-            // Player attack animation
-            playerPokemonSprite.animate()
-                .translationX(50f)
-                .scaleX(1.2f)
-                .scaleY(1.2f)
-                .setDuration(300)
-                .withEndAction {
+                    // Player attack animation - make it visible (1-2 seconds)
                     playerPokemonSprite.animate()
-                        .translationX(0f)
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(300)
-                        .start()
+                        .translationX(50f)
+                        .scaleX(1.2f)
+                        .scaleY(1.2f)
+                        .setDuration(1000) // 1 second forward
+                        .withEndAction {
+                            playerPokemonSprite.animate()
+                                .translationX(0f)
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(1000) // 1 second back
+                                .start()
                     
                     // Boss takes damage first - reduce range to make battles closer
                     val bossDamage = 12 + (0..8).random() // Reduced from 15-25 to 12-20
                     bossHealth = (bossHealth - bossDamage).coerceAtLeast(0)
                     bossPowerValue = (bossPowerValue - bossDamage).coerceAtLeast(0)
                     
-                    // Update boss HP bar with animation
+                    // Update boss HP bar with animation - make it visible (2 seconds)
                     val bossHPPercent = (bossHealth * 100 / 100).coerceIn(0, 100)
                     val bossHPAnimator = ObjectAnimator.ofInt(bossHP, "progress", bossHP.progress, bossHealth).apply {
-                        duration = 800 // Match HTML's 0.8s transition
+                        duration = 2000 // 2 seconds so it's clearly visible
                         interpolator = AccelerateDecelerateInterpolator()
                     }
                     updateBossHPColor(bossHPPercent)
                     
-                    // Update boss power bar with animation
+                    // Update boss power bar with animation - make it visible (2 seconds)
                     val bossPowerPercent = (bossPowerValue * 100 / 100).coerceIn(0, 100)
                     val bossPowerAnimator = ObjectAnimator.ofInt(bossPower, "progress", bossPower.progress, bossPowerValue).apply {
-                        duration = 800
+                        duration = 2000 // 2 seconds so it's clearly visible
                         interpolator = AccelerateDecelerateInterpolator()
                     }
                     updateBossPowerColor(bossPowerPercent)
                     
-                    // Track when both animations complete
+                    // Track when all animations complete (HP, power, and boss hit shake)
                     var hpAnimationComplete = false
                     var powerAnimationComplete = false
+                    var bossHitAnimationComplete = false
                     
                     fun checkAnimationsComplete() {
-                        if (hpAnimationComplete && powerAnimationComplete) {
-                            // Both animations complete, now check if boss is defeated
+                        if (hpAnimationComplete && powerAnimationComplete && bossHitAnimationComplete) {
+                            // All animations complete, now check if boss is defeated
                             if (bossHealth <= 0) {
-                                // Wait 3 seconds after animations complete before showing victory
+                                // All animations are done, now show defeated sequence
+                                clearBattleMessage()
+                                val bossName = currentBossPokemon?.name ?: "Boss"
+                                showBattleMessage("$bossName was defeated!")
+                                
+                                // Wait for message to be clearly visible (2 seconds), then start shake animation
                                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                    clearBattleMessage()
-                                    val bossName = currentBossPokemon?.name ?: "Boss"
-                                    showBattleMessage("$bossName was defeated!")
-                                    
-                                    // Wait a bit, then start defeated animation
-                                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                        // Boss defeated animation (roll over and fade)
-                                        bossPokemonSprite.animate()
-                                            .rotation(180f)
-                                            .translationY(100f)
-                                            .alpha(0.3f)
-                                            .setDuration(1000)
-                                            .withEndAction {
-                                                clearBattleMessage()
-                                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                                    showBattleMessage("🎉 Victory! 🎉")
-                                                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                                                        clearBattleMessage()
-                                                        endBattle(true)
-                                                    }, 1500)
-                                                }, 500)
-                                            }
-                                            .start()
-                                    }, 500) // Small delay before defeated animation
-                                }, 3000) // 3 second delay after animations complete
+                                    // Boss shake animation (shake left/right before rolling over) - make it visible (1.5 seconds total)
+                                    bossPokemonSprite.animate()
+                                        .translationX(-20f)
+                                        .setDuration(300)
+                                        .withEndAction {
+                                            bossPokemonSprite.animate()
+                                                .translationX(20f)
+                                                .setDuration(300)
+                                                .withEndAction {
+                                                    bossPokemonSprite.animate()
+                                                        .translationX(-20f)
+                                                        .setDuration(300)
+                                                        .withEndAction {
+                                                            bossPokemonSprite.animate()
+                                                                .translationX(20f)
+                                                                .setDuration(300)
+                                                                .withEndAction {
+                                                                    bossPokemonSprite.animate()
+                                                                        .translationX(0f)
+                                                                        .setDuration(300)
+                                                                        .withEndAction {
+                                                                            // Now roll over and grey out - make it visible (2 seconds)
+                                                                            bossPokemonSprite.animate()
+                                                                                .rotation(180f)
+                                                                                .translationY(100f)
+                                                                                .alpha(0.3f)
+                                                                                .setDuration(2000)
+                                                                                .withEndAction {
+                                                                                    // Apply grayscale filter
+                                                                                    bossPokemonSprite.setColorFilter(android.graphics.ColorMatrixColorFilter(
+                                                                                        android.graphics.ColorMatrix().apply {
+                                                                                            setSaturation(0f) // Grayscale
+                                                                                        }
+                                                                                    ))
+                                                                                    
+                                                                                    clearBattleMessage()
+                                                                                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                                                        showBattleMessage("🎉 Victory! 🎉")
+                                                                                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                                                            clearBattleMessage()
+                                                                                            endBattle(true)
+                                                                                        }, 2000) // 2 seconds to see victory message
+                                                                                    }, 1000) // 1 second delay before victory
+                                                                                }
+                                                                                .start()
+                                                                        }
+                                                                        .start()
+                                                                }
+                                                                .start()
+                                                        }
+                                                        .start()
+                                                }
+                                                .start()
+                                        }
+                                        .start()
+                                }, 2000) // Wait 2 seconds for defeated message to be clearly visible
                             } else {
                                 // Boss attacks back (only if still alive) - add longer delay between attacks
                                 // Wait for player attack animations to complete, then add delay before boss attacks
@@ -2322,18 +2368,18 @@ class BattleHubActivity : AppCompatActivity() {
                                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                                         showBattleMessage("Boss attacks!")
                                         
-                                        // Boss attack animation
+                                        // Boss attack animation - make it visible (2 seconds total)
                                         bossPokemonSprite.animate()
                                             .translationX(-50f)
                                             .scaleX(1.2f)
                                             .scaleY(1.2f)
-                                            .setDuration(300)
+                                            .setDuration(1000) // 1 second forward
                                             .withEndAction {
                                                 bossPokemonSprite.animate()
                                                     .translationX(0f)
                                                     .scaleX(1f)
                                                     .scaleY(1f)
-                                                    .setDuration(300)
+                                                    .setDuration(1000) // 1 second back
                                                     .start()
                                                 
                                                 // Player takes damage - 1-3 less than boss took to make battle much closer
@@ -2341,46 +2387,46 @@ class BattleHubActivity : AppCompatActivity() {
                                                 playerHealth = (playerHealth - playerDamage).coerceAtLeast(0)
                                                 playerPowerValue = (playerPowerValue - playerDamage).coerceAtLeast(0)
                                                 
-                                                // Update player HP bar with animation
+                                                // Update player HP bar with animation - make it visible (2 seconds)
                                                 val playerHPPercent = (playerHealth * 100 / 100).coerceIn(0, 100)
                                                 val playerHPAnimator = ObjectAnimator.ofInt(playerHP, "progress", playerHP.progress, playerHealth).apply {
-                                                    duration = 800
+                                                    duration = 2000 // 2 seconds so it's clearly visible
                                                     interpolator = AccelerateDecelerateInterpolator()
                                                 }
                                                 playerHPAnimator.start()
                                                 updatePlayerHPColor(playerHPPercent)
                                                 
-                                                // Update player power bar with animation
+                                                // Update player power bar with animation - make it visible (2 seconds)
                                                 val playerPowerPercent = (playerPowerValue * 100 / 100).coerceIn(0, 100)
                                                 val playerPowerAnimator = ObjectAnimator.ofInt(playerPower, "progress", playerPower.progress, playerPowerValue).apply {
-                                                    duration = 800
+                                                    duration = 2000 // 2 seconds so it's clearly visible
                                                     interpolator = AccelerateDecelerateInterpolator()
                                                 }
                                                 playerPowerAnimator.start()
                                                 updatePlayerPowerColor(playerPowerPercent)
                                                 
-                                                // Player hit animation (red flash/fade) - with delay to see animation
+                                                // Player hit animation (red flash/fade) - make it visible (1 second total)
                                                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                                                     // Create red overlay effect by animating alpha with red tint
                                                     val originalAlpha = playerPokemonSprite.alpha
                                                     val redTint = android.graphics.Color.argb(150, 255, 0, 0) // Semi-transparent red
                                                     
-                                                    // Flash effect: fade out, fade in, fade out, fade in
+                                                    // Flash effect: fade out, fade in, fade out, fade in - 250ms each = 1s total
                                                     playerPokemonSprite.animate()
                                                         .alpha(0.3f)
-                                                        .setDuration(100)
+                                                        .setDuration(250)
                                                         .withEndAction {
                                                             playerPokemonSprite.animate()
                                                                 .alpha(1f)
-                                                                .setDuration(100)
+                                                                .setDuration(250)
                                                                 .withEndAction {
                                                                     playerPokemonSprite.animate()
                                                                         .alpha(0.3f)
-                                                                        .setDuration(100)
+                                                                        .setDuration(250)
                                                                         .withEndAction {
                                                                             playerPokemonSprite.animate()
                                                                                 .alpha(originalAlpha)
-                                                                                .setDuration(100)
+                                                                                .setDuration(250)
                                                                                 .withEndAction {
                                                                                     clearBattleMessage()
                                                                                     // Continue to next round
@@ -2393,11 +2439,11 @@ class BattleHubActivity : AppCompatActivity() {
                                                                 .start()
                                                         }
                                                         .start()
-                                                }, 500) // 0.5s delay to see HP bar animation
+                                                }, 1000) // 1s delay to see HP bar animation start
                                             }
                                             .start()
-                                    }, 1500) // 1.5s delay between attacks to see animations
-                                }, 800) // Wait for boss hit shake animation to complete
+                                    }, 2000) // 2s delay between attacks to see animations clearly
+                                }, 2000) // Wait 2s for boss hit shake animation to complete (1s animation + 1s buffer)
                             }
                         }
                     }
@@ -2421,28 +2467,35 @@ class BattleHubActivity : AppCompatActivity() {
                     bossHPAnimator.start()
                     bossPowerAnimator.start()
                     
-                    // Boss hit animation (red flash/fade) - with delay to see animation
+                    // Boss hit animation (red flash/fade) - make it visible (1-2 seconds)
+                    // This animation must complete before we check if boss is defeated
+                    // Wait for HP bar animation to start (give it time to be visible)
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                         // Create red overlay effect by animating alpha with red tint
                         val originalAlpha = bossPokemonSprite.alpha
                         val redTint = android.graphics.Color.argb(150, 255, 0, 0) // Semi-transparent red
                         
-                        // Flash effect: fade out, fade in, fade out, fade in
+                        // Flash effect: fade out, fade in, fade out, fade in - make each flash visible (250ms each = 1s total)
                         bossPokemonSprite.animate()
                             .alpha(0.3f)
-                            .setDuration(100)
+                            .setDuration(250)
                             .withEndAction {
                                 bossPokemonSprite.animate()
                                     .alpha(1f)
-                                    .setDuration(100)
+                                    .setDuration(250)
                                     .withEndAction {
                                         bossPokemonSprite.animate()
                                             .alpha(0.3f)
-                                            .setDuration(100)
+                                            .setDuration(250)
                                             .withEndAction {
                                                 bossPokemonSprite.animate()
                                                     .alpha(originalAlpha)
-                                                    .setDuration(100)
+                                                    .setDuration(250)
+                                                    .withEndAction {
+                                                        // Mark boss hit animation as complete
+                                                        bossHitAnimationComplete = true
+                                                        checkAnimationsComplete()
+                                                    }
                                                     .start()
                                             }
                                             .start()
@@ -2450,7 +2503,7 @@ class BattleHubActivity : AppCompatActivity() {
                                     .start()
                             }
                             .start()
-                    }, 500) // 0.5s delay to see HP bar animation
+                    }, 1000) // 1s delay to see HP bar animation start
                 }
                 .start()
             }, 1500) // 1.5s delay between rounds to see animations
@@ -2571,6 +2624,9 @@ class BattleHubActivity : AppCompatActivity() {
         
         // Update grid selection to show the new player Pokemon is selected
         selectedPokemonId?.let { updatePokemonGridSelection() }
+        
+        // Update earn buttons state - enable practice tasks button if all required tasks are completed
+        updateEarnButtonsState()
     }
     
     override fun onResume() {
