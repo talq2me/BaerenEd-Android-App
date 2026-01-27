@@ -117,15 +117,23 @@ class CloudSyncService {
                     val cloudTimestamp = userData?.get("last_updated") as? String
                     
                     if (cloudTimestamp != null && data.lastUpdated != null) {
-                        val cloudIsNewer = compareTimestamps(cloudTimestamp, data.lastUpdated) > 0
-                        Log.d(TAG, "uploadUserData timestamp check: cloudIsNewer=$cloudIsNewer (cloud=$cloudTimestamp, local=${data.lastUpdated})")
+                        val cloudTime = parseTimestamp(cloudTimestamp)
+                        val localTime = parseTimestamp(data.lastUpdated)
+                        val timeDiff = cloudTime - localTime // Positive = cloud newer, negative = local newer
+                        val cloudIsNewer = timeDiff > 0
+                        Log.d(TAG, "CRITICAL: uploadUserData timestamp check: cloudIsNewer=$cloudIsNewer, timeDiff=${timeDiff}ms (cloud=$cloudTimestamp, local=${data.lastUpdated})")
+                        // CRITICAL: Newest dataset always wins - if cloud is newer, don't overwrite
                         if (cloudIsNewer) {
-                            Log.d(TAG, "Cloud user_data timestamp is newer, not updating cloud")
+                            Log.d(TAG, "CRITICAL: Cloud user_data timestamp is newer (${timeDiff}ms), not updating cloud - this means upload is being blocked!")
                             return@withContext Result.success(Unit) // Cloud is newer, don't overwrite
+                        } else {
+                            Log.d(TAG, "CRITICAL: Local timestamp is newer or equal (${-timeDiff}ms), proceeding with upload")
                         }
                     } else if (cloudTimestamp != null && data.lastUpdated == null) {
-                        Log.d(TAG, "Cloud has timestamp but local doesn't, not updating cloud")
+                        Log.d(TAG, "CRITICAL: Cloud has timestamp but local doesn't, not updating cloud")
                         return@withContext Result.success(Unit) // Cloud has timestamp, don't overwrite
+                    } else {
+                        Log.d(TAG, "CRITICAL: No cloud timestamp or no local timestamp, proceeding with upload")
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Error parsing cloud timestamp, proceeding with upload", e)
@@ -141,6 +149,15 @@ class CloudSyncService {
             Log.d(TAG, "  checklistItems size: ${data.checklistItems.size}")
             Log.d(TAG, "  gameIndices size: ${data.gameIndices.size}")
             Log.d(TAG, "  berriesEarned: ${data.berriesEarned}, bankedMins: ${data.bankedMins}")
+            Log.d(TAG, "  lastUpdated: ${data.lastUpdated}")
+            
+            // CRITICAL: Log Math task specifically
+            val mathTask = data.requiredTasks["Math"]
+            if (mathTask != null) {
+                Log.d(TAG, "CRITICAL: Math task in upload data - status: ${mathTask.status}, correct: ${mathTask.correct}, incorrect: ${mathTask.incorrect}, questions: ${mathTask.questions}")
+            } else {
+                Log.d(TAG, "CRITICAL: Math task NOT FOUND in upload requiredTasks! Available tasks: ${data.requiredTasks.keys.take(10).joinToString()}")
+            }
             
             // Log a sample of the JSON (first 2000 chars to see the structure)
             val jsonPreview = if (json.length > 2000) json.take(2000) + "..." else json

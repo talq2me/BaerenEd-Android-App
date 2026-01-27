@@ -194,6 +194,8 @@ class GameActivity : AppCompatActivity() {
                 // Show feedback for correct answer
                 showMessageAndClear("✅ Correct!", 2000)
                 if (gameEngine.shouldEndGame()) {
+                    android.util.Log.d("GameActivity", "CRITICAL: Game should end - shouldEndGame() returned true")
+                    try {
                         // Extract original gameId if this came from battle hub or gym map
                         val currentBattleHubTaskId = battleHubTaskId // Store in local val to avoid smart cast issue
                         val actualGameType = when {
@@ -207,52 +209,123 @@ class GameActivity : AppCompatActivity() {
                                 gameType
                             }
                         }
+                        
+                        android.util.Log.d("GameActivity", "CRITICAL: actualGameType='$actualGameType', gameType='$gameType', gameTitle='$gameTitle', isRequiredGame=$isRequiredGame, sectionId=$sectionId")
                     
-                    // Game completed successfully - award stars to reward bank
-                    // Use actualGameType (without battleHub_ prefix) for completion tracking
-                    val earnedStars = progressManager.markTaskCompletedWithName(actualGameType, gameTitle, gameStars, isRequiredGame, null, sectionId)
-                    if (earnedStars > 0) {
-                        // Add stars to reward bank and convert to minutes
-                        val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-                        android.util.Log.d("GameActivity", "Game $actualGameType completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
-
-                        // Update time tracker with stars earned
-                        timeTracker.updateStarsEarned("game", earnedStars)
-                        
-                        // Save berries if launched from battle hub OR if from required/optional section
-                        val shouldAddBerries = currentBattleHubTaskId != null || 
-                            (sectionId == "required" || sectionId == "optional")
-                        
-                        if (shouldAddBerries) {
-                            progressManager.addEarnedBerries(earnedStars)
-                            android.util.Log.d("GameActivity", "Saved $earnedStars berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
+                        // Game completed successfully - award stars to reward bank
+                        // Use actualGameType (without battleHub_ prefix) for completion tracking
+                        // Load config to pass to markTaskCompletedWithName (needed to find task and update properly)
+                        val contentUpdateService = ContentUpdateService()
+                        val configJson = contentUpdateService.getCachedMainContent(this)
+                        val config = if (!configJson.isNullOrEmpty()) {
+                            try {
+                                Gson().fromJson(configJson, MainContent::class.java)
+                            } catch (e: Exception) {
+                                android.util.Log.e("GameActivity", "Error parsing config JSON", e)
+                                null
+                            }
+                        } else {
+                            android.util.Log.w("GameActivity", "Config JSON is null or empty")
+                            null
                         }
-                    }
+                        
+                        // CRITICAL: Game completion flow per requirements:
+                        // 1. Update all local data FIRST (berries, stars, banked_time, game_indices, task completion with correct/incorrect/questions)
+                        // 2. Update last_updated timestamp
+                        // 3. THEN sync to cloud (synchronously)
+                        // 4. THEN redraw screen
+                        
+                        val correctCount = gameEngine.getCorrectCount()
+                        val incorrectCount = gameEngine.getIncorrectCount()
+                        val questionsAnswered = correctCount + incorrectCount
+                        val finalGameIndex = gameEngine.getCurrentIndex()
+                        
+                        android.util.Log.d("GameActivity", "CRITICAL: About to mark task as complete - gameType: '$actualGameType', gameTitle: '$gameTitle', isRequiredGame: $isRequiredGame, sectionId: $sectionId, config loaded: ${config != null}")
+                        android.util.Log.d("GameActivity", "CRITICAL: Game stats - correct: $correctCount, incorrect: $incorrectCount, questions: $questionsAnswered, finalIndex: $finalGameIndex")
+                        
+                        // Step 1: Update all local data
+                        // 1a. Mark task as complete with correct/incorrect/questions
+                        val earnedStars = progressManager.markTaskCompletedWithName(
+                            actualGameType, 
+                            gameTitle, 
+                            gameStars, 
+                            isRequiredGame, 
+                            config, 
+                            sectionId,
+                            correctAnswers = correctCount,
+                            incorrectAnswers = incorrectCount,
+                            questionsAnswered = questionsAnswered
+                        )
+                        android.util.Log.d("GameActivity", "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
+                        
+                        // 1b. Grant berries/stars and banked_time
+                        if (earnedStars > 0) {
+                            // Add stars to reward bank and convert to minutes
+                            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+                            android.util.Log.d("GameActivity", "Game $actualGameType completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
 
-                    // Final update of answer counts before finishing
-                    timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
-
-                    // Sync progress to cloud after game completion
-                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-                    val cloudStorageManager = CloudStorageManager(this)
-                    lifecycleScope.launch {
-                        cloudStorageManager.saveIfEnabled(currentProfile)
-                    }
-
-                    // If launched from battle hub, set result to indicate we should reopen battle hub
-                    if (currentBattleHubTaskId != null) {
-                        val resultIntent = android.content.Intent().apply {
-                            putExtra("BATTLE_HUB_TASK_ID", currentBattleHubTaskId)
-                            putExtra("GAME_TYPE", actualGameType)
-                            putExtra("GAME_STARS", earnedStars)
+                            // Update time tracker with stars earned
+                            timeTracker.updateStarsEarned("game", earnedStars)
+                            
+                            // Save berries if launched from battle hub OR if from required/optional section
+                            val shouldAddBerries = currentBattleHubTaskId != null || 
+                                (sectionId == "required" || sectionId == "optional")
+                            
+                            if (shouldAddBerries) {
+                                progressManager.addEarnedBerries(earnedStars)
+                                android.util.Log.d("GameActivity", "Saved $earnedStars berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
+                            }
                         }
-                        setResult(RESULT_OK, resultIntent)
-                    }
+                        
+                        // 1c. Update game_indices if game used JSON (increment index)
+                        // The index is already saved during gameplay, but ensure it's persisted with commit()
+                        gameProgress.saveIndex(finalGameIndex)
+                        android.util.Log.d("GameActivity", "Saved final game index for $actualGameType: $finalGameIndex")
+                        
+                        // 1d. Update answer counts in TimeTracker and mark session as completed
+                        timeTracker.updateAnswerCounts("game", correctCount, incorrectCount)
+                        // CRITICAL: End the TimeTracker session to mark it as completed
+                        // This is especially important for practice tasks which are tracked via TimeTracker
+                        timeTracker.endActivity("game")
+                        
+                        // Step 2: Update last_updated timestamp (already done in markTaskCompletedWithName -> saveRequiredTasks)
+                        
+                        // Step 3: Sync to cloud SYNCHRONOUSLY (wait for completion)
+                        val currentProfile = SettingsManager.readProfile(this) ?: "AM"
+                        android.util.Log.d("GameActivity", "CRITICAL: Starting synchronous cloud sync for profile: $currentProfile")
+                        runBlocking(Dispatchers.IO) {
+                            try {
+                                val resetAndSyncManager = DailyResetAndSyncManager(this@GameActivity)
+                                resetAndSyncManager.updateLocalTimestampAndSyncToCloud(currentProfile)
+                                android.util.Log.d("GameActivity", "CRITICAL: Cloud sync completed successfully")
+                            } catch (e: Exception) {
+                                android.util.Log.e("GameActivity", "CRITICAL ERROR: Cloud sync failed", e)
+                                e.printStackTrace()
+                            }
+                        }
 
-                    // Navigate back after delay
-                    android.os.Handler().postDelayed({
-                        finish()
-                    }, 2500) // 2.5 seconds total (2s message + 0.5s buffer)
+                        // If launched from battle hub, set result to indicate we should reopen battle hub
+                        if (currentBattleHubTaskId != null) {
+                            val resultIntent = android.content.Intent().apply {
+                                putExtra("BATTLE_HUB_TASK_ID", currentBattleHubTaskId)
+                                putExtra("GAME_TYPE", actualGameType)
+                                putExtra("GAME_STARS", earnedStars)
+                            }
+                            setResult(RESULT_OK, resultIntent)
+                        }
+
+                        // Navigate back after delay
+                        android.os.Handler().postDelayed({
+                            finish()
+                        }, 2500) // 2.5 seconds total (2s message + 0.5s buffer)
+                    } catch (e: Exception) {
+                        android.util.Log.e("GameActivity", "CRITICAL ERROR: Exception during game completion", e)
+                        e.printStackTrace()
+                        // Still finish the activity even if completion tracking failed
+                        android.os.Handler().postDelayed({
+                            finish()
+                        }, 2500)
+                    }
                 } else {
                     android.os.Handler().postDelayed({
                         userAnswers.clear()

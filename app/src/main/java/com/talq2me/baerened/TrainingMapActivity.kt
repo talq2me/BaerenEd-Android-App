@@ -259,7 +259,9 @@ class TrainingMapActivity : AppCompatActivity() {
                     return@launch
                 }
                 
-                val completedTasksMap = progressManager.getCompletedTasksMap().toMutableMap()
+                // CRITICAL: Pass mapType to get only the relevant tasks (required or practice)
+                // This prevents collisions when the same task name exists in both
+                val completedTasksMap = progressManager.getCompletedTasksMap(mapType).toMutableMap()
                 
                 // Get tasks for this map type
                 val section = currentContent!!.sections?.find { it.id == mapType }
@@ -324,7 +326,7 @@ class TrainingMapActivity : AppCompatActivity() {
                     
                     // If all optional tasks are completed, reset them all (never ending)
                     if (allCompleted && tasks.isNotEmpty()) {
-                        val allCompletedTasks = progressManager.getCompletedTasksMap().toMutableMap()
+                        val allCompletedTasks = progressManager.getCompletedTasksMap(mapType).toMutableMap()
                         tasks.forEach { task ->
                             val baseTaskId = task.launch ?: ""
                             val taskTitle = task.title ?: ""
@@ -356,7 +358,7 @@ class TrainingMapActivity : AppCompatActivity() {
                             .apply()
                         // Refresh the completed tasks map after resetting
                         completedTasksMap.clear()
-                        completedTasksMap.putAll(progressManager.getCompletedTasksMap())
+                        completedTasksMap.putAll(progressManager.getCompletedTasksMap(mapType))
                     }
                 }
                 
@@ -1326,28 +1328,32 @@ class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
-        // Run daily_reset_process() and then cloud_sync() when resuming
-        val profile = SettingsManager.readProfile(this) ?: "AM"
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
-                resetAndSyncManager.dailyResetProcessAndSync(profile)
-                android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed in onResume for profile $profile")
-            } catch (e: Exception) {
-                android.util.Log.e("TrainingMapActivity", "Error during daily reset and sync in onResume", e)
+        // CRITICAL: Add a small delay before syncing to allow any pending task completion syncs to finish
+        // This prevents onResume from overwriting data that was just saved
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            // Run daily_reset_process() and then cloud_sync() when resuming
+            val profile = SettingsManager.readProfile(this) ?: "AM"
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
+                    resetAndSyncManager.dailyResetProcessAndSync(profile)
+                    android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed in onResume for profile $profile")
+                } catch (e: Exception) {
+                    android.util.Log.e("TrainingMapActivity", "Error during daily reset and sync in onResume", e)
+                }
+                withContext(Dispatchers.Main) {
+                    // Refresh the map after sync to show updated completion status
+                    // This ensures the map shows updated completion status after sync
+                    createMapView()
+                    
+                    // Check for Google Read Along completion after map refresh
+                    checkGoogleReadAlongCompletion()
+                    
+                    // Check for Boukili completion after map refresh
+                    checkBoukiliCompletion()
+                }
             }
-            withContext(Dispatchers.Main) {
-                // Refresh the map after sync to show updated completion status
-                // This ensures the map shows updated completion status after sync
-                createMapView()
-                
-                // Check for Google Read Along completion after map refresh
-                checkGoogleReadAlongCompletion()
-                
-                // Check for Boukili completion after map refresh
-                checkBoukiliCompletion()
-            }
-        }
+        }, 1000) // 1 second delay to allow task completion syncs to finish
     }
     
     /**

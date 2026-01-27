@@ -33,11 +33,16 @@
 -- See migrate_health_check_to_devices.sql for the latest migration script
 
 -- Drop existing trigger and functions if they exist (for clean re-run)
+-- All timestamp update triggers are disabled - client code manages timestamps explicitly
 DROP TRIGGER IF EXISTS daily_progress_reset_trigger ON user_data;
 DROP TRIGGER IF EXISTS update_user_data_timestamp ON user_data;
+DROP TRIGGER IF EXISTS update_settings_timestamp ON settings;
+DROP TRIGGER IF EXISTS update_devices_timestamp ON devices;
 DROP FUNCTION IF EXISTS check_daily_reset();
 DROP FUNCTION IF EXISTS reset_daily_progress();
 DROP FUNCTION IF EXISTS update_last_updated();
+DROP FUNCTION IF EXISTS update_settings_timestamp();
+DROP FUNCTION IF EXISTS update_devices_timestamp();
 
 -- Drop and recreate tables (optional - uncomment if you want to start fresh)
 -- DROP TABLE IF EXISTS user_data;
@@ -108,20 +113,23 @@ CREATE POLICY "Allow all operations" ON user_data
     USING (true)
     WITH CHECK (true);
 
--- Optional: Create a function to automatically update last_updated timestamp
-CREATE OR REPLACE FUNCTION update_last_updated()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.last_updated = NOW() AT TIME ZONE 'EST';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger to automatically update last_updated
-CREATE TRIGGER update_user_data_timestamp
-    BEFORE UPDATE ON user_data
-    FOR EACH ROW
-    EXECUTE FUNCTION update_last_updated();
+-- DISABLED: Trigger that automatically updates last_updated timestamp
+-- This trigger was causing sync issues because it overwrites client-provided timestamps.
+-- The client code explicitly manages timestamps, so this trigger should not be active.
+-- If you need automatic timestamp updates, modify the trigger to only update when last_updated is NULL.
+--
+-- CREATE OR REPLACE FUNCTION update_last_updated()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--     NEW.last_updated = NOW() AT TIME ZONE 'EST';
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- CREATE TRIGGER update_user_data_timestamp
+--     BEFORE UPDATE ON user_data
+--     FOR EACH ROW
+--     EXECUTE FUNCTION update_last_updated();
 
 -- Create the settings table to store parent settings
 CREATE TABLE IF NOT EXISTS settings (
@@ -145,20 +153,22 @@ CREATE POLICY "Allow all operations on settings" ON settings
     USING (true)
     WITH CHECK (true);
 
--- Optional: Create a function to automatically update last_updated timestamp for settings
-CREATE OR REPLACE FUNCTION update_settings_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.last_updated = NOW() AT TIME ZONE 'EST';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger to automatically update last_updated on settings table
-CREATE TRIGGER update_settings_timestamp
-    BEFORE UPDATE ON settings
-    FOR EACH ROW
-    EXECUTE FUNCTION update_settings_timestamp();
+-- DISABLED: Trigger that automatically updates last_updated timestamp for settings
+-- This trigger was causing sync issues because it overwrites client-provided timestamps.
+-- The client code explicitly manages timestamps, so this trigger should not be active.
+--
+-- CREATE OR REPLACE FUNCTION update_settings_timestamp()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--     NEW.last_updated = NOW() AT TIME ZONE 'EST';
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- CREATE TRIGGER update_settings_timestamp
+--     BEFORE UPDATE ON settings
+--     FOR EACH ROW
+--     EXECUTE FUNCTION update_settings_timestamp();
 
 --insert default settings data: 
 insert into settings (parent_email, pin, aggressive_cleanup) values ('parent@gmail.com', '1234', true);
@@ -235,20 +245,22 @@ CREATE POLICY "Allow all operations on devices" ON devices
     USING (true)
     WITH CHECK (true);
 
--- Create a function to automatically update last_updated timestamp for devices
-CREATE OR REPLACE FUNCTION update_devices_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.last_updated = NOW() AT TIME ZONE 'EST';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger to automatically update last_updated on devices table
-CREATE TRIGGER update_devices_timestamp
-    BEFORE UPDATE ON devices
-    FOR EACH ROW
-    EXECUTE FUNCTION update_devices_timestamp();
+-- DISABLED: Trigger that automatically updates last_updated timestamp for devices
+-- This trigger was causing sync issues because it overwrites client-provided timestamps.
+-- The client code explicitly manages timestamps, so this trigger should not be active.
+--
+-- CREATE OR REPLACE FUNCTION update_devices_timestamp()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--     NEW.last_updated = NOW() AT TIME ZONE 'EST';
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+--
+-- CREATE TRIGGER update_devices_timestamp
+--     BEFORE UPDATE ON devices
+--     FOR EACH ROW
+--     EXECUTE FUNCTION update_devices_timestamp();
 
 -- Create the image_uploads table to store photos of completed work
 -- This allows parents to verify that children completed tasks (e.g., spelling on paper)

@@ -685,9 +685,12 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
         val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
         val storedTimestampKey = "${profile}_last_updated_timestamp"
-        progressPrefs.edit()
+        val success = progressPrefs.edit()
             .putString(storedTimestampKey, timestamp)
-            .apply()
+            .commit() // Use commit() for synchronous write to prevent race conditions
+        if (!success) {
+            android.util.Log.e(TAG, "CRITICAL ERROR: Failed to save last_updated_timestamp in CloudStorageManager!")
+        }
     }
 
     // Data application logic moved to CloudDataApplier class

@@ -131,7 +131,10 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         // Set local.profile.last_reset
         val profileLastResetKey = "${profile}_$KEY_PROFILE_LAST_RESET"
-        prefs.edit().putString(profileLastResetKey, estTimestamp).apply()
+        val success = prefs.edit().putString(profileLastResetKey, estTimestamp).commit() // Use commit() for synchronous write
+        if (!success) {
+            Log.e(TAG, "CRITICAL ERROR: Failed to save profile_last_reset in performDailyReset!")
+        }
         
         // Reset local data
         resetLocalProgressData(profile)
@@ -278,9 +281,20 @@ class DailyResetAndSyncManager(private val context: Context) {
     suspend fun updateLocalTimestampAndSyncToCloud(profile: String) = withContext(Dispatchers.IO) {
         Log.d(TAG, "updateLocalTimestampAndSyncToCloud() started for profile: $profile")
         
-        // Update local.profile.last_updated to now() EST
+        // CRITICAL: Update local.profile.last_updated to now() EST using commit() for synchronous write
+        // This ensures the timestamp is written before any other code can read it
         val nowISO = generateESTISOTimestamp()
-        setLocalLastUpdatedTimestamp(profile, nowISO)
+        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+        val timestampKey = "${profile}_last_updated_timestamp"
+        val timestampSuccess = progressPrefs.edit()
+            .putString(timestampKey, nowISO)
+            .commit() // Use commit() for synchronous write
+        
+        if (!timestampSuccess) {
+            Log.e(TAG, "CRITICAL ERROR: Failed to save last_updated timestamp in updateLocalTimestampAndSyncToCloud!")
+        } else {
+            Log.d(TAG, "CRITICAL: Updated last_updated timestamp to: $nowISO (saved synchronously)")
+        }
         
         // Then call update_cloud_with_local()
         updateCloudWithLocal(profile)
@@ -306,9 +320,19 @@ class DailyResetAndSyncManager(private val context: Context) {
             // CRITICAL: Log what data was collected
             Log.d(TAG, "CRITICAL: Collected local data - berriesEarned: ${localData.berriesEarned}, bankedMins: ${localData.bankedMins}, requiredTasks size: ${localData.requiredTasks.size} for profile: $profile")
             
+            // CRITICAL: Log Math task status specifically
+            val mathTask = localData.requiredTasks["Math"]
+            if (mathTask != null) {
+                Log.d(TAG, "CRITICAL: Math task in collected data - status: ${mathTask.status}, correct: ${mathTask.correct}, incorrect: ${mathTask.incorrect}, questions: ${mathTask.questions}")
+            } else {
+                Log.d(TAG, "CRITICAL: Math task NOT FOUND in collected requiredTasks! Available tasks: ${localData.requiredTasks.keys.take(10).joinToString()}")
+            }
+            
             // Override the generated timestamp with the stored local timestamp
             // This ensures we use the same timestamp that was stored when the data was modified
             val localDataWithCorrectTimestamp = localData.copy(lastUpdated = localLastUpdated)
+            
+            Log.d(TAG, "CRITICAL: About to upload with timestamp: $localLastUpdated for profile: $profile")
             
             // Upload to cloud (all or nothing)
             val result = syncService.uploadUserData(localDataWithCorrectTimestamp)
@@ -685,22 +709,31 @@ class DailyResetAndSyncManager(private val context: Context) {
         val berriesKey = "${profile}_earnedBerries"
         
         // Reset berries
-        context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+        val success1 = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
             .edit()
             .putInt(berriesKey, 0)
-            .apply()
+            .commit() // Use commit() for synchronous write
+        if (!success1) {
+            Log.e(TAG, "CRITICAL ERROR: Failed to reset berries!")
+        }
         
         // Reset banked_mins
-        progressPrefs.edit()
+        val success2 = progressPrefs.edit()
             .putInt(bankedMinsKey, 0)
-            .apply()
+            .commit() // Use commit() for synchronous write
+        if (!success2) {
+            Log.e(TAG, "CRITICAL ERROR: Failed to reset banked_mins!")
+        }
         
         // Reset tasks (set to null by clearing the keys)
-        progressPrefs.edit()
+        val success3 = progressPrefs.edit()
             .remove("${profile}_required_tasks")
             .remove("${profile}_practice_tasks")
             .remove("${profile}_checklist_items")
-            .apply()
+            .commit() // Use commit() for synchronous write
+        if (!success3) {
+            Log.e(TAG, "CRITICAL ERROR: Failed to reset tasks!")
+        }
         
         // Clear TimeTracker sessions
         try {
@@ -1172,7 +1205,10 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         // Set local.profile.last_reset
         val profileLastResetKey = "${profile}_$KEY_PROFILE_LAST_RESET"
-        prefs.edit().putString(profileLastResetKey, yesterdayTimestamp).apply()
+        val success = prefs.edit().putString(profileLastResetKey, yesterdayTimestamp).commit() // Use commit() for synchronous write
+        if (!success) {
+            Log.e(TAG, "CRITICAL ERROR: Failed to save profile_last_reset!")
+        }
         
         Log.d(TAG, "Set local last_reset to yesterday: $yesterdayTimestamp")
         

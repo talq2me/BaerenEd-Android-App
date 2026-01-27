@@ -97,12 +97,10 @@ For any Game/task/video task that uses json:
    ---if github json found, update local json copy (always overwrite when GitHub is available)
    ---if github json not available, use local json copy
 ---use local json for game
----begin game/task/video at json indices from local.profile.game_indices
+---begin game/task/video at json indices from local.profile.game_indices (loaded from cloud first, fallback to local)
 ---on game complete
-   ---update local.profile.game_indices with new index for game json
-   ---update local.profile.required_tasks or practice_tasks with complete status, questions correct, incorrect
-   ---update local.profile.last_updated
-   --call update_cloud_with_local()
+   ---See 000Requirements.md "Game Completion Logic" section for detailed requirements
+   ---Summary: Update all local data FIRST (berries, stars, banked_time, game_indices, task completion with correct/incorrect/questions), update last_updated timestamp, THEN sync to cloud synchronously, THEN redraw screen
 
 
 Any time any of the following settings are changed in BaerenEd:

@@ -257,6 +257,11 @@ class ProgressDataCollector(private val context: Context) {
                 }
 
                 // NEW: Preserve existing data (correct/incorrect/questions) or calculate from sessions
+                // CRITICAL: Log Math task specifically for debugging
+                if (taskName == "Math" || taskName.contains("Math")) {
+                    Log.d(TAG, "CRITICAL: Collecting Math task - existing status: ${existingProgress?.status}, final status: $status")
+                }
+                
                 requiredTasks[taskName] = TaskProgress(
                     status = status,
                     correct = existingProgress?.correct ?: correct,
@@ -287,6 +292,7 @@ class ProgressDataCollector(private val context: Context) {
     /**
      * Collects practice tasks data from local storage, ensuring all config tasks are included
      * Only includes tasks from the "optional" section, not "bonus" section
+     * CRITICAL: Reads completion status and answer data from practice_tasks storage (not TimeTracker)
      */
     private fun collectPracticeTasksData(): Map<String, PracticeProgress> {
         val practiceTasks = mutableMapOf<String, PracticeProgress>()
@@ -295,70 +301,42 @@ class ProgressDataCollector(private val context: Context) {
             // CRITICAL: Get ALL tasks from optional section (not filtered by visibility) for database syncing
             val optionalTasks = getConfigTasksForSection("optional", filterByVisibility = false)
 
-            // Get time tracking sessions to calculate performance data
-            val timeTracker = TimeTracker(context)
-            val allSessions = timeTracker.getTodaySessionsList()
+            // Get practice tasks from storage (completion status and answer data)
+            val profile = SettingsManager.readProfile(context) ?: "AM"
+            val prefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
+            val practiceTasksKey = "${profile}_practice_tasks"
+            val practiceTasksJson = prefs.getString(practiceTasksKey, "{}") ?: "{}"
+            val practiceTasksType = object : com.google.gson.reflect.TypeToken<Map<String, TaskProgress>>() {}.type
+            val storedPracticeTasks = com.google.gson.Gson().fromJson<Map<String, TaskProgress>>(practiceTasksJson, practiceTasksType) ?: emptyMap()
+            
+            // Get cumulative times_completed from storage (from previous cycles)
+            val cumulativeKey = "${profile}_practice_tasks_cumulative_times"
+            val cumulativeJson = prefs.getString(cumulativeKey, "{}") ?: "{}"
+            val cumulativeType = object : com.google.gson.reflect.TypeToken<Map<String, Int>>() {}.type
+            val cumulativeTimes = com.google.gson.Gson().fromJson<Map<String, Int>>(cumulativeJson, cumulativeType) ?: emptyMap()
 
             // For each task in config, create PracticeProgress with real data
             optionalTasks.forEach { task ->
                 val taskName = task.title ?: "Unknown Task"
-                val baseTaskId = task.launch ?: taskName.lowercase().replace(" ", "_")
-
-                // For optional tasks, sessions use unique task IDs with section prefix
-                val optionalTaskId = "optional_$baseTaskId"
-
-                // Find all sessions for this task (could be completed multiple times)
-                val matchingSessions = allSessions.filter { session ->
-                    session.activityId == optionalTaskId
-                }
-
-                // Get current cycle completions from sessions
-                val currentCycleCompletions = matchingSessions.count { it.completed }
                 
-                // Get cumulative times_completed from storage (from previous cycles)
-                val profile = SettingsManager.readProfile(context) ?: "AM"
-                val cumulativeKey = "${profile}_practice_tasks_cumulative_times"
-                val prefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-                val cumulativeJson = prefs.getString(cumulativeKey, "{}") ?: "{}"
-                val cumulativeType = object : com.google.gson.reflect.TypeToken<Map<String, Int>>() {}.type
-                val cumulativeTimes = com.google.gson.Gson().fromJson<Map<String, Int>>(cumulativeJson, cumulativeType) ?: emptyMap()
+                // Get stored progress for this task
+                val storedProgress = storedPracticeTasks[taskName]
+                
+                // Get cumulative times_completed
                 val cumulativeCount = cumulativeTimes[taskName] ?: 0
                 
-                // Total times_completed = cumulative (from previous cycles) + current cycle
-                val timesCompleted = cumulativeCount + currentCycleCompletions
-                
-                val totalCorrect = matchingSessions.sumOf { it.correctAnswers }
-                val totalIncorrect = matchingSessions.sumOf { it.incorrectAnswers }
-
-                // Determine questionsAnswered, correct, and incorrect based on task type
-                val isWebGame = task.webGame == true
-                val hasAnswerData = totalCorrect > 0 || totalIncorrect > 0
-
-                val questionsAnswered: Int?
-                val correct: Int?
-                val incorrect: Int?
-
-                if (isWebGame) {
-                    if (hasAnswerData) {
-                        correct = totalCorrect
-                        incorrect = totalIncorrect
-                        questionsAnswered = totalCorrect + totalIncorrect
-                    } else {
-                        correct = null
-                        incorrect = null
-                        questionsAnswered = null
-                    }
+                // If task is currently complete, add 1 to cumulative count for times_completed
+                // (times_completed = cumulative from previous cycles + 1 if currently complete)
+                val timesCompleted = if (storedProgress?.status == "complete") {
+                    cumulativeCount + 1
                 } else {
-                    if (task.totalQuestions != null) {
-                        questionsAnswered = if (hasAnswerData) totalCorrect + totalIncorrect else null
-                        correct = if (totalCorrect > 0) totalCorrect else null
-                        incorrect = if (totalIncorrect > 0) totalIncorrect else null
-                    } else {
-                        questionsAnswered = -1
-                        correct = -1
-                        incorrect = -1
-                    }
+                    cumulativeCount
                 }
+                
+                // Get answer data from stored progress (or null if not available)
+                val correct = storedProgress?.correct
+                val incorrect = storedProgress?.incorrect
+                val questionsAnswered = storedProgress?.questions
 
                 practiceTasks[taskName] = PracticeProgress(
                     timesCompleted = timesCompleted,

@@ -54,6 +54,7 @@ class DailyProgressManagerTest {
         every { mockEditor.putInt(any(), any()) } returns mockEditor
         every { mockEditor.remove(any()) } returns mockEditor
         every { mockEditor.apply() } just Runs
+        every { mockEditor.commit() } returns true
         every { mockPrefs.getInt(any(), any()) } returns 0
         
         // Set up date to prevent reset (use today's date)
@@ -119,7 +120,7 @@ class DailyProgressManagerTest {
         // Then: Should save the value (key is profile-prefixed)
         verify { mockEditor.remove("AM_banked_reward_minutes") }
         verify { mockEditor.putInt("AM_banked_reward_minutes", 30) }
-        verify { mockEditor.apply() }
+        verify { mockEditor.commit() }
     }
 
     @Test
@@ -138,7 +139,7 @@ class DailyProgressManagerTest {
         // Verify it tried to save the new total (key is profile-prefixed)
         verify(atLeast = 1) { mockEditor.remove("AM_banked_reward_minutes") }
         verify(atLeast = 1) { mockEditor.putInt("AM_banked_reward_minutes", 15) }
-        verify(atLeast = 1) { mockEditor.apply() }
+        verify(atLeast = 1) { mockEditor.commit() }
     }
 
     @Test

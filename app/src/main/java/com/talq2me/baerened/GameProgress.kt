@@ -13,15 +13,22 @@ class GameProgress(private val context: Context, private val launchId: String) {
 
     fun getCurrentIndex(): Int {
         val key = getStorageKey()
+        // NOTE: Cloud game_indices are applied to local storage by CloudDataApplier during sync.
+        // We load from local storage here. Cloud sync should happen before game launch (in onResume).
+        // If cloud has newer data, it will be applied to local storage first.
         val index = prefs.getInt(key, 0)
-        android.util.Log.d("GameProgress", "getCurrentIndex for $key: $index")
+        android.util.Log.d("GameProgress", "getCurrentIndex for $key: $index (loaded from local, which should be synced from cloud)")
         return index
     }
 
     fun saveIndex(index: Int) {
         val key = getStorageKey()
-        prefs.edit().putInt(key, index).apply()
-        android.util.Log.d("GameProgress", "saveIndex for $key: $index")
+        // CRITICAL: Use commit() for synchronous write to prevent race conditions
+        val success = prefs.edit().putInt(key, index).commit()
+        if (!success) {
+            android.util.Log.e("GameProgress", "CRITICAL ERROR: Failed to save game index!")
+        }
+        android.util.Log.d("GameProgress", "saveIndex for $key: $index (saved synchronously)")
     }
 
     fun resetProgress() {

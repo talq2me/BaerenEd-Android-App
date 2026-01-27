@@ -100,9 +100,13 @@ class TimeTracker(private val context: Context) {
      * Saves sessions for today
      */
     private fun saveTodaySessions(sessions: List<ActivitySession>) {
-        prefs.edit()
+        // CRITICAL: Use commit() for synchronous write to prevent race conditions
+        val success = prefs.edit()
             .putString(KEY_DAILY_SESSIONS, gson.toJson(sessions))
-            .apply()
+            .commit()
+        if (!success) {
+            Log.e("TimeTracker", "CRITICAL ERROR: Failed to save TimeTracker sessions!")
+        }
     }
 
     /**

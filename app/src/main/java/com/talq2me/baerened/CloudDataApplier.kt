@@ -73,12 +73,24 @@ class CloudDataApplier(
                         // Store using task name as key (cloud format)
                         // Preserve visibility fields from config if available
                         val task = visibleConfigTasks.find { it.title == taskName }
+                        
+                        // CRITICAL: Apply cloud data as-is (newest timestamp wins per requirements)
+                        // If cloud is newer, it means cloud has the authoritative data
+                        val existingLocalProgress = existingRequiredTasks[taskName]
+                        
+                        // CRITICAL: Log what we're doing for debugging
+                        if (taskName == "Math" || taskName.contains("Math")) {
+                            Log.d(TAG, "CRITICAL: Processing Math task - local status: ${existingLocalProgress?.status}, cloud status: ${taskProgress.status}")
+                        }
+                        
+                        // CRITICAL: Use cloud data directly (newest timestamp wins - cloud is authoritative)
+                        // Preserve visibility/config fields from local config if available, but use cloud data for progress
                         val mergedTaskProgress = TaskProgress(
                             status = taskProgress.status,
                             correct = taskProgress.correct,
                             incorrect = taskProgress.incorrect,
                             questions = taskProgress.questions,
-                            stars = task?.stars ?: taskProgress.stars, // Preserve stars from config or existing data
+                            stars = task?.stars ?: taskProgress.stars ?: 0,
                             showdays = task?.showdays ?: taskProgress.showdays,
                             hidedays = task?.hidedays ?: taskProgress.hidedays,
                             displayDays = task?.displayDays ?: taskProgress.displayDays,
@@ -92,9 +104,12 @@ class CloudDataApplier(
                     }
                 }
 
-                progressPrefs.edit()
+                val success = progressPrefs.edit()
                     .putString(requiredTasksKey, gson.toJson(existingRequiredTasks))
-                    .apply()
+                    .commit() // Use commit() for synchronous write to prevent race conditions
+                if (!success) {
+                    Log.e(TAG, "CRITICAL ERROR: Failed to save required tasks!")
+                }
 
                 Log.d(TAG, "Applied $appliedCount required tasks to local storage (NEW format) for profile: $localProfile (skipped $skippedCount tasks not visible today)")
             }
@@ -130,11 +145,16 @@ class CloudDataApplier(
                 val oldBerries = prefs.getInt(berriesKey, -999)
                 Log.d(TAG, "CRITICAL: About to apply berries_earned from cloud - old value: $oldBerries, new value: ${data.berriesEarned} for profile: $localProfile")
                 
+                // CRITICAL: Use cloud value directly (newest timestamp wins - cloud is authoritative)
                 // CRITICAL: Use commit() instead of apply() to ensure synchronous write
                 // This prevents race conditions where data might be read before it's written
-                prefs.edit()
+                val success = prefs.edit()
                     .putInt(berriesKey, data.berriesEarned)
                     .commit()
+                
+                if (!success) {
+                    Log.e(TAG, "CRITICAL ERROR: Failed to save berries_earned!")
+                }
                 
                 // CRITICAL: Verify what was actually written
                 val writtenBerries = prefs.getInt(berriesKey, -999)
@@ -201,9 +221,12 @@ class CloudDataApplier(
                         val localDateString = localFormat.format(parsedDate)
                         
                         // CRITICAL: Always overwrite local last_reset_date with cloud's value (cloud is source of truth)
-                        progressPrefs.edit()
+                        val success = progressPrefs.edit()
                             .putString("last_reset_date", localDateString)
-                            .apply()
+                            .commit() // Use commit() for synchronous write
+                        if (!success) {
+                            Log.e(TAG, "CRITICAL ERROR: Failed to save last_reset_date!")
+                        }
                         Log.d(TAG, "Stored cloud last_reset as local last_reset_date: $localDateString (from cloud: ${data.lastReset})")
                     }
                 } catch (e: Exception) {
@@ -254,9 +277,12 @@ class CloudDataApplier(
                 }
             }
 
-            gameEditor.apply()
-            webGameEditor.apply()
-            videoEditor.apply()
+            val success1 = gameEditor.commit() // Use commit() for synchronous write
+            val success2 = webGameEditor.commit() // Use commit() for synchronous write
+            val success3 = videoEditor.commit() // Use commit() for synchronous write
+            if (!success1 || !success2 || !success3) {
+                Log.e(TAG, "CRITICAL ERROR: Failed to save game indices!")
+            }
 
             Log.d(TAG, "Applied ${gameIndices.size} game indices to local storage")
         } catch (e: Exception) {
