@@ -24,7 +24,7 @@
         {
           "title": "Google Read Along",
           "launch": "googleReadAlong",
-          "stars": 3,
+ol          "stars": 3,
           "disable": "Jan 15, 2027"
         },
         {
@@ -290,19 +290,14 @@
           "stars": 1,
           "totalQuestions": 1
         },
-        {
-          "title": "French Vowels",
-          "launch": "frenchVowels",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
-          "stars": 3,
-          "webGame": true
-        },
+       
         {
           "title": "Time Telling",
           "launch": "timeTelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
           "stars": 3,
-          "webGame": true
+          "webGame": true,
+          "totalQuestions": 1
         },
         {
           "title": "Money Game",
@@ -316,19 +311,6 @@
           "stars": 1,
           "totalQuestions": 1,
           "blockOutlines": true
-        },
-        {
-          "title": "Ufli Home Videos",
-          "launch": "uflivideos",
-          "stars": 3,
-          "videoSequence": "sequential"
-        },
-        {
-          "title": "UFLI Words",
-          "launch": "ufliLessonData",
-          "stars": 1,
-          "totalQuestions": 1,
-          "blockOutlines": true
         }
       ]
     },
@@ -338,37 +320,37 @@
       "description": "Just for fun!",
       "tasks": [
         {
-          "title": "kpop demon hunters",
+          "title": "Soda Pop",
           "launch": "kpop",
           "video": "Soda Pop",
           "videoSequence": "exact"
         },
         {
-          "title": "kpop demon hunters",
+          "title": "Your Idol",
           "launch": "kpop",
           "video": "Your Idol",
           "videoSequence": "exact"
         },
         {
-          "title": "kpop demon hunters",
+          "title": "Golden",
           "launch": "kpop",
           "video": "Golden",
           "videoSequence": "exact"
         },
         {
-          "title": "kpop demon hunters",
+          "title": "What It Sounds Like",
           "launch": "kpop",
           "video": "What It Sounds Like",
           "videoSequence": "exact"
         },
         {
-          "title": "kpop demon hunters",
+          "title": "How Its Done",
           "launch": "kpop",
           "video": "How its Done",
           "videoSequence": "exact"
         },
         {
-          "title": "kpop demon hunters",
+          "title": "Take Down",
           "launch": "kpop",
           "video": "Take Down",
           "videoSequence": "exact"
