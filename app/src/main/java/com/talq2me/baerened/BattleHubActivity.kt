@@ -1059,13 +1059,7 @@ class BattleHubActivity : AppCompatActivity() {
                                 currentContent  // Pass config to verify
                             )
                             if (earnedStars > 0) {
-                                // Add stars to reward bank
-                                progressManager.addStarsToRewardBank(earnedStars)
-                                
-                                // Add berries to battle hub (checklist items are from required section)
-                                progressManager.addEarnedBerries(earnedStars)
-                                android.util.Log.d("BattleHubActivity", "Added $earnedStars berries to battle hub from checklist item completion")
-                                
+                                progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
                                 // Update UI
                                 updateCountsDisplay()
                                 updateBerryMeter()
@@ -2700,10 +2694,9 @@ class BattleHubActivity : AppCompatActivity() {
                 }
             }
         }
-        // Reload mainContentJson if it's null or empty (may have been cleared)
-        if (mainContentJson == null || mainContentJson!!.isEmpty()) {
-            mainContentJson = ContentUpdateService().getCachedMainContent(this)
-        }
+        // Always refresh mainContentJson from cache/network on resume so we pick up updates
+        // (e.g. Trainer Map may have fetched fresh config from GitHub and updated the cache)
+        mainContentJson = ContentUpdateService().getCachedMainContent(this)
 
         // Refresh all displays using persisted data (same as MainActivity)
         updateCountsDisplay()
@@ -2719,10 +2712,8 @@ class BattleHubActivity : AppCompatActivity() {
         // When returning from TrainingMapActivity, sync from cloud first, then refresh displays
         // Tasks may have been completed even if the activity was canceled
         if (requestCode == 2001 || requestCode == 2002 || requestCode == 2003) {
-            // Reload mainContentJson from cache before syncing
-            if (mainContentJson == null || mainContentJson!!.isEmpty()) {
-                mainContentJson = ContentUpdateService().getCachedMainContent(this)
-            }
+            // Reload mainContentJson from cache/network (Trainer Map may have updated cache with fresh GitHub content)
+            mainContentJson = ContentUpdateService().getCachedMainContent(this)
 
             // Run daily_reset_process() and then cloud_sync() to get latest progress, then refresh UI
             val profile = SettingsManager.readProfile(this) ?: "AM"

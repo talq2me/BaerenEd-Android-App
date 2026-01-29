@@ -806,6 +806,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 }
             }
             
+            lastLaunchedGameSectionId = sectionId
             val intent = Intent(this, WebGameActivity::class.java).apply {
                 putExtra(WebGameActivity.EXTRA_GAME_URL, finalGameUrl)
                 putExtra(WebGameActivity.EXTRA_TASK_ID, taskIdToPass) // WebGameActivity will add section prefix via getUniqueTaskId
@@ -1067,17 +1068,9 @@ class TrainingMapActivity : AppCompatActivity() {
                     chromeSectionId
                 )
                 
-                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
                 if (earnedStars > 0) {
-                    progressManager.addStarsToRewardBank(earnedStars)
-                    
-                    // Add berries to battle hub if task is from required or optional section
-                    if (chromeSectionId == "required" || chromeSectionId == "optional") {
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Chrome page completion")
-                    }
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, chromeSectionId)
                 }
-                
                 android.util.Log.d("TrainingMapActivity", "Marked Chrome page task as completed: taskId=$chromeTaskId, sectionId=$chromeSectionId, stars=$chromeStars, earnedStars=$earnedStars")
             }
         }
@@ -1085,7 +1078,7 @@ class TrainingMapActivity : AppCompatActivity() {
         // Handle WebGameActivity result (requestCode 1002)
         if (requestCode == 1002 && resultCode == RESULT_OK && data != null) {
             val taskId = data.getStringExtra(WebGameActivity.EXTRA_TASK_ID)
-            val sectionId = data.getStringExtra(WebGameActivity.EXTRA_SECTION_ID)
+            val sectionId = data.getStringExtra(WebGameActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
             val stars = data.getIntExtra(WebGameActivity.EXTRA_STARS, 0)
             val taskTitle = data.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
             
@@ -1109,18 +1102,9 @@ class TrainingMapActivity : AppCompatActivity() {
                     sectionId  // Pass section ID to create unique task IDs
                 )
                 
-                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
                 if (earnedStars > 0) {
-                    progressManager.addStarsToRewardBank(earnedStars)
-                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
-                    
-                    // Add berries to battle hub if task is from required or optional section
-                    if (sectionId == "required" || sectionId == "optional") {
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from task completion")
-                    }
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
                 }
-                
                 android.util.Log.d("TrainingMapActivity", "Marked web game task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, earnedStars=$earnedStars")
             }
         }
@@ -1155,111 +1139,60 @@ class TrainingMapActivity : AppCompatActivity() {
                     gameSectionId
                 )
                 
-                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
                 if (earnedStars > 0) {
-                    progressManager.addStarsToRewardBank(earnedStars)
-                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
-                    
-                    // Add berries to battle hub if task is from required or optional section
-                    if (gameSectionId == "required" || gameSectionId == "optional") {
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from printing game completion")
-                    }
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
                 }
-                
                 android.util.Log.d("TrainingMapActivity", "Marked printing game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
             }
         }
         
         // Handle SpellingOCRActivity result (same format as PrintingGameActivity)
         if (requestCode == 1006 && resultCode == RESULT_OK && data != null) {
-            val gameType = data.getStringExtra("GAME_TYPE")
-            val gameStars = data.getIntExtra("GAME_STARS", 0)
-            
-            // Use the stored section ID from when we launched the game
-            val gameSectionId = lastLaunchedGameSectionId ?: mapType
-            
-            if (!gameType.isNullOrEmpty()) {
-                // Find the task in currentContent to get its title
-                var gameTitle = "Game: $gameType"
-                currentContent?.sections?.forEach { section ->
-                    section.tasks?.find { it.launch == gameType }?.let { task ->
-                        gameTitle = task.title ?: gameTitle
+            val rewardsAlreadyApplied = data.getBooleanExtra("REWARDS_APPLIED", false)
+            if (!rewardsAlreadyApplied) {
+                val gameType = data.getStringExtra("GAME_TYPE")
+                val gameStars = data.getIntExtra("GAME_STARS", 0)
+                val gameSectionId = data.getStringExtra("SECTION_ID") ?: lastLaunchedGameSectionId ?: mapType
+                if (!gameType.isNullOrEmpty()) {
+                    var gameTitle = "Game: $gameType"
+                    currentContent?.sections?.forEach { section ->
+                        section.tasks?.find { it.launch == gameType }?.let { task ->
+                            gameTitle = task.title ?: gameTitle
+                        }
+                    }
+                    val progressManager = DailyProgressManager(this)
+                    val earnedStars = progressManager.markTaskCompletedWithName(
+                        gameType, gameTitle, gameStars, gameSectionId == "required", currentContent, gameSectionId
+                    )
+                    if (earnedStars > 0) {
+                        progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
                     }
                 }
-                
-                val progressManager = DailyProgressManager(this)
-                val isRequiredTask = gameSectionId == "required"
-                
-                // Mark task as completed and get earned stars
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    gameType,
-                    gameTitle,
-                    gameStars,
-                    isRequiredTask,
-                    currentContent,
-                    gameSectionId
-                )
-                
-                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
-                if (earnedStars > 0) {
-                    progressManager.addStarsToRewardBank(earnedStars)
-                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
-                    
-                    // Add berries to battle hub if task is from required or optional section
-                    if (gameSectionId == "required" || gameSectionId == "optional") {
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from spelling OCR game completion")
-                    }
-                }
-                
-                android.util.Log.d("TrainingMapActivity", "Marked spelling OCR game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
             }
         }
         
         // Handle GameActivity result
         if (requestCode == 1004 && resultCode == RESULT_OK && data != null) {
-            val gameType = data.getStringExtra("GAME_TYPE")
-            val gameStars = data.getIntExtra("GAME_STARS", 0)
-            
-            // Use the stored section ID from when we launched the game
-            val gameSectionId = lastLaunchedGameSectionId ?: mapType
-            
-            if (!gameType.isNullOrEmpty()) {
-                // Find the task in currentContent to get its title
-                var gameTitle = "Game: $gameType"
-                currentContent?.sections?.forEach { section ->
-                    section.tasks?.find { it.launch == gameType }?.let { task ->
-                        gameTitle = task.title ?: gameTitle
+            val rewardsAlreadyApplied = data.getBooleanExtra("REWARDS_APPLIED", false)
+            if (!rewardsAlreadyApplied) {
+                val gameType = data.getStringExtra("GAME_TYPE")
+                val gameStars = data.getIntExtra("GAME_STARS", 0)
+                val gameSectionId = data.getStringExtra("SECTION_ID") ?: lastLaunchedGameSectionId ?: mapType
+                if (!gameType.isNullOrEmpty()) {
+                    var gameTitle = "Game: $gameType"
+                    currentContent?.sections?.forEach { section ->
+                        section.tasks?.find { it.launch == gameType }?.let { task ->
+                            gameTitle = task.title ?: gameTitle
+                        }
+                    }
+                    val progressManager = DailyProgressManager(this)
+                    val earnedStars = progressManager.markTaskCompletedWithName(
+                        gameType, gameTitle, gameStars, gameSectionId == "required", currentContent, gameSectionId
+                    )
+                    if (earnedStars > 0) {
+                        progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
                     }
                 }
-                
-                val progressManager = DailyProgressManager(this)
-                val isRequiredTask = gameSectionId == "required"
-                
-                // Mark task as completed and get earned stars
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    gameType,
-                    gameTitle,
-                    gameStars,
-                    isRequiredTask,
-                    currentContent,
-                    gameSectionId
-                )
-                
-                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
-                if (earnedStars > 0) {
-                    progressManager.addStarsToRewardBank(earnedStars)
-                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
-                    
-                    // Add berries to battle hub if task is from required or optional section
-                    if (gameSectionId == "required" || gameSectionId == "optional") {
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from game completion")
-                    }
-                }
-                
-                android.util.Log.d("TrainingMapActivity", "Marked game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
             }
         }
         
@@ -1285,30 +1218,26 @@ class TrainingMapActivity : AppCompatActivity() {
                     videoSectionId
                 )
                 
-                // Add stars to reward bank (converts to minutes using convertStarsToMinutes)
                 if (earnedStars > 0) {
-                    progressManager.addStarsToRewardBank(earnedStars)
-                    android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank = ${progressManager.convertStarsToMinutes(earnedStars)} minutes")
-                    
-                    // Add berries to battle hub if task is from required or optional section
-                    if (videoSectionId == "required" || videoSectionId == "optional") {
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from video completion")
-                    }
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, videoSectionId)
                 }
-                
                 android.util.Log.d("TrainingMapActivity", "Marked video task as completed: taskId=$videoTaskId, sectionId=$videoSectionId, stars=$videoStars, earnedStars=$earnedStars")
             }
         }
         
         // Refresh the map when returning from any task to show updated completion status
         // Only refresh if the task was completed (RESULT_OK) to avoid unnecessary refreshes
-        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005) && resultCode == RESULT_OK) {
-            // Sync progress to cloud after task completion (async, doesn't block UI refresh)
+        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005 || requestCode == 1006) && resultCode == RESULT_OK) {
             val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-            val cloudStorageManager = CloudStorageManager(this)
-            lifecycleScope.launch {
-                cloudStorageManager.saveIfEnabled(currentProfile)
+            // Advance local last_updated synchronously so cloudSync (e.g. on BattleHub return)
+            // sees local newer than cloud and uploads instead of applying stale cloud over berries/tasks.
+            DailyResetAndSyncManager(this).advanceLocalTimestampForProfile(currentProfile)
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(currentProfile)
+                } catch (e: Exception) {
+                    android.util.Log.e("TrainingMapActivity", "Error syncing after task completion", e)
+                }
             }
 
             // Reload tasks into map to show updated completion status
@@ -1429,14 +1358,7 @@ class TrainingMapActivity : AppCompatActivity() {
                     
                     // Add stars to reward bank
                     if (earnedStars > 0) {
-                        progressManager.addStarsToRewardBank(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank from Google Read Along completion")
-                        
-                        // Add berries to battle hub if task is from required or optional section
-                        if (finalSectionId == "required" || finalSectionId == "optional") {
-                            progressManager.addEarnedBerries(earnedStars)
-                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Google Read Along completion")
-                        }
+                        progressManager.grantRewardsForTaskCompletion(earnedStars, finalSectionId)
                     }
                     
                     // Sync progress to cloud
@@ -1553,16 +1475,8 @@ class TrainingMapActivity : AppCompatActivity() {
                         finalSectionId
                     )
                     
-                    // Add stars to reward bank
                     if (earnedStars > 0) {
-                        progressManager.addStarsToRewardBank(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars stars to reward bank from Boukili completion")
-                        
-                        // Add berries to battle hub if task is from required or optional section
-                        if (finalSectionId == "required" || finalSectionId == "optional") {
-                            progressManager.addEarnedBerries(earnedStars)
-                            android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries to battle hub from Boukili completion")
-                        }
+                        progressManager.grantRewardsForTaskCompletion(earnedStars, finalSectionId)
                     }
                     
                     // Sync progress to cloud
@@ -1935,20 +1849,19 @@ class TrainingMapActivity : AppCompatActivity() {
                 // Mark task as completed and grant rewards
                 if (stars > 0) {
                     // Award stars when task is completed
+                    // CRITICAL: Pass sectionId = "required" so completion is saved to required_tasks.
+                    // Checklist items are in config section "checklist", so isTaskFromRequiredSection would be false
+                    // and we'd wrongly save to practice_tasks. Collector and map both read checklist from required_tasks.
                     val earnedStars = progressManager.markTaskCompletedWithName(
                         itemId,
                         taskName,
                         stars,
                         true,  // isRequired - checklist items behave like required tasks
-                        currentContent  // Pass config to verify
+                        currentContent,
+                        sectionId = "required"
                     )
                     if (earnedStars > 0) {
-                        // Add stars to reward bank
-                        progressManager.addStarsToRewardBank(earnedStars)
-                        
-                        // Add berries to battle hub (checklist items are from required section)
-                        progressManager.addEarnedBerries(earnedStars)
-                        android.util.Log.d("TrainingMapActivity", "Added $earnedStars berries from checklist item completion")
+                        progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
                     }
                 } else {
                     // Items with 0 stars should still be marked as completed for tracking
@@ -1957,12 +1870,25 @@ class TrainingMapActivity : AppCompatActivity() {
                         taskName,
                         0,
                         true,  // isRequired - checklist items behave like required tasks
-                        currentContent
+                        currentContent,
+                        sectionId = "required"
                     )
                 }
                 
                 // Reload the map to show the task as completed
                 loadTasksIntoMap()
+                
+                // Sync checklist completion to cloud (user_data.checklist_items)
+                // Collector builds checklist_items from required_tasks; push so cloud has it
+                val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
+                lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(profile)
+                        android.util.Log.d("TrainingMapActivity", "Synced checklist completion to cloud for profile: $profile")
+                    } catch (e: Exception) {
+                        android.util.Log.e("TrainingMapActivity", "Error syncing checklist to cloud", e)
+                    }
+                }
             }
             .setCancelable(true)
             .show()

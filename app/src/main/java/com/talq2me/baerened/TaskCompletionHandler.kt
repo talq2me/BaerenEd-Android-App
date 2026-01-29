@@ -74,12 +74,8 @@ class TaskCompletionHandler(
     ): CompletionResult {
         val result = handleCompletion(taskId, taskTitle, stars, sectionId, config)
         
-        // Add berries for required/optional tasks
-        if (sectionId == "required" || sectionId == "optional") {
-            if (result.earnedStars > 0) {
-                progressManager.addEarnedBerries(result.earnedStars)
-                Log.d(TAG, "Added ${result.earnedStars} berries from task completion")
-            }
+        if (result.earnedStars > 0) {
+            progressManager.grantRewardsForTaskCompletion(result.earnedStars, sectionId)
         }
         
         return result

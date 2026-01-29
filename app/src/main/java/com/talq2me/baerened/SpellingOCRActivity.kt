@@ -713,14 +713,9 @@ class SpellingOCRActivity : AppCompatActivity() {
         Log.d(TAG, "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
         
         if (earnedStars > 0) {
-            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+            val effectiveSectionId = if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
+            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
             timeTracker.updateStarsEarned("game", earnedStars)
-            
-            // Add berries if task is from required or optional section (or battle hub)
-            if (battleHubTaskId != null || sectionId == "required" || sectionId == "optional") {
-                progressManager.addEarnedBerries(earnedStars)
-                Log.d(TAG, "Added $earnedStars berries to battle hub")
-            }
         }
         
         // Sync to cloud (update_cloud_with_local according to Daily Reset Logic)
@@ -735,7 +730,9 @@ class SpellingOCRActivity : AppCompatActivity() {
         val resultIntent = android.content.Intent().apply {
             putExtra("GAME_TYPE", gameType)
             putExtra("GAME_STARS", earnedStars)
+            putExtra("REWARDS_APPLIED", true)
             battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+            sectionId?.let { putExtra("SECTION_ID", it) }
         }
         setResult(RESULT_OK, resultIntent)
         

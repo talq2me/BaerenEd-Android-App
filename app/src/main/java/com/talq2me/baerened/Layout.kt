@@ -411,25 +411,17 @@ class Layout(private val activity: MainActivity) {
             android.util.Log.d("Layout", "markTaskCompletedWithName returned: $earnedStars stars")
 
             if (earnedStars > 0) {
-                // Add stars to reward bank and convert to minutes
-                val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-
-                android.util.Log.d("Layout", "Video task $taskId ($taskTitle) completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
-
-                // Show completion message first
-                Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
-
-                // Add berries to battle hub if task is from required or optional section
                 val currentContent = activity.getCurrentMainContent()
                 val isFromRequiredOrOptional = currentContent?.sections?.any { section ->
-                    (section.id == "required" || section.id == "optional") && 
+                    (section.id == "required" || section.id == "optional") &&
                     section.tasks?.any { it.launch == taskId } == true
                 } ?: false
-                
+                val sectionIdForRewards = if (isFromRequiredOrOptional) "optional" else null
+                progressManager.grantRewardsForTaskCompletion(earnedStars, sectionIdForRewards)
+
+                android.util.Log.d("Layout", "Video task $taskId ($taskTitle) completed, earned $earnedStars stars")
+                Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
                 if (isFromRequiredOrOptional) {
-                    progressManager.addEarnedBerries(earnedStars)
-                    android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from main page video task completion")
-                    // Refresh battle hub to show updated berries
                     refreshBattleHub()
                 }
 
@@ -487,17 +479,10 @@ class Layout(private val activity: MainActivity) {
             )
 
             if (earnedStars > 0) {
-                val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-
-                android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
-
+                progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
                 Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
-
-                // Add berries to battle hub if task is from required or optional section
                 if (sectionId == "required" || sectionId == "optional") {
-                    progressManager.addEarnedBerries(earnedStars)
-                    android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from main page task completion")
-                    // Refresh battle hub and gym map to show updated state
                     refreshBattleHub()
                     refreshGymMap()
                 }
@@ -539,15 +524,10 @@ class Layout(private val activity: MainActivity) {
         )
 
         if (earnedStars > 0) {
-            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-            android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars, total reward minutes: $totalRewardMinutes")
+            progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+            android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
             Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
-            
-            // Add berries to battle hub if task is from required or optional section
             if (sectionId == "required" || sectionId == "optional") {
-                progressManager.addEarnedBerries(earnedStars)
-                android.util.Log.d(TAG, "Added $earnedStars berries to battle hub from main page task completion")
-                // Refresh battle hub to show updated berries
                 refreshBattleHub()
             }
         } else {
@@ -582,16 +562,9 @@ class Layout(private val activity: MainActivity) {
         )
 
         if (earnedStars > 0) {
-            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-            android.util.Log.d(
-                TAG,
-                "Manual task completion awarded $earnedStars stars (${progressManager.convertStarsToMinutes(earnedStars)} mins). Total bank: $totalRewardMinutes"
-            )
-            
-            // Add berries to battle hub if task is from required or optional section
+            progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+            android.util.Log.d(TAG, "Manual task completion awarded $earnedStars stars")
             if (sectionId == "required" || sectionId == "optional") {
-                progressManager.addEarnedBerries(earnedStars)
-                android.util.Log.d(TAG, "Added $earnedStars berries to battle hub from manual task completion")
                 
                 // Sync berries to cloud immediately after adding them
                 val profile = SettingsManager.readProfile(activity) ?: "AM"
@@ -1599,12 +1572,7 @@ class Layout(private val activity: MainActivity) {
                             currentContent  // Pass config to verify
                         )
                         if (earnedStars > 0) {
-                            // Add stars to reward bank
-                            progressManager.addStarsToRewardBank(earnedStars)
-                            
-                            // Add berries to battle hub (checklist items are from required section)
-                            progressManager.addEarnedBerries(earnedStars)
-                            android.util.Log.d("Layout", "Added $earnedStars berries to battle hub from checklist item completion")
+                            progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
                             
                             // Sync berries to cloud immediately after adding them
                             val profile = SettingsManager.readProfile(activity) ?: "AM"

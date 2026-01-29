@@ -64,8 +64,15 @@ class GameActivity : AppCompatActivity() {
         sectionId = intent.getStringExtra("SECTION_ID")
         blockOutlines = intent.getBooleanExtra("BLOCK_OUTLINES", false)
         battleHubTaskId = intent.getStringExtra("BATTLE_HUB_TASK_ID")
-        
-        android.util.Log.d("GameActivity", "Game initialized: title=$gameTitle, type=$gameType, totalQuestions=$totalQuestions, stars=$gameStars")
+        val taskId = battleHubTaskId // Local val for smart cast in when
+
+        // Use canonical game id for game_progress so indices sync to cloud under same key (sightWords, skSpelling, etc.)
+        val storageGameType = when {
+            taskId != null && taskId.startsWith("battleHub_") -> taskId.substringAfter("battleHub_")
+            taskId != null && taskId.startsWith("gymMap_") -> taskId.substringAfter("gymMap_")
+            else -> gameType
+        }
+        android.util.Log.d("GameActivity", "Game initialized: title=$gameTitle, type=$gameType, storageType=$storageGameType, totalQuestions=$totalQuestions, stars=$gameStars")
 
         if (gameContent == null) {
             Toast.makeText(this, "Game content not available", Toast.LENGTH_SHORT).show()
@@ -93,7 +100,8 @@ class GameActivity : AppCompatActivity() {
         
         android.util.Log.d("GameActivity", "GameConfig created: requiredCorrectAnswers=${config.requiredCorrectAnswers}, questions available=${questions.size}")
 
-        gameEngine = GameEngine(this, gameType, questions, config)
+        // Use storageGameType so game_indices are saved under cloud key (sightWords, skSpelling, etc.)
+        gameEngine = GameEngine(this, storageGameType, questions, config)
 
         // Initialize progress manager
         progressManager = DailyProgressManager(this)
@@ -101,8 +109,8 @@ class GameActivity : AppCompatActivity() {
         // Initialize time tracker
         timeTracker = TimeTracker(this)
 
-        // Initialize game progress tracker
-        gameProgress = GameProgress(this, gameType)
+        // Initialize game progress tracker (use storageGameType for cloud sync)
+        gameProgress = GameProgress(this, storageGameType)
         
         // Use unique task ID that includes section info to track separately for required vs optional
         val uniqueTaskId = if (sectionId != null) {
@@ -243,7 +251,11 @@ class GameActivity : AppCompatActivity() {
                         android.util.Log.d("GameActivity", "CRITICAL: About to mark task as complete - gameType: '$actualGameType', gameTitle: '$gameTitle', isRequiredGame: $isRequiredGame, sectionId: $sectionId, config loaded: ${config != null}")
                         android.util.Log.d("GameActivity", "CRITICAL: Game stats - correct: $correctCount, incorrect: $incorrectCount, questions: $questionsAnswered, finalIndex: $finalGameIndex")
                         
-                        // Step 1: Update all local data
+                        // Step 1: Update all local data (save index first so game_indices persist even if later steps throw)
+                        // 1c. Update game_indices - gameProgress uses storageGameType (canonical key: sightWords, skSpelling, etc.)
+                        gameProgress.saveIndex(finalGameIndex)
+                        android.util.Log.d("GameActivity", "Saved final game index: $finalGameIndex (game_indices, key=storageType)")
+                        
                         // 1a. Mark task as complete with correct/incorrect/questions
                         val earnedStars = progressManager.markTaskCompletedWithName(
                             actualGameType, 
@@ -258,29 +270,16 @@ class GameActivity : AppCompatActivity() {
                         )
                         android.util.Log.d("GameActivity", "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
                         
-                        // 1b. Grant berries/stars and banked_time
+                        // 1b. Grant all rewards in one place (time, berries)
                         if (earnedStars > 0) {
-                            // Add stars to reward bank and convert to minutes
-                            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
-                            android.util.Log.d("GameActivity", "Game $actualGameType completed, earned $earnedStars stars = ${progressManager.convertStarsToMinutes(earnedStars)} minutes, total bank: $totalRewardMinutes minutes")
+                            // Use "optional" when from Battle Hub so berries are granted; otherwise use actual sectionId
+                            val effectiveSectionId = if (currentBattleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
+                            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
+                            android.util.Log.d("GameActivity", "Game $actualGameType completed, granted $earnedStars stars (section=$sectionId, effective=$effectiveSectionId)")
 
                             // Update time tracker with stars earned
                             timeTracker.updateStarsEarned("game", earnedStars)
-                            
-                            // Save berries if launched from battle hub OR if from required/optional section
-                            val shouldAddBerries = currentBattleHubTaskId != null || 
-                                (sectionId == "required" || sectionId == "optional")
-                            
-                            if (shouldAddBerries) {
-                                progressManager.addEarnedBerries(earnedStars)
-                                android.util.Log.d("GameActivity", "Saved $earnedStars berries from game completion (battleHub=${currentBattleHubTaskId != null}, section=$sectionId)")
-                            }
                         }
-                        
-                        // 1c. Update game_indices if game used JSON (increment index)
-                        // The index is already saved during gameplay, but ensure it's persisted with commit()
-                        gameProgress.saveIndex(finalGameIndex)
-                        android.util.Log.d("GameActivity", "Saved final game index for $actualGameType: $finalGameIndex")
                         
                         // 1d. Update answer counts in TimeTracker and mark session as completed
                         timeTracker.updateAnswerCounts("game", correctCount, incorrectCount)
@@ -304,15 +303,15 @@ class GameActivity : AppCompatActivity() {
                             }
                         }
 
-                        // If launched from battle hub, set result to indicate we should reopen battle hub
-                        if (currentBattleHubTaskId != null) {
-                            val resultIntent = android.content.Intent().apply {
-                                putExtra("BATTLE_HUB_TASK_ID", currentBattleHubTaskId)
-                                putExtra("GAME_TYPE", actualGameType)
-                                putExtra("GAME_STARS", earnedStars)
-                            }
-                            setResult(RESULT_OK, resultIntent)
+                        // Always set result when game completed so caller (e.g. TrainingMap) can refresh
+                        val resultIntent = android.content.Intent().apply {
+                            putExtra("GAME_TYPE", actualGameType)
+                            putExtra("GAME_STARS", earnedStars)
+                            putExtra("REWARDS_APPLIED", true)  // We already granted time+berries; caller should not grant again
+                            currentBattleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+                            sectionId?.let { putExtra("SECTION_ID", it) }
                         }
+                        setResult(RESULT_OK, resultIntent)
 
                         // Navigate back after delay
                         android.os.Handler().postDelayed({

@@ -309,7 +309,7 @@ class ProgressDataCollector(private val context: Context) {
             val practiceTasksType = object : com.google.gson.reflect.TypeToken<Map<String, TaskProgress>>() {}.type
             val storedPracticeTasks = com.google.gson.Gson().fromJson<Map<String, TaskProgress>>(practiceTasksJson, practiceTasksType) ?: emptyMap()
             
-            // Get cumulative times_completed from storage (from previous cycles)
+            // Get times_completed for today from storage (cleared on daily reset)
             val cumulativeKey = "${profile}_practice_tasks_cumulative_times"
             val cumulativeJson = prefs.getString(cumulativeKey, "{}") ?: "{}"
             val cumulativeType = object : com.google.gson.reflect.TypeToken<Map<String, Int>>() {}.type
@@ -319,19 +319,11 @@ class ProgressDataCollector(private val context: Context) {
             optionalTasks.forEach { task ->
                 val taskName = task.title ?: "Unknown Task"
                 
-                // Get stored progress for this task
+                // Get stored progress for this task (correct/incorrect/questions reset daily)
                 val storedProgress = storedPracticeTasks[taskName]
                 
-                // Get cumulative times_completed
-                val cumulativeCount = cumulativeTimes[taskName] ?: 0
-                
-                // If task is currently complete, add 1 to cumulative count for times_completed
-                // (times_completed = cumulative from previous cycles + 1 if currently complete)
-                val timesCompleted = if (storedProgress?.status == "complete") {
-                    cumulativeCount + 1
-                } else {
-                    cumulativeCount
-                }
+                // times_completed = count for today only (cumulative_times is cleared on daily reset)
+                val timesCompleted = cumulativeTimes[taskName] ?: 0
                 
                 // Get answer data from stored progress (or null if not available)
                 val correct = storedProgress?.correct
@@ -386,9 +378,12 @@ class ProgressDataCollector(private val context: Context) {
             allItems.forEach { item ->
                 val itemLabel = item.label ?: "Unknown Item"
 
-                // NEW: Look up by item label (name) instead of item ID
+                // NEW: Look up by item label (name) - must match taskName used when saving from handleChecklistTaskCompletion
                 val existingProgress = existingRequiredTasks[itemLabel]
                 val isDone = existingProgress?.status == "complete"
+                if (isDone) {
+                    Log.d(TAG, "CRITICAL: Checklist item '$itemLabel' collected as done (from required_tasks)")
+                }
 
                 // Get stars from config
                 val stars = item.stars ?: 0

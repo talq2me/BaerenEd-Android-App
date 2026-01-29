@@ -37,7 +37,7 @@ import android.util.Base64
 import android.net.Uri
 import android.graphics.BitmapFactory
 
-class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
+class WebGameActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_GAME_URL = "game_url"
@@ -51,8 +51,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         const val CAMERA_REQUEST_CODE = 1002
     }
 
-    private lateinit var webView: WebView
-    private lateinit var tts: TextToSpeech
+    private var webView: WebView? = null
+    private var tts: TextToSpeech? = null
     private lateinit var timeTracker: TimeTracker
     private lateinit var progressManager: DailyProgressManager
     private var gameCompleted = false
@@ -73,9 +73,9 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Lightweight layout (no WebView) so onCreate returns quickly and the previous
+        // activity can process FocusEvent, avoiding ANR when launching bonus games.
         setContentView(R.layout.activity_web_game)
-
-        webView = findViewById(R.id.game_webview)
 
         val gameUrl = intent.getStringExtra(EXTRA_GAME_URL)
         taskId = intent.getStringExtra(EXTRA_TASK_ID)
@@ -83,14 +83,8 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         stars = intent.getIntExtra(EXTRA_STARS, 0)
         taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE)
 
-        // Initialize time tracker (lightweight, safe to do on main thread)
         timeTracker = TimeTracker(this)
-        
-        // Initialize progress manager in background to avoid ANR from migration
-        // The migration in DailyProgressManager.init can be heavy, so we'll lazy-init it
         progressManager = DailyProgressManager(this)
-        
-        // Use unique task ID that includes section info to track separately for required vs optional
         val currentTaskId = taskId
         val currentSectionId = sectionId
         val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
@@ -98,12 +92,37 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         } else {
             currentTaskId ?: "webgame"
         }
-        
-        // Start tracking time for this web game
         val gameName = taskTitle ?: taskId ?: "Web Game"
         timeTracker.startActivity(uniqueTaskId, "webgame", gameName)
 
-        val ws: WebSettings = webView.settings
+        if (gameUrl.isNullOrEmpty()) {
+            Toast.makeText(this, "No game URL provided", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
+        // Defer WebView creation and TTS init to next frame so onCreate returns immediately.
+        // WebView first-time init and TTS engine startup are heavy and were blocking the
+        // main thread long enough to cause "Input dispatching timed out" ANR in TrainingMapActivity.
+        val container = findViewById<android.view.ViewGroup>(R.id.webview_container)
+        container.post {
+            if (isFinishing) return@post
+            setupWebViewAndLoad(container, gameUrl)
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
+    private fun setupWebViewAndLoad(container: android.view.ViewGroup, gameUrl: String) {
+        val wv = WebView(this).apply {
+            layoutParams = android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+        webView = wv
+        container.addView(wv)
+
+        val ws: WebSettings = wv.settings
         ws.javaScriptEnabled = true
         ws.domStorageEnabled = true
         ws.mediaPlaybackRequiresUserGesture = false
@@ -116,10 +135,9 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         ws.setSupportZoom(false)
         ws.builtInZoomControls = false
         ws.displayZoomControls = false
-        // Enable hardware acceleration for better performance
-        webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
+        wv.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
 
-        webView.webChromeClient = object : WebChromeClient() {
+        wv.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
                 if (newProgress == 100) {
@@ -128,13 +146,12 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        webView.webViewClient = object : WebViewClient() {
+        wv.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?) = false
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 android.util.Log.d("WebGameActivity", "Game page finished loading: $url")
-                // Inject a test script to verify Android interface is accessible
                 view?.evaluateJavascript("""
                     setTimeout(function() {
                         console.log('=== Page Finished - Android Interface Check ===');
@@ -159,41 +176,35 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
 
-        tts = TextToSpeech(this, this)
-        
-        // Set up TTS utterance progress listener to notify JavaScript when TTS finishes
-        tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {
-                // TTS started
+        val ttsInstance = TextToSpeech(this, object : TextToSpeech.OnInitListener {
+            override fun onInit(status: Int) {
+                if (status != TextToSpeech.SUCCESS) {
+                    android.util.Log.e("WebGameActivity", "TTS initialization failed")
+                }
             }
-            
+        })
+        tts = ttsInstance
+        ttsInstance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {}
             override fun onDone(utteranceId: String?) {
-                // TTS finished - notify JavaScript if there's a callback registered
                 runOnUiThread {
                     if (utteranceId != null && utteranceId.startsWith("tts_callback_")) {
-                        webView.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
+                        webView?.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
                     }
                 }
             }
-            
             override fun onError(utteranceId: String?) {
-                // TTS error - still notify JavaScript so it doesn't wait forever
                 runOnUiThread {
                     if (utteranceId != null && utteranceId.startsWith("tts_callback_")) {
-                        webView.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
+                        webView?.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
                     }
                 }
             }
         })
 
-        if (!gameUrl.isNullOrEmpty()) {
-            android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
-            webView.addJavascriptInterface(WebGameInterface(taskId), "Android")
-            webView.loadUrl(gameUrl)
-        } else {
-            Toast.makeText(this, "No game URL provided", Toast.LENGTH_LONG).show()
-            finish()
-        }
+        android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
+        wv.addJavascriptInterface(WebGameInterface(taskId), "Android")
+        wv.loadUrl(gameUrl)
     }
 
     private fun finishGameWithResult(taskId: String?) {
@@ -223,12 +234,28 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     inner class WebGameInterface(private val taskId: String?) {
+        /** 2-arg overload for games that only pass correct/incorrect (e.g. Time Telling). WebView bridge matches on exact signature, so gameCompleted(1, 0) would otherwise "Method not found". */
         @JavascriptInterface
-        fun gameCompleted(correctAnswers: Int = 0, incorrectAnswers: Int = 0) {
-            android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted() with correct: $correctAnswers, incorrect: $incorrectAnswers")
-            // Update answer counts before finishing
-            timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
-            finishGameWithResult(taskId)
+        fun gameCompleted(correctAnswers: Int, incorrectAnswers: Int) {
+            gameCompleted(correctAnswers, incorrectAnswers, -1)
+        }
+
+        /** Called when the web game completes. Pass finalIndex (0-based) so game_indices are saved for cloud sync. */
+        @JavascriptInterface
+        fun gameCompleted(correctAnswers: Int, incorrectAnswers: Int, finalIndex: Int) {
+            android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted() with correct: $correctAnswers, incorrect: $incorrectAnswers, finalIndex: $finalIndex")
+            // JavascriptInterface methods run on a WebView worker thread, so we must use runOnUiThread
+            // for Activity methods like setResult() and finish()
+            runOnUiThread {
+                // Save game index before finishing so game_indices and last_updated sync to cloud (same as GameActivity)
+                if (taskId != null && finalIndex >= 0) {
+                    val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
+                    webGameProgress.saveIndex(finalIndex)
+                    android.util.Log.d("WebGameActivity", "Saved game index $finalIndex for $taskId (game_indices)")
+                }
+                timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
+                finishGameWithResult(taskId)
+            }
         }
 
         @JavascriptInterface
@@ -263,14 +290,14 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         @JavascriptInterface
         fun readText(text: String, lang: String) {
-            val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
-            tts.language = locale
-            // Use a unique utterance ID so we can track when this specific TTS call finishes
-            val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
-            // Use a bundle to pass the utterance ID (required for UtteranceProgressListener)
-            val params = android.os.Bundle()
-            params.putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+            tts?.let {
+                val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
+                it.language = locale
+                val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
+                val params = android.os.Bundle()
+                params.putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
+                it.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+            }
         }
 
         @JavascriptInterface
@@ -486,7 +513,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 } catch (e: Exception) {
                     android.util.Log.e("WebGameActivity", "Error in openCamera", e)
                     errorCallback.let { callback ->
-                        webView.evaluateJavascript(
+                        webView?.evaluateJavascript(
                             "if (typeof $callback === 'function') $callback('Error: ${e.message}');",
                             null
                         )
@@ -533,7 +560,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         android.util.Log.e("WebGameActivity", "Supabase URL not configured", e)
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView.evaluateJavascript(
+                            webView?.evaluateJavascript(
                                 "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
                                 null
                             )
@@ -547,7 +574,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         android.util.Log.e("WebGameActivity", "Supabase key not configured", e)
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView.evaluateJavascript(
+                            webView?.evaluateJavascript(
                                 "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
                                 null
                             )
@@ -559,7 +586,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         android.util.Log.e("WebGameActivity", "Supabase URL or key is blank")
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView.evaluateJavascript(
+                            webView?.evaluateJavascript(
                                 "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
                                 null
                             )
@@ -621,7 +648,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             android.util.Log.d("WebGameActivity", "INSERT successful")
                             runOnUiThread {
                                 val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
-                                webView.evaluateJavascript(
+                                webView?.evaluateJavascript(
                                     "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']();",
                                     null
                                 )
@@ -631,7 +658,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             val errorMsg = (postResponseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
                             runOnUiThread {
                                 val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                                webView.evaluateJavascript(
+                                webView?.evaluateJavascript(
                                     "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
                                     null
                                 )
@@ -642,7 +669,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         android.util.Log.d("WebGameActivity", "UPDATE successful")
                         runOnUiThread {
                             val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView.evaluateJavascript(
+                            webView?.evaluateJavascript(
                                 "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']();",
                                 null
                             )
@@ -653,7 +680,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         val errorMsg = (responseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView.evaluateJavascript(
+                            webView?.evaluateJavascript(
                                 "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
                                 null
                             )
@@ -666,19 +693,13 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     runOnUiThread {
                         val errorMsg = (e.message ?: "Unknown error").replace("'", "\\'").replace("\"", "\\\"")
                         val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                        webView.evaluateJavascript(
+                        webView?.evaluateJavascript(
                             "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
                             null
                         )
                     }
                 }
             }.start()
-        }
-    }
-
-    override fun onInit(status: Int) {
-        if (status != TextToSpeech.SUCCESS) {
-            android.util.Log.e("WebGameActivity", "TTS initialization failed")
         }
     }
 
@@ -699,7 +720,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 android.util.Log.e("WebGameActivity", "Camera permission denied")
                 cameraErrorCallback?.let { callback ->
                     runOnUiThread {
-                        webView.evaluateJavascript(
+                        webView?.evaluateJavascript(
                             "if (typeof window.$callback === 'function') window.$callback('Camera permission denied'); else console.error('Callback function $callback not found');",
                             null
                         )
@@ -761,12 +782,11 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             cameraSuccessCallback?.let { callback ->
                                 runOnUiThread {
                                     android.util.Log.d("WebGameActivity", "Calling success callback: $callback")
-                                    // Escape the base64 string for JavaScript - need to escape JSON properly
                                     val jsonBase64 = base64.replace("\\", "\\\\")
                                         .replace("\"", "\\\"")
                                         .replace("\n", "\\n")
                                         .replace("\r", "\\r")
-                                    webView.evaluateJavascript(
+                                    webView?.evaluateJavascript(
                                         "if (typeof window.$callback === 'function') window.$callback('data:image/jpeg;base64,$jsonBase64'); else console.error('Callback function $callback not found');",
                                         null
                                     )
@@ -780,7 +800,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             try { imageFile.delete() } catch (e: Exception) {}
                             cameraErrorCallback?.let { callback ->
                                 runOnUiThread {
-                                    webView.evaluateJavascript(
+                                    webView?.evaluateJavascript(
                                         "if (typeof window.$callback === 'function') window.$callback('Could not read image file'); else console.error('Callback function $callback not found');",
                                         null
                                     )
@@ -794,7 +814,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         cameraErrorCallback?.let { callback ->
                             runOnUiThread {
                                 val errorMsg = (e.message ?: "Error reading image").replace("'", "\\'")
-                                webView.evaluateJavascript(
+                                webView?.evaluateJavascript(
                                     "if (typeof window.$callback === 'function') window.$callback('$errorMsg'); else console.error('Callback function $callback not found');",
                                     null
                                 )
@@ -814,7 +834,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                     .replace("\"", "\\\"")
                                     .replace("\n", "\\n")
                                     .replace("\r", "\\r")
-                                webView.evaluateJavascript(
+                                webView?.evaluateJavascript(
                                     "if (typeof window.$callback === 'function') window.$callback('data:image/jpeg;base64,$jsonBase64'); else console.error('Callback function $callback not found');",
                                     null
                                 )
@@ -823,8 +843,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     } else {
                         cameraErrorCallback?.let { callback ->
                             runOnUiThread {
-                                val errorMsg = "Image file not found. Path: ${imageFile?.absolutePath}"
-                                webView.evaluateJavascript(
+                                webView?.evaluateJavascript(
                                     "if (typeof window.$callback === 'function') window.$callback('Image file not found'); else console.error('Callback function $callback not found');",
                                     null
                                 )
@@ -834,14 +853,12 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             } else {
                 android.util.Log.d("WebGameActivity", "Camera result cancelled or error: $resultCode")
-                // Clean up file if it was created
                 cameraImageFile?.let { file ->
                     try { file.delete() } catch (e: Exception) {}
                 }
-                // User cancelled or error
                 cameraErrorCallback?.let { callback ->
                     runOnUiThread {
-                        webView.evaluateJavascript(
+                        webView?.evaluateJavascript(
                             "if (typeof window.$callback === 'function') window.$callback('Camera cancelled'); else console.error('Callback function $callback not found');",
                             null
                         )
@@ -964,7 +981,7 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 """.trimIndent()
                 
                 android.util.Log.d("WebGameActivity", "Executing JavaScript error callback")
-                webView.evaluateJavascript(jsCode, null)
+                webView?.evaluateJavascript(jsCode, null)
             } else {
                 android.util.Log.e("WebGameActivity", "No error callback stored!")
             }
@@ -973,15 +990,13 @@ class WebGameActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
-        // End time tracking if not already ended
         if (!gameCompleted) {
             timeTracker.endActivity("webgame")
         }
-        
-        tts.stop()
-        tts.shutdown()
-        webView.removeJavascriptInterface("Android")
-        webView.destroy()
+        tts?.stop()
+        tts?.shutdown()
+        webView?.removeJavascriptInterface("Android")
+        webView?.destroy()
         super.onDestroy()
     }
 }

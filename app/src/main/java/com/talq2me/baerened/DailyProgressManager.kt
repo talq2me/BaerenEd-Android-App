@@ -549,6 +549,9 @@ class DailyProgressManager(private val context: Context) {
             )
         }
         
+        // Clear practice_tasks_cumulative_times so times_completed in cloud reflects today only
+        val cumulativeTimesKey = "${profile}_practice_tasks_cumulative_times"
+
         // Reset local storage
         val success = prefs.edit()
             .putString(completedTasksKey, gson.toJson(emptyMap<String, Boolean>()))
@@ -559,6 +562,7 @@ class DailyProgressManager(private val context: Context) {
             .putInt(bankedMinsKey, 0)
             .putInt(totalStarsKey, 0)
             .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0)
+            .remove(cumulativeTimesKey)
             .commit() // Use commit() for synchronous write to prevent race conditions
         if (!success) {
             Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save daily reset data!")
@@ -578,7 +582,7 @@ class DailyProgressManager(private val context: Context) {
             Log.e("DailyProgressManager", "Error clearing TimeTracker sessions", e)
         }
         
-        // NOTE: Practice tasks completion is stored separately in practice_tasks storage (already reset above)
+        Log.d("DailyProgressManager", "Cleared practice_tasks_cumulative_times so times_completed reflects today only")
         
         Log.d("DailyProgressManager", "resetLocalProgressOnly: Local reset completed")
     }
@@ -1247,19 +1251,25 @@ class DailyProgressManager(private val context: Context) {
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
 
         visibleContent.sections?.forEach { section ->
-            // Only count required section tasks for totals
+            // Required section tasks
             if (section.id == "required") {
                 section.tasks?.forEach { task ->
                     val stars = task.stars ?: 0
-                    // Required tasks award coins equal to their stars
                     totalCoins += stars
-                    // Only required tasks contribute to total stars
                     if (stars > 0) {
                         totalStars += stars
                     }
                 }
             }
-            // Note: Optional section tasks are not counted in totals
+            // Optional (practice) section tasks: include in total coins so progress reflects practice
+            if (section.id == "optional") {
+                section.tasks?.forEach { task ->
+                    val stars = task.stars ?: 0
+                    if (stars > 0) {
+                        totalCoins += stars
+                    }
+                }
+            }
 
             // Check for checklist items if they have stars
             section.items?.forEach { item ->
@@ -1312,13 +1322,14 @@ class DailyProgressManager(private val context: Context) {
      */
     fun getCurrentProgressWithCoinsAndStars(config: MainContent): Pair<Pair<Int, Int>, Pair<Int, Int>> {
         val requiredTasks = getRequiredTasks() // NEW: Use cloud format
+        val practiceTasks = getPracticeTasks()
         var earnedCoins = 0
         var earnedStars = 0
 
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
 
         visibleContent.sections?.forEach { section ->
-            // Only count required section tasks for progress
+            // Required section tasks
             if (section.id == "required") {
                 section.tasks?.forEach { task ->
                     val taskName = task.title ?: "Unknown Task"
@@ -1334,7 +1345,17 @@ class DailyProgressManager(private val context: Context) {
                     }
                 }
             }
-            // Note: Optional section tasks are not counted for progress, but they still bank reward time
+            // Optional (practice) section tasks: count completed for coins/display
+            if (section.id == "optional") {
+                section.tasks?.forEach { task ->
+                    val taskName = task.title ?: "Unknown Task"
+                    val stars = task.stars ?: 0
+                    val isCompleted = practiceTasks[taskName]?.status == "complete"
+                    if (isCompleted && stars > 0) {
+                        earnedCoins += stars // Practice tasks award coins equal to their stars
+                    }
+                }
+            }
 
             section.items?.forEach { item ->
                 val itemName = item.label ?: "Unknown Item"
@@ -1359,6 +1380,7 @@ class DailyProgressManager(private val context: Context) {
 
     /**
      * Gets current progress with totals for display (fallback when config not available)
+     * Earned coins/stars are computed from required_tasks so coins update after task completion.
      */
     fun getCurrentProgressWithTotals(): Pair<Pair<Int, Int>, Pair<Int, Int>> {
         val profile = getCurrentKid()
@@ -1366,14 +1388,11 @@ class DailyProgressManager(private val context: Context) {
         val totalCoins = prefs.getInt("total_coins", 0)
         val totalStars = prefs.getInt(totalStarsKey, 0)
 
-        // For fallback, we need to calculate earned amounts based on actual star values
-        // Since we don't have config, we'll use a simple approximation
-        val requiredTasks = getRequiredTasks() // NEW: Use cloud format
-        var earnedCoins = 0
-        var earnedStars = 0
-
-        // This is approximate - in a real implementation, we'd need to track star values per task
-        // For now, just use the simple earned berries counter
+        val requiredTasks = getRequiredTasks()
+        // Compute earned coins from completed tasks (required + checklist) so coins update when config isn't passed
+        val earnedCoins = requiredTasks.values
+            .filter { it.status == "complete" }
+            .sumOf { it.stars ?: 0 }
         val displayEarnedStars = getEarnedBerries()
 
         return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
@@ -1417,12 +1436,13 @@ class DailyProgressManager(private val context: Context) {
     }
     
     /**
-     * Sets the earned berries count
+     * Sets earned berries (local only). Caller is responsible for syncing to cloud after
+     * all local updates (e.g. mark task complete + grant rewards) so one sync pushes everything.
      */
     fun setEarnedBerries(amount: Int) {
         val profile = getCurrentKid()
         val key = "${profile}_earnedBerries"
-        // CRITICAL: Use commit() for synchronous write to ensure it's saved before cloud sync
+        // CRITICAL: Use commit() for synchronous write so caller can sync immediately after
         val success = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
             .edit()
             .putInt(key, amount)
@@ -1433,34 +1453,8 @@ class DailyProgressManager(private val context: Context) {
         } else {
             Log.d("DailyProgressManager", "CRITICAL: Saved earned berries: $amount for profile: $profile")
         }
-        
-        // CRITICAL: Also update last_updated timestamp to trigger cloud sync
-        val syncService = CloudSyncService()
-        val nowISO = syncService.generateESTTimestamp()
-        val timestampKey = "${profile}_last_updated_timestamp"
-        val timestampSuccess = prefs.edit()
-            .putString(timestampKey, nowISO)
-            .commit() // Use commit() for synchronous write
-        
-        if (!timestampSuccess) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save last_updated timestamp after berries update!")
-        } else {
-            Log.d("DailyProgressManager", "CRITICAL: Updated last_updated timestamp after berries update: $nowISO")
-        }
-        
-        // Trigger cloud sync to upload berries
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val resetAndSyncManager = DailyResetAndSyncManager(context)
-                runBlocking {
-                    resetAndSyncManager.updateLocalTimestampAndSyncToCloud(profile)
-                }
-                Log.d("DailyProgressManager", "CRITICAL: Triggered cloud sync after berries update for profile: $profile")
-            } catch (e: Exception) {
-                Log.e("DailyProgressManager", "CRITICAL: Error syncing berries to cloud", e)
-                e.printStackTrace()
-            }
-        }
+        // NOTE: Do NOT trigger sync here. Caller (GameActivity, TrainingMapActivity, BattleHubActivity)
+        // updates all local state first, then calls updateLocalTimestampAndSyncToCloud once.
     }
     
     /**
@@ -1469,6 +1463,22 @@ class DailyProgressManager(private val context: Context) {
     fun addEarnedBerries(amount: Int) {
         val current = getEarnedBerries()
         setEarnedBerries(current + amount)
+    }
+
+    /**
+     * Grants all rewards for a task completion in one place: reward time (banked minutes), berries, and coins.
+     * Call this after markTaskCompletedWithName when earnedStars > 0.
+     * Ensures time, berries, and (via progress) coins are updated together so no partial rewards occur.
+     *
+     * @param earnedStars Stars earned from this completion
+     * @param sectionId "required", "optional", or null. Required and optional tasks get time + berries; others get time only.
+     */
+    fun grantRewardsForTaskCompletion(earnedStars: Int, sectionId: String?) {
+        if (earnedStars <= 0) return
+        addStarsToRewardBank(earnedStars)
+        if (sectionId == "required" || sectionId == "optional") {
+            addEarnedBerries(earnedStars)
+        }
     }
     
     /**

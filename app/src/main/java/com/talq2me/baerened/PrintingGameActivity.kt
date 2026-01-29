@@ -167,12 +167,9 @@ class PrintingGameActivity : AppCompatActivity() {
         )
         
         if (earnedStars > 0) {
-            val totalRewardMinutes = progressManager.addStarsToRewardBank(earnedStars)
+            val effectiveSectionId = if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
+            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
             timeTracker.updateStarsEarned("game", earnedStars)
-            
-            if (battleHubTaskId != null || sectionId == "required" || sectionId == "optional") {
-                progressManager.addEarnedBerries(earnedStars)
-            }
         }
         
         // Sync to cloud

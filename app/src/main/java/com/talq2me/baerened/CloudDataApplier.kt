@@ -59,23 +59,25 @@ class CloudDataApplier(
                 )?.toMutableMap() ?: mutableMapOf()
 
                 // CRITICAL: Only apply tasks that are visible today
-                // Get current visible tasks from config to filter cloud data
+                // Include required section tasks AND checklist item labels so cloud completions are preserved
                 val visibleConfigTasks = getConfigTasksForSection("required")
-                val visibleTaskNames = visibleConfigTasks.mapNotNull { it.title }.toSet()
+                val visibleChecklistLabels = getChecklistItemLabelsVisibleToday()
+                val visibleTaskNames = visibleConfigTasks.mapNotNull { it.title }.toSet() + visibleChecklistLabels
                 
                 var appliedCount = 0
                 var skippedCount = 0
+                val visibleChecklistItems = getConfigChecklistItemsVisibleToday()
 
-                // Merge cloud data with local data, but only for visible tasks
+                // Merge cloud data with local data, but only for visible tasks and checklist items
                 data.requiredTasks.forEach { (taskName, taskProgress) ->
-                    // Only apply if task is visible today
+                    // Only apply if task or checklist item is visible today
                     if (visibleTaskNames.contains(taskName)) {
                         // Store using task name as key (cloud format)
                         // Preserve visibility fields from config if available
                         val task = visibleConfigTasks.find { it.title == taskName }
+                        val checklistItem = visibleChecklistItems.find { it.label == taskName }
                         
                         // CRITICAL: Apply cloud data as-is (newest timestamp wins per requirements)
-                        // If cloud is newer, it means cloud has the authoritative data
                         val existingLocalProgress = existingRequiredTasks[taskName]
                         
                         // CRITICAL: Log what we're doing for debugging
@@ -83,17 +85,16 @@ class CloudDataApplier(
                             Log.d(TAG, "CRITICAL: Processing Math task - local status: ${existingLocalProgress?.status}, cloud status: ${taskProgress.status}")
                         }
                         
-                        // CRITICAL: Use cloud data directly (newest timestamp wins - cloud is authoritative)
-                        // Preserve visibility/config fields from local config if available, but use cloud data for progress
+                        // Use task for required section, checklistItem for checklist (stars, displayDays)
                         val mergedTaskProgress = TaskProgress(
                             status = taskProgress.status,
                             correct = taskProgress.correct,
                             incorrect = taskProgress.incorrect,
                             questions = taskProgress.questions,
-                            stars = task?.stars ?: taskProgress.stars ?: 0,
+                            stars = task?.stars ?: checklistItem?.stars ?: taskProgress.stars ?: 0,
                             showdays = task?.showdays ?: taskProgress.showdays,
                             hidedays = task?.hidedays ?: taskProgress.hidedays,
-                            displayDays = task?.displayDays ?: taskProgress.displayDays,
+                            displayDays = task?.displayDays ?: checklistItem?.displayDays ?: taskProgress.displayDays,
                             disable = task?.disable ?: taskProgress.disable
                         )
                         existingRequiredTasks[taskName] = mergedTaskProgress
@@ -439,6 +440,33 @@ class CloudDataApplier(
             return visibleTasks
         } catch (e: Exception) {
             Log.e(TAG, "Error loading config tasks for section: $sectionId", e)
+            return emptyList()
+        }
+    }
+
+    /**
+     * Gets checklist item labels that are visible today (for applying cloud required_tasks).
+     * Ensures checklist completions from cloud are not dropped when syncing.
+     */
+    private fun getChecklistItemLabelsVisibleToday(): Set<String> {
+        return getConfigChecklistItemsVisibleToday().mapNotNull { it.label }.toSet()
+    }
+
+    /**
+     * Gets checklist items from all sections that are visible today.
+     */
+    private fun getConfigChecklistItemsVisibleToday(): List<ChecklistItem> {
+        try {
+            val contentUpdateService = ContentUpdateService()
+            val jsonString = contentUpdateService.getCachedMainContent(context)
+            if (jsonString.isNullOrEmpty()) return emptyList()
+            val mainContent = gson.fromJson(jsonString, MainContent::class.java) ?: return emptyList()
+            val allItems = mainContent.sections?.flatMap { section ->
+                section.items?.filterNotNull() ?: emptyList()
+            } ?: emptyList()
+            return allItems.filter { TaskVisibilityChecker.isItemVisible(it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading checklist items from config", e)
             return emptyList()
         }
     }

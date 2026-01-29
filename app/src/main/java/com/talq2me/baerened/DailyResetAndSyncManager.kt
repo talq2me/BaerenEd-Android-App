@@ -275,6 +275,17 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
+     * Advances local last_updated to now() EST (sync commit). Call this when a task/game completes
+     * *before* launching any async sync, so that cloudSync (e.g. on BattleHub return) sees local
+     * newer than cloud and uploads instead of applying stale cloud over local.
+     */
+    fun advanceLocalTimestampForProfile(profile: String) {
+        val nowISO = generateESTISOTimestamp()
+        setLocalLastUpdatedTimestamp(profile, nowISO)
+        Log.d(TAG, "CRITICAL: advanceLocalTimestampForProfile($profile) -> $nowISO (sync)")
+    }
+
+    /**
      * Updates local.profile.last_updated timestamp to now() EST and then calls update_cloud_with_local().
      * This should be called when tasks are completed or settings are changed.
      */
@@ -308,9 +319,6 @@ class DailyResetAndSyncManager(private val context: Context) {
         Log.d(TAG, "update_cloud_with_local() started for profile: $profile")
         
         try {
-            // Get the stored local last_updated timestamp (should already be set)
-            val localLastUpdated = getLocalLastUpdatedTimestamp(profile)
-            
             // CRITICAL: Log what data we're about to push
             Log.d(TAG, "CRITICAL: About to collect local data for upload to cloud for profile: $profile")
             
@@ -328,11 +336,13 @@ class DailyResetAndSyncManager(private val context: Context) {
                 Log.d(TAG, "CRITICAL: Math task NOT FOUND in collected requiredTasks! Available tasks: ${localData.requiredTasks.keys.take(10).joinToString()}")
             }
             
-            // Override the generated timestamp with the stored local timestamp
-            // This ensures we use the same timestamp that was stored when the data was modified
-            val localDataWithCorrectTimestamp = localData.copy(lastUpdated = localLastUpdated)
+            // Set timestamp to "now" right before upload so we win the timestamp check.
+            // Collect can take several seconds (e.g. GitHub fetch); cloud may have been updated in between.
+            val nowISO = generateESTISOTimestamp()
+            setLocalLastUpdatedTimestamp(profile, nowISO)
+            val localDataWithCorrectTimestamp = localData.copy(lastUpdated = nowISO)
             
-            Log.d(TAG, "CRITICAL: About to upload with timestamp: $localLastUpdated for profile: $profile")
+            Log.d(TAG, "CRITICAL: About to upload with timestamp: $nowISO for profile: $profile")
             
             // Upload to cloud (all or nothing)
             val result = syncService.uploadUserData(localDataWithCorrectTimestamp)
@@ -578,15 +588,29 @@ class DailyResetAndSyncManager(private val context: Context) {
             
             section.items?.forEach { item ->
                 val itemName = item.label ?: return@forEach
+                val itemStars = item.stars ?: 0
                 checklistItems[itemName] = ChecklistItemProgress(
                     done = false,
-                    stars = item.stars ?: 0,
+                    stars = itemStars,
                     displayDays = item.displayDays
+                )
+                // CRITICAL: Add checklist items to required_tasks so getRequiredTasks() returns them;
+                // progress, coins, and possible_stars then include checklist stars.
+                requiredTasks[itemName] = TaskProgress(
+                    status = "incomplete",
+                    correct = null,
+                    incorrect = null,
+                    questions = null,
+                    stars = itemStars,
+                    showdays = null,
+                    hidedays = null,
+                    displayDays = item.displayDays,
+                    disable = null
                 )
             }
         }
         
-        // Calculate possible_stars: sum of stars from required tasks visible today
+        // Calculate possible_stars: sum of stars from required tasks AND checklist items visible today
         val possibleStars = requiredTasks.values.sumOf { taskProgress ->
             if (isTaskVisibleToday(taskProgress.showdays, taskProgress.hidedays, taskProgress.displayDays, taskProgress.disable)) {
                 taskProgress.stars ?: 0
@@ -660,10 +684,25 @@ class DailyResetAndSyncManager(private val context: Context) {
             
             section.items?.forEach { item ->
                 val itemName = item.label ?: return@forEach
+                val itemStars = item.stars ?: 0
+                val existingItem = existingRequiredTasks[itemName]
+                val isDone = existingItem?.status == "complete"
                 checklistItems[itemName] = ChecklistItemProgress(
-                    done = false,
-                    stars = item.stars ?: 0,
+                    done = isDone,
+                    stars = itemStars,
                     displayDays = item.displayDays
+                )
+                // CRITICAL: Preserve checklist items in required_tasks so completions and possible_stars are correct
+                updatedRequiredTasks[itemName] = existingItem ?: TaskProgress(
+                    status = "incomplete",
+                    correct = null,
+                    incorrect = null,
+                    questions = null,
+                    stars = itemStars,
+                    showdays = null,
+                    hidedays = null,
+                    displayDays = item.displayDays,
+                    disable = null
                 )
             }
         }
@@ -676,7 +715,7 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         updatedRequiredTasks.keys.removeAll { it !in configTaskNames }
         
-        // Calculate possible_stars: sum of stars from required tasks visible today
+        // Calculate possible_stars: sum of stars from required tasks AND checklist items visible today
         val possibleStars = updatedRequiredTasks.values.sumOf { taskProgress ->
             if (isTaskVisibleToday(taskProgress.showdays, taskProgress.hidedays, taskProgress.displayDays, taskProgress.disable)) {
                 taskProgress.stars ?: 0

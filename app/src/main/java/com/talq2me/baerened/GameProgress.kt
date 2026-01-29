@@ -54,8 +54,13 @@ class WebGameProgress(private val context: Context, private val gameId: String) 
 
     fun saveIndex(index: Int) {
         val key = getStorageKey()
-        prefs.edit().putInt(key, index).apply()
-        android.util.Log.d("WebGameProgress", "saveIndex for $key: $index")
+        // Use commit() so index is persisted before any finish() - matches GameProgress and ensures cloud sync gets it
+        val ok = prefs.edit().putInt(key, index).commit()
+        if (!ok) {
+            android.util.Log.e("WebGameProgress", "saveIndex failed for $key")
+        } else {
+            android.util.Log.d("WebGameProgress", "saveIndex for $key: $index")
+        }
     }
 
     fun getProgressData(): Map<String, Int> {

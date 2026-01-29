@@ -873,10 +873,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val stars = result.data?.getIntExtra(WebGameActivity.EXTRA_STARS, 0) ?: 0
             val taskTitle = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
             
-            // If game was launched from battle hub, save berries to be added when battle hub reopens
+            // If game was launched from battle hub, grant rewards (time + berries)
             if (wasFromBattleHub && stars > 0) {
                 val progressManager = DailyProgressManager(this)
-                progressManager.addEarnedBerries(stars)
+                progressManager.grantRewardsForTaskCompletion(stars, "optional")
                 Log.d(TAG, "Saved $stars berries from battle hub game completion")
             }
             
