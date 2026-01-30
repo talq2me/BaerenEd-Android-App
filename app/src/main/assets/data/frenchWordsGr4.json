@@ -1,86 +1,62 @@
 [
 	{
-		"word": "affreux",
-		"sentence": "Ce cauchemar était vraiment affreux."
+		"word": "ainsi",
+		"sentence": "Il a agi ainsi pour nous aider."
 	},
 	{
-		"word": "affreuse",
-		"sentence": "Cette tempête était affreuse hier soir."
+		"word": "la fin",
+		"sentence": "C'est la fin de l'histoire."
 	},
 	{
-		"word": "bleuet",
-		"sentence": "Le bleuet pousse dans les champs en été."
+		"word": "incroyable",
+		"sentence": "Ce tour de magie était incroyable."
 	},
 	{
-		"word": "chaleur",
-		"sentence": "La chaleur du soleil réchauffe la terre."
+		"word": "un instant",
+		"sentence": "Attends un instant, s'il te plaît."
 	},
 	{
-		"word": "chanceux",
-		"sentence": "Il se sent chanceux d'avoir gagné le prix."
+		"word": "inventer",
+		"sentence": "Il aime inventer des histoires."
 	},
 	{
-		"word": "chanceuse",
-		"sentence": "Elle est chanceuse de trouver ce trésor."
+		"word": "inviter",
+		"sentence": "Je vais inviter mes amis à la fête."
 	},
 	{
-		"word": "creux",
-		"sentence": "L'arbre a un creux où les oiseaux nichent."
+		"word": "un médecin",
+		"sentence": "Il faut appeler un médecin."
 	},
 	{
-		"word": "creuse",
-		"sentence": "La rivière creuse un chemin dans la vallée."
+		"word": "plein",
+		"sentence": "Le sac est plein de livres."
 	},
 	{
-		"word": "curieux",
-		"sentence": "Le chat est curieux de voir ce qui se passe."
+		"word": "un refrain",
+		"sentence": "J'adore chanter un refrain de cette chanson."
 	},
 	{
-		"word": "curieuse",
-		"sentence": "Elle est curieuse de découvrir le secret."
+		"word": "un singe",
+		"sentence": "J'ai vu un singe dans l'arbre."
 	},
 	{
-		"word": "dangereux",
-		"sentence": "Ce chemin est dangereux pour les enfants."
+		"word": "soudain",
+		"sentence": "Soudain, la lumière s'éteignit."
 	},
 	{
-		"word": "dangereuse",
-		"sentence": "Cette situation est dangereuse pour tout le monde."
+		"word": "soudaine",
+		"sentence": "Une pluie soudaine nous a surpris."
 	},
 	{
-		"word": "délicieux",
-		"sentence": "Ce gâteau est délicieux et sucré."
+		"word": "le vin",
+		"sentence": "On sert le vin à table."
 	},
 	{
-		"word": "délicieuse",
-		"sentence": "La soupe est délicieuse aujourd'hui."
+		"word": "la marraine",
+		"sentence": "C'est la marraine du bébé."
 	},
 	{
-		"word": "joueur",
-		"sentence": "Le joueur marque un but important."
-	},
-	{
-		"word": "joueuse",
-		"sentence": "La joueuse gagne le match de tennis."
-	},
-	{
-		"word": "malheureux",
-		"sentence": "Il se sent malheureux après la perte."
-	},
-	{
-		"word": "malheureuse",
-		"sentence": "Elle est malheureuse de partir si tôt."
-	},
-	{
-		"word": "malheureusement",
-		"sentence": "Malheureusement, la pluie a annulé notre pique-nique."
-	},
-	{
-		"word": "merveilleux",
-		"sentence": "Ce voyage était merveilleux et inoubliable."
-	},
-	{
-		"word": "merveilleuse",
-		"sentence": "Cette journée est merveilleuse pour se promener."
+		"word": "le parrain",
+		"sentence": "Voici le parrain du filleul."
 	}
 ]
