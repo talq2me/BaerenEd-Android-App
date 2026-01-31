@@ -1,0 +1,23 @@
+[
+  {"id": 1, "description": "Wash laundry", "coins": 1},
+  {"id": 2, "description": "Dry laundry", "coins": 1},
+  {"id": 3, "description": "Put away laundry", "coins": 2},
+  {"id": 4, "description": "Take out trash", "coins": 1},
+  {"id": 5, "description": "Take out recycling", "coins": 1},
+  {"id": 6, "description": "Pack school bag", "coins": 1},
+  {"id": 7, "description": "Help Amren with homework", "coins": 1},
+  {"id": 8, "description": "Make own breakfast", "coins": 1},
+  {"id": 9, "description": "Make sibling's breakfast if they agree to what you make", "coins": 1},
+  {"id": 10, "description": "Make own lunch", "coins": 2},
+  {"id": 11, "description": "Clean up table and wipe clean", "coins": 2},
+  {"id": 12, "description": "Clean up kitchen counter and wipe clean", "coins": 2},
+  {"id": 13, "description": "Tidy coffee table, toy chest and dresser top", "coins": 2},
+  {"id": 14, "description": "Clean up bathroom counter (warm bathroom) and wipe clean", "coins": 2},
+  {"id": 15, "description": "Unload dishwasher", "coins": 2},
+  {"id": 16, "description": "Feed dog, give dog water (if needed)", "coins": 1},
+  {"id": 17, "description": "Clean up your room (Organize things, don't just shove everything in a drawer) includes tidy floor and desk/dresser tops", "coins": 2},
+  {"id": 18, "description": "Tidy toys in basement", "coins": 2},
+  {"id": 19, "description": "Dust windows in basement", "coins": 2},
+  {"id": 20, "description": "Dust stairway", "coins": 1},
+  {"id": 21, "description": "Tidy laundry room bench, boot tray, hang up jackets, pants, mittens hats in bins", "coins": 1}
+]

@@ -268,6 +268,26 @@
                 <ul class="task-list" id="checklistItems"></ul>
             </div>
 
+            <!-- Chores 4 🪙 (Today) -->
+            <div class="section" id="choresSection">
+                <h3>🪙 Chores 4 🪙 (Today)</h3>
+                <div class="metrics-grid" id="choresMetrics">
+                    <div class="metric">
+                        <div class="metric-value" id="choresCompletedCount">0</div>
+                        <div class="metric-label">Chores Completed Today</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="coinsEarnedToday">0</div>
+                        <div class="metric-label">Coins Earned Today</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="coinsEarnedLifetime">0</div>
+                        <div class="metric-label">Total Coins (All Time)</div>
+                    </div>
+                </div>
+                <ul class="task-list" id="choresList"></ul>
+            </div>
+
             <!-- Practice Tasks -->
             <div class="section">
                 <h3>🎯 Extra Practice Tasks</h3>
@@ -462,6 +482,36 @@
                         <span class="task-info">${answerInfo}</span>
                     `;
                     requiredTasksList.appendChild(li);
+                });
+            }
+
+            // Chores 4 🪙 (today = done=true; coins today = sum of coins_reward for done)
+            const chores = userData.chores || [];
+            const doneChores = Array.isArray(chores) ? chores.filter(c => c.done === true) : [];
+            const choresCompletedToday = doneChores.length;
+            const coinsEarnedToday = doneChores.reduce((sum, c) => sum + (c.coins_reward || 0), 0);
+            const coinsEarnedLifetime = userData.coins_earned || 0;
+
+            document.getElementById('choresCompletedCount').textContent = choresCompletedToday;
+            document.getElementById('coinsEarnedToday').textContent = coinsEarnedToday;
+            document.getElementById('coinsEarnedLifetime').textContent = coinsEarnedLifetime;
+
+            const choresListEl = document.getElementById('choresList');
+            choresListEl.innerHTML = '';
+            if (chores.length === 0) {
+                choresListEl.innerHTML = '<li class="task-item"><span class="task-name">No chores configured</span></li>';
+            } else {
+                chores.forEach(chore => {
+                    const isDone = chore.done === true;
+                    const desc = chore.description || 'Chore';
+                    const reward = chore.coins_reward != null ? chore.coins_reward : 0;
+                    const li = document.createElement('li');
+                    li.className = `task-item ${isDone ? '' : 'incomplete'}`;
+                    li.innerHTML = `
+                        <span class="task-name">${isDone ? '✓' : '○'} ${desc}</span>
+                        <span class="task-info">+${reward} 🪙 ${isDone ? 'Done' : 'Not done'}</span>
+                    `;
+                    choresListEl.appendChild(li);
                 });
             }
 

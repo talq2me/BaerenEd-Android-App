@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chores 4 🪙 – Parent Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #333;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 { font-size: 2em; margin-bottom: 8px; }
+        .back-button {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.15);
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .back-button:hover { background: rgba(0, 0, 0, 0.25); }
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .section h3 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 1.35em;
+            border-bottom: 2px solid #FFA500;
+            padding-bottom: 8px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .metric {
+            background: #fff8e1;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value { font-size: 1.75em; font-weight: bold; color: #e65100; margin-bottom: 4px; }
+        .metric-label { font-size: 0.85em; color: #666; }
+        .task-list { list-style: none; }
+        .task-item {
+            background: #f0f8ff;
+            margin: 6px 0;
+            padding: 12px 16px;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-item.incomplete { border-left-color: #ff9800; background: #fff3e0; }
+        .task-name { font-weight: 500; color: #333; }
+        .task-info { color: #666; font-size: 0.9em; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 20px;
+            color: #c62828;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪙 Chores 4 🪙</h1>
+            <p>Chores completed today and coins earned, per profile</p>
+            <a href="index.html" class="back-button">← Back to Selection</a>
+        </div>
+
+        <div id="loading" class="loading">Loading chores data...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="content" style="display: none;"></div>
+    </div>
+
+    <script>
+        const supabaseUrl = localStorage.getItem('supabaseUrl');
+        const supabaseKey = localStorage.getItem('supabaseKey');
+
+        async function fetchChoresData() {
+            if (!supabaseUrl || !supabaseKey) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML =
+                    '<strong>Configuration required:</strong> Go back to the home page and set Supabase URL and API Key.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=in.(AM,BM)&select=profile,chores,coins_earned`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+
+                const rows = await response.json();
+                const byProfile = {};
+                (rows || []).forEach(r => {
+                    byProfile[r.profile] = { chores: r.chores || [], coins_earned: r.coins_earned || 0 };
+                });
+
+                const profiles = ['AM', 'BM'];
+                let html = '';
+                profiles.forEach(profile => {
+                    const data = byProfile[profile] || { chores: [], coins_earned: 0 };
+                    const chores = Array.isArray(data.chores) ? data.chores : [];
+                    const doneChores = chores.filter(c => c.done === true);
+                    const coinsToday = doneChores.reduce((sum, c) => sum + (c.coins_reward || 0), 0);
+                    const coinsLifetime = data.coins_earned || 0;
+
+                    html += `
+                        <div class="section">
+                            <h3>${profile}'s Chores (Today)</h3>
+                            <div class="metrics-grid">
+                                <div class="metric">
+                                    <div class="metric-value">${doneChores.length}</div>
+                                    <div class="metric-label">Chores Completed Today</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${coinsToday}</div>
+                                    <div class="metric-label">Coins Earned Today</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">${coinsLifetime}</div>
+                                    <div class="metric-label">Total Coins (All Time)</div>
+                                </div>
+                            </div>
+                            <ul class="task-list">
+                                ${chores.length === 0
+                                    ? '<li class="task-item"><span class="task-name">No chores configured</span></li>'
+                                    : chores.map(c => {
+                                        const done = c.done === true;
+                                        const desc = c.description || 'Chore';
+                                        const reward = c.coins_reward != null ? c.coins_reward : 0;
+                                        return `<li class="task-item ${done ? '' : 'incomplete'}">
+                                            <span class="task-name">${done ? '✓' : '○'} ${desc}</span>
+                                            <span class="task-info">+${reward} 🪙 ${done ? 'Done' : 'Not done'}</span>
+                                        </li>`;
+                                    }).join('')
+                                }
+                            </ul>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('content').innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = `<strong>Error:</strong> ${err.message}`;
+            }
+        }
+
+        fetchChoresData();
+    </script>
+</body>
+</html>
