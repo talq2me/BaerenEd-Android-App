@@ -29,6 +29,10 @@ data class CloudUserData(
     @SerializedName("possible_stars") val possibleStars: Int = 0,
     @SerializedName("banked_mins") val bankedMins: Int = 0,
     @SerializedName("berries_earned") val berriesEarned: Int = 0,
+    @SerializedName("coins_earned") val coinsEarned: Int = 0,
+
+    // Chores 4 $$: array of chore state (chore_id, description, coins_reward, done); done resets daily
+    @SerializedName("chores") val chores: List<ChoreProgress> = emptyList(),
 
     // Pokemon data
     @SerializedName("pokemon_unlocked") val pokemonUnlocked: Int = 0,
@@ -84,4 +88,15 @@ data class ChecklistItemProgress(
     @SerializedName("done") val done: Boolean = false, // Whether the checklist item is done
     @SerializedName("stars") val stars: Int = 0, // Star count for this item
     @SerializedName("displayDays") val displayDays: String? = null // Visibility: display only on these days
+)
+
+/**
+ * Data class for chore progress (Chores 4 $$).
+ * Stored in user_data.chores JSONB array; done resets to false on daily reset.
+ */
+data class ChoreProgress(
+    @SerializedName("chore_id") val choreId: Int,
+    @SerializedName("description") val description: String = "",
+    @SerializedName("coins_reward") val coinsReward: Int = 0,
+    @SerializedName("done") val done: Boolean = false
 )

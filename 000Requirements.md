@@ -53,3 +53,36 @@ When a game completes, the following steps must be executed **in this exact orde
 - Game indices are loaded from local storage (which should be synced from cloud during onResume)
 - All task completion data (correct/incorrect/questions) must be passed to `markTaskCompletedWithName()`
 - Practice tasks track cumulative `times_completed` separately in SharedPreferences for database sync
+
+## Chores 4 $$ Feature
+
+### Database (user_data table)
+
+- **coins_earned** (INTEGER): Total coins earned from chores. Never reset during daily reset; accumulates until a future feature allows spending. Synced both ways (update_cloud_with_local / update_local_with_cloud).
+- **chores** (JSONB): Array of chore state per profile. Each element: `chore_id`, `description`, `coins_reward` (from chores.json), `done` (true/false). Populated from `app/src/main/assets/config/chores.json`. On daily reset (BaerenEd or BaerenLock), set every `done` to `false`; do not reset `coins_earned`.
+
+Chore JSONB structure (per item): `{ "chore_id": 1, "description": "Wash laundry", "coins_reward": 1, "done": false }`.
+
+Upgrade scripts for existing Supabase DBs: see comments at top of `supabase_setup.sql`.
+
+### Battle Hub – Chores 4 $$
+
+- Add a button **"Chores 4 $$"** on the Battle Hub. On click, open a screen that lists all chores (from chores.json merged with stored chores state) with a checkbox per chore for the day.
+- Checking a chore: set that chore’s `done` to `true`, add `coins_reward` to `coins_earned`, save locally, set `last_updated` so cloud sync runs on return to Battle Hub (resume).
+- Unchecking a chore: set `done` to `false` and **deduct** that chore’s `coins_reward` from `coins_earned`, then save and update `last_updated`.
+- On open, show the list with current `done` state so the child can continue from where they left off. Sync: include `chores` and `coins_earned` in profile sync both ways (same as other profile columns).
+
+### Coins – Single Source (Chores Only)
+
+- **Coins are only granted for chore completion** (Chores 4 $$). Remove all coin grants from tasks, required_tasks, practice_tasks, and checklist_items. Those continue to grant berries and banked time only.
+- Battle Hub coin display shows **coins_earned** only (lifetime chore-earned total).
+- Remove all other coin associations from the app (e.g. “all coins earned” / Pokemon button logic tied to coins; task/checklist coin calculations and UI). Coins in the app are solely from the chores feature.
+
+### Daily Reset (BaerenEd and BaerenLock)
+
+- When daily reset runs: set `chores[].done = false` for the profile; **do not** reset `coins_earned`.
+- BaerenLock must know about the `chores` column so that when it runs daily reset it sets `chores[].done = false` (when applying or pushing reset data).
+
+### Parent Report – Chores (per profile)
+
+- New parent report (or section) **per profile**: list chores the kid completed **that day** (where `done == true` in current chores state for the day) and the **coins they earned that day** (sum of `coins_reward` for chores marked done today). This can be a separate “Chores report” or a section in the existing daily progress report.

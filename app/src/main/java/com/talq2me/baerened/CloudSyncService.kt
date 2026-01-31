@@ -421,38 +421,59 @@ class CloudSyncService {
     /**
      * Recursively fixes JSONB fields in a JsonObject that are stored as strings.
      * Fields that should be objects: required_tasks, practice_tasks, checklist_items, game_indices
+     * Fields that should be arrays: chores
      */
     private fun fixJsonbFieldsInObject(obj: JsonObject) {
-        // List of JSONB fields that should be objects, not strings
-        val jsonbFields = listOf("required_tasks", "practice_tasks", "checklist_items", "game_indices")
-        
-        jsonbFields.forEach { fieldName ->
+        // JSONB fields that should be objects (not strings)
+        val jsonbObjectFields = listOf("required_tasks", "practice_tasks", "checklist_items", "game_indices")
+        jsonbObjectFields.forEach { fieldName ->
             val field = obj.get(fieldName)
             if (field != null) {
                 if (field.isJsonPrimitive && field.asJsonPrimitive.isString) {
                     try {
-                        // Parse the string as JSON
                         val stringValue = field.asString
                         if (stringValue.isNotBlank() && stringValue != "null") {
                             val parsedJson = JsonParser.parseString(stringValue)
                             obj.add(fieldName, parsedJson)
                             Log.d(TAG, "Fixed JSONB field '$fieldName' from string to object")
                         } else {
-                            // Empty string or "null" should be an empty object
                             obj.add(fieldName, JsonObject())
                             Log.d(TAG, "Fixed JSONB field '$fieldName' from empty/null string to empty object")
                         }
                     } catch (e: Exception) {
                         Log.w(TAG, "Error parsing JSONB field '$fieldName' as JSON, setting to empty object: ${e.message}")
-                        // If parsing fails, set it to empty object to prevent crash
                         obj.add(fieldName, JsonObject())
                     }
                 } else if (field.isJsonNull) {
-                    // Null field should be an empty object
                     obj.add(fieldName, JsonObject())
                     Log.d(TAG, "Fixed JSONB field '$fieldName' from null to empty object")
                 }
-                // If it's already an object or array, leave it as is
+            }
+        }
+        // JSONB fields that should be arrays (chores)
+        val jsonbArrayFields = listOf("chores")
+        jsonbArrayFields.forEach { fieldName ->
+            val field = obj.get(fieldName)
+            if (field != null) {
+                if (field.isJsonPrimitive && field.asJsonPrimitive.isString) {
+                    try {
+                        val stringValue = field.asString
+                        if (stringValue.isNotBlank() && stringValue != "null") {
+                            val parsedJson = JsonParser.parseString(stringValue)
+                            obj.add(fieldName, parsedJson)
+                            Log.d(TAG, "Fixed JSONB field '$fieldName' from string to array")
+                        } else {
+                            obj.add(fieldName, JsonArray())
+                            Log.d(TAG, "Fixed JSONB field '$fieldName' from empty/null string to empty array")
+                        }
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Error parsing JSONB field '$fieldName' as JSON, setting to empty array: ${e.message}")
+                        obj.add(fieldName, JsonArray())
+                    }
+                } else if (field.isJsonNull) {
+                    obj.add(fieldName, JsonArray())
+                    Log.d(TAG, "Fixed JSONB field '$fieldName' from null to empty array")
+                }
             }
         }
     }

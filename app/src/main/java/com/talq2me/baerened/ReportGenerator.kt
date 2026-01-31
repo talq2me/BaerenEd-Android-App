@@ -197,9 +197,18 @@ class ReportGenerator(private val context: Context) {
             appendLine("🎯 OVERALL PROGRESS")
             appendLine("-".repeat(30))
             appendLine("Stars Earned: ${report.earnedStars}/${report.totalStars} (${"%.1f".format(report.completionRate)}%)")
-            appendLine("Coins Earned: ${report.earnedCoins}/${report.totalCoins}")
+            appendLine("Coins (total): ${report.earnedCoins}")
             appendLine("Total Time: ${report.totalTimeMinutes} minutes")
-            
+
+            if (report.choresCompletedToday.isNotEmpty()) {
+                appendLine()
+                appendLine("🪙 CHORES 4 $$ (TODAY)")
+                appendLine("-".repeat(30))
+                report.choresCompletedToday.forEach { appendLine("  ✓ $it") }
+                appendLine("Coins earned today (chores): ${report.coinsEarnedToday}")
+                appendLine()
+            }
+
             // Count required incomplete tasks
             val taskDetails = getTaskDetails(report)
             val requiredIncompleteCount = taskDetails.count { it.isRequired && !it.isCompleted }
@@ -475,6 +484,16 @@ class ReportGenerator(private val context: Context) {
                         <div class="metric-value">${report.totalTimeMinutes}</div>
                         <div class="metric-label">Minutes</div>
                     </div>
+                    <div class="metric">
+                        <div class="metric-value">${report.earnedCoins}</div>
+                        <div class="metric-label">Coins (total)</div>
+                    </div>
+                    ${if (report.choresCompletedToday.isNotEmpty()) """
+                    <div class="metric">
+                        <div class="metric-value">${report.coinsEarnedToday}</div>
+                        <div class="metric-label">Coins from Chores Today</div>
+                    </div>
+                    """ else ""}
                     ${run {
                         val taskDetails = getTaskDetails(report)
                         val requiredIncompleteCount = taskDetails.count { it.isRequired && !it.isCompleted }
@@ -503,6 +522,16 @@ class ReportGenerator(private val context: Context) {
                         <tr><td>Total Time</td><td>${report.totalTimeMinutes} minutes</td></tr>
                     </table>
                 </div>
+
+                ${if (report.choresCompletedToday.isNotEmpty()) """
+                <div class="section">
+                    <h3>🪙 Chores 4 $$ (Today)</h3>
+                    <ul>
+                        ${report.choresCompletedToday.joinToString("") { "<li>$it</li>" }}
+                    </ul>
+                    <p>Coins earned today (chores): ${report.coinsEarnedToday}</p>
+                </div>
+                """ else ""}
 
                 ${run {
                     val (completedRequiredGameSessions, completedOptionalGameSessions) = getSeparatedCompletedGames(report)
@@ -694,10 +723,16 @@ class ReportGenerator(private val context: Context) {
             appendLine("Metric,Value")
             appendLine("Completion Rate,${"%.1f".format(report.completionRate)}%")
             appendLine("Stars Earned,${report.earnedStars}/${report.totalStars}")
+            appendLine("Coins (total),${report.earnedCoins}")
             appendLine("Total Time Minutes,${report.totalTimeMinutes}")
             appendLine("Games Played,${report.gamesPlayed}")
             appendLine("Videos Watched,${report.videosWatched}")
             appendLine("Total Sessions,${report.totalSessions}")
+            if (report.choresCompletedToday.isNotEmpty()) {
+                appendLine("Chores Completed Today,${report.choresCompletedToday.size}")
+                appendLine("Coins from Chores Today,${report.coinsEarnedToday}")
+                report.choresCompletedToday.forEach { appendLine("Chore,$it") }
+            }
             appendLine()
 
             val (completedRequiredGameSessions, completedOptionalGameSessions) = getSeparatedCompletedGames(report)
@@ -846,7 +881,9 @@ class ReportGenerator(private val context: Context) {
             🎯 OVERALL PROGRESS:
             • Completion Rate: ${"%.1f".format(report.completionRate)}%
             • Stars Earned: ${report.earnedStars}/${report.totalStars}
+            • Coins (total): ${report.earnedCoins}
             • Total Learning Time: ${report.totalTimeMinutes} minutes
+            ${if (report.choresCompletedToday.isNotEmpty()) "\n            • Chores 4 $$ Today: ${report.choresCompletedToday.size} completed, ${report.coinsEarnedToday} coins earned" else ""}
             • Games Played: ${report.gamesPlayed}
             • Videos Watched: ${report.videosWatched}
             • Questions Answered:   ${report.totalCorrectAnswers}✅   ${report.totalIncorrectAnswers}❌

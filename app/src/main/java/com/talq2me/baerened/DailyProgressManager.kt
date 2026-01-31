@@ -46,7 +46,9 @@ class DailyProgressManager(private val context: Context) {
         val totalSessions: Int,
         val totalCorrectAnswers: Int,
         val totalIncorrectAnswers: Int,
-        val config: MainContent? = null // Config for task matching
+        val config: MainContent? = null, // Config for task matching
+        val choresCompletedToday: List<String> = emptyList(), // Chores 4 $$ descriptions where done=true
+        val coinsEarnedToday: Int = 0 // Sum of coins_reward for chores completed today
     )
 
     companion object {
@@ -62,6 +64,8 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_POKEMON_UNLOCKED = "pokemon_unlocked"
         private const val KEY_LAST_POKEMON_UNLOCK_DATE = "last_pokemon_unlock_date"
         private const val KEY_EARNED_STARS_AT_BATTLE_END = "earned_stars_at_battle_end" // Track earned stars when battle ended (for reset detection)
+        private const val KEY_COINS_EARNED = "coins_earned" // Chores 4 $$ - never reset
+        private const val KEY_CHORES = "chores" // Chores 4 $$ - JSON array of ChoreProgress
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -1323,13 +1327,12 @@ class DailyProgressManager(private val context: Context) {
     fun getCurrentProgressWithCoinsAndStars(config: MainContent): Pair<Pair<Int, Int>, Pair<Int, Int>> {
         val requiredTasks = getRequiredTasks() // NEW: Use cloud format
         val practiceTasks = getPracticeTasks()
-        var earnedCoins = 0
         var earnedStars = 0
 
         val visibleContent = filterVisibleContent(config) // Filter content for visible items
 
         visibleContent.sections?.forEach { section ->
-            // Required section tasks
+            // Required section tasks (berries/stars only; coins come from Chores 4 $$)
             if (section.id == "required") {
                 section.tasks?.forEach { task ->
                     val taskName = task.title ?: "Unknown Task"
@@ -1340,19 +1343,18 @@ class DailyProgressManager(private val context: Context) {
 
                     if (isCompleted && stars > 0) {
                         earnedStars += stars
-                        earnedCoins += stars // Required tasks award coins equal to their stars
-                        Log.d("DailyProgressManager", "Added to progress: taskName=$taskName, stars=$stars, total earnedStars=$earnedStars, total earnedCoins=$earnedCoins")
+                        Log.d("DailyProgressManager", "Added to progress: taskName=$taskName, stars=$stars, total earnedStars=$earnedStars")
                     }
                 }
             }
-            // Optional (practice) section tasks: count completed for coins/display
+            // Optional (practice) section tasks: count for display only (no coins from tasks)
             if (section.id == "optional") {
                 section.tasks?.forEach { task ->
                     val taskName = task.title ?: "Unknown Task"
                     val stars = task.stars ?: 0
                     val isCompleted = practiceTasks[taskName]?.status == "complete"
                     if (isCompleted && stars > 0) {
-                        earnedCoins += stars // Practice tasks award coins equal to their stars
+                        earnedStars += stars
                     }
                 }
             }
@@ -1364,17 +1366,17 @@ class DailyProgressManager(private val context: Context) {
                 // NEW: Look up by item name (label) instead of item ID
                 if (requiredTasks[itemName]?.status == "complete" && stars > 0) {
                     earnedStars += stars
-                    earnedCoins += stars  // ALL checklist items award coins
                 }
             }
         }
 
-        val (totalCoins, totalStars) = calculateTotalsFromConfig(config)
-        
-        // Subtract spent berries (berries used in battle)
-        // Use simple earned berries counter
+        val (_, totalStars) = calculateTotalsFromConfig(config)
+        // Coins come only from Chores 4 $$; no total cap for display
+        val earnedCoins = getCoinsEarned()
+        val totalCoins = 0
+
         val displayEarnedStars = getEarnedBerries()
-        
+
         return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
     }
 
@@ -1385,14 +1387,11 @@ class DailyProgressManager(private val context: Context) {
     fun getCurrentProgressWithTotals(): Pair<Pair<Int, Int>, Pair<Int, Int>> {
         val profile = getCurrentKid()
         val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
-        val totalCoins = prefs.getInt("total_coins", 0)
         val totalStars = prefs.getInt(totalStarsKey, 0)
 
-        val requiredTasks = getRequiredTasks()
-        // Compute earned coins from completed tasks (required + checklist) so coins update when config isn't passed
-        val earnedCoins = requiredTasks.values
-            .filter { it.status == "complete" }
-            .sumOf { it.stars ?: 0 }
+        // Coins come only from Chores 4 $$; no total from tasks
+        val earnedCoins = getCoinsEarned()
+        val totalCoins = 0
         val displayEarnedStars = getEarnedBerries()
 
         return Pair(Pair(earnedCoins, totalCoins), Pair(displayEarnedStars, totalStars))
@@ -1701,13 +1700,83 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Checks if all coins have been earned today (for showing Pokemon button)
+     * Coins earned (Chores 4 $$) - never reset. Battle Hub displays this.
      */
-    fun hasAllCoinsBeenEarned(config: MainContent): Boolean {
-        val (earnedCoins, totalCoins) = getCurrentProgressWithCoinsAndStars(config).first
-        return earnedCoins >= totalCoins && totalCoins > 0
+    fun getCoinsEarned(profile: String? = null): Int {
+        val p = profile ?: getCurrentKid()
+        return prefs.getInt("${p}_$KEY_COINS_EARNED", 0)
     }
 
+    /**
+     * Add (or subtract) coins and return new total. Used when checking/unchecking chores.
+     */
+    fun addCoinsEarned(profile: String? = null, delta: Int): Int {
+        val p = profile ?: getCurrentKid()
+        val key = "${p}_$KEY_COINS_EARNED"
+        val current = prefs.getInt(key, 0)
+        val newVal = (current + delta).coerceAtLeast(0)
+        prefs.edit().putInt(key, newVal).commit()
+        return newVal
+    }
+
+    /**
+     * Chores list (Chores 4 $$) for the profile. Call loadChoresFromJsonIfNeeded() first if empty.
+     */
+    fun getChores(profile: String? = null): List<ChoreProgress> {
+        val p = profile ?: getCurrentKid()
+        val json = prefs.getString("${p}_$KEY_CHORES", "[]") ?: "[]"
+        return try {
+            gson.fromJson(json, object : com.google.gson.reflect.TypeToken<List<ChoreProgress>>() {}.type) ?: emptyList()
+        } catch (e: Exception) {
+            Log.e("DailyProgressManager", "Error parsing chores", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * Save chores list (Chores 4 $$).
+     */
+    fun saveChores(profile: String? = null, chores: List<ChoreProgress>) {
+        val p = profile ?: getCurrentKid()
+        prefs.edit().putString("${p}_$KEY_CHORES", gson.toJson(chores)).commit()
+    }
+
+    /**
+     * Load chores from config/chores.json (GitHub first, then cache, then assets — same as other config).
+     * Merge with stored (by chore_id). If stored is empty, populate with file list (done=false).
+     * Call from getContentFromJson and Chores screen.
+     */
+    fun loadChoresFromJsonIfNeeded(profile: String? = null) {
+        val p = profile ?: getCurrentKid()
+        val stored = getChores(p)
+        val json = ContentUpdateService().getCachedChores(context)
+        val fromFile = if (!json.isNullOrEmpty()) {
+            try {
+                val type = object : com.google.gson.reflect.TypeToken<List<ChoreJsonItem>>() {}.type
+                val list: List<ChoreJsonItem> = gson.fromJson(json, type) ?: emptyList()
+                list.map { ChoreProgress(choreId = it.id, description = it.description, coinsReward = it.coins, done = false) }
+            } catch (e: Exception) {
+                Log.e("DailyProgressManager", "Error parsing chores.json", e)
+                emptyList<ChoreProgress>()
+            }
+        } else {
+            emptyList<ChoreProgress>()
+        }
+        if (fromFile.isEmpty()) return
+        val merged = if (stored.isEmpty()) {
+            fromFile
+        } else {
+            val byId = stored.associateBy { it.choreId }
+            fromFile.map { from ->
+                byId[from.choreId]?.let { existing ->
+                    from.copy(done = existing.done)
+                } ?: from
+            }
+        }
+        saveChores(p, merged)
+    }
+
+    private data class ChoreJsonItem(val id: Int, val description: String, val coins: Int)
 
     /**
      * Unlocks additional Pokemon (admin function)
@@ -1746,10 +1815,10 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Checks if all coins have been earned AND no Pokemon was unlocked today
+     * Whether to show the Pokemon unlock button. Coins are no longer tied to tasks; always false.
      */
     fun shouldShowPokemonUnlockButton(config: MainContent): Boolean {
-        return hasAllCoinsBeenEarned(config) && !wasPokemonUnlockedToday()
+        return false
     }
 
     /**
@@ -1984,6 +2053,11 @@ class DailyProgressManager(private val context: Context) {
         val totalCorrectAnswers = (gameSessions + webGameSessions).sumOf { it.correctAnswers }
         val totalIncorrectAnswers = (gameSessions + webGameSessions).sumOf { it.incorrectAnswers }
 
+        val chores = getChores()
+        val doneChores = chores.filter { it.done }
+        val choresCompletedToday = doneChores.map { it.description }
+        val coinsEarnedToday = doneChores.sumOf { it.coinsReward }
+
         return ComprehensiveProgressReport(
             date = getCurrentDateString(),
             earnedCoins = earnedCoins,
@@ -2008,7 +2082,9 @@ class DailyProgressManager(private val context: Context) {
             totalSessions = todaySummary.sessions.size,
             totalCorrectAnswers = totalCorrectAnswers,
             totalIncorrectAnswers = totalIncorrectAnswers,
-            config = config
+            config = config,
+            choresCompletedToday = choresCompletedToday,
+            coinsEarnedToday = coinsEarnedToday
         )
     }
 

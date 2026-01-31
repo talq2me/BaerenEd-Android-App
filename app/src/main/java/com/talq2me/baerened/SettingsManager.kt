@@ -713,11 +713,14 @@ object SettingsManager {
             val configFiles = assetManager.list("config") ?: emptyArray()
 
             // Look for files matching the pattern: {ProfileId}_config.json
+            // Exclude Main and Icon configs (internal/legacy, not user-selectable profiles)
             configFiles.forEach { filename ->
                 if (filename.endsWith("_config.json")) {
                     // Extract profile ID from filename (e.g., "AM_config.json" -> "AM")
                     val profileId = filename.removeSuffix("_config.json")
-                    if (profileId.isNotEmpty()) {
+                    if (profileId.isNotEmpty() &&
+                        !profileId.equals("Main", ignoreCase = true) &&
+                        !profileId.equals("Icon", ignoreCase = true)) {
                         availableProfiles.add(profileId)
                     }
                 }

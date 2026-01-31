@@ -244,11 +244,11 @@ class Layout(private val activity: MainActivity) {
         val rewardMinutes = progressManager.getBankedRewardMinutes()
 
         val icons = IconConfigLoader.loadIconConfig(activity)
-        progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn coins and stars!"}"
-        progressBar.max = totalCoins
-        progressBar.progress = earnedCoins
+        val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
+        progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn berries and time!"}"
+        progressBar.max = totalStars.coerceAtLeast(1)
+        progressBar.progress = earnedStars
 
-        // Add Pokemon button if all coins earned AND no Pokemon unlocked today
         if (progressManager.shouldShowPokemonUnlockButton(content)) {
             addPokemonButtonToProgressLayout()
         } else {
@@ -280,11 +280,11 @@ class Layout(private val activity: MainActivity) {
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
             val icons = IconConfigLoader.loadIconConfig(activity)
-            progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn coins and stars!"
-            progressBar.max = totalCoins
-            progressBar.progress = earnedCoins
+            val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
+            progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn berries and time!"
+            progressBar.max = totalStars.coerceAtLeast(1)
+            progressBar.progress = earnedStars
 
-            // Update Pokemon button visibility
             if (progressManager.shouldShowPokemonUnlockButton(currentContent)) {
                 addPokemonButtonToProgressLayout()
             } else {
@@ -309,9 +309,10 @@ class Layout(private val activity: MainActivity) {
             val rewardMinutes = progressManager.getBankedRewardMinutes()
 
             val icons = IconConfigLoader.loadIconConfig(activity)
-            progressText.text = "$earnedCoins/$totalCoins ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn coins and stars!"
-            progressBar.max = totalCoins
-            progressBar.progress = earnedCoins
+            val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
+            progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn berries and time!"
+            progressBar.max = totalStars.coerceAtLeast(1)
+            progressBar.progress = earnedStars
         }
     }
 

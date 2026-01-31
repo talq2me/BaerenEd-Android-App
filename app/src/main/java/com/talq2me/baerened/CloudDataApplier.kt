@@ -165,6 +165,17 @@ class CloudDataApplier(
                 Log.e(TAG, "Error applying berries to local storage", e)
             }
 
+            // Apply coins_earned (Chores 4 $$) - never reset, profile-specific
+            progressPrefs.edit()
+                .putInt("${localProfile}_coins_earned", data.coinsEarned)
+                .commit()
+
+            // Apply chores (Chores 4 $$) - overwrite local with cloud
+            val choresJson = gson.toJson(data.chores)
+            progressPrefs.edit()
+                .putString("${localProfile}_chores", choresJson)
+                .commit()
+
             // Apply Pokemon data
             progressPrefs.edit()
                 .putInt("${localProfile}_$KEY_POKEMON_UNLOCKED", data.pokemonUnlocked)

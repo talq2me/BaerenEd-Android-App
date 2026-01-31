@@ -55,7 +55,6 @@ class BattleHubActivity : AppCompatActivity() {
     private lateinit var berryFill: LinearLayout
     private lateinit var berryCount: TextView
     private lateinit var battleButton: Button
-    private lateinit var trainingChecklistButton: Button
     private lateinit var victoryOverlay: FrameLayout
     private lateinit var victoryPokemonSprite: ImageView
     private lateinit var victoryPokemonName: TextView
@@ -171,16 +170,6 @@ class BattleHubActivity : AppCompatActivity() {
         pokedexToggle.rotation = -90f
         
         loadPokemonData()
-        
-        // Check if we should open the checklist dialog
-        if (intent.getBooleanExtra("openChecklist", false)) {
-            // Clear the flag so it doesn't open again on resume
-            intent.removeExtra("openChecklist")
-            // Show checklist dialog after a short delay to ensure views are ready
-            berryFill.postDelayed({
-                showTrainingChecklist()
-            }, 300)
-        }
         
         // Update berry meter after view is laid out (to get proper parent width)
         berryFill.post {
@@ -315,6 +304,7 @@ class BattleHubActivity : AppCompatActivity() {
     private lateinit var earnBerriesButton: Button
     private lateinit var earnExtraBerriesButton: Button
     private lateinit var bonusTrainingButton: Button
+    private lateinit var choresButton: Button
     private lateinit var pokedexTitle: TextView
     
     private fun initializeViews() {
@@ -341,7 +331,7 @@ class BattleHubActivity : AppCompatActivity() {
         earnBerriesButton = findViewById(R.id.earnBerriesButton)
         earnExtraBerriesButton = findViewById(R.id.earnExtraBerriesButton)
         bonusTrainingButton = findViewById(R.id.bonusTrainingButton)
-        trainingChecklistButton = findViewById(R.id.trainingChecklistButton)
+        choresButton = findViewById(R.id.choresButton)
         victoryOverlay = findViewById(R.id.victoryOverlay)
         victoryPokemonSprite = findViewById(R.id.victoryPokemonSprite)
         victoryPokemonName = findViewById(R.id.victoryPokemonName)
@@ -923,196 +913,10 @@ class BattleHubActivity : AppCompatActivity() {
             }
             startActivityForResult(intent, 2003) // Use request code 2003 for bonus map
         }
-        
-        // Training Checklist button
-        trainingChecklistButton.setOnClickListener {
-            showTrainingChecklist()
+
+        choresButton.setOnClickListener {
+            startActivityForResult(Intent(this, ChoresActivity::class.java), 2010)
         }
-        
-    }
-    
-    private fun showTrainingChecklist() {
-        // Try to fetch from GitHub first (network), fall back to cached if network unavailable
-        android.widget.Toast.makeText(this, "Loading checklist...", android.widget.Toast.LENGTH_SHORT).show()
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // First priority: fetch from GitHub
-                val fetchedContent = ContentUpdateService().fetchMainContent(this@BattleHubActivity)
-                withContext(Dispatchers.Main) {
-                    if (fetchedContent != null) {
-                        displayChecklistDialog(fetchedContent)
-                    } else {
-                        // Network fetch failed, try cached content
-                        tryCachedContent()
-                    }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("BattleHubActivity", "Error fetching checklist from network", e)
-                // Network unavailable, fall back to cached content
-                withContext(Dispatchers.Main) {
-                    tryCachedContent()
-                }
-            }
-        }
-    }
-    
-    private fun tryCachedContent() {
-        // Fall back to cached content if network fetch failed
-        val currentContent = try {
-            var content: MainContent? = null
-            val jsonString = mainContentJson ?: ContentUpdateService().getCachedMainContent(this)
-            if (jsonString != null && jsonString.isNotEmpty()) {
-                content = Gson().fromJson(jsonString, MainContent::class.java)
-            }
-            content
-        } catch (e: Exception) {
-            android.util.Log.e("BattleHubActivity", "Error loading cached checklist", e)
-            null
-        }
-        
-        if (currentContent != null) {
-            displayChecklistDialog(currentContent)
-        } else {
-            android.widget.Toast.makeText(this, "Unable to load checklist. Please check your connection.", android.widget.Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    private fun displayChecklistDialog(currentContent: MainContent) {
-        val checklistSection = currentContent.sections?.find { it.id == "checklist" }
-        val checklistItems = checklistSection?.items ?: emptyList()
-        
-        if (checklistItems.isEmpty()) {
-            android.widget.Toast.makeText(this, "No checklist items available", android.widget.Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        // Create dialog with interactive checkboxes
-        val progressManager = DailyProgressManager(this)
-        // Always get fresh map to ensure we have latest completion status
-        val completedTasksMap = progressManager.getCompletedTasksMap()
-        android.util.Log.d("BattleHubActivity", "Loading checklist dialog, completedTasksMap size: ${completedTasksMap.size}, keys: ${completedTasksMap.keys}")
-        
-        // Create a ScrollView to contain the checklist items
-        val scrollView = ScrollView(this)
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding((16 * resources.displayMetrics.density).toInt(), 
-                       (16 * resources.displayMetrics.density).toInt(), 
-                       (16 * resources.displayMetrics.density).toInt(), 
-                       (16 * resources.displayMetrics.density).toInt())
-        }
-        
-        // Load icon config for stars
-        data class IconConfig(val starsIcon: String = "🍍", val coinsIcon: String = "🪙")
-        val icons = try {
-            val inputStream = assets.open("config/icon_config.json")
-            val configJson = inputStream.bufferedReader().use { it.readText() }
-            inputStream.close()
-            Gson().fromJson(configJson, IconConfig::class.java) ?: IconConfig()
-        } catch (e: Exception) {
-            IconConfig()
-        }
-        
-        // Create a checkbox for each checklist item
-        checklistItems.forEach { item ->
-            val itemId = item.id ?: "checkbox_${item.label}"
-            val isCompleted = completedTasksMap[itemId] == true
-            android.util.Log.d("BattleHubActivity", "Checklist item: itemId='$itemId', label='${item.label}', isCompleted=$isCompleted")
-            
-            val itemLayout = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding((8 * resources.displayMetrics.density).toInt(), 
-                           (8 * resources.displayMetrics.density).toInt(), 
-                           (8 * resources.displayMetrics.density).toInt(), 
-                           (8 * resources.displayMetrics.density).toInt())
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            }
-            
-            val checkbox = android.widget.CheckBox(this).apply {
-                isChecked = isCompleted
-                isEnabled = !isCompleted // Disable if already completed
-                text = item.label ?: "Checklist Item"
-                textSize = 16f
-                setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
-                alpha = if (isCompleted) 0.6f else 1.0f
-                
-                // Show stars if available
-                if (item.stars != null && item.stars!! > 0) {
-                    text = "${item.label} ${icons.starsIcon.repeat(item.stars!!)}"
-                }
-                
-                setOnCheckedChangeListener { _, checked ->
-                    if (checked && !isCompleted) {
-                        // Mark as completed regardless of stars (some checklist items have 0 stars)
-                        val stars = item.stars ?: 0
-                        if (stars > 0) {
-                            // Award stars when checkbox is checked (only if stars > 0)
-                            // Use the same approach as Layout.kt - pass config and let it determine if required
-                            val earnedStars = progressManager.markTaskCompletedWithName(
-                                itemId,
-                                item.label ?: itemId,
-                                stars,
-                                true,  // isRequired - checklist items behave like required tasks
-                                currentContent  // Pass config to verify
-                            )
-                            if (earnedStars > 0) {
-                                progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
-                                // Update UI
-                                updateCountsDisplay()
-                                updateBerryMeter()
-                                android.widget.Toast.makeText(this@BattleHubActivity, 
-                                    "Completed! Earned $stars ${icons.starsIcon}", 
-                                    android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            // Items with 0 stars should still be marked as completed for tracking
-                            // Use markTaskCompletedWithName with 0 stars to save the completion status
-                            progressManager.markTaskCompletedWithName(
-                                itemId,
-                                item.label ?: itemId,
-                                0,
-                                true,  // isRequired - checklist items behave like required tasks
-                                currentContent
-                            )
-                            android.widget.Toast.makeText(this@BattleHubActivity, 
-                                "Completed!", 
-                                android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        
-                        // Disable checkbox and grey it out after marking complete
-                        isEnabled = false
-                        setTextColor(android.graphics.Color.GRAY)
-                        alpha = 0.6f
-                        
-                        // Verify the task was saved by checking the map again
-                        val updatedMap = progressManager.getCompletedTasksMap()
-                        android.util.Log.d("BattleHubActivity", "After marking complete, itemId=$itemId, isCompleted=${updatedMap[itemId]}")
-                    } else if (checked && isCompleted) {
-                        // If already completed but checkbox was checked again, ensure visual state
-                        isEnabled = false
-                        setTextColor(android.graphics.Color.GRAY)
-                        alpha = 0.6f
-                    } else if (!checked && isCompleted) {
-                        // Prevent unchecking completed items
-                        post { isChecked = true }
-                    }
-                }
-            }
-            
-            itemLayout.addView(checkbox)
-            container.addView(itemLayout)
-        }
-        
-        scrollView.addView(container)
-        
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("📋 Training Checklist 📋")
-            .setView(scrollView)
-            .setPositiveButton("Close", null)
-            .show()
     }
     
     private fun showBonusTrainingTasks() {
@@ -2892,6 +2696,11 @@ class BattleHubActivity : AppCompatActivity() {
                     updatePokedexTitle()
                 }
             }
+        }
+
+        // When returning from Chores 4 $$, refresh coin display (sync will run on next resume)
+        if (requestCode == 2010) {
+            updateCountsDisplay()
         }
     }
 }

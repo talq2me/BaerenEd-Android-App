@@ -71,6 +71,20 @@ class ProgressDataCollector(private val context: Context) {
             0
         }
 
+        // Coins earned (Chores 4 $$) - never reset, profile-specific
+        val coinsEarnedKey = "${localProfileId}_coins_earned"
+        val coinsEarned = progressPrefs.getInt(coinsEarnedKey, 0)
+
+        // Chores (Chores 4 $$) - JSONB array, profile-specific
+        val choresKey = "${localProfileId}_chores"
+        val choresJson = progressPrefs.getString(choresKey, "[]") ?: "[]"
+        val chores: List<ChoreProgress> = try {
+            gson.fromJson(choresJson, object : TypeToken<List<ChoreProgress>>() {}.type) ?: emptyList()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing chores JSON", e)
+            emptyList()
+        }
+
         // Get Pokemon data
         val pokemonUnlocked = progressPrefs.getInt("${localProfileId}_$KEY_POKEMON_UNLOCKED", 0)
 
@@ -113,6 +127,8 @@ class ProgressDataCollector(private val context: Context) {
             possibleStars = possibleStars,
             bankedMins = bankedMins,
             berriesEarned = berriesEarned,
+            coinsEarned = coinsEarned,
+            chores = chores,
             pokemonUnlocked = pokemonUnlocked,
             gameIndices = gameIndices,
             rewardApps = rewardApps,

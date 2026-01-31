@@ -466,13 +466,13 @@
                             android:layout_marginEnd="3dp"
                             android:textSize="12sp"
                             android:background="@drawable/button_rounded" />
-                        
+
                         <Button
-                            android:id="@+id/trainingChecklistButton"
+                            android:id="@+id/choresButton"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="📋 Checklist 📋"
+                            android:text="Chores 4 🪙"
                             android:layout_marginStart="3dp"
                             android:textSize="12sp"
                             android:background="@drawable/button_rounded" />

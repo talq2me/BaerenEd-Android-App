@@ -218,11 +218,15 @@ class DailyResetAndSyncManager(private val context: Context) {
                 if (cloudDataResult.isSuccess) {
                     val cloudData = cloudDataResult.getOrNull()
                     if (cloudData != null) {
-                        // Check if data actually differs (excluding timestamp)
+                        // Check if data actually differs (excluding timestamp).
+                        // Include coins_earned and chores so chore/coin-only changes trigger upload.
                         val dataDiffers = localData.berriesEarned != cloudData.berriesEarned ||
                                 localData.bankedMins != cloudData.bankedMins ||
                                 localData.requiredTasks != cloudData.requiredTasks ||
-                                localData.practiceTasks != cloudData.practiceTasks
+                                localData.practiceTasks != cloudData.practiceTasks ||
+                                localData.checklistItems != cloudData.checklistItems ||
+                                localData.coinsEarned != cloudData.coinsEarned ||
+                                localData.chores != cloudData.chores
 
                         if (!dataDiffers) {
                             Log.w(TAG, "CRITICAL: Local timestamp is newer but data matches cloud - this shouldn't happen!")
@@ -550,6 +554,9 @@ class DailyResetAndSyncManager(private val context: Context) {
             Log.d(TAG, "Preserving existing progress and updating from JSON")
             updateTaskStructuresFromConfig(mainContent, profile, progressPrefs, existingRequiredTasks)
         }
+
+        // Populate chores from chores.json if needed (merge by chore_id)
+        progressManager.loadChoresFromJsonIfNeeded(profile)
     }
     
     /**
@@ -782,6 +789,20 @@ class DailyResetAndSyncManager(private val context: Context) {
             .commit() // Use commit() for synchronous write
         if (!success3) {
             Log.e(TAG, "CRITICAL ERROR: Failed to reset tasks!")
+        }
+
+        // Reset chores[].done to false (do NOT reset coins_earned)
+        val choresKey = "${profile}_chores"
+        val choresJson = progressPrefs.getString(choresKey, "[]") ?: "[]"
+        try {
+            val choresList: List<ChoreProgress> = gson.fromJson(choresJson, object : TypeToken<List<ChoreProgress>>() {}.type) ?: emptyList()
+            if (choresList.isNotEmpty()) {
+                val resetChores = choresList.map { it.copy(done = false) }
+                progressPrefs.edit().putString(choresKey, gson.toJson(resetChores)).commit()
+                Log.d(TAG, "Reset chores done to false for profile: $profile (${choresList.size} chores)")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resetting chores done", e)
         }
         
         // Clear TimeTracker sessions

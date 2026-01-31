@@ -3,6 +3,18 @@
 -- This script is designed to be re-runnable
 
 -- ============================================================================
+-- UPGRADE SCRIPT: Chores 4 $$ – coins_earned and chores columns
+-- ============================================================================
+-- If upgrading from a version that did not have chores support, run:
+--
+-- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS coins_earned INTEGER DEFAULT 0;
+-- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS chores JSONB DEFAULT '[]'::jsonb;
+--
+-- coins_earned: total coins from chore completion; never reset on daily reset.
+-- chores: JSONB array of { chore_id, description, coins_reward, done }; done resets to false on daily reset.
+-- See 000Requirements.md "Chores 4 $$ Feature" for full spec.
+--
+-- ============================================================================
 -- UPGRADE SCRIPT: Remove timezone from timestamp fields
 -- ============================================================================
 -- If upgrading from a version that had TIMESTAMP WITH TIME ZONE, run these
@@ -69,6 +81,10 @@ CREATE TABLE IF NOT EXISTS user_data (
     possible_stars INTEGER DEFAULT 0,
     banked_mins INTEGER DEFAULT 0,
     berries_earned INTEGER DEFAULT 0,
+    coins_earned INTEGER DEFAULT 0,
+
+    -- Chores 4 $$: JSONB array of { chore_id, description, coins_reward, done }; done resets daily
+    chores JSONB DEFAULT '[]'::jsonb,
 
     -- Pokemon data
     pokemon_unlocked INTEGER DEFAULT 0,

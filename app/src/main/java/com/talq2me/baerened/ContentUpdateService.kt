@@ -39,13 +39,18 @@ class ContentUpdateService : Service() {
         return "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/${child}_config.json"
     }
 
+    private fun getChoresUrl(): String {
+        return "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/chores.json"
+    }
+
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "ContentUpdateService started for background update.")
 
-        // Update content in background. This will attempt to fetch from network and update cache.
+        // Update content in background. Fetch main config and chores from GitHub, update cache.
         CoroutineScope(Dispatchers.IO).launch {
             fetchMainContent(this@ContentUpdateService)
+            fetchChores(this@ContentUpdateService)
         }
 
         return START_STICKY
@@ -323,6 +328,83 @@ class ContentUpdateService : Service() {
         }
     }
 
+    /**
+     * Get chores.json with same strategy as config: GitHub first, then cache, then bundled assets.
+     * Call this when loading chores so it stays in sync with other config files.
+     */
+    fun getCachedChores(context: Context): String? {
+        return try {
+            val cacheFile = File(context.cacheDir, "chores.json")
+            // Try GitHub first (same as getCachedMainContent)
+            try {
+                val request = Request.Builder().url(getChoresUrl()).build()
+                val quickClient = OkHttpClient.Builder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .build()
+                val response = quickClient.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    if (body != null) {
+                        Log.d(TAG, "getCachedChores: Fetched from GitHub (length=${body.length})")
+                        try {
+                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
+                        } catch (e: IOException) {
+                            Log.e(TAG, "getCachedChores: Error updating cache", e)
+                        }
+                        return body
+                    }
+                }
+                response.close()
+            } catch (e: Exception) {
+                Log.w(TAG, "getCachedChores: Network error: ${e.message}, falling back to cache")
+            }
+            if (cacheFile.exists()) {
+                cacheFile.readText().also { Log.d(TAG, "getCachedChores: Using cache") }
+            } else {
+                context.assets.open("config/chores.json").bufferedReader().use { it.readText() }
+                    .also { Log.d(TAG, "getCachedChores: Using bundled asset") }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getCachedChores: Error", e)
+            null
+        }
+    }
+
+    /**
+     * Fetch chores.json from GitHub with same fallback as other config: network -> cache -> assets.
+     */
+    suspend fun fetchChores(context: Context): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val cacheFile = File(context.cacheDir, "chores.json")
+        try {
+            val request = Request.Builder().url(getChoresUrl()).build()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    if (body != null) {
+                        Log.d(TAG, "fetchChores: Fetched from GitHub")
+                        try {
+                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
+                        } catch (e: IOException) {
+                            Log.e(TAG, "fetchChores: Error writing cache", e)
+                        }
+                        return@withContext body
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            Log.w(TAG, "fetchChores: Network error: ${e.message}")
+        }
+        if (cacheFile.exists()) {
+            return@withContext cacheFile.readText()
+        }
+        try {
+            context.assets.open("config/chores.json").bufferedReader().use { it.readText() }
+        } catch (e: IOException) {
+            Log.e(TAG, "fetchChores: No asset", e)
+            null
+        }
+    }
 
     fun clearCache(context: Context) {
         try {
