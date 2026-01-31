@@ -188,67 +188,6 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
 
 
     /**
-     * Syncs banked reward minutes to cloud user_data table
-     * This is called immediately when banked minutes are updated in BaerenEd
-     * CRITICAL: Checks cloud timestamp before updating - only updates if local is newer
-     */
-    suspend fun syncBankedMinutesToCloud(minutes: Int): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!isConfigured()) {
-            return@withContext Result.failure(Exception("Supabase not configured in BuildConfig"))
-        }
-
-        try {
-            // Get current profile
-            val profile = SettingsManager.readProfile(context) ?: "AM"
-            
-            // CRITICAL: Check cloud timestamp first before updating
-            val checkUrl = "${syncService.getSupabaseUrl()}/rest/v1/user_data?profile=eq.$profile&select=banked_mins,last_updated"
-            val checkRequest = Request.Builder()
-                .url(checkUrl)
-                .get()
-                .addHeader("apikey", getSupabaseKey())
-                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
-                .build()
-            
-            val checkResponse = syncService.getClient().newCall(checkRequest).execute()
-            if (checkResponse.isSuccessful) {
-                val responseBody = checkResponse.body?.string() ?: "[]"
-                checkResponse.close()
-                
-                if (responseBody != "[]" && responseBody != "{}") {
-                    val dataList = com.google.gson.Gson().fromJson(responseBody, object : com.google.gson.reflect.TypeToken<List<Map<String, Any>>>() {}.type) as? List<Map<String, Any>>
-                    val userData = dataList?.firstOrNull()
-                    val cloudTimestamp = userData?.get("last_updated") as? String
-                    
-                    if (cloudTimestamp != null) {
-                        // Read from daily_progress_prefs to match where DailyProgressManager stores the timestamp
-                        val prefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-                        // Use profile-specific timestamp key to match DailyProgressManager
-                        val localTimestamp = prefs.getString("${profile}_banked_reward_minutes_timestamp", null)
-                        
-                        if (localTimestamp != null) {
-                            val cloudIsNewer = compareTimestamps(cloudTimestamp, localTimestamp) > 0
-                            Log.d(TAG, "syncBankedMinutesToCloud timestamp check: cloudIsNewer=$cloudIsNewer (cloud=$cloudTimestamp, local=$localTimestamp)")
-                            if (cloudIsNewer) {
-                                Log.d(TAG, "Cloud banked_mins timestamp is newer, not updating cloud")
-                                return@withContext Result.success(Unit) // Cloud is newer, don't overwrite
-                            }
-                        } else {
-                            Log.d(TAG, "No local timestamp for banked_mins, not updating cloud")
-                            return@withContext Result.success(Unit) // No local timestamp, don't overwrite cloud
-                        }
-                    }
-                }
-            }
-            
-            syncService.syncBankedMinutesToCloud(profile, minutes)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error syncing banked minutes to cloud", e)
-            Result.failure(e)
-        }
-    }
-    
-    /**
      * Compares two timestamps and returns:
      * - Positive value if timestamp1 is newer than timestamp2
      * - Negative value if timestamp1 is older than timestamp2

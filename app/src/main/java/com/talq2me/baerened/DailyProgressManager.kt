@@ -1799,8 +1799,10 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Sets the banked reward minutes for the current profile and syncs to cloud
-     * Includes validation to prevent suspicious values
+     * Sets the banked reward minutes for the current profile.
+     * Includes validation to prevent suspicious values.
+     * Per 000Requirements.md and Daily Reset Logic: sync is full (update_cloud_with_local) only —
+     * on game completion or when BattleHub/Trainer Map load runs cloud_sync(). No partial sync.
      */
     fun setBankedRewardMinutes(minutes: Int) {
         // Validate: reward minutes should be non-negative and reasonable (max 1000 minutes = ~16 hours)
@@ -1840,32 +1842,13 @@ class DailyProgressManager(private val context: Context) {
             .remove(key) // Explicitly remove to avoid type conflicts
             .putInt(key, validatedMinutes)
             .putString(timestampKey, timestamp) // Store timestamp for this update
-            .putString(lastUpdatedKey, lastUpdatedTimestamp) // Update last_updated to trigger cloud sync
+            .putString(lastUpdatedKey, lastUpdatedTimestamp) // Update last_updated so next cloud_sync() can push
             .commit() // Use commit() for synchronous write to prevent race conditions
         if (!success) {
             Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save banked reward minutes and timestamp!")
         }
         
         Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile, timestamp: $timestamp, last_updated: $lastUpdatedTimestamp")
-        
-        // Sync to cloud immediately (this will also update cloud timestamp)
-        syncBankedMinutesToCloud(validatedMinutes)
-    }
-    
-    /**
-     * Syncs banked reward minutes to cloud database
-     */
-    private fun syncBankedMinutesToCloud(minutes: Int) {
-        // Use CloudStorageManager to sync banked_mins to cloud
-        // This runs asynchronously so it doesn't block
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            try {
-                val cloudStorageManager = CloudStorageManager(context)
-                cloudStorageManager.syncBankedMinutesToCloud(minutes)
-            } catch (e: Exception) {
-                android.util.Log.w("DailyProgressManager", "Could not sync banked minutes to cloud: ${e.message}")
-            }
-        }
     }
 
     /**

@@ -238,17 +238,27 @@ class DailyResetAndSyncManager(private val context: Context) {
                 updateCloudWithLocal(profile)
             }
             else -> {
-                // Cloud is newer
-                Log.d(TAG, "Cloud is newer ($cloudLastUpdated > $localLastUpdated), calling update_local_with_cloud()")
-                updateLocalWithCloud(profile)
-                // CRITICAL: After applying cloud data, verify timestamp was stored correctly
-                val storedTimestamp = getLocalLastUpdatedTimestamp(profile)
-                if (storedTimestamp != cloudLastUpdated) {
-                    Log.e(TAG, "CRITICAL: After update_local_with_cloud(), local timestamp ($storedTimestamp) doesn't match cloud ($cloudLastUpdated)")
-                    Log.e(TAG, "  This suggests timestamp was overwritten - fixing by setting to cloud timestamp")
-                    setLocalLastUpdatedTimestamp(profile, cloudLastUpdated)
+                // Cloud is newer - but avoid overwriting local progress when cloud was only
+                // updated by a partial write (e.g. banked_mins) that advanced last_updated
+                // without full task/berry data. If local has more berries, prefer local.
+                val localData = dataCollector.collectLocalData(profile)
+                val cloudDataResult = syncService.downloadUserData(profile)
+                val cloudData = cloudDataResult.getOrNull()
+                if (cloudData != null && localData.berriesEarned > cloudData.berriesEarned) {
+                    Log.w(TAG, "Cloud is newer by timestamp but local has more progress (berries ${localData.berriesEarned} > ${cloudData.berriesEarned}) - pushing local to avoid overwriting progress")
+                    updateCloudWithLocal(profile)
                 } else {
-                    Log.d(TAG, "Verified: Local timestamp correctly matches cloud after update_local_with_cloud()")
+                    Log.d(TAG, "Cloud is newer ($cloudLastUpdated > $localLastUpdated), calling update_local_with_cloud()")
+                    updateLocalWithCloud(profile)
+                    // CRITICAL: After applying cloud data, verify timestamp was stored correctly
+                    val storedTimestamp = getLocalLastUpdatedTimestamp(profile)
+                    if (storedTimestamp != cloudLastUpdated) {
+                        Log.e(TAG, "CRITICAL: After update_local_with_cloud(), local timestamp ($storedTimestamp) doesn't match cloud ($cloudLastUpdated)")
+                        Log.e(TAG, "  This suggests timestamp was overwritten - fixing by setting to cloud timestamp")
+                        setLocalLastUpdatedTimestamp(profile, cloudLastUpdated)
+                    } else {
+                        Log.d(TAG, "Verified: Local timestamp correctly matches cloud after update_local_with_cloud()")
+                    }
                 }
             }
         }

@@ -36,7 +36,7 @@ class RewardSelectionActivity : AppCompatActivity() {
             if (currentMinutes > 0) {
                 // Sync reward minutes to cloud first (so BaerenLock can read them from the database)
                 // BaerenLock will read the minutes from the cloud database instead of receiving them via Intent
-                // setBankedRewardMinutes will sync to cloud automatically
+                // Banked minutes sync to cloud via full update_cloud_with_local on next BattleHub/Trainer Map load or game completion (per requirements)
                 progressManager.setBankedRewardMinutes(currentMinutes)
                 Log.d(TAG, "Synced $currentMinutes minutes to cloud for BaerenLock to read")
                 

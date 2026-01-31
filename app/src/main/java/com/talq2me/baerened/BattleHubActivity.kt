@@ -2233,10 +2233,9 @@ class BattleHubActivity : AppCompatActivity() {
         
         val maxRounds = 5
         if (round > maxRounds) {
-            // Battle complete - player wins
-            if (bossHealth > 0) {
-                endBattle(true)
-            }
+            // Run final round: "You attack" only (no boss counter), then defeat sequence and victory.
+            // This ensures the player always sees the last hit, boss defeat animation, and then victory.
+            battleFinalRound()
             return
         }
         
@@ -2423,8 +2422,12 @@ class BattleHubActivity : AppCompatActivity() {
                                                                                 .setDuration(250)
                                                                                 .withEndAction {
                                                                                     clearBattleMessage()
-                                                                                    // Continue to next round
-                                                                                    battleRound(round + 1)
+                                                                                    // Next: either final round (You attack only) or next full round
+                                                                                    if (round >= maxRounds) {
+                                                                                        battleFinalRound()
+                                                                                    } else {
+                                                                                        battleRound(round + 1)
+                                                                                    }
                                                                                 }
                                                                                 .start()
                                                                         }
@@ -2502,6 +2505,161 @@ class BattleHubActivity : AppCompatActivity() {
                 .start()
             }, 1500) // 1.5s delay between rounds to see animations
         }, roundDelay) // First round starts immediately, subsequent rounds have delay
+    }
+    
+    /**
+     * Final round: "You attack" only (no boss counter). Ensures the player always sees
+     * the last hit, boss defeat animation (shake, roll over, grey out), then victory.
+     * Called when round > maxRounds instead of jumping straight to endBattle(true).
+     */
+    private fun battleFinalRound() {
+        if (!isBattling) return
+        android.util.Log.d("BattleHubActivity", "battleFinalRound: starting final You attack (no boss counter)")
+        // Brief pause after "Boss attacks" then show final "You attack!" (no boss counter)
+        clearBattleMessage()
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            if (!isBattling) return@postDelayed
+            showBattleMessage("You attack!")
+                // Player attack animation
+                playerPokemonSprite.animate()
+                    .translationX(50f)
+                    .scaleX(1.2f)
+                    .scaleY(1.2f)
+                    .setDuration(1000)
+                    .withEndAction {
+                        playerPokemonSprite.animate()
+                            .translationX(0f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(1000)
+                            .start()
+                    }
+                    .start()
+                // Boss takes final damage
+                val bossDamage = 12 + (0..8).random()
+                bossHealth = (bossHealth - bossDamage).coerceAtLeast(0)
+                bossPowerValue = (bossPowerValue - bossDamage).coerceAtLeast(0)
+                val bossHPPercent = (bossHealth * 100 / 100).coerceIn(0, 100)
+                val bossHPAnimator = ObjectAnimator.ofInt(bossHP, "progress", bossHP.progress, bossHealth).apply {
+                    duration = 2000
+                    interpolator = AccelerateDecelerateInterpolator()
+                }
+                updateBossHPColor(bossHPPercent)
+                val bossPowerPercent = (bossPowerValue * 100 / 100).coerceIn(0, 100)
+                val bossPowerAnimator = ObjectAnimator.ofInt(bossPower, "progress", bossPower.progress, bossPowerValue).apply {
+                    duration = 2000
+                    interpolator = AccelerateDecelerateInterpolator()
+                }
+                updateBossPowerColor(bossPowerPercent)
+                var hpAnimationComplete = false
+                var powerAnimationComplete = false
+                var bossHitAnimationComplete = false
+                fun checkAnimationsComplete() {
+                    if (!hpAnimationComplete || !powerAnimationComplete || !bossHitAnimationComplete) return
+                    // Final round: always show defeat sequence (boss is at 0 or we treat as victory)
+                    if (bossHealth <= 0) {
+                        clearBattleMessage()
+                        val bossName = currentBossPokemon?.name ?: "Boss"
+                        showBattleMessage("$bossName was defeated!")
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            bossPokemonSprite.animate()
+                                .translationX(-20f)
+                                .setDuration(300)
+                                .withEndAction {
+                                    bossPokemonSprite.animate()
+                                        .translationX(20f)
+                                        .setDuration(300)
+                                        .withEndAction {
+                                            bossPokemonSprite.animate()
+                                                .translationX(-20f)
+                                                .setDuration(300)
+                                                .withEndAction {
+                                                    bossPokemonSprite.animate()
+                                                        .translationX(20f)
+                                                        .setDuration(300)
+                                                        .withEndAction {
+                                                            bossPokemonSprite.animate()
+                                                                .translationX(0f)
+                                                                .setDuration(300)
+                                                                .withEndAction {
+                                                                    bossPokemonSprite.animate()
+                                                                        .rotation(180f)
+                                                                        .translationY(100f)
+                                                                        .alpha(0.3f)
+                                                                        .setDuration(2000)
+                                                                        .withEndAction {
+                                                                            bossPokemonSprite.setColorFilter(android.graphics.ColorMatrixColorFilter(
+                                                                                android.graphics.ColorMatrix().apply { setSaturation(0f) }
+                                                                            ))
+                                                                            clearBattleMessage()
+                                                                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                                                showBattleMessage("🎉 Victory! 🎉")
+                                                                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                                                                    clearBattleMessage()
+                                                                                    endBattle(true)
+                                                                                }, 2000)
+                                                                            }, 1000)
+                                                                        }
+                                                                        .start()
+                                                                }
+                                                                .start()
+                                                        }
+                                                        .start()
+                                                }
+                                                .start()
+                                        }
+                                        .start()
+                                }
+                                .start()
+                        }, 2000)
+                    } else {
+                        endBattle(true)
+                    }
+                }
+                bossHPAnimator.addListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        hpAnimationComplete = true
+                        checkAnimationsComplete()
+                    }
+                })
+                bossPowerAnimator.addListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        powerAnimationComplete = true
+                        checkAnimationsComplete()
+                    }
+                })
+                bossHPAnimator.start()
+                bossPowerAnimator.start()
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    val originalAlpha = bossPokemonSprite.alpha
+                    bossPokemonSprite.animate()
+                        .alpha(0.3f)
+                        .setDuration(250)
+                        .withEndAction {
+                            bossPokemonSprite.animate()
+                                .alpha(1f)
+                                .setDuration(250)
+                                .withEndAction {
+                                    bossPokemonSprite.animate()
+                                        .alpha(0.3f)
+                                        .setDuration(250)
+                                        .withEndAction {
+                                            bossPokemonSprite.animate()
+                                                .alpha(originalAlpha)
+                                                .setDuration(250)
+                                                .withEndAction {
+                                                    bossHitAnimationComplete = true
+                                                    checkAnimationsComplete()
+                                                }
+                                                .start()
+                                        }
+                                        .start()
+                                }
+                                .start()
+                        }
+                        .start()
+                }, 1000)
+        }, 1500)
     }
     
     private fun endBattle(playerWon: Boolean) {

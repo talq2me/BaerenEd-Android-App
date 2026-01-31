@@ -1232,18 +1232,19 @@ class TrainingMapActivity : AppCompatActivity() {
             // Advance local last_updated synchronously so cloudSync (e.g. on BattleHub return)
             // sees local newer than cloud and uploads instead of applying stale cloud over berries/tasks.
             DailyResetAndSyncManager(this).advanceLocalTimestampForProfile(currentProfile)
+            // Blocking: finish sync before redraw so onResume (e.g. on BattleHub) has nothing to do.
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(currentProfile)
+                    android.util.Log.d("TrainingMapActivity", "Task completion sync finished, redrawing map")
                 } catch (e: Exception) {
                     android.util.Log.e("TrainingMapActivity", "Error syncing after task completion", e)
                 }
+                withContext(Dispatchers.Main) {
+                    mapContainer.removeAllViews()
+                    loadTasksIntoMap()
+                }
             }
-
-            // Reload tasks into map to show updated completion status
-            // Completion is saved synchronously, so this will show the updated state
-            mapContainer.removeAllViews()
-            loadTasksIntoMap()
         }
     }
     
@@ -1875,11 +1876,7 @@ class TrainingMapActivity : AppCompatActivity() {
                     )
                 }
                 
-                // Reload the map to show the task as completed
-                loadTasksIntoMap()
-                
-                // Sync checklist completion to cloud (user_data.checklist_items)
-                // Collector builds checklist_items from required_tasks; push so cloud has it
+                // Sync checklist completion to cloud first, then redraw (blocking so onResume has nothing to do).
                 val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
                 lifecycleScope.launch(Dispatchers.IO) {
                     try {
@@ -1887,6 +1884,9 @@ class TrainingMapActivity : AppCompatActivity() {
                         android.util.Log.d("TrainingMapActivity", "Synced checklist completion to cloud for profile: $profile")
                     } catch (e: Exception) {
                         android.util.Log.e("TrainingMapActivity", "Error syncing checklist to cloud", e)
+                    }
+                    withContext(Dispatchers.Main) {
+                        loadTasksIntoMap()
                     }
                 }
             }
