@@ -114,7 +114,7 @@
             }
 
             try {
-                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=in.(AM,BM)&select=profile,chores,coins_earned`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=in.(AM,BM,TE)&select=profile,chores,coins_earned`, {
                     headers: {
                         'apikey': supabaseKey,
                         'Authorization': `Bearer ${supabaseKey}`,
@@ -130,7 +130,7 @@
                     byProfile[r.profile] = { chores: r.chores || [], coins_earned: r.coins_earned || 0 };
                 });
 
-                const profiles = ['AM', 'BM'];
+                const profiles = ['AM', 'BM', 'TE'];
                 let html = '';
                 profiles.forEach(profile => {
                     const data = byProfile[profile] || { chores: [], coins_earned: 0 };
