@@ -111,12 +111,11 @@
           "totalQuestions": 5,
           "displayDays": "thu"
         },
-        ,
         {
           "title": "Printing Practice",
           "launch": "printing",
           "stars": 3
-        }
+        },
         {
           "title": "Money Game",
           "launch": "canadianMoneyEasy",
