@@ -52,7 +52,7 @@
           "extremedays": "sat,sun"
         },
         {
-          "title": "Spelling OCR",
+          "title": "French Spelling OCR",
           "launch": "spellingOCR",
           "url": "file=frenchWordsGr1.json",
           "stars": 3
