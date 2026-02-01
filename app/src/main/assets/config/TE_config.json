@@ -54,7 +54,7 @@
         {
           "title": "Spelling OCR",
           "launch": "spellingOCR",
-          "url": "file=englishWordsGr1.json",
+          "url": "file=frenchWordsGr1.json",
           "stars": 3
         },
         {
