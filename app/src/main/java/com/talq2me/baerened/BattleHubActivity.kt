@@ -865,6 +865,8 @@ class BattleHubActivity : AppCompatActivity() {
                     // Refresh counts display to show updated minutes
                     updateCountsDisplay()
                     android.widget.Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", android.widget.Toast.LENGTH_LONG).show()
+                    // Note: setBankedRewardMinutes already updates last_updated timestamp
+                    // Sync will run automatically next time BattleHub or Trainer Map loads (per Daily Reset Logic.md)
                 } else {
                     android.widget.Toast.makeText(this, "Please enter a valid number of minutes", android.widget.Toast.LENGTH_SHORT).show()
                 }

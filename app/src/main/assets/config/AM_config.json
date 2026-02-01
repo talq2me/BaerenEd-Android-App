@@ -39,6 +39,18 @@
           "displayDays": "mon,wed,fri"
         },
         {
+          "title": "Eng Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=englishWordsGr1.json",
+          "stars": 3
+        },
+        {
+          "title": "FR Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=frenchWordsGr1.json",
+          "stars": 3
+        },
+        {
           "title": "Eng Spelling",
           "launch": "engSpelling",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
@@ -68,7 +80,8 @@
           "webGame": true,
           "extremedays": "mon,tue,wed",
           "easydays": "thu,fri",
-          "harddays": "sat,sun"
+          "harddays": "sat,sun",
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Eng Spelling",
@@ -98,14 +111,12 @@
           "totalQuestions": 5,
           "displayDays": "thu"
         },
+        ,
         {
-          "title": "Handwriting",
-          "launch": "handwriting",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
-          "stars": 3,
-          "disable": "Jan 15, 2026",
-          "webGame": true
-        },
+          "title": "Printing Practice",
+          "launch": "printing",
+          "stars": 3
+        }
         {
           "title": "Money Game",
           "launch": "canadianMoneyEasy",

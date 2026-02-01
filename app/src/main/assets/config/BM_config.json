@@ -36,7 +36,7 @@
           "totalQuestions": 5
         },
         {
-          "title": "Congugation",
+          "title": "Conjugation",
           "launch": "conjugation",
           "stars": 3,
           "totalQuestions": 5
@@ -47,6 +47,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=random",
           "stars": 3,
           "webGame": true
+          "disable": "Jan 2, 2027"
         },
         {
           "title": "Multi-Digit Add/Subtract",
@@ -89,6 +90,18 @@
         },
         
         {
+          "title": "Eng Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=englishWordsGr4.json",
+          "stars": 3
+        },
+        {
+          "title": "FR Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=frenchWordsGr4.json",
+          "stars": 3
+        },
+        {
           "title": "Fr Spelling",
           "launch": "frSpellPhoto",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr4.json",
@@ -96,7 +109,8 @@
           "webGame": true,
           "easydays": "tue,wed",
           "harddays": "thu,fri",
-          "extremedays": "sat,sun,mon"
+          "extremedays": "sat,sun,mon",
+          "disable": "Jan 01, 2027"
         },
         {
           "title": "Eng Spelling",
@@ -106,7 +120,8 @@
           "webGame": true,
           "easydays": "tue,wed",
           "harddays": "thu,fri",
-          "extremedays": "sat,sun,mon"
+          "extremedays": "sat,sun,mon",
+          "disable": "Jan 01, 2027"
         },
          {
           "title": "Google Read Along",
@@ -132,14 +147,14 @@
           "title": "Kung Fu Form",
           "launch": "advancedKungFuVideos",
           "stars": 1,
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 2, 2027",
           "video": "FerrociousFist",
           "videoSequence": "exact"
         },
         {
           "title": "Kung Fu",
           "launch": "intermediateKungFuVideos",
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 2, 2027",
           "stars": 1,
           "videoSequence": "sequential"
         },

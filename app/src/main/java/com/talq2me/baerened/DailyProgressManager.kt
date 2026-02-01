@@ -1891,20 +1891,14 @@ class DailyProgressManager(private val context: Context) {
         val key = "${profile}_banked_reward_minutes"
         val timestampKey = "${profile}_banked_reward_minutes_timestamp"
         
-        // Generate timestamp in ISO 8601 format with EST timezone (same format as cloud)
+        // Generate timestamp in EST format per Daily Reset Logic.md: yyyy-MM-dd HH:mm:ss.SSS
         val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-        val now = java.util.Date()
-        val offsetMillis = estTimeZone.getOffset(now.time)
-        val offsetHours = offsetMillis / (1000 * 60 * 60)
-        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.getDefault())
         dateFormat.timeZone = estTimeZone
-        val timestamp = dateFormat.format(now) + offsetString
+        val timestamp = dateFormat.format(java.util.Date())
         
         // Update last_updated timestamp (in EST format) as per Daily Reset Logic
-        // Reuse the same timestamp since both represent "now" in EST
-        val lastUpdatedKey = "${profile}_last_updated"
+        val lastUpdatedKey = "${profile}_last_updated_timestamp"
         val lastUpdatedTimestamp = timestamp
         
         val success = prefs.edit()

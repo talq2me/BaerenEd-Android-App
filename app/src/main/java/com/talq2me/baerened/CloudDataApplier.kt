@@ -116,7 +116,7 @@ class CloudDataApplier(
             }
 
             // Apply other progress metrics (all profile-specific)
-            // SIMPLE: Overwrite local with cloud values (timestamp-based sync)
+            // Per Daily Reset Logic.md: update_local_with_cloud() is all-or-nothing, newest timestamp wins
             val bankedMinsKey = "${localProfile}_banked_reward_minutes"
             val possibleStarsKey = "${localProfile}_total_possible_stars"
             
@@ -165,7 +165,7 @@ class CloudDataApplier(
                 Log.e(TAG, "Error applying berries to local storage", e)
             }
 
-            // Apply coins_earned (Chores 4 $$) - never reset, profile-specific
+            // Apply coins_earned (Chores 4 $$) - per Daily Reset Logic: newest timestamp wins
             progressPrefs.edit()
                 .putInt("${localProfile}_coins_earned", data.coinsEarned)
                 .commit()
@@ -176,7 +176,7 @@ class CloudDataApplier(
                 .putString("${localProfile}_chores", choresJson)
                 .commit()
 
-            // Apply Pokemon data
+            // Apply Pokemon data - per Daily Reset Logic: newest timestamp wins
             progressPrefs.edit()
                 .putInt("${localProfile}_$KEY_POKEMON_UNLOCKED", data.pokemonUnlocked)
                 .apply()

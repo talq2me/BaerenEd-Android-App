@@ -1610,6 +1610,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     
                     Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", Toast.LENGTH_LONG).show()
                     Log.d(TAG, "Granted $minutes reward minutes. New total: $newTotal minutes")
+                    // Note: setBankedRewardMinutes already updates last_updated timestamp
+                    // Sync will run automatically next time BattleHub or Trainer Map loads (per Daily Reset Logic.md)
                 } else {
                     Toast.makeText(this, "Please enter a valid number of minutes", Toast.LENGTH_SHORT).show()
                 }

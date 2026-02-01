@@ -1,0 +1,44 @@
+---
+description: Strict rules for making code changes - prevents unauthorized modifications
+alwaysApply: true
+---
+
+# Code Change Rules
+
+## CRITICAL: Only Make Requested Changes
+
+1. **Only change what the user explicitly asks for** - never "fix" or "improve" related code
+2. **If you see something that looks like a bug, ASK first** - do not fix it without approval
+3. **State what you're about to change before doing it** - especially for sync, reset, or timestamp code
+
+## Never Change Without Explicit Approval
+
+These require explicit user approval before ANY modification:
+
+- Sync logic (`cloud_sync`, `update_cloud_with_local`, `update_local_with_cloud`)
+- Reset logic (`daily_reset_process`, `reset_local`)
+- Timestamp formats or keys (`last_updated`, `last_reset`, any `*_timestamp` keys)
+- SharedPreferences key names
+- The order of operations in any sync/reset flow
+
+## Forbidden Actions
+
+- ❌ Never add "protective" logic like `max(local, cloud)` - timestamps determine winner
+- ❌ Never add extra sync calls "just to be safe"
+- ❌ Never change timestamp formats (must be `yyyy-MM-dd HH:mm:ss.SSS` in EST)
+- ❌ Never rename SharedPreferences keys
+- ❌ Never assume you know better than the requirements docs
+
+## Required Reading
+
+Before touching sync or reset code, re-read these files:
+
+- `Daily Reset Logic.md` - the authoritative sync/reset specification
+- `000Requirements.md` - feature requirements
+
+## When In Doubt
+
+ASK the user:
+- "I noticed X might be a bug. Should I fix it?"
+- "This change might affect Y. Is that okay?"
+- "I want to confirm: you want me to change ONLY X, correct?"
