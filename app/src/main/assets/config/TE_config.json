@@ -319,6 +319,24 @@
       "title": "Bonus Games",
       "description": "Just for fun!",
       "tasks": [
+        
+        {
+          "title": "Multi-Digit Add/Subtract",
+          "launch": "multiDigitAddSubtract",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 1
+        },
+    
+        {
+          "title": "Multi-Digit Multiplication",
+          "launch": "multiDigitMultiplication",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 1
+        },
         {
           "title": "Soda Pop",
           "launch": "kpop",
