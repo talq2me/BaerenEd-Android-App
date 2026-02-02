@@ -1,42 +1,34 @@
 [
   {
+    "word": "olive",
+    "sentence": "Je mange une olive."
+  },
+  {
+    "word": "ovale",
+    "sentence": "Le ballon est ovale."
+  },
+  {
+    "word": "lac",
+    "sentence": "Le lac est grand."
+  },
+  {
+    "word": "bal",
+    "sentence": "Je vais au bal."
+  },
+  {
+    "word": "bac",
+    "sentence": "Le livre est dans le bac."
+  },
+  {
     "word": "sac",
-    "sentence": "Je mets mon livre dans mon sac."
+    "sentence": "Le sac est rouge."
   },
   {
-    "word": "porte",
-    "sentence": "La porte est ouverte."
+    "word": "vol",
+    "sentence": "L’oiseau est en vol."
   },
   {
-    "word": "pomme",
-    "sentence": "La pomme est rouge."
-  },
-  {
-    "word": "lune",
-    "sentence": "La lune brille dans le ciel."
-  },
-  {
-    "word": "fille",
-    "sentence": "La fille joue dans le parc."
-  },
-  {
-    "word": "garçon",
-    "sentence": "Le garçon lit un livre."
-  },
-  {
-    "word": "robe",
-    "sentence": "Elle porte une belle robe."
-  },
-  {
-    "word": "père",
-    "sentence": "Mon père travaille beaucoup."
-  },
-  {
-    "word": "mère",
-    "sentence": "Ma mère cuisine bien."
-  },
-  {
-    "word": "bébé",
-    "sentence": "Le bébé dort paisiblement."
+    "word": "bol",
+    "sentence": "Le bol est plein."
   }
 ]

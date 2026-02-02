@@ -53,6 +53,17 @@
         android:gravity="center"
         android:fontFamily="sans-serif-medium" />
 
+    <!-- Play again: replay sentence and word -->
+    <Button
+        android:id="@+id/playAgainButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔊 Play again"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/button_rounded_secondary"
+        android:textColor="#FFFFFF" />
+
     <!-- Drawing canvas with lined paper -->
     <com.talq2me.baerened.DrawingCanvasView
         android:id="@+id/drawingCanvas"
@@ -120,13 +131,23 @@
         </FrameLayout>
 
         <Button
-            android:id="@+id/deleteButton"
-            android:text="🗑️ Clear"
+            android:id="@+id/eraserButton"
+            android:text="🧽 Eraser"
             android:layout_width="0dp"
             android:layout_height="70dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:textSize="18sp"
+            android:textSize="16sp"
+            android:background="@drawable/button_rounded_secondary"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/clearButton"
+            android:text="🗑️ Clear"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:layout_weight="1"
+            android:textSize="16sp"
             android:background="@drawable/button_rounded_secondary"
             android:textColor="#FFFFFF" />
     </LinearLayout>

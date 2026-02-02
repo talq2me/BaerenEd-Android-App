@@ -36,7 +36,9 @@ class SpellingOCRActivity : AppCompatActivity() {
     private lateinit var wordTextView: TextView
     private lateinit var sentenceTextView: TextView
     private lateinit var checkButton: Button
-    private lateinit var deleteButton: Button
+    private lateinit var playAgainButton: Button
+    private lateinit var eraserButton: Button
+    private lateinit var clearButton: Button
     private lateinit var modeToggleContainer: android.view.ViewGroup
     private lateinit var printingLabel: TextView
     private lateinit var cursiveLabel: TextView
@@ -63,6 +65,7 @@ class SpellingOCRActivity : AppCompatActivity() {
     private var tts: TextToSpeech? = null
     private var isTtsReady = false
     private var pendingWordData: WordData? = null // Word waiting to be spoken when TTS is ready
+    private var useFrenchTTS = false // Use French TTS for frenchWordsGr1/Gr4 or French Spelling OCR
     
     // OCR
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -95,12 +98,20 @@ class SpellingOCRActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Word file from intent: $wordFile")
         
+        // Use French TTS when word list is French or game is French Spelling OCR
+        val fileLower = wordFile.lowercase(Locale.ROOT)
+        useFrenchTTS = fileLower.contains("frenchwordsgr1") || fileLower.contains("frenchwordsgr4") ||
+            gameTitle.contains("french", ignoreCase = true)
+        Log.d(TAG, "TTS language: ${if (useFrenchTTS) "French" else "English"}")
+        
         // Initialize views
         drawingCanvas = findViewById(R.id.drawingCanvas)
         wordTextView = findViewById(R.id.wordTextView)
         sentenceTextView = findViewById(R.id.sentenceTextView)
         checkButton = findViewById(R.id.checkButton)
-        deleteButton = findViewById(R.id.deleteButton)
+        playAgainButton = findViewById(R.id.playAgainButton)
+        eraserButton = findViewById(R.id.eraserButton)
+        clearButton = findViewById(R.id.clearButton)
         modeToggleContainer = findViewById(R.id.modeToggleContainer)
         printingLabel = findViewById(R.id.printingLabel)
         cursiveLabel = findViewById(R.id.cursiveLabel)
@@ -140,12 +151,13 @@ class SpellingOCRActivity : AppCompatActivity() {
     private fun initTTS() {
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                val result = tts?.setLanguage(Locale.ENGLISH)
+                val locale = if (useFrenchTTS) Locale.FRENCH else Locale.ENGLISH
+                val result = tts?.setLanguage(locale)
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "TTS language not supported")
+                    Log.e(TAG, "TTS language not supported: $locale")
                 } else {
                     isTtsReady = true
-                    Log.d(TAG, "TTS initialized successfully")
+                    Log.d(TAG, "TTS initialized successfully (${if (useFrenchTTS) "French" else "English"})")
                     
                     // If we have a pending word, speak it now
                     pendingWordData?.let { wordData ->
@@ -184,12 +196,26 @@ class SpellingOCRActivity : AppCompatActivity() {
         }
     }
     
+    private var isEraserMode = false
+    
     private fun setupButtons() {
         checkButton.setOnClickListener {
             checkSpelling()
         }
         
-        deleteButton.setOnClickListener {
+        playAgainButton.setOnClickListener {
+            if (currentWordIndex < words.size) {
+                speakWord(words[currentWordIndex])
+            }
+        }
+        
+        eraserButton.setOnClickListener {
+            isEraserMode = !isEraserMode
+            drawingCanvas.setEraserMode(isEraserMode)
+            eraserButton.text = if (isEraserMode) "✏️ Pen" else "🧽 Eraser"
+        }
+        
+        clearButton.setOnClickListener {
             drawingCanvas.clear()
         }
         
@@ -268,6 +294,9 @@ class SpellingOCRActivity : AppCompatActivity() {
         )
         sentenceTextView.text = sentenceWithBlanks
         drawingCanvas.clear()
+        isEraserMode = false
+        drawingCanvas.setEraserMode(false)
+        eraserButton.text = "🧽 Eraser"
         
         // Update progress
         updateProgress()

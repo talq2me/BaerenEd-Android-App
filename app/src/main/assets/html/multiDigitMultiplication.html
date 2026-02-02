@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Multidigit Multiplication</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FF9800;
+            --correct-color: #8BC34A;
+            --wrong-color: #F44336;
+            --border-color: #333;
+            --input-bg: #fff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 20px;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .number-pad-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+        }
+        
+        .number-pad-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .number-pad-button {
+            width: 55px;
+            height: 55px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .number-pad-button:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .number-pad-button:active {
+            transform: translateY(0);
+            background: #e0e0e0;
+        }
+        
+        .number-pad-button.delete {
+            background: var(--wrong-color);
+            color: white;
+            border-color: #c62828;
+        }
+        
+        .number-pad-button.delete:hover {
+            background: #d32f2f;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .number-pad-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .number-pad-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        .question {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .math-problem {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin: 30px 0;
+            font-size: 2rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .math-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 2px 0;
+            position: relative;
+        }
+        
+        .operation-sign {
+            margin-right: 10px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .digit-cell {
+            width: 50px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--input-bg);
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .digit-cell.input {
+            background: #f0f0f0;
+            cursor: text;
+        }
+        
+        .digit-cell.input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        
+        .digit-cell.input.error {
+            border-color: var(--wrong-color);
+            background: #ffebee;
+            animation: shake 0.3s;
+        }
+        
+        .answer-row {
+            border-top: 3px solid var(--border-color);
+            margin-top: 5px;
+            padding-top: 5px;
+        }
+        
+        .partial-row {
+            margin-top: 2px;
+        }
+        
+        .spacer {
+            width: 50px;
+            flex-shrink: 0;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .error-message {
+            color: var(--wrong-color);
+            font-size: 1rem;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 25px;
+            font-weight: bold;
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--confetti-color);
+            position: absolute;
+            animation: confetti-fall 3s ease-out forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            font-size: 1rem;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .next-button {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .next-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        .next-button:active {
+            transform: scale(0.95);
+        }
+        
+        .hint-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-content">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="progress">Questions: <span id="progress">0</span> / <span id="maxQuestions">10</span></div>
+            <div class="question" id="question"></div>
+            <div class="math-problem" id="mathProblem"></div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="hint-text" id="hintText"></div>
+            <button class="next-button" id="nextButton">Next Question</button>
+        </div>
+        <div class="number-pad-container" id="numberPad">
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="7">7</button>
+                <button class="number-pad-button" data-number="8">8</button>
+                <button class="number-pad-button" data-number="9">9</button>
+            </div>
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="4">4</button>
+                <button class="number-pad-button" data-number="5">5</button>
+                <button class="number-pad-button" data-number="6">6</button>
+            </div>
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="1">1</button>
+                <button class="number-pad-button" data-number="2">2</button>
+                <button class="number-pad-button" data-number="3">3</button>
+            </div>
+            <div class="number-pad-row">
+                <button class="number-pad-button" data-number="0">0</button>
+                <button class="number-pad-button delete" id="deleteButton">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProblem = null;
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let problems = [];
+        let currentProblemIndex = 0;
+        let canAnswer = true;
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
+        let maxQuestions = 10;
+        if (totalQuestionsParam) {
+            const parsed = parseInt(totalQuestionsParam, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                maxQuestions = parsed;
+            }
+        }
+        
+        let questionsCompleted = 0;
+        let allInputs = [];  // All inputs in focus order (right to left: first digit first)
+        let skipCursorMove = false;
+
+        function isAndroidWebView() {
+            return typeof window.Android !== 'undefined';
+        }
+
+        function loadConfig() {
+            try {
+                let configJson = '{}';
+                if (isAndroidWebView() && typeof window.Android.getConfigJson === 'function') {
+                    configJson = window.Android.getConfigJson();
+                } else {
+                    const savedConfig = localStorage.getItem('multiDigitMultiplicationConfig');
+                    if (savedConfig) configJson = savedConfig;
+                }
+                const config = JSON.parse(configJson);
+                if (!totalQuestionsParam) {
+                    if (config.sections) {
+                        for (const section of config.sections) {
+                            if (section.tasks) {
+                                for (const task of section.tasks) {
+                                    if (task.questionsToComplete) {
+                                        maxQuestions = parseInt(task.questionsToComplete, 10) || maxQuestions;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (config.questionsToComplete) {
+                        maxQuestions = parseInt(config.questionsToComplete, 10) || maxQuestions;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function generateProblems() {
+            problems = [];
+            // Single-digit multiplier (e.g. 759 × 4)
+            for (let i = 0; i < 10; i++) {
+                const topLen = Math.floor(Math.random() * 2) + 2;  // 2 or 3 digits
+                const num1 = generateNumber(topLen);
+                const num2 = Math.floor(Math.random() * 9) + 1;  // 1-9
+                problems.push({
+                    question: 'Multiply these numbers:',
+                    num1: num1,
+                    num2: num2,
+                    answer: num1 * num2
+                });
+            }
+            // Two-digit multiplier (e.g. 465 × 64)
+            for (let i = 0; i < 10; i++) {
+                const topLen = Math.floor(Math.random() * 2) + 2;  // 2 or 3 digits
+                const num1 = generateNumber(topLen);
+                const num2 = Math.floor(Math.random() * 90) + 10;  // 10-99
+                problems.push({
+                    question: 'Multiply these numbers:',
+                    num1: num1,
+                    num2: num2,
+                    answer: num1 * num2
+                });
+            }
+            shuffleArray(problems);
+            maxQuestions = Math.min(problems.length, maxQuestions);
+        }
+
+        function generateNumber(numDigits) {
+            const min = Math.pow(10, numDigits - 1);
+            const max = Math.pow(10, numDigits) - 1;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Compute one partial product: topNum * digit, and which columns have carries.
+        // Returns { digits: number[], carries: { colIndex: carryValue } }
+        function computePartialProduct(topStr, digit) {
+            const digits = [];
+            const carries = {};
+            let carry = 0;
+            for (let i = topStr.length - 1; i >= 0; i--) {
+                const product = parseInt(topStr[i]) * digit + carry;
+                digits.unshift(product % 10);  // ones digit
+                carry = Math.floor(product / 10);
+                if (carry > 0 && i > 0) {
+                    carries[i - 1] = carry;
+                }
+            }
+            if (carry > 0) {
+                digits.unshift(carry);
+                carries[-1] = carry;  // leftmost column
+            }
+            return { digits, carries };
+        }
+
+        function createMathProblem(problem) {
+            const container = document.getElementById('mathProblem');
+            container.innerHTML = '';
+            allInputs = [];
+            
+            const num1Str = problem.num1.toString();
+            const num2Str = problem.num2.toString();
+            const num2Digits = num2Str.split('').map(d => parseInt(d));
+            const maxWidth = num1Str.length + num2Str.length;  // max digits in answer
+            
+            // Build partial products (from right to left: ones digit of multiplier first)
+            const partials = [];
+            for (let m = num2Digits.length - 1; m >= 0; m--) {
+                const digit = num2Digits[m];
+                const { digits, carries } = computePartialProduct(num1Str, digit);
+                partials.push({ digits, carries, offset: num2Digits.length - 1 - m });
+            }
+            const finalAnswer = problem.answer.toString();
+            
+            // ---- Carry row(s) and top number ----
+            // We'll build one "block" per partial: carry row above top number, then top number, then × and bottom (only once)
+            // Layout: carry row 1 (for first partial), top number row, × bottom number row, line, partial rows, line, answer row
+            
+            const topLen = num1Str.length;
+            const totalCols = Math.max(finalAnswer.length, partials[0].digits.length + (partials.length > 1 ? partials[1].offset : 0));
+            
+            // First carry row (for first partial product)
+            // carries[i] = carry that goes above column i of the partial (i=-1 is leftmost)
+            // Display: column c (0=left) has carry if c is a digit column and we have carry for that column
+            const firstPartial = partials[0];
+            const carryInputsCol0 = [];  // carry inputs by display column index (for first partial)
+            const carryRow1 = document.createElement('div');
+            carryRow1.className = 'math-row';
+            carryRow1.style.height = '40px';
+            carryRow1.style.marginBottom = '2px';
+            for (let c = 0; c < totalCols; c++) {
+                const cell = document.createElement('div');
+                cell.style.width = '50px';
+                cell.style.position = 'relative';
+                const digitCol = c - (totalCols - firstPartial.digits.length);  // 0 = leftmost digit of partial
+                let carryVal = null;
+                if (digitCol >= 0 && digitCol < firstPartial.digits.length) {
+                    if (digitCol === 0) {
+                        carryVal = firstPartial.carries[-1];
+                    } else {
+                        carryVal = firstPartial.carries[digitCol - 1];
+                    }
+                }
+                if (carryVal !== undefined && carryVal !== null) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'digit-cell input';
+                    input.setAttribute('readonly', 'readonly');
+                    input.setAttribute('inputmode', 'none');
+                    input.readOnly = true;
+                    input.style.width = '40px';
+                    input.style.height = '35px';
+                    input.style.fontSize = '1.2rem';
+                    input.maxLength = 1;
+                    input.dataset.correctValue = String(carryVal);
+                    input.style.textAlign = 'center';
+                    input.addEventListener('input', (e) => handleAnyInput(e));
+                    input.dataset.carryCol = c;
+                    carryInputsCol0[c] = input;
+                    cell.appendChild(input);
+                }
+                carryRow1.appendChild(cell);
+            }
+            container.appendChild(carryRow1);
+            
+            // Top number row
+            const topRow = document.createElement('div');
+            topRow.className = 'math-row';
+            const spacerTop = totalCols - topLen;
+            for (let s = 0; s < spacerTop; s++) {
+                const sp = document.createElement('div');
+                sp.className = 'spacer';
+                topRow.appendChild(sp);
+            }
+            for (let i = 0; i < topLen; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'digit-cell';
+                cell.textContent = num1Str[i];
+                topRow.appendChild(cell);
+            }
+            container.appendChild(topRow);
+            
+            // × and bottom number row
+            const opRow = document.createElement('div');
+            opRow.className = 'math-row';
+            const opSign = document.createElement('div');
+            opSign.className = 'operation-sign';
+            opSign.textContent = '×';
+            opRow.appendChild(opSign);
+            const spacerOp = Math.max(0, totalCols - num2Str.length - 1);
+            for (let s = 0; s < spacerOp; s++) {
+                const sp = document.createElement('div');
+                sp.className = 'spacer';
+                opRow.appendChild(sp);
+            }
+            for (let i = 0; i < num2Str.length; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'digit-cell';
+                cell.textContent = num2Str[i];
+                opRow.appendChild(cell);
+            }
+            container.appendChild(opRow);
+            
+            // Line
+            const lineRow = document.createElement('div');
+            lineRow.className = 'math-row';
+            const line = document.createElement('div');
+            line.style.width = (totalCols * 55) + 'px';
+            line.style.height = '3px';
+            line.style.background = 'var(--border-color)';
+            lineRow.appendChild(line);
+            container.appendChild(lineRow);
+            
+            // Partial product rows (and extra carry rows for second partial)
+            const partialDigitInputsByRow = [];  // [ [inputs row0 by col], [inputs row1 by col], ... ]
+            const carryInputsByColPerRow = [];   // [ { col: input } for row0, ... ]
+            carryInputsByColPerRow[0] = carryInputsCol0;
+            for (let p = 0; p < partials.length; p++) {
+                const part = partials[p];
+                if (p === 1) {
+                    const carryInputsCol1 = {};
+                    const startCol1 = totalCols - part.offset - part.digits.length;
+                    const carryRow2 = document.createElement('div');
+                    carryRow2.className = 'math-row';
+                    carryRow2.style.height = '40px';
+                    carryRow2.style.marginBottom = '2px';
+                    for (let c = 0; c < totalCols; c++) {
+                        const cell = document.createElement('div');
+                        cell.style.width = '50px';
+                        const digitCol = c - startCol1;
+                        if (digitCol >= 0 && digitCol < part.digits.length) {
+                            let carryVal = digitCol === 0 ? part.carries[-1] : part.carries[digitCol - 1];
+                            if (carryVal !== undefined && carryVal !== null) {
+                                const input = document.createElement('input');
+                                input.type = 'text';
+                                input.className = 'digit-cell input';
+                                input.setAttribute('readonly', 'readonly');
+                                input.setAttribute('inputmode', 'none');
+                                input.readOnly = true;
+                                input.style.width = '40px';
+                                input.style.height = '35px';
+                                input.style.fontSize = '1.2rem';
+                                input.maxLength = 1;
+                                input.dataset.correctValue = String(carryVal);
+                                input.style.textAlign = 'center';
+                                input.addEventListener('input', (e) => handleAnyInput(e));
+                                carryInputsCol1[c] = input;
+                                cell.appendChild(input);
+                            }
+                        }
+                        carryRow2.appendChild(cell);
+                    }
+                    carryInputsByColPerRow[1] = carryInputsCol1;
+                    container.appendChild(carryRow2);
+                }
+                
+                const partRow = document.createElement('div');
+                partRow.className = 'math-row partial-row';
+                const numSpacers = totalCols - part.offset - part.digits.length;
+                for (let s = 0; s < numSpacers; s++) {
+                    const sp = document.createElement('div');
+                    sp.className = 'spacer';
+                    partRow.appendChild(sp);
+                }
+                const rowInputs = [];
+                for (let d = 0; d < part.digits.length; d++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'digit-cell input';
+                    input.setAttribute('readonly', 'readonly');
+                    input.setAttribute('inputmode', 'none');
+                    input.readOnly = true;
+                    input.maxLength = 1;
+                    input.dataset.correctValue = String(part.digits[d]);
+                    input.style.textAlign = 'center';
+                    input.addEventListener('input', (e) => handleAnyInput(e));
+                    input.addEventListener('keydown', (e) => handleKeyDown(e, input));
+                    partRow.appendChild(input);
+                    rowInputs.push(input);
+                }
+                partialDigitInputsByRow.push(rowInputs);
+                container.appendChild(partRow);
+            }
+            
+            // Line before final answer
+            const lineRow2 = document.createElement('div');
+            lineRow2.className = 'math-row';
+            const line2 = document.createElement('div');
+            line2.style.width = (totalCols * 55) + 'px';
+            line2.style.height = '3px';
+            line2.style.background = 'var(--border-color)';
+            lineRow2.appendChild(line2);
+            container.appendChild(lineRow2);
+            
+            // Final answer row
+            const answerRow = document.createElement('div');
+            answerRow.className = 'math-row answer-row';
+            const answerSpacers = totalCols - finalAnswer.length;
+            for (let s = 0; s < answerSpacers; s++) {
+                const sp = document.createElement('div');
+                sp.className = 'spacer';
+                answerRow.appendChild(sp);
+            }
+            const answerInputs = [];
+            for (let i = 0; i < finalAnswer.length; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'digit-cell input';
+                input.setAttribute('readonly', 'readonly');
+                input.setAttribute('inputmode', 'none');
+                input.readOnly = true;
+                input.maxLength = 1;
+                input.dataset.correctValue = finalAnswer[i];
+                input.style.textAlign = 'center';
+                input.addEventListener('input', (e) => handleAnyInput(e));
+                input.addEventListener('keydown', (e) => handleKeyDown(e, input));
+                answerRow.appendChild(input);
+                answerInputs.push(input);
+            }
+            container.appendChild(answerRow);
+            
+            // Build allInputs in focus order: right to left. For each partial: ones digit, then carry above tens, tens digit, carry above hundreds, ...
+            allInputs = [];
+            const firstPart = partials[0];
+            const firstRowInputs = partialDigitInputsByRow[0];
+            const carry0 = carryInputsByColPerRow[0];
+            const startCol0 = totalCols - firstPart.digits.length;
+            for (let d = firstPart.digits.length - 1; d >= 0; d--) {
+                allInputs.push(firstRowInputs[d]);  // digit at this column
+                if (d > 0 && carry0[startCol0 + d - 1]) {
+                    allInputs.push(carry0[startCol0 + d - 1]);  // carry above column to the left
+                }
+            }
+            if (partials.length > 1) {
+                const secondPart = partials[1];
+                const secondRowInputs = partialDigitInputsByRow[1];
+                const carry1 = carryInputsByColPerRow[1] || {};
+                const startCol1 = totalCols - secondPart.offset - secondPart.digits.length;
+                for (let d = secondPart.digits.length - 1; d >= 0; d--) {
+                    allInputs.push(secondRowInputs[d]);
+                    if (d > 0 && carry1[startCol1 + d - 1]) {
+                        allInputs.push(carry1[startCol1 + d - 1]);
+                    }
+                }
+            }
+            for (let i = answerInputs.length - 1; i >= 0; i--) {
+                allInputs.push(answerInputs[i]);
+            }
+            
+            // Focus first input (rightmost digit of first partial)
+            if (allInputs.length > 0) {
+                allInputs[0].focus();
+            }
+        }
+
+        function handleAnyInput(e) {
+            const input = e.target;
+            const value = input.value;
+            if (value && !/^\d$/.test(value)) {
+                input.value = '';
+                showError('Please enter a digit 0-9');
+                input.classList.add('error');
+                setTimeout(() => { input.classList.remove('error'); clearError(); }, 2000);
+                return;
+            }
+            const correct = input.dataset.correctValue;
+            if (String(value) === correct) {
+                input.classList.remove('error');
+                input.style.borderColor = 'var(--correct-color)';
+                input.style.background = '#e8f5e9';
+                clearError();
+                if (!skipCursorMove) {
+                    const idx = allInputs.indexOf(input);
+                    if (idx < allInputs.length - 1) {
+                        allInputs[idx + 1].focus();
+                    } else {
+                        checkComplete();
+                    }
+                } else {
+                    checkComplete();
+                }
+            } else if (value !== '') {
+                input.classList.add('error');
+                showError('Try again! Expected ' + correct + '.');
+                setTimeout(() => { input.classList.remove('error'); clearError(); }, 2000);
+            }
+        }
+
+        function handleKeyDown(e, input) {
+            const idx = allInputs.indexOf(input);
+            // allInputs[0] = rightmost, so idx+1 = left, idx-1 = right
+            if (e.key === 'Backspace' && input.value === '' && idx > 0) {
+                e.preventDefault();
+                allInputs[idx - 1].focus();
+            } else if (e.key === 'ArrowLeft' && idx < allInputs.length - 1) {
+                e.preventDefault();
+                allInputs[idx + 1].focus();
+            } else if (e.key === 'ArrowRight' && idx > 0) {
+                e.preventDefault();
+                allInputs[idx - 1].focus();
+            }
+        }
+
+        function checkComplete() {
+            let allCorrect = true;
+            let allFilled = true;
+            allInputs.forEach(inp => {
+                if (!inp.value) allFilled = false;
+                if (inp.value !== inp.dataset.correctValue) allCorrect = false;
+            });
+            if (allFilled && allCorrect) {
+                createConfetti();
+                correctCount++;
+                score++;
+                questionsCompleted++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('progress').textContent = questionsCompleted;
+                document.getElementById('nextButton').style.display = 'block';
+                if (questionsCompleted >= maxQuestions) {
+                    document.getElementById('nextButton').textContent = 'Finish Game';
+                }
+                allInputs.forEach(inp => { inp.disabled = true; });
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+        }
+        function clearError() {
+            const el = document.getElementById('errorMessage');
+            if (el.textContent) setTimeout(() => { el.textContent = ''; }, 2000);
+        }
+
+        function loadNextProblem() {
+            if (questionsCompleted >= maxQuestions) {
+                endGame();
+                return;
+            }
+            if (currentProblemIndex >= problems.length) {
+                currentProblemIndex = 0;
+                shuffleArray(problems);
+            }
+            currentProblem = problems[currentProblemIndex++];
+            document.getElementById('question').textContent = currentProblem.question;
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('nextButton').textContent = 'Next Question';
+            document.getElementById('errorMessage').textContent = '';
+            document.getElementById('hintText').textContent = 'Tip: Multiply from right to left. Write the ones digit and carry the tens.';
+            canAnswer = true;
+            createMathProblem(currentProblem);
+        }
+
+        function createConfetti() {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            const container = document.body;
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').innerHTML = '<h2>🎉 Game Complete! 🎉</h2><p>Final Score: ' + correctCount + '/' + maxQuestions + ' correct!</p>';
+            document.getElementById('mathProblem').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('hintText').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(correctCount, incorrectCount);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
+            }
+            setTimeout(() => {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'closeModal' }, '*');
+                } else {
+                    history.back();
+                }
+            }, 3000);
+        }
+
+        let currentFocusedInput = null;
+        function setupNumberPad() {
+            const numberButtons = document.querySelectorAll('.number-pad-button[data-number]');
+            const deleteButton = document.getElementById('deleteButton');
+            numberButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const number = button.dataset.number;
+                    if (currentFocusedInput && !currentFocusedInput.disabled && currentFocusedInput.classList.contains('input')) {
+                        if (currentFocusedInput.maxLength === 1 && currentFocusedInput.value === '') {
+                            currentFocusedInput.value = number;
+                            skipCursorMove = true;
+                            currentFocusedInput.dispatchEvent(new Event('input'));
+                            const idx = allInputs.indexOf(currentFocusedInput);
+                            if (idx < allInputs.length - 1) {
+                                allInputs[idx + 1].focus();
+                            } else {
+                                checkComplete();
+                            }
+                        }
+                    }
+                });
+            });
+            deleteButton.addEventListener('click', () => {
+                if (currentFocusedInput && !currentFocusedInput.disabled) {
+                    if (currentFocusedInput.value.length > 0) {
+                        currentFocusedInput.value = '';
+                        currentFocusedInput.dispatchEvent(new Event('input'));
+                    } else {
+                        const idx = allInputs.indexOf(currentFocusedInput);
+                        if (idx < allInputs.length - 1) {
+                            allInputs[idx + 1].focus();
+                        }
+                    }
+                }
+            });
+            document.addEventListener('focusin', (e) => {
+                if (e.target.classList.contains('input')) currentFocusedInput = e.target;
+            });
+            document.addEventListener('focusout', (e) => {
+                if (e.target === currentFocusedInput) {
+                    setTimeout(() => {
+                        if (document.activeElement && !document.activeElement.classList.contains('input')) {
+                            currentFocusedInput = null;
+                        }
+                    }, 100);
+                }
+            });
+        }
+
+        window.addEventListener('load', () => {
+            loadConfig();
+            const maxEl = document.getElementById('maxQuestions');
+            if (maxEl) maxEl.textContent = maxQuestions;
+            generateProblems();
+            setupNumberPad();
+            loadNextProblem();
+        });
+
+        document.getElementById('nextButton').addEventListener('click', () => {
+            if (questionsCompleted >= maxQuestions) endGame();
+            else loadNextProblem();
+        });
+    </script>
+</body>
+</html>

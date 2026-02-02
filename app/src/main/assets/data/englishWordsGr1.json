@@ -1,5 +1,47 @@
 [
-  { "word": "that", "sentence": "That is my favorite toy." },
-  { "word": "then", "sentence": "First I eat, then I play." }
+  {
+    "word": "shrimp",
+    "sentence": "The shrimp swims."
+  },
+  {
+    "word": "shrug",
+    "sentence": "I shrug my shoulders."
+  },
+  {
+    "word": "throb",
+    "sentence": "My heart can throb."
+  },
+  {
+    "word": "thrift",
+    "sentence": "She shops with thrift."
+  },
+  {
+    "word": "spring",
+    "sentence": "We jump in spring."
+  },
+  {
+    "word": "strong",
+    "sentence": "He is strong."
+  },
+  {
+    "word": "could",
+    "sentence": "I could try."
+  },
+  {
+    "word": "would",
+    "sentence": "I would like that."
+  },
+  {
+    "word": "should",
+    "sentence": "You should rest."
+  },
+  {
+    "word": "or",
+    "sentence": "Do you want this or that?"
+  },
+  {
+    "word": "for",
+    "sentence": "This is for you."
+  }
 
 ]

@@ -24,11 +24,11 @@ class DrawingCanvasView @JvmOverloads constructor(
     
     private val eraserPaint = Paint().apply {
         isAntiAlias = true
+        color = Color.WHITE
         style = Paint.Style.STROKE
         strokeJoin = Paint.Join.ROUND
         strokeCap = Paint.Cap.ROUND
-        strokeWidth = 20f
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+        strokeWidth = 24f
     }
     
     private val backgroundPaint = Paint().apply {
@@ -76,32 +76,16 @@ class DrawingCanvasView @JvmOverloads constructor(
         // Draw white background
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
         
-        // Draw lined paper
-        drawLinedPaper(canvas)
-        
-        // Draw all paths (drawing paths first, then eraser paths on top)
+        // Draw all paths first (black ink + white eraser strokes)
         for (i in paths.indices) {
-            if (isEraserPath[i]) {
-                // For eraser paths, use a layer to properly clear
-                val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
-                canvas.drawPath(paths[i], pathPaint[i])
-                canvas.restoreToCount(layer)
-            } else {
-                canvas.drawPath(paths[i], pathPaint[i])
-            }
+            canvas.drawPath(paths[i], pathPaint[i])
+        }
+        if (!currentPath.isEmpty) {
+            canvas.drawPath(currentPath, currentPaint)
         }
         
-        // Draw current path (with proper layer for eraser)
-        if (!currentPath.isEmpty) {
-            if (isEraserMode) {
-                // For eraser, we need to use a layer to properly clear
-                val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
-                canvas.drawPath(currentPath, currentPaint)
-                canvas.restoreToCount(layer)
-            } else {
-                canvas.drawPath(currentPath, currentPaint)
-            }
-        }
+        // Draw guide lines on top so they stay visible in erased areas
+        drawLinedPaper(canvas)
     }
     
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -187,16 +171,8 @@ class DrawingCanvasView @JvmOverloads constructor(
         // Draw white background
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
         
-        // Draw all paths (drawing paths first, then eraser paths)
         for (i in paths.indices) {
-            if (isEraserPath[i]) {
-                // For eraser paths, use a layer to properly clear
-                val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
-                canvas.drawPath(paths[i], pathPaint[i])
-                canvas.restoreToCount(layer)
-            } else {
-                canvas.drawPath(paths[i], pathPaint[i])
-            }
+            canvas.drawPath(paths[i], pathPaint[i])
         }
         
         return bitmap

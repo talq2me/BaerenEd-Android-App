@@ -42,13 +42,15 @@
           "title": "Eng Spelling OCR",
           "launch": "spellingOCR",
           "url": "file=englishWordsGr1.json",
-          "stars": 3
+          "stars": 3,
+          "displayDays": "thu,fri"
         },
         {
           "title": "FR Spelling OCR",
           "launch": "spellingOCR",
           "url": "file=frenchWordsGr1.json",
-          "stars": 3
+          "stars": 3,
+          "displayDays": "mon,tue,wed"
         },
         {
           "title": "Eng Spelling",
@@ -56,10 +58,9 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 15, 2027",
-          "easydays": "mon,tue,wed",
-          "harddays": "thu,fri",
-          "extremedays": "sat,sun"
+          "easydays": "mon",
+          "harddays": "tue,wed",
+          "displayDays": "mon,tue,wed"
         },
         {
           "title": "Fr Spelling",
@@ -67,10 +68,9 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 1, 2027",
-          "extremedays": "mon,tue,wed",
           "easydays": "thu,fri",
-          "harddays": "sat,sun"
+          "harddays": "sat,sun",
+          "displayDays": "thu,fri,sat,sun"
         },
         {
           "title": "Fr Spelling",

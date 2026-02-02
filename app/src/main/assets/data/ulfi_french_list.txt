@@ -63,3 +63,29 @@ bas
 tas
 pas
 vas
+
+33.
+{
+      "word": "ver",
+      "sentence": "Le ver est petit."
+    },
+    {
+      "word": "fer",
+      "sentence": "Le fer est dur."
+    },
+    {
+      "word": "mer",
+      "sentence": "La mer est bleue."
+    },
+    {
+      "word": "sel",
+      "sentence": "Le sel est blanc."
+    },
+    {
+      "word": "sec",
+      "sentence": "Le sac est sec."
+    },
+    {
+      "word": "bec",
+      "sentence": "Le bec est long."
+    }
