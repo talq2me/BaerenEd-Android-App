@@ -435,8 +435,8 @@
             for (let col = answerLen - 1; col >= 0; col--) {
                 const sum = row1[col] + row2[col] + carry;
                 carry = Math.floor(sum / 10);
-                if (carry > 0 && col > 0) {
-                    carries[col - 1] = carry;
+                if (carry > 0) {
+                    carries[col] = carry;  // carry from adding this column; display above column col-1
                 }
             }
             return carries;
@@ -695,8 +695,10 @@
                 for (let c = 0; c < totalCols; c++) {
                     const cell = document.createElement('div');
                     cell.style.width = '50px';
-                    const answerCol = c - (totalCols - finalAnswer.length);
-                    if (answerCol >= 0 && answerCol < finalAnswer.length && addCarries[answerCol] !== undefined) {
+                    // addCarries[col] = carry from adding column col; display it above column col-1 (cell at c = totalCols - finalAnswer.length + col - 1).
+                    // So col = c - (totalCols - finalAnswer.length) + 1; show addCarries[col] and key additionCarryInputsByCol[col-1] for "carry above column col-1".
+                    const colAdded = c - (totalCols - finalAnswer.length) + 1;
+                    if (colAdded >= 1 && colAdded < finalAnswer.length && addCarries[colAdded] !== undefined) {
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.className = 'digit-cell input addition-carry-input';
@@ -707,11 +709,11 @@
                         input.style.height = '35px';
                         input.style.fontSize = '1.2rem';
                         input.maxLength = 1;
-                        input.dataset.correctValue = String(addCarries[answerCol]);
+                        input.dataset.correctValue = String(addCarries[colAdded]);
                         input.dataset.additionCarry = 'true';
                         input.style.textAlign = 'center';
                         input.addEventListener('input', (e) => handleAnyInput(e));
-                        additionCarryInputsByCol[answerCol] = input;
+                        additionCarryInputsByCol[colAdded - 1] = input;  // key by column above which we show
                         cell.appendChild(input);
                     }
                     additionCarryRow.appendChild(cell);
