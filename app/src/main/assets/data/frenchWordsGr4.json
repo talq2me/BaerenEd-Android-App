@@ -1,62 +1,86 @@
 [
 	{
-		"word": "ainsi",
-		"sentence": "Il a agi ainsi pour nous aider."
+		"word": "autant",
+		"sentence": "Je n'ai jamais vu autant de couleurs dans un coucher de soleil."
 	},
 	{
-		"word": "fin",
-		"sentence": "C'est la fin de l'histoire."
+		"word": "centre",
+		"sentence": "La fontaine se trouve au centre de la place du village."
 	},
 	{
-		"word": "incroyable",
-		"sentence": "Ce tour de magie était incroyable."
+		"word": "cependant",
+		"sentence": "Il voulait partir tôt, cependant la pluie l'a retenu."
 	},
 	{
-		"word": "instant",
-		"sentence": "Attends un instant, s'il te plaît."
+		"word": "chance",
+		"sentence": "Elle a toujours de la chance quand elle joue à ce jeu."
 	},
 	{
-		"word": "inventer",
-		"sentence": "Il aime inventer des histoires."
+		"word": "durant",
+		"sentence": "Durant l'hiver, ils voyagent rarement."
 	},
 	{
-		"word": "inviter",
-		"sentence": "Je vais inviter mes amis à la fête."
+		"word": "événement",
+		"sentence": "Cet événement restera gravé dans nos mémoires."
 	},
 	{
-		"word": "médecin",
-		"sentence": "Il faut appeler un médecin."
+		"word": "évènement",
+		"sentence": "L'évènement principal de la soirée sera le feu d'artifice."
 	},
 	{
-		"word": "plein",
-		"sentence": "Le sac est plein de livres."
+		"word": "exactement",
+		"sentence": "C'est exactement ce que j'avais imaginé."
 	},
 	{
-		"word": "refrain",
-		"sentence": "J'adore chanter un refrain de cette chanson."
+		"word": "finalement",
+		"sentence": "Finalement, nous avons choisi de rester à la maison."
 	},
 	{
-		"word": "singe",
-		"sentence": "J'ai vu un singe dans l'arbre."
+		"word": "justement",
+		"sentence": "Justement, je voulais te parler de ce projet."
 	},
 	{
-		"word": "soudain",
-		"sentence": "Soudain, la lumière s'éteignit."
+		"word": "mouvement",
+		"sentence": "Le mouvement des vagues berçait le bateau."
 	},
 	{
-		"word": "soudaine",
-		"sentence": "Une pluie soudaine nous a surpris."
+		"word": "plancher",
+		"sentence": "Le plancher craque dès qu'on marche dessus."
 	},
 	{
-		"word": "vin",
-		"sentence": "On sert le vin à table."
+		"word": "pourtant",
+		"sentence": "Il avait peur, pourtant il a osé parler."
 	},
 	{
-		"word": "marraine",
-		"sentence": "C'est la marraine du bébé."
+		"word": "rapidement",
+		"sentence": "Elle a rapidement terminé ses devoirs avant le dîner."
 	},
 	{
-		"word": "parrain",
-		"sentence": "Voici le parrain du filleul."
+		"word": "ruban",
+		"sentence": "Le ruban rouge entourait soigneusement le cadeau."
+	},
+	{
+		"word": "sens",
+		"sentence": "Le sens de cette phrase reste mystérieux pour moi."
+	},
+	{
+		"word": "seulement",
+		"sentence": "Il a seulement gardé les photos les plus précieuses."
+	},
+	{
+		"word": "sûrement",
+		"sentence": "Tu trouveras sûrement la solution en réfléchissant calmement."
+	},
+	{
+		"word": "surement",
+		"sentence": "Il finira surement son dessin avant la récréation."
+	},
+	{
+		"word": "surprendre",
+		"sentence": "Elle ne voulait pas surprendre ses amis avec son arrivée."
+	},
+	{
+		"word": "vendre",
+		"sentence": "Il espère vendre ses tableaux au marché local."
 	}
 ]
