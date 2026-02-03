@@ -125,7 +125,7 @@ class GameActivity : AppCompatActivity() {
         // TTS Init
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts.language = Locale.US
+                if (TtsHelper.selectBestEnglishVoice(tts) == null) tts.language = Locale.US
                 ttsReady = true
                 // Set up utterance progress listener to handle TTS completion
                 tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {

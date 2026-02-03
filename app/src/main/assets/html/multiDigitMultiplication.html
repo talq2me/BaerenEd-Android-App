@@ -332,6 +332,7 @@
         let questionsCompleted = 0;
         let allInputs = [];  // All inputs in focus order (right to left: first digit first)
         let skipCursorMove = false;
+        let additionCarryRowRef = null;  // Shown when kid starts the addition (answer) row
 
         function isAndroidWebView() {
             return typeof window.Android !== 'undefined';
@@ -408,6 +409,37 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
+        }
+
+        // Compute addition carries when adding the two partial products (for two-digit multiplier).
+        // Returns { colIndex: carryValue } where colIndex is 0-based from left (leftmost digit = 0).
+        function computeAdditionCarries(partial1, partial2, totalCols, answerLen) {
+            const row1 = [];
+            const row2 = [];
+            for (let i = 0; i < answerLen; i++) {
+                row1.push(0);
+                row2.push(0);
+            }
+            const start1 = answerLen - partial1.digits.length;
+            for (let i = 0; i < partial1.digits.length; i++) {
+                row1[start1 + i] = partial1.digits[i];
+            }
+            const len2 = partial2.digits.length + 1;  // with placeholder 0
+            const start2 = answerLen - len2;
+            for (let i = 0; i < partial2.digits.length; i++) {
+                row2[start2 + i] = partial2.digits[i];
+            }
+            row2[start2 + len2 - 1] = 0;  // ones column placeholder
+            const carries = {};
+            let carry = 0;
+            for (let col = answerLen - 1; col >= 0; col--) {
+                const sum = row1[col] + row2[col] + carry;
+                carry = Math.floor(sum / 10);
+                if (carry > 0 && col > 0) {
+                    carries[col - 1] = carry;
+                }
+            }
+            return carries;
         }
 
         // Compute one partial product: topNum * digit, and which columns have carries.
@@ -557,7 +589,8 @@
                 const part = partials[p];
                 if (p === 1) {
                     const carryInputsCol1 = {};
-                    const startCol1 = totalCols - part.offset - part.digits.length;
+                    const numDigitsRow1 = part.digits.length + 1;  // +1 for placeholder 0
+                    const startCol1 = totalCols - part.offset - numDigitsRow1;
                     const carryRow2 = document.createElement('div');
                     carryRow2.className = 'math-row';
                     carryRow2.style.height = '40px';
@@ -594,7 +627,9 @@
                 
                 const partRow = document.createElement('div');
                 partRow.className = 'math-row partial-row';
-                const numSpacers = totalCols - part.offset - part.digits.length;
+                // Second partial (p===1) gets an extra placeholder 0 in the ones column for alignment
+                const numDigitsThisRow = part.digits.length + (partials.length > 1 && p === 1 ? 1 : 0);
+                const numSpacers = totalCols - part.offset - numDigitsThisRow;
                 for (let s = 0; s < numSpacers; s++) {
                     const sp = document.createElement('div');
                     sp.className = 'spacer';
@@ -616,6 +651,22 @@
                     partRow.appendChild(input);
                     rowInputs.push(input);
                 }
+                if (partials.length > 1 && p === 1) {
+                    const zeroInput = document.createElement('input');
+                    zeroInput.type = 'text';
+                    zeroInput.className = 'digit-cell input';
+                    zeroInput.setAttribute('readonly', 'readonly');
+                    zeroInput.setAttribute('inputmode', 'none');
+                    zeroInput.readOnly = true;
+                    zeroInput.maxLength = 1;
+                    zeroInput.dataset.correctValue = '0';
+                    zeroInput.style.textAlign = 'center';
+                    zeroInput.setAttribute('placeholder', '0');
+                    zeroInput.addEventListener('input', (e) => handleAnyInput(e));
+                    zeroInput.addEventListener('keydown', (e) => handleKeyDown(e, zeroInput));
+                    partRow.appendChild(zeroInput);
+                    rowInputs.push(zeroInput);
+                }
                 partialDigitInputsByRow.push(rowInputs);
                 container.appendChild(partRow);
             }
@@ -629,6 +680,44 @@
             line2.style.background = 'var(--border-color)';
             lineRow2.appendChild(line2);
             container.appendChild(lineRow2);
+            
+            // Addition carry row (only for two-partial problems); hidden until kid starts answer row
+            let additionCarryRow = null;
+            const additionCarryInputsByCol = {};
+            if (partials.length > 1) {
+                const addCarries = computeAdditionCarries(partials[0], partials[1], totalCols, finalAnswer.length);
+                additionCarryRow = document.createElement('div');
+                additionCarryRow.className = 'math-row';
+                additionCarryRow.style.height = '40px';
+                additionCarryRow.style.marginBottom = '2px';
+                additionCarryRow.style.display = 'none';
+                additionCarryRow.id = 'additionCarryRow';
+                for (let c = 0; c < totalCols; c++) {
+                    const cell = document.createElement('div');
+                    cell.style.width = '50px';
+                    const answerCol = c - (totalCols - finalAnswer.length);
+                    if (answerCol >= 0 && answerCol < finalAnswer.length && addCarries[answerCol] !== undefined) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'digit-cell input addition-carry-input';
+                        input.setAttribute('readonly', 'readonly');
+                        input.setAttribute('inputmode', 'none');
+                        input.readOnly = true;
+                        input.style.width = '40px';
+                        input.style.height = '35px';
+                        input.style.fontSize = '1.2rem';
+                        input.maxLength = 1;
+                        input.dataset.correctValue = String(addCarries[answerCol]);
+                        input.dataset.additionCarry = 'true';
+                        input.style.textAlign = 'center';
+                        input.addEventListener('input', (e) => handleAnyInput(e));
+                        additionCarryInputsByCol[answerCol] = input;
+                        cell.appendChild(input);
+                    }
+                    additionCarryRow.appendChild(cell);
+                }
+                container.appendChild(additionCarryRow);
+            }
             
             // Final answer row
             const answerRow = document.createElement('div');
@@ -652,6 +741,10 @@
                 input.style.textAlign = 'center';
                 input.addEventListener('input', (e) => handleAnyInput(e));
                 input.addEventListener('keydown', (e) => handleKeyDown(e, input));
+                if (partials.length > 1 && i === finalAnswer.length - 1) {
+                    input.addEventListener('focus', () => showAdditionCarryRow());
+                    input.addEventListener('input', () => showAdditionCarryRow());
+                }
                 answerRow.appendChild(input);
                 answerInputs.push(input);
             }
@@ -673,8 +766,8 @@
                 const secondPart = partials[1];
                 const secondRowInputs = partialDigitInputsByRow[1];
                 const carry1 = carryInputsByColPerRow[1] || {};
-                const startCol1 = totalCols - secondPart.offset - secondPart.digits.length;
-                for (let d = secondPart.digits.length - 1; d >= 0; d--) {
+                const startCol1 = totalCols - secondPart.offset - secondRowInputs.length;
+                for (let d = secondRowInputs.length - 1; d >= 0; d--) {
                     allInputs.push(secondRowInputs[d]);
                     if (d > 0 && carry1[startCol1 + d - 1]) {
                         allInputs.push(carry1[startCol1 + d - 1]);
@@ -683,11 +776,26 @@
             }
             for (let i = answerInputs.length - 1; i >= 0; i--) {
                 allInputs.push(answerInputs[i]);
+                if (partials.length > 1 && i > 0 && additionCarryInputsByCol[i - 1]) {
+                    allInputs.push(additionCarryInputsByCol[i - 1]);
+                }
+            }
+            
+            if (partials.length > 1 && additionCarryRow) {
+                additionCarryRowRef = additionCarryRow;
+            } else {
+                additionCarryRowRef = null;
             }
             
             // Focus first input (rightmost digit of first partial)
             if (allInputs.length > 0) {
                 allInputs[0].focus();
+            }
+        }
+
+        function showAdditionCarryRow() {
+            if (additionCarryRowRef && additionCarryRowRef.style.display === 'none') {
+                additionCarryRowRef.style.display = 'flex';
             }
         }
 
@@ -742,7 +850,9 @@
         function checkComplete() {
             let allCorrect = true;
             let allFilled = true;
+            const additionCarryVisible = additionCarryRowRef && additionCarryRowRef.style.display !== 'none';
             allInputs.forEach(inp => {
+                if (inp.dataset.additionCarry === 'true' && !additionCarryVisible) return;
                 if (!inp.value) allFilled = false;
                 if (inp.value !== inp.dataset.correctValue) allCorrect = false;
             });

@@ -53,6 +53,7 @@ class WebGameActivity : AppCompatActivity() {
 
     private var webView: WebView? = null
     private var tts: TextToSpeech? = null
+    private var bestEnglishVoice: android.speech.tts.Voice? = null
     private lateinit var timeTracker: TimeTracker
     private lateinit var progressManager: DailyProgressManager
     private var gameCompleted = false
@@ -176,15 +177,21 @@ class WebGameActivity : AppCompatActivity() {
             }
         }
 
-        val ttsInstance = TextToSpeech(this, object : TextToSpeech.OnInitListener {
+        tts = TextToSpeech(this, object : TextToSpeech.OnInitListener {
             override fun onInit(status: Int) {
-                if (status != TextToSpeech.SUCCESS) {
+                if (status == TextToSpeech.SUCCESS) {
+                    tts?.let { ttsInst ->
+                        bestEnglishVoice = TtsHelper.selectBestEnglishVoice(ttsInst)
+                        if (bestEnglishVoice == null) {
+                            ttsInst.language = Locale.US
+                        }
+                    }
+                } else {
                     android.util.Log.e("WebGameActivity", "TTS initialization failed")
                 }
             }
         })
-        tts = ttsInstance
-        ttsInstance.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {}
             override fun onDone(utteranceId: String?) {
                 runOnUiThread {
@@ -291,8 +298,15 @@ class WebGameActivity : AppCompatActivity() {
         @JavascriptInterface
         fun readText(text: String, lang: String) {
             tts?.let {
-                val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
-                it.language = locale
+                if (lang.lowercase().startsWith("fr")) {
+                    it.setLanguage(Locale.FRENCH)
+                } else {
+                    bestEnglishVoice?.let { voice ->
+                        if (it.setVoice(voice) != TextToSpeech.SUCCESS) {
+                            it.setLanguage(Locale.US)
+                        }
+                    } ?: it.setLanguage(Locale.US)
+                }
                 val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
                 val params = android.os.Bundle()
                 params.putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)

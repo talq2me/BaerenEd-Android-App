@@ -151,8 +151,17 @@ class SpellingOCRActivity : AppCompatActivity() {
     private fun initTTS() {
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
+                val ttsInstance = tts ?: return@TextToSpeech
                 val locale = if (useFrenchTTS) Locale.FRENCH else Locale.ENGLISH
-                val result = tts?.setLanguage(locale)
+                val result = if (useFrenchTTS) {
+                    ttsInstance.setLanguage(Locale.FRENCH)
+                } else {
+                    if (TtsHelper.selectBestEnglishVoice(ttsInstance) == null) {
+                        ttsInstance.setLanguage(Locale.ENGLISH)
+                    } else {
+                        TextToSpeech.LANG_AVAILABLE
+                    }
+                }
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e(TAG, "TTS language not supported: $locale")
                 } else {
