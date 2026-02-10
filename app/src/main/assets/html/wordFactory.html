@@ -680,16 +680,20 @@
                 `<h2>🎉 Factory Complete! 🎉</h2><p>Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
             document.getElementById('factoryLine').innerHTML = '';
             document.getElementById('assemblyLine').innerHTML = '';
-            document.querySelector('.button-container').innerHTML = '';
-            document.querySelector('.factory-controls').innerHTML = '';
-            
+            const btnContainer = document.querySelector('.button-container');
+            if (btnContainer) btnContainer.innerHTML = '';
+            const factoryControls = document.querySelector('.factory-controls');
+            if (factoryControls) factoryControls.innerHTML = '';
+
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
             setTimeout(() => {
-                if (window.parent && window.parent !== window) {
+                if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                    // Android WebView: activity already closed by gameCompleted(); nothing to do
+                } else if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');
                 } else {
                     history.back();

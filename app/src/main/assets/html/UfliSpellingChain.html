@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFLI Spelling Chain</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #2d5a27 0%, #1e3d1a 100%);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #f5f0e8;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            border: 4px solid #8b6914;
+        }
+        h1 {
+            text-align: center;
+            color: #2d5a27;
+            margin: 0 0 8px 0;
+            font-size: 1.6em;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+        #starCount {
+            text-align: center;
+            font-size: 22px;
+            color: #b8860b;
+            margin-bottom: 12px;
+        }
+        .prompt {
+            text-align: center;
+            font-size: 1.15em;
+            color: #333;
+            margin: 12px 0;
+            line-height: 1.4;
+            min-height: 2.8em;
+        }
+        .prompt .target-word {
+            font-weight: bold;
+            color: #1e3d1a;
+            text-decoration: underline;
+        }
+        .word-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin: 20px 0;
+            min-height: 70px;
+            flex-wrap: wrap;
+        }
+        .word-slot {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            background: #fff;
+            border: 3px solid #8b6914;
+            border-radius: 10px;
+            color: #1e3d1a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .word-slot.drop-slot {
+            background: #e8e0d0;
+            border-style: dashed;
+            border-color: #6b5344;
+            color: transparent;
+        }
+        .word-slot.drop-slot.drag-over {
+            background: #c4d4a8;
+            border-color: #2d5a27;
+        }
+        .word-slot.drop-slot::after {
+            content: '?';
+            color: #888;
+            font-size: 0.9em;
+        }
+        .letter-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 16px;
+            margin: 16px 0;
+            background: #e8dfc8;
+            border-radius: 12px;
+            border: 2px solid #8b6914;
+            min-height: 80px;
+        }
+        .letter-tile {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            font-weight: bold;
+            background: linear-gradient(145deg, #4a7c3f 0%, #2d5a27 100%);
+            color: white;
+            border: 3px solid #1e3d1a;
+            border-radius: 10px;
+            cursor: grab;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .letter-tile:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .letter-tile:active {
+            cursor: grabbing;
+        }
+        .letter-tile.dragging {
+            opacity: 0.6;
+            transform: scale(1.1);
+        }
+        .letter-tile.wrong {
+            animation: shake 0.4s ease;
+            background: linear-gradient(145deg, #a52a2a 0%, #8b0000 100%);
+            border-color: #5c0000;
+        }
+        .letter-tile.correct {
+            animation: pop 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .feedback {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 12px 0;
+            padding: 12px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .button-container {
+            text-align: center;
+            margin: 16px 0;
+        }
+        .button {
+            font-family: inherit;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 14px 28px;
+            font-size: 1.1em;
+            color: white;
+            background: linear-gradient(145deg, #4a7c3f 0%, #2d5a27 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 4px;
+        }
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+        }
+        .button:disabled {
+            background: #888;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .play-prompt {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔗 UFLI Spelling Chain</h1>
+        <div id="starCount">⭐ 0</div>
+
+        <div class="prompt play-prompt">
+            <button class="button" id="playBtn" onclick="speakPrompt()">🔊 Play</button>
+        </div>
+        <div class="prompt" id="promptText"></div>
+
+        <div class="word-row" id="wordRow"></div>
+        <div class="letter-bank" id="letterBank"></div>
+
+        <div id="feedbackContainer"></div>
+
+        <div class="button-container">
+            <button class="button hidden" id="nextChainBtn" onclick="nextChain()">Next chain →</button>
+        </div>
+    </div>
+
+    <script>
+        function readText(text, lang, rate, onEnd) {
+            if (window.Android && typeof window.Android.readText === 'function') {
+                window.Android.readText(text, lang || 'en-US');
+                setTimeout(() => { if (onEnd) onEnd(); }, 1500);
+            } else if ('speechSynthesis' in window) {
+                if (window._tts) window.speechSynthesis.cancel();
+                window._tts = new SpeechSynthesisUtterance(text);
+                window._tts.lang = lang || 'en-US';
+                window._tts.rate = rate != null ? rate : 0.9;
+                window._tts.onend = () => { window._tts = null; if (onEnd) onEnd(); };
+                window.speechSynthesis.speak(window._tts);
+            } else {
+                if (onEnd) onEnd();
+            }
+        }
+
+        // Word chains: each is [word1, word2, ...] with one letter add/change per step
+        const CHAINS = [
+            ['hip', 'ship', 'shop', 'chop'],
+            ['at', 'hat', 'bat', 'cat', 'cap'],
+            ['in', 'pin', 'pan', 'can'],
+            ['it', 'sit', 'sat', 'pat', 'cat'],
+            ['an', 'can', 'cap', 'tap'],
+            ['up', 'cup', 'cap'],
+            ['no', 'not', 'hot', 'pot', 'dot'],
+            ['go', 'got', 'hot', 'pot'],
+            ['we', 'wet', 'get', 'pet'],
+            ['me', 'met', 'pet', 'get'],
+        ];
+
+        const VOWELS = 'aeiou';
+        const CONSONANTS = 'bcdfghjklmnpqrstvwxyz';
+
+        let chainIndex = 0;
+        let stepIndex = 0;
+        let stars = 0;
+        let correctLetter = '';
+        let changePosition = -1;
+        let isAddStep = false;
+
+        function getChain() {
+            return CHAINS[chainIndex] || [];
+        }
+
+        function getCurrentWord() {
+            const chain = getChain();
+            return (chain[stepIndex] || '').toLowerCase();
+        }
+
+        function getTargetWord() {
+            const chain = getChain();
+            return (chain[stepIndex + 1] || '').toLowerCase();
+        }
+
+        function computeStep() {
+            const current = getCurrentWord();
+            const target = getTargetWord();
+            if (!current || !target) return false;
+
+            const lenCur = current.length;
+            const lenTar = target.length;
+
+            if (lenTar === lenCur + 1) {
+                for (let i = 0; i <= lenCur; i++) {
+                    const inserted = target[i];
+                    const prefix = target.slice(0, i);
+                    const suffix = target.slice(i + 1);
+                    if (prefix + suffix === current) {
+                        correctLetter = inserted;
+                        changePosition = i;
+                        isAddStep = true;
+                        return true;
+                    }
+                }
+            } else if (lenTar === lenCur) {
+                for (let i = 0; i < lenCur; i++) {
+                    if (current[i] !== target[i]) {
+                        correctLetter = target[i];
+                        changePosition = i;
+                        isAddStep = false;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function getDistractors(count) {
+            const correct = correctLetter.toLowerCase();
+            const isVowel = VOWELS.includes(correct);
+            const pool = (isVowel ? VOWELS : CONSONANTS).split('').filter(c => c !== correct);
+            const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+            const take = Math.min(count, shuffled.length);
+            return shuffled.slice(0, take);
+        }
+
+        function buildLetterBank() {
+            const letters = [correctLetter];
+            const distractors = getDistractors(4);
+            distractors.forEach(c => letters.push(c));
+            return letters.sort(() => Math.random() - 0.5);
+        }
+
+        function renderPrompt() {
+            const current = getCurrentWord();
+            const target = getTargetWord();
+            let msg;
+            if (stepIndex === 0) {
+                msg = `Spell <span class="target-word">${current}</span>. Now change a letter to spell <span class="target-word">${target}</span>.`;
+            } else {
+                msg = `Now change a letter to spell <span class="target-word">${target}</span>.`;
+            }
+            document.getElementById('promptText').innerHTML = msg;
+        }
+
+        function renderWordRow() {
+            const current = getCurrentWord();
+            const row = document.getElementById('wordRow');
+            row.innerHTML = '';
+            row.classList.remove('hidden');
+
+            for (let i = 0; i < (isAddStep ? current.length + 1 : current.length); i++) {
+                const slot = document.createElement('div');
+                slot.className = 'word-slot';
+                if (i === changePosition) {
+                    slot.classList.add('drop-slot');
+                    slot.dataset.dropIndex = i;
+                    slot.dataset.correct = correctLetter;
+                } else {
+                    const letterIndex = isAddStep && i > changePosition ? i - 1 : i;
+                    slot.textContent = current[letterIndex] || '';
+                }
+                row.appendChild(slot);
+            }
+        }
+
+        function renderLetterBank() {
+            const bank = document.getElementById('letterBank');
+            bank.innerHTML = '';
+            const letters = buildLetterBank();
+            letters.forEach(letter => {
+                const tile = document.createElement('div');
+                tile.className = 'letter-tile';
+                tile.textContent = letter.toUpperCase();
+                tile.dataset.letter = letter.toLowerCase();
+                tile.draggable = true;
+                tile.addEventListener('dragstart', onDragStart);
+                tile.addEventListener('dragend', onDragEnd);
+                bank.appendChild(tile);
+            });
+        }
+
+        let draggedTile = null;
+
+        function onDragStart(e) {
+            draggedTile = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.dataset.letter);
+            e.dataTransfer.setData('letter', e.target.dataset.letter);
+        }
+
+        function onDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.word-slot.drop-slot').forEach(s => s.classList.remove('drag-over'));
+            draggedTile = null;
+        }
+
+        function setupDropZones() {
+            document.querySelectorAll('.word-slot.drop-slot').forEach(slot => {
+                slot.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    slot.classList.add('drag-over');
+                });
+                slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+                slot.addEventListener('drop', onDrop);
+            });
+        }
+
+        function onDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            const letter = e.dataTransfer.getData('letter') || e.dataTransfer.getData('text/plain');
+            if (!letter || !draggedTile) return;
+
+            const correct = e.target.dataset.correct;
+            const isCorrect = letter.toLowerCase() === (correct || '').toLowerCase();
+
+            if (isCorrect) {
+                e.target.textContent = letter.toUpperCase();
+                e.target.classList.remove('drop-slot');
+                e.target.style.background = '#fff';
+                e.target.style.borderStyle = 'solid';
+                e.target.dataset.correct = '';
+                document.querySelectorAll('.letter-tile').forEach(t => {
+                    t.classList.add(t.dataset.letter === letter ? 'correct' : '');
+                    t.draggable = false;
+                    t.style.pointerEvents = 'none';
+                });
+                document.getElementById('feedbackContainer').innerHTML =
+                    '<div class="feedback correct">✓ Correct! ' + getTargetWord().toUpperCase() + '</div>';
+                stars++;
+                document.getElementById('starCount').textContent = '⭐ ' + stars;
+
+                const hasNextInChain = getChain()[stepIndex + 2];
+                if (hasNextInChain) {
+                    stepIndex++;
+                    if (!computeStep()) return;
+                    const nextTarget = getTargetWord();
+                    readText('Now change a letter to spell ' + nextTarget, 'en-US', 0.85, () => {
+                        renderPrompt();
+                        renderWordRow();
+                        renderLetterBank();
+                        setupDropZones();
+                        document.getElementById('feedbackContainer').innerHTML = '';
+                    });
+                } else {
+                    readText('You did it! Next chain.', 'en-US', 0.85, () => {
+                        document.getElementById('nextChainBtn').classList.remove('hidden');
+                    });
+                }
+            } else {
+                draggedTile.classList.add('wrong');
+                document.getElementById('feedbackContainer').innerHTML =
+                    '<div class="feedback incorrect">Try another letter.</div>';
+                setTimeout(() => {
+                    draggedTile.classList.remove('wrong');
+                    document.getElementById('feedbackContainer').innerHTML = '';
+                }, 800);
+            }
+        }
+
+        function speakPrompt() {
+            const current = getCurrentWord();
+            const target = getTargetWord();
+            const text = stepIndex === 0
+                ? 'Spell ' + current + '. Now change a letter to spell ' + target + '.'
+                : 'Now change a letter to spell ' + target + '.';
+            readText(text, 'en-US', 0.85);
+        }
+
+        function startChain() {
+            stepIndex = 0;
+            document.getElementById('feedbackContainer').innerHTML = '';
+            document.getElementById('nextChainBtn').classList.add('hidden');
+
+            if (!getTargetWord()) {
+                allChainsDone();
+                return;
+            }
+
+            if (!computeStep()) {
+                nextChain();
+                return;
+            }
+
+            renderPrompt();
+            renderWordRow();
+            renderLetterBank();
+            setupDropZones();
+            speakPrompt();
+        }
+
+        function nextChain() {
+            chainIndex = (chainIndex + 1) % CHAINS.length;
+            startChain();
+        }
+
+        function allChainsDone() {
+            document.getElementById('promptText').innerHTML = '🎉 You finished the chains! Play again?';
+            document.getElementById('wordRow').innerHTML = '';
+            document.getElementById('letterBank').innerHTML = '';
+            document.getElementById('nextChainBtn').textContent = 'Play again';
+            document.getElementById('nextChainBtn').classList.remove('hidden');
+            document.getElementById('nextChainBtn').onclick = () => {
+                chainIndex = 0;
+                document.getElementById('nextChainBtn').textContent = 'Next chain →';
+                document.getElementById('nextChainBtn').onclick = nextChain;
+                startChain();
+            };
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(stars, 0);
+            } else if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'gameCompleted', correct: stars, incorrect: 0 }, '*');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startChain();
+        });
+    </script>
+</body>
+</html>

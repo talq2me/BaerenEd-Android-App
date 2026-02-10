@@ -391,7 +391,6 @@
         let isPaused = false;
         let isTouching = false;
         let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
-        let letterMovementSpeeds = [];
         let segmentSpacing = 12; // How many path points between segments
         let isCelebrating = false; // Flag for celebration animation
         let celebrationProgress = 0; // Progress of celebration animation (0 to 1)
@@ -649,23 +648,12 @@
                     letterElement.dataset.letter = letter;
                     gameArea.appendChild(letterElement);
                     
-                    // Random movement speed and direction for each letter
-                    const speed = 0.5 + Math.random() * 1;
-                    const angle = Math.random() * Math.PI * 2;
-                    
+                    // Letters are static (no movement) for better performance on tablets
                     letters.push({
                         element: letterElement,
                         letter: letter,
                         x: x,
-                        y: y,
-                        vx: Math.cos(angle) * speed,
-                        vy: Math.sin(angle) * speed,
-                        bounds: {
-                            minX: padding,
-                            maxX: gameAreaRect.width - padding - 60,
-                            minY: padding,
-                            maxY: gameAreaRect.height - padding - 60
-                        }
+                        y: y
                     });
                 }
             });
@@ -802,8 +790,8 @@
             // Update body positions
             updateSnakeBodyPositions();
             
-            // Move letters around
-            updateLetterPositions();
+            // Letters stay still (no per-frame movement) to improve performance on tablets
+            // updateLetterPositions();
             
             // Check collisions with letters
             checkLetterCollisions();
@@ -811,35 +799,6 @@
             gameLoop = requestAnimationFrame(updateGame);
         }
         
-        function updateLetterPositions() {
-            const gameAreaRect = gameArea.getBoundingClientRect();
-            
-            letters.forEach(letterObj => {
-                if (letterObj.element.classList.contains('eaten') || 
-                    letterObj.element.classList.contains('barfed')) {
-                    return;
-                }
-                
-                // Update position
-                letterObj.x += letterObj.vx;
-                letterObj.y += letterObj.vy;
-                
-                // Bounce off boundaries
-                if (letterObj.x <= letterObj.bounds.minX || letterObj.x >= letterObj.bounds.maxX) {
-                    letterObj.vx = -letterObj.vx;
-                    letterObj.x = Math.max(letterObj.bounds.minX, Math.min(letterObj.bounds.maxX, letterObj.x));
-                }
-                if (letterObj.y <= letterObj.bounds.minY || letterObj.y >= letterObj.bounds.maxY) {
-                    letterObj.vy = -letterObj.vy;
-                    letterObj.y = Math.max(letterObj.bounds.minY, Math.min(letterObj.bounds.maxY, letterObj.y));
-                }
-                
-                // Update visual position
-                letterObj.element.style.left = letterObj.x + 'px';
-                letterObj.element.style.top = letterObj.y + 'px';
-            });
-        }
-
         function updateSnakeBodyPositions() {
             const bodySegments = document.querySelectorAll('.snake-body');
             const segmentSize = 45;
