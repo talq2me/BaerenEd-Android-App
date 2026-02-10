@@ -1,34 +1,13 @@
 [
-  {
-    "word": "olive",
-    "sentence": "Je mange une olive."
-  },
-  {
-    "word": "ovale",
-    "sentence": "Le ballon est ovale."
-  },
-  {
-    "word": "lac",
-    "sentence": "Le lac est grand."
-  },
-  {
-    "word": "bal",
-    "sentence": "Je vais au bal."
-  },
-  {
-    "word": "bac",
-    "sentence": "Le livre est dans le bac."
-  },
-  {
-    "word": "sac",
-    "sentence": "Le sac est rouge."
-  },
-  {
-    "word": "vol",
-    "sentence": "L’oiseau est en vol."
-  },
-  {
-    "word": "bol",
-    "sentence": "Le bol est plein."
-  }
+  {"word":"aime","sentence":"J'aime les pommes."},
+  {"word":"est","sentence":"Le chien est noir."},
+  {"word":"à","sentence":"Je vais à l'école."},
+  {"word":"avec","sentence":"Je joue avec mon ami."},
+  {"word":"un","sentence":"J'ai un chat."},
+  {"word":"pas","sentence":"Ce n'est pas grand."},
+  {"word":"fait","sentence":"Il fait beau aujourd'hui."},
+  {"word":"j'ai","sentence":"J'ai faim."},
+  {"word":"oui","sentence":"Oui, merci."},
+  {"word":"et","sentence":"Le chat et le chien jouent."},
+  {"word":"est-ce que","sentence":"Est-ce que tu viens?"}
 ]
