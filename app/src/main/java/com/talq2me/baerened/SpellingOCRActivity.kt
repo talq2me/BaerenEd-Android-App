@@ -33,7 +33,6 @@ import java.util.*
 
 class SpellingOCRActivity : AppCompatActivity() {
     private lateinit var drawingCanvas: DrawingCanvasView
-    private lateinit var wordTextView: TextView
     private lateinit var sentenceTextView: TextView
     private lateinit var checkButton: Button
     private lateinit var playAgainButton: Button
@@ -106,7 +105,6 @@ class SpellingOCRActivity : AppCompatActivity() {
         
         // Initialize views
         drawingCanvas = findViewById(R.id.drawingCanvas)
-        wordTextView = findViewById(R.id.wordTextView)
         sentenceTextView = findViewById(R.id.sentenceTextView)
         checkButton = findViewById(R.id.checkButton)
         playAgainButton = findViewById(R.id.playAgainButton)
@@ -291,10 +289,6 @@ class SpellingOCRActivity : AppCompatActivity() {
         
         // Reset upload flag
         hasUploadedImage = false
-        
-        // Hide word
-        wordTextView.text = "?"
-        wordTextView.alpha = 0.3f
         
         // Replace the word in the sentence with underlines (case-insensitive)
         val sentenceWithBlanks = wordData.sentence.replace(
@@ -589,24 +583,8 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     
     private fun showFireworks() {
-        // Simple fireworks effect using emoji and animation
-        // Could be enhanced with actual animation library
         val fireworksText = "🎆🎇✨🎉"
         Toast.makeText(this, "$fireworksText Great job! $fireworksText", Toast.LENGTH_LONG).show()
-        
-        // Animate word text view
-        wordTextView.animate()
-            .scaleX(1.5f)
-            .scaleY(1.5f)
-            .setDuration(300)
-            .withEndAction {
-                wordTextView.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(300)
-                    .start()
-            }
-            .start()
     }
     
     private fun updateProgress() {

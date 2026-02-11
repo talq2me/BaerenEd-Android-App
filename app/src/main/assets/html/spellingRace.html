@@ -89,12 +89,12 @@
             z-index: 2;
         }
         .racer.player {
-            left: 20px;
+            left: 3%;
             bottom: 60px;
             transform: scaleX(-1);
         }
         .racer.opponent {
-            left: 20px;
+            left: 3%;
             bottom: 120px;
             opacity: 0.7;
         }
@@ -365,8 +365,8 @@
             document.getElementById('progressFill').textContent = '0%';
             document.getElementById('playerProgress').textContent = '0%';
             document.getElementById('opponentProgress').textContent = '0%';
-            document.getElementById('playerRacer').style.left = '20px';
-            document.getElementById('opponentRacer').style.left = '20px';
+            document.getElementById('playerRacer').style.left = '3%';
+            document.getElementById('opponentRacer').style.left = '3%';
             document.getElementById('timer').textContent = 'Time: 0.0s';
             
             if (timerInterval) clearInterval(timerInterval);
@@ -394,14 +394,14 @@
                 document.getElementById('timer').textContent = `Time: ${elapsed}s`;
             }, 100);
             
-            // Start opponent progress (moves slowly)
+            // Start opponent progress (moves slowly) - use % so layout works on tablets
             let opponentProgress = 0;
             opponentInterval = setInterval(() => {
                 opponentProgress += 0.5;
                 if (opponentProgress > 95) opponentProgress = 95; // Don't let opponent finish
                 document.getElementById('opponentProgress').textContent = Math.round(opponentProgress) + '%';
-                const trackWidth = document.getElementById('raceTrack').offsetWidth - 100;
-                document.getElementById('opponentRacer').style.left = (20 + (opponentProgress / 100) * trackWidth) + 'px';
+                const leftPercent = 3 + (opponentProgress / 100) * 80; // 3% to 83%
+                document.getElementById('opponentRacer').style.left = leftPercent + '%';
             }, 200);
             
             // Listen for input
@@ -428,8 +428,8 @@
             document.getElementById('progressFill').textContent = Math.round(progress) + '%';
             document.getElementById('playerProgress').textContent = Math.round(progress) + '%';
             
-            const trackWidth = document.getElementById('raceTrack').offsetWidth - 100;
-            document.getElementById('playerRacer').style.left = (20 + (progress / 100) * trackWidth) + 'px';
+            const leftPercent = 3 + (progress / 100) * 80; // 3% to 83%
+            document.getElementById('playerRacer').style.left = leftPercent + '%';
             
             // Check if complete
             if (typedWord === correctWord) {
@@ -452,8 +452,7 @@
                 document.getElementById('progressFill').style.width = '100%';
                 document.getElementById('progressFill').textContent = '100%';
                 document.getElementById('playerProgress').textContent = '100%';
-                const trackWidth = document.getElementById('raceTrack').offsetWidth - 100;
-                document.getElementById('playerRacer').style.left = (20 + trackWidth) + 'px';
+                document.getElementById('playerRacer').style.left = '83%';
                 
                 document.getElementById('feedbackContainer').innerHTML = 
                     `<div class="feedback correct">✓ You won! Time: ${elapsed}s 🏆</div>`;

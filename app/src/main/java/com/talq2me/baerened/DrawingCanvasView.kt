@@ -59,16 +59,21 @@ class DrawingCanvasView @JvmOverloads constructor(
     private var lastY = 0f
     
     // Lined paper configuration - 4 lines with equal whitespace between them
-    // Top: pink line, whitespace, blue line, whitespace, blue line, whitespace, pink line at bottom
-    // 5 equal gaps (top margin, 3 between lines, bottom margin) = height/5 each
+    // Top/bottom margins reduced so more space is between the red lines (10% top, 10% bottom, 80% for 4 lines + 3 gaps)
+    private val topMarginFraction = 0.10f
+    private val bottomMarginFraction = 0.10f
+    private val lineRegionHeight: Float
+        get() = height * (1f - topMarginFraction - bottomMarginFraction)
+    private val gapBetweenLines: Float
+        get() = lineRegionHeight / 3f  // 3 gaps between 4 lines
     private val topPinkLineY: Float
-        get() = height / 5f
+        get() = height * topMarginFraction
     private val firstBlueLineY: Float
-        get() = height * 2f / 5f
+        get() = topPinkLineY + gapBetweenLines
     private val secondBlueLineY: Float
-        get() = height * 3f / 5f
+        get() = topPinkLineY + gapBetweenLines * 2f
     private val bottomPinkLineY: Float
-        get() = height * 4f / 5f
+        get() = topPinkLineY + gapBetweenLines * 3f
     
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)

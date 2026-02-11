@@ -598,7 +598,7 @@ class BattleHubActivity : AppCompatActivity() {
     }
     
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Old Style Main", "Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report", "Reset All Progress", "Unlock Pokemon")
+        val settingsOptions = arrayOf("Old Style Main", "Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report", "Reset All Progress", "Unlock Pokemon", "Clear config cache")
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Settings")
             .setItems(settingsOptions) { _, which ->
@@ -614,10 +614,16 @@ class BattleHubActivity : AppCompatActivity() {
                     4 -> sendProgressReportInternal()
                     5 -> showResetProgressConfirmationDialog()
                     6 -> showUnlockPokemonDialog()
+                    7 -> clearConfigCache()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun clearConfigCache() {
+        ContentUpdateService().clearCache(this)
+        android.widget.Toast.makeText(this, "Config cache cleared. Return to main screen and pull down to refresh to load the latest tasks.", android.widget.Toast.LENGTH_LONG).show()
     }
     
     private fun showUnlockPokemonDialog() {

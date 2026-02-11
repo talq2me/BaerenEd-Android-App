@@ -84,18 +84,19 @@ class ContentUpdateService : Service() {
 
     fun getCachedMainContent(context: Context): String? {
         return try {
-            val url = getContentUrlForChild(context)
-            val cacheFileName = url.substring(url.lastIndexOf('/') + 1) // e.g., "AM_config.json"
+            val baseUrl = getContentUrlForChild(context)
+            val cacheFileName = baseUrl.substring(baseUrl.lastIndexOf('/') + 1) // e.g., "AM_config.json"
             val cacheFile = File(context.cacheDir, cacheFileName)
+            // Cache-bust so CDNs/proxies don't return stale JSON (fixes tablets showing old config)
+            val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
             
             // CRITICAL: Try GitHub first, then fall back to cache
-            // This ensures we always get the latest config from GitHub
             try {
-                val request = Request.Builder().url(url).build()
-                // Use a short timeout for quick response (5 seconds)
+                val request = Request.Builder().url(urlWithBust).build()
+                // Longer timeout on tablets/slow networks so fetch is more likely to succeed
                 val quickClient = OkHttpClient.Builder()
-                    .connectTimeout(5, TimeUnit.SECONDS)
-                    .readTimeout(5, TimeUnit.SECONDS)
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
                     .build()
                 
                 val response = quickClient.newCall(request).execute()
@@ -156,9 +157,9 @@ class ContentUpdateService : Service() {
         val gameFileName = "${gameType}.json"
         val cacheFile = File(context.cacheDir, gameFileName)
 
-        // 1. Try fetching from Network
+        // 1. Try fetching from Network (cache-bust so tablets get latest)
         try {
-            val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$gameFileName"
+            val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$gameFileName?nocache=${System.currentTimeMillis()}"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
@@ -273,13 +274,14 @@ class ContentUpdateService : Service() {
      * 3. If cache fails, try assets as final fallback
      */
     suspend fun fetchMainContent(context: Context): MainContent? {
-        val url = getContentUrlForChild(context)
-        val cacheFileName = url.substring(url.lastIndexOf('/') + 1) // e.g., "AM_config.json"
+        val baseUrl = getContentUrlForChild(context)
+        val cacheFileName = baseUrl.substring(baseUrl.lastIndexOf('/') + 1) // e.g., "AM_config.json"
         val cacheFile = File(context.cacheDir, cacheFileName)
+        val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
 
         // 1. Try fetching from Network
         try {
-            val request = Request.Builder().url(url).build()
+            val request = Request.Builder().url(urlWithBust).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
@@ -335,12 +337,14 @@ class ContentUpdateService : Service() {
     fun getCachedChores(context: Context): String? {
         return try {
             val cacheFile = File(context.cacheDir, "chores.json")
+            val baseUrl = getChoresUrl()
+            val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
             // Try GitHub first (same as getCachedMainContent)
             try {
-                val request = Request.Builder().url(getChoresUrl()).build()
+                val request = Request.Builder().url(urlWithBust).build()
                 val quickClient = OkHttpClient.Builder()
-                    .connectTimeout(5, TimeUnit.SECONDS)
-                    .readTimeout(5, TimeUnit.SECONDS)
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(15, TimeUnit.SECONDS)
                     .build()
                 val response = quickClient.newCall(request).execute()
                 if (response.isSuccessful) {
@@ -376,8 +380,9 @@ class ContentUpdateService : Service() {
      */
     suspend fun fetchChores(context: Context): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
         val cacheFile = File(context.cacheDir, "chores.json")
+        val urlWithBust = "${getChoresUrl()}?nocache=${System.currentTimeMillis()}"
         try {
-            val request = Request.Builder().url(getChoresUrl()).build()
+            val request = Request.Builder().url(urlWithBust).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()

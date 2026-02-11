@@ -20,12 +20,17 @@ android {
     namespace = "com.talq2me.baerened"
     compileSdk = 36
 
+    // Workaround for compressDebugAssets failing on Windows (long paths / binary assets)
+    aaptOptions {
+        noCompress += setOf("wav", "ogg", "json", "html", "png", "binarypb", "fb", "tflite", "bincfg")
+    }
+
     defaultConfig {
         applicationId = "com.talq2me.baerened"
         minSdk = 23
         targetSdk = 35
-        versionCode = 118
-        versionName = "118"
+        versionCode = 119
+        versionName = "119"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

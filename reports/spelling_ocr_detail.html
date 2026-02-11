@@ -227,6 +227,7 @@
         <div class="header">
             <h1>📝 Spelling OCR Report</h1>
             <p id="headerSubtitle">Loading...</p>
+            <p id="lastUpdated" style="margin-top: 8px; font-size: 0.95em; opacity: 0.95;"></p>
             <a href="spelling_ocr_report.html" class="back-button">← Back to Selection</a>
         </div>
 
@@ -341,6 +342,20 @@
         }
         
         function displayEntries(data) {
+            // Show last updated (most recent capture_date_time)
+            const lastUpdatedEl = document.getElementById('lastUpdated');
+            if (data && data.length > 0) {
+                const dates = data.map(e => e.capture_date_time).filter(Boolean);
+                if (dates.length > 0) {
+                    const latest = new Date(Math.max(...dates.map(d => new Date(d).getTime())));
+                    lastUpdatedEl.textContent = 'Last submission: ' + latest.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+                    lastUpdatedEl.style.display = 'block';
+                } else {
+                    lastUpdatedEl.style.display = 'none';
+                }
+            } else {
+                lastUpdatedEl.style.display = 'none';
+            }
 
             // Parse and display entries
             const container = document.getElementById('entriesContainer');

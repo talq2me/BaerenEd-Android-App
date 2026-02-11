@@ -286,10 +286,15 @@
 
                 const data = await response.json();
                 if (data && data.length > 0) {
-                    // Group devices by active_profile for display
-                    const devices = data;
-                    // Determine overall status: unhealthy if ANY device is unhealthy
-                    const overallStatus = devices.some(d => d.baerenlock_health_status === 'unhealthy') ? 'unhealthy' : 
+                    // Exclude Pixel tablets from health display
+                    const devices = data.filter(d => {
+                        const name = (d.device_name || d.device_id || '').toLowerCase();
+                        return !name.includes('pixel');
+                    });
+                    // Unhealthy only when there are actual issues; "unhealthy" with no issues = stale (not counted)
+                    const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' && 
+                        (d.baerenlock_health_issues && String(d.baerenlock_health_issues).trim() !== '');
+                    const overallStatus = devices.some(hasActualIssues) ? 'unhealthy' : 
                                          devices.some(d => d.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
                     updateHealthStatus(overallStatus, devices);
                 } else {
@@ -315,7 +320,9 @@
             // Set overall title
             let title = 'All systems operational';
             if (status === 'unhealthy') {
-                const unhealthyCount = profiles.filter(d => d.baerenlock_health_status === 'unhealthy').length;
+                const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' && 
+                    (d.baerenlock_health_issues && String(d.baerenlock_health_issues).trim() !== '');
+                const unhealthyCount = profiles.filter(hasActualIssues).length;
                 title = `${unhealthyCount} device${unhealthyCount > 1 ? 's' : ''} with issues`;
             } else if (status === 'unknown') {
                 title = 'No health data available';
@@ -358,8 +365,10 @@
                     profileDiv.style.borderRadius = '8px';
                     profileDiv.style.border = '2px solid #ddd';
                     
-                    // Determine profile-level status (unhealthy if ANY device is unhealthy)
-                    const profileStatus = devices.some(d => d.baerenlock_health_status === 'unhealthy') ? 'unhealthy' : 
+                    // Profile status: unhealthy only when a device has actual issues (not just stale)
+                    const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' && 
+                        (d.baerenlock_health_issues && String(d.baerenlock_health_issues).trim() !== '');
+                    const profileStatus = devices.some(hasActualIssues) ? 'unhealthy' : 
                                          devices.some(d => d.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
                     
                     let statusColor = '#666';
@@ -378,15 +387,20 @@
                         const deviceIssues = device.baerenlock_health_issues || null;
                         const deviceLastCheck = device.baerenlock_last_health_check || null;
                         const deviceName = device.device_name || device.device_id || 'Unknown Device';
+                        const hasIssues = deviceStatus === 'unhealthy' && (deviceIssues && String(deviceIssues).trim() !== '');
+                        const isStale = deviceStatus === 'unhealthy' && !hasIssues;
                         
                         let deviceStatusColor = '#666';
                         let deviceStatusText = 'Unknown';
                         if (deviceStatus === 'healthy') {
                             deviceStatusColor = '#4CAF50';
                             deviceStatusText = 'Healthy';
-                        } else if (deviceStatus === 'unhealthy') {
+                        } else if (hasIssues) {
                             deviceStatusColor = '#f44336';
                             deviceStatusText = 'Unhealthy';
+                        } else if (isStale) {
+                            deviceStatusColor = '#ff9800';
+                            deviceStatusText = 'Stale – run check to refresh';
                         }
                         
                         devicesHtml += `
@@ -394,7 +408,7 @@
                                 <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
                                     ${deviceName}: <span style="color: ${deviceStatusColor}">${deviceStatusText}</span>
                                 </div>
-                                ${deviceIssues ? `<div style="color: #d32f2f; margin-bottom: 5px; font-size: 0.9em;">Issues: ${deviceIssues}</div>` : '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No issues detected</div>'}
+                                ${deviceIssues ? `<div style="color: #d32f2f; margin-bottom: 5px; font-size: 0.9em;">Issues: ${deviceIssues}</div>` : (isStale ? '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No recent check – open BaerenLock to refresh</div>' : '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No issues detected</div>')}
                                 ${deviceLastCheck ? `<div style="color: #666; font-size: 0.85em;">Last checked: ${new Date(deviceLastCheck).toLocaleString()}</div>` : '<div style="color: #999; font-size: 0.85em;">No check data available</div>'}
                             </div>
                         `;

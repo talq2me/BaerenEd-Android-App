@@ -1542,7 +1542,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report", "Reset All Progress")
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report", "Reset All Progress", "Clear config cache")
 
         AlertDialog.Builder(this)
             .setTitle("Settings")
@@ -1553,10 +1553,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     2 -> showChangeEmailDialog()
                     3 -> sendProgressReportInternal()
                     4 -> showResetProgressConfirmationDialog()
+                    5 -> clearConfigCache()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun clearConfigCache() {
+        ContentUpdateService().clearCache(this)
+        Toast.makeText(this, "Config cache cleared. Loading latest tasks…", Toast.LENGTH_LONG).show()
+        loadMainContent()
     }
 
     private fun showAskForTimeDialog() {

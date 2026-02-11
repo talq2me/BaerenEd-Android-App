@@ -33,6 +33,14 @@
           "stars": 3,
           "disable": "Jan 16, 2027"
         },
+        
+        {
+          "title": "Spelling Race",
+          "launch": "spellingRace",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true
+        },
         {
           "title": "Math",
           "launch": "jkmath",
@@ -147,8 +155,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "displayDays": "tue,fri",
-          "disable": "Jan 15, 2027"
+          "disable": "Jan 15, 2026"
         },
 
         {
@@ -204,8 +211,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 15, 2027",
-          "displayDays": "thu,sun"
+          "disable": "Jan 15, 2026"
         },
         {
           "title": "Kung Fu Form",
