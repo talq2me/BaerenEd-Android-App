@@ -35,10 +35,10 @@ object LetterGrader {
         
         val averageScore = totalScore / letterCount
         
-        // Convert score to stars (0.0-1.0 scale) - be lenient for kids
+        // Convert score to stars (0.0-1.0 scale) - lenient so "pretty close" gets 2–3 stars
         return when {
-            averageScore >= 0.6 -> 3 // Excellent
-            averageScore >= 0.4 -> 2 // Good
+            averageScore >= 0.5 -> 3 // Excellent / looks good
+            averageScore >= 0.35 -> 2 // Good / pretty close
             else -> 1 // Needs practice
         }
     }
@@ -91,8 +91,8 @@ object LetterGrader {
         
         letterRegion.recycle()
         
-        // Combine scores - be more lenient for kids
-        val combinedScore = (shapeScore * 0.5 + positionScore * 0.3 + 0.2).coerceIn(0.0, 1.0) // Add base 0.2 for effort
+        // Combine scores - lenient so pretty-close writing gets 2–3 stars
+        val combinedScore = (shapeScore * 0.45 + positionScore * 0.25 + 0.3).coerceIn(0.0, 1.0) // Higher base for effort
         return combinedScore
     }
     
@@ -117,51 +117,45 @@ object LetterGrader {
         val pixelCount = countDarkPixels(region)
         val density = pixelCount.toDouble() / (region.width * region.height)
         
-        // Different letters have different characteristics
+        // Different letters have different characteristics; "else" scores are lenient for pretty-close writing
         return when (letter) {
             'a', 'e', 'o' -> {
-                // Round letters - should have moderate density
-                if (density in 0.05..0.25) 0.8 else 0.4
+                // Round letters - moderate density; wider range, soft penalty when off
+                if (density in 0.04..0.28) 0.85 else 0.6
             }
             'i', 'l', 't' -> {
-                // Tall, thin letters - should have lower density
-                if (density in 0.02..0.15) 0.8 else 0.4
+                // Tall, thin letters
+                if (density in 0.015..0.18) 0.85 else 0.6
             }
             'g', 'j', 'p', 'q', 'y' -> {
-                // Letters with descenders - should have higher density
-                if (density in 0.08..0.3) 0.8 else 0.4
+                // Letters with descenders
+                if (density in 0.06..0.35) 0.85 else 0.6
             }
             'b', 'd', 'h', 'k' -> {
-                // Tall letters with loops - should have moderate-high density
-                if (density in 0.06..0.25) 0.8 else 0.4
+                // Tall letters with loops
+                if (density in 0.05..0.28) 0.85 else 0.6
             }
             'f' -> {
-                // Special case - tall with crossbar
-                if (density in 0.05..0.2) 0.8 else 0.4
+                if (density in 0.04..0.24) 0.85 else 0.6
             }
             'm', 'w' -> {
-                // Wide letters - should have higher density
-                if (density in 0.1..0.3) 0.8 else 0.4
+                // Wide letters
+                if (density in 0.08..0.35) 0.85 else 0.6
             }
             'n', 'u', 'v' -> {
-                // Medium width letters
-                if (density in 0.06..0.25) 0.8 else 0.4
+                if (density in 0.05..0.28) 0.85 else 0.6
             }
             'r', 's', 'z' -> {
-                // Medium complexity letters
-                if (density in 0.05..0.2) 0.8 else 0.4
+                if (density in 0.04..0.24) 0.85 else 0.6
             }
             'c' -> {
-                // Round, open letter
-                if (density in 0.04..0.2) 0.8 else 0.4
+                if (density in 0.03..0.24) 0.85 else 0.6
             }
             'x' -> {
-                // Cross shape
-                if (density in 0.05..0.2) 0.8 else 0.4
+                if (density in 0.04..0.24) 0.85 else 0.6
             }
             else -> {
-                // Default scoring
-                if (density in 0.04..0.25) 0.7 else 0.3
+                if (density in 0.03..0.28) 0.75 else 0.55
             }
         }
     }

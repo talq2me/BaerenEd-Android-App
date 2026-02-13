@@ -1,13 +1,9 @@
 [
-  {"word":"aime","sentence":"J'aime les pommes."},
-  {"word":"est","sentence":"Le chien est noir."},
-  {"word":"à","sentence":"Je vais à l'école."},
-  {"word":"avec","sentence":"Je joue avec mon ami."},
-  {"word":"un","sentence":"J'ai un chat."},
-  {"word":"pas","sentence":"Ce n'est pas grand."},
-  {"word":"fait","sentence":"Il fait beau aujourd'hui."},
-  {"word":"j'ai","sentence":"J'ai faim."},
-  {"word":"oui","sentence":"Oui, merci."},
-  {"word":"et","sentence":"Le chat et le chien jouent."},
-  {"word":"est-ce que","sentence":"Est-ce que tu viens?"}
+  {"word":"à","sentence":"Je vais à le magasin."},
+  {"word":"le","sentence":"Le chat est noir."},
+  {"word":"la","sentence":"La femme est belle."},
+  {"word":"les","sentence":"Les enfants sont joyeux."},
+  {"word":"ou","sentence":"Ou est la maison?"},
+  {"word":"l'","sentence":"L'hopital est ici."},
+  {"word":"école","sentence":"J'aime mon école."}
 ]

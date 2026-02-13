@@ -165,10 +165,15 @@ class CloudDataApplier(
                 Log.e(TAG, "Error applying berries to local storage", e)
             }
 
-            // Apply coins_earned (Chores 4 $$) - per Daily Reset Logic: newest timestamp wins
+            // Apply coins_earned (Chores 4 $$) - safeguard: never go backwards; use max(cloud, local)
+            val currentCoins = progressPrefs.getInt("${localProfile}_coins_earned", 0)
+            val coinsToApply = maxOf(data.coinsEarned, currentCoins)
             progressPrefs.edit()
-                .putInt("${localProfile}_coins_earned", data.coinsEarned)
+                .putInt("${localProfile}_coins_earned", coinsToApply)
                 .commit()
+            if (coinsToApply != data.coinsEarned) {
+                Log.d(TAG, "Safeguard: kept local coins_earned ($coinsToApply) instead of cloud (${data.coinsEarned}) so value never goes backwards")
+            }
 
             // Apply chores (Chores 4 $$) - overwrite local with cloud
             val choresJson = gson.toJson(data.chores)
@@ -176,10 +181,15 @@ class CloudDataApplier(
                 .putString("${localProfile}_chores", choresJson)
                 .commit()
 
-            // Apply Pokemon data - per Daily Reset Logic: newest timestamp wins
+            // Apply Pokemon data - safeguard: never go backwards; use max(cloud, local)
+            val currentPokemon = progressPrefs.getInt("${localProfile}_$KEY_POKEMON_UNLOCKED", 0)
+            val pokemonToApply = maxOf(data.pokemonUnlocked, currentPokemon)
             progressPrefs.edit()
-                .putInt("${localProfile}_$KEY_POKEMON_UNLOCKED", data.pokemonUnlocked)
+                .putInt("${localProfile}_$KEY_POKEMON_UNLOCKED", pokemonToApply)
                 .apply()
+            if (pokemonToApply != data.pokemonUnlocked) {
+                Log.d(TAG, "Safeguard: kept local pokemon_unlocked ($pokemonToApply) instead of cloud (${data.pokemonUnlocked}) so value never goes backwards")
+            }
 
             // Apply game indices (all types: games, web games, videos)
             applyGameIndicesToLocal(data.gameIndices ?: emptyMap(), localProfile)

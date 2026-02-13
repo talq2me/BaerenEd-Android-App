@@ -24,6 +24,7 @@ class PrintingGameActivity : AppCompatActivity() {
     private var currentWordIndex = 0
     private var sentence: List<String> = emptyList()
     private var wordStars = mutableMapOf<Int, Int>() // word index -> stars earned
+    private var retryUsedForCurrentWord = false // only allow one redo per word when they get 1 star
     
     // Game configuration
     private lateinit var gameType: String
@@ -113,6 +114,7 @@ class PrintingGameActivity : AppCompatActivity() {
         wordTextView.text = word
         sentenceTextView.text = sentence.joinToString(" ")
         drawingCanvas.clear()
+        retryUsedForCurrentWord = false
         
         // Update stars display
         updateStarsDisplay()
@@ -140,14 +142,15 @@ class PrintingGameActivity : AppCompatActivity() {
         
         Toast.makeText(this, feedback, Toast.LENGTH_LONG).show()
         
-        // Check if they can proceed (need at least 2 stars)
-        if (stars >= 2) {
+        // Proceed if 2+ stars, or if 1 star and they've already had their one retry
+        if (stars >= 2 || retryUsedForCurrentWord) {
             currentWordIndex++
             android.os.Handler().postDelayed({
                 showNextWord()
             }, 2000)
         } else {
-            // Need to try again
+            // One retry only: let them try the word once more
+            retryUsedForCurrentWord = true
             android.os.Handler().postDelayed({
                 drawingCanvas.clear()
             }, 2000)

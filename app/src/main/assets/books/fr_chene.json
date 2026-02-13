@@ -1,0 +1,86 @@
+{
+    "id": "emma-grand-chene-g4",
+    "title": "Emma et le Grand Chêne",
+    "level": "FSL Grade 4",
+    "theme": "Respect de la nature",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Emma aime jouer au parc après l’école.",
+          "Son endroit préféré est un grand chêne.",
+          "Elle s’assoit souvent sous ses branches."
+        ],
+        "image": {
+          "image_id": "emma_page1",
+          "description": "Fille assise sous un grand chêne dans un parc."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Un jour, Emma voit des papiers et des déchets près de l’arbre.",
+          "Elle est triste.",
+          "Le chêne mérite mieux."
+        ],
+        "image": {
+          "image_id": "emma_page2",
+          "description": "Déchets autour d’un arbre, Emma regarde avec tristesse."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Emma ramasse les déchets.",
+          "Elle les met dans une poubelle.",
+          "Elle veut protéger la nature."
+        ],
+        "image": {
+          "image_id": "emma_page3",
+          "description": "Emma ramasse des papiers et les met dans une poubelle."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Deux enfants la regardent.",
+          "Ils disent : « Nous pouvons t’aider ! »",
+          "Ensemble, ils nettoient le parc."
+        ],
+        "image": {
+          "image_id": "emma_page4",
+          "description": "Trois enfants nettoyant un parc ensemble."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Le parc est propre.",
+          "Emma sourit.",
+          "Elle sait qu’un petit geste peut changer beaucoup."
+        ],
+        "image": {
+          "image_id": "emma_page5",
+          "description": "Parc propre, enfants souriants."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Quel est l’endroit préféré d’Emma ?",
+        "options": ["Le terrain de jeu", "Le grand chêne", "La rivière", "La balançoire"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Que fait Emma quand elle voit des déchets ?",
+        "options": ["Elle part", "Elle crie", "Elle les ramasse", "Elle joue"],
+        "correct_index": 2
+      }
+    ]
+  }
+  

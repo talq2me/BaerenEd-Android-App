@@ -6,6 +6,8 @@ import android.os.Build
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.Button
@@ -27,7 +29,6 @@ import java.util.Locale
 class GameActivity : AppCompatActivity() {
     private lateinit var gameEngine: GameEngine
     private val userAnswers = mutableListOf<String>()
-    private lateinit var tts: TextToSpeech
     private var ttsReady = false
     private var currentQuestion: GameData? = null
     private var messageClearHandler: android.os.Handler? = null
@@ -122,49 +123,44 @@ class GameActivity : AppCompatActivity() {
         // Start time tracking for this game
         timeTracker.startActivity(uniqueTaskId, "game", gameTitle)
 
-        // TTS Init
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                if (TtsHelper.selectBestEnglishVoice(tts) == null) tts.language = Locale.US
-                ttsReady = true
-                // Set up utterance progress listener to handle TTS completion
-                tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                        // TTS started
-                    }
-
-                    override fun onDone(utteranceId: String?) {
-                        // This is called when the entire queue is finished.
-                        runOnUiThread {
-                            if (!audioClipsPlayedForCurrentQuestion) {
-                                currentQuestion?.let { question ->
-                                    playQuestionAudioClips(question)
-                                    audioClipsPlayedForCurrentQuestion = true
-                                }
-                            }
+        // Use shared TTS (TtsManager); set listener so we can play audio clips after TTS
+        val utteranceListener = object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {}
+            override fun onDone(utteranceId: String?) {
+                runOnUiThread {
+                    if (!audioClipsPlayedForCurrentQuestion) {
+                        currentQuestion?.let { question ->
+                            playQuestionAudioClips(question)
+                            audioClipsPlayedForCurrentQuestion = true
                         }
                     }
-
-                    override fun onError(utteranceId: String?) {
-                        // TTS error occurred, still try to play audio clips
-                        runOnUiThread {
-                            if (!audioClipsPlayedForCurrentQuestion) {
-                                currentQuestion?.let { question ->
-                                    playQuestionAudioClips(question)
-                                    audioClipsPlayedForCurrentQuestion = true
-                                }
-                            }
+                }
+            }
+            override fun onError(utteranceId: String?) {
+                runOnUiThread {
+                    if (!audioClipsPlayedForCurrentQuestion) {
+                        currentQuestion?.let { question ->
+                            playQuestionAudioClips(question)
+                            audioClipsPlayedForCurrentQuestion = true
                         }
                     }
-                })
-                // Show the first question after TTS is ready
-                showNextQuestion()
-            } else {
-                // TTS failed to initialize, show question without TTS
-                ttsReady = false
-                showNextQuestion()
+                }
             }
         }
+        TtsManager.setOnUtteranceProgressListener(utteranceListener)
+        TtsManager.whenReady(Runnable {
+            runOnUiThread {
+                ttsReady = true
+                showNextQuestion()
+            }
+        })
+        // Fallback: if TTS never becomes ready (e.g. init failed), show first question after 8s
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (!ttsReady) {
+                ttsReady = true
+                showNextQuestion()
+            }
+        }, 8000)
 
         // Set up click listeners after views are initialized
         setupClickListeners()
@@ -407,19 +403,16 @@ class GameActivity : AppCompatActivity() {
             "de", "ger" -> Locale.GERMAN
             else -> Locale.US // Default to English
         }
-        tts.language = locale
 
-        // Speak prompt first, flushing any previous audio (only if lang is present)
+        // Speak prompt first, then question (using shared TtsManager)
         question.prompt?.text?.let { promptText ->
             if (promptText.isNotEmpty() && !promptLang.isNullOrEmpty()) {
-                tts.speak(promptText, TextToSpeech.QUEUE_FLUSH, null, "${questionId}-prompt")
+                TtsManager.speak(promptText, locale, TextToSpeech.QUEUE_FLUSH, "${questionId}-prompt")
             }
         }
-
-        // Speak question, adding it to the queue to play after the prompt (only if lang is present)
         question.question?.text?.let { questionText ->
             if (questionText.isNotEmpty() && !questionLang.isNullOrEmpty()) {
-                tts.speak(questionText, TextToSpeech.QUEUE_ADD, null, "${questionId}-question")
+                TtsManager.speak(questionText, locale, TextToSpeech.QUEUE_ADD, "${questionId}-question")
             }
         }
     }
@@ -796,6 +789,8 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        TtsManager.stop()
+        TtsManager.setOnUtteranceProgressListener(null)
         super.onDestroy()
 
         // End time tracking when the activity is destroyed

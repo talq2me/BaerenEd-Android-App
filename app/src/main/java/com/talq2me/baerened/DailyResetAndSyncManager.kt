@@ -95,10 +95,12 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         when {
             cloudLastReset == null -> {
-                // Cloud not available after retries
-                Log.d(TAG, "Cloud last_reset not available after retries, calling reset_local()")
+                // Cloud not available after retries (network issue or no cloud record yet).
+                // Reset locally and push reset to cloud so cloud stays in sync with reset state.
+                // coins_earned and pokemon_unlocked are protected: updateCloudWithLocal() uses
+                // max(local, cloud) for those two columns so we never overwrite with lower values.
+                Log.d(TAG, "Cloud last_reset not available after retries, calling reset_local() then pushResetToCloud()")
                 resetLocal(profile)
-                // CRITICAL: Immediately push reset to cloud to prevent overwrite
                 pushResetToCloud(profile)
             }
             isTodayInEST(cloudLastReset) -> {
@@ -350,11 +352,24 @@ class DailyResetAndSyncManager(private val context: Context) {
                 Log.d(TAG, "CRITICAL: Math task NOT FOUND in collected requiredTasks! Available tasks: ${localData.requiredTasks.keys.take(10).joinToString()}")
             }
             
+            // Safeguard: coins_earned and pokemon_unlocked must never go backwards on cloud.
+            // If cloud has a higher value, use that so we never overwrite with a lower value.
+            val cloudData = syncService.downloadUserData(profile).getOrNull()
+            val coinsToUpload = maxOf(localData.coinsEarned, cloudData?.coinsEarned ?: 0)
+            val pokemonToUpload = maxOf(localData.pokemonUnlocked, cloudData?.pokemonUnlocked ?: 0)
+            if (coinsToUpload != localData.coinsEarned || pokemonToUpload != localData.pokemonUnlocked) {
+                Log.d(TAG, "Safeguard: using max for coins_earned ($coinsToUpload) and pokemon_unlocked ($pokemonToUpload) so values never go backwards")
+            }
+            
             // Set timestamp to "now" right before upload so we win the timestamp check.
             // Collect can take several seconds (e.g. GitHub fetch); cloud may have been updated in between.
             val nowISO = generateESTISOTimestamp()
             setLocalLastUpdatedTimestamp(profile, nowISO)
-            val localDataWithCorrectTimestamp = localData.copy(lastUpdated = nowISO)
+            val localDataWithCorrectTimestamp = localData.copy(
+                lastUpdated = nowISO,
+                coinsEarned = coinsToUpload,
+                pokemonUnlocked = pokemonToUpload
+            )
             
             Log.d(TAG, "CRITICAL: About to upload with timestamp: $nowISO for profile: $profile")
             

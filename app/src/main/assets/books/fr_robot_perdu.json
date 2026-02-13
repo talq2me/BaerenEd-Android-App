@@ -1,0 +1,84 @@
+{
+    "id": "noah-robot-perdu-g4",
+    "title": "Noah et le Robot Perdu",
+    "level": "FSL Grade 4",
+    "theme": "Empathie et résolution de problèmes",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Noah marche vers la bibliothèque.",
+          "Il entend un petit bruit métallique.",
+          "Il trouve un robot jouet cassé."
+        ],
+        "image": {
+          "image_id": "noah_page1",
+          "description": "Garçon trouvant un petit robot jouet cassé."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Le robot clignote et dit : « Je suis perdu. »",
+          "Noah veut l’aider.",
+          "Il regarde autour de lui."
+        ],
+        "image": {
+          "image_id": "noah_page2",
+          "description": "Robot jouet clignotant, Noah surpris."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Noah demande aux enfants du parc : « Avez-vous perdu un robot ? »",
+          "Personne ne le reconnaît."
+        ],
+        "image": {
+          "image_id": "noah_page3",
+          "description": "Noah parlant à des enfants dans un parc."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Noah remarque une étiquette sous le robot.",
+          "Il lit : « Classe 3B ». ",
+          "Il court vers l’école."
+        ],
+        "image": {
+          "image_id": "noah_page4",
+          "description": "Noah lisant une étiquette sous le robot."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Dans la classe 3B, une fille dit : « C’est mon robot ! Merci ! »",
+          "Noah est content d’avoir aidé."
+        ],
+        "image": {
+          "image_id": "noah_page5",
+          "description": "Fille heureuse récupérant son robot, Noah sourit."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Où Noah trouve-t-il le robot ?",
+        "options": ["Dans la bibliothèque", "Dans le parc", "Sur le trottoir", "Dans la classe"],
+        "correct_index": 2
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Comment Noah retrouve-t-il le propriétaire ?",
+        "options": ["Il demande au professeur", "Il lit une étiquette", "Il cherche sur Internet", "Il devine"],
+        "correct_index": 1
+      }
+    ]
+  }
+  

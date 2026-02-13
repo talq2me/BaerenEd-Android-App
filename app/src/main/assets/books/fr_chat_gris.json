@@ -1,0 +1,167 @@
+{
+    "id": "le-petit-chat-gris-fsl-g4",
+    "title": "Le Petit Chat Gris",
+    "level": "FSL Grade 4",
+    "theme": "Aider les autres",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Mimi est un petit chat gris.",
+          "Elle aime regarder dehors par la fenêtre.",
+          "Un matin, elle voit un papillon bleu."
+        ],
+        "image": {
+          "image_id": "page1_mimi_fenetre",
+          "description": "Petit chat gris sur le rebord d’une fenêtre, regardant un papillon bleu dehors."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Le papillon vole très lentement.",
+          "Mimi pense : « Il a peut-être un problème. »",
+          "Elle décide d’aller dehors."
+        ],
+        "image": {
+          "image_id": "page2_papillon_lent",
+          "description": "Papillon bleu volant lentement près de la fenêtre, Mimi le regarde avec un air inquiet."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Dans le jardin, Mimi suit le papillon.",
+          "Elle marche doucement pour ne pas lui faire peur."
+        ],
+        "image": {
+          "image_id": "page3_jardin",
+          "description": "Jardin simple avec fleurs, Mimi marche derrière le papillon bleu."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Le papillon se pose sur une fleur.",
+          "Ses ailes bougent un peu.",
+          "Mimi dit : « Tu es fatigué ? Je peux t’aider. »"
+        ],
+        "image": {
+          "image_id": "page4_fleur",
+          "description": "Papillon posé sur une fleur, Mimi s’approche doucement et lui parle."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Le papillon explique qu’un vent fort l’a éloigné de son groupe.",
+          "Mimi dit : « Je peux marcher avec toi jusqu’au grand arbre.",
+          "Beaucoup de papillons vont là-bas. »"
+        ],
+        "image": {
+          "image_id": "page5_discussion",
+          "description": "Mimi et le papillon semblent discuter près de la fleur, un grand arbre au loin."
+        }
+      },
+      {
+        "page_number": 6,
+        "text": [
+          "Mimi avance lentement.",
+          "Le papillon la suit.",
+          "Mimi veut qu’il se sente en sécurité."
+        ],
+        "image": {
+          "image_id": "page6_marche",
+          "description": "Mimi marche vers un grand arbre, le papillon vole près d’elle."
+        }
+      },
+      {
+        "page_number": 7,
+        "text": [
+          "Au grand arbre, plusieurs papillons bleus attendent.",
+          "Le petit papillon retrouve son groupe.",
+          "Il remercie Mimi."
+        ],
+        "image": {
+          "image_id": "page7_groupe",
+          "description": "Plusieurs papillons bleus autour d’un grand arbre, Mimi regarde, heureuse."
+        }
+      },
+      {
+        "page_number": 8,
+        "text": [
+          "Mimi retourne à la maison.",
+          "Elle est contente.",
+          "Elle a aidé quelqu’un aujourd’hui."
+        ],
+        "image": {
+          "image_id": "page8_retour",
+          "description": "Mimi rentre vers la maison, le soleil brille, elle a l’air contente."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Que voit Mimi le matin ?",
+        "options": [
+          "Un chien",
+          "Un papillon bleu",
+          "Un oiseau",
+          "Un autre chat"
+        ],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Pourquoi Mimi sort-elle dehors ?",
+        "options": [
+          "Elle veut jouer",
+          "Elle veut manger",
+          "Elle veut aider le papillon",
+          "Elle veut courir"
+        ],
+        "correct_index": 2
+      },
+      {
+        "id": "q3",
+        "type": "multiple_choice",
+        "question": "Où le papillon retrouve-t-il son groupe ?",
+        "options": [
+          "Dans la maison",
+          "Dans le jardin",
+          "Au grand arbre",
+          "Dans la rue"
+        ],
+        "correct_index": 2
+      },
+      {
+        "id": "q4",
+        "type": "multiple_choice",
+        "question": "Comment Mimi se sent-elle à la fin ?",
+        "options": [
+          "Triste",
+          "Fâchée",
+          "Contente",
+          "Surprise"
+        ],
+        "correct_index": 2
+      },
+      {
+        "id": "q5",
+        "type": "multiple_choice",
+        "question": "Quel est le message de l’histoire ?",
+        "options": [
+          "Il faut courir vite",
+          "Il faut aider les autres",
+          "Les papillons sont dangereux",
+          "Les chats n’aiment pas sortir"
+        ],
+        "correct_index": 1
+      }
+    ]
+  }
+  

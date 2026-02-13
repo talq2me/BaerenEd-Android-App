@@ -67,11 +67,13 @@ update_cloud_with_local():
    ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
    ---set cloud.profile.last_reset = local.profile.last_reset, cloud.profile.last_updated = local.profile.last_updated, cloud.profile.required_tasks = local.profile.required_tasks, cloud.profile.checklist_items = local.profile.checklist_items, cloud.profile.practice_tasks = local.profile.practice_tasks, cloud.profile.berries_earned = local.profile.berries_earned, cloud.profile.banked_mins = local.profile.banked_mins, cloud.profile.game_indices = local.profile.game_indices, cloud.profile.pokemon_unlocked = local.profile.pokemon_unlocked, cloud.parent_email = local.parent_email, cloud.parent_pin = local.parent_pin, cloud.device.active_profile = local.device.active_profile
    ---Note: last_updated was already modified before calling this method, do not change it here
+   ---SAFEGUARD (BaerenEd and BaerenLock if they sync these): coins_earned and pokemon_unlocked must never go backwards. When pushing to cloud, use max(local, cloud) for these two columns. When applying cloud to local, use max(cloud, local) for these two columns.
 
 update_local_with_cloud():
    ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
    ---set local.profile.last_reset = cloud.profile.last_reset, local.profile.last_updated = cloud.profile.last_updated, local.profile.required_tasks = cloud.profile.required_tasks, local.profile.checklist_items = cloud.profile.checklist_items, local.profile.practice_tasks = cloud.profile.practice_tasks, local.profile.berries_earned = cloud.profile.berries_earned, local.profile.banked_mins = cloud.profile.banked_mins, local.profile.game_indices = cloud.profile.game_indices, local.profile.pokemon_unlocked = cloud.profile.pokemon_unlocked, local.parent_email = cloud.parent_email, local.parent_pin = cloud.parent_pin, local.device.active_profile = cloud.device.active_profile
    ---Note: last_updated was already modified before calling this method, do not change it here
+   ---SAFEGUARD (BaerenEd and BaerenLock if they sync these): For coins_earned and pokemon_unlocked only, set local = max(cloud, current local) so these values never go backwards.
 
 get_content_from_json():
 ---read the profile_config.json from github (ALWAYS check GitHub first - it is the source of truth)
@@ -146,11 +148,13 @@ update_cloud_with_local():
    ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
    ---set cloud.profile.last_reset = local.profile.last_reset, cloud.profile.last_updated = local.profile.last_updated, cloud.profile.reward_apps = local.profile.reward_apps, cloud.profile.blacklisted_apps = local.profile.blacklisted_apps, cloud.profile.white_listed_apps = local.profile.white_listed_apps, cloud.profile.berries_earned = local.profile.berries_earned, cloud.profile.banked_mins = local.profile.banked_mins, cloud.parent_email = local.parent_email, cloud.parent_pin = local.parent_pin, cloud.device.active_profile = local.device.active_profile
    ---Note: last_updated was already modified before calling this method, do not change it here
+   ---If BaerenLock ever syncs coins_earned or pokemon_unlocked (e.g. full user_data row), apply same SAFEGUARD: use max(local, cloud) when pushing so those two columns never go backwards.
 
 update_local_with_cloud():
    ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
    ---set local.profile.last_reset = cloud.profile.last_reset, local.profile.last_updated = cloud.profile.last_updated, local.profile.reward_apps = cloud.profile.reward_apps, local.profile.blacklisted_apps = cloud.profile.blacklisted_apps, local.profile.white_listed_apps = cloud.profile.white_listed_apps, local.profile.berries_earned = cloud.profile.berries_earned, local.profile.banked_mins = cloud.profile.banked_mins, local.parent_email = cloud.parent_email, local.parent_pin = cloud.parent_pin, local.device.active_profile = cloud.device.active_profile
    ---Note: last_updated was already modified before calling this method, do not change it here
+   ---If BaerenLock ever applies coins_earned or pokemon_unlocked from cloud, use max(cloud, current local) so those two columns never go backwards.
 
 
 Any time any of the following settings are changed in BaerenLock:

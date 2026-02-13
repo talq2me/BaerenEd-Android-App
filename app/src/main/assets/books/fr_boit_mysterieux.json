@@ -1,0 +1,92 @@
+{
+    "id": "leo-boite-mysterieuse-g4",
+    "title": "Léo et la Boîte Mystérieuse",
+    "level": "FSL Grade 4",
+    "theme": "Partager",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Léo marche à l’école avec son sac à dos.",
+          "Sur le trottoir, il voit une petite boîte rouge.",
+          "Il la ramasse doucement."
+        ],
+        "image": {
+          "image_id": "leo_page1",
+          "description": "Garçon ramassant une petite boîte rouge sur le trottoir."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Léo ouvre la boîte.",
+          "À l’intérieur, il trouve trois crayons de couleur très brillants.",
+          "Il sourit."
+        ],
+        "image": {
+          "image_id": "leo_page2",
+          "description": "Boîte ouverte avec trois crayons de couleur brillants."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "À l’école, son amie Sara dit : « Je n’ai pas de crayons aujourd’hui. »",
+          "Léo pense un moment."
+        ],
+        "image": {
+          "image_id": "leo_page3",
+          "description": "Fille triste montrant son sac vide, Léo réfléchit."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Léo donne un crayon à Sara.",
+          "Puis il donne un autre crayon à Max.",
+          "Il garde le dernier pour lui."
+        ],
+        "image": {
+          "image_id": "leo_page4",
+          "description": "Léo partage des crayons avec deux amis."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Ses amis sont contents.",
+          "Léo se sent bien.",
+          "Partager rend la journée plus belle."
+        ],
+        "image": {
+          "image_id": "leo_page5",
+          "description": "Enfants souriants dessinant ensemble."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Qu’est-ce que Léo trouve dans la boîte ?",
+        "options": ["Des bonbons", "Des crayons", "Des clés", "Des jouets"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Qui n’a pas de crayons ?",
+        "options": ["Léo", "Sara", "Max", "Le professeur"],
+        "correct_index": 1
+      },
+      {
+        "id": "q3",
+        "type": "multiple_choice",
+        "question": "Combien de crayons Léo garde-t-il ?",
+        "options": ["0", "1", "2", "3"],
+        "correct_index": 1
+      }
+    ]
+  }
+  

@@ -52,8 +52,6 @@ class WebGameActivity : AppCompatActivity() {
     }
 
     private var webView: WebView? = null
-    private var tts: TextToSpeech? = null
-    private var bestEnglishVoice: android.speech.tts.Voice? = null
     private lateinit var timeTracker: TimeTracker
     private lateinit var progressManager: DailyProgressManager
     private var gameCompleted = false
@@ -177,21 +175,8 @@ class WebGameActivity : AppCompatActivity() {
             }
         }
 
-        tts = TextToSpeech(this, object : TextToSpeech.OnInitListener {
-            override fun onInit(status: Int) {
-                if (status == TextToSpeech.SUCCESS) {
-                    tts?.let { ttsInst ->
-                        bestEnglishVoice = TtsHelper.selectBestEnglishVoice(ttsInst)
-                        if (bestEnglishVoice == null) {
-                            ttsInst.language = Locale.US
-                        }
-                    }
-                } else {
-                    android.util.Log.e("WebGameActivity", "TTS initialization failed")
-                }
-            }
-        })
-        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+        // Use shared TtsManager; listener forwards onDone/onError to JS (onTTSFinished)
+        val webGameTtsListener = object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {}
             override fun onDone(utteranceId: String?) {
                 runOnUiThread {
@@ -207,7 +192,8 @@ class WebGameActivity : AppCompatActivity() {
                     }
                 }
             }
-        })
+        }
+        TtsManager.setOnUtteranceProgressListener(webGameTtsListener)
 
         android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
         wv.addJavascriptInterface(WebGameInterface(taskId), "Android")
@@ -297,21 +283,9 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun readText(text: String, lang: String) {
-            tts?.let {
-                if (lang.lowercase().startsWith("fr")) {
-                    it.setLanguage(Locale.FRENCH)
-                } else {
-                    bestEnglishVoice?.let { voice ->
-                        if (it.setVoice(voice) != TextToSpeech.SUCCESS) {
-                            it.setLanguage(Locale.US)
-                        }
-                    } ?: it.setLanguage(Locale.US)
-                }
-                val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
-                val params = android.os.Bundle()
-                params.putString(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
-                it.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
-            }
+            val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
+            val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
+            TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, utteranceId)
         }
 
         @JavascriptInterface
@@ -1007,8 +981,8 @@ class WebGameActivity : AppCompatActivity() {
         if (!gameCompleted) {
             timeTracker.endActivity("webgame")
         }
-        tts?.stop()
-        tts?.shutdown()
+        TtsManager.stop()
+        TtsManager.setOnUtteranceProgressListener(null)
         webView?.removeJavascriptInterface("Android")
         webView?.destroy()
         super.onDestroy()

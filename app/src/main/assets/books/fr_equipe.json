@@ -1,0 +1,83 @@
+{
+    "id": "tom-petite-equipe-g4",
+    "title": "La Petite Équipe de Tom",
+    "level": "FSL Grade 4",
+    "theme": "Travail d'équipe",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Tom joue au soccer avec ses amis.",
+          "Son équipe perd souvent.",
+          "Les enfants sont découragés."
+        ],
+        "image": {
+          "image_id": "tom_page1",
+          "description": "Équipe de soccer d’enfants ayant l’air découragés."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Tom dit : « Nous devons travailler ensemble. »",
+          "Les autres enfants écoutent."
+        ],
+        "image": {
+          "image_id": "tom_page2",
+          "description": "Tom parlant à son équipe de soccer."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Ils s’entraînent à faire des passes.",
+          "Ils apprennent à communiquer.",
+          "Ils commencent à jouer mieux."
+        ],
+        "image": {
+          "image_id": "tom_page3",
+          "description": "Enfants s’entraînant à faire des passes."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Lors du prochain match, ils jouent en équipe.",
+          "Ils marquent un but ensemble."
+        ],
+        "image": {
+          "image_id": "tom_page4",
+          "description": "Équipe d’enfants marquant un but."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Ils ne gagnent pas le match, mais ils sont fiers.",
+          "Ils savent que travailler ensemble est important."
+        ],
+        "image": {
+          "image_id": "tom_page5",
+          "description": "Équipe souriante malgré la défaite."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi l’équipe de Tom est-elle découragée ?",
+        "options": ["Elle perd souvent", "Il pleut", "Ils n’ont pas de ballon", "Tom est absent"],
+        "correct_index": 0
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Qu’apprennent les enfants ?",
+        "options": ["À courir vite", "À jouer seuls", "À communiquer", "À arrêter de jouer"],
+        "correct_index": 2
+      }
+    ]
+  }
+  

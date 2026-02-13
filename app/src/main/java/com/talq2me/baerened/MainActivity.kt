@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
 import android.widget.*
@@ -58,9 +57,8 @@ import java.util.Date
 import java.util.Locale
 
 
-class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var tts: TextToSpeech
     private lateinit var loadingProgressBar: ProgressBar
     lateinit var contentUpdateService: ContentUpdateService
     private lateinit var layout: Layout
@@ -159,8 +157,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Check for updates to app (but don't check for completed downloads - let user install from notifications)
         checkForUpdateIfOnline()
 
-        // Initialize TTS
-        tts = TextToSpeech(this, this)
+        // TTS is pre-warmed in BaerenApplication via TtsManager
 
         // Initialize loading progress bar
         loadingProgressBar = findViewById(R.id.loadingProgressBar)
@@ -1210,15 +1207,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            tts.language = Locale.US
-            Log.d(TAG, "TTS initialized successfully")
-        } else {
-            Log.e(TAG, "TTS initialization failed")
-        }
-    }
-
     private fun loadMainContent() {
         loadingProgressBar.visibility = View.VISIBLE
         titleText.text = "Loading..."
@@ -2025,10 +2013,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
-        if (::tts.isInitialized) {
-            tts.stop()
-            tts.shutdown()
-        }
         if (::downloadReceiver.isInitialized) {
             try {
                 unregisterReceiver(downloadReceiver)

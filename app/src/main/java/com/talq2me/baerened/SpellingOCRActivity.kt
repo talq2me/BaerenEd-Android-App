@@ -6,7 +6,6 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.util.Base64
 import android.util.Log
 import android.view.View
@@ -60,11 +59,10 @@ class SpellingOCRActivity : AppCompatActivity() {
     private var battleHubTaskId: String? = null
     private var wordFile: String = "englishWordsGr1.json"
     
-    // TTS
-    private var tts: TextToSpeech? = null
+    // TTS (uses shared TtsManager pre-warmed at app launch)
     private var isTtsReady = false
-    private var pendingWordData: WordData? = null // Word waiting to be spoken when TTS is ready
-    private var useFrenchTTS = false // Use French TTS for frenchWordsGr1/Gr4 or French Spelling OCR
+    private var pendingWordData: WordData? = null
+    private var useFrenchTTS = false // French TTS for frenchWordsGr1/Gr4 or French Spelling OCR
     
     // OCR
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -97,6 +95,9 @@ class SpellingOCRActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Word file from intent: $wordFile")
         
+        // Clear old spelling OCR images for this profile+game in Supabase so each launch starts fresh
+        clearOldSpellingOcrImagesOnLaunch()
+        
         // Use French TTS when word list is French or game is French Spelling OCR
         val fileLower = wordFile.lowercase(Locale.ROOT)
         useFrenchTTS = fileLower.contains("frenchwordsgr1") || fileLower.contains("frenchwordsgr4") ||
@@ -128,8 +129,14 @@ class SpellingOCRActivity : AppCompatActivity() {
         
         timeTracker.startActivity(uniqueTaskId, "game", gameTitle)
         
-        // Initialize TTS
-        initTTS()
+        // Use shared TTS (pre-warmed at app launch); speak first word as soon as ready
+        isTtsReady = TtsManager.isReady()
+        TtsManager.whenReady(Runnable {
+            runOnUiThread {
+                isTtsReady = true
+                pendingWordData?.let { speakWord(it); pendingWordData = null }
+            }
+        })
         
         // Load words from JSON
         loadWords()
@@ -137,44 +144,12 @@ class SpellingOCRActivity : AppCompatActivity() {
         // Setup button listeners
         setupButtons()
         
-        // Start first word (will wait for TTS if not ready)
+        // Start first word (speaks immediately if TTS already ready)
         if (words.isNotEmpty()) {
             showNextWord()
         } else {
             Toast.makeText(this, "Failed to load words", Toast.LENGTH_LONG).show()
             finish()
-        }
-    }
-    
-    private fun initTTS() {
-        tts = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val ttsInstance = tts ?: return@TextToSpeech
-                val locale = if (useFrenchTTS) Locale.FRENCH else Locale.ENGLISH
-                val result = if (useFrenchTTS) {
-                    ttsInstance.setLanguage(Locale.FRENCH)
-                } else {
-                    if (TtsHelper.selectBestEnglishVoice(ttsInstance) == null) {
-                        ttsInstance.setLanguage(Locale.ENGLISH)
-                    } else {
-                        TextToSpeech.LANG_AVAILABLE
-                    }
-                }
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "TTS language not supported: $locale")
-                } else {
-                    isTtsReady = true
-                    Log.d(TAG, "TTS initialized successfully (${if (useFrenchTTS) "French" else "English"})")
-                    
-                    // If we have a pending word, speak it now
-                    pendingWordData?.let { wordData ->
-                        speakWord(wordData)
-                        pendingWordData = null
-                    }
-                }
-            } else {
-                Log.e(TAG, "TTS initialization failed")
-            }
         }
     }
     
@@ -310,15 +285,13 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     private fun speakWord(wordData: WordData) {
         if (!isTtsReady) {
-            // Store the word to speak when TTS becomes ready
             pendingWordData = wordData
             Log.d(TAG, "TTS not ready yet, storing word to speak later")
             return
         }
-        
-        // Speak sentence first, then word
-        tts?.speak(wordData.sentence, TextToSpeech.QUEUE_FLUSH, null, null)
-        tts?.speak("Spell: ${wordData.word}", TextToSpeech.QUEUE_ADD, null, null)
+        val locale = if (useFrenchTTS) Locale.FRENCH else Locale.ENGLISH
+        TtsManager.speak(wordData.sentence, locale, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null)
+        TtsManager.speak("Spell: ${wordData.word}", locale, android.speech.tts.TextToSpeech.QUEUE_ADD, null)
     }
     
     private fun checkSpelling() {
@@ -592,6 +565,43 @@ class SpellingOCRActivity : AppCompatActivity() {
     }
     
     /**
+     * On launch, delete all image_uploads rows for the current profile and this game's task pattern
+     * (e.g. profile=BM and task like 'EngSpellingOCR%', or profile=AM and task like 'FrSpellingOCR%').
+     */
+    private fun clearOldSpellingOcrImagesOnLaunch() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val cloudSyncService = CloudSyncService()
+                if (!cloudSyncService.isConfigured()) {
+                    Log.d(TAG, "Supabase not configured, skipping clear of old spelling OCR images")
+                    return@launch
+                }
+                val profile = SettingsManager.readProfile(this@SpellingOCRActivity) ?: "AM"
+                val taskPrefix = when {
+                    wordFile.contains("english", ignoreCase = true) -> "EngSpellingOCR"
+                    wordFile.contains("french", ignoreCase = true) -> "FrSpellingOCR"
+                    else -> "EngSpellingOCR"
+                }
+                // PostgREST: task ilike 'EngSpellingOCR%' -> task=ilike.EngSpellingOCR%25 (URL-encoded %)
+                val encodedPattern = java.net.URLEncoder.encode("$taskPrefix%", "UTF-8")
+                val deleteUrl = "${cloudSyncService.getSupabaseUrl()}/rest/v1/image_uploads?profile=eq.$profile&task=ilike.$encodedPattern"
+                val deleteRequest = Request.Builder()
+                    .url(deleteUrl)
+                    .delete()
+                    .addHeader("apikey", cloudSyncService.getSupabaseKey())
+                    .addHeader("Authorization", "Bearer ${cloudSyncService.getSupabaseKey()}")
+                    .build()
+                val httpClient = cloudSyncService.getClient()
+                val response = httpClient.newCall(deleteRequest).execute()
+                Log.d(TAG, "Cleared old spelling OCR images (profile=$profile, task like $taskPrefix%): response ${response.code}")
+                response.close()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing old spelling OCR images: ${e.message}", e)
+            }
+        }
+    }
+    
+    /**
      * Uploads spelling image to Supabase image_uploads table
      * Task format: "EngSpellingOCR-01-uncooked-X" or "EngSpellingOCR-01-uncooked-✓"
      * Uploads once per word with the final correct/incorrect status
@@ -761,8 +771,7 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
-        tts?.stop()
-        tts?.shutdown()
+        TtsManager.stop()
         textRecognizer.close()
         timeTracker.endActivity("game")
     }
