@@ -190,6 +190,7 @@
         .next-button:active { transform: scale(0.95); }
         .hint-text { font-size: 0.9rem; color: #666; text-align: center; margin-top: 10px; font-style: italic; }
         .spacer { width: 46px; flex-shrink: 0; }
+        .spacer-left { flex-shrink: 0; } /* width set inline to align inputs with leftmost digit of numerator */
     </style>
 </head>
 <body>
@@ -362,10 +363,16 @@
             const { quotientDigits, steps } = computeLongDivisionSteps(dividend, divisor);
             const totalCols = dividendStr.length;
             const quotientLen = quotientStr.length;
+            // Left offset so first input is directly over leftmost digit of numerator (divisor + bracket ≈ 1.5 digits)
+            const leftOffsetPx = (divisorStr.length * 46) + 23;
 
-            // ---- Quotient line: [q0][q1]...[qk] R [rem]
+            // ---- Quotient line: [leftOffset][q0][q1]...[qk] R [rem]
             const quotientRow = document.createElement('div');
             quotientRow.className = 'division-row';
+            const leftSpacer = document.createElement('div');
+            leftSpacer.className = 'spacer-left';
+            leftSpacer.style.width = leftOffsetPx + 'px';
+            quotientRow.appendChild(leftSpacer);
             const quotientSpacers = totalCols - quotientLen;
             for (let s = 0; s < quotientSpacers; s++) {
                 const sp = document.createElement('div');
@@ -436,11 +443,15 @@
             }
             container.appendChild(bracketRow);
 
-            // ---- Steps: for each step, a row with (quotientSpacers + offset) spacers then product digits (inputs)
+            // ---- Steps: for each step, a row with leftOffset then (quotientSpacers + offset) spacers then product digits (inputs)
             steps.forEach((step, idx) => {
                 const productStr = String(step.product);
                 const row = document.createElement('div');
                 row.className = 'division-row';
+                const stepLeftSpacer = document.createElement('div');
+                stepLeftSpacer.className = 'spacer-left';
+                stepLeftSpacer.style.width = leftOffsetPx + 'px';
+                row.appendChild(stepLeftSpacer);
                 const numSpacers = quotientSpacers + step.offset;
                 for (let s = 0; s < numSpacers; s++) {
                     const sp = document.createElement('div');
@@ -464,6 +475,10 @@
                 container.appendChild(row);
                 const lineRow = document.createElement('div');
                 lineRow.className = 'division-row';
+                const lineLeftSpacer = document.createElement('div');
+                lineLeftSpacer.className = 'spacer-left';
+                lineLeftSpacer.style.width = leftOffsetPx + 'px';
+                lineRow.appendChild(lineLeftSpacer);
                 for (let s = 0; s < numSpacers; s++) {
                     const sp = document.createElement('div');
                     sp.className = 'spacer';

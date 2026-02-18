@@ -28,6 +28,12 @@
           "disable": "Jan 15, 2027"
         },
         {
+          "title": "Léo et la Boîte Mystérieuse",
+          "launch": "bookReader",
+          "url": "file=fr_boit_mysterieux.json",
+          "stars": 3
+        },
+        {
           "title": "Boukili",
           "launch": "boukili",
           "stars": 3,
