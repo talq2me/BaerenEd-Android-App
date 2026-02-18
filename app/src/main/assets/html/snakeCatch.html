@@ -15,6 +15,7 @@
             font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
             touch-action: none;
         }
@@ -23,6 +24,7 @@
             position: relative;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
         
@@ -67,7 +69,8 @@
         .game-area {
             position: relative;
             width: 100%;
-            height: 100%;
+            height: calc(100vh - 100px);
+            height: calc(100dvh - 100px);
             margin-top: 100px;
             background: linear-gradient(180deg, #87CEEB 0%, #98D8C8 50%, #F7DC6F 100%);
             overflow: hidden;
@@ -76,8 +79,8 @@
         
         .snake-head {
             position: absolute;
-            width: 60px;
-            height: 50px;
+            width: calc(60px * var(--game-scale, 1));
+            height: calc(50px * var(--game-scale, 1));
             background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
             border: 3px solid #2E7D32;
             box-shadow: 
@@ -150,8 +153,8 @@
         
         .snake-body {
             position: absolute;
-            width: 45px;
-            height: 45px;
+            width: calc(45px * var(--game-scale, 1));
+            height: calc(45px * var(--game-scale, 1));
             border-radius: 50%;
             background: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
             border: 2px solid #388E3C;
@@ -170,8 +173,8 @@
         
         .letter {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: calc(60px * var(--game-scale, 1));
+            height: calc(60px * var(--game-scale, 1));
             border-radius: 50%;
             background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
             border: 4px solid #FF4757;
@@ -181,7 +184,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
+            font-size: calc(2em * var(--game-scale, 1));
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -394,9 +397,23 @@
         let segmentSpacing = 12; // How many path points between segments
         let isCelebrating = false; // Flag for celebration animation
         let celebrationProgress = 0; // Progress of celebration animation (0 to 1)
+        let gameScale = 1; // Scale factor for responsive sizing (0.5 to 1.2)
 
         function isAndroidWebView() {
             return typeof window.Android !== 'undefined';
+        }
+
+        function updateGameScale() {
+            const gameAreaEl = document.getElementById('gameArea');
+            if (!gameAreaEl) return;
+            const rect = gameAreaEl.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+            // Design for ~800x600; scale down on smaller screens
+            const scaleW = w / 800;
+            const scaleH = h / 600;
+            gameScale = Math.max(0.5, Math.min(1.2, scaleW, scaleH));
+            document.documentElement.style.setProperty('--game-scale', gameScale);
         }
 
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
@@ -514,9 +531,13 @@
             gameArea.innerHTML = '';
             letters = [];
             
-            // Initialize snake at center
-            const startX = window.innerWidth / 2;
-            const startY = window.innerHeight / 2 + 50;
+            // Update scale for current screen size
+            updateGameScale();
+            
+            // Initialize snake at center of game area
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const startX = gameAreaRect.width / 2;
+            const startY = gameAreaRect.height / 2;
             snake.push({ x: startX, y: startY });
             targetPosition = { x: startX, y: startY };
             snakePath = [];
@@ -584,8 +605,9 @@
                 bodySeg.className = 'snake-body';
                 bodySeg.textContent = displayOrder[i].toUpperCase();
                 bodySeg.dataset.index = i;
-                bodySeg.style.left = snake[0].x - 25 + 'px';
-                bodySeg.style.top = snake[0].y - 25 + 'px';
+                const segSize = 45 * gameScale;
+                bodySeg.style.left = (snake[0].x - segSize / 2) + 'px';
+                bodySeg.style.top = (snake[0].y - segSize / 2) + 'px';
                 gameArea.appendChild(bodySeg);
             }
         }
@@ -604,8 +626,8 @@
             const letterPool = [...wordLetters, ...extraWrong].sort(() => Math.random() - 0.5);
             
             const gameAreaRect = gameArea.getBoundingClientRect();
-            const minSpacing = 120; // Minimum distance between letters
-            const padding = 80;
+            const minSpacing = Math.floor(120 * gameScale); // Scale spacing for screen size
+            const padding = Math.floor(60 * gameScale);
             
             letterPool.forEach((letter, index) => {
                 let x, y;
@@ -643,8 +665,9 @@
                     const letterElement = document.createElement('div');
                     letterElement.className = 'letter';
                     letterElement.textContent = letter.toUpperCase();
-                    letterElement.style.left = x + 'px';
-                    letterElement.style.top = y + 'px';
+                    const letterSize = 60 * gameScale;
+                    letterElement.style.left = (x - letterSize / 2) + 'px';
+                    letterElement.style.top = (y - letterSize / 2) + 'px';
                     letterElement.dataset.letter = letter;
                     gameArea.appendChild(letterElement);
                     
@@ -751,7 +774,7 @@
                     
                     // Boundary checking
                     const gameAreaRect = gameArea.getBoundingClientRect();
-                    const headSize = 60;
+                    const headSize = 60 * gameScale;
                     if (newHead.x < headSize / 2) {
                         newHead.x = headSize / 2;
                     } else if (newHead.x > gameAreaRect.width - headSize / 2) {
@@ -779,8 +802,8 @@
             // Update snake visual position
             const headElement = document.getElementById('snakeHead');
             if (headElement) {
-                headElement.style.left = (snake[0].x - 30) + 'px';
-                headElement.style.top = (snake[0].y - 25) + 'px';
+                headElement.style.left = (snake[0].x - 30 * gameScale) + 'px';
+                headElement.style.top = (snake[0].y - 25 * gameScale) + 'px';
                 
                 // Rotate head based on direction
                 const angle = Math.atan2(snakeDirection.y, snakeDirection.x) * (180 / Math.PI);
@@ -801,7 +824,7 @@
         
         function updateSnakeBodyPositions() {
             const bodySegments = document.querySelectorAll('.snake-body');
-            const segmentSize = 45;
+            const segmentSize = 45 * gameScale;
             
             // bodySegments are created in reverse order of collectedLetters
             // collectedLetters = [T, A, C] (newest first)
@@ -855,8 +878,8 @@
             if (!canInteract) return;
             
             const head = snake[0];
-            const headRadius = 30;
-            const letterRadius = 30;
+            const headRadius = 30 * gameScale;
+            const letterRadius = 30 * gameScale;
             
             letters.forEach((letterObj, index) => {
                 if (letterObj.element.classList.contains('eaten') || 
@@ -1010,8 +1033,8 @@
             // Update snake head position
             const headElement = document.getElementById('snakeHead');
             if (headElement) {
-                headElement.style.left = (snake[0].x - 30) + 'px';
-                headElement.style.top = (snake[0].y - 25) + 'px';
+                headElement.style.left = (snake[0].x - 30 * gameScale) + 'px';
+                headElement.style.top = (snake[0].y - 25 * gameScale) + 'px';
                 headElement.style.transform = 'rotate(0deg)'; // Point right
             }
             
@@ -1045,8 +1068,8 @@
                 
                 // Update visual positions
                 if (headElement) {
-                    headElement.style.left = (snake[0].x - 30) + 'px';
-                    headElement.style.top = (snake[0].y - 25) + 'px';
+                    headElement.style.left = (snake[0].x - 30 * gameScale) + 'px';
+                    headElement.style.top = (snake[0].y - 25 * gameScale) + 'px';
                     headElement.style.transform = 'rotate(0deg)'; // Point right
                 }
                 
@@ -1082,7 +1105,7 @@
         
         function updateCelebrationBodyPositions() {
             const bodySegments = document.querySelectorAll('.snake-body');
-            const segmentSize = 45;
+            const segmentSize = 45 * gameScale;
             const gameAreaRect = gameArea.getBoundingClientRect();
             const middleY = gameAreaRect.height / 2;
             
@@ -1170,12 +1193,14 @@
             nextWord();
         });
 
-        // Handle window resize
+        // Handle window resize (e.g. tablet rotation)
         window.addEventListener('resize', () => {
-            // Adjust snake position if needed
-            if (snake.length > 0) {
-                const gameAreaRect = gameArea.getBoundingClientRect();
-                const headSize = 50;
+            updateGameScale();
+            // Clamp snake position to game area if needed
+            const ga = document.getElementById('gameArea');
+            if (ga && snake.length > 0) {
+                const gameAreaRect = ga.getBoundingClientRect();
+                const headSize = 60 * gameScale;
                 snake[0].x = Math.max(headSize / 2, Math.min(gameAreaRect.width - headSize / 2, snake[0].x));
                 snake[0].y = Math.max(headSize / 2, Math.min(gameAreaRect.height - headSize / 2, snake[0].y));
             }
@@ -1183,8 +1208,12 @@
 
         // Start game when page loads
         window.addEventListener('load', () => {
-            const jsonUrl = getGameConfig();
-            loadWords(jsonUrl);
+            // Ensure layout is complete before measuring (helps tablets/WebViews)
+            requestAnimationFrame(() => {
+                updateGameScale();
+                const jsonUrl = getGameConfig();
+                loadWords(jsonUrl);
+            });
         });
     </script>
 </body>

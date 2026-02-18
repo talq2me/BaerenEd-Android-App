@@ -31,6 +31,9 @@ data class CloudUserData(
     @SerializedName("berries_earned") val berriesEarned: Int = 0,
     @SerializedName("coins_earned") val coinsEarned: Int = 0,
 
+    // When set (e.g. by parent report "Pay out coins"), tablets accept cloud coins_earned=0 and apply it (override safeguard).
+    @SerializedName("last_coins_payout_at") val lastCoinsPayoutAt: String? = null,
+
     // Chores 4 $$: array of chore state (chore_id, description, coins_reward, done); done resets daily
     @SerializedName("chores") val chores: List<ChoreProgress> = emptyList(),
 

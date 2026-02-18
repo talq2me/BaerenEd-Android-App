@@ -285,6 +285,10 @@
                         <div class="metric-label">Total Coins (All Time)</div>
                     </div>
                 </div>
+                <div style="margin-top: 12px;">
+                    <button type="button" id="payOutCoinsBtn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">Pay out coins</button>
+                    <span id="payOutStatus" style="margin-left: 10px; font-size: 14px; color: #666;"></span>
+                </div>
                 <ul class="task-list" id="choresList"></ul>
             </div>
 
@@ -341,6 +345,51 @@
                 document.getElementById('error').innerHTML = 
                     `<strong>Error:</strong> ${error.message}`;
                 document.getElementById('childName').textContent = kid;
+            }
+        }
+
+        // Format now as EST timestamp: yyyy-MM-dd HH:mm:ss.SSS (matches app TIMESTAMP(3) EST).
+        function nowEST() {
+            const t = new Date();
+            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const parts = tf.formatToParts(t);
+            const get = (type) => parts.find(p => p.type === type).value;
+            const pad2 = (s) => String(s).padStart(2, '0');
+            return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
+        }
+
+        // Pay out coins: set cloud coins_earned=0 and last_coins_payout_at so tablets accept 0 on next sync.
+        async function payOutCoins() {
+            const btn = document.getElementById('payOutCoinsBtn');
+            const statusEl = document.getElementById('payOutStatus');
+            btn.disabled = true;
+            statusEl.textContent = 'Paying out…';
+            try {
+                const now = nowEST();
+                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        coins_earned: 0,
+                        last_coins_payout_at: now,
+                        last_updated: now
+                    })
+                });
+                if (!response.ok) {
+                    const err = await response.text();
+                    throw new Error(err || response.statusText);
+                }
+                statusEl.textContent = 'Paid out! Tablets will sync to 0 on next sync.';
+                await fetchReportData();
+            } catch (error) {
+                console.error('Pay out failed:', error);
+                statusEl.textContent = 'Error: ' + (error.message || 'Pay out failed');
+                btn.disabled = false;
             }
         }
 
@@ -495,6 +544,20 @@
             document.getElementById('choresCompletedCount').textContent = choresCompletedToday;
             document.getElementById('coinsEarnedToday').textContent = coinsEarnedToday;
             document.getElementById('coinsEarnedLifetime').textContent = coinsEarnedLifetime;
+
+            // Pay out button: show and enable only when there are coins to pay out
+            const payOutBtn = document.getElementById('payOutCoinsBtn');
+            const payOutStatus = document.getElementById('payOutStatus');
+            payOutStatus.textContent = '';
+            if (coinsEarnedLifetime > 0) {
+                payOutBtn.style.display = 'inline-block';
+                payOutBtn.disabled = false;
+                payOutBtn.onclick = () => payOutCoins();
+            } else {
+                payOutBtn.style.display = 'inline-block';
+                payOutBtn.disabled = true;
+                payOutBtn.onclick = null;
+            }
 
             const choresListEl = document.getElementById('choresList');
             choresListEl.innerHTML = '';

@@ -365,10 +365,12 @@ class DailyResetAndSyncManager(private val context: Context) {
             // Collect can take several seconds (e.g. GitHub fetch); cloud may have been updated in between.
             val nowISO = generateESTISOTimestamp()
             setLocalLastUpdatedTimestamp(profile, nowISO)
+            // Preserve lastCoinsPayoutAt from cloud so we don't wipe it on upload (report sets it when parent pays out).
             val localDataWithCorrectTimestamp = localData.copy(
                 lastUpdated = nowISO,
                 coinsEarned = coinsToUpload,
-                pokemonUnlocked = pokemonToUpload
+                pokemonUnlocked = pokemonToUpload,
+                lastCoinsPayoutAt = cloudData?.lastCoinsPayoutAt
             )
             
             Log.d(TAG, "CRITICAL: About to upload with timestamp: $nowISO for profile: $profile")

@@ -74,6 +74,7 @@ update_local_with_cloud():
    ---set local.profile.last_reset = cloud.profile.last_reset, local.profile.last_updated = cloud.profile.last_updated, local.profile.required_tasks = cloud.profile.required_tasks, local.profile.checklist_items = cloud.profile.checklist_items, local.profile.practice_tasks = cloud.profile.practice_tasks, local.profile.berries_earned = cloud.profile.berries_earned, local.profile.banked_mins = cloud.profile.banked_mins, local.profile.game_indices = cloud.profile.game_indices, local.profile.pokemon_unlocked = cloud.profile.pokemon_unlocked, local.parent_email = cloud.parent_email, local.parent_pin = cloud.parent_pin, local.device.active_profile = cloud.device.active_profile
    ---Note: last_updated was already modified before calling this method, do not change it here
    ---SAFEGUARD (BaerenEd and BaerenLock if they sync these): For coins_earned and pokemon_unlocked only, set local = max(cloud, current local) so these values never go backwards.
+   ---EXCEPTION (coins_earned only): When cloud has coins_earned=0 and last_coins_payout_at is set (parent "Pay out coins" from report), apply 0 to local so tablets reflect the pay-out.
 
 get_content_from_json():
 ---read the profile_config.json from github (ALWAYS check GitHub first - it is the source of truth)

@@ -15,6 +15,15 @@
 -- See 000Requirements.md "Chores 4 $$ Feature" for full spec.
 --
 -- ============================================================================
+-- UPGRADE SCRIPT: Parent report "Pay out coins" – last_coins_payout_at
+-- ============================================================================
+-- When parent clicks "Pay out coins" on the report, we set coins_earned=0 and last_coins_payout_at.
+-- Tablets then accept cloud coins_earned=0 on sync (override of the usual "never go backwards" safeguard).
+-- Same as other timestamp columns: TIMESTAMP(3), EST.
+--
+-- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS last_coins_payout_at TIMESTAMP(3) NULL;
+--
+-- ============================================================================
 -- UPGRADE SCRIPT: Remove timezone from timestamp fields
 -- ============================================================================
 -- If upgrading from a version that had TIMESTAMP WITH TIME ZONE, run these
@@ -82,6 +91,9 @@ CREATE TABLE IF NOT EXISTS user_data (
     banked_mins INTEGER DEFAULT 0,
     berries_earned INTEGER DEFAULT 0,
     coins_earned INTEGER DEFAULT 0,
+
+    -- Parent report "Pay out coins": when set, tablets accept cloud coins_earned=0 (override safeguard). TIMESTAMP(3) EST, same as last_updated.
+    last_coins_payout_at TIMESTAMP(3) NULL,
 
     -- Chores 4 $$: JSONB array of { chore_id, description, coins_reward, done }; done resets daily
     chores JSONB DEFAULT '[]'::jsonb,
