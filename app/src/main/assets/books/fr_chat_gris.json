@@ -13,7 +13,7 @@
           "Un matin, elle voit un papillon bleu."
         ],
         "image": {
-          "image_id": "page1_mimi_fenetre",
+          "image_id": "chat_gris1",
           "description": "Petit chat gris sur le rebord d’une fenêtre, regardant un papillon bleu dehors."
         }
       },
@@ -25,7 +25,7 @@
           "Elle décide d’aller dehors."
         ],
         "image": {
-          "image_id": "page2_papillon_lent",
+          "image_id": "chat_gris2",
           "description": "Papillon bleu volant lentement près de la fenêtre, Mimi le regarde avec un air inquiet."
         }
       },
@@ -36,7 +36,7 @@
           "Elle marche doucement pour ne pas lui faire peur."
         ],
         "image": {
-          "image_id": "page3_jardin",
+          "image_id": "chat_gris3",
           "description": "Jardin simple avec fleurs, Mimi marche derrière le papillon bleu."
         }
       },
@@ -48,7 +48,7 @@
           "Mimi dit : « Tu es fatigué ? Je peux t’aider. »"
         ],
         "image": {
-          "image_id": "page4_fleur",
+          "image_id": "chat_gris4",
           "description": "Papillon posé sur une fleur, Mimi s’approche doucement et lui parle."
         }
       },
@@ -60,7 +60,7 @@
           "Beaucoup de papillons vont là-bas. »"
         ],
         "image": {
-          "image_id": "page5_discussion",
+          "image_id": "chat_gris5",
           "description": "Mimi et le papillon semblent discuter près de la fleur, un grand arbre au loin."
         }
       },
@@ -72,7 +72,7 @@
           "Mimi veut qu’il se sente en sécurité."
         ],
         "image": {
-          "image_id": "page6_marche",
+          "image_id": "chat_gris6",
           "description": "Mimi marche vers un grand arbre, le papillon vole près d’elle."
         }
       },
@@ -84,7 +84,7 @@
           "Il remercie Mimi."
         ],
         "image": {
-          "image_id": "page7_groupe",
+          "image_id": "chat_gris7",
           "description": "Plusieurs papillons bleus autour d’un grand arbre, Mimi regarde, heureuse."
         }
       },
@@ -96,7 +96,7 @@
           "Elle a aidé quelqu’un aujourd’hui."
         ],
         "image": {
-          "image_id": "page8_retour",
+          "image_id": "chat_gris8",
           "description": "Mimi rentre vers la maison, le soleil brille, elle a l’air contente."
         }
       }

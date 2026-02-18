@@ -1,0 +1,85 @@
+{
+    "id": "lea-pont-brise-g4",
+    "title": "Léa et l’Aventure du Pont Brisé",
+    "level": "FSL Grade 4",
+    "theme": "Travail d'équipe",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Léa marche vers la forêt avec son sac à dos.",
+          "Elle veut rejoindre ses amis pour un pique-nique.",
+          "Elle arrive devant un petit pont en bois."
+        ],
+        "image": {
+          "image_id": "lea_page1",
+          "description": "Fillette avec sac à dos devant un petit pont en bois dans une forêt."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Le pont est cassé.",
+          "Léa dit : « Oh non ! Comment vais‑je passer ? »",
+          "Elle regarde autour d’elle."
+        ],
+        "image": {
+          "image_id": "lea_page2",
+          "description": "Pont en bois cassé, Léa inquiète."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Ses amis arrivent : Max, Zoé et Karim.",
+          "Max dit : « On peut réparer le pont ensemble ! »"
+        ],
+        "image": {
+          "image_id": "lea_page3",
+          "description": "Trois enfants rejoignant Léa près du pont cassé."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Zoé trouve des branches solides.",
+          "Karim apporte des cordes.",
+          "Léa tient les planches en place."
+        ],
+        "image": {
+          "image_id": "lea_page4",
+          "description": "Enfants réparant un pont avec branches, cordes et planches."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Ensemble, ils réparent le pont.",
+          "Max dit : « Bravo l’équipe ! »",
+          "Ils traversent et continuent vers le pique‑nique."
+        ],
+        "image": {
+          "image_id": "lea_page5",
+          "description": "Pont réparé, enfants traversant joyeusement."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi Léa ne peut‑elle pas traverser le pont au début ?",
+        "options": ["Il est trop long", "Il est cassé", "Il est glissant", "Il est fermé"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Comment les enfants réparent‑ils le pont ?",
+        "options": ["Avec des outils magiques", "Avec des branches et des cordes", "Avec un robot", "Ils ne le réparent pas"],
+        "correct_index": 1
+      }
+    ]
+  }
+  

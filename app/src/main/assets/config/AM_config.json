@@ -197,29 +197,7 @@
           "webGame": true,
           "displayDays": "thu,sun"
         },
-        {
-          "title": "Kung Fu Form",
-          "launch": "noviceKungFuVideos",
-          "stars": 1,
-          "video": "SingleStepForm",
-          "disable": "Jan 2, 2026",
-          "videoSequence": "exact",
-          "displayDays": "sat"
-        },
-        {
-          "title": "Kung Fu",
-          "launch": "noviceKungFuVideos",
-          "disable": "Jan 2, 2026",
-          "stars": 1,
-          "videoSequence": "sequential"
-        },
-        {
-          "title": "Facile A Lire 2",
-          "launch": "facileAlire2",
-          "disable": "Jan 2, 2027",
-          "stars": 3,
-          "videoSequence": "sequential"
-        },
+        
         {
           "title": "Google Classroom",
           "launch": "googleClassroom",
@@ -307,12 +285,7 @@
           "totalQuestions": 1,
           "blockOutlines": true
         },
-        {
-          "title": "Ufli Home Videos",
-          "launch": "uflivideos",
-          "stars": 3,
-          "videoSequence": "sequential"
-        },
+        
         {
           "title": "UFLI Words",
           "launch": "ufliLessonData",

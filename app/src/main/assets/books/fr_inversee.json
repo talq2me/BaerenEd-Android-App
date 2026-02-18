@@ -1,0 +1,86 @@
+{
+    "id": "clara-journee-inversee-g4",
+    "title": "La Journée Inversée de Clara",
+    "level": "FSL Grade 4",
+    "theme": "Humour et imagination",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Clara se réveille et remarque que tout est… à l’envers.",
+          "Son chat marche à reculons.",
+          "Même son réveil sonne en disant : « Bonne nuit ! »"
+        ],
+        "image": {
+          "image_id": "clara_page1",
+          "description": "Fillette dans une chambre où tout est inversé, chat marchant à reculons."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "En descendant, elle voit son père boire son jus avec une fourchette.",
+          "Sa mère lit le journal… à l’envers.",
+          "Clara demande : « Euh… tout va bien ? »"
+        ],
+        "image": {
+          "image_id": "clara_page2",
+          "description": "Famille faisant des choses absurdes à la table du petit-déjeuner."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "À l’école, les élèves écrivent leurs noms en commençant par la fin.",
+          "Le professeur dit : « Aujourd’hui, c’est la journée inversée ! »",
+          "Clara éclate de rire."
+        ],
+        "image": {
+          "image_id": "clara_page3",
+          "description": "Classe écrivant leurs noms à l’envers sur des feuilles."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Pendant la récréation, les enfants marchent en arrière.",
+          "Ils jouent au ballon… en lançant le ballon derrière eux.",
+          "Clara trouve ça complètement fou."
+        ],
+        "image": {
+          "image_id": "clara_page4",
+          "description": "Enfants jouant à la récréation en faisant tout à l’envers."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Le soir, tout redevient normal.",
+          "Clara dit : « C’était bizarre… mais super drôle ! »",
+          "Elle se demande si demain sera la journée des chapeaux volants."
+        ],
+        "image": {
+          "image_id": "clara_page5",
+          "description": "Clara souriant dans sa chambre redevenue normale."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Qu’est-ce qui est étrange au début de l’histoire ?",
+        "options": ["Clara vole", "Tout est à l’envers", "Il neige dans la maison", "Le chat parle"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Que font les élèves pendant la journée inversée ?",
+        "options": ["Ils chantent", "Ils écrivent leurs noms à l’envers", "Ils dorment", "Ils font du sport"],
+        "correct_index": 1
+      }
+    ]
+  }
+  

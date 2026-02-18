@@ -1,0 +1,86 @@
+{
+    "id": "milo-sandwich-geant-g4",
+    "title": "Le Sandwich Géant de Milo",
+    "level": "FSL Grade 4",
+    "theme": "Créativité et humour",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Milo ouvre son frigo et dit : « J’ai faim… très faim ! »",
+          "Il voit du pain, du fromage, des tomates… et un énorme concombre.",
+          "Il décide de faire un sandwich géant."
+        ],
+        "image": {
+          "image_id": "milo_page1",
+          "description": "Garçon ouvrant un frigo rempli d’ingrédients, expression exagérée de grande faim."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Milo empile les ingrédients.",
+          "Le sandwich devient plus haut que lui.",
+          "Il dit : « Ça va être délicieux… si ça ne tombe pas ! »"
+        ],
+        "image": {
+          "image_id": "milo_page2",
+          "description": "Sandwich géant instable, Milo le regarde avec inquiétude."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Son chien Pipo entre dans la cuisine.",
+          "Pipo renifle le sandwich et éternue.",
+          "Le sandwich tremble dangereusement."
+        ],
+        "image": {
+          "image_id": "milo_page3",
+          "description": "Petit chien éternuant devant un sandwich géant qui vacille."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "BOUM ! Le sandwich s’écroule partout.",
+          "Milo et Pipo sont couverts de fromage et de tomates.",
+          "Milo éclate de rire : « Au moins, on a assez pour partager ! »"
+        ],
+        "image": {
+          "image_id": "milo_page4",
+          "description": "Cuisine en désordre, Milo et son chien couverts d’ingrédients."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Milo prépare plusieurs petits sandwichs.",
+          "Il les apporte à ses amis dans le jardin.",
+          "Tout le monde rit en voyant son histoire du sandwich géant."
+        ],
+        "image": {
+          "image_id": "milo_page5",
+          "description": "Enfants mangeant ensemble des sandwichs, ambiance joyeuse."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi Milo veut-il faire un sandwich géant ?",
+        "options": ["Il s’ennuie", "Il a très faim", "Il veut impressionner Pipo", "Il n’aime pas cuisiner"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Qu’est-ce qui fait tomber le sandwich ?",
+        "options": ["Le vent", "Milo le pousse", "Pipo éternue", "Il fond"],
+        "correct_index": 2
+      }
+    ]
+  }
+  

@@ -1,0 +1,86 @@
+{
+    "id": "leo-magnetique-g4",
+    "title": "Le Jour où Léo Devint Magnétique",
+    "level": "FSL Grade 4",
+    "theme": "Humour et surprise",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Léo se réveille un matin avec une sensation étrange.",
+          "Quand il se lève, une cuillère collée à sa manche tombe par terre.",
+          "Il murmure : « C’est bizarre… très bizarre. »"
+        ],
+        "image": {
+          "image_id": "leo_page1",
+          "description": "Garçon surpris en voyant une cuillère collée à sa manche."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "En descendant pour déjeuner, une fourchette saute de la table et se colle à lui.",
+          "Sa sœur éclate de rire : « Léo, tu es un aimant humain ! »",
+          "Léo n’en revient pas."
+        ],
+        "image": {
+          "image_id": "leo_page2",
+          "description": "Fourchette collée au t-shirt de Léo, sa sœur qui rit."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "À l’école, les crayons de ses amis roulent vers lui.",
+          "Même la cloche de la classe tinte quand il passe à côté.",
+          "Léo dit : « Je ne fais rien, je vous jure ! »"
+        ],
+        "image": {
+          "image_id": "leo_page3",
+          "description": "Crayons et petits objets attirés vers Léo en classe."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "La professeure propose une idée : « Utilisons ton pouvoir pour ramasser les trombones ! »",
+          "Léo marche dans la classe et les trombones se collent à lui comme un costume brillant.",
+          "Tout le monde applaudit."
+        ],
+        "image": {
+          "image_id": "leo_page4",
+          "description": "Léo couvert de trombones, classe amusée."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Le soir, l’effet disparaît soudainement.",
+          "Léo soupire : « Dommage… c’était quand même pratique. »",
+          "Sa sœur répond : « Oui, mais tu restes bizarre. »"
+        ],
+        "image": {
+          "image_id": "leo_page5",
+          "description": "Léo et sa sœur riant ensemble dans la maison."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi les objets se collent-ils à Léo ?",
+        "options": ["Il est magnétique", "Il est collant", "Il a un aimant dans sa poche", "C’est un rêve"],
+        "correct_index": 0
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Comment la classe utilise-t-elle son pouvoir ?",
+        "options": ["Pour ouvrir la porte", "Pour ramasser les trombones", "Pour faire un dessin", "Pour faire sonner la cloche"],
+        "correct_index": 1
+      }
+    ]
+  }
+  

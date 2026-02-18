@@ -1,0 +1,86 @@
+{
+    "id": "zoe-chaussure-sauteuse-g4",
+    "title": "Zoé et la Chaussure Sauteuse",
+    "level": "FSL Grade 4",
+    "theme": "Imagination et humour",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Zoé cherche sa chaussure pour aller à l’école.",
+          "Elle regarde sous le lit, dans le placard, derrière la porte.",
+          "Soudain, la chaussure saute toute seule !"
+        ],
+        "image": {
+          "image_id": "zoe_page1",
+          "description": "Fillette surprise en voyant une chaussure sauter toute seule."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "La chaussure bondit dans le couloir.",
+          "Zoé court derrière en criant : « Reviens ici ! »",
+          "La chaussure saute comme un lapin."
+        ],
+        "image": {
+          "image_id": "zoe_page2",
+          "description": "Chaussure bondissante dans un couloir, Zoé qui la poursuit."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "La chaussure sort dans le jardin.",
+          "Elle saute dans une flaque de boue.",
+          "Zoé soupire : « Oh non… maman ne va pas aimer ça. »"
+        ],
+        "image": {
+          "image_id": "zoe_page3",
+          "description": "Chaussure sautant dans une flaque, Zoé désespérée."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Zoé attrape enfin la chaussure.",
+          "Elle découvre un petit ressort coincé dessous.",
+          "Elle rit : « Pas étonnant que tu sautes partout ! »"
+        ],
+        "image": {
+          "image_id": "zoe_page4",
+          "description": "Zoé tenant la chaussure et découvrant un ressort."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "À l’école, Zoé raconte son aventure.",
+          "Ses amis rient tellement qu’ils tombent presque de leurs chaises.",
+          "Zoé dit : « Je vais garder ce ressort… juste au cas où ! »"
+        ],
+        "image": {
+          "image_id": "zoe_page5",
+          "description": "Enfants riant en classe pendant que Zoé raconte son histoire."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi la chaussure saute-t-elle ?",
+        "options": ["Elle est magique", "Un ressort est coincé dessous", "Zoé la lance", "Elle a des ailes"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Où la chaussure va-t-elle avant que Zoé ne l’attrape ?",
+        "options": ["Dans la cuisine", "Dans le jardin", "À l’école", "Chez le voisin"],
+        "correct_index": 1
+      }
+    ]
+  }
+  
