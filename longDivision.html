@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Division</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .division-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="division-container">
+        <h2>Long Division</h2>
+        <input type="text" id="numerator" placeholder="Numerator" />
+        <input type="text" id="denominator" placeholder="Denominator" />
+        <button id="calculate">Calculate</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        document.getElementById('calculate').addEventListener('click', function() {
+            var numerator = parseFloat(document.getElementById('numerator').value);
+            var denominator = parseFloat(document.getElementById('denominator').value);
+            if (denominator !== 0) {
+                var result = numerator / denominator;
+                document.getElementById('result').innerText = 'Result: ' + result;
+            } else {
+                alert('Denominator cannot be zero.');
+            }
+        });
+    </script>
+</body>
+</html>
