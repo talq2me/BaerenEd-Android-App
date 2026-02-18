@@ -1,47 +1,18 @@
 [
-  {
-    "word": "shrimp",
-    "sentence": "The shrimp swims."
-  },
-  {
-    "word": "shrug",
-    "sentence": "I shrug my shoulders."
-  },
-  {
-    "word": "throb",
-    "sentence": "My heart can throb."
-  },
-  {
-    "word": "thrift",
-    "sentence": "She shops with thrift."
-  },
-  {
-    "word": "spring",
-    "sentence": "We jump in spring."
-  },
-  {
-    "word": "strong",
-    "sentence": "He is strong."
-  },
-  {
-    "word": "could",
-    "sentence": "I could try."
-  },
-  {
-    "word": "would",
-    "sentence": "I would like that."
-  },
-  {
-    "word": "should",
-    "sentence": "You should rest."
-  },
-  {
-    "word": "or",
-    "sentence": "Do you want this or that?"
-  },
-  {
-    "word": "for",
-    "sentence": "This is for you."
-  }
-
+  {"word":"rope","sentence":"He holds the rope tight."},
+  {"word":"mope","sentence":"She likes to mope when she is sad."},
+  {"word":"cope","sentence":"I can cope with the cold."},
+  {"word":"hope","sentence":"I hope it is sunny tomorrow."},
+  {"word":"woke","sentence":"I woke up early today."},
+  {"word":"joke","sentence":"That joke made me laugh."},
+  {"word":"poke","sentence":"Do not poke the dog."},
+  {"word":"spoke","sentence":"She spoke to her mom."},
+  {"word":"ride","sentence":"I want to ride my bike."},
+  {"word":"rode","sentence":"He rode the bus to school."},
+  {"word":"mode","sentence":"Put the game in easy mode."},
+  {"word":"made","sentence":"She made a sandcastle."},
+  {"word":"came","sentence":"He came to my party."},
+  {"word":"tame","sentence":"The kitten is tame."},
+  {"word":"time","sentence":"It is time for bed."},
+  {"word":"lime","sentence":"I put lime in my drink."}
 ]

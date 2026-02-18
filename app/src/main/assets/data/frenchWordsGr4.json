@@ -1,86 +1,20 @@
 [
-	{
-		"word": "autant",
-		"sentence": "Je n'ai jamais vu autant de couleurs dans un coucher de soleil."
-	},
-	{
-		"word": "centre",
-		"sentence": "La fontaine se trouve au centre de la place du village."
-	},
-	{
-		"word": "cependant",
-		"sentence": "Il voulait partir tôt, cependant la pluie l'a retenu."
-	},
-	{
-		"word": "chance",
-		"sentence": "Elle a toujours de la chance quand elle joue à ce jeu."
-	},
-	{
-		"word": "durant",
-		"sentence": "Durant l'hiver, ils voyagent rarement."
-	},
-	{
-		"word": "événement",
-		"sentence": "Cet événement restera gravé dans nos mémoires."
-	},
-	{
-		"word": "évènement",
-		"sentence": "L'évènement principal de la soirée sera le feu d'artifice."
-	},
-	{
-		"word": "exactement",
-		"sentence": "C'est exactement ce que j'avais imaginé."
-	},
-	{
-		"word": "finalement",
-		"sentence": "Finalement, nous avons choisi de rester à la maison."
-	},
-	{
-		"word": "justement",
-		"sentence": "Justement, je voulais te parler de ce projet."
-	},
-	{
-		"word": "mouvement",
-		"sentence": "Le mouvement des vagues berçait le bateau."
-	},
-	{
-		"word": "plancher",
-		"sentence": "Le plancher craque dès qu'on marche dessus."
-	},
-	{
-		"word": "pourtant",
-		"sentence": "Il avait peur, pourtant il a osé parler."
-	},
-	{
-		"word": "rapidement",
-		"sentence": "Elle a rapidement terminé ses devoirs avant le dîner."
-	},
-	{
-		"word": "ruban",
-		"sentence": "Le ruban rouge entourait soigneusement le cadeau."
-	},
-	{
-		"word": "sens",
-		"sentence": "Le sens de cette phrase reste mystérieux pour moi."
-	},
-	{
-		"word": "seulement",
-		"sentence": "Il a seulement gardé les photos les plus précieuses."
-	},
-	{
-		"word": "sûrement",
-		"sentence": "Tu trouveras sûrement la solution en réfléchissant calmement."
-	},
-	{
-		"word": "surement",
-		"sentence": "Il finira surement son dessin avant la récréation."
-	},
-	{
-		"word": "surprendre",
-		"sentence": "Elle ne voulait pas surprendre ses amis avec son arrivée."
-	},
-	{
-		"word": "vendre",
-		"sentence": "Il espère vendre ses tableaux au marché local."
-	}
+  {"word":"champion","sentence":"Le champion a remporté la médaille d'or aux jeux olympiques."},
+  {"word":"championne","sentence":"La championne a célébré sa victoire avec beaucoup de joie."},
+  {"word":"compagnie","sentence":"Ma tante travaille dans une grande compagnie de théâtre."},
+  {"word":"complètement","sentence":"Il a complètement oublié de fermer la porte ce matin."},
+  {"word":"compte","sentence":"Il fait le compte de ses économies chaque mois."},
+  {"word":"embarquer","sentence":"Les passagers vont embarquer dans l'avion dans quelques minutes."},
+  {"word":"empêcher","sentence":"La pluie va empêcher notre pique-nique prévu ce weekend."},
+  {"word":"emporter","sentence":"N'oublie pas d'emporter ton parapluie, il va pleuvoir."},
+  {"word":"ensemble","sentence":"Nous devons travailler ensemble pour réussir ce projet."},
+  {"word":"impossible","sentence":"Il est impossible de terminer tout ce travail en une heure."},
+  {"word":"impression","sentence":"J'ai eu l'impression qu'il était un peu nerveux aujourd'hui."},
+  {"word":"lampe","sentence":"La lampe du bureau éclaire parfaitement la table de travail."},
+  {"word":"nombreux","sentence":"De nombreux élèves ont participé au concours de lecture."},
+  {"word":"nombreuse","sentence":"La famille nombreuse se réunit chaque dimanche pour le déjeuner."},
+  {"word":"simple","sentence":"La recette est très simple à préparer le dimanche matin."},
+  {"word":"simplement","sentence":"Elle a simplement dit non et a tourné les talons."},
+  {"word":"sombre","sentence":"La forêt devient sombre à la tombée de la nuit."},
+  {"word":"vampire","sentence":"Le vampire préfère sortir quand il fait nuit dehors."}
 ]
