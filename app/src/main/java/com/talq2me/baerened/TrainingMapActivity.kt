@@ -861,6 +861,25 @@ class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
+        // Check for Book Reader (assets/books JSON, TTS, questions)
+        if (task.launch == "bookReader") {
+            val bookFile = task.url
+            if (bookFile.isNullOrBlank()) {
+                android.widget.Toast.makeText(this, "No book file specified for bookReader task", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+            lastLaunchedGameSectionId = sectionId
+            val intent = Intent(this, BookReaderActivity::class.java).apply {
+                putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
+                putExtra(BookReaderActivity.EXTRA_TASK_ID, gameType)
+                putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
+            }
+            startActivityForResult(intent, 1007)
+            return
+        }
+        
         // Check for Printing Game (doesn't need JSON)
         if (gameType == "printing") {
             val game = Game(
@@ -1143,6 +1162,29 @@ class TrainingMapActivity : AppCompatActivity() {
                     progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
                 }
                 android.util.Log.d("TrainingMapActivity", "Marked printing game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
+            }
+        }
+        
+        // Handle BookReaderActivity result (requestCode 1007)
+        if (requestCode == 1007 && resultCode == RESULT_OK && data != null) {
+            val taskId = data.getStringExtra(BookReaderActivity.EXTRA_TASK_ID)
+            val sectionId = data.getStringExtra(BookReaderActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
+            val stars = data.getIntExtra(BookReaderActivity.EXTRA_STARS, 0)
+            if (!taskId.isNullOrEmpty()) {
+                var taskTitle = "Book"
+                currentContent?.sections?.forEach { section ->
+                    section.tasks?.find { it.launch == taskId }?.let { task ->
+                        taskTitle = task.title ?: taskTitle
+                    }
+                }
+                val progressManager = DailyProgressManager(this)
+                val earnedStars = progressManager.markTaskCompletedWithName(
+                    taskId, taskTitle, stars, sectionId == "required", currentContent, sectionId
+                )
+                if (earnedStars > 0) {
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                }
+                android.util.Log.d("TrainingMapActivity", "Marked bookReader task as completed: taskId=$taskId, sectionId=$sectionId, earnedStars=$earnedStars")
             }
         }
         

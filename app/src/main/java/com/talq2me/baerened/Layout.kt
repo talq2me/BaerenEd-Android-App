@@ -935,6 +935,22 @@ class Layout(private val activity: MainActivity) {
                 val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
                 activity.startActivity(intent)
             }
+            else if (task.launch == "bookReader") {
+                val bookFile = task.url
+                if (!bookFile.isNullOrBlank()) {
+                    android.util.Log.d("Layout", "Launching Book Reader from battle hub: $bookFile")
+                    val intent = android.content.Intent(activity, BookReaderActivity::class.java).apply {
+                        putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
+                        putExtra(BookReaderActivity.EXTRA_TASK_ID, gameType)
+                        putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
+                        putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
+                        putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
+                    }
+                    activity.startActivity(intent)
+                } else {
+                    android.widget.Toast.makeText(activity, "No book file specified", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
             else {
                 // Handle regular game content
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -1494,6 +1510,8 @@ class Layout(private val activity: MainActivity) {
                         android.util.Log.d("Layout", "Launching French Book Reader")
                         val intent = Intent(activity, FrenchBookReaderActivity::class.java)
                         activity.startActivity(intent)
+                    } else if (task.launch == "bookReader") {
+                        launchTask(task, sectionId, null)
                     } else {
                         // Handle regular game content - use shared launchTask function
                         launchTask(task, sectionId, null)
@@ -1778,6 +1796,22 @@ class Layout(private val activity: MainActivity) {
         else if (task.launch == "frenchBookReader") {
             android.util.Log.d("Layout", "Launching French Book Reader")
             val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
+            activity.startActivity(intent)
+        }
+        else if (task.launch == "bookReader") {
+            val bookFile = task.url
+            if (bookFile.isNullOrBlank()) {
+                android.widget.Toast.makeText(activity, "No book file specified for bookReader task", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+            android.util.Log.d("Layout", "Launching Book Reader: $bookFile")
+            val intent = android.content.Intent(activity, BookReaderActivity::class.java).apply {
+                putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
+                putExtra(BookReaderActivity.EXTRA_TASK_ID, gameType)
+                putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
+            }
             activity.startActivity(intent)
         }
         else {
