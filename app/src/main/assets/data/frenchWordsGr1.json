@@ -1,9 +1,10 @@
 [
-  {"word":"à","sentence":"Je vais à le magasin."},
-  {"word":"le","sentence":"Le chat est noir."},
-  {"word":"la","sentence":"La femme est belle."},
-  {"word":"les","sentence":"Les enfants sont joyeux."},
-  {"word":"ou","sentence":"Ou est la maison?"},
-  {"word":"l'","sentence":"L'hopital est ici."},
-  {"word":"école","sentence":"J'aime mon école."}
+  {"word":"un","sentence":"J'ai un chat à la maison."},
+  {"word":"une","sentence":"Elle a une pomme rouge."},
+  {"word":"bébé","sentence":"Le bébé dort dans son lit."},
+  {"word":"lune","sentence":"La lune brille dans le ciel."},
+  {"word":"maman","sentence":"Maman prépare le dîner."},
+  {"word":"mot","sentence":"Il ne dit pas un mot."},
+  {"word":"papa","sentence":"Papa lit le journal."},
+  {"word":"lire","sentence":"Je veux lire ce livre."}
 ]
