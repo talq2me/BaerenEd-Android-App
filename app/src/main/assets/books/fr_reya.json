@@ -1,0 +1,122 @@
+{
+    "id": "reya-licorne-magique-g2",
+    "title": "Reya et la Licorne Magique",
+    "level": "FSL Grade 2",
+    "theme": "Gentillesse et amitié",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Reya est une petite princesse de 7 ans.",
+          "Elle vit dans un château entouré de fleurs.",
+          "Reya est toujours gentille avec tout le monde."
+        ],
+        "image": {
+          "image_id": "reya_page1",
+          "description": "Petite princesse souriante dans un jardin fleuri devant un château."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Son meilleur ami est une licorne magique.",
+          "La licorne s’appelle Lumi.",
+          "Lumi a une crinière arc-en-ciel et des ailes brillantes."
+        ],
+        "image": {
+          "image_id": "reya_page2",
+          "description": "Licorne colorée avec crinière arc-en-ciel et ailes brillantes à côté de Reya."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Un matin, Reya entend un bruit triste dans la forêt.",
+          "Elle monte sur Lumi et part vite voir.",
+          "Ils trouvent un petit lapin qui pleure."
+        ],
+        "image": {
+          "image_id": "reya_page3",
+          "description": "Reya sur la licorne dans la forêt, regardant un lapin triste."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Le lapin a perdu sa maman.",
+          "Reya dit : « Ne t’inquiète pas, on va t’aider ! »",
+          "Lumi fait briller sa corne pour chercher."
+        ],
+        "image": {
+          "image_id": "reya_page4",
+          "description": "Reya réconforte le lapin pendant que la licorne utilise sa magie."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Ils volent au-dessus des arbres.",
+          "Reya regarde partout avec ses jumelles.",
+          "Enfin, elle voit une maman lapin près d’un buisson."
+        ],
+        "image": {
+          "image_id": "reya_page5",
+          "description": "Reya et Lumi volant au-dessus de la forêt, Reya utilise des jumelles."
+        }
+      },
+      {
+        "page_number": 6,
+        "text": [
+          "Reya descend doucement avec Lumi.",
+          "Le petit lapin court vers sa maman.",
+          "Ils se font un gros câlin."
+        ],
+        "image": {
+          "image_id": "reya_page6",
+          "description": "Lapin et sa maman réunis, Reya et Lumi sourient."
+        }
+      },
+      {
+        "page_number": 7,
+        "text": [
+          "La maman lapin remercie Reya et Lumi.",
+          "Reya dit : « C’est normal d’aider les amis. »",
+          "Lumi fait un petit saut de joie."
+        ],
+        "image": {
+          "image_id": "reya_page7",
+          "description": "Reya et Lumi reçoivent des remerciements, ambiance joyeuse."
+        }
+      },
+      {
+        "page_number": 8,
+        "text": [
+          "Reya rentre au château avec Lumi.",
+          "Elle pense à tous les amis qu’elle veut aider.",
+          "Elle sourit : « Demain sera encore magique ! »"
+        ],
+        "image": {
+          "image_id": "reya_page8",
+          "description": "Reya et Lumi rentrent au château au coucher du soleil."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Qui est Lumi ?",
+        "options": ["Une fée", "Un lapin", "Une licorne", "Un dragon"],
+        "correct_index": 2
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Pourquoi Reya aide le petit lapin ?",
+        "options": ["Il est perdu", "Il a faim", "Il a peur de Lumi", "Il veut jouer"],
+        "correct_index": 0
+      }
+    ]
+  }
+  

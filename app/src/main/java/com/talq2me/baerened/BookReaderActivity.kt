@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -15,9 +18,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import java.util.Locale
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
- * Displays a book from assets/books/*.json with page image, text, TTS, and optional quiz.
+ * Displays a book from assets/books/ (JSON) with page image, text, TTS, and optional quiz.
  * - Page 0: Cover (first page image + title).
  * - Pages 1..N: Content (image + text, TTS; > enabled only after TTS finishes).
  * - Page N+1: "fin" (fr) or "the end" (en).
@@ -205,7 +210,7 @@ class BookReaderActivity : AppCompatActivity() {
     }
 
     private fun speakPageText(language: String?, lines: List<String>, doneUtteranceId: String) {
-        val locale = when (language?.lowercase().take(2)) {
+        val locale = when (language?.lowercase()?.take(2)) {
             "fr" -> Locale.FRENCH
             else -> Locale.US
         }
@@ -257,6 +262,7 @@ class BookReaderActivity : AppCompatActivity() {
                         (optionsContainer.getChildAt(j) as? Button)?.alpha = if (j == i) 1f else 0.6f
                     }
                     if (i == q.correctIndex) {
+                        showCorrectCelebration()
                         enableNextButton()
                     } else {
                         Toast.makeText(this@BookReaderActivity, "Try again!", Toast.LENGTH_SHORT).show()
@@ -288,6 +294,78 @@ class BookReaderActivity : AppCompatActivity() {
 
     private fun enableNextButton() {
         btnNext.isEnabled = true
+    }
+
+    private fun showCorrectCelebration() {
+        val content = findViewById<ViewGroup>(android.R.id.content)
+        val overlay = FrameLayout(this).apply {
+            setBackgroundColor(0x40000000)
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+        val message = TextView(this).apply {
+            text = "Correct! 🎉"
+            textSize = 32f
+            setTextColor(0xFF333333.toInt())
+            gravity = Gravity.CENTER
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { gravity = Gravity.CENTER }
+            scaleX = 0.3f
+            scaleY = 0.3f
+        }
+        overlay.addView(message)
+        val density = resources.displayMetrics.density
+        val particleSize = (14 * density).toInt()
+        val burstRadius = (90 * density).toFloat()
+        for (i in 0 until 12) {
+            val angle = Math.toRadians((i * 30).toDouble())
+            val dx = (burstRadius * cos(angle)).toFloat()
+            val dy = (burstRadius * sin(angle)).toFloat()
+            val p = View(this).apply {
+                setBackgroundResource(R.drawable.celebration_particle)
+                layoutParams = FrameLayout.LayoutParams(particleSize, particleSize).apply {
+                    gravity = Gravity.CENTER
+                }
+                translationX = 0f
+                translationY = 0f
+                alpha = 1f
+            }
+            overlay.addView(p)
+        }
+        content.addView(overlay)
+        message.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(250)
+            .withEndAction {
+                message.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
+            }
+            .start()
+        overlay.post {
+            for (i in 0 until overlay.childCount) {
+                val v = overlay.getChildAt(i)
+                if (v is View && v != message) {
+                    val angle = Math.toRadians(((i - 1) * 30).toDouble())
+                    val dx = (burstRadius * cos(angle)).toFloat()
+                    val dy = (burstRadius * sin(angle)).toFloat()
+                    v.animate()
+                        .translationX(dx)
+                        .translationY(dy)
+                        .alpha(0f)
+                        .setDuration(600)
+                        .start()
+                }
+            }
+        }
+        overlay.postDelayed({
+            if (overlay.parent != null) {
+                (overlay.parent as? ViewGroup)?.removeView(overlay)
+            }
+        }, 1500)
     }
 
     private fun goPrev() {

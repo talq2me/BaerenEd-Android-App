@@ -1,9 +1,10 @@
 @echo off
 REM Launch Android Emulator with DNS configuration for hotspot internet
-REM This script launches the Medium_Tablet_2 emulator with Google DNS servers
+REM This script finds an available AVD on this machine and launches it with Google DNS servers
 
-echo Launching Medium_Tablet_2 emulator with DNS configuration...
+echo Launching Android emulator with DNS configuration...
 echo DNS Servers: 8.8.8.8, 8.8.4.4
+echo.
 
 REM Try to find emulator in common locations
 set EMULATOR_PATH=
@@ -23,7 +24,22 @@ if exist "%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe" (
 echo Using emulator at: %EMULATOR_PATH%
 echo.
 
+REM Discover first available AVD on this machine
+set AVD_NAME=
+for /f "usebackq delims=" %%A in (`"%EMULATOR_PATH%" -list-avds 2^>nul`) do (
+    if not defined AVD_NAME set AVD_NAME=%%A
+)
+if not defined AVD_NAME (
+    echo ERROR: No AVDs found on this machine.
+    echo Create an AVD in Android Studio: Tools -^> Device Manager, or run: "%EMULATOR_PATH%" -list-avds
+    pause
+    exit /b 1
+)
+
+echo Using AVD: %AVD_NAME%
+echo.
+
 REM Launch emulator with DNS configuration
-"%EMULATOR_PATH%" -avd Medium_Tablet_2 -dns-server 8.8.8.8,8.8.4.4
+"%EMULATOR_PATH%" -avd %AVD_NAME% -dns-server 8.8.8.8,8.8.4.4
 
 pause

@@ -3,7 +3,7 @@ package com.talq2me.baerened
 import com.google.gson.annotations.SerializedName
 
 /**
- * Root model for book JSON in assets/books/*.json
+ * Root model for book JSON in assets/books/ (e.g. .json files).
  */
 data class BookJson(
     val id: String? = null,

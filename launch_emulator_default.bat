@@ -1,8 +1,8 @@
 @echo off
 REM Launch Android Emulator with default DNS settings (no custom DNS)
-REM This script launches the Medium_Tablet_2 emulator without DNS configuration
+REM This script finds an available AVD on this machine and launches it without DNS configuration
 
-echo Launching Medium_Tablet_2 emulator with default DNS settings...
+echo Launching Android emulator with default DNS settings...
 echo (No custom DNS - will use system default)
 echo.
 
@@ -24,7 +24,22 @@ if exist "%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe" (
 echo Using emulator at: %EMULATOR_PATH%
 echo.
 
+REM Discover first available AVD on this machine
+set AVD_NAME=
+for /f "usebackq delims=" %%A in (`"%EMULATOR_PATH%" -list-avds 2^>nul`) do (
+    if not defined AVD_NAME set AVD_NAME=%%A
+)
+if not defined AVD_NAME (
+    echo ERROR: No AVDs found on this machine.
+    echo Create an AVD in Android Studio: Tools -^> Device Manager, or run: "%EMULATOR_PATH%" -list-avds
+    pause
+    exit /b 1
+)
+
+echo Using AVD: %AVD_NAME%
+echo.
+
 REM Launch emulator WITHOUT DNS configuration (uses default)
-"%EMULATOR_PATH%" -avd Medium_Tablet_2
+"%EMULATOR_PATH%" -avd %AVD_NAME%
 
 pause

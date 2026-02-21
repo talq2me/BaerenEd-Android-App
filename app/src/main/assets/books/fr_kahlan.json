@@ -1,0 +1,152 @@
+{
+    "id": "kahlan-gentillesse-g4",
+    "title": "Kahlan et le Pouvoir de la Gentillesse",
+    "level": "FSL Grade 4",
+    "theme": "Courage et compassion",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Kahlan a 10 ans et rêve de devenir un super héros.",
+          "Il a les cheveux blond foncé et un regard déterminé.",
+          "Chaque jour, il s’entraîne à courir, sauter et grimper.",
+          "Il veut sauver le monde avec force et courage.",
+          "Son meilleur ami est un loup sage nommé Kai.",
+          "Kai pense que la gentillesse est plus puissante que la force."
+        ],
+        "image": {
+          "image_id": "kahlan_page1",
+          "description": "Garçon de 10 ans aux cheveux blond foncé s’entraînant dans un champ avec un loup à ses côtés, style anime aquarelle."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Un jour, Kahlan entend des cris près du village.",
+          "Il court avec Kai pour voir ce qui se passe.",
+          "Un garçon pleure parce que son cerf-volant est coincé dans un arbre.",
+          "Kahlan grimpe rapidement pour le récupérer.",
+          "Il descend avec le cerf-volant et le donne au garçon.",
+          "Kai sourit : « Tu as aidé sans combattre. »"
+        ],
+        "image": {
+          "image_id": "kahlan_page2",
+          "description": "Kahlan rend un cerf-volant à un garçon en pleurs, Kai le loup observe avec fierté."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Plus tard, Kahlan voit deux enfants qui se disputent.",
+          "Il veut intervenir comme un héros.",
+          "Mais Kai dit : « Écoute-les d’abord. »",
+          "Kahlan parle doucement aux enfants.",
+          "Il découvre qu’ils veulent jouer avec le même ballon.",
+          "Il propose de jouer tous ensemble."
+        ],
+        "image": {
+          "image_id": "kahlan_page3",
+          "description": "Kahlan aide deux enfants à se réconcilier pendant que Kai observe calmement."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Le soir, Kahlan se sent fier mais aussi confus.",
+          "Il demande à Kai : « Est-ce que je suis vraiment un héros ? »",
+          "Kai répond : « Être gentil demande du courage. »",
+          "Kahlan pense à ses actions de la journée.",
+          "Il n’a pas combattu, mais il a aidé.",
+          "Il commence à comprendre le vrai pouvoir."
+        ],
+        "image": {
+          "image_id": "kahlan_page4",
+          "description": "Kahlan et Kai regardent le coucher du soleil, expression pensive sur le visage de Kahlan."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Le lendemain, une vieille dame tombe dans la rue.",
+          "Kahlan court pour l’aider à se relever.",
+          "Il lui apporte de l’eau et l’aide à rentrer chez elle.",
+          "Elle lui dit : « Tu es un garçon très spécial. »",
+          "Kai lui fait un clin d’œil : « Encore une victoire de la gentillesse. »"
+        ],
+        "image": {
+          "image_id": "kahlan_page5",
+          "description": "Kahlan aide une vieille dame à marcher, Kai les suit doucement."
+        }
+      },
+      {
+        "page_number": 6,
+        "text": [
+          "Kahlan commence à porter une cape bleue.",
+          "Il dit : « C’est ma cape de gentillesse. »",
+          "Il aide les enfants à traverser la rue.",
+          "Il ramasse les déchets dans le parc.",
+          "Il écoute les histoires des personnes âgées.",
+          "Kai est toujours à ses côtés, fier."
+        ],
+        "image": {
+          "image_id": "kahlan_page6",
+          "description": "Kahlan avec une cape bleue aidant dans le village, Kai marche à côté de lui."
+        }
+      },
+      {
+        "page_number": 7,
+        "text": [
+          "Un jour, un garçon veut se battre avec Kahlan.",
+          "Kahlan respire profondément et dit : « Je ne veux pas me battre. »",
+          "Il parle calmement et propose de jouer à un jeu.",
+          "Le garçon accepte et sourit.",
+          "Kai dit : « Tu as gagné sans force. »",
+          "Kahlan comprend que la gentillesse peut changer les cœurs."
+        ],
+        "image": {
+          "image_id": "kahlan_page7",
+          "description": "Kahlan désamorce un conflit avec calme, Kai observe avec sagesse."
+        }
+      },
+      {
+        "page_number": 8,
+        "text": [
+          "Kahlan regarde le ciel étoilé avec Kai.",
+          "Il dit : « Je suis un héros, mais pas comme je pensais. »",
+          "Kai répond : « Tu es un héros du cœur. »",
+          "Kahlan sourit et serre Kai dans ses bras.",
+          "Il sait maintenant que la gentillesse est sa vraie force.",
+          "Et il est prêt à changer le monde, un geste à la fois."
+        ],
+        "image": {
+          "image_id": "kahlan_page8",
+          "description": "Kahlan et Kai regardent les étoiles, ambiance paisible et inspirante."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi Kahlan veut-il devenir un super héros ?",
+        "options": ["Pour être célèbre", "Pour aider les gens", "Pour impressionner Kai", "Pour gagner des combats"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Que pense Kai du vrai pouvoir ?",
+        "options": ["C’est la vitesse", "C’est la magie", "C’est la gentillesse", "C’est la force"],
+        "correct_index": 2
+      },
+      {
+        "id": "q3",
+        "type": "multiple_choice",
+        "question": "Comment Kahlan résout-il le conflit avec le garçon qui veut se battre ?",
+        "options": ["Il court", "Il se bat", "Il demande de l’aide", "Il parle calmement"],
+        "correct_index": 3
+      }
+    ]
+  }
+  

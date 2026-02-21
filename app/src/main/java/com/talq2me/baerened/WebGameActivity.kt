@@ -28,6 +28,7 @@ import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.MediaType.Companion.toMediaType
@@ -292,10 +293,13 @@ class WebGameActivity : AppCompatActivity() {
         fun loadJsonFile(fileName: String): String {
             val cacheFile = File(this@WebGameActivity.cacheDir, fileName)
 
-            // 1. Try fetching from GitHub first
+            // 1. Try fetching from GitHub first (cache-bust + force network so tablets always get latest)
             try {
-                val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$fileName"
-                val request = Request.Builder().url(url).build()
+                val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$fileName?nocache=${System.currentTimeMillis()}"
+                val request = Request.Builder()
+                    .url(url)
+                    .cacheControl(CacheControl.FORCE_NETWORK)
+                    .build()
                 httpClient.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         val body = response.body?.string()
