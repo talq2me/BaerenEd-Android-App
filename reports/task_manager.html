@@ -725,6 +725,16 @@
             return (fullSetsOf3 * 5) + (remainingStars === 1 ? 1 : remainingStars === 2 ? 3 : 0);
         }
 
+        // Current time in EST, format yyyy-MM-dd HH:mm:ss.SSS (matches Daily Reset Logic / app sync)
+        function nowEST() {
+            const t = new Date();
+            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const parts = tf.formatToParts(t);
+            const get = (type) => parts.find(p => p.type === type).value;
+            const pad2 = (s) => String(s).padStart(2, '0');
+            return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
+        }
+
         // Get stars for a task (from task data, config, or default)
         function getTaskStars(taskName, taskData, profile) {
             // First, check if stars are stored in the task data itself
@@ -923,7 +933,8 @@
                     required_tasks: data.required_tasks,
                     checklist_items: data.checklist_items,
                     berries_earned: profileMetrics[profile].berries_earned,
-                    banked_mins: profileMetrics[profile].banked_mins
+                    banked_mins: profileMetrics[profile].banked_mins,
+                    last_updated: nowEST()
                 })
             });
 
