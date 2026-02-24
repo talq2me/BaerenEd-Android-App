@@ -994,9 +994,10 @@ class DailyProgressManager(private val context: Context) {
             val existingProgress = requiredTasks[taskName]
             Log.d("DailyProgressManager", "CRITICAL: Checking existing progress for '$taskName': status=${existingProgress?.status}, exists=${existingProgress != null}")
             
-            // Get task from config to preserve visibility fields and get star value
+            // Get task or checklist item from config to preserve visibility fields and get star value
             val task = findTaskInConfig(taskId, config)
-            val taskStars = task?.stars ?: stars // Use stars from config if available, otherwise use passed stars
+            val checklistStars = findChecklistItemStarsInConfig(taskName, config)
+            val taskStars = task?.stars ?: checklistStars ?: stars // Prefer config so reward time is correct
             
             // CRITICAL: Always update the task with latest completion data, even if already complete
             // This ensures answer counts and status are current after each game completion
@@ -1018,20 +1019,21 @@ class DailyProgressManager(private val context: Context) {
             if (wasAlreadyComplete) {
                 Log.d("DailyProgressManager", "CRITICAL: Required task $taskId ($taskName) was already complete, but updated with latest completion data (correct=$correctAnswers, incorrect=$incorrectAnswers, questions=$questionsAnswered)")
             } else {
-                Log.d("DailyProgressManager", "CRITICAL: Required task $taskId ($taskName) completed, earned $stars stars (counts toward progress), stored $taskStars stars in TaskProgress")
+                Log.d("DailyProgressManager", "CRITICAL: Required task $taskId ($taskName) completed, earned $taskStars stars (counts toward progress), stored in TaskProgress")
             }
             Log.d("DailyProgressManager", "CRITICAL: Saved task with key: '$taskName', status: '${taskProgress.status}'")
             Log.d("DailyProgressManager", "CRITICAL: Current required tasks keys after save: ${requiredTasks.keys}")
             
-            // Only award stars if this is the first completion today
-            return if (wasAlreadyComplete) 0 else stars
+            // Only award stars if this is the first completion today. Return taskStars so reward time matches stored value (in case caller passed 0).
+            return if (wasAlreadyComplete) 0 else taskStars
         } else {
             // Practice tasks: ALWAYS award stars each time completed, banks reward time but doesn't affect progress
             // CRITICAL: Practice tasks are stored separately from required tasks
             val practiceTasks = getPracticeTasks()
             val task = findTaskInConfig(taskId, config)
-            val taskStars = task?.stars ?: stars // Use stars from config if available, otherwise use passed stars
-            
+            val checklistStars = findChecklistItemStarsInConfig(taskName, config)
+            val taskStars = task?.stars ?: checklistStars ?: stars // Prefer config so reward time is correct
+
             // For practice tasks: set correct/incorrect/questions and times_completed (additive)
             // Get existing progress to add to it
             val existingProgress = practiceTasks[taskName]
@@ -1052,7 +1054,7 @@ class DailyProgressManager(private val context: Context) {
             )
             practiceTasks[taskName] = taskProgress
             savePracticeTasks(practiceTasks)
-            Log.d("DailyProgressManager", "Practice task $taskId ($taskName) completed, earned $stars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time, stored $taskStars stars in TaskProgress")
+            Log.d("DailyProgressManager", "Practice task $taskId ($taskName) completed, earned $taskStars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time, stored in TaskProgress")
             
             // Increment cumulative times_completed for this practice task in database
             incrementPracticeTaskTimesCompleted(taskName)
@@ -1062,7 +1064,7 @@ class DailyProgressManager(private val context: Context) {
                 checkAndResetPracticeTasksIfAllCompleted(config)
             }
             
-            return stars  // Always return stars for practice tasks, regardless of previous completions
+            return taskStars  // Always return stars for practice tasks so reward time matches stored value
         }
     }
     
@@ -1163,6 +1165,14 @@ class DailyProgressManager(private val context: Context) {
         if (config == null) return null
         return config.sections?.flatMap { it.tasks?.filterNotNull() ?: emptyList() }
             ?.find { (it.launch ?: "") == taskId }
+    }
+
+    /** Finds a checklist item in config by label (taskName) and returns its star value for reward calculation. */
+    private fun findChecklistItemStarsInConfig(taskName: String, config: MainContent?): Int? {
+        if (config == null) return null
+        return config.sections?.flatMap { it.items?.filterNotNull() ?: emptyList() }
+            ?.find { (it.label ?: "") == taskName }
+            ?.stars
     }
 
     /**

@@ -1,4 +1,18 @@
 {
+          "title": "Sk Spellings",
+          "launch": "skSpelling",
+          "stars": 1,
+          "totalQuestions": 1
+        },
+        
+        {
+          "title": "UFLI Words",
+          "launch": "ufliLessonData",
+          "stars": 1,
+          "totalQuestions": 1,
+          "blockOutlines": true
+        },
+        {
           "title": "Kung Fu Form",
           "launch": "noviceKungFuVideos",
           "stars": 1,
@@ -26,4 +40,194 @@
           "launch": "uflivideos",
           "stars": 3,
           "videoSequence": "sequential"
+        },,
+        {
+          "title": "Ufli Home Videos",
+          "launch": "uflivideos",
+          "stars": 3,
+          "disable": "Jan 2, 2027",
+          "videoSequence": "sequential"
+        },
+        {
+          "title": "French UFLI",
+          "launch": "frenchUFLI",
+          "disable": "Jan 2, 2027",
+          "stars": 3,
+          "videoSequence": "sequential"
+        }{
+          "title": "UFLI Words",
+          "launch": "ufliLessonData",
+          "stars": 3,
+          "totalQuestions": 5,
+          "blockOutlines": true,
+          "displayDays": "mon"
+        },{
+          "title": "French Vowels",
+          "launch": "frenchVowels",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
+          "stars": 3,
+          "disable": "Jan 1, 2027",
+          "webGame": true
+        },
+
+        
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpellPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun",
+          "disable": "Jan 15, 2027"
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpellPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "disable": "Jan 1, 2027",
+          "webGame": true,
+          "extremedays": "mon,tue,wed",
+          "easydays": "thu,fri",
+          "harddays": "sat,sun"
+        },
+
+         {
+          "title": "Fr Spelling",
+          "launch": "frSpellPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun,mon",
+          "disable": "Jan 01, 2027"
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpellPhoto",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "tue,wed",
+          "harddays": "thu,fri",
+          "extremedays": "sat,sun,mon",
+          "disable": "Jan 01, 2027"
+        },
+        {
+          "title": "Kung Fu Form",
+          "launch": "advancedKungFuVideos",
+          "stars": 1,
+          "disable": "Jan 2, 2027",
+          "video": "FerrociousFist",
+          "videoSequence": "exact"
+        },
+        {
+          "title": "Kung Fu",
+          "launch": "intermediateKungFuVideos",
+          "disable": "Jan 2, 2027",
+          "stars": 1,
+          "videoSequence": "sequential"
+        },
+
+        {
+          "title": "Potion Maker",
+          "launch": "potionMaker",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/potionMaker.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Character Trait Hunter",
+          "launch": "characterTraitHunter",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/characterTraitHunter.html?file=characterTraits.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "What Happens Next?",
+          "launch": "whatHappensNext",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/whatHappensNext.html?file=whatHappensNext.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Recipe Builder",
+          "launch": "recipeBuilder",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/recipeBuilder.html?file=recipes.json",
+          "stars": 1,
+          "webGame": true
+        },
+        {
+          "title": "Treasure Map Quest",
+          "launch": "treasureMapQuest",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/treasureMapQuest.html?file=treasureQuests.json",
+          "stars": 1,
+          "webGame": true
+        },
+        {
+          "title": "Word Building Blocks",
+          "launch": "wordBuildingBlocks",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordBuildingBlocks.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Puzzle Adventure",
+          "launch": "wordPuzzleAdventure",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordPuzzleAdventure.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+
+        {
+          "title": "Potion Maker",
+          "launch": "potionMaker",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/potionMaker.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Character Trait Hunter",
+          "launch": "characterTraitHunter",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/characterTraitHunter.html?file=characterTraits.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "What Happens Next?",
+          "launch": "whatHappensNext",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/whatHappensNext.html?file=whatHappensNext.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Recipe Builder",
+          "launch": "recipeBuilder",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/recipeBuilder.html?file=recipes.json",
+          "stars": 1,
+          "webGame": true
+        },
+        {
+          "title": "Treasure Map Quest",
+          "launch": "treasureMapQuest",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/treasureMapQuest.html?file=treasureQuests.json",
+          "stars": 1,
+          "webGame": true
+        },
+        {
+          "title": "Word Building Blocks",
+          "launch": "wordBuildingBlocks",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordBuildingBlocks.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
+        },
+        {
+          "title": "Word Puzzle Adventure",
+          "launch": "wordPuzzleAdventure",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordPuzzleAdventure.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true
         },
