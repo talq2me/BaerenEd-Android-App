@@ -20,19 +20,17 @@
         }
         
         .game-container {
-            position: relative;
+            display: flex;
+            flex-direction: column;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
         }
         
         .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            flex-shrink: 0;
             background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
+            padding: 10px 15px;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             display: flex;
@@ -47,7 +45,7 @@
             color: #333;
             text-align: center;
             flex: 1;
-            min-width: 200px;
+            min-width: 120px;
         }
         
         .score-display {
@@ -59,19 +57,22 @@
         
         .game-area {
             position: relative;
+            flex: 1;
+            min-height: 0;
             width: 100%;
-            height: 100%;
-            margin-top: 80px;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
             background: linear-gradient(180deg, #87CEEB 0%, #98D8C8 50%, #F7DC6F 100%);
+            padding-bottom: 56px;
         }
         
         .hole {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: clamp(80px, 22vmin, 120px);
+            height: clamp(80px, 22vmin, 120px);
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #2c2c2c 0%, #1a1a1a 50%, #000 100%);
-            border: 8px solid #1a1a1a;
+            border: 6px solid #1a1a1a;
             box-shadow: 
                 inset 0 10px 30px rgba(0,0,0,0.8),
                 0 5px 15px rgba(0,0,0,0.5);
@@ -105,7 +106,7 @@
         
         .question-in-hole {
             position: absolute;
-            font-size: 1.2em;
+            font-size: clamp(0.7rem, 2.5vmin, 1.2em);
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -113,7 +114,7 @@
             pointer-events: none;
             text-align: center;
             line-height: 1.2;
-            padding: 5px;
+            padding: 4px;
         }
         
         .score-above-hole {
@@ -152,18 +153,18 @@
         
         .number {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: clamp(48px, 14vmin, 80px);
+            height: clamp(48px, 14vmin, 80px);
             border-radius: 50%;
             background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
-            border: 4px solid #FF4757;
+            border: 3px solid #FF4757;
             box-shadow: 
                 0 4px 10px rgba(0,0,0,0.3),
                 inset 0 2px 5px rgba(255,255,255,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5em;
+            font-size: clamp(1rem, 4vmin, 2.5em);
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -173,31 +174,33 @@
         }
         
         .number.ten-frame {
-            width: 100px;
-            height: 100px;
-            font-size: 0.9em;
-            padding: 5px;
+            width: clamp(56px, 16vmin, 100px);
+            height: clamp(56px, 16vmin, 100px);
+            font-size: clamp(0.5rem, 2.5vmin, 0.9em);
+            padding: 3px;
         }
         
         .number.math-expression {
-            width: 90px;
-            height: 90px;
-            font-size: 1.8em;
+            width: clamp(54px, 15vmin, 90px);
+            height: clamp(54px, 15vmin, 90px);
+            font-size: clamp(0.6rem, 3vmin, 1.8em);
         }
         
         .ten-frame-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(2, 1fr);
-            gap: 3px;
+            gap: 2px;
             width: 100%;
             height: 100%;
-            padding: 5px;
+            padding: 3px;
         }
         
         .ten-frame-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
+            min-width: 4px;
+            min-height: 4px;
             background: white;
             border-radius: 50%;
             box-shadow: 0 1px 2px rgba(0,0,0,0.3);
@@ -553,6 +556,11 @@
             }
         }
 
+        function getHoleSize() {
+            const rect = holeElement.getBoundingClientRect();
+            return Math.max(rect.width, rect.height) || 80;
+        }
+
         function startGame() {
             loadConfig();
             generateProblems();
@@ -564,14 +572,18 @@
             currentQuestionScore = 0;
             updateScoreAboveHole();
             
-            // Position hole in center
-            const holeSize = 120;
-            holeElement.style.left = (window.innerWidth / 2 - holeSize / 2) + 'px';
-            holeElement.style.top = (window.innerHeight / 2 - holeSize / 2 + 80) + 'px';
-            
+            positionHoleCenter();
             setupHoleDrag();
             startCollisionLoop();
             loadNextProblem();
+        }
+        
+        function positionHoleCenter() {
+            const w = gameArea.clientWidth;
+            const h = gameArea.clientHeight;
+            const holeSize = getHoleSize();
+            holeElement.style.left = Math.max(0, (w - holeSize) / 2) + 'px';
+            holeElement.style.top = Math.max(0, (h - holeSize) / 2) + 'px';
         }
         
         function startCollisionLoop() {
@@ -608,7 +620,7 @@
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 
                 const gameAreaRect = gameArea.getBoundingClientRect();
-                const holeSize = 120;
+                const holeSize = getHoleSize();
                 const maxX = gameAreaRect.width - holeSize;
                 const maxY = gameAreaRect.height - holeSize;
                 
@@ -843,15 +855,15 @@
         }
 
         function createNumbers() {
-            const gameAreaRect = gameArea.getBoundingClientRect();
-            const numCount = 15; // Total numbers on screen (increased from 8)
-            const correctCount = 5; // How many correct answers (increased from 3)
+            const areaW = gameArea.clientWidth;
+            const areaH = gameArea.clientHeight;
+            const gameAreaRect = { width: areaW, height: areaH };
+            const numCount = 15;
+            const correctCount = 5;
             const wrongCount = numCount - correctCount;
             
-            // Reset current question score (but keep total score)
             currentQuestionScore = 0;
             
-            // Create correct answer numbers with different formats
             for (let i = 0; i < correctCount; i++) {
                 const format = getRandomFormat(currentAnswer);
                 const num = createNumberElement(currentAnswer, format);
@@ -859,7 +871,6 @@
                 numbers.push({ element: num, value: currentAnswer, format: format });
             }
 
-            // Create wrong answer numbers
             const wrongAnswers = generateWrongAnswers(wrongCount);
             wrongAnswers.forEach(value => {
                 const format = getRandomFormat(value);
@@ -1056,26 +1067,51 @@ function getRandomFormat(value) {
             return [...new Set(expressions)];
         }
 
+        function getPlacementCellSize() {
+            const w = gameArea.clientWidth;
+            const h = gameArea.clientHeight;
+            const cols = 5;
+            const rows = 3;
+            const pad = Math.min(12, w * 0.02, h * 0.02);
+            const cellW = (w - pad * 2) / cols;
+            const cellH = (h - pad * 2) / rows;
+            return { size: Math.min(cellW, cellH) * 0.85, pad, cols, rows };
+        }
+
         function placeNumberRandomly(element, gameAreaRect) {
-            // Get actual size of the element (ten frames are larger)
-            const isTenFrame = element.classList.contains('ten-frame');
-            const numSize = isTenFrame ? 100 : 80;
-            const padding = 50;
-            const holeSize = 120;
-            const minDistance = 100; // Minimum distance between numbers
+            const w = gameAreaRect.width;
+            const h = gameAreaRect.height;
+            const { size: numSize, pad: padding } = getPlacementCellSize();
+            const holeSize = getHoleSize();
+            const minDistance = numSize * 0.9;
+            const maxX = Math.max(0, w - numSize - padding);
+            const maxY = Math.max(0, h - numSize - padding);
             
             let x, y;
             let attempts = 0;
-            const maxAttempts = 100;
+            const maxAttempts = 150;
             
             do {
-                x = Math.random() * (gameAreaRect.width - numSize - padding * 2) + padding;
-                y = Math.random() * (gameAreaRect.height - numSize - padding * 2) + padding;
+                x = padding + Math.random() * (maxX - padding);
+                y = padding + Math.random() * (maxY - padding);
+                x = Math.max(padding, Math.min(maxX, x));
+                y = Math.max(padding, Math.min(maxY, y));
                 attempts++;
             } while (attempts < maxAttempts && (
                 isTooCloseToHole(x, y, numSize, holeSize) || 
                 isOverlappingWithNumbers(x, y, numSize)
             ));
+            
+            if (attempts >= maxAttempts) {
+                const { cols, rows } = getPlacementCellSize();
+                const idx = numbers.length;
+                const col = idx % cols;
+                const row = Math.floor(idx / cols);
+                const cellW = (w - padding * 2 - numSize) / Math.max(1, cols - 1);
+                const cellH = (h - padding * 2 - numSize) / Math.max(1, rows - 1);
+                x = Math.min(maxX, padding + col * cellW);
+                y = Math.min(maxY, padding + row * cellH);
+            }
             
             element.style.left = x + 'px';
             element.style.top = y + 'px';
@@ -1085,14 +1121,13 @@ function getRandomFormat(value) {
         function isOverlappingWithNumbers(x, y, numSize) {
             const numCenterX = x + numSize / 2;
             const numCenterY = y + numSize / 2;
-            const minDistance = 100; // Minimum distance between numbers
+            const minDistance = numSize * 1.05;
             
             for (const numberObj of numbers) {
                 const existingElement = numberObj.element;
-                const existingRect = existingElement.getBoundingClientRect();
-                const existingSize = existingElement.classList.contains('ten-frame') ? 100 : 80;
                 const existingX = parseFloat(existingElement.style.left) || 0;
                 const existingY = parseFloat(existingElement.style.top) || 0;
+                const existingSize = numSize;
                 const existingCenterX = existingX + existingSize / 2;
                 const existingCenterY = existingY + existingSize / 2;
                 
@@ -1162,13 +1197,13 @@ function getRandomFormat(value) {
         
         // Handle window resize
         window.addEventListener('resize', () => {
-            if (holeElement) {
-                const holeSize = 120;
+            if (holeElement && gameArea) {
+                const holeSize = getHoleSize();
                 const currentLeft = parseFloat(holeElement.style.left) || 0;
                 const currentTop = parseFloat(holeElement.style.top) || 0;
                 
-                const maxX = gameArea.offsetWidth - holeSize;
-                const maxY = gameArea.offsetHeight - holeSize;
+                const maxX = Math.max(0, gameArea.clientWidth - holeSize);
+                const maxY = Math.max(0, gameArea.clientHeight - holeSize);
                 
                 holeElement.style.left = Math.max(0, Math.min(maxX, currentLeft)) + 'px';
                 holeElement.style.top = Math.max(0, Math.min(maxY, currentTop)) + 'px';
