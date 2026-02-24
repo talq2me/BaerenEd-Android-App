@@ -92,7 +92,7 @@
           "launch": "canadianMoneyEasy",
           "stars": 3,
           "totalQuestions": 5,
-          "displayDays": "tue"
+          "displayDays": "wed"
         },
         {
           "title": "Sentence Builder",
@@ -118,7 +118,7 @@
           "stars": 3,
           "webGame": true,
           "totalQuestions": 5,
-          "displayDays": "tue,fri"
+          "displayDays": "wed,fri"
         },
         {
           "title": "Word Garden",
