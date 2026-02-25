@@ -72,36 +72,7 @@
           "harddays": "sat,sun",
           "displayDays": "thu,fri,sat,sun"
         },
-        {
-          "title": "Fr Spelling",
-          "launch": "frSpellPhoto",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
-          "stars": 3,
-          "webGame": true,
-          "extremedays": "mon,tue,wed",
-          "easydays": "thu,fri",
-          "harddays": "sat,sun",
-          "disable": "Jan 15, 2027"
-        },
-        {
-          "title": "Eng Spelling",
-          "launch": "engSpellPhoto",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
-          "stars": 3,
-          "disable": "Jan 1, 2027",
-          "webGame": true,
-          "extremedays": "mon,tue,wed",
-          "easydays": "thu,fri",
-          "harddays": "sat,sun"
-        },
-        {
-          "title": "French Vowels",
-          "launch": "frenchVowels",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
-          "stars": 3,
-          "disable": "Jan 1, 2027",
-          "webGame": true
-        },
+        
         {
           "title": "Time Telling",
           "launch": "timeTelling",
@@ -121,7 +92,7 @@
           "launch": "canadianMoneyEasy",
           "stars": 3,
           "totalQuestions": 5,
-          "displayDays": "tue"
+          "displayDays": "wed"
         },
         {
           "title": "Sentence Builder",
@@ -130,14 +101,7 @@
           "totalQuestions": 3,
           "blockOutlines": true
         },
-        {
-          "title": "UFLI Words",
-          "launch": "ufliLessonData",
-          "stars": 3,
-          "totalQuestions": 5,
-          "blockOutlines": true,
-          "displayDays": "mon"
-        },
+        
         {
           "title": "Snake Catch",
           "launch": "snakeCatch",
@@ -154,7 +118,7 @@
           "stars": 3,
           "webGame": true,
           "totalQuestions": 5,
-          "displayDays": "tue,fri"
+          "displayDays": "wed,fri"
         },
         {
           "title": "Word Garden",
@@ -206,20 +170,6 @@
           "chromePage": true,
           "disable": "Jan 2, 2026",
           "displayDays": "tue,fri"
-        },
-        {
-          "title": "Ufli Home Videos",
-          "launch": "uflivideos",
-          "stars": 3,
-          "disable": "Jan 2, 2027",
-          "videoSequence": "sequential"
-        },
-        {
-          "title": "French UFLI",
-          "launch": "frenchUFLI",
-          "disable": "Jan 2, 2027",
-          "stars": 3,
-          "videoSequence": "sequential"
         }
       ]
     },
@@ -252,12 +202,7 @@
           "stars": 1,
           "totalQuestions": 1
         },
-        {
-          "title": "Sk Spellings",
-          "launch": "skSpelling",
-          "stars": 1,
-          "totalQuestions": 1
-        },
+        
         {
           "title": "French Vowels",
           "launch": "frenchVowels",
@@ -281,14 +226,6 @@
         {
           "title": "Sentence Builder",
           "launch": "englishSentences",
-          "stars": 1,
-          "totalQuestions": 1,
-          "blockOutlines": true
-        },
-        
-        {
-          "title": "UFLI Words",
-          "launch": "ufliLessonData",
           "stars": 1,
           "totalQuestions": 1,
           "blockOutlines": true
@@ -405,11 +342,6 @@
           "title": "Bill Nye S5",
           "launch": "PLPRHyuvWJ00aY9ADp6BllXvnTFxBT7YI8",
           "videoSequence": "playlist"
-        },
-        {
-          "title": "Printing Practice",
-          "launch": "printing",
-          "stars": 3
         }
       ]
     }
