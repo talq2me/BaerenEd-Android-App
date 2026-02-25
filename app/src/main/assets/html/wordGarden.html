@@ -534,6 +534,12 @@
                     e.stopPropagation();
                     plot.classList.remove('drag-over');
                     
+                    // Don't allow more than one letter per plot (prevents stuck state)
+                    if (plantedLetters[i] || plot.querySelector('.letter-seed')) {
+                        window.draggedLetterItem = null;
+                        return false;
+                    }
+                    
                     // Try to get data from dataTransfer
                     let letter = e.dataTransfer.getData('text/plain');
                     
@@ -650,7 +656,10 @@
                         const plot = elementBelow.closest('.garden-plot') || 
                                     (elementBelow.classList.contains('garden-plot') ? elementBelow : null);
                         if (plot) {
-                            plantLetterOnPlot(letterItem, letter.toLowerCase(), parseInt(plot.dataset.index));
+                            const plotIndex = parseInt(plot.dataset.index);
+                            if (!plantedLetters[plotIndex] && !plot.querySelector('.letter-seed')) {
+                                plantLetterOnPlot(letterItem, letter.toLowerCase(), plotIndex);
+                            }
                         }
                     }
                     letterItem.classList.remove('dragging');
@@ -674,6 +683,9 @@
             if (!plot) {
                 return false;
             }
+            
+            // Reserve this plot immediately so a second drag to the same plot is rejected
+            plantedLetters[plotIndex] = letter;
             
             // Get plot center position
             const plotRect = plot.getBoundingClientRect();
