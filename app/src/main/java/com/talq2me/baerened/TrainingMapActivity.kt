@@ -185,14 +185,20 @@ class TrainingMapActivity : AppCompatActivity() {
             ).apply {
                 setMargins(0, (16 * density).toInt(), 0, (16 * density).toInt())
             }
-            // Map background image
+            // Map background image (prefer .webp, fall back to .png)
             try {
-                val bitmap = android.graphics.BitmapFactory.decodeStream(assets.open("images/map1.png"))
+                val path = try {
+                    assets.open("images/map1.webp").close()
+                    "images/map1.webp"
+                } catch (_: Exception) {
+                    "images/map1.png"
+                }
+                val bitmap = android.graphics.BitmapFactory.decodeStream(assets.open(path))
                 val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
                 background = drawable
             } catch (e: Exception) {
                 // Fallback to brown if image not found
-                android.util.Log.e("TrainingMapActivity", "Could not load map1.png", e)
+                android.util.Log.e("TrainingMapActivity", "Could not load map1.webp or map1.png", e)
                 background = android.graphics.drawable.GradientDrawable().apply {
                     setColor(android.graphics.Color.parseColor("#8b6914"))
                     cornerRadius = (10 * density)

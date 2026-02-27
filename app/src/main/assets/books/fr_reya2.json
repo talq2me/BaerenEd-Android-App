@@ -1,0 +1,128 @@
+{
+    "id": "reya-lumi-oiseau-g1",
+    "title": "Reya, Lumi et l’Oiseau Perdu",
+    "level": "French Immersion Grade 1",
+    "theme": "L'entraide",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Reya et Lumi marchent près de la rivière.",
+          "Il y a beaucoup de vent aujourd'hui.",
+          "Le ciel devient gris."
+        ],
+        "image": {
+          "image_id": "reya_page1",
+          "description": "Reya et Lumi près d'une rivière avec du vent fort dans les arbres."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "Elles voient un petit nid par terre.",
+          "Le nid est tombé de l'arbre.",
+          "« Oh non ! » dit la princesse Reya."
+        ],
+        "image": {
+          "image_id": "reya_page2",
+          "description": "Un petit nid d'oiseau sur le sol avec Reya qui le regarde avec tristesse."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Un petit oiseau bleu pleure.",
+          "Il ne peut pas voler très haut.",
+          "Il veut retourner dans son arbre."
+        ],
+        "image": {
+          "image_id": "reya_page3",
+          "description": "Un petit oiseau bleu avec une aile tremblante à côté du nid."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Lumi dit : « Ne t'inquiète pas, petit oiseau. »",
+          "Lumi s'abaisse pour aider l'oiseau.",
+          "Reya ramasse doucement le nid."
+        ],
+        "image": {
+          "image_id": "reya_page4",
+          "description": "Lumi s'agenouille et Reya tient le petit nid dans ses mains."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Reya monte sur le dos de Lumi.",
+          "Elle tient le nid très fort.",
+          "Lumi est prête à sauter."
+        ],
+        "image": {
+          "image_id": "reya_page5",
+          "description": "Reya assise sur Lumi, tenant le nid, Lumi se préparant à sauter vers une branche."
+        }
+      },
+      {
+        "page_number": 6,
+        "text": [
+          "La corne de Lumi brille pour aider Reya.",
+          "Reya place le nid sur une branche haute.",
+          "L'oiseau est en sécurité maintenant."
+        ],
+        "image": {
+          "image_id": "reya_page6",
+          "description": "Reya tendant les bras pour remettre le nid dans l'arbre alors que la corne de Lumi illumine la branche."
+        }
+      },
+      {
+        "page_number": 7,
+        "text": [
+          "L'oiseau chante une jolie chanson.",
+          "Il est très heureux d'être à la maison.",
+          "« Merci, mes amies ! » chante-t-il."
+        ],
+        "image": {
+          "image_id": "reya_page7",
+          "description": "L'oiseau bleu perché dans son nid chantant, Reya et Lumi qui regardent en souriant."
+        }
+      },
+      {
+        "page_number": 8,
+        "text": [
+          "Le soleil revient enfin.",
+          "Reya et Lumi continuent leur promenade.",
+          "C'est bien d'aider les petits amis !"
+        ],
+        "image": {
+          "image_id": "reya_page8",
+          "description": "Reya et Lumi s'éloignant sous un arc-en-ciel, l'air joyeux."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Qu'est-ce qui est tombé par terre ?",
+        "options": ["Un fruit", "Un nid", "Une fleur", "Un chapeau"],
+        "correct_index": 1
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "De quelle couleur est l'oiseau ?",
+        "options": ["Rouge", "Vert", "Jaune", "Bleu"],
+        "correct_index": 3
+      },
+      {
+        "id": "q3",
+        "type": "multiple_choice",
+        "question": "Comment Reya remet-elle le nid dans l'arbre ?",
+        "options": ["Avec une échelle", "En montant sur Lumi", "En lançant le nid", "Avec un ballon"],
+        "correct_index": 1
+      }
+    ]
+  }

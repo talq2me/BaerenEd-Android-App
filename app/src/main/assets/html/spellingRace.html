@@ -384,6 +384,15 @@
         }
 
         function startRace() {
+            // Clear any existing intervals so we never have duplicates (fixes ghost robot + 76%/95% flicker)
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            if (opponentInterval) { clearInterval(opponentInterval); opponentInterval = null; }
+            // Reset opponent and player position so robot starts at start each round
+            document.getElementById('opponentRacer').style.left = '3%';
+            document.getElementById('opponentProgress').textContent = '0%';
+            document.getElementById('playerRacer').style.left = '3%';
+            document.getElementById('playerProgress').textContent = '0%';
+
             raceStarted = true;
             startTime = Date.now();
             document.getElementById('spellingInput').focus();
@@ -404,7 +413,8 @@
                 document.getElementById('opponentRacer').style.left = leftPercent + '%';
             }, 200);
             
-            // Listen for input
+            // Listen for input (remove first to avoid duplicate listeners on retry)
+            document.getElementById('spellingInput').removeEventListener('input', checkSpelling);
             document.getElementById('spellingInput').addEventListener('input', checkSpelling);
         }
 

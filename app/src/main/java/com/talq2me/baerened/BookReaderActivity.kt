@@ -111,6 +111,10 @@ class BookReaderActivity : AppCompatActivity() {
 
     private fun bindViews() {
         imageView = findViewById(R.id.book_image)
+        // Resize image to fit screen: cap height so image scales down on small/large screens
+        val displayMetrics = resources.displayMetrics
+        val maxImageHeight = (displayMetrics.heightPixels * 0.55).toInt().coerceAtLeast(180)
+        imageView.maxHeight = maxImageHeight
         textContainer = findViewById(R.id.book_text_container)
         pageText = findViewById(R.id.book_page_text)
         titleText = findViewById(R.id.book_title_text)
@@ -191,7 +195,14 @@ class BookReaderActivity : AppCompatActivity() {
         textContainer.visibility = View.GONE
         endText.visibility = View.GONE
         questionContainer.visibility = View.GONE
-        enableNextButton()
+        val titleToSpeak = b.title?.trim()
+        if (titleToSpeak.isNullOrEmpty()) {
+            enableNextButton()
+        } else {
+            btnNext.isEnabled = false
+            ttsUtteranceIdForPage = "book_tts_cover_done"
+            speakSingleLine(b.language, titleToSpeak, ttsUtteranceIdForPage!!)
+        }
     }
 
     private fun showContentPage(b: BookJson, pageIndex: Int) {
@@ -207,6 +218,16 @@ class BookReaderActivity : AppCompatActivity() {
         btnNext.isEnabled = false
         ttsUtteranceIdForPage = "book_tts_${currentIndex}_done"
         speakPageText(b.language, page.text, ttsUtteranceIdForPage!!)
+    }
+
+    private fun speakSingleLine(language: String?, text: String, doneUtteranceId: String) {
+        val locale = when (language?.lowercase()?.take(2)) {
+            "fr" -> Locale.FRENCH
+            else -> Locale.US
+        }
+        TtsManager.whenReady(Runnable {
+            TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, doneUtteranceId)
+        })
     }
 
     private fun speakPageText(language: String?, lines: List<String>, doneUtteranceId: String) {
@@ -232,9 +253,12 @@ class BookReaderActivity : AppCompatActivity() {
         textContainer.visibility = View.GONE
         imageView.visibility = View.GONE
         endText.visibility = View.VISIBLE
-        endText.text = if (b.language?.lowercase()?.startsWith("fr") == true) "fin" else "The End"
+        val endStr = if (b.language?.lowercase()?.startsWith("fr") == true) "fin" else "The End"
+        endText.text = endStr
         questionContainer.visibility = View.GONE
-        enableNextButton()
+        btnNext.isEnabled = false
+        ttsUtteranceIdForPage = "book_tts_end_done"
+        speakSingleLine(b.language, endStr, ttsUtteranceIdForPage!!)
     }
 
     private fun showQuestion(b: BookJson, questionIndex: Int) {
@@ -280,15 +304,24 @@ class BookReaderActivity : AppCompatActivity() {
 
     private fun loadPageImage(page: BookPage) {
         val imageId = page.image?.imageId ?: return
-        val path = "books/images/$imageId.png"
+        // Prefer .webp (smaller), fall back to .png for older assets
+        val pathWebp = "books/images/$imageId.webp"
+        val pathPng = "books/images/$imageId.png"
         try {
-            assets.open(path).use { stream ->
+            assets.open(pathWebp).use { stream ->
                 val bitmap = BitmapFactory.decodeStream(stream)
                 imageView.setImageBitmap(bitmap)
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not load image: $path", e)
-            imageView.setImageDrawable(null)
+        } catch (_: Exception) {
+            try {
+                assets.open(pathPng).use { stream ->
+                    val bitmap = BitmapFactory.decodeStream(stream)
+                    imageView.setImageBitmap(bitmap)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not load image: $pathWebp or $pathPng", e)
+                imageView.setImageDrawable(null)
+            }
         }
     }
 

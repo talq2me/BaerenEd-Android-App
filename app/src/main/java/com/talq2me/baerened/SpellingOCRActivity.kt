@@ -317,8 +317,9 @@ class SpellingOCRActivity : AppCompatActivity() {
             
             // Upload image with correct status (only once per word)
             // Use the expected word (from JSON), NOT the OCR recognized text
+            // Pass currentWordIndex now so async upload uses correct question number (1-based in report)
             if (!hasUploadedImage) {
-                uploadSpellingImage(drawing, wordData, isCorrect, expectedWord)
+                uploadSpellingImage(drawing, wordData, isCorrect, expectedWord, currentWordIndex)
                 hasUploadedImage = true
             }
             
@@ -606,8 +607,9 @@ class SpellingOCRActivity : AppCompatActivity() {
      * Task format: "EngSpellingOCR-01-uncooked-X" or "EngSpellingOCR-01-uncooked-✓"
      * Uploads once per word with the final correct/incorrect status
      * @param expectedWord The word that was asked to be spelled (from JSON), NOT the OCR recognized text
+     * @param wordIndex 0-based index of the word (so question number in report is wordIndex+1, starting at 1)
      */
-    private fun uploadSpellingImage(bitmap: Bitmap, wordData: WordData, isCorrect: Boolean, expectedWord: String) {
+    private fun uploadSpellingImage(bitmap: Bitmap, wordData: WordData, isCorrect: Boolean, expectedWord: String, wordIndex: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val cloudSyncService = CloudSyncService()
@@ -617,7 +619,7 @@ class SpellingOCRActivity : AppCompatActivity() {
                 }
                 
                 val profile = SettingsManager.readProfile(this@SpellingOCRActivity) ?: "AM"
-                val questionNumber = String.format("%02d", currentWordIndex + 1)
+                val questionNumber = String.format("%02d", wordIndex + 1)
                 
                 // Determine game name (EngSpellingOCR or FrSpellingOCR)
                 val gameName = when {

@@ -43,6 +43,8 @@ object TtsManager {
             if (TtsHelper.selectBestEnglishVoice(engine) == null) {
                 engine.setLanguage(Locale.ENGLISH)
             }
+            // Slightly slower than default (1.0) so speech is easier to follow
+            engine.setSpeechRate(0.85f)
             ready = true
             utteranceProgressListener?.let { engine.setOnUtteranceProgressListener(it) }
             Log.d(TAG, "TTS initialized (English pre-warmed)")

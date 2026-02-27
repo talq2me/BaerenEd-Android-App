@@ -543,10 +543,21 @@ class GameActivity : AppCompatActivity() {
                     setMargins(8, 0, 8, 0) // Add some spacing between images
                 }
 
-                // Load bitmap asynchronously to avoid blocking UI thread
+                // Load bitmap asynchronously (prefer .webp, fall back to .png)
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
-                        val afd = assets.openFd(it)
+                        val path = if (it.endsWith(".png")) {
+                            val webpPath = it.replace(".png", ".webp")
+                            try {
+                                assets.open(webpPath).close()
+                                webpPath
+                            } catch (_: Exception) {
+                                it
+                            }
+                        } else {
+                            it
+                        }
+                        val afd = assets.openFd(path)
                         val bmp = BitmapFactory.decodeStream(afd.createInputStream())
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             img.setImageBitmap(bmp)

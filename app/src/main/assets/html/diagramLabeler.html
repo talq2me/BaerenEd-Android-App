@@ -626,18 +626,12 @@
             
             // Set image source
             // The image path in JSON is like "diagrams/circulatorySystem.png"
-            // We need to construct: file:///android_asset/images/diagrams/circulatorySystem.png
             const imagePath = currentDiagram.image || '';
-            
             const isAndroid = window.Android !== undefined;
             let imageSrc;
-            
             if (isAndroid) {
-                // For Android assets: file:///android_asset/images/diagrams/filename.png
-                // Maps to assets/images/diagrams/filename.png
                 imageSrc = `file:///android_asset/images/${imagePath}`;
             } else {
-                // For web/GitHub: https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/diagrams/filename.png
                 const githubBase = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
                 imageSrc = `${githubBase}/images/${imagePath}`;
             }
@@ -665,17 +659,13 @@
                 console.error('✗ Failed to load image:', this.src);
                 console.error('  Original path from JSON:', imagePath);
                 fallbackAttempt++;
-                
                 if (isAndroid) {
-                    // Try alternative Android paths
                     let altPath;
                     if (fallbackAttempt === 1) {
-                        // Try with just the filename (assuming diagrams/ is already in path)
                         const filename = imagePath.replace(/^.*\//, '');
                         altPath = `file:///android_asset/images/diagrams/${filename}`;
                         console.log('  Trying fallback 1:', altPath);
                     } else if (fallbackAttempt === 2) {
-                        // Try direct path without images/ prefix
                         altPath = `file:///android_asset/${imagePath}`;
                         console.log('  Trying fallback 2:', altPath);
                     } else {
@@ -684,15 +674,13 @@
                               'assets/images/' + imagePath);
                         return;
                     }
-                    
-                    this.onerror = img.onerror; // Keep the same handler for next attempt
+                    this.onerror = img.onerror;
                     this.src = altPath;
                 } else {
-                    // For web, try relative path
                     if (fallbackAttempt === 1) {
                         const relativePath = `../images/${imagePath}`;
                         console.log('  Trying relative path:', relativePath);
-                        this.onerror = img.onerror; // Keep the same handler
+                        this.onerror = img.onerror;
                         this.src = relativePath;
                     } else {
                         alert('Failed to load diagram image: ' + imagePath + 

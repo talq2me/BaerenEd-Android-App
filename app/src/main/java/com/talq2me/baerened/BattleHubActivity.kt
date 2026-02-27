@@ -144,16 +144,22 @@ class BattleHubActivity : AppCompatActivity() {
             mainContentJson = ContentUpdateService().getCachedMainContent(this)
         }
         
-        // Set arena background image
+        // Set arena background image (prefer .webp, fall back to .png)
         window.setBackgroundDrawableResource(android.R.color.transparent)
         val root = window.decorView.rootView
         try {
-            val bitmap = android.graphics.BitmapFactory.decodeStream(assets.open("images/arena.png"))
+            val path = try {
+                assets.open("images/arena.webp").close()
+                "images/arena.webp"
+            } catch (_: Exception) {
+                "images/arena.png"
+            }
+            val bitmap = android.graphics.BitmapFactory.decodeStream(assets.open(path))
             val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
             root.background = drawable
         } catch (e: Exception) {
             // Fallback to gradient if image not found
-            android.util.Log.e("BattleHubActivity", "Could not load arena.png", e)
+            android.util.Log.e("BattleHubActivity", "Could not load arena.webp or arena.png", e)
             root.setBackgroundColor(0xFF667EEA.toInt())
         }
         
@@ -1435,7 +1441,6 @@ class BattleHubActivity : AppCompatActivity() {
 
     private fun parsePokemonFilename(filename: String): ParsedPokemon? {
         if (!filename.endsWith(".png")) return null
-        
         val base = filename.replace(".png", "")
         val shiny = base.endsWith("-s")
         val baseNoShiny = if (shiny) base.substring(0, base.length - 2) else base

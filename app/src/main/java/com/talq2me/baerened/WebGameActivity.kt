@@ -372,8 +372,6 @@ class WebGameActivity : AppCompatActivity() {
                 val buffer = ByteArray(size)
                 inputStream.read(buffer)
                 inputStream.close()
-                
-                // Convert to base64
                 val base64 = android.util.Base64.encodeToString(buffer, android.util.Base64.NO_WRAP)
                 "data:image/png;base64,$base64"
             } catch (e: Exception) {
