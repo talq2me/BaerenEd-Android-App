@@ -1,10 +1,10 @@
 [
-  {"word":"un","sentence":"J'ai un chat à la maison."},
-  {"word":"une","sentence":"Elle a une pomme rouge."},
-  {"word":"bébé","sentence":"Le bébé dort dans son lit."},
-  {"word":"lune","sentence":"La lune brille dans le ciel."},
-  {"word":"maman","sentence":"Maman prépare le dîner."},
-  {"word":"mot","sentence":"Il ne dit pas un mot."},
-  {"word":"papa","sentence":"Papa lit le journal."},
-  {"word":"lire","sentence":"Je veux lire ce livre."}
+  {"word":"ami","sentence":"Léo est mon ami."},
+  {"word":"amie","sentence":"Léa est mon amie."},
+  {"word":"jour","sentence":"C'est un beau jour."},
+  {"word":"journée","sentence":"Bonne journée!"},
+  {"word":"avoir","sentence":"Je veux avoir un chien."},
+  {"word":"être","sentence":"Je veux être grand."},
+  {"word":"j'ai","sentence":"J'ai un ballon rouge."},
+  {"word":"je suis","sentence":"Je suis content."}
 ]
