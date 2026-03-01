@@ -84,7 +84,10 @@ class DailyResetAndSyncManager(private val context: Context) {
         }
         
         if (isLocalToday) {
-            Log.d(TAG, "Local last_reset is today, no reset needed")
+            // CRITICAL: Still refresh required_tasks from GitHub so cloud stays in sync with config we display.
+            // Otherwise the map shows new config (from createMapView's fetch) but required_tasks and Supabase stay old.
+            Log.d(TAG, "Local last_reset is today, refreshing required_tasks from GitHub so cloud matches display")
+            getContentFromJson(profile, updateTimestamp = true)
             return@withContext
         }
         

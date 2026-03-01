@@ -108,7 +108,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "displayDays": "tue,fri"
+          "displayDays": "tue,fri,sat"
         },
         
         {
@@ -126,7 +126,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
           "stars": 3,
           "webGame": true,
-          "displayDays": "tue,fri"
+          "displayDays": "tue,fri,sun"
         },
         {
           "title": "Number Line Math",

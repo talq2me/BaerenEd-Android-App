@@ -107,10 +107,9 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Jan 2, 2026",
           "easydays": "tue,wed",
           "harddays": "thu,fri",
-          "displayDays": "tue,wed,thu,fri"
+          "displayDays": "tue,wed,thu,fri,sat,sun,mon"
         },
         
         {
