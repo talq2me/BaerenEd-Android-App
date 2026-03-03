@@ -27,6 +27,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.util.*
 
@@ -138,43 +139,53 @@ class SpellingOCRActivity : AppCompatActivity() {
             }
         })
         
-        // Load words from JSON
+        // Load words from JSON (GitHub first, then cache, then assets - same as Word Garden)
         loadWords()
         
         // Setup button listeners
         setupButtons()
-        
-        // Start first word (speaks immediately if TTS already ready)
-        if (words.isNotEmpty()) {
-            showNextWord()
-        } else {
-            Toast.makeText(this, "Failed to load words", Toast.LENGTH_LONG).show()
-            finish()
-        }
     }
     
     private fun loadWords() {
-        try {
-            val filePath = "data/$wordFile"
-            Log.d(TAG, "Attempting to load words from: $filePath")
-            val inputStream = assets.open(filePath)
-            val json = inputStream.bufferedReader().use { it.readText() }
-            val jsonArray = JSONArray(json)
-            
-            words = (0 until jsonArray.length()).map { i ->
-                val obj = jsonArray.getJSONObject(i)
-                WordData(
-                    word = obj.getString("word"),
-                    sentence = obj.getString("sentence")
-                )
+        val fileName = wordFile.removeSuffix(".json")
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Same strategy as Word Garden: fetch from GitHub first (cache-bust), then cache, then assets
+                val contentUpdateService = ContentUpdateService()
+                val json = contentUpdateService.fetchGameContent(this@SpellingOCRActivity, fileName)
+                if (json.isNullOrEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@SpellingOCRActivity, "Failed to load words", Toast.LENGTH_LONG).show()
+                        finish()
+                    }
+                    return@launch
+                }
+                val jsonArray = JSONArray(json)
+                val loaded = (0 until jsonArray.length()).map { i ->
+                    val obj = jsonArray.getJSONObject(i)
+                    WordData(
+                        word = obj.getString("word"),
+                        sentence = obj.getString("sentence")
+                    )
+                }
+                withContext(Dispatchers.Main) {
+                    words = loaded
+                    Log.d(TAG, "Successfully loaded ${words.size} words from $wordFile")
+                    if (words.isNotEmpty()) {
+                        showNextWord()
+                    } else {
+                        Toast.makeText(this@SpellingOCRActivity, "Failed to load words", Toast.LENGTH_LONG).show()
+                        finish()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading words from '$wordFile': ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    words = emptyList()
+                    Toast.makeText(this@SpellingOCRActivity, "Failed to load words", Toast.LENGTH_LONG).show()
+                    finish()
+                }
             }
-            
-            Log.d(TAG, "Successfully loaded ${words.size} words from $wordFile")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error loading words from '$wordFile': ${e.message}", e)
-            Log.e(TAG, "Exception type: ${e.javaClass.simpleName}")
-            e.printStackTrace()
-            words = emptyList()
         }
     }
     
