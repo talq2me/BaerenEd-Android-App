@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chores 4 🪙 – Parent Report</title>
+    <title>Chores 4 – Parent Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -168,7 +168,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🪙 Chores 4 🪙</h1>
+            <h1 id="choresTitle">Chores 4</h1>
             <p>Chores completed today and coins earned, per profile</p>
             <a href="index.html" class="back-button">← Back to Selection</a>
         </div>
@@ -191,6 +191,8 @@
     </div>
 
     <script>
+        // Same coin icon as Android app (icon_config.json coinsIcon: U+1FA99)
+        const COINS_ICON = '\u{1FA99}';
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
 
@@ -290,7 +292,7 @@
                             const coins = (byProfile[profile] || {}).coins_earned || 0;
                             return `<div class="summary-row">
                                 <span class="summary-profile">${profile}</span>
-                                <span class="summary-coins">${coins} 🪙</span>
+                                <span class="summary-coins">${coins} ${COINS_ICON}</span>
                                 <button type="button" class="payout-btn" data-profile="${profile}" data-coins="${coins}" ${coins <= 0 ? 'disabled' : ''}>Pay out</button>
                             </div>`;
                         }).join('')}
@@ -331,7 +333,7 @@
                                         const reward = c.coins_reward != null ? c.coins_reward : 0;
                                         return `<li class="task-item ${done ? '' : 'incomplete'}">
                                             <span class="task-name">${done ? '✓' : '○'} ${desc}</span>
-                                            <span class="task-info">+${reward} 🪙 ${done ? 'Done' : 'Not done'}</span>
+                                            <span class="task-info">+${reward} ${COINS_ICON} ${done ? 'Done' : 'Not done'}</span>
                                         </li>`;
                                     }).join('')
                                 }
@@ -383,6 +385,11 @@
             if (e.target.id === 'payoutModal') closePayoutModal();
         });
 
+        document.addEventListener('DOMContentLoaded', () => {
+            document.title = `Chores 4 ${COINS_ICON} – Parent Report`;
+            const t = document.getElementById('choresTitle');
+            if (t) t.textContent = `${COINS_ICON} Chores 4 ${COINS_ICON}`;
+        });
         fetchChoresData();
     </script>
 </body>
