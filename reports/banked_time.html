@@ -278,6 +278,16 @@
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
 
+        // Format now as EST timestamp: yyyy-MM-dd HH:mm:ss.SSS (matches app; same as daily_progress_report.html).
+        function nowEST() {
+            const t = new Date();
+            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const parts = tf.formatToParts(t);
+            const get = (type) => parts.find(p => p.type === type).value;
+            const pad2 = (s) => String(s).padStart(2, '0');
+            return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
+        }
+
         // Format timestamp for display
         function formatTimestamp(timestamp) {
             if (!timestamp) return 'Never';
@@ -446,7 +456,7 @@
                     },
                     body: JSON.stringify({
                         banked_mins: newValue,
-                        last_updated: new Date().toISOString()
+                        last_updated: nowEST()
                     })
                 });
 
@@ -470,7 +480,7 @@
                 editContainer.parentNode.replaceChild(element, editContainer);
                 
                 // Update last_updated display
-                const lastUpdated = updatedData[0]?.last_updated || new Date().toISOString();
+                const lastUpdated = updatedData[0]?.last_updated || nowEST();
                 const lastUpdatedRow = element.closest('.kid-card').querySelector('.info-row:last-child .info-value');
                 if (lastUpdatedRow) {
                     lastUpdatedRow.textContent = formatTimestamp(lastUpdated);
