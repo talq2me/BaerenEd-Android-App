@@ -166,15 +166,15 @@ class CloudDataApplier(
             }
 
             // Apply coins_earned (Chores 4 $$) - safeguard: never go backwards; use max(cloud, local).
-            // Exception: when parent has "paid out" from the report, cloud has coins_earned=0 and last_coins_payout_at set → apply 0.
+            // Exception: when parent has "paid out" from the report (last_coins_payout_at set), accept cloud value (full or partial payout).
             val currentCoins = progressPrefs.getInt("${localProfile}_coins_earned", 0)
-            val isPayOutFromReport = data.coinsEarned == 0 && !data.lastCoinsPayoutAt.isNullOrEmpty()
-            val coinsToApply = if (isPayOutFromReport) 0 else maxOf(data.coinsEarned, currentCoins)
+            val isPayOutFromReport = !data.lastCoinsPayoutAt.isNullOrEmpty()
+            val coinsToApply = if (isPayOutFromReport) data.coinsEarned else maxOf(data.coinsEarned, currentCoins)
             progressPrefs.edit()
                 .putInt("${localProfile}_coins_earned", coinsToApply)
                 .commit()
             if (isPayOutFromReport) {
-                Log.d(TAG, "Pay-out override: applied coins_earned=0 from parent report (last_coins_payout_at set) for profile: $localProfile")
+                Log.d(TAG, "Pay-out from report: applied coins_earned=${data.coinsEarned} (last_coins_payout_at set) for profile: $localProfile")
             } else if (coinsToApply != data.coinsEarned) {
                 Log.d(TAG, "Safeguard: kept local coins_earned ($coinsToApply) instead of cloud (${data.coinsEarned}) so value never goes backwards")
             }
