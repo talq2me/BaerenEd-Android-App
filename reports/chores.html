@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chores 4 🪙 – Parent Report</title>
+    <title>Chores 4 – Parent Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -85,24 +85,177 @@
             color: #c62828;
             margin: 20px 0;
         }
+        .summary-section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .summary-section h3 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 1.35em;
+            border-bottom: 2px solid #FFA500;
+            padding-bottom: 8px;
+        }
+        .summary-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #fff8e1;
+            border-radius: 8px;
+        }
+        .summary-profile { font-weight: 600; color: #333; }
+        .summary-coins { font-size: 1.25em; color: #e65100; }
+        .payout-btn {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .payout-btn:hover { background: #45a049; }
+        .payout-btn:disabled { background: #9e9e9e; cursor: not-allowed; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            min-width: 280px;
+        }
+        .modal-box h4 { margin-bottom: 16px; color: #333; }
+        .modal-box label { display: block; margin-bottom: 8px; color: #666; }
+        .modal-box input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .modal-actions .btn-cancel { background: #e0e0e0; color: #333; }
+        .modal-actions .btn-confirm { background: #4CAF50; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🪙 Chores 4 🪙</h1>
+            <h1 id="choresTitle">Chores 4</h1>
             <p>Chores completed today and coins earned, per profile</p>
             <a href="index.html" class="back-button">← Back to Selection</a>
         </div>
 
         <div id="loading" class="loading">Loading chores data...</div>
         <div id="error" class="error" style="display: none;"></div>
+        <div id="summary" style="display: none;"></div>
         <div id="content" style="display: none;"></div>
+        <div id="payoutModal" class="modal-overlay">
+            <div class="modal-box">
+                <h4>Pay out coins</h4>
+                <label for="payoutAmount">Pay out how many:</label>
+                <input type="number" id="payoutAmount" min="0" step="1" />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="payoutCancel">Cancel</button>
+                    <button type="button" class="btn-confirm" id="payoutConfirm">Confirm</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
+        // Same coin icon as Android app (icon_config.json coinsIcon: U+1FA99)
+        const COINS_ICON = '\u{1FA99}';
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
+
+        function nowEST() {
+            const t = new Date();
+            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const parts = tf.formatToParts(t);
+            const get = (type) => parts.find(p => p.type === type).value;
+            const pad2 = (s) => String(s).padStart(2, '0');
+            return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
+        }
+
+        let payoutProfile = null;
+
+        function openPayoutModal(profile, currentCoins) {
+            payoutProfile = profile;
+            const input = document.getElementById('payoutAmount');
+            input.value = Math.max(0, currentCoins);
+            input.min = 0;
+            input.max = currentCoins;
+            document.getElementById('payoutModal').classList.add('show');
+            input.focus();
+        }
+
+        function closePayoutModal() {
+            payoutProfile = null;
+            document.getElementById('payoutModal').classList.remove('show');
+        }
+
+        async function doPayout(profile, amount) {
+            if (!supabaseUrl || !supabaseKey) return;
+            const byProfile = await getByProfile();
+            const current = (byProfile[profile] || {}).coins_earned || 0;
+            const subtract = Math.max(0, Math.min(amount, current));
+            const newCoins = current - subtract;
+            const now = nowEST();
+            const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${profile}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    coins_earned: newCoins,
+                    last_coins_payout_at: now,
+                    last_updated: now
+                })
+            });
+            if (!response.ok) throw new Error(await response.text() || response.statusText);
+        }
+
+        async function getByProfile() {
+            const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=in.(AM,BM,TE)&select=profile,coins_earned`, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch');
+            const rows = await response.json();
+            const byProfile = {};
+            (rows || []).forEach(r => { byProfile[r.profile] = { coins_earned: r.coins_earned || 0 }; });
+            return byProfile;
+        }
 
         async function fetchChoresData() {
             if (!supabaseUrl || !supabaseKey) {
@@ -131,6 +284,21 @@
                 });
 
                 const profiles = ['AM', 'BM', 'TE'];
+
+                let summaryHtml = `
+                    <div class="summary-section">
+                        <h3>Coins summary</h3>
+                        ${profiles.map(profile => {
+                            const coins = (byProfile[profile] || {}).coins_earned || 0;
+                            return `<div class="summary-row">
+                                <span class="summary-profile">${profile}</span>
+                                <span class="summary-coins">${coins} ${COINS_ICON}</span>
+                                <button type="button" class="payout-btn" data-profile="${profile}" data-coins="${coins}" ${coins <= 0 ? 'disabled' : ''}>Pay out</button>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                `;
+
                 let html = '';
                 profiles.forEach(profile => {
                     const data = byProfile[profile] || { chores: [], coins_earned: 0 };
@@ -165,7 +333,7 @@
                                         const reward = c.coins_reward != null ? c.coins_reward : 0;
                                         return `<li class="task-item ${done ? '' : 'incomplete'}">
                                             <span class="task-name">${done ? '✓' : '○'} ${desc}</span>
-                                            <span class="task-info">+${reward} 🪙 ${done ? 'Done' : 'Not done'}</span>
+                                            <span class="task-info">+${reward} ${COINS_ICON} ${done ? 'Done' : 'Not done'}</span>
                                         </li>`;
                                     }).join('')
                                 }
@@ -175,8 +343,19 @@
                 });
 
                 document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('summary').style.display = 'block';
+                document.getElementById('summary').innerHTML = summaryHtml;
                 document.getElementById('content').style.display = 'block';
                 document.getElementById('content').innerHTML = html;
+
+                document.querySelectorAll('.payout-btn:not([disabled])').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const profile = btn.getAttribute('data-profile');
+                        const coins = parseInt(btn.getAttribute('data-coins'), 10) || 0;
+                        openPayoutModal(profile, coins);
+                    });
+                });
             } catch (err) {
                 console.error(err);
                 document.getElementById('loading').style.display = 'none';
@@ -185,6 +364,32 @@
             }
         }
 
+        document.getElementById('payoutCancel').addEventListener('click', closePayoutModal);
+        document.getElementById('payoutConfirm').addEventListener('click', async () => {
+            if (!payoutProfile) return;
+            const input = document.getElementById('payoutAmount');
+            const amount = parseInt(input.value, 10);
+            if (isNaN(amount) || amount < 0) {
+                alert('Please enter a valid number (0 or more).');
+                return;
+            }
+            try {
+                await doPayout(payoutProfile, amount);
+                closePayoutModal();
+                await fetchChoresData();
+            } catch (e) {
+                alert('Payout failed: ' + (e.message || e));
+            }
+        });
+        document.getElementById('payoutModal').addEventListener('click', (e) => {
+            if (e.target.id === 'payoutModal') closePayoutModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.title = `Chores 4 ${COINS_ICON} – Parent Report`;
+            const t = document.getElementById('choresTitle');
+            if (t) t.textContent = `${COINS_ICON} Chores 4 ${COINS_ICON}`;
+        });
         fetchChoresData();
     </script>
 </body>

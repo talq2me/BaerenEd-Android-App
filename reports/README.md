@@ -16,7 +16,7 @@ This is a simple HTML-based parent report viewer that connects to your Supabase 
 
 1. **Deploy to GitHub Pages**:
    - Create a new repository or use an existing one
-   - Upload `index.html` and `report.html` to the repository
+   - Upload `index.html` and `daily_progress_report.html` to the repository
    - Go to Settings → Pages
    - Select the branch and folder (usually `main` and `/root`)
    - Your site will be available at `https://yourusername.github.io/repository-name/`
@@ -54,7 +54,7 @@ This page uses the Supabase REST API with your API key. The key is stored locall
 
 ## Customization
 
-You can customize the report by editing `report.html`:
+You can customize the report by editing `daily_progress_report.html`:
 - Modify the styling in the `<style>` section
 - Adjust the data display logic in the JavaScript section
 - Add additional metrics or sections as needed
