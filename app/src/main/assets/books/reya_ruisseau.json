@@ -1,0 +1,129 @@
+{
+    "id": "reya-lumi-ruisseau-g1",
+    "title": "Reya, Lumi et le Ruisseau Bloqué",
+    "level": "French Immersion Grade 1",
+    "theme": "Prendre soin de la nature",
+    "language": "fr",
+    "pages": [
+      {
+        "page_number": 1,
+        "text": [
+          "Reya et Lumi se promènent dans la vallée.",
+          "Elles aiment écouter le bruit de l’eau.",
+          "Mais aujourd’hui, le ruisseau est silencieux."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page1",
+          "description": "Reya et Lumi près d’un ruisseau presque sec dans une vallée verte."
+        }
+      },
+      {
+        "page_number": 2,
+        "text": [
+          "« C’est étrange », dit Reya.",
+          "Lumi regarde l’eau immobile.",
+          "Le ruisseau ne coule plus."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page2",
+          "description": "Reya et Lumi observant un ruisseau arrêté."
+        }
+      },
+      {
+        "page_number": 3,
+        "text": [
+          "Elles marchent en amont pour chercher la cause.",
+          "Le sol est humide mais l’eau ne bouge pas.",
+          "Reya entend un petit gargouillis."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page3",
+          "description": "Reya marchant le long du ruisseau, écoutant un bruit d’eau."
+        }
+      },
+      {
+        "page_number": 4,
+        "text": [
+          "Elles trouvent un gros tas de branches.",
+          "Les branches bloquent l’eau.",
+          "« Oh ! Le ruisseau est coincé ! » dit Reya."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page4",
+          "description": "Un amas de branches et de feuilles bloquant le ruisseau."
+        }
+      },
+      {
+        "page_number": 5,
+        "text": [
+          "Reya tire une petite branche.",
+          "Lumi pousse doucement avec son museau.",
+          "Mais le tas est trop lourd."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page5",
+          "description": "Reya et Lumi essayant de déplacer des branches sans succès."
+        }
+      },
+      {
+        "page_number": 6,
+        "text": [
+          "« J’ai une idée ! » dit Lumi.",
+          "Sa corne brille de mille couleurs.",
+          "Les branches deviennent plus légères."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page6",
+          "description": "La corne de Lumi illuminant les branches bloquées."
+        }
+      },
+      {
+        "page_number": 7,
+        "text": [
+          "Reya et Lumi retirent les branches ensemble.",
+          "L’eau recommence à couler.",
+          "Le ruisseau chante à nouveau."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page7",
+          "description": "L’eau jaillissant alors que Reya et Lumi dégagent le passage."
+        }
+      },
+      {
+        "page_number": 8,
+        "text": [
+          "Des poissons sautillent de joie.",
+          "Reya rit et Lumi secoue sa crinière arc‑en‑ciel.",
+          "Elles sont fières d’avoir aidé la nature."
+        ],
+        "image": {
+          "image_id": "reya_ruisseau_page8",
+          "description": "Reya et Lumi souriant devant le ruisseau redevenu vivant."
+        }
+      }
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "multiple_choice",
+        "question": "Pourquoi le ruisseau ne coulait plus ?",
+        "options": ["Il faisait trop chaud", "Il était gelé", "Des branches le bloquaient", "Il n’y avait plus d’eau"],
+        "correct_index": 2
+      },
+      {
+        "id": "q2",
+        "type": "multiple_choice",
+        "question": "Comment Lumi aide-t-elle Reya ?",
+        "options": ["Elle vole très haut", "Elle rend les branches plus légères", "Elle appelle un ami", "Elle creuse un trou"],
+        "correct_index": 1
+      },
+      {
+        "id": "q3",
+        "type": "multiple_choice",
+        "question": "Que se passe-t-il quand le ruisseau est débloqué ?",
+        "options": ["Il disparaît", "Il devient rouge", "Il coule à nouveau", "Il se transforme en lac"],
+        "correct_index": 2
+      }
+    ]
+  }
+  
