@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chores 4 – Parent Report</title>
+    <title>Chores 4 🪙 – Parent Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -168,7 +168,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 id="choresTitle">Chores 4</h1>
+            <h1>🪙 Chores 4 🪙</h1>
             <p>Chores completed today and coins earned, per profile</p>
             <a href="index.html" class="back-button">← Back to Selection</a>
         </div>
@@ -191,8 +191,10 @@
     </div>
 
     <script>
-        // Same coin icon as Android app (icon_config.json coinsIcon: U+1FA99)
-        const COINS_ICON = '\u{1FA99}';
+        // Use 🪙 (coin) on Android/Windows; Safari/iOS often doesn't support it, so use 💰 (money bag) there
+        const isSafariOrIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome'));
+        const COINS_ICON = isSafariOrIOS ? '💰' : '🪙';
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
 
@@ -386,9 +388,11 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.title = `Chores 4 ${COINS_ICON} – Parent Report`;
-            const t = document.getElementById('choresTitle');
-            if (t) t.textContent = `${COINS_ICON} Chores 4 ${COINS_ICON}`;
+            if (isSafariOrIOS) {
+                document.title = document.title.replace(/\u{1FA99}/gu, '💰');
+                const h1 = document.querySelector('.header h1');
+                if (h1) h1.textContent = h1.textContent.replace(/\u{1FA99}/gu, '💰');
+            }
         });
         fetchChoresData();
     </script>
