@@ -36,15 +36,32 @@ class DailyResetAndSyncManager(private val context: Context) {
     private val dataApplier = CloudDataApplier(context) { profile, timestamp ->
         setLocalLastUpdatedTimestamp(profile, timestamp)
     }
+    private val userDataRepository = UserDataRepository.getInstance(context)
     
     /**
      * Performs daily reset process followed by cloud sync.
      * This is the main entry point that should be called on screen loads.
-     * 
+     * DB is the gold standard: we fetch from Supabase with retry first. If fetch fails, returns failure so UI can show loading error (no stale data).
+     *
      * @param profile The profile to process (e.g., "AM" or "BM")
+     * @return Result.success(Unit) when fetch (and sync) succeeded; Result.failure when fetch from DB failed so caller can show error UI
      */
-    suspend fun dailyResetProcessAndSync(profile: String) = withContext(Dispatchers.IO) {
+    suspend fun dailyResetProcessAndSync(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
         Log.d(TAG, "Starting daily_reset_process() and cloud_sync() for profile: $profile")
+        
+        // Fetch from DB with retry first. If Supabase is configured and fetch fails, abort so UI shows error instead of stale data.
+        if (syncService.isConfigured()) {
+            val fetchResult = userDataRepository.fetchUserData(profile)
+            if (fetchResult.isFailure) {
+                Log.w(TAG, "Initial fetch from DB failed - aborting so UI can show error: ${fetchResult.exceptionOrNull()?.message}")
+                return@withContext Result.failure(fetchResult.exceptionOrNull() ?: Exception("Failed to load progress from server"))
+            }
+            val data = fetchResult.getOrNull()
+            if (data != null) {
+                dataApplier.applyCloudDataToLocal(data)
+                Log.d(TAG, "Applied fresh DB data to local after fetch for profile: $profile")
+            }
+        }
         
         // Normalize any legacy local timestamps to EST DB format (no offset).
         normalizeAllTimestamps()
@@ -56,6 +73,7 @@ class DailyResetAndSyncManager(private val context: Context) {
         cloudSync(profile)
         
         Log.d(TAG, "Completed daily_reset_process() and cloud_sync() for profile: $profile")
+        Result.success(Unit)
     }
     
     /**
@@ -149,6 +167,9 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         // Call get_content_from_json()
         getContentFromJson(profile)
+        
+        // Invalidate repository cache so next read uses prefs (reset state) until pushResetToCloud updates cache
+        userDataRepository.invalidateCache(profile)
         
         Log.d(TAG, "reset_local() completed for profile: $profile, timestamp: $estTimestamp")
     }
@@ -305,20 +326,20 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
 
     /**
-     * Updates local.profile.last_updated timestamp to now() EST and then calls update_cloud_with_local().
-     * This should be called when tasks are completed or settings are changed.
+     * Updates local.profile.last_updated timestamp to now() EST and then uploads to DB with retry.
+     * Only consider the write "done" when this returns success — DB is the source of truth.
+     *
+     * @return Result.success(Unit) when upload succeeded; Result.failure when upload failed after retries
      */
-    suspend fun updateLocalTimestampAndSyncToCloud(profile: String) = withContext(Dispatchers.IO) {
+    suspend fun updateLocalTimestampAndSyncToCloud(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
         Log.d(TAG, "updateLocalTimestampAndSyncToCloud() started for profile: $profile")
         
-        // CRITICAL: Update local.profile.last_updated to now() EST using commit() for synchronous write
-        // This ensures the timestamp is written before any other code can read it
         val nowISO = generateESTISOTimestamp()
         val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
         val timestampKey = "${profile}_last_updated_timestamp"
         val timestampSuccess = progressPrefs.edit()
             .putString(timestampKey, nowISO)
-            .commit() // Use commit() for synchronous write
+            .commit()
         
         if (!timestampSuccess) {
             Log.e(TAG, "CRITICAL ERROR: Failed to save last_updated timestamp in updateLocalTimestampAndSyncToCloud!")
@@ -326,8 +347,13 @@ class DailyResetAndSyncManager(private val context: Context) {
             Log.d(TAG, "CRITICAL: Updated last_updated timestamp to: $nowISO (saved synchronously)")
         }
         
-        // Then call update_cloud_with_local()
-        updateCloudWithLocal(profile)
+        try {
+            updateCloudWithLocal(profile)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "updateLocalTimestampAndSyncToCloud failed", e)
+            Result.failure(e)
+        }
     }
     
     /**
@@ -378,8 +404,8 @@ class DailyResetAndSyncManager(private val context: Context) {
             
             Log.d(TAG, "CRITICAL: About to upload with timestamp: $nowISO for profile: $profile")
             
-            // Upload to cloud (all or nothing)
-            val result = syncService.uploadUserData(localDataWithCorrectTimestamp)
+            // Upload to cloud with retry; on success repository cache is updated so UI is never stale
+            val result = userDataRepository.uploadUserData(localDataWithCorrectTimestamp)
             
             if (result.isSuccess) {
                 Log.d(TAG, "update_cloud_with_local() completed successfully for profile: $profile")
@@ -412,6 +438,8 @@ class DailyResetAndSyncManager(private val context: Context) {
                     
                     // Apply cloud data to local (all or nothing)
                     dataApplier.applyCloudDataToLocal(cloudData)
+                    // Keep repository cache in sync so DailyProgressManager and UI read from DB-backed data
+                    userDataRepository.setCache(profile, cloudData)
 
                     // If local required_tasks are empty, rebuild from GitHub content and update last_updated.
                     // This matches the spec: empty local tasks should be populated from GitHub, then synced.

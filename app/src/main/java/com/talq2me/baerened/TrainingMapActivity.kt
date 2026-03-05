@@ -43,32 +43,42 @@ class TrainingMapActivity : AppCompatActivity() {
         progressManager = DailyProgressManager(this)
         val profile = SettingsManager.readProfile(this) ?: "AM"
         
-        // Run daily_reset_process() and then cloud_sync() according to requirements
+        // Run daily_reset_process() and then cloud_sync(); if fetch fails show error (no stale data)
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // Show loading spinner on main thread
-                withContext(Dispatchers.Main) {
-                    showLoadingSpinner("Syncing progress...")
-                }
-                
-                // Perform daily reset process and cloud sync
-                val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
-                resetAndSyncManager.dailyResetProcessAndSync(profile)
-                
-                android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed for profile: $profile")
-                
-                // Hide loading spinner and finish loading
-                withContext(Dispatchers.Main) {
-                    hideLoadingSpinner()
+            withContext(Dispatchers.Main) { showLoadingSpinner("Syncing progress...") }
+            val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
+            val result = runCatching { resetAndSyncManager.dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
+            withContext(Dispatchers.Main) {
+                hideLoadingSpinner()
+                if (result.isSuccess) {
+                    android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed for profile: $profile")
                     finishLoadingTrainingMap()
+                } else {
+                    android.util.Log.e("TrainingMapActivity", "Daily reset and sync failed - showing load error", result.exceptionOrNull())
+                    showProgressLoadError(profile) { runSyncAndFinishLoadingTrainingMap(profile) }
                 }
-            } catch (e: Exception) {
-                android.util.Log.e("TrainingMapActivity", "Error during daily reset and sync", e)
-                // Hide loading spinner even on error
-                withContext(Dispatchers.Main) {
-                    hideLoadingSpinner()
-                    finishLoadingTrainingMap()
-                }
+            }
+        }
+    }
+    
+    private fun showProgressLoadError(profile: String, onRetry: () -> Unit) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Could not load progress")
+            .setMessage("Please check your internet connection and try again.")
+            .setPositiveButton("Retry") { _, _ -> onRetry() }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .setCancelable(false)
+            .show()
+    }
+    
+    private fun runSyncAndFinishLoadingTrainingMap(profile: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) { showLoadingSpinner("Syncing progress...") }
+            val result = runCatching { DailyResetAndSyncManager(this@TrainingMapActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
+            withContext(Dispatchers.Main) {
+                hideLoadingSpinner()
+                if (result.isSuccess) finishLoadingTrainingMap()
+                else showProgressLoadError(profile) { runSyncAndFinishLoadingTrainingMap(profile) }
             }
         }
     }
@@ -308,50 +318,21 @@ class TrainingMapActivity : AppCompatActivity() {
                     return@launch
                 }
                 
-                // For optional tasks, check if all are completed - if so, reset them all
+                // For optional tasks, check if all are completed - if so, reset them all (practice stored by task title)
                 if (mapType == "optional") {
                     val allCompleted = tasks.all { task ->
-                        val baseTaskId = task.launch ?: ""
                         val taskTitle = task.title ?: ""
-                        
-                        // For diagramLabeler, use final URL to get correct diagram parameter
-                        if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                            val finalUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
-                            if (finalUrl.contains("diagram=")) {
-                                val diagramParam = finalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                                if (diagramParam.isNotEmpty()) {
-                                    val taskId = "${mapType}_${baseTaskId}_$diagramParam"
-                                    return@all completedTasksMap[taskId] == true
-                                }
-                            }
-                        }
-                        
-                        // Use task title as key (matches how tasks are stored in required_tasks)
-                        completedTasksMap[taskTitle] == true
+                        val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
+                        completedTasksMap[keyForOptional] == true
                     }
                     
                     // If all optional tasks are completed, reset them all (never ending)
                     if (allCompleted && tasks.isNotEmpty()) {
                         val allCompletedTasks = progressManager.getCompletedTasksMap(mapType).toMutableMap()
                         tasks.forEach { task ->
-                            val baseTaskId = task.launch ?: ""
                             val taskTitle = task.title ?: ""
-                            
-                            // For diagramLabeler, use final URL to get correct diagram parameter
-                            if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                                val finalUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
-                                if (finalUrl.contains("diagram=")) {
-                                    val diagramParam = finalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                                    if (diagramParam.isNotEmpty()) {
-                                        val taskId = "${mapType}_${baseTaskId}_$diagramParam"
-                                        // Clear completion status by removing from map
-                                        allCompletedTasks.remove(taskId)
-                                    }
-                                }
-                            } else {
-                                // Use task title as key (matches how tasks are stored in required_tasks)
-                                allCompletedTasks.remove(taskTitle)
-                            }
+                            val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
+                            allCompletedTasks.remove(keyForOptional)
                         }
                         // Save the updated map
                         // CRITICAL: Use the same SharedPreferences name as DailyProgressManager
@@ -1174,18 +1155,21 @@ class TrainingMapActivity : AppCompatActivity() {
         // Handle BookReaderActivity result (requestCode 1007)
         if (requestCode == 1007 && resultCode == RESULT_OK && data != null) {
             val taskId = data.getStringExtra(BookReaderActivity.EXTRA_TASK_ID)
+            var taskTitle = data.getStringExtra(BookReaderActivity.EXTRA_TASK_TITLE)
             val sectionId = data.getStringExtra(BookReaderActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
             val stars = data.getIntExtra(BookReaderActivity.EXTRA_STARS, 0)
             if (!taskId.isNullOrEmpty()) {
-                var taskTitle = "Book"
-                currentContent?.sections?.forEach { section ->
-                    section.tasks?.find { it.launch == taskId }?.let { task ->
-                        taskTitle = task.title ?: taskTitle
+                if (taskTitle.isNullOrEmpty()) {
+                    taskTitle = "Book"
+                    currentContent?.sections?.forEach { section ->
+                        section.tasks?.find { it.launch == taskId }?.let { task ->
+                            taskTitle = task.title ?: taskTitle
+                        }
                     }
                 }
                 val progressManager = DailyProgressManager(this)
                 val earnedStars = progressManager.markTaskCompletedWithName(
-                    taskId, taskTitle, stars, sectionId == "required", currentContent, sectionId
+                    taskId, taskTitle ?: "Book", stars, sectionId == "required", currentContent, sectionId
                 )
                 if (earnedStars > 0) {
                     progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
@@ -1275,18 +1259,19 @@ class TrainingMapActivity : AppCompatActivity() {
         
         // Refresh the map when returning from any task to show updated completion status
         // Only refresh if the task was completed (RESULT_OK) to avoid unnecessary refreshes
-        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005 || requestCode == 1006) && resultCode == RESULT_OK) {
+        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005 || requestCode == 1006 || requestCode == 1007) && resultCode == RESULT_OK) {
             val currentProfile = SettingsManager.readProfile(this) ?: "AM"
             // Advance local last_updated synchronously so cloudSync (e.g. on BattleHub return)
             // sees local newer than cloud and uploads instead of applying stale cloud over berries/tasks.
             DailyResetAndSyncManager(this).advanceLocalTimestampForProfile(currentProfile)
             // Blocking: finish sync before redraw so onResume (e.g. on BattleHub) has nothing to do.
             lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(currentProfile)
-                    android.util.Log.d("TrainingMapActivity", "Task completion sync finished, redrawing map")
-                } catch (e: Exception) {
-                    android.util.Log.e("TrainingMapActivity", "Error syncing after task completion", e)
+                val syncResult = DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(currentProfile)
+                if (syncResult.isFailure) {
+                    android.util.Log.e("TrainingMapActivity", "Error syncing after task completion", syncResult.exceptionOrNull())
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(this@TrainingMapActivity, "Progress may not have been saved. Check connection.", android.widget.Toast.LENGTH_LONG).show()
+                    }
                 }
                 withContext(Dispatchers.Main) {
                     mapContainer.removeAllViews()
@@ -1309,26 +1294,17 @@ class TrainingMapActivity : AppCompatActivity() {
         // CRITICAL: Add a small delay before syncing to allow any pending task completion syncs to finish
         // This prevents onResume from overwriting data that was just saved
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            // Run daily_reset_process() and then cloud_sync() when resuming
             val profile = SettingsManager.readProfile(this) ?: "AM"
             lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
-                    resetAndSyncManager.dailyResetProcessAndSync(profile)
-                    android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed in onResume for profile $profile")
-                } catch (e: Exception) {
-                    android.util.Log.e("TrainingMapActivity", "Error during daily reset and sync in onResume", e)
-                }
+                val result = runCatching { DailyResetAndSyncManager(this@TrainingMapActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
                 withContext(Dispatchers.Main) {
-                    // Refresh the map after sync to show updated completion status
-                    // This ensures the map shows updated completion status after sync
-                    createMapView()
-                    
-                    // Check for Google Read Along completion after map refresh
-                    checkGoogleReadAlongCompletion()
-                    
-                    // Check for Boukili completion after map refresh
-                    checkBoukiliCompletion()
+                    if (result.isSuccess) {
+                        createMapView()
+                        checkGoogleReadAlongCompletion()
+                        checkBoukiliCompletion()
+                    } else {
+                        android.widget.Toast.makeText(this@TrainingMapActivity, "Could not load progress. Check connection.", android.widget.Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }, 1000) // 1 second delay to allow task completion syncs to finish
@@ -1927,11 +1903,12 @@ class TrainingMapActivity : AppCompatActivity() {
                 // Sync checklist completion to cloud first, then redraw (blocking so onResume has nothing to do).
                 val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
                 lifecycleScope.launch(Dispatchers.IO) {
-                    try {
-                        DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(profile)
-                        android.util.Log.d("TrainingMapActivity", "Synced checklist completion to cloud for profile: $profile")
-                    } catch (e: Exception) {
-                        android.util.Log.e("TrainingMapActivity", "Error syncing checklist to cloud", e)
+                    val syncResult = DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(profile)
+                    if (syncResult.isFailure) {
+                        android.util.Log.e("TrainingMapActivity", "Error syncing checklist to cloud", syncResult.exceptionOrNull())
+                        withContext(Dispatchers.Main) {
+                            android.widget.Toast.makeText(this@TrainingMapActivity, "Progress may not have been saved. Check connection.", android.widget.Toast.LENGTH_LONG).show()
+                        }
                     }
                     withContext(Dispatchers.Main) {
                         loadTasksIntoMap()

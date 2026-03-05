@@ -1186,6 +1186,8 @@ class MainActivity : AppCompatActivity() {
         
         layout.refreshProgressDisplay()
         layout.refreshHeaderButtons()
+        // Rebuild sections so task/checklist completion state (green) is updated after returning from a game
+        layout.refreshSections()
         
         // Show training map if requested, otherwise show normal content
         if (showTrainingMap) {

@@ -2,6 +2,7 @@ package com.talq2me.baerened
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.drawable.GradientDrawable
@@ -17,6 +18,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
@@ -89,31 +91,48 @@ class BattleHubActivity : AppCompatActivity() {
         
         val profile = SettingsManager.readProfile(this) ?: "AM"
         
-        // Run daily_reset_process() and then cloud_sync() according to requirements
+        // Run daily_reset_process() and then cloud_sync(); if fetch fails show error (no stale data)
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // Show loading spinner on main thread
-                withContext(Dispatchers.Main) {
-                    showLoadingSpinner("Syncing progress...")
-                }
-                
-                // Perform daily reset process and cloud sync
-                val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
-                resetAndSyncManager.dailyResetProcessAndSync(profile)
-                
-                android.util.Log.d("BattleHubActivity", "Daily reset and sync completed for profile: $profile")
-                
-                // Hide loading spinner and finish loading
-                withContext(Dispatchers.Main) {
-                    hideLoadingSpinner()
+            withContext(Dispatchers.Main) {
+                showLoadingSpinner("Syncing progress...")
+            }
+            val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
+            val result = runCatching { resetAndSyncManager.dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
+            withContext(Dispatchers.Main) {
+                hideLoadingSpinner()
+                if (result.isSuccess) {
+                    android.util.Log.d("BattleHubActivity", "Daily reset and sync completed for profile: $profile")
                     finishLoadingBattleHub()
+                } else {
+                    android.util.Log.e("BattleHubActivity", "Daily reset and sync failed - showing load error", result.exceptionOrNull())
+                    showProgressLoadError(profile) { runSyncAndFinishLoading(profile) }
                 }
-            } catch (e: Exception) {
-                android.util.Log.e("BattleHubActivity", "Error during daily reset and sync", e)
-                // Hide loading spinner even on error
-                withContext(Dispatchers.Main) {
-                    hideLoadingSpinner()
+            }
+        }
+    }
+    
+    /** Shows error when progress could not be loaded from server (no stale data). Retry runs sync again. */
+    private fun showProgressLoadError(profile: String, onRetry: () -> Unit) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Could not load progress")
+            .setMessage("Please check your internet connection and try again.")
+            .setPositiveButton("Retry") { _, _ -> onRetry() }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .setCancelable(false)
+            .show()
+    }
+    
+    private fun runSyncAndFinishLoading(profile: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) { showLoadingSpinner("Syncing progress...") }
+            val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
+            val result = runCatching { resetAndSyncManager.dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
+            withContext(Dispatchers.Main) {
+                hideLoadingSpinner()
+                if (result.isSuccess) {
                     finishLoadingBattleHub()
+                } else {
+                    showProgressLoadError(profile) { runSyncAndFinishLoading(profile) }
                 }
             }
         }
@@ -287,7 +306,6 @@ class BattleHubActivity : AppCompatActivity() {
             minuteCount.text = "$rewardMinutes ⏱️"
             android.util.Log.d("BattleHubActivity", "updateCountsDisplay: UI updated - coinCount.text=${coinCount.text}, berryCountDisplay.text=${berryCountDisplay.text}, minuteCount.text=${minuteCount.text}")
             android.util.Log.d("BattleHubActivity", "DEBUG: getAllEarnedStars returned $allEarnedStars for currentContent=${currentContent != null}")
-            android.util.Log.d("BattleHubActivity", "DEBUG: progressManager.getCompletedTasksMap() = ${progressManager.getCompletedTasksMap()}")
         } else {
             // Fallback - use cached values but ensure they're calculated correctly - EXACTLY like Layout.kt
             android.util.Log.w("BattleHubActivity", "updateCountsDisplay: currentContent is NULL, using fallback")
@@ -478,72 +496,49 @@ class BattleHubActivity : AppCompatActivity() {
         }
         headerButtonsRight.addView(settingsBtn)
 
-        // Add cloud storage toggle button
-        addCloudToggleButton()
+        // Add internet-availability indicator (read-only; GitHub/Supabase need network)
+        addInternetIndicator()
 
-        android.util.Log.d("BattleHubActivity", "Added header buttons (Ask for Time, Settings icon, Cloud toggle)")
+        android.util.Log.d("BattleHubActivity", "Added header buttons (Ask for Time, Settings icon, Internet indicator)")
     }
 
-    private fun addCloudToggleButton() {
-        val cloudStorageManager = CloudStorageManager(this)
-        val isCloudEnabled = cloudStorageManager.isCloudStorageEnabled()
+    private fun isNetworkAvailable(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+            ?: return false
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } else {
+            @Suppress("DEPRECATION")
+            (cm.activeNetworkInfo?.isConnected == true)
+        }
+    }
 
-        val cloudButton = android.widget.Button(this).apply {
-            text = if (isCloudEnabled) "☁️ Cloud ON" else "☁️ Cloud OFF"
-            textSize = 16f
-            setOnClickListener {
-                toggleCloudStorage()
-            }
-
+    /** Read-only indicator: shows whether internet is available (GitHub and Supabase need it). */
+    private fun addInternetIndicator() {
+        val online = isNetworkAvailable()
+        val indicator = android.widget.Button(this).apply {
+            text = if (online) "🌐 Online" else "🌐 Offline"
+            textSize = 14f
+            isClickable = false
+            isFocusable = false
             layoutParams = LinearLayout.LayoutParams(
-                140.dpToPx(),
-                (32 * resources.displayMetrics.density).toInt()  // Match settings button height
+                100.dpToPx(),
+                (32 * resources.displayMetrics.density).toInt()
             ).apply {
                 marginEnd = 12.dpToPx()
                 gravity = android.view.Gravity.CENTER_VERTICAL
             }
-
             background = resources.getDrawable(
-                if (isCloudEnabled) R.drawable.button_rounded_success else R.drawable.button_rounded
+                if (online) R.drawable.button_rounded_success else R.drawable.button_rounded
             )
             setTextColor(resources.getColor(android.R.color.white))
             setPadding(8.dpToPx(), 4.dpToPx(), 8.dpToPx(), 4.dpToPx())
             gravity = android.view.Gravity.CENTER
         }
-        headerButtonsRight.addView(cloudButton)
-    }
-
-    private fun toggleCloudStorage() {
-        val isCurrentlyEnabled = cloudStorageManager.isCloudStorageEnabled()
-
-        if (!cloudStorageManager.isConfigured()) {
-            android.widget.Toast.makeText(this, "Supabase not configured. Add SUPABASE_URL and SUPABASE_KEY to local.properties and rebuild.", android.widget.Toast.LENGTH_LONG).show()
-            return
-        }
-
-        if (!isCurrentlyEnabled) {
-            // Enable cloud storage
-            cloudStorageManager.setCloudStorageEnabled(true)
-            val profile = SettingsManager.readProfile(this) ?: "AM"
-            lifecycleScope.launch(Dispatchers.IO) {
-                val result = cloudStorageManager.syncIfEnabled(profile)
-                runOnUiThread {
-                    if (result.isSuccess) {
-                        android.widget.Toast.makeText(this@BattleHubActivity, "Cloud storage enabled and synced", android.widget.Toast.LENGTH_SHORT).show()
-                    } else {
-                        android.widget.Toast.makeText(this@BattleHubActivity, "Cloud enabled but sync failed: ${result.exceptionOrNull()?.message}", android.widget.Toast.LENGTH_LONG).show()
-                    }
-                    // Refresh UI to update button
-                    setupHeaderButtons()
-                }
-            }
-        } else {
-            // Disable cloud storage
-            cloudStorageManager.setCloudStorageEnabled(false)
-            android.widget.Toast.makeText(this, "Cloud storage disabled", android.widget.Toast.LENGTH_SHORT).show()
-            // Refresh UI to update button
-            setupHeaderButtons()
-        }
+        headerButtonsRight.addView(indicator)
     }
 
     private fun Int.dpToPx(): Int {
@@ -1129,11 +1124,11 @@ class BattleHubActivity : AppCompatActivity() {
         val progressManager = DailyProgressManager(this)
         val completedTasksMap = progressManager.getCompletedTasksMap()
         
-        // Create a button for each optional task
+        // Create a button for each optional task (practice tasks stored by task title, same as required)
         optionalTasks.forEach { task ->
             val taskId = task.launch ?: "unknown"
-            val uniqueTaskId = "${"optional"}_$taskId" // Optional tasks use unique IDs
-            val isCompleted = completedTasksMap[uniqueTaskId] == true || completedTasksMap[taskId] == true
+            val keyForCompleted = task.title?.takeIf { it.isNotEmpty() } ?: "optional_$taskId"
+            val isCompleted = completedTasksMap[keyForCompleted] == true
             
             val stars = task.stars ?: 0
             val buttonText = if (stars > 0) {
@@ -1258,10 +1253,11 @@ class BattleHubActivity : AppCompatActivity() {
         val progressManager = DailyProgressManager(this)
         val completedTasksMap = progressManager.getCompletedTasksMap()
         
-        // Create a button for each required task
+        // Create a button for each required task (completion is keyed by task title, e.g. "Word Factory")
         requiredTasks.forEach { task ->
             val taskId = task.launch ?: "unknown"
-            val isCompleted = completedTasksMap[taskId] == true
+            val keyForCompleted = (task.title?.takeIf { it.isNotEmpty() } ?: taskId)
+            val isCompleted = completedTasksMap[keyForCompleted] == true
             
             val stars = task.stars ?: 0
             val buttonText = if (stars > 0) {
@@ -1323,14 +1319,10 @@ class BattleHubActivity : AppCompatActivity() {
             val progressManager = DailyProgressManager(this)
             val completedTasksMap = progressManager.getCompletedTasksMap()
             
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: completedTasksMap keys: ${completedTasksMap.keys}")
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: completedTasksMap size: ${completedTasksMap.size}")
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: completed tasks (true): ${completedTasksMap.filter { it.value }.keys}")
             
             // Check if all required tasks are completed
             val requiredSection = currentContent.sections?.find { it.id == "required" }
             val allRequiredTasks = requiredSection?.tasks ?: emptyList()
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: allRequiredTasks count (before filtering): ${allRequiredTasks.size}")
             
             val requiredTasks = allRequiredTasks.filter { task ->
                 val hasTitle = task.title != null
@@ -1874,7 +1866,6 @@ class BattleHubActivity : AppCompatActivity() {
             android.util.Log.d("BattleHubActivity", "Berry meter: earnedStars=$earnedStars, totalStars=$totalStars")
 
             android.util.Log.d("BattleHubActivity", "DEBUG updateBerryMeter: currentContent required_tasks count=${currentContent.sections?.sumOf { it.tasks?.size ?: 0 } ?: 0}")
-            android.util.Log.d("BattleHubActivity", "DEBUG updateBerryMeter: progressManager.getCompletedTasksMap() = ${progressManager.getCompletedTasksMap()}")
         } else {
             android.util.Log.w("BattleHubActivity", "CurrentContent is null, using defaults")
             earnedStars = 0
@@ -2612,25 +2603,23 @@ class BattleHubActivity : AppCompatActivity() {
             updateTitle()
         }, 100)
 
-        // Run daily_reset_process() and then cloud_sync() when resuming
+        // Run daily_reset_process() and then cloud_sync() when resuming; if fetch fails show error (no stale data)
         val profile = SettingsManager.readProfile(this) ?: "AM"
         android.util.Log.d("BattleHubActivity", "Starting daily reset and sync in onResume for profile $profile")
         lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
-                resetAndSyncManager.dailyResetProcessAndSync(profile)
-                android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onResume for profile $profile")
-            } catch (e: Exception) {
-                android.util.Log.e("BattleHubActivity", "Error during daily reset and sync in onResume", e)
-            }
+            val result = runCatching { DailyResetAndSyncManager(this@BattleHubActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
             runOnUiThread {
-                // Refresh UI after sync completes
-                updateBerryMeter()
-                updateEarnButtonsState()
-                updateCountsDisplay()
-                updatePokedexTitle()
-                // Also refresh header in case profile changed during sync
-                updateTitle()
+                if (result.isSuccess) {
+                    android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onResume for profile $profile")
+                    updateBerryMeter()
+                    updateEarnButtonsState()
+                    updateCountsDisplay()
+                    updatePokedexTitle()
+                    updateTitle()
+                } else {
+                    android.util.Log.e("BattleHubActivity", "Daily reset and sync failed in onResume", result.exceptionOrNull())
+                    Toast.makeText(this@BattleHubActivity, "Could not load progress. Check connection.", Toast.LENGTH_LONG).show()
+                }
             }
         }
 
@@ -2694,19 +2683,16 @@ class BattleHubActivity : AppCompatActivity() {
             val profile = SettingsManager.readProfile(this) ?: "AM"
             android.util.Log.d("BattleHubActivity", "Starting daily reset and sync in onActivityResult for profile $profile")
             lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    val resetAndSyncManager = DailyResetAndSyncManager(this@BattleHubActivity)
-                    resetAndSyncManager.dailyResetProcessAndSync(profile)
-                    android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onActivityResult for profile $profile")
-                } catch (e: Exception) {
-                    android.util.Log.e("BattleHubActivity", "Error during daily reset and sync in onActivityResult", e)
-                }
+                val result = runCatching { DailyResetAndSyncManager(this@BattleHubActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
                 runOnUiThread {
-                    // Force refresh by calling update methods directly after sync completes
-                    updateCountsDisplay()
-                    updateBerryMeter()
-                    updateEarnButtonsState()
-                    updatePokedexTitle()
+                    if (result.isSuccess) {
+                        updateCountsDisplay()
+                        updateBerryMeter()
+                        updateEarnButtonsState()
+                        updatePokedexTitle()
+                    } else {
+                        Toast.makeText(this@BattleHubActivity, "Could not load progress. Check connection.", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }

@@ -155,8 +155,8 @@ class Layout(private val activity: MainActivity) {
             Button("⚙ Settings", "settings")
         )
 
-        // Add cloud storage toggle button
-        addCloudToggleButton()
+        // Add internet-availability indicator (read-only)
+        addInternetIndicator()
 
         defaultButtons.forEach { button ->
             val btn = android.widget.Button(activity).apply {
@@ -182,31 +182,41 @@ class Layout(private val activity: MainActivity) {
         }
     }
 
-    private fun addCloudToggleButton() {
-        val cloudStorageManager = CloudStorageManager(activity)
-        val isCloudEnabled = cloudStorageManager.isCloudStorageEnabled()
+    private fun isNetworkAvailable(): Boolean {
+        val cm = activity.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+            ?: return false
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } else {
+            @Suppress("DEPRECATION")
+            (cm.activeNetworkInfo?.isConnected == true)
+        }
+    }
 
-        val cloudButton = android.widget.Button(activity).apply {
-            text = if (isCloudEnabled) "☁️ Cloud ON" else "☁️ Cloud OFF"
-            textSize = 16f
-            setOnClickListener {
-                activity.toggleCloudStorage()
-            }
-
+    /** Read-only indicator: shows whether internet is available (GitHub and Supabase need it). */
+    private fun addInternetIndicator() {
+        val online = isNetworkAvailable()
+        val indicator = android.widget.Button(activity).apply {
+            text = if (online) "🌐 Online" else "🌐 Offline"
+            textSize = 14f
+            isClickable = false
+            isFocusable = false
             layoutParams = LinearLayout.LayoutParams(
-                140.dpToPx(),
+                100.dpToPx(),
                 70.dpToPx()
             ).apply {
                 marginEnd = 12.dpToPx()
             }
-
             background = activity.resources.getDrawable(
-                if (isCloudEnabled) R.drawable.button_rounded_success else R.drawable.button_rounded
+                if (online) R.drawable.button_rounded_success else R.drawable.button_rounded
             )
             setTextColor(activity.resources.getColor(android.R.color.white))
             setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
         }
-        headerLayout.addView(cloudButton)
+        headerLayout.addView(indicator)
     }
 
     private fun addMyPokedexButton() {
@@ -802,22 +812,11 @@ class Layout(private val activity: MainActivity) {
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     var videoJson: String? = null
                     try {
-                        // Load the video JSON file (fetch from GitHub first, then cache, then assets)
+                        // Online-only: fetch video JSON from GitHub; no fallback to assets
                         videoJson = activity.contentUpdateService.fetchVideoContent(activity, videoFile)
                         android.util.Log.d("Layout", "Fetched video content for $videoFile: ${if (videoJson != null) "success" else "null"}")
                     } catch (e: Exception) {
                         android.util.Log.e("Layout", "Error fetching video content for $videoFile", e)
-                    }
-
-                    // If fetchVideoContent failed, try loading directly from assets as fallback
-                    if (videoJson == null) {
-                        try {
-                            android.util.Log.d("Layout", "Trying to load video content directly from assets")
-                            videoJson = activity.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
-                            android.util.Log.d("Layout", "Successfully loaded video content from assets")
-                        } catch (e: Exception) {
-                            android.util.Log.e("Layout", "Error loading video content from assets for $videoFile", e)
-                        }
                     }
 
                     if (videoJson == null) {
@@ -1366,13 +1365,14 @@ class Layout(private val activity: MainActivity) {
             // For required tasks, use just the launch ID
             taskLaunchId
         }
+        // Completed map is keyed by task title for required (e.g. book title "Léo et la Boîte Mystérieuse"), not by launch id
+        val keyForCompletedCheck = if (sectionId == "required") (task.title ?: taskIdForCheck) else taskIdForCheck
         // For optional/bonus tasks, don't grey them out - they can be played multiple times
         val isCompleted = if (sectionId != "required") {
             false  // Optional/bonus tasks are never "completed" in UI sense - always available
         } else {
-            completedTasksMap[taskIdForCheck] == true
+            completedTasksMap[keyForCompletedCheck] == true
         }
-        android.util.Log.d("Layout", "Task UI check: taskId=$taskIdForCheck, taskLaunchId=$taskLaunchId, sectionId=$sectionId, taskTitle=${task.title}, isCompleted=$isCompleted")
 
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
@@ -1532,8 +1532,11 @@ class Layout(private val activity: MainActivity) {
             background = activity.getDrawable(R.drawable.game_item_background)
 
             // Check if this item is completed (using pre-loaded map to avoid SharedPreferences read)
+            // Checklist completions are stored in required_tasks by label; map may key by itemId or label
             val itemId = item.id ?: "checkbox_${item.label}"
-            val isCompleted = completedTasksMap[itemId] == true
+            val itemLabel = item.label
+            val isCompleted = completedTasksMap[itemId] == true ||
+                (itemLabel != null && completedTasksMap[itemLabel] == true)
 
             // Create a container for label + stars
             val labelStarsContainer = LinearLayout(activity).apply {
@@ -1579,39 +1582,35 @@ class Layout(private val activity: MainActivity) {
                 alpha = if (isChecked) 0.6f else 1.0f // Make completed items slightly faded
 
                 setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked && !isCompleted && item.stars != null && item.stars!! > 0) {
-                        // Award stars to reward bank when checkbox is checked (only if not already completed)
-                        // ALL checklist items give coins and should only be completed once per day
+                    if (isChecked && !isCompleted) {
+                        // Mark checklist item complete (even with 0 stars) so it persists and shows completed
                         val currentContent = activity.getCurrentMainContent()
+                        val stars = item.stars ?: 0
                         val earnedStars = progressManager.markTaskCompletedWithName(
                             itemId,
                             item.label ?: itemId,
-                            item.stars!!,
+                            stars,
                             true,  // isRequired parameter - checklist items behave like required tasks
                             currentContent  // Pass config to verify
                         )
                         if (earnedStars > 0) {
                             progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
-                            
-                            // Sync berries to cloud immediately after adding them
-                            val profile = SettingsManager.readProfile(activity) ?: "AM"
-                            val cloudStorageManager = CloudStorageManager(activity)
-                            // Use GlobalScope since Layout doesn't have lifecycle scope
-                            kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                                cloudStorageManager.saveIfEnabled(profile)
-                            }
-                            
-                            updateProgressDisplay()
-                            // Update visual state - disable and grey out
-                            post {
-                                isEnabled = false
-                                setTextColor(android.graphics.Color.GRAY)
-                                alpha = 0.6f
-                                // Also update the label and stars
-                                labelView.setTextColor(android.graphics.Color.GRAY)
-                                labelView.alpha = 0.6f
-                                starsView.setTextColor(android.graphics.Color.GRAY)
-                            }
+                        }
+                        // Sync to cloud so checklist completion is persisted (even when 0 stars)
+                        val profile = SettingsManager.readProfile(activity) ?: "AM"
+                        val cloudStorageManager = CloudStorageManager(activity)
+                        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            cloudStorageManager.saveIfEnabled(profile)
+                        }
+                        // Always update visual state when we marked it complete (even with 0 stars)
+                        updateProgressDisplay()
+                        post {
+                            isEnabled = false
+                            setTextColor(android.graphics.Color.GRAY)
+                            alpha = 0.6f
+                            labelView.setTextColor(android.graphics.Color.GRAY)
+                            labelView.alpha = 0.6f
+                            starsView.setTextColor(android.graphics.Color.GRAY)
                         }
                     } else if (isChecked && isCompleted) {
                         // If already completed but checkbox was checked again, ensure visual state
@@ -2644,44 +2643,21 @@ class Layout(private val activity: MainActivity) {
         mapContainer.removeAllViews()
         
         // For bonus tasks, never grey out (always enabled)
-        // For optional tasks, check if all are completed - if so, reset them all
+        // For optional tasks, check if all are completed - if so, reset them all (practice tasks stored by task title)
         if (mapType == "optional") {
             val allCompleted = tasks.all { task ->
-                val baseTaskId = task.launch ?: ""
-                var taskId = "${mapType}_$baseTaskId"
-                
-                if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                    val originalUrl = task.url
-                    if (originalUrl.contains("diagram=")) {
-                        val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                        if (diagramParam.isNotEmpty()) {
-                            taskId = "${mapType}_${baseTaskId}_$diagramParam"
-                        }
-                    }
-                }
-                
-                completedTasksMap[taskId] == true
+                val taskTitle = task.title ?: ""
+                val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
+                completedTasksMap[keyForOptional] == true
             }
             
             // If all optional tasks are completed, reset them all (never ending)
             if (allCompleted && tasks.isNotEmpty()) {
                 val allCompletedTasks = progressManager.getCompletedTasksMap().toMutableMap()
                 tasks.forEach { task ->
-                    val baseTaskId = task.launch ?: ""
-                    var taskId = "${mapType}_$baseTaskId"
-                    
-                    if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                        val originalUrl = task.url
-                        if (originalUrl.contains("diagram=")) {
-                            val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                            if (diagramParam.isNotEmpty()) {
-                                taskId = "${mapType}_${baseTaskId}_$diagramParam"
-                            }
-                        }
-                    }
-                    
-                    // Clear completion status by removing from map
-                    allCompletedTasks.remove(taskId)
+                    val taskTitle = task.title ?: ""
+                    val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
+                    allCompletedTasks.remove(keyForOptional)
                 }
                 // Save the updated map
                 val prefs = activity.getSharedPreferences("daily_progress", android.content.Context.MODE_PRIVATE)
@@ -2698,17 +2674,21 @@ class Layout(private val activity: MainActivity) {
         // Calculate progress
         val completedCount = tasks.count { task ->
             val baseTaskId = task.launch ?: ""
-            
+            val taskTitle = task.title ?: ""
             // For diagramLabeler and similar games with URL parameters, check for unique taskId
             var taskId = if (mapType == "required") {
                 baseTaskId
             } else {
                 "${mapType}_$baseTaskId"
             }
-            
+            // Required and optional (practice) are keyed by task title in DB; bonus by section_taskId
+            val keyForCount = when {
+                mapType == "required" -> if (taskTitle.isNotEmpty()) taskTitle else baseTaskId
+                mapType == "optional" -> if (taskTitle.isNotEmpty()) taskTitle else taskId
+                else -> taskId
+            }
             // Check if this is a diagramLabeler task and if there's a unique ID with diagram parameter
             if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                // Extract diagram parameter directly from URL (don't need to call getGameModeUrl for checking)
                 val originalUrl = task.url
                 if (originalUrl.contains("diagram=")) {
                     val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
@@ -2718,15 +2698,14 @@ class Layout(private val activity: MainActivity) {
                         } else {
                             "${mapType}_${baseTaskId}_$diagramParam"
                         }
-                        // Check both the unique ID and the base ID (for backward compatibility)
                         if (completedTasksMap[uniqueTaskId] == true) {
                             return@count true
                         }
                     }
                 }
             }
-            
-            completedTasksMap[taskId] == true
+
+            completedTasksMap[keyForCount] == true
         }
         progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
         
@@ -2750,17 +2729,23 @@ class Layout(private val activity: MainActivity) {
         
         tasks.forEachIndexed { index, task ->
             val baseTaskId = task.launch ?: ""
-            
+            val taskTitle = task.title ?: ""
             // For diagramLabeler and similar games with URL parameters, check for unique taskId
             var taskId = if (mapType == "required") {
                 baseTaskId
             } else {
                 "${mapType}_$baseTaskId"
             }
-            
+            // Required and optional (practice) are keyed by task title in DB; bonus uses section-prefixed id
+            val keyForCompleted = when {
+                mapType == "bonus" -> taskId
+                taskTitle.isNotEmpty() -> taskTitle
+                mapType == "required" -> baseTaskId
+                else -> taskId
+            }
             // Check if this is a diagramLabeler task and if there's a unique ID with diagram parameter
             // For bonus tasks, never mark as completed (always enabled, never grey out)
-            var isCompleted = if (mapType == "bonus") false else completedTasksMap[taskId] == true
+            var isCompleted = if (mapType == "bonus") false else completedTasksMap[keyForCompleted] == true
             if (!isCompleted && baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
                 // Extract diagram parameter directly from URL (don't need to call getGameModeUrl for checking)
                 val originalUrl = task.url
@@ -2774,7 +2759,7 @@ class Layout(private val activity: MainActivity) {
                         }
                         // Check both the unique ID and the base ID (for backward compatibility)
                         // For bonus tasks, never mark as completed
-                        isCompleted = if (mapType == "bonus") false else (completedTasksMap[uniqueTaskId] == true || completedTasksMap[taskId] == true)
+                        isCompleted = if (mapType == "bonus") false else (completedTasksMap[uniqueTaskId] == true || completedTasksMap[keyForCompleted] == true)
                     }
                 }
             }

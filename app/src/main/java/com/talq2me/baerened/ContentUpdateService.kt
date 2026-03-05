@@ -11,13 +11,12 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.io.File
-import java.io.FileOutputStream
-import java.io.FileWriter
 import java.io.IOException
-import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 
+/**
+ * ONLINE-ONLY: No local disk cache of GitHub content. Fetches from network; in-memory cache only for the session.
+ */
 class ContentUpdateService : Service() {
 
     private val client = OkHttpClient.Builder()
@@ -30,7 +29,7 @@ class ContentUpdateService : Service() {
     override fun onCreate() {
         super.onCreate()
         prefs = getSharedPreferences("content_cache", MODE_PRIVATE)
-        Log.d(TAG, "ContentUpdateService created")
+        Log.d(TAG, "ContentUpdateService created (online-only: no disk cache)")
     }
 
     private fun getContentUrlForChild(context: Context): String {
@@ -58,328 +57,155 @@ class ContentUpdateService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /** ONLINE-ONLY: Store in memory only; no disk or SharedPreferences. */
     fun saveMainContentToCache(context: Context, json: String) {
         try {
-            val file = File(context.filesDir, "main_content.json")
-            FileWriter(file).use { writer ->
-                writer.write(json)
-            }
-
-            // Save version for comparison
+            inMemoryMainContent = json
             val content = Gson().fromJson(json, MainContent::class.java)
-            // Use context.getSharedPreferences directly to handle cases where prefs isn't initialized (e.g., in tests)
-            val sharedPrefs = if (::prefs.isInitialized) {
-                prefs
-            } else {
-                context.getSharedPreferences("content_cache", Context.MODE_PRIVATE)
-            }
-            sharedPrefs.edit().putString("main_content_version", content.version).apply()
-
-            Log.d(TAG, "Main content cached: ${content.version}")
-
+            inMemoryMainContentVersion = content.version
+            Log.d(TAG, "Main content stored in memory: ${content.version}")
         } catch (e: Exception) {
-            Log.e(TAG, "Error saving main content to cache", e)
+            Log.e(TAG, "Error saving main content to memory", e)
         }
     }
 
+    /**
+     * ONLINE-ONLY: Fetch from GitHub only. No fallback to cache or asset — if network fails, returns null
+     * so the UI can show that content is unavailable (no network).
+     */
     fun getCachedMainContent(context: Context): String? {
         return try {
             val baseUrl = getContentUrlForChild(context)
-            val cacheFileName = baseUrl.substring(baseUrl.lastIndexOf('/') + 1) // e.g., "AM_config.json"
-            val cacheFile = File(context.cacheDir, cacheFileName)
-            // Cache-bust so CDNs/proxies don't return stale JSON (fixes tablets showing old config)
             val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
-            
-            // CRITICAL: Try GitHub first, then fall back to cache
-            try {
-                val request = Request.Builder().url(urlWithBust).build()
-                // Longer timeout on tablets/slow networks so fetch is more likely to succeed
-                val quickClient = OkHttpClient.Builder()
-                    .connectTimeout(15, TimeUnit.SECONDS)
-                    .readTimeout(15, TimeUnit.SECONDS)
-                    .build()
-                
-                val response = quickClient.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val body = response.body?.string()
-                    if (body != null) {
-                        Log.d(TAG, "getCachedMainContent: Successfully fetched from GitHub (length=${body.length})")
-                        // Update cache for next time
-                        try {
-                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                            Log.d(TAG, "getCachedMainContent: Updated cache with latest from GitHub")
-                        } catch (e: IOException) {
-                            Log.e(TAG, "getCachedMainContent: Error updating cache", e)
-                        }
-                        return body
-                    }
+            val request = Request.Builder().url(urlWithBust).build()
+            val quickClient = OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .build()
+            val response = quickClient.newCall(request).execute()
+            if (response.isSuccessful) {
+                val body = response.body?.string()
+                if (body != null) {
+                    Log.d(TAG, "getCachedMainContent: Fetched from GitHub (length=${body.length})")
+                    inMemoryMainContent = body
+                    return body
                 }
-                Log.w(TAG, "getCachedMainContent: GitHub fetch failed with code: ${response.code}, falling back to cache")
-                response.close()
-            } catch (e: Exception) {
-                Log.w(TAG, "getCachedMainContent: Network error fetching from GitHub: ${e.message}, falling back to cache")
             }
-            
-            // GitHub fetch failed or timed out, try cache
-            if (cacheFile.exists()) {
-                val content = cacheFile.readText()
-                Log.d(TAG, "getCachedMainContent: Found content in cacheDir: ${cacheFile.name} (length=${content.length})")
-                return content
-            }
-            
-            // Fallback to filesDir/main_content.json (for backwards compatibility)
-            val file = File(context.filesDir, "main_content.json")
-            if (file.exists()) {
-                val content = file.readText()
-                Log.d(TAG, "getCachedMainContent: Found content in filesDir: main_content.json (length=${content.length})")
-                return content
-            }
-            
-            Log.w(TAG, "getCachedMainContent: No cached content found in cacheDir or filesDir")
+            response.close()
+            Log.w(TAG, "getCachedMainContent: Network failed or empty response — no fallback")
             null
         } catch (e: Exception) {
-            Log.e(TAG, "Error reading cached main content", e)
+            Log.w(TAG, "getCachedMainContent: Network error — no fallback: ${e.message}")
             null
         }
     }
 
     fun getCachedMainContentVersion(): String? {
-        return prefs.getString("main_content_version", null)
+        return inMemoryMainContentVersion ?: (if (::prefs.isInitialized) prefs.getString("main_content_version", null) else null)
     }
 
-    /**
-     * Fetch game content with comprehensive fallback strategy:
-     * 1. Try network first and cache result
-     * 2. If network fails, try cache
-     * 3. If cache fails, try assets as final fallback
-     */
+    /** ONLINE-ONLY: Fetch from network only. No fallback — returns null if network fails. */
     suspend fun fetchGameContent(context: Context, gameType: String): String? {
         val gameFileName = "${gameType}.json"
-        val cacheFile = File(context.cacheDir, gameFileName)
-
-        // 1. Try fetching from Network (cache-bust so tablets get latest)
-        try {
+        return try {
             val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$gameFileName?nocache=${System.currentTimeMillis()}"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
                     if (body != null) {
-                        Log.d(TAG, "Successfully fetched game content from network: $gameType")
-                        // Save to cache for offline use
-                        try {
-                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                            Log.d(TAG, "Saved game content to cache: $gameFileName")
-                        } catch (e: IOException) {
-                            Log.e(TAG, "Error writing game content to cache", e)
-                        }
+                        Log.d(TAG, "Fetched game content from network: $gameType")
                         return body
                     }
                 }
-                Log.w(TAG, "Game content fetch failed with code: ${response.code}. Trying cache.")
+                Log.w(TAG, "fetchGameContent: Network failed or empty — no fallback")
+                null
             }
         } catch (e: IOException) {
-            Log.w(TAG, "Network error fetching game content: ${e.message}. Trying cache.")
-        }
-
-        // 2. Network failed, try loading from Cache
-        if (cacheFile.exists()) {
-            try {
-                val cachedContent = cacheFile.readText()
-                Log.d(TAG, "Successfully loaded game content from cache: $gameFileName")
-                return cachedContent
-            } catch (e: Exception) {
-                Log.e(TAG, "Error reading game content from cache. Trying assets.", e)
-            }
-        }
-
-        // 3. Cache failed or doesn't exist, fall back to bundled Assets
-        try {
-            Log.d(TAG, "Loading game content from bundled asset: $gameFileName")
-            context.assets.open("data/$gameFileName").use { inputStream ->
-                InputStreamReader(inputStream).use { reader ->
-                    return reader.readText()
-                }
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "Could not find or read game asset file: data/$gameFileName", e)
-            return null // Final failure - no hardcoded defaults
+            Log.w(TAG, "fetchGameContent: Network error — no fallback: ${e.message}")
+            null
         }
     }
 
-    /**
-     * Fetch video content with comprehensive fallback strategy:
-     * 1. Try network first and cache result
-     * 2. If network fails, try cache
-     * 3. If cache fails, try assets as final fallback
-     */
+    /** ONLINE-ONLY: Fetch from network only. No fallback — returns null if network fails. */
     suspend fun fetchVideoContent(context: Context, videoFile: String): String? {
         val videoFileName = "${videoFile}.json"
-        val cacheFile = File(context.cacheDir, "videos_$videoFileName")
-
-        // 1. Try fetching from Network
-        try {
+        return try {
             val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/videos/$videoFileName"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
                     if (body != null) {
-                        Log.d(TAG, "Successfully fetched video content from network: $videoFile")
-                        // Save to cache for offline use
-                        try {
-                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                            Log.d(TAG, "Saved video content to cache: $videoFileName")
-                        } catch (e: IOException) {
-                            Log.e(TAG, "Error writing video content to cache", e)
-                        }
+                        Log.d(TAG, "Fetched video content from network: $videoFile")
                         return body
                     }
                 }
-                Log.w(TAG, "Video content fetch failed with code: ${response.code}. Trying cache.")
+                Log.w(TAG, "fetchVideoContent: Network failed or empty — no fallback")
+                null
             }
         } catch (e: IOException) {
-            Log.w(TAG, "Network error fetching video content: ${e.message}. Trying cache.")
-        }
-
-        // 2. Network failed, try loading from Cache
-        if (cacheFile.exists()) {
-            try {
-                val cachedContent = cacheFile.readText()
-                Log.d(TAG, "Successfully loaded video content from cache: $videoFileName")
-                return cachedContent
-            } catch (e: Exception) {
-                Log.e(TAG, "Error reading video content from cache. Trying assets.", e)
-            }
-        }
-
-        // 3. Cache failed or doesn't exist, fall back to bundled Assets
-        try {
-            Log.d(TAG, "Loading video content from bundled asset: $videoFileName")
-            context.assets.open("videos/$videoFileName").use { inputStream ->
-                InputStreamReader(inputStream).use { reader ->
-                    return reader.readText()
-                }
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "Could not find or read video asset file: videos/$videoFileName", e)
-            return null // Final failure
+            Log.w(TAG, "fetchVideoContent: Network error — no fallback: ${e.message}")
+            null
         }
     }
 
-    /**
-     * Fetch main content with comprehensive fallback strategy:
-     * 1. Try network first and cache result
-     * 2. If network fails, try cache
-     * 3. If cache fails, try assets as final fallback
-     */
+    /** ONLINE-ONLY: Fetch from network only. No fallback — returns null if network fails. */
     suspend fun fetchMainContent(context: Context): MainContent? {
         val baseUrl = getContentUrlForChild(context)
-        val cacheFileName = baseUrl.substring(baseUrl.lastIndexOf('/') + 1) // e.g., "AM_config.json"
-        val cacheFile = File(context.cacheDir, cacheFileName)
         val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
-
-        // 1. Try fetching from Network
-        try {
+        return try {
             val request = Request.Builder().url(urlWithBust).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val body = response.body?.string()
                     if (body != null) {
-                        Log.d(TAG, "Successfully fetched from network.")
-                        // Save to cache for offline use
-                        try {
-                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                            Log.d(TAG, "Saved content to cache: ${cacheFile.name}")
-                        } catch (e: IOException) {
-                            Log.e(TAG, "Error writing to cache", e)
-                        }
-                        return Gson().fromJson(body, MainContent::class.java)
+                        Log.d(TAG, "Fetched main content from network.")
+                        inMemoryMainContent = body
+                        val content = Gson().fromJson(body, MainContent::class.java)
+                        inMemoryMainContentVersion = content.version
+                        return content
                     }
                 }
-                Log.w(TAG, "GitHub fetch failed with code: ${response.code}. Trying cache.")
+                Log.w(TAG, "fetchMainContent: Network failed or empty — no fallback")
+                null
             }
         } catch (e: IOException) {
-            Log.w(TAG, "Network error fetching content: ${e.message}. Trying cache.")
-        }
-
-        // 2. Network failed, try loading from Cache
-        if (cacheFile.exists()) {
-            try {
-                val cachedContent = cacheFile.readText()
-                Log.d(TAG, "Successfully loaded from cache: ${cacheFile.name}")
-                return Gson().fromJson(cachedContent, MainContent::class.java)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error reading from cache. Trying assets.", e)
-            }
-        }
-
-        // 3. Cache failed or doesn't exist, fall back to bundled Assets
-        try {
-            val assetPath = "config/$cacheFileName"
-            Log.d(TAG, "Loading from bundled asset: $assetPath")
-            context.assets.open(assetPath).use { inputStream ->
-                InputStreamReader(inputStream).use { reader ->
-                    return Gson().fromJson(reader, MainContent::class.java)
-                }
-            }
-        } catch (e: IOException) {
-            val assetPath = "config/$cacheFileName"
-            Log.e(TAG, "Could not find or read asset file: $assetPath", e)
-            return null // Final failure
-        }
-    }
-
-    /**
-     * Get chores.json with same strategy as config: GitHub first, then cache, then bundled assets.
-     * Call this when loading chores so it stays in sync with other config files.
-     */
-    fun getCachedChores(context: Context): String? {
-        return try {
-            val cacheFile = File(context.cacheDir, "chores.json")
-            val baseUrl = getChoresUrl()
-            val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
-            // Try GitHub first (same as getCachedMainContent)
-            try {
-                val request = Request.Builder().url(urlWithBust).build()
-                val quickClient = OkHttpClient.Builder()
-                    .connectTimeout(15, TimeUnit.SECONDS)
-                    .readTimeout(15, TimeUnit.SECONDS)
-                    .build()
-                val response = quickClient.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val body = response.body?.string()
-                    if (body != null) {
-                        Log.d(TAG, "getCachedChores: Fetched from GitHub (length=${body.length})")
-                        try {
-                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                        } catch (e: IOException) {
-                            Log.e(TAG, "getCachedChores: Error updating cache", e)
-                        }
-                        return body
-                    }
-                }
-                response.close()
-            } catch (e: Exception) {
-                Log.w(TAG, "getCachedChores: Network error: ${e.message}, falling back to cache")
-            }
-            if (cacheFile.exists()) {
-                cacheFile.readText().also { Log.d(TAG, "getCachedChores: Using cache") }
-            } else {
-                context.assets.open("config/chores.json").bufferedReader().use { it.readText() }
-                    .also { Log.d(TAG, "getCachedChores: Using bundled asset") }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "getCachedChores: Error", e)
+            Log.w(TAG, "fetchMainContent: Network error — no fallback: ${e.message}")
             null
         }
     }
 
-    /**
-     * Fetch chores.json from GitHub with same fallback as other config: network -> cache -> assets.
-     */
+    /** ONLINE-ONLY: Fetch from GitHub only. No fallback — returns null if network fails. */
+    fun getCachedChores(context: Context): String? {
+        return try {
+            val urlWithBust = "${getChoresUrl()}?nocache=${System.currentTimeMillis()}"
+            val request = Request.Builder().url(urlWithBust).build()
+            val quickClient = OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .build()
+            val response = quickClient.newCall(request).execute()
+            if (response.isSuccessful) {
+                val body = response.body?.string()
+                if (body != null) {
+                    Log.d(TAG, "getCachedChores: Fetched from GitHub")
+                    inMemoryChores = body
+                    response.close()
+                    return body
+                }
+            }
+            response.close()
+            Log.w(TAG, "getCachedChores: Network failed or empty — no fallback")
+            null
+        } catch (e: Exception) {
+            Log.w(TAG, "getCachedChores: Network error — no fallback: ${e.message}")
+            null
+        }
+    }
+
+    /** ONLINE-ONLY: Fetch from GitHub only. No fallback — returns null if network fails. */
     suspend fun fetchChores(context: Context): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-        val cacheFile = File(context.cacheDir, "chores.json")
         val urlWithBust = "${getChoresUrl()}?nocache=${System.currentTimeMillis()}"
         try {
             val request = Request.Builder().url(urlWithBust).build()
@@ -388,80 +214,40 @@ class ContentUpdateService : Service() {
                     val body = response.body?.string()
                     if (body != null) {
                         Log.d(TAG, "fetchChores: Fetched from GitHub")
-                        try {
-                            FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                        } catch (e: IOException) {
-                            Log.e(TAG, "fetchChores: Error writing cache", e)
-                        }
+                        inMemoryChores = body
                         return@withContext body
                     }
                 }
+                Log.w(TAG, "fetchChores: Network failed or empty — no fallback")
+                return@withContext null
             }
         } catch (e: IOException) {
-            Log.w(TAG, "fetchChores: Network error: ${e.message}")
-        }
-        if (cacheFile.exists()) {
-            return@withContext cacheFile.readText()
-        }
-        try {
-            context.assets.open("config/chores.json").bufferedReader().use { it.readText() }
-        } catch (e: IOException) {
-            Log.e(TAG, "fetchChores: No asset", e)
+            Log.w(TAG, "fetchChores: Network error — no fallback: ${e.message}")
             null
         }
     }
 
+    /** ONLINE-ONLY: Clear in-memory cache only. */
     fun clearCache(context: Context) {
         try {
-            // Clear main content cache
-            val filesDir = context.filesDir
-            filesDir.listFiles()?.forEach { file ->
-                if (file.name.startsWith("main_content.json")) {
-                    file.delete()
-                }
-            }
-
-            // Clear video and game content cache from cacheDir
-            val cacheDir = context.cacheDir
-            cacheDir.listFiles()?.forEach { file ->
-                if (file.name.startsWith("videos_") || file.name.endsWith(".json")) {
-                    file.delete()
-                }
-            }
-
-            // Use context.getSharedPreferences directly to handle cases where prefs isn't initialized (e.g., in tests)
-            val sharedPrefs = if (::prefs.isInitialized) {
-                prefs
-            } else {
-                context.getSharedPreferences("content_cache", Context.MODE_PRIVATE)
-            }
-            sharedPrefs.edit().clear().apply()
-
-            Log.d(TAG, "Cache cleared (including video and game caches)")
-
+            inMemoryMainContent = null
+            inMemoryMainContentVersion = null
+            inMemoryChores = null
+            if (::prefs.isInitialized) prefs.edit().clear().apply()
+            Log.d(TAG, "In-memory cache cleared")
         } catch (e: Exception) {
             Log.e(TAG, "Error clearing cache", e)
         }
     }
 
     fun isContentStale(context: Context, maxAgeHours: Long = 24): Boolean {
-        return try {
-            val file = File(context.filesDir, "main_content.json")
-            if (!file.exists()) return true
-
-            val lastModified = file.lastModified()
-            val age = System.currentTimeMillis() - lastModified
-            val maxAge = TimeUnit.HOURS.toMillis(maxAgeHours)
-
-            age > maxAge
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking content staleness", e)
-            true
-        }
+        return inMemoryMainContent == null
     }
 
     companion object {
         private const val TAG = "ContentUpdateService"
+        @Volatile private var inMemoryMainContent: String? = null
+        @Volatile private var inMemoryMainContentVersion: String? = null
+        @Volatile private var inMemoryChores: String? = null
     }
 }

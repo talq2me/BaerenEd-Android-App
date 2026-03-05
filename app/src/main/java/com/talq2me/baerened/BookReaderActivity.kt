@@ -422,6 +422,7 @@ class BookReaderActivity : AppCompatActivity() {
         timeTracker.endActivity("bookReader")
         val resultIntent = android.content.Intent().apply {
             putExtra(EXTRA_TASK_ID, intent.getStringExtra(EXTRA_TASK_ID))
+            putExtra(EXTRA_TASK_TITLE, intent.getStringExtra(EXTRA_TASK_TITLE))
             putExtra(EXTRA_SECTION_ID, intent.getStringExtra(EXTRA_SECTION_ID))
             putExtra(EXTRA_STARS, intent.getIntExtra(EXTRA_STARS, 0))
         }

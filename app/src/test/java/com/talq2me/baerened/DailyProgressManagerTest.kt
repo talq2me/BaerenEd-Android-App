@@ -68,6 +68,8 @@ class DailyProgressManagerTest {
 
     @After
     fun tearDown() {
+        // Clear repository cache so online-only state does not leak between tests
+        UserDataRepository.getInstance(mockContext).invalidateCache("AM")
         clearAllMocks()
     }
 
@@ -99,8 +101,8 @@ class DailyProgressManagerTest {
 
     @Test
     fun `getBankedRewardMinutes returns current banked minutes`() {
-        // Given: Some banked minutes (key is profile-prefixed)
-        every { mockPrefs.getInt("AM_banked_reward_minutes", 0) } returns 20
+        // Given: Repository cache has banked minutes (online-only: no prefs fallback)
+        UserDataRepository.getInstance(mockContext).setCache("AM", CloudUserData(profile = "AM", bankedMins = 20))
 
         // When: Getting banked minutes
         val minutes = progressManager.getBankedRewardMinutes()
@@ -125,18 +127,15 @@ class DailyProgressManagerTest {
 
     @Test
     fun `addRewardMinutes adds minutes to reward bank`() {
-        // Given: Initial reward minutes (key is profile-prefixed)
-        // getBankedRewardMinutes may call getInt multiple times due to error handling
-        every { mockPrefs.getInt("AM_banked_reward_minutes", 0) } returns 5
-        every { mockPrefs.getFloat("AM_banked_reward_minutes", 0f) } throws ClassCastException()
-        every { mockPrefs.getString("AM_banked_reward_minutes", "0") } throws ClassCastException()
+        // Given: Repository cache has initial minutes (online-only: getBankedRewardMinutes reads from cache)
+        UserDataRepository.getInstance(mockContext).setCache("AM", CloudUserData(profile = "AM", bankedMins = 5))
 
         // When: Adding 10 minutes
         val newTotal = progressManager.addRewardMinutes(10)
 
         // Then: Should return 15 (5 + 10)
         assertEquals(15, newTotal)
-        // Verify it tried to save the new total (key is profile-prefixed)
+        // Verify it tried to save the new total to prefs (key is profile-prefixed)
         verify(atLeast = 1) { mockEditor.remove("AM_banked_reward_minutes") }
         verify(atLeast = 1) { mockEditor.putInt("AM_banked_reward_minutes", 15) }
         verify(atLeast = 1) { mockEditor.commit() }

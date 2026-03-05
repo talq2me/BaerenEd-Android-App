@@ -285,34 +285,35 @@ class GameActivity : AppCompatActivity() {
                         
                         // Step 2: Update last_updated timestamp (already done in markTaskCompletedWithName -> saveRequiredTasks)
                         
-                        // Step 3: Sync to cloud SYNCHRONOUSLY (wait for completion)
+                        // Step 3: Sync to cloud with retry — only consider done when DB write succeeds
                         val currentProfile = SettingsManager.readProfile(this) ?: "AM"
                         android.util.Log.d("GameActivity", "CRITICAL: Starting synchronous cloud sync for profile: $currentProfile")
-                        runBlocking(Dispatchers.IO) {
-                            try {
-                                val resetAndSyncManager = DailyResetAndSyncManager(this@GameActivity)
-                                resetAndSyncManager.updateLocalTimestampAndSyncToCloud(currentProfile)
-                                android.util.Log.d("GameActivity", "CRITICAL: Cloud sync completed successfully")
-                            } catch (e: Exception) {
-                                android.util.Log.e("GameActivity", "CRITICAL ERROR: Cloud sync failed", e)
-                                e.printStackTrace()
+                        val syncResult = runBlocking(Dispatchers.IO) {
+                            DailyResetAndSyncManager(this@GameActivity).updateLocalTimestampAndSyncToCloud(currentProfile)
+                        }
+
+                        if (syncResult.isSuccess) {
+                            android.util.Log.d("GameActivity", "CRITICAL: Cloud sync completed successfully")
+                            val resultIntent = android.content.Intent().apply {
+                                putExtra("GAME_TYPE", actualGameType)
+                                putExtra("GAME_STARS", earnedStars)
+                                putExtra("REWARDS_APPLIED", true)
+                                currentBattleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+                                sectionId?.let { putExtra("SECTION_ID", it) }
                             }
+                            setResult(RESULT_OK, resultIntent)
+                            android.os.Handler().postDelayed({ finish() }, 2500)
+                        } else {
+                            android.util.Log.e("GameActivity", "CRITICAL: Cloud sync failed - progress not saved", syncResult.exceptionOrNull())
+                            android.os.Handler().postDelayed({
+                                android.app.AlertDialog.Builder(this@GameActivity)
+                                    .setTitle("Could not save progress")
+                                    .setMessage("Please check your connection. Your progress was not saved to the server.")
+                                    .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
+                                    .setCancelable(false)
+                                    .show()
+                            }, 500)
                         }
-
-                        // Always set result when game completed so caller (e.g. TrainingMap) can refresh
-                        val resultIntent = android.content.Intent().apply {
-                            putExtra("GAME_TYPE", actualGameType)
-                            putExtra("GAME_STARS", earnedStars)
-                            putExtra("REWARDS_APPLIED", true)  // We already granted time+berries; caller should not grant again
-                            currentBattleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
-                            sectionId?.let { putExtra("SECTION_ID", it) }
-                        }
-                        setResult(RESULT_OK, resultIntent)
-
-                        // Navigate back after delay
-                        android.os.Handler().postDelayed({
-                            finish()
-                        }, 2500) // 2.5 seconds total (2s message + 0.5s buffer)
                     } catch (e: Exception) {
                         android.util.Log.e("GameActivity", "CRITICAL ERROR: Exception during game completion", e)
                         e.printStackTrace()

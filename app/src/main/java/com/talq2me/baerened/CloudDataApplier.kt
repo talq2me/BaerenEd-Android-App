@@ -105,6 +105,27 @@ class CloudDataApplier(
                     }
                 }
 
+                // Apply checklist_items from cloud into required_tasks so UI shows them (e.g. when required_tasks didn't include checklist keys yet)
+                data.checklistItems?.forEach { (itemLabel, progress) ->
+                    if (progress.done && visibleChecklistLabels.contains(itemLabel)) {
+                        val checklistItem = visibleChecklistItems.find { it.label == itemLabel }
+                        if (existingRequiredTasks[itemLabel] == null) {
+                            existingRequiredTasks[itemLabel] = TaskProgress(
+                                status = "complete",
+                                correct = null,
+                                incorrect = null,
+                                questions = null,
+                                stars = checklistItem?.stars ?: progress.stars ?: 0,
+                                showdays = checklistItem?.showdays,
+                                hidedays = checklistItem?.hidedays,
+                                displayDays = progress.displayDays ?: checklistItem?.displayDays,
+                                disable = null
+                            )
+                            appliedCount++
+                        }
+                    }
+                }
+
                 val success = progressPrefs.edit()
                     .putString(requiredTasksKey, gson.toJson(existingRequiredTasks))
                     .commit() // Use commit() for synchronous write to prevent race conditions

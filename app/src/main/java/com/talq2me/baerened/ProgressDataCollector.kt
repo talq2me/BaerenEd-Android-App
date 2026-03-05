@@ -291,6 +291,26 @@ class ProgressDataCollector(private val context: Context) {
                     disable = existingProgress?.disable ?: task.disable
                 )
             }
+
+            // CRITICAL: Include checklist items in required_tasks so upload and cloud have them;
+            // otherwise applying cloud later overwrites local and we lose checklist completions.
+            val checklistSection = getConfigChecklistSection()
+            checklistSection?.items?.filterNotNull()?.forEach { item ->
+                val itemLabel = item.label ?: "Unknown Item"
+                val existingProgress = existingRequiredTasks[itemLabel]
+                val status = existingProgress?.status ?: "incomplete"
+                requiredTasks[itemLabel] = TaskProgress(
+                    status = status,
+                    correct = existingProgress?.correct,
+                    incorrect = existingProgress?.incorrect,
+                    questions = existingProgress?.questions,
+                    stars = existingProgress?.stars ?: item.stars ?: 0,
+                    showdays = item.showdays,
+                    hidedays = item.hidedays,
+                    displayDays = item.displayDays,
+                    disable = null
+                )
+            }
             
             Log.d(TAG, "CRITICAL: Final requiredTasks count after collection: ${requiredTasks.size}")
             if (requiredTasks.isNotEmpty()) {
