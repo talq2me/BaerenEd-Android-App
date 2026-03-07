@@ -43,7 +43,7 @@
         {
           "title": "Spelling Race",
           "launch": "spellingRace",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsTE.json",
           "stars": 3,
           "webGame": true
         },
@@ -57,7 +57,7 @@
         {
           "title": "Eng Spelling",
           "launch": "engSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsTE.json",
           "stars": 3,
           "webGame": true,
           "disable": "Jan 15, 2027",
@@ -74,7 +74,7 @@
         {
           "title": "Fr Spelling",
           "launch": "frSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsTE.json",
           "stars": 3,
           "webGame": true,
           "disable": "Jan 1, 2027",
@@ -85,7 +85,7 @@
         {
           "title": "Fr Spelling",
           "launch": "frSpellPhoto",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsTE.json",
           "stars": 3,
           "webGame": true,
           "extremedays": "mon,tue,wed",
@@ -96,7 +96,7 @@
         {
           "title": "Eng Spelling",
           "launch": "engSpellPhoto",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsTE.json",
           "stars": 3,
           "disable": "Jan 1, 2027",
           "webGame": true,
@@ -177,7 +177,7 @@
         {
           "title": "Word Garden",
           "launch": "wordGarden",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsTE.json",
           "stars": 3,
           "webGame": true,
           "displayDays": "tue,fri",
@@ -205,7 +205,7 @@
         {
           "title": "Word Fishing",
           "launch": "wordFishing",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsTE.json",
           "stars": 3,
           "webGame": true,
           "disable": "Jan 15, 2027",
@@ -214,7 +214,7 @@
         {
           "title": "Word Factory",
           "launch": "wordFactory",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsGr1.json",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsTE.json",
           "stars": 3,
           "webGame": true,
           "disable": "Jan 15, 2026"
@@ -316,13 +316,6 @@
           "launch": "canadianMoneyEasy",
           "stars": 1,
           "totalQuestions": 1
-        },
-        {
-          "title": "Sentence Builder",
-          "launch": "englishSentences",
-          "stars": 1,
-          "totalQuestions": 1,
-          "blockOutlines": true
         }
       ]
     },
