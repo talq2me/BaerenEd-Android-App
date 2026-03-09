@@ -5,10 +5,14 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Chores 4 $$: list of chores with checkboxes. Check = add coins_reward to coins_earned, uncheck = deduct.
- * Saving updates last_updated so cloud sync runs on return to Battle Hub.
+ * Fetches from DB when displayed so list shows DB-backed data (session); chore toggles sync via RPC.
  */
 class ChoresActivity : AppCompatActivity() {
 
@@ -24,13 +28,18 @@ class ChoresActivity : AppCompatActivity() {
 
         progressManager = DailyProgressManager(this)
         profile = SettingsManager.readProfile(this) ?: "AM"
-
-        progressManager.loadChoresFromJsonIfNeeded(profile)
-        chores = progressManager.getChores(profile).toMutableList()
-
         choresListLeft = findViewById(R.id.choresListLeft)
         choresListRight = findViewById(R.id.choresListRight)
-        buildChoreRows()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            DailyResetAndSyncManager(this@ChoresActivity).dailyResetProcessAndSync(profile)
+            progressManager.loadChoresFromJsonIfNeeded(profile)
+            val fromDb = progressManager.getChores(profile).toMutableList()
+            withContext(Dispatchers.Main) {
+                chores = fromDb
+                buildChoreRows()
+            }
+        }
 
         findViewById<Button>(R.id.choresDoneButton).setOnClickListener { finish() }
     }
@@ -63,6 +72,7 @@ class ChoresActivity : AppCompatActivity() {
         progressManager.addCoinsEarned(profile, delta)
         chores[index] = chore.copy(done = isChecked)
         progressManager.saveChores(profile, chores)
+        progressManager.notifyChoreUpdated(profile, chore.choreId, isChecked)
         // Set last_updated so cloud sync runs when returning to Battle Hub
         DailyResetAndSyncManager(this).advanceLocalTimestampForProfile(profile)
     }

@@ -1,164 +1,145 @@
-BaerenEd Daily reset and sync overview
+# BaerenEd Daily Reset and Sync Overview
 
-*remove trigger from db for resetting the progress, instead, lets make the settings menu item for 'reset all progress' set the cloud.profile.last_reset to now() at EST - 1 day and  local.profile.last_reset to now() at EST - 1 day which should force a reset the next time a screen is loaded*
+**Mode: ONLINE-ONLY (BaerenEd).** No local storage for progress. All progress is read from and written to the **database** only. Config (task/chore definitions) is read from **GitHub** where specified below.
 
-**IMPORTANT CLARIFICATIONS:**
+---
 
-1. **Date Comparison**: To determine if it is "today", assume both timestamps are in EST, compare the date part to now() at EST using only that date part. All times read and written should be in EST.
+## IMPORTANT CLARIFICATIONS (still apply)
 
-2. **GitHub JSON Source of Truth**: Always check GitHub first for JSON as it is the source of truth. If the app cannot do a diff between GitHub JSON and local JSON, always pull from GitHub and overwrite local when GitHub is available.
+1. **Date comparison**: To determine if it is "today", use the date part only, in EST. All relevant timestamps read and written use EST. Example format: `2026-01-14 11:48:34.401`.
 
-3. **Task Preservation**: For tasks removed from JSON, remove the task from the JSON variable. Add any new tasks to the JSON variable. For any tasks updated, update only the star_count. Preserve existing complete, correct/incorrect, and times_completed progress.
+2. **GitHub JSON source of truth**: Always check GitHub first for config JSON. When the app cannot diff GitHub vs existing data, pull from GitHub and overwrite/merge as described (e.g. Trainer Map merge).
 
-4. **Sync Methods**: All or nothing operations. This allows them to be retried later when they are called again. The last_updated was already modified before the sync, so it should not be changed in update_cloud_with_local() or update_local_with_cloud() methods.
+3. **Task preservation (merge)**: When merging GitHub config with DB data: remove tasks/items that no longer exist in the JSON; add new tasks/items from the JSON; update only star_count (and similar metadata) for existing tasks; **preserve** existing completion, correct/incorrect, and times_completed in the DB.
 
-5. **Network Failures**: Retry a few times if it won't cause problems (performance issues or crashes). Otherwise, don't retry.
+4. **Network failures**: Retry a few times if it won’t cause performance issues or crashes. Otherwise don’t retry.
 
-6. **BaerenLock App Lists**: The user_data table has columns reward_apps, blacklisted_apps, white_listed_apps for the specific profile. These fields are JSONB.
+5. **BaerenLock app lists**: The user_data table has columns reward_apps, blacklisted_apps, white_listed_apps for the profile (JSONB). See BaerenLock section below for online-only behavior and what may be stored locally.
 
-7. **Timestamp Format**: The database uses TIMESTAMP(3) format and stores now() at EST. Store the same format in local storage to make comparisons easier. Example format: 2026-01-14 11:48:34.401
+6. **Timestamp format**: Store in EST. Example: `2026-01-14 11:48:34.401`.
 
-8. **Settings Changes**: When settings change, update local immediately. The settings screen goes away and we load the app screen, which triggers a cloud sync that pushes the changes. No need to call update_cloud_with_local() directly from settings.
+7. **Chores**: Same as required_tasks/checklist_items for reset: **blank** the chores column on daily reset, then **restore** chores from GitHub (chores config) into the DB (default all `done = false`). Read from DB for display; write to DB when marked complete. Coins_earned: read/write DB; **not** reset on daily reset.
 
-*Sync Process for BaerenEd*
-The daily_reset_process() and then cloud_sync() shall run during the following events.
-1. BaerenEd BattleHub Load
-2. BaerenEd Trainer Map Load
+8. **banked_mins** = **reward time** (clock icon in UI). Same value in DB and UI.
 
-variables involved in daily reset process: 
-I will refer to these using the format as follows: local.profile.last_reset, cloud.profile.last_reset. 
+9. **game_indices**: Read/write **DB only**, never stored locally. Do **not** reset on daily reset.
 
-Both in format EST: 2026-01-14 11:48:34.401. Example of the variable: local.BM.last_reset = 2026-01-14 11:48:34.401, cloud.BM.last_reset = 2026-01-14 11:48:34.401
+10. **last_updated**: Keep it; used in reports and to know when something was modified.
 
-cloud.profile.last_reset actually refers to the record matching the current profile in the cloud user_data.last_reset date/time. But For simplicity I will just call it cloud.profile.last_reset. The local.profile.last_reset refers to the local storage profile's last_reset, but I will refer to it as local.profile.last_reset.
+---
 
+## "Reset all progress" (settings menu)
 
-Methods:
+The settings menu item **"Reset all progress"** should set **DB** `last_reset` to **now() at EST minus 1 day** (using only the **date** part for the comparison). That forces the next screen load to see `last_reset` ≠ today (by date) and run the daily reset (DB update) and then load from DB. No local copy of last_reset to update in online-only.
 
-daily_reset_process():
----if local.profile.last_reset is today
-        ---do nothing.
----else local.profile.last_reset is old, 
-        ---compare with cloud.profile.last_reset
-                ---cloud.profile.last_reset not available (either network problem or not found, whatever)
-                    ---call reset_local()
-                ---cloud.profile.last_reset is today's date
-                    ---attempt cloud sync()
-                ---cloud.profile.last_reset is older than today's date
-                    ---call reset_local()
+---
 
-reset_local():
----set local.profile.last_reset = now() at EST
----reset local data (reset local.profile.berries = 0, reset local.profile.banked_mins = 0, local.profile.required_tasks set to null, local.profile.practice_tasks  set to null,  local.profile.checklist_items set to null) 
-   ---set local.profile.last_updated = local.profile.last_reset
----call get_content_from_json()
+## BaerenEd ONLINE-ONLY: When reset and load run
 
+- **Main screen** (display/refresh): Check last_reset → if needed run daily reset in DB → then load from DB and draw.
+- **Trainer Map** (display/refresh): Check last_reset → if needed run daily reset in DB → then run Trainer Map load (GitHub merge + read from DB).
+- **Battle Hub load**: Same idea: check last_reset, reset in DB if needed, then load from DB.
 
-cloud_sync():
----compare local.profile.last_updated with cloud.profile.last_updated
-      ---if local.profile.last_updated = cloud.profile.last_updated or cloud.profile.last_updated cannot be found (due to network or some issue)
-           ---do nothing
-      ---if local.profile.last_updated more recent than cloud.profile.last_updated 
-           ---call update_cloud_with_local()
-      ---else if local.profile.last_updated older than cloud.profile.last_updated
-           ---call update_local_with_cloud()
+So: **whenever we try to read content from the DB**, we first check last_reset; if it’s not today we run the DB reset, then load from DB to show.
 
-update_cloud_with_local():
-   ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
-   ---set cloud.profile.last_reset = local.profile.last_reset, cloud.profile.last_updated = local.profile.last_updated, cloud.profile.required_tasks = local.profile.required_tasks, cloud.profile.checklist_items = local.profile.checklist_items, cloud.profile.practice_tasks = local.profile.practice_tasks, cloud.profile.berries_earned = local.profile.berries_earned, cloud.profile.banked_mins = local.profile.banked_mins, cloud.profile.game_indices = local.profile.game_indices, cloud.profile.pokemon_unlocked = local.profile.pokemon_unlocked, cloud.parent_email = local.parent_email, cloud.parent_pin = local.parent_pin, cloud.device.active_profile = local.device.active_profile
-   ---Note: last_updated was already modified before calling this method, do not change it here
-   ---SAFEGUARD (BaerenEd and BaerenLock if they sync these): coins_earned and pokemon_unlocked must never go backwards. When pushing to cloud, use max(local, cloud) for these two columns. When applying cloud to local, use max(cloud, local) for these two columns.
+---
 
-update_local_with_cloud():
-   ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
-   ---set local.profile.last_reset = cloud.profile.last_reset, local.profile.last_updated = cloud.profile.last_updated, local.profile.required_tasks = cloud.profile.required_tasks, local.profile.checklist_items = cloud.profile.checklist_items, local.profile.practice_tasks = cloud.profile.practice_tasks, local.profile.berries_earned = cloud.profile.berries_earned, local.profile.banked_mins = cloud.profile.banked_mins, local.profile.game_indices = cloud.profile.game_indices, local.profile.pokemon_unlocked = cloud.profile.pokemon_unlocked, local.parent_email = cloud.parent_email, local.parent_pin = cloud.parent_pin, local.device.active_profile = cloud.device.active_profile
-   ---Note: last_updated was already modified before calling this method, do not change it here
-   ---SAFEGUARD (BaerenEd and BaerenLock if they sync these): For coins_earned and pokemon_unlocked only, set local = max(cloud, current local) so these values never go backwards.
-   ---EXCEPTION (coins_earned only): When cloud has coins_earned=0 and last_coins_payout_at is set (parent "Pay out coins" from report), apply 0 to local so tablets reflect the pay-out.
+## daily_reset_check_and_run() (ONLINE-ONLY)
 
-get_content_from_json():
----read the profile_config.json from github (ALWAYS check GitHub first - it is the source of truth)
-    ---if github json found
-        ---overwrite local copy of json with github version (if diff is not possible, always overwrite when GitHub is available)
-        ---update local.profile.last_updated to now() EST
-        ---use local json (now updated from GitHub)
-            ---if local.required_tasks is null
-                ---construct the proper jsonb for local.profile.required_tasks, local.profile.practice_tasks, local.profile.checklist_items and populate local.profile.required_tasks, local.profile.practice_tasks, local.profile.checklist_items with the jsonb for those variables
-            ---else preserve any existing complete, correct/incorrect and times_completed progress and only update differences:
-                ---remove tasks that no longer exist in the JSON
-                ---add new tasks from the JSON
-                ---update star_count for existing tasks (preserve complete, correct, incorrect, times_completed)
+When a screen needs to display data:
 
-    ---else use local json (GitHub not available)
-            ---if local.required_tasks is null
-                ---construct the proper jsonb for local.profile.required_tasks, local.profile.practice_tasks, local.profile.checklist_items and populate local.profile.required_tasks, local.profile.practice_tasks, local.profile.checklist_items with the jsonb for those variables
+1. **Read** from DB the current profile row (at least `last_reset`).
+2. **If** `last_reset` (date part, EST) **is today**  
+   → do nothing, continue to load/display from DB.
+3. **Else** (`last_reset` is not today, by **date part** only):
+   - **Run a single DB update** that:
+     - Sets `last_reset = now()` at EST.
+     - **Blanks**: `required_tasks`, `checklist_items`, `practice_tasks`, `berries_earned`, `banked_mins`, **chores** (same as the others – blank the column).
+     - Does **not** change `coins_earned`, `pokemon_unlocked`, or `game_indices`.
+   - Then **restore from GitHub** where needed: required_tasks/checklist_items/practice_tasks are restored when Trainer Map loads (merge from GitHub into DB); **chores** are restored from GitHub (chores config) into the DB when the app needs to show chores (default all `done = false`).
+   - Then **load** the profile row from the DB and use it for display.
 
+There is no "local" copy of these fields; no `reset_local()` that writes to local storage. The reset is done **in the DB** only.
 
-For any Game/task/video task that uses json:
----on load 
----pull json from github (ALWAYS check GitHub first - it is the source of truth)
-   ---if github json found, update local json copy (always overwrite when GitHub is available)
-   ---if github json not available, use local json copy
----use local json for game
----begin game/task/video at json indices from local.profile.game_indices (loaded from cloud first, fallback to local)
----on game complete
-   ---See 000Requirements.md "Game Completion Logic" section for detailed requirements
-   ---Summary: Update all local data FIRST (berries, stars, banked_time, game_indices, task completion with correct/incorrect/questions), update last_updated timestamp, THEN sync to cloud synchronously, THEN redraw screen
+---
 
+## Main screen (ONLINE-ONLY)
 
-Any time any of the following settings are changed in BaerenEd:
-reward time, active profile, parent pin, parent email, unlocked pokemon
-   --update the appropriate local.profile.variable with the new value and also update local.profile.last_updated
-   --Note: No need to call update_cloud_with_local() directly - the settings screen closes and loads an app screen which triggers cloud_sync() automatically
+- On display/refresh: Run **daily_reset_check_and_run()** (so if last_reset wasn’t today, DB is reset and we have fresh data).
+- **Read from DB** for the profile: `berries_earned`, `coins_earned`, `banked_mins` (reward time / clock icon), `pokemon_unlocked`.
+- Draw from that DB data only. No local cache for progress.
 
+---
 
-*Sync process for BaerenLock*
-The daily_reset_process() and then cloud_sync() are run during the following events:
-1. BaerenLock main screen load/on focus
+## Trainer Map (ONLINE-ONLY)
 
-daily_reset_process():
----if local.profile.last_reset is today (compare date part only, both in EST)
-        ---do nothing.
----else local.profile.last_reset is old, 
-        ---compare with cloud.profile.last_reset (retry a few times if network issue, but don't retry if it causes performance problems or crashes)
-                ---cloud.profile.last_reset not available (either network problem or not found, whatever) after retries
-                    ---call reset_local()
-                ---cloud.profile.last_reset is today's date (compare date part only, both in EST)
-                    ---attempt cloud sync()
-                ---cloud.profile.last_reset is older than today's date (compare date part only, both in EST)
-                    ---call reset_local()
+**On display/refresh:**
 
+1. Run **daily_reset_check_and_run()** (DB reset if last_reset ≠ today).
+2. **Pull** required_tasks, checklist_items, practice_tasks **definitions** from **GitHub** (profile config).
+3. **Merge** with DB: update DB columns with the config (structure, labels, stars) but **preserve** existing completion and correct/incorrect (and times_completed for practice) for each task/item. Write the **merged** result to the DB.
+4. **Read** from DB the latest required_tasks, checklist_items, practice_tasks (completion status).
+5. Display complete/incomplete and draw the map from this DB data.
 
-reset_local():
----set local.profile.last_reset = now() at EST
----reset local data (reset local.profile.berries = 0, reset local.profile.banked_mins = 0, cloud.profile.required_tasks set to null, cloud.profile.practice_tasks  set to null,  cloud.profile.checklist_items set to null) 
-   ---set local.profile.last_updated = local.profile.last_reset
+**On task/checklist completion:**
 
+1. **Update the DB** with that task’s/item’s completion status and correct/incorrect (and questions) as applicable.
+2. **Read** that task/item (or the full set) from the DB and redraw so the UI shows it as complete.
 
+---
 
-cloud_sync():
----compare local.profile.last_updated with cloud.profile.last_updated
-      ---if local.profile.last_updated = cloud.profile.last_updated or cloud.profile.last_updated cannot be found (due to network or some issue)
-           ---do nothing
-      ---if local.profile.last_updated more recent than cloud.profile.last_updated 
-           ---call update_cloud_with_local()
-      ---else if local.profile.last_updated older than cloud.profile.last_updated
-           ---call update_local_with_cloud()
+## Games using JSON (ONLINE-ONLY)
 
-update_cloud_with_local():
-   ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
-   ---set cloud.profile.last_reset = local.profile.last_reset, cloud.profile.last_updated = local.profile.last_updated, cloud.profile.reward_apps = local.profile.reward_apps, cloud.profile.blacklisted_apps = local.profile.blacklisted_apps, cloud.profile.white_listed_apps = local.profile.white_listed_apps, cloud.profile.berries_earned = local.profile.berries_earned, cloud.profile.banked_mins = local.profile.banked_mins, cloud.parent_email = local.parent_email, cloud.parent_pin = local.parent_pin, cloud.device.active_profile = local.device.active_profile
-   ---Note: last_updated was already modified before calling this method, do not change it here
-   ---If BaerenLock ever syncs coins_earned or pokemon_unlocked (e.g. full user_data row), apply same SAFEGUARD: use max(local, cloud) when pushing so those two columns never go backwards.
+- **On load**: Always fetch the **latest** game JSON from **GitHub**. Use it for the game. **game_indices**: read from DB (never local); they are **not** reset on daily reset.
+- **On game complete**: **Update the DB** with the task (required or practice) completed, the updated correct/incorrect/questions, and **game_indices** (increment for that game). Then refresh/redraw so UI shows latest from DB.
 
-update_local_with_cloud():
-   ---All or nothing operation - if any part fails, entire operation fails (allows retry later)
-   ---set local.profile.last_reset = cloud.profile.last_reset, local.profile.last_updated = cloud.profile.last_updated, local.profile.reward_apps = cloud.profile.reward_apps, local.profile.blacklisted_apps = cloud.profile.blacklisted_apps, local.profile.white_listed_apps = cloud.profile.white_listed_apps, local.profile.berries_earned = cloud.profile.berries_earned, local.profile.banked_mins = cloud.profile.banked_mins, local.parent_email = cloud.parent_email, local.parent_pin = cloud.parent_pin, local.device.active_profile = cloud.device.active_profile
-   ---Note: last_updated was already modified before calling this method, do not change it here
-   ---If BaerenLock ever applies coins_earned or pokemon_unlocked from cloud, use max(cloud, current local) so those two columns never go backwards.
+No “update local first then sync”; write completion and game_indices **directly to the DB**.
 
+---
 
-Any time any of the following settings are changed in BaerenLock:
-reward time, active profile, parent pin, parent email, whitelisted apps, blacklisted apps (blocked apps), reward apps
-   --update the appropriate local.profile.variable with the new value and also update local.profile.last_updated
-   --Note: No need to call update_cloud_with_local() directly - the settings screen closes and loads the main screen which triggers cloud_sync() automatically
+## Pokemon battle completion (ONLINE-ONLY)
+
+- **Update the DB** to unlock one more pokemon for that profile.
+- **Refresh** the page/screen so the app pulls the latest from the DB and displays the updated pokemon.
+
+---
+
+## Chores (ONLINE-ONLY, same pattern as tasks/checklist)
+
+- **Daily reset**: **Blank** the chores column (same as required_tasks/checklist_items). Then **restore** chores from **GitHub** (chores config) into the DB when we need to show chores – default all `done = false`. Do **not** reset `coins_earned`.
+- **Display**: Read chores (list + done state) and coins from **DB** when displaying.
+- **Mark complete/uncomplete**: **Write to DB** (chore `done` and `coins_earned`). Then refresh/read from DB to redraw.
+- **Chores list and coin values**: Read from **GitHub** (chores config); write into DB when restoring after reset or when first loading.
+
+---
+
+## Settings changes (ONLINE-ONLY)
+
+When the user changes settings (e.g. active profile, parent pin, parent email, reward time), update the **DB** (or wherever those settings are stored in online-only). No “update local then sync”; no local copy. When the settings screen closes and an app screen loads, that screen will load from DB as above.
+
+---
+
+## BaerenLock (ONLINE-ONLY, same principles)
+
+BaerenLock also treats **DB and GitHub as source of truth**. It should **not** store progress (or reward time) locally.
+
+- **May store locally** (and not read every time, since they rarely change): **profile in use**, **admin password**, **parent email**, **whitelist** (white_listed_apps), **reward apps**, **blocked apps** (blacklisted_apps).
+- **Reward time (banked_mins)**: **Read from DB** when displaying; **set in DB** when the user changes it. Do **not** store reward time locally.
+- **Daily reset**: BaerenLock can detect when a daily reset is needed (last_reset date ≠ today) and run the **same reset logic** as BaerenEd: blank required_tasks, checklist_items, practice_tasks, berries_earned, banked_mins, chores in the DB; set last_reset = now() EST; do not change coins_earned, pokemon_unlocked, game_indices. Then restore from GitHub as needed (e.g. when loading screens that need tasks or chores).
+
+---
+
+## Removed / no longer used in BaerenEd ONLINE-ONLY
+
+- **Local storage** for progress: no `local.profile.required_tasks`, `local.profile.checklist_items`, `local.profile.practice_tasks`, `local.profile.berries_earned`, `local.profile.banked_mins`, `local.profile.game_indices`, `local.profile.pokemon_unlocked`, etc. DB only. **game_indices**: read/write DB only; do **not** reset on daily reset.
+- **cloud_sync()** (compare last_updated and call update_cloud_with_local / update_local_with_cloud): not used. We read/write DB directly.
+- **update_cloud_with_local()** / **update_local_with_cloud()**: not used for BaerenEd in online-only mode. Writes go straight to the DB.
+- **reset_local()** that sets local variables and get_content_from_json() that “populates local”: replaced by “DB reset then load from DB” and “Trainer Map: merge GitHub into DB then read from DB.”
+
+---
+
+## Resolved
+
+- **game_indices**: Read/write DB only; never stored locally. Do **not** reset on daily reset.
+- **last_updated**: Kept; used in reports and to know when something was modified.
+- **banked_mins** = **reward time** (same in DB and UI).

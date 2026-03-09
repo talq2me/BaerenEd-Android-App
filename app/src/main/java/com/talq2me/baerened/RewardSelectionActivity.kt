@@ -44,16 +44,9 @@ class RewardSelectionActivity : AppCompatActivity() {
                 // BaerenLock will read the minutes from the cloud database when it starts
                 launchBaerenLock()
                 
-                // Clear the banked minutes from BaerenEd local storage
-                // Note: We don't sync 0 to cloud here - let BaerenLock manage clearing from cloud when it uses the time
-                // This prevents a race condition where BaerenLock might read 0 before it has a chance to read the actual minutes
-                val profile = progressManager.getCurrentKid()
-                val key = "${profile}_banked_reward_minutes"
-                getSharedPreferences("daily_progress_prefs", MODE_PRIVATE)
-                    .edit()
-                    .putInt(key, 0)
-                    .apply()
-                Log.d(TAG, "Cleared banked reward minutes from BaerenEd local storage (cloud still has minutes for BaerenLock)")
+                // Clear the banked minutes from BaerenEd cache (DB is source of truth; BaerenLock will clear from cloud when it uses the time)
+                progressManager.setBankedRewardMinutes(0)
+                Log.d(TAG, "Cleared banked reward minutes from BaerenEd cache (cloud still has minutes for BaerenLock)")
             } else {
                 Toast.makeText(this, "No reward time available", Toast.LENGTH_SHORT).show()
             }

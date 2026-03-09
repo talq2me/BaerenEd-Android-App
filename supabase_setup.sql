@@ -80,8 +80,11 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Required tasks progress (JSONB: { "taskName": { "status": "complete"/"incomplete", "correct": int, "incorrect": int, "questions": int } })
     required_tasks JSONB DEFAULT '{}'::jsonb,
 
-    -- Practice tasks progress (JSONB: { "taskName": { "times_completed": int, "correct": int, "incorrect": int, "questions_answered": int } })
+    -- Practice tasks progress (JSONB: Extra Practice Map only, section id "optional")
     practice_tasks JSONB DEFAULT '{}'::jsonb,
+
+    -- Bonus tasks progress (JSONB: Bonus Training Map only, section id "bonus")
+    bonus_tasks JSONB DEFAULT '{}'::jsonb,
 
     -- Checklist items progress (JSONB: { "itemName": { "done": bool, "stars": int, "displayDays": string } })
     checklist_items JSONB DEFAULT '{}'::jsonb,
@@ -105,10 +108,12 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Includes regular games, web games, and videos
     game_indices JSONB DEFAULT '{}'::jsonb,
 
-    -- Metadata (stored in EST/UTC)
+    -- Metadata (stored in EST)
     last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST'),
 
-    
+    -- Reward time expiry: when reward minutes must be used by (EST). Null = no expiry. Set by BaerenLock when granting time.
+    reward_time_expiry TIMESTAMP(3) NULL,
+
     reward_apps TEXT, -- JSON array of package names as string
     blacklisted_apps TEXT, -- JSON array of package names as string
     white_listed_apps TEXT, -- JSON array of package names as string
@@ -216,6 +221,7 @@ BEGIN
     UPDATE user_data SET
         required_tasks = '{}'::jsonb,
         practice_tasks = '{}'::jsonb,
+        bonus_tasks = '{}'::jsonb,
         last_reset = NOW() AT TIME ZONE 'EST',
         berries_earned = 0,
         last_updated = NOW() AT TIME ZONE 'EST';
@@ -318,3 +324,5 @@ CREATE POLICY "Allow all operations on image_uploads" ON image_uploads
     FOR ALL
     USING (true)
     WITH CHECK (true);
+
+CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;

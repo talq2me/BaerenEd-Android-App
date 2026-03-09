@@ -9,8 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Collects progress data from local storage for cloud sync
- * Extracted from CloudStorageManager for better separation of concerns
+ * Builds upload payload from prefs (prefs hold last DB apply + user edits). DB is source of truth.
  */
 class ProgressDataCollector(private val context: Context) {
     
@@ -22,105 +21,51 @@ class ProgressDataCollector(private val context: Context) {
     private val gson = Gson()
 
     /**
-     * Collects all local data for a profile into CloudUserData
+     * Builds CloudUserData for upload to DB from prefs only (no cache).
+     * Prefs are updated when we apply cloud data after fetch, and when we make local changes. Write to DB immediately after changes.
      */
-    fun collectLocalData(profile: String): CloudUserData {
-        val cloudProfile = profile
-        val localProfileId = profile
+    fun buildUploadPayloadFromPrefs(profile: String): CloudUserData {
+        val lastUpdated = generateESTTimestamp()
+        Log.d(TAG, "Building upload payload from prefs for profile: $profile")
+        return buildFullPayloadFromPrefs(profile, lastUpdated)
+    }
 
-        // Use progressManager consistently to ensure data consistency with UI
+    /** Builds complete CloudUserData from prefs for DB upload. */
+    private fun buildFullPayloadFromPrefs(profile: String, lastUpdated: String): CloudUserData {
+        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
         val progressManager = DailyProgressManager(context)
 
-        // Get daily progress data from SharedPreferences
-        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-
-        // Get last reset date (format it properly for cloud storage in ISO 8601 with EST timezone)
-        val lastResetDateString = progressPrefs.getString("last_reset_date", null)
-        val lastResetDate = formatLastResetDate(lastResetDateString)
-
-        // Collect required tasks data
-        // NEW: Pass profile and read directly from new format
-        val requiredTasks = collectRequiredTasksData(localProfileId, progressPrefs)
-
-        // Collect practice tasks data (games/videos/webgames as practice tasks)
+        val requiredTasks = collectRequiredTasksData(profile, progressPrefs)
         val practiceTasks = collectPracticeTasksData()
+        val checklistItems = collectChecklistItemsData(profile, progressPrefs)
 
-        // Collect checklist items data
-        // NEW: Pass profile and read directly from new format
-        val checklistItems = collectChecklistItemsData(localProfileId, progressPrefs)
+        val possibleStars = progressPrefs.getInt("${profile}_total_possible_stars", 0)
+        val berriesPrefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
+        val berriesEarned = berriesPrefs.getInt("${profile}_earnedBerries", 0)
+        val bankedMins = progressManager.getBankedRewardMinutes()
+        // last_reset is never sent on progress uploads (CloudSyncService strips it). Only runDailyResetInDb sets last_reset in DB.
+        val lastReset: String? = null
+        val coinsEarned = progressPrefs.getInt("${profile}_coins_earned", 0)
+        val pokemonUnlocked = progressPrefs.getInt("${profile}_pokemon_unlocked", 0)
 
-        // Get progress metrics (all profile-specific)
-        val possibleStarsKey = "${localProfileId}_total_possible_stars"
-        val possibleStars = progressPrefs.getInt(possibleStarsKey, 0)
-        val bankedMinsKey = "${localProfileId}_banked_reward_minutes"
-        val bankedMins = progressPrefs.getInt(bankedMinsKey, 0)
-        
-        // CRITICAL: Log what we're reading
-        Log.d(TAG, "CRITICAL: Reading bankedMins from SharedPreferences: $bankedMins (key: $bankedMinsKey) for profile: $localProfileId")
-
-        // Get berries earned directly from SharedPreferences (profile-specific)
-        val berriesKey = "${localProfileId}_earnedBerries"
-        val berriesEarned = try {
-            val berries = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-                .getInt(berriesKey, 0)
-            // CRITICAL: Log what we're reading
-            Log.d(TAG, "CRITICAL: Reading berries_earned from SharedPreferences: $berries (key: $berriesKey) for profile: $localProfileId")
-            berries
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting earned berries", e)
-            0
-        }
-
-        // Coins earned (Chores 4 $$) - never reset, profile-specific
-        val coinsEarnedKey = "${localProfileId}_coins_earned"
-        val coinsEarned = progressPrefs.getInt(coinsEarnedKey, 0)
-
-        // Chores (Chores 4 $$) - JSONB array, profile-specific
-        val choresKey = "${localProfileId}_chores"
-        val choresJson = progressPrefs.getString(choresKey, "[]") ?: "[]"
+        val choresJson = progressPrefs.getString("${profile}_chores", "[]") ?: "[]"
         val chores: List<ChoreProgress> = try {
             gson.fromJson(choresJson, object : TypeToken<List<ChoreProgress>>() {}.type) ?: emptyList()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error parsing chores JSON", e)
+        } catch (_: Exception) {
             emptyList()
         }
 
-        // Get Pokemon data
-        val pokemonUnlocked = progressPrefs.getInt("${localProfileId}_$KEY_POKEMON_UNLOCKED", 0)
-
-        // Collect all game indices (games, web games, videos)
-        val gameIndices = collectAllGameIndices(localProfileId)
-
-        // Collect app lists from BaerenLock settings (if available)
+        val gameIndices = collectAllGameIndices(profile)
         val rewardApps = collectAppListFromBaerenLock(profile, "reward_apps")
         val blacklistedApps = collectAppListFromBaerenLock(profile, "blacklisted_apps")
         val whiteListedApps = collectAppListFromBaerenLock(profile, "white_listed_apps")
 
-        // Format timestamp in ISO 8601 format with EST timezone for Supabase
-        val lastUpdated = generateESTTimestamp()
+        Log.d(TAG, "Built upload payload from prefs: requiredTasks=${requiredTasks.size}, checklistItems=${checklistItems.size}, berries=$berriesEarned for profile: $profile")
 
-        // CRITICAL: Log what we're about to return
-        Log.d(TAG, "CRITICAL: Creating CloudUserData for profile: $cloudProfile")
-        Log.d(TAG, "  requiredTasks size: ${requiredTasks.size}")
-        Log.d(TAG, "  practiceTasks size: ${practiceTasks.size}")
-        Log.d(TAG, "  checklistItems size: ${checklistItems.size}")
-        Log.d(TAG, "  gameIndices size: ${gameIndices.size}")
-        Log.d(TAG, "  berriesEarned: $berriesEarned, bankedMins: $bankedMins")
-        
-        if (requiredTasks.isNotEmpty()) {
-            Log.d(TAG, "  Sample required task names: ${requiredTasks.keys.take(5).joinToString()}")
-        }
-        if (practiceTasks.isNotEmpty()) {
-            Log.d(TAG, "  Sample practice task names: ${practiceTasks.keys.take(5).joinToString()}")
-        }
-        if (gameIndices.isNotEmpty()) {
-            Log.d(TAG, "  Sample game indices: ${gameIndices.entries.take(5).joinToString { "${it.key}=${it.value}" }}")
-        }
-
-        // Create cloud data
-        val cloudData = CloudUserData(
-            profile = cloudProfile,
-            lastReset = lastResetDate,
+        return CloudUserData(
+            profile = profile,
+            lastUpdated = lastUpdated,
+            lastReset = lastReset,
             requiredTasks = requiredTasks,
             practiceTasks = practiceTasks,
             checklistItems = checklistItems,
@@ -128,23 +73,13 @@ class ProgressDataCollector(private val context: Context) {
             bankedMins = bankedMins,
             berriesEarned = berriesEarned,
             coinsEarned = coinsEarned,
-            chores = chores,
             pokemonUnlocked = pokemonUnlocked,
+            chores = chores,
             gameIndices = gameIndices,
             rewardApps = rewardApps,
             blacklistedApps = blacklistedApps,
-            whiteListedApps = whiteListedApps,
-            lastUpdated = lastUpdated
+            whiteListedApps = whiteListedApps
         )
-        
-        // CRITICAL: Verify the data is actually in the object
-        Log.d(TAG, "CRITICAL: CloudUserData created - verifying data is present")
-        Log.d(TAG, "  cloudData.requiredTasks.size: ${cloudData.requiredTasks.size}")
-        Log.d(TAG, "  cloudData.practiceTasks.size: ${cloudData.practiceTasks.size}")
-        Log.d(TAG, "  cloudData.checklistItems.size: ${cloudData.checklistItems.size}")
-        Log.d(TAG, "  cloudData.gameIndices.size: ${cloudData.gameIndices.size}")
-        
-        return cloudData
     }
 
     /**
@@ -182,7 +117,7 @@ class ProgressDataCollector(private val context: Context) {
     }
 
     /**
-     * Generates EST timestamp in ISO 8601 format
+     * Now() at EST in ISO 8601 format (America/New_York).
      */
     private fun generateESTTimestamp(): String {
         val estTimeZone = TimeZone.getTimeZone("America/New_York")
@@ -386,23 +321,21 @@ class ProgressDataCollector(private val context: Context) {
     }
 
     /**
-     * Collects checklist items data from config, including done status, stars, and display days
+     * Collects checklist items data for upload. Reads from the checklist_items prefs key only.
+     * required_tasks and checklist_items are separate DB columns — never mix them.
      */
     private fun collectChecklistItemsData(profile: String, progressPrefs: SharedPreferences): Map<String, ChecklistItemProgress> {
         val checklistItems = mutableMapOf<String, ChecklistItemProgress>()
 
         try {
-            // NEW: Read directly from new format (task names → TaskProgress)
-            val requiredTasksKey = "${profile}_required_tasks"
-            val requiredTasksJson = progressPrefs.getString(requiredTasksKey, "{}") ?: "{}"
-            val existingRequiredTasks: Map<String, TaskProgress> = gson.fromJson(
-                requiredTasksJson,
-                object : TypeToken<Map<String, TaskProgress>>() {}.type
+            val checklistPrefsKey = "${profile}_checklist_items"
+            val checklistJson = progressPrefs.getString(checklistPrefsKey, "{}") ?: "{}"
+            val existingChecklist: Map<String, ChecklistItemProgress> = gson.fromJson(
+                checklistJson,
+                object : TypeToken<Map<String, ChecklistItemProgress>>() {}.type
             ) ?: emptyMap()
 
-            // CRITICAL: Get ALL checklist items (not filtered by visibility) for database syncing
             val checklistSection = getConfigChecklistSection()
-
             if (checklistSection == null) {
                 Log.w(TAG, "Checklist section not found in config")
                 return checklistItems
@@ -410,22 +343,12 @@ class ProgressDataCollector(private val context: Context) {
 
             val allItems = checklistSection.items?.filterNotNull() ?: emptyList()
 
-            // For each checklist item in config, create ChecklistItemProgress
             allItems.forEach { item ->
                 val itemLabel = item.label ?: "Unknown Item"
-
-                // NEW: Look up by item label (name) - must match taskName used when saving from handleChecklistTaskCompletion
-                val existingProgress = existingRequiredTasks[itemLabel]
-                val isDone = existingProgress?.status == "complete"
-                if (isDone) {
-                    Log.d(TAG, "CRITICAL: Checklist item '$itemLabel' collected as done (from required_tasks)")
-                }
-
-                // Get stars from config
-                val stars = item.stars ?: 0
-
-                // Get display days from config (if any)
-                val displayDays = item.displayDays
+                val existing = existingChecklist[itemLabel]
+                val isDone = existing?.done ?: false
+                val stars = item.stars ?: existing?.stars ?: 0
+                val displayDays = item.displayDays ?: existing?.displayDays
 
                 checklistItems[itemLabel] = ChecklistItemProgress(
                     done = isDone,

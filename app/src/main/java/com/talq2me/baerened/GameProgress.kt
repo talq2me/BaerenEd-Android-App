@@ -12,23 +12,19 @@ class GameProgress(private val context: Context, private val launchId: String) {
     }
 
     fun getCurrentIndex(): Int {
-        val key = getStorageKey()
-        // NOTE: Cloud game_indices are applied to local storage by CloudDataApplier during sync.
-        // We load from local storage here. Cloud sync should happen before game launch (in onResume).
-        // If cloud has newer data, it will be applied to local storage first.
-        val index = prefs.getInt(key, 0)
-        android.util.Log.d("GameProgress", "getCurrentIndex for $key: $index (loaded from local, which should be synced from cloud)")
+        // ONLINE-ONLY: Read from DB cache (progressDataAfterFetch); no local storage for game_indices.
+        val profile = SettingsManager.readProfile(context) ?: "AM"
+        val progressManager = DailyProgressManager(context)
+        val index = progressManager.getGameIndexFromCache(profile, launchId)
+        android.util.Log.d("GameProgress", "getCurrentIndex for $launchId: $index (from DB cache)")
         return index
     }
 
     fun saveIndex(index: Int) {
-        val key = getStorageKey()
-        // CRITICAL: Use commit() for synchronous write to prevent race conditions
-        val success = prefs.edit().putInt(key, index).commit()
-        if (!success) {
-            android.util.Log.e("GameProgress", "CRITICAL ERROR: Failed to save game index!")
-        }
-        android.util.Log.d("GameProgress", "saveIndex for $key: $index (saved synchronously)")
+        // ONLINE-ONLY: Update DB cache only; sync to DB is done by caller (e.g. updateLocalTimestampAndSyncToCloud).
+        val profile = SettingsManager.readProfile(context) ?: "AM"
+        DailyProgressManager(context).updateGameIndexInCache(profile, launchId, index)
+        android.util.Log.d("GameProgress", "saveIndex for $launchId: $index (cache only, sync by caller)")
     }
 
     fun resetProgress() {
@@ -46,26 +42,22 @@ class WebGameProgress(private val context: Context, private val gameId: String) 
     }
 
     fun getCurrentIndex(): Int {
-        val key = getStorageKey()
-        val index = prefs.getInt(key, 0)
-        android.util.Log.d("WebGameProgress", "getCurrentIndex for $key: $index")
+        // ONLINE-ONLY: Read from DB cache; no local storage for game_indices.
+        val profile = SettingsManager.readProfile(context) ?: "AM"
+        val index = DailyProgressManager(context).getGameIndexFromCache(profile, gameId)
+        android.util.Log.d("WebGameProgress", "getCurrentIndex for $gameId: $index (from DB cache)")
         return index
     }
 
     fun saveIndex(index: Int) {
-        val key = getStorageKey()
-        // Use commit() so index is persisted before any finish() - matches GameProgress and ensures cloud sync gets it
-        val ok = prefs.edit().putInt(key, index).commit()
-        if (!ok) {
-            android.util.Log.e("WebGameProgress", "saveIndex failed for $key")
-        } else {
-            android.util.Log.d("WebGameProgress", "saveIndex for $key: $index")
-        }
+        // ONLINE-ONLY: Update DB cache only; sync to DB is done by caller when sync runs.
+        val profile = SettingsManager.readProfile(context) ?: "AM"
+        DailyProgressManager(context).updateGameIndexInCache(profile, gameId, index)
+        android.util.Log.d("WebGameProgress", "saveIndex for $gameId: $index (cache only)")
     }
 
     fun getProgressData(): Map<String, Int> {
-        val key = getStorageKey()
-        val index = prefs.getInt(key, 0)
+        val index = getCurrentIndex()
         return mapOf(gameId to index)
     }
 }

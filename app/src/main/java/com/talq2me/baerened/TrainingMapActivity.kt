@@ -43,7 +43,7 @@ class TrainingMapActivity : AppCompatActivity() {
         progressManager = DailyProgressManager(this)
         val profile = SettingsManager.readProfile(this) ?: "AM"
         
-        // Run daily_reset_process() and then cloud_sync(); if fetch fails show error (no stale data)
+        // Run daily reset check and load from DB (dailyResetProcessAndSync); if fetch fails show error
         lifecycleScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) { showLoadingSpinner("Syncing progress...") }
             val resetAndSyncManager = DailyResetAndSyncManager(this@TrainingMapActivity)
@@ -52,7 +52,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 hideLoadingSpinner()
                 if (result.isSuccess) {
                     android.util.Log.d("TrainingMapActivity", "Daily reset and sync completed for profile: $profile")
-                    finishLoadingTrainingMap()
+                    runMergeAndFinishLoadingTrainingMap(profile)
                 } else {
                     android.util.Log.e("TrainingMapActivity", "Daily reset and sync failed - showing load error", result.exceptionOrNull())
                     showProgressLoadError(profile) { runSyncAndFinishLoadingTrainingMap(profile) }
@@ -77,7 +77,7 @@ class TrainingMapActivity : AppCompatActivity() {
             val result = runCatching { DailyResetAndSyncManager(this@TrainingMapActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
             withContext(Dispatchers.Main) {
                 hideLoadingSpinner()
-                if (result.isSuccess) finishLoadingTrainingMap()
+                if (result.isSuccess) runMergeAndFinishLoadingTrainingMap(profile)
                 else showProgressLoadError(profile) { runSyncAndFinishLoadingTrainingMap(profile) }
             }
         }
@@ -100,6 +100,19 @@ class TrainingMapActivity : AppCompatActivity() {
         }
     }
     
+    /** Invokes DB RPCs to load required_tasks, practice_tasks, checklist_items, chores from GitHub (merge with existing), then builds the map. */
+    private fun runMergeAndFinishLoadingTrainingMap(profile: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = runCatching {
+                DailyResetAndSyncManager(this@TrainingMapActivity).invokeConfigFromGitHubRpcsThenRefetch(profile)
+            }.getOrElse { Result.failure(it) }
+            if (result.isFailure) {
+                android.util.Log.w("TrainingMapActivity", "Config-from-GitHub RPCs/refetch failed (using current data)", result.exceptionOrNull())
+            }
+            withContext(Dispatchers.Main) { finishLoadingTrainingMap() }
+        }
+    }
+
     private fun finishLoadingTrainingMap() {
         // Create the map view
         createMapView()
@@ -318,37 +331,8 @@ class TrainingMapActivity : AppCompatActivity() {
                     return@launch
                 }
                 
-                // For optional tasks, check if all are completed - if so, reset them all (practice stored by task title)
-                if (mapType == "optional") {
-                    val allCompleted = tasks.all { task ->
-                        val taskTitle = task.title ?: ""
-                        val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
-                        completedTasksMap[keyForOptional] == true
-                    }
-                    
-                    // If all optional tasks are completed, reset them all (never ending)
-                    if (allCompleted && tasks.isNotEmpty()) {
-                        val allCompletedTasks = progressManager.getCompletedTasksMap(mapType).toMutableMap()
-                        tasks.forEach { task ->
-                            val taskTitle = task.title ?: ""
-                            val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
-                            allCompletedTasks.remove(keyForOptional)
-                        }
-                        // Save the updated map
-                        // CRITICAL: Use the same SharedPreferences name as DailyProgressManager
-                        val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
-                        val prefs = getSharedPreferences("daily_progress_prefs", android.content.Context.MODE_PRIVATE)
-                        val gson = Gson()
-                        val completedTasksKey = "${profile}_completed_tasks"
-                        prefs.edit()
-                            .putString(completedTasksKey, gson.toJson(allCompletedTasks))
-                            .apply()
-                        // Refresh the completed tasks map after resetting
-                        completedTasksMap.clear()
-                        completedTasksMap.putAll(progressManager.getCompletedTasksMap(mapType))
-                    }
-                }
-                
+                // Practice (optional) "reset when all complete" is handled in DB by af_update_practice_task.
+
                 // Calculate progress
                 val completedCount = tasks.count { task ->
                     val baseTaskId = task.launch ?: ""
@@ -1087,6 +1071,9 @@ class TrainingMapActivity : AppCompatActivity() {
             val sectionId = data.getStringExtra(WebGameActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
             val stars = data.getIntExtra(WebGameActivity.EXTRA_STARS, 0)
             val taskTitle = data.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
+            val correctAnswers = data.getIntExtra(WebGameActivity.EXTRA_CORRECT_ANSWERS, -1)
+            val incorrectAnswers = data.getIntExtra(WebGameActivity.EXTRA_INCORRECT_ANSWERS, -1)
+            val questionsAnswered = data.getIntExtra(WebGameActivity.EXTRA_QUESTIONS_ANSWERED, -1)
             
             // Mark task as completed (same logic as Layout.handleWebGameCompletion)
             if (!taskId.isNullOrEmpty()) {
@@ -1098,20 +1085,27 @@ class TrainingMapActivity : AppCompatActivity() {
                 // Determine if task is required based on section ID
                 val isRequiredTask = sectionId == "required"
                 
-                // Mark task as completed and get earned stars
+                val correct = if (correctAnswers >= 0) correctAnswers else null
+                val incorrect = if (incorrectAnswers >= 0) incorrectAnswers else null
+                val questions = if (questionsAnswered >= 0) questionsAnswered else null
+                
+                // Mark task as completed and get earned stars (include correct/incorrect so DB and reports record them)
                 val earnedStars = progressManager.markTaskCompletedWithName(
                     taskId,
                     displayTitle,
                     stars,
                     isRequiredTask,
                     currentContent,  // Pass config to verify section
-                    sectionId  // Pass section ID to create unique task IDs
+                    sectionId,  // Pass section ID to create unique task IDs
+                    correctAnswers = correct,
+                    incorrectAnswers = incorrect,
+                    questionsAnswered = questions
                 )
                 
                 if (earnedStars > 0) {
                     progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked web game task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, earnedStars=$earnedStars")
+                android.util.Log.d("TrainingMapActivity", "Marked web game task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, correct=$correct, incorrect=$incorrect, earnedStars=$earnedStars")
             }
         }
         
@@ -1871,33 +1865,10 @@ class TrainingMapActivity : AppCompatActivity() {
             .setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
                 
-                // Mark task as completed and grant rewards
-                if (stars > 0) {
-                    // Award stars when task is completed
-                    // CRITICAL: Pass sectionId = "required" so completion is saved to required_tasks.
-                    // Checklist items are in config section "checklist", so isTaskFromRequiredSection would be false
-                    // and we'd wrongly save to practice_tasks. Collector and map both read checklist from required_tasks.
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        itemId,
-                        taskName,
-                        stars,
-                        true,  // isRequired - checklist items behave like required tasks
-                        currentContent,
-                        sectionId = "required"
-                    )
-                    if (earnedStars > 0) {
-                        progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
-                    }
-                } else {
-                    // Items with 0 stars should still be marked as completed for tracking
-                    progressManager.markTaskCompletedWithName(
-                        itemId,
-                        taskName,
-                        0,
-                        true,  // isRequired - checklist items behave like required tasks
-                        currentContent,
-                        sectionId = "required"
-                    )
+                // checklist_items are a separate DB column; use markChecklistItemCompleted only (never required_tasks).
+                val earnedStars = progressManager.markChecklistItemCompleted(taskName, stars, null)
+                if (earnedStars > 0) {
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
                 }
                 
                 // Sync checklist completion to cloud first, then redraw (blocking so onResume has nothing to do).

@@ -68,8 +68,8 @@ class DailyProgressManagerTest {
 
     @After
     fun tearDown() {
-        // Clear repository cache so online-only state does not leak between tests
-        UserDataRepository.getInstance(mockContext).invalidateCache("AM")
+        // Clear DailyProgressManager session so state does not leak between tests
+        progressManager.clearProgressDataAfterRequest()
         clearAllMocks()
     }
 
@@ -101,8 +101,8 @@ class DailyProgressManagerTest {
 
     @Test
     fun `getBankedRewardMinutes returns current banked minutes`() {
-        // Given: Repository cache has banked minutes (online-only: no prefs fallback)
-        UserDataRepository.getInstance(mockContext).setCache("AM", CloudUserData(profile = "AM", bankedMins = 20))
+        // Given: Session data has banked minutes (DailyProgressManager reads from session)
+        progressManager.setProgressDataAfterFetch(CloudUserData(profile = "AM", bankedMins = 20))
 
         // When: Getting banked minutes
         val minutes = progressManager.getBankedRewardMinutes()
@@ -113,32 +113,27 @@ class DailyProgressManagerTest {
 
     @Test
     fun `setBankedRewardMinutes sets reward minutes`() {
-        // Given: No initial minutes (key is profile-prefixed)
-        every { mockPrefs.getInt("AM_banked_reward_minutes", 0) } returns 0
+        // Given: Session data exists (banked minutes are session-only; no prefs)
+        progressManager.setProgressDataAfterFetch(CloudUserData(profile = "AM", bankedMins = 0))
 
         // When: Setting to 30 minutes
         progressManager.setBankedRewardMinutes(30)
 
-        // Then: Should save the value (key is profile-prefixed)
-        verify { mockEditor.remove("AM_banked_reward_minutes") }
-        verify { mockEditor.putInt("AM_banked_reward_minutes", 30) }
-        verify { mockEditor.commit() }
+        // Then: Session reflects new value
+        assertEquals(30, progressManager.getBankedRewardMinutes())
     }
 
     @Test
     fun `addRewardMinutes adds minutes to reward bank`() {
-        // Given: Repository cache has initial minutes (online-only: getBankedRewardMinutes reads from cache)
-        UserDataRepository.getInstance(mockContext).setCache("AM", CloudUserData(profile = "AM", bankedMins = 5))
+        // Given: Session data has initial minutes (getBankedRewardMinutes reads from session)
+        progressManager.setProgressDataAfterFetch(CloudUserData(profile = "AM", bankedMins = 5))
 
         // When: Adding 10 minutes
         val newTotal = progressManager.addRewardMinutes(10)
 
-        // Then: Should return 15 (5 + 10)
+        // Then: Should return 15 (5 + 10); session is updated (no prefs)
         assertEquals(15, newTotal)
-        // Verify it tried to save the new total to prefs (key is profile-prefixed)
-        verify(atLeast = 1) { mockEditor.remove("AM_banked_reward_minutes") }
-        verify(atLeast = 1) { mockEditor.putInt("AM_banked_reward_minutes", 15) }
-        verify(atLeast = 1) { mockEditor.commit() }
+        assertEquals(15, progressManager.getBankedRewardMinutes())
     }
 
     @Test

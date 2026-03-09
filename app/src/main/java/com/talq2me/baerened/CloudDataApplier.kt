@@ -6,8 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 /**
- * Handles conversion and application of cloud data format to local storage format
- * Extracted from CloudStorageManager to improve separation of concerns
+ * Applies DB data to prefs so the app can display it. Prefs are the only copy; DB is source of truth.
  */
 class CloudDataApplier(
     private val context: Context,
@@ -21,267 +20,18 @@ class CloudDataApplier(
     private val gson = Gson()
 
     /**
-     * Applies cloud data to local storage, converting from cloud format to local format
-     * @param data Cloud data to apply
+     * Applies DB data to prefs so UI can read it. No separate "local" copy; prefs hold what we last got from DB (or will push).
      */
-    fun applyCloudDataToLocal(data: CloudUserData) {
+    fun applyDbDataToPrefs(data: CloudUserData) {
         try {
-            Log.d(TAG, "Applying cloud data to local storage: profile=${data.profile}, requiredTasks=${data.requiredTasks?.size ?: 0}, berries=${data.berriesEarned}")
+            Log.d(TAG, "Applying DB data: profile=${data.profile} (progress in session only, no prefs)")
 
-            // Convert cloud profile to local format
-            val localProfile = data.profile
-
-            // Apply settings
-            SettingsManager.writeProfile(context, localProfile)
-
-            // Apply daily progress data
-            val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-
-            // Apply required tasks data
-            // CRITICAL: Use NEW format (required_tasks with TaskProgress), not old format (completed_tasks)
-            // This matches what DailyProgressManager.getRequiredTasks() reads from
-            val requiredTasksKey = "${localProfile}_required_tasks"
-            
-            if (data.requiredTasks?.isEmpty() != false) {
-                // Cloud has empty/null required_tasks - set local to empty as per spec.
-                // The caller (updateLocalWithCloud) will check if local is empty and populate from GitHub.
-                progressPrefs.edit()
-                    .remove(requiredTasksKey)
-                    .apply()
-                Log.d(TAG, "Cloud required_tasks is empty/null - cleared local required_tasks for profile: $localProfile (will be populated from GitHub by caller)")
-            } else {
-                // Cloud has tasks - merge with existing local data, but ONLY tasks visible today
-                // Get existing local data in NEW format (task names → TaskProgress)
-                val existingRequiredTasksJson = progressPrefs.getString(requiredTasksKey, "{}") ?: "{}"
-                val existingRequiredTasks = gson.fromJson<Map<String, TaskProgress>>(
-                    existingRequiredTasksJson, 
-                    object : TypeToken<Map<String, TaskProgress>>() {}.type
-                )?.toMutableMap() ?: mutableMapOf()
-
-                // CRITICAL: Only apply tasks that are visible today
-                // Include required section tasks AND checklist item labels so cloud completions are preserved
-                val visibleConfigTasks = getConfigTasksForSection("required")
-                val visibleChecklistLabels = getChecklistItemLabelsVisibleToday()
-                val visibleTaskNames = visibleConfigTasks.mapNotNull { it.title }.toSet() + visibleChecklistLabels
-                
-                var appliedCount = 0
-                var skippedCount = 0
-                val visibleChecklistItems = getConfigChecklistItemsVisibleToday()
-
-                // Merge cloud data with local data, but only for visible tasks and checklist items
-                data.requiredTasks.forEach { (taskName, taskProgress) ->
-                    // Only apply if task or checklist item is visible today
-                    if (visibleTaskNames.contains(taskName)) {
-                        // Store using task name as key (cloud format)
-                        // Preserve visibility fields from config if available
-                        val task = visibleConfigTasks.find { it.title == taskName }
-                        val checklistItem = visibleChecklistItems.find { it.label == taskName }
-                        
-                        // CRITICAL: Apply cloud data as-is (newest timestamp wins per requirements)
-                        val existingLocalProgress = existingRequiredTasks[taskName]
-                        
-                        // CRITICAL: Log what we're doing for debugging
-                        if (taskName == "Math" || taskName.contains("Math")) {
-                            Log.d(TAG, "CRITICAL: Processing Math task - local status: ${existingLocalProgress?.status}, cloud status: ${taskProgress.status}")
-                        }
-                        
-                        // Use task for required section, checklistItem for checklist (stars, displayDays)
-                        val mergedTaskProgress = TaskProgress(
-                            status = taskProgress.status,
-                            correct = taskProgress.correct,
-                            incorrect = taskProgress.incorrect,
-                            questions = taskProgress.questions,
-                            stars = task?.stars ?: checklistItem?.stars ?: taskProgress.stars ?: 0,
-                            showdays = task?.showdays ?: taskProgress.showdays,
-                            hidedays = task?.hidedays ?: taskProgress.hidedays,
-                            displayDays = task?.displayDays ?: checklistItem?.displayDays ?: taskProgress.displayDays,
-                            disable = task?.disable ?: taskProgress.disable
-                        )
-                        existingRequiredTasks[taskName] = mergedTaskProgress
-                        appliedCount++
-                    } else {
-                        Log.d(TAG, "Skipping cloud task '$taskName' - not visible today (filtered by visibility rules)")
-                        skippedCount++
-                    }
-                }
-
-                // Apply checklist_items from cloud into required_tasks so UI shows them (e.g. when required_tasks didn't include checklist keys yet)
-                data.checklistItems?.forEach { (itemLabel, progress) ->
-                    if (progress.done && visibleChecklistLabels.contains(itemLabel)) {
-                        val checklistItem = visibleChecklistItems.find { it.label == itemLabel }
-                        if (existingRequiredTasks[itemLabel] == null) {
-                            existingRequiredTasks[itemLabel] = TaskProgress(
-                                status = "complete",
-                                correct = null,
-                                incorrect = null,
-                                questions = null,
-                                stars = checklistItem?.stars ?: progress.stars ?: 0,
-                                showdays = checklistItem?.showdays,
-                                hidedays = checklistItem?.hidedays,
-                                displayDays = progress.displayDays ?: checklistItem?.displayDays,
-                                disable = null
-                            )
-                            appliedCount++
-                        }
-                    }
-                }
-
-                val success = progressPrefs.edit()
-                    .putString(requiredTasksKey, gson.toJson(existingRequiredTasks))
-                    .commit() // Use commit() for synchronous write to prevent race conditions
-                if (!success) {
-                    Log.e(TAG, "CRITICAL ERROR: Failed to save required tasks!")
-                }
-
-                Log.d(TAG, "Applied $appliedCount required tasks to local storage (NEW format) for profile: $localProfile (skipped $skippedCount tasks not visible today)")
-            }
-
-            // Apply other progress metrics (all profile-specific)
-            // Per Daily Reset Logic.md: update_local_with_cloud() is all-or-nothing, newest timestamp wins
-            val bankedMinsKey = "${localProfile}_banked_reward_minutes"
-            val possibleStarsKey = "${localProfile}_total_possible_stars"
-            
-            // CRITICAL: Log what we're about to write
-            val oldBankedMins = progressPrefs.getInt(bankedMinsKey, -999)
-            Log.d(TAG, "CRITICAL: About to apply bankedMins from cloud - old value: $oldBankedMins, new value: ${data.bankedMins} for profile: $localProfile")
-            
-            // CRITICAL: Use commit() instead of apply() to ensure synchronous write
-            // This prevents race conditions where data might be read before it's written
-            progressPrefs.edit()
-                .putInt(possibleStarsKey, data.possibleStars)
-                .putInt(bankedMinsKey, data.bankedMins)
-                .commit()
-            
-            // CRITICAL: Verify what was actually written
-            val writtenBankedMins = progressPrefs.getInt(bankedMinsKey, -999)
-            Log.d(TAG, "CRITICAL: After applying, bankedMins value in SharedPreferences: $writtenBankedMins (expected: ${data.bankedMins}) for profile: $localProfile")
-            Log.d(TAG, "Applied progress metrics from cloud - possibleStars: ${data.possibleStars}, bankedMins: ${data.bankedMins} for profile: $localProfile")
-
-            // Apply berries earned (store in pokemonBattleHub preferences where UI expects it, profile-specific)
-            // SIMPLE: Overwrite local with cloud value (timestamp-based sync)
-            try {
-                val berriesKey = "${localProfile}_earnedBerries"
-                val prefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-                
-                // CRITICAL: Log what we're about to write
-                val oldBerries = prefs.getInt(berriesKey, -999)
-                Log.d(TAG, "CRITICAL: About to apply berries_earned from cloud - old value: $oldBerries, new value: ${data.berriesEarned} for profile: $localProfile")
-                
-                // CRITICAL: Use cloud value directly (newest timestamp wins - cloud is authoritative)
-                // CRITICAL: Use commit() instead of apply() to ensure synchronous write
-                // This prevents race conditions where data might be read before it's written
-                val success = prefs.edit()
-                    .putInt(berriesKey, data.berriesEarned)
-                    .commit()
-                
-                if (!success) {
-                    Log.e(TAG, "CRITICAL ERROR: Failed to save berries_earned!")
-                }
-                
-                // CRITICAL: Verify what was actually written
-                val writtenBerries = prefs.getInt(berriesKey, -999)
-                Log.d(TAG, "CRITICAL: After applying, berries_earned value in SharedPreferences: $writtenBerries (expected: ${data.berriesEarned}) for profile: $localProfile")
-                Log.d(TAG, "Applied berries_earned from cloud: ${data.berriesEarned} for profile: $localProfile")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error applying berries to local storage", e)
-            }
-
-            // Apply coins_earned (Chores 4 $$) - safeguard: never go backwards; use max(cloud, local).
-            // Exception: when parent has "paid out" from the report (last_coins_payout_at set), accept cloud value (full or partial payout).
-            val currentCoins = progressPrefs.getInt("${localProfile}_coins_earned", 0)
-            val isPayOutFromReport = !data.lastCoinsPayoutAt.isNullOrEmpty()
-            val coinsToApply = if (isPayOutFromReport) data.coinsEarned else maxOf(data.coinsEarned, currentCoins)
-            progressPrefs.edit()
-                .putInt("${localProfile}_coins_earned", coinsToApply)
-                .commit()
-            if (isPayOutFromReport) {
-                Log.d(TAG, "Pay-out from report: applied coins_earned=${data.coinsEarned} (last_coins_payout_at set) for profile: $localProfile")
-            } else if (coinsToApply != data.coinsEarned) {
-                Log.d(TAG, "Safeguard: kept local coins_earned ($coinsToApply) instead of cloud (${data.coinsEarned}) so value never goes backwards")
-            }
-
-            // Apply chores (Chores 4 $$) - overwrite local with cloud
-            val choresJson = gson.toJson(data.chores)
-            progressPrefs.edit()
-                .putString("${localProfile}_chores", choresJson)
-                .commit()
-
-            // Apply Pokemon data - safeguard: never go backwards; use max(cloud, local)
-            val currentPokemon = progressPrefs.getInt("${localProfile}_$KEY_POKEMON_UNLOCKED", 0)
-            val pokemonToApply = maxOf(data.pokemonUnlocked, currentPokemon)
-            progressPrefs.edit()
-                .putInt("${localProfile}_$KEY_POKEMON_UNLOCKED", pokemonToApply)
-                .apply()
-            if (pokemonToApply != data.pokemonUnlocked) {
-                Log.d(TAG, "Safeguard: kept local pokemon_unlocked ($pokemonToApply) instead of cloud (${data.pokemonUnlocked}) so value never goes backwards")
-            }
-
-            // Apply game indices (all types: games, web games, videos)
-            applyGameIndicesToLocal(data.gameIndices ?: emptyMap(), localProfile)
-
-            // Apply app lists to BaerenLock (if BaerenLock is installed)
+            SettingsManager.writeProfile(context, data.profile)
             applyAppListsToBaerenLock(data)
-            
-            // CRITICAL: Store the cloud timestamp as local timestamp after applying cloud data
-            // This prevents re-uploading local data immediately after applying cloud reset
             if (!data.lastUpdated.isNullOrEmpty()) {
-                onTimestampSet?.invoke(localProfile, data.lastUpdated)
-                Log.d(TAG, "Stored cloud timestamp as local timestamp: ${data.lastUpdated}")
+                onTimestampSet?.invoke(data.profile, data.lastUpdated)
             }
-            
-            // CRITICAL: Store the cloud's last_reset as local last_reset_date
-            // This ensures shouldResetProgress() can check against the cloud's last_reset
-            if (!data.lastReset.isNullOrEmpty()) {
-                try {
-                    // Convert from ISO 8601 format to local format (dd-MM-yyyy hh:mm:ss a)
-                    val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-                    
-                    // Strip timezone offset and milliseconds if present
-                    // Handle formats like: "2026-01-12T07:40:28", "2026-01-12T07:40:28.123", "2026-01-12T07:40:28-05:00", "2026-01-12T07:40:28Z"
-                    var timestampToParse = data.lastReset
-                    
-                    // Remove timezone offset (at the end: +HH:MM, -HH:MM, or Z)
-                    if (timestampToParse.endsWith("Z")) {
-                        timestampToParse = timestampToParse.substringBeforeLast('Z')
-                    } else if (timestampToParse.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))) {
-                        // Find the last occurrence of + or - followed by digits (timezone offset)
-                        val lastPlus = timestampToParse.lastIndexOf('+')
-                        val lastMinus = timestampToParse.lastIndexOf('-')
-                        val offsetStart = if (lastPlus > lastMinus) lastPlus else lastMinus
-                        if (offsetStart > 10) { // Must be after the date part (YYYY-MM-DD is 10 chars)
-                            timestampToParse = timestampToParse.substring(0, offsetStart)
-                        }
-                    }
-                    
-                    // Remove milliseconds if present
-                    if (timestampToParse.contains('.')) {
-                        timestampToParse = timestampToParse.substringBefore('.')
-                    }
-                    
-                    // Parse the timestamp (format: yyyy-MM-ddTHH:mm:ss)
-                    val parseFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
-                    parseFormat.timeZone = estTimeZone
-                    val parsedDate = parseFormat.parse(timestampToParse)
-                    if (parsedDate != null) {
-                        val localFormat = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault())
-                        localFormat.timeZone = estTimeZone
-                        val localDateString = localFormat.format(parsedDate)
-                        
-                        // CRITICAL: Always overwrite local last_reset_date with cloud's value (cloud is source of truth)
-                        val success = progressPrefs.edit()
-                            .putString("last_reset_date", localDateString)
-                            .commit() // Use commit() for synchronous write
-                        if (!success) {
-                            Log.e(TAG, "CRITICAL ERROR: Failed to save last_reset_date!")
-                        }
-                        Log.d(TAG, "Stored cloud last_reset as local last_reset_date: $localDateString (from cloud: ${data.lastReset})")
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error converting cloud last_reset to local format: ${data.lastReset}", e)
-                }
-            }
-
-            Log.d(TAG, "Successfully applied cloud data to local storage: requiredTasks=${data.requiredTasks?.size ?: 0}, gameIndices=${data.gameIndices?.size ?: 0}, berries=${data.berriesEarned}")
+            Log.d(TAG, "Applied profile and timestamp for: ${data.profile}")
         } catch (e: Exception) {
             Log.e(TAG, "Error applying cloud data to local", e)
             throw e
@@ -289,52 +39,10 @@ class CloudDataApplier(
     }
 
     /**
-     * Applies game indices to appropriate local SharedPreferences
+     * ONLINE-ONLY: game_indices are read/written from DB only. No prefs write.
      */
-    private fun applyGameIndicesToLocal(gameIndices: Map<String, Int>, localProfile: String) {
-        try {
-            // Apply to game_progress prefs
-            val gamePrefs = context.getSharedPreferences("game_progress", Context.MODE_PRIVATE)
-            val gameEditor = gamePrefs.edit()
-
-            // Apply to web_game_progress prefs
-            val webGamePrefs = context.getSharedPreferences("web_game_progress", Context.MODE_PRIVATE)
-            val webGameEditor = webGamePrefs.edit()
-
-            // Apply to video_progress prefs
-            val videoPrefs = context.getSharedPreferences("video_progress", Context.MODE_PRIVATE)
-            val videoEditor = videoPrefs.edit()
-
-            gameIndices.forEach { (gameId, index) ->
-                // For now, we'll try to intelligently distribute based on naming patterns
-                // This is a heuristic - you may want to enhance this logic
-                when {
-                    gameId.contains("diagram") -> {
-                        // Web game (diagram labeler)
-                        webGameEditor.putInt("${localProfile}_web_progress_$gameId", index)
-                    }
-                    gameId.contains(".json") || gameId.contains("video") -> {
-                        // Video
-                        videoEditor.putInt("${localProfile}_${gameId}_index", index)
-                    }
-                    else -> {
-                        // Regular game
-                        gameEditor.putInt("${localProfile}_progress_$gameId", index)
-                    }
-                }
-            }
-
-            val success1 = gameEditor.commit() // Use commit() for synchronous write
-            val success2 = webGameEditor.commit() // Use commit() for synchronous write
-            val success3 = videoEditor.commit() // Use commit() for synchronous write
-            if (!success1 || !success2 || !success3) {
-                Log.e(TAG, "CRITICAL ERROR: Failed to save game indices!")
-            }
-
-            Log.d(TAG, "Applied ${gameIndices.size} game indices to local storage")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error applying game indices to local storage", e)
-        }
+    private fun applyGameIndicesToLocal(gameIndices: Map<String, Int>, profile: String) {
+        // No-op: game indices are stored in DB only
     }
 
     /**
@@ -401,7 +109,7 @@ class CloudDataApplier(
     }
 
     /**
-     * Applies app lists from cloud data to BaerenLock if local doesn't have them
+     * Applies app lists from DB to BaerenLock if BaerenLock doesn't have them yet
      */
     fun applyAppListsFromCloudIfLocalEmpty(data: CloudUserData) {
         try {
@@ -416,7 +124,7 @@ class CloudDataApplier(
             val localHasBlacklist = blacklistPrefs.getStringSet("packages", null)?.isNotEmpty() == true
             val localHasWhitelist = whitelistPrefs.getStringSet("allowed", null)?.isNotEmpty() == true
             
-            // Only apply if cloud has data and local doesn't
+            // Only apply if DB has data and BaerenLock doesn't
             if (!localHasReward && !data.rewardApps.isNullOrBlank()) {
                 try {
                     val appList = gson.fromJson<List<String>>(data.rewardApps, object : TypeToken<List<String>>() {}.type)
@@ -434,7 +142,7 @@ class CloudDataApplier(
                     val appList = gson.fromJson<List<String>>(data.blacklistedApps, object : TypeToken<List<String>>() {}.type)
                     if (appList != null && appList.isNotEmpty()) {
                         blacklistPrefs.edit().putStringSet("packages", appList.toSet()).apply()
-                        Log.d(TAG, "Applied ${appList.size} blacklisted apps from cloud (local was empty)")
+                        Log.d(TAG, "Applied ${appList.size} blacklisted apps from DB (BaerenLock was empty)")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error applying blacklisted apps from cloud", e)
@@ -446,7 +154,7 @@ class CloudDataApplier(
                     val appList = gson.fromJson<List<String>>(data.whiteListedApps, object : TypeToken<List<String>>() {}.type)
                     if (appList != null && appList.isNotEmpty()) {
                         whitelistPrefs.edit().putStringSet("allowed", appList.toSet()).apply()
-                        Log.d(TAG, "Applied ${appList.size} whitelisted apps from cloud (local was empty)")
+                        Log.d(TAG, "Applied ${appList.size} whitelisted apps from DB (BaerenLock was empty)")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error applying whitelisted apps from cloud", e)

@@ -91,7 +91,7 @@ class BattleHubActivity : AppCompatActivity() {
         
         val profile = SettingsManager.readProfile(this) ?: "AM"
         
-        // Run daily_reset_process() and then cloud_sync(); if fetch fails show error (no stale data)
+        // Run daily reset check and load from DB (dailyResetProcessAndSync); if fetch fails show error
         lifecycleScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
                 showLoadingSpinner("Syncing progress...")
@@ -196,20 +196,12 @@ class BattleHubActivity : AppCompatActivity() {
         
         loadPokemonData()
         
-        // Update berry meter after view is laid out (to get proper parent width)
+        // Fetch from DB then update progress UI so we never show stale data
         berryFill.post {
-            updateBerryMeter()
-            updateEarnButtonsState()
-            updateCountsDisplay()
-            updatePokedexTitle()
+            refreshProgressFromDbThenUpdateUI()
             setupHeaderButtons() // Setup header buttons after views are ready
         }
-        
-        // Also update on resume to refresh when returning from training map
-        updateBerryMeter()
-        updateEarnButtonsState()
-        updateCountsDisplay()
-        updatePokedexTitle()
+        refreshProgressFromDbThenUpdateUI()
         setupHeaderButtons()
     }
     
@@ -280,11 +272,7 @@ class BattleHubActivity : AppCompatActivity() {
             // Get actual banked reward minutes (not recalculated from stars) - EXACTLY like Layout.kt
             val rewardMinutes = progressManager.getBankedRewardMinutes()
             
-            // Debug logging
-            val completedTasks = progressManager.getCompletedTasksMap()
-            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: earnedCoins=$earnedCoins, earnedStars=$earnedStars")
-            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: completedTasks keys=${completedTasks.keys}")
-            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: About to update UI with coins=$earnedCoins, berries=$earnedStars, minutes=$rewardMinutes")
+            android.util.Log.d("BattleHubActivity", "updateCountsDisplay: earnedCoins=$earnedCoins, earnedStars=$earnedStars, minutes=$rewardMinutes")
             
             // Load icon config (same as Layout.kt)
             data class IconConfig(val starsIcon: String = "🍍", val coinsIcon: String = "🪙")
@@ -498,8 +486,10 @@ class BattleHubActivity : AppCompatActivity() {
 
         // Add internet-availability indicator (read-only; GitHub/Supabase need network)
         addInternetIndicator()
+        // Refresh: pull latest from DB/GitHub then redraw
+        addRefreshButton()
 
-        android.util.Log.d("BattleHubActivity", "Added header buttons (Ask for Time, Settings icon, Internet indicator)")
+        android.util.Log.d("BattleHubActivity", "Added header buttons (Ask for Time, Settings icon, Internet indicator, Refresh)")
     }
 
     private fun isNetworkAvailable(): Boolean {
@@ -539,6 +529,45 @@ class BattleHubActivity : AppCompatActivity() {
             gravity = android.view.Gravity.CENTER
         }
         headerButtonsRight.addView(indicator)
+    }
+
+    /** Refresh button: runs daily reset/sync (fetch from DB, GitHub if needed), then redraws progress UI with latest data. */
+    private fun addRefreshButton() {
+        val refreshBtn = android.widget.Button(this).apply {
+            text = "🔄 Refresh"
+            textSize = 14f
+            layoutParams = LinearLayout.LayoutParams(
+                100.dpToPx(),
+                (32 * resources.displayMetrics.density).toInt()
+            ).apply {
+                marginEnd = 12.dpToPx()
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+            background = getDrawable(R.drawable.button_rounded)
+            setTextColor(resources.getColor(android.R.color.white))
+            setPadding(8.dpToPx(), 4.dpToPx(), 8.dpToPx(), 4.dpToPx())
+            gravity = android.view.Gravity.CENTER
+            setOnClickListener { view ->
+                val profile = SettingsManager.readProfile(this@BattleHubActivity) ?: "AM"
+                android.util.Log.d("BattleHubActivity", "Refresh button: pulling latest from DB/GitHub for profile $profile")
+                view.isEnabled = false
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val result = runCatching {
+                        DailyResetAndSyncManager(this@BattleHubActivity).dailyResetProcessAndSync(profile)
+                    }.getOrElse { Result.failure(it) }
+                    withContext(Dispatchers.Main) {
+                        view.isEnabled = true
+                        if (result.isSuccess) {
+                            refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = true)
+                            Toast.makeText(this@BattleHubActivity, "Refreshed from server", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@BattleHubActivity, "Could not refresh. Check connection.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+        }
+        headerButtonsRight.addView(refreshBtn)
     }
 
     private fun Int.dpToPx(): Int {
@@ -840,8 +869,7 @@ class BattleHubActivity : AppCompatActivity() {
                         resetAndSyncManager.setLastResetToYesterday(profile)
                         withContext(Dispatchers.Main) {
                             android.widget.Toast.makeText(this@BattleHubActivity, "Progress will be reset on next screen load", android.widget.Toast.LENGTH_LONG).show()
-                            updateBerryMeter()
-                            updateEarnButtonsState()
+                            refreshProgressFromDbThenUpdateUI()
                         }
                     }
                 } catch (e: Exception) {
@@ -872,7 +900,7 @@ class BattleHubActivity : AppCompatActivity() {
                     // Refresh counts display to show updated minutes
                     updateCountsDisplay()
                     android.widget.Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", android.widget.Toast.LENGTH_LONG).show()
-                    // Note: setBankedRewardMinutes already updates last_updated timestamp
+                    // Note: setBankedRewardMinutes updates cache; sync persists to DB
                     // Sync will run automatically next time BattleHub or Trainer Map loads (per Daily Reset Logic.md)
                 } else {
                     android.widget.Toast.makeText(this, "Please enter a valid number of minutes", android.widget.Toast.LENGTH_SHORT).show()
@@ -1122,7 +1150,7 @@ class BattleHubActivity : AppCompatActivity() {
         }
         
         val progressManager = DailyProgressManager(this)
-        val completedTasksMap = progressManager.getCompletedTasksMap()
+        val completedTasksMap = progressManager.getCompletedTasksMap("optional")
         
         // Create a button for each optional task (practice tasks stored by task title, same as required)
         optionalTasks.forEach { task ->
@@ -1251,7 +1279,7 @@ class BattleHubActivity : AppCompatActivity() {
         }
         
         val progressManager = DailyProgressManager(this)
-        val completedTasksMap = progressManager.getCompletedTasksMap()
+        val completedTasksMap = progressManager.getCompletedTasksMap("required")
         
         // Create a button for each required task (completion is keyed by task title, e.g. "Word Factory")
         requiredTasks.forEach { task ->
@@ -1317,8 +1345,8 @@ class BattleHubActivity : AppCompatActivity() {
         
         if (currentContent != null) {
             val progressManager = DailyProgressManager(this)
-            val completedTasksMap = progressManager.getCompletedTasksMap()
-            
+            // Use "required" so we only check required-section (and checklist) completion, not practice
+            val completedTasksMap = progressManager.getCompletedTasksMap("required")
             
             // Check if all required tasks are completed
             val requiredSection = currentContent.sections?.find { it.id == "required" }
@@ -1379,11 +1407,13 @@ class BattleHubActivity : AppCompatActivity() {
                 true // No tasks without titles, so this check passes
             }
             
-            val allRequiredCompleted = allUniqueTasksCompleted && allTasksWithoutTitlesCompleted
+            // When there are no required tasks, treat as "all complete" so Practice map can be shown
+            val allRequiredCompleted = (uniqueRequiredTaskNames.isEmpty() || allUniqueTasksCompleted) && allTasksWithoutTitlesCompleted
             
             android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: allRequiredCompleted: $allRequiredCompleted")
             
-            // Enable/disable earn Extra berries button based on required tasks completion
+            // Show and enable Practice (Extra Berries) button only when all required tasks are completed
+            earnExtraBerriesButton.visibility = if (allRequiredCompleted) android.view.View.VISIBLE else android.view.View.GONE
             earnExtraBerriesButton.isEnabled = allRequiredCompleted
             earnExtraBerriesButton.alpha = if (allRequiredCompleted) 1f else 0.5f
         } else {
@@ -2603,7 +2633,7 @@ class BattleHubActivity : AppCompatActivity() {
             updateTitle()
         }, 100)
 
-        // Run daily_reset_process() and then cloud_sync() when resuming; if fetch fails show error (no stale data)
+        // Run daily reset check and load from DB when resuming; if fetch fails show error
         val profile = SettingsManager.readProfile(this) ?: "AM"
         android.util.Log.d("BattleHubActivity", "Starting daily reset and sync in onResume for profile $profile")
         lifecycleScope.launch(Dispatchers.IO) {
@@ -2611,10 +2641,7 @@ class BattleHubActivity : AppCompatActivity() {
             runOnUiThread {
                 if (result.isSuccess) {
                     android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onResume for profile $profile")
-                    updateBerryMeter()
-                    updateEarnButtonsState()
-                    updateCountsDisplay()
-                    updatePokedexTitle()
+                    refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = true)
                     updateTitle()
                 } else {
                     android.util.Log.e("BattleHubActivity", "Daily reset and sync failed in onResume", result.exceptionOrNull())
@@ -2662,12 +2689,39 @@ class BattleHubActivity : AppCompatActivity() {
         // (e.g. Trainer Map may have fetched fresh config from GitHub and updated the cache)
         mainContentJson = ContentUpdateService().getCachedMainContent(this)
 
-        // Refresh all displays using persisted data (same as MainActivity)
-        updateCountsDisplay()
-        updateBerryMeter()
-        updateEarnButtonsState()
-        updatePokedexTitle()
+        // Progress UI is refreshed inside dailyResetProcessAndSync's runOnUiThread above (skipFetchIfRecent)
         setupHeaderButtons() // Refresh header buttons on resume
+    }
+
+    /**
+     * Ensures progress UI shows current DB state. When [skipFetchIfRecent] is true (e.g. right after
+     * dailyResetProcessAndSync), only runs UI updates. Otherwise fetches from DB, sets progress data, then updates UI.
+     */
+    private fun refreshProgressFromDbThenUpdateUI(skipFetchIfRecent: Boolean = false) {
+        if (skipFetchIfRecent) {
+            updateBerryMeter()
+            updateEarnButtonsState()
+            updateCountsDisplay()
+            updatePokedexTitle()
+            return
+        }
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = UserDataRepository.getInstance(this@BattleHubActivity).fetchUserData(profile)
+            withContext(Dispatchers.Main) {
+                result.getOrNull()?.let { data ->
+                    CloudDataApplier(this@BattleHubActivity).applyDbDataToPrefs(data)
+                }
+                updateBerryMeter()
+                updateEarnButtonsState()
+                updateCountsDisplay()
+                updatePokedexTitle()
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
     }
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -2679,17 +2733,14 @@ class BattleHubActivity : AppCompatActivity() {
             // Reload mainContentJson from cache/network (Trainer Map may have updated cache with fresh GitHub content)
             mainContentJson = ContentUpdateService().getCachedMainContent(this)
 
-            // Run daily_reset_process() and then cloud_sync() to get latest progress, then refresh UI
+            // Run daily reset check and load from DB to get latest progress, then refresh UI
             val profile = SettingsManager.readProfile(this) ?: "AM"
             android.util.Log.d("BattleHubActivity", "Starting daily reset and sync in onActivityResult for profile $profile")
             lifecycleScope.launch(Dispatchers.IO) {
                 val result = runCatching { DailyResetAndSyncManager(this@BattleHubActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
                 runOnUiThread {
                     if (result.isSuccess) {
-                        updateCountsDisplay()
-                        updateBerryMeter()
-                        updateEarnButtonsState()
-                        updatePokedexTitle()
+                        refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = true)
                     } else {
                         Toast.makeText(this@BattleHubActivity, "Could not load progress. Check connection.", Toast.LENGTH_LONG).show()
                     }
@@ -2697,9 +2748,9 @@ class BattleHubActivity : AppCompatActivity() {
             }
         }
 
-        // When returning from Chores 4 $$, refresh coin display (sync will run on next resume)
+        // When returning from Chores 4 $$, fetch from DB then refresh so we show current state
         if (requestCode == 2010) {
-            updateCountsDisplay()
+            refreshProgressFromDbThenUpdateUI()
         }
     }
 }

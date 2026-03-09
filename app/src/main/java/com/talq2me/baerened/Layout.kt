@@ -1139,18 +1139,13 @@ class Layout(private val activity: MainActivity) {
             sectionsContainer.addView(it, 1)
         }
 
-        // Pre-load all completed task statuses in one batch to avoid multiple SharedPreferences reads
-        // This is a light operation as it just reads from memory (DailyProgressManager caches the map)
-        val completedTasksMap = progressManager.getCompletedTasksMap()
-
         // Create sections incrementally across multiple frames to avoid blocking the main thread
-        // This prevents Choreographer warnings about skipped frames
-        createSectionsIncrementally(sections, completedTasksMap, 0)
+        // Each map type (required, optional, bonus) is separate; no combined map.
+        createSectionsIncrementally(sections, 0)
     }
 
     private fun createSectionsIncrementally(
         sections: List<Section>,
-        completedTasksMap: Map<String, Boolean>,
         index: Int
     ) {
         if (index >= sections.size) {
@@ -1158,15 +1153,16 @@ class Layout(private val activity: MainActivity) {
             return
         }
 
-        // Create one section per frame to avoid blocking
+        // Create one section per frame to avoid blocking. Get completion map for this section only.
         sectionsContainer.post {
             val section = sections[index]
+            val completedTasksMap = progressManager.getCompletedTasksMap(section.id)
             android.util.Log.d("Layout", "Creating section ${index + 1}/${sections.size}: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
             val sectionView = createSectionView(section, completedTasksMap)
             sectionsContainer.addView(sectionView)
             
             // Continue with next section on next frame
-            createSectionsIncrementally(sections, completedTasksMap, index + 1)
+            createSectionsIncrementally(sections, index + 1)
         }
     }
 
@@ -1583,16 +1579,10 @@ class Layout(private val activity: MainActivity) {
 
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked && !isCompleted) {
-                        // Mark checklist item complete (even with 0 stars) so it persists and shows completed
-                        val currentContent = activity.getCurrentMainContent()
+                        // checklist_items are a separate DB column; use markChecklistItemCompleted only (never required_tasks).
+                        val itemLabel = item.label ?: itemId
                         val stars = item.stars ?: 0
-                        val earnedStars = progressManager.markTaskCompletedWithName(
-                            itemId,
-                            item.label ?: itemId,
-                            stars,
-                            true,  // isRequired parameter - checklist items behave like required tasks
-                            currentContent  // Pass config to verify
-                        )
+                        val earnedStars = progressManager.markChecklistItemCompleted(itemLabel, stars, item.displayDays)
                         if (earnedStars > 0) {
                             progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
                         }
@@ -2012,7 +2002,7 @@ class Layout(private val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun getCompletedTasks(): String {
             return try {
-                val completedTasksMap = progressManager.getCompletedTasksMap()
+                val completedTasksMap = progressManager.getCompletedTasksMap("required")
                 val completedTasks = completedTasksMap.filter { it.value }.keys.toList()
                 com.google.gson.Gson().toJson(completedTasks)
             } catch (e: Exception) {
@@ -2624,7 +2614,7 @@ class Layout(private val activity: MainActivity) {
     
     private fun loadTasksIntoMap(mapContainer: RelativeLayout, progressInfo: TextView, mapType: String) {
         val currentContent = activity.getCurrentMainContent() ?: return
-        val completedTasksMap = progressManager.getCompletedTasksMap().toMutableMap()
+        val completedTasksMap = progressManager.getCompletedTasksMap(mapType).toMutableMap()
         
         // Get tasks for this map type
         val section = currentContent.sections?.find { it.id == mapType }
@@ -2653,21 +2643,9 @@ class Layout(private val activity: MainActivity) {
             
             // If all optional tasks are completed, reset them all (never ending)
             if (allCompleted && tasks.isNotEmpty()) {
-                val allCompletedTasks = progressManager.getCompletedTasksMap().toMutableMap()
-                tasks.forEach { task ->
-                    val taskTitle = task.title ?: ""
-                    val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
-                    allCompletedTasks.remove(keyForOptional)
-                }
-                // Save the updated map
-                val prefs = activity.getSharedPreferences("daily_progress", android.content.Context.MODE_PRIVATE)
-                val gson = com.google.gson.Gson()
-                prefs.edit()
-                    .putString("completed_tasks", gson.toJson(allCompletedTasks))
-                    .apply()
-                // Refresh the completed tasks map after resetting
+                // Reset is handled in DB by af_update_practice_task; refetch/refresh will show updated state
                 completedTasksMap.clear()
-                completedTasksMap.putAll(progressManager.getCompletedTasksMap())
+                completedTasksMap.putAll(progressManager.getCompletedTasksMap("optional"))
             }
         }
         

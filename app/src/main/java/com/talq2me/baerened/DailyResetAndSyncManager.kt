@@ -13,10 +13,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Manages daily reset process and cloud sync according to the Daily Reset Logic requirements.
- * This ensures proper synchronization between local and cloud data while preventing data loss.
- * 
- * CRITICAL: Follows exact specification from Daily Reset Logic.md
+ * Manages daily reset and progress load according to Daily Reset Logic.md.
+ * DB-only: all progress is read from and written to the DB. Prefs hold the last applied DB data for display; we upload from prefs to DB on change.
+ * - Entry point: dailyResetProcessAndSync(profile) — fetch from DB; if last_reset (date, EST) is not today,
+ *   run daily reset in DB, restore chores from GitHub, then load from DB. Writes go straight to DB (e.g. uploadToDb).
  */
 class DailyResetAndSyncManager(private val context: Context) {
     
@@ -34,60 +34,280 @@ class DailyResetAndSyncManager(private val context: Context) {
     private val syncService = CloudSyncService()
     private val dataCollector = ProgressDataCollector(context)
     private val dataApplier = CloudDataApplier(context) { profile, timestamp ->
-        setLocalLastUpdatedTimestamp(profile, timestamp)
+        setStoredLastUpdatedTimestamp(profile, timestamp)
     }
     private val userDataRepository = UserDataRepository.getInstance(context)
     
     /**
-     * Performs daily reset process followed by cloud sync.
-     * This is the main entry point that should be called on screen loads.
-     * DB is the gold standard: we fetch from Supabase with retry first. If fetch fails, returns failure so UI can show loading error (no stale data).
+     * ONLINE-ONLY: Fetches from DB, runs daily reset in DB if last_reset is not today (date part, EST),
+     * restores chores from GitHub after reset, then applies DB data to prefs.
      *
      * @param profile The profile to process (e.g., "AM" or "BM")
-     * @return Result.success(Unit) when fetch (and sync) succeeded; Result.failure when fetch from DB failed so caller can show error UI
+     * @return Result.success(Unit) when fetch (and optional reset) succeeded; Result.failure when fetch from DB failed
      */
     suspend fun dailyResetProcessAndSync(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
-        Log.d(TAG, "Starting daily_reset_process() and cloud_sync() for profile: $profile")
-        
-        // Fetch from DB with retry first. If Supabase is configured and fetch fails, abort so UI shows error instead of stale data.
-        if (syncService.isConfigured()) {
-            val fetchResult = userDataRepository.fetchUserData(profile)
-            if (fetchResult.isFailure) {
-                Log.w(TAG, "Initial fetch from DB failed - aborting so UI can show error: ${fetchResult.exceptionOrNull()?.message}")
-                return@withContext Result.failure(fetchResult.exceptionOrNull() ?: Exception("Failed to load progress from server"))
+        Log.d(TAG, "ONLINE-ONLY: dailyResetProcessAndSync for profile: $profile")
+        if (!syncService.isConfigured()) {
+            Log.w(TAG, "Supabase not configured")
+            return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        val fetchResult = userDataRepository.fetchUserData(profile)
+        if (fetchResult.isFailure) {
+            Log.w(TAG, "Fetch from DB failed: ${fetchResult.exceptionOrNull()?.message}")
+            return@withContext Result.failure(fetchResult.exceptionOrNull() ?: Exception("Failed to load progress from server"))
+        }
+        var data = fetchResult.getOrNull()
+        if (data == null) {
+            dataApplier.applyDbDataToPrefs(CloudUserData(profile = profile))
+            progressManager.setProgressDataAfterFetch(CloudUserData(profile = profile))
+            Log.d(TAG, "No DB row for profile $profile; applied empty progress to session")
+            return@withContext Result.success(Unit)
+        }
+        // af_daily_reset() was invoked before fetch; if chores were blanked, restore from GitHub
+        if (data.chores.isNullOrEmpty()) {
+            restoreChoresFromGitHubAndPatch(profile)
+            val refetch = userDataRepository.fetchUserData(profile)
+            data = refetch.getOrNull() ?: data
+        }
+        dataApplier.applyDbDataToPrefs(data)
+        progressManager.setProgressDataAfterFetch(data)
+        Log.d(TAG, "Applied DB data for profile: $profile (session data set; required_tasks=${data.requiredTasks.size}, checklist_items=${data.checklistItems.size})")
+        Result.success(Unit)
+    }
+
+    /** Parses chores.json from GitHub into List<ChoreProgress> with done=false. Returns null if fetch/parse fails. */
+    private suspend fun restoreChoresFromGitHubAndPatch(profile: String) {
+        val contentUpdateService = ContentUpdateService()
+        val json = contentUpdateService.getCachedChores(context) ?: return
+        val list = try {
+            val type = object : TypeToken<List<ChoreJsonItem>>() {}.type
+            @Suppress("UNCHECKED_CAST")
+            (gson.fromJson(json, type) as? List<ChoreJsonItem>) ?: emptyList()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing chores.json", e)
+            return
+        }
+        val chores = list.map { ChoreProgress(choreId = it.id, description = it.description, coinsReward = it.coins, done = false) }
+        if (chores.isEmpty()) return
+        val now = syncService.generateESTTimestamp()
+        val payload = mapOf(
+            "chores" to chores,
+            "last_updated" to now
+        )
+        val result = syncService.patchUserDataColumns(profile, payload)
+        if (result.isSuccess) {
+            Log.d(TAG, "Restored ${chores.size} chores from GitHub to DB for profile: $profile")
+        } else {
+            Log.e(TAG, "Failed to patch chores to DB: ${result.exceptionOrNull()?.message}")
+        }
+    }
+
+    private data class ChoreJsonItem(val id: Int, val description: String, val coins: Int)
+
+    /**
+     * Invokes the Postgres RPCs (required_tasks, practice_tasks, bonus_tasks, checklist_items, chores from config/GitHub),
+     * then refetches user_data and applies to prefs/session. Call when Trainer Map loads so DB has latest config merged with progress.
+     * Each RPC is best-effort: failures are logged and we continue.
+     */
+    suspend fun invokeConfigFromGitHubRpcsThenRefetch(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!syncService.isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        listOf(
+            syncService::invokeAfRequiredTasksFromConfig,
+            syncService::invokeAfPracticeTasksFromConfig,
+            syncService::invokeAfBonusTasksFromConfig,
+            syncService::invokeAfChecklistItemsFromConfig,
+            syncService::invokeAfChoresFromGitHub
+        ).forEach { invoke ->
+            invoke(profile).onFailure { Log.w(TAG, "Config RPC failed (continuing): ${it.message}") }
+        }
+        val fetchResult = userDataRepository.fetchUserData(profile)
+        if (fetchResult.isFailure) {
+            Log.w(TAG, "Refetch after config RPCs failed: ${fetchResult.exceptionOrNull()?.message}")
+            return@withContext Result.failure(fetchResult.exceptionOrNull() ?: Exception("Refetch failed"))
+        }
+        val data = fetchResult.getOrNull() ?: run {
+            dataApplier.applyDbDataToPrefs(CloudUserData(profile = profile))
+            progressManager.setProgressDataAfterFetch(CloudUserData(profile = profile))
+            return@withContext Result.success(Unit)
+        }
+        dataApplier.applyDbDataToPrefs(data)
+        progressManager.setProgressDataAfterFetch(data)
+        Log.d(TAG, "invokeConfigFromGitHubRpcsThenRefetch: applied refetched data for profile $profile")
+        Result.success(Unit)
+    }
+
+    /**
+     * ONLINE-ONLY: Merges task/checklist structures from GitHub config with current DB data (preserves
+     * completion/correct/incorrect/times_completed), uploads to DB, and updates in-memory cache.
+     * Prefer invokeConfigFromGitHubRpcsThenRefetch when loading Trainer Map (uses DB RPCs).
+     */
+    suspend fun mergeTaskStructuresFromGitHubAndPatchDb(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val contentUpdateService = ContentUpdateService()
+        val jsonString = contentUpdateService.getCachedMainContent(context)
+            ?: run {
+                Log.w(TAG, "mergeTaskStructuresFromGitHubAndPatchDb: no config from GitHub")
+                return@withContext Result.failure(Exception("Could not load config from GitHub"))
             }
-            val data = fetchResult.getOrNull()
-            if (data != null) {
-                dataApplier.applyCloudDataToLocal(data)
-                Log.d(TAG, "Applied fresh DB data to local after fetch for profile: $profile")
+        val config = try {
+            Gson().fromJson(jsonString, MainContent::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "mergeTaskStructuresFromGitHubAndPatchDb: parse error", e)
+            return@withContext Result.failure(e)
+        }
+        // Use fresh fetch from DB for current (berries, banked_mins, etc.). This manager's progressManager
+        // may be a different instance than the one that ran dailyResetProcessAndSync, so getProgressDataForUpload
+        // can be null/empty and would otherwise upload 0 for berries_earned/banked_mins and wipe them.
+        val current = userDataRepository.fetchUserData(profile).getOrNull()
+        val existingRequired = current?.requiredTasks ?: emptyMap()
+        val existingPractice = current?.practiceTasks ?: emptyMap()
+        val existingBonus = current?.bonusTasks ?: emptyMap()
+        val existingChecklist = current?.checklistItems ?: emptyMap()
+
+        val mergedRequired = mutableMapOf<String, TaskProgress>()
+        val mergedPractice = mutableMapOf<String, PracticeProgress>()
+        val mergedBonus = mutableMapOf<String, PracticeProgress>()
+        val mergedChecklist = mutableMapOf<String, ChecklistItemProgress>()
+
+        config.sections?.forEach { section ->
+            section.tasks?.forEach { task ->
+                val taskName = task.title ?: return@forEach
+                when (section.id) {
+                    "required" -> {
+                        val existing = existingRequired[taskName]
+                        mergedRequired[taskName] = existing?.copy(
+                            stars = task.stars,
+                            showdays = task.showdays,
+                            hidedays = task.hidedays,
+                            displayDays = task.displayDays,
+                            disable = task.disable
+                        ) ?: TaskProgress(
+                            status = "incomplete",
+                            correct = null,
+                            incorrect = null,
+                            questions = null,
+                            stars = task.stars,
+                            showdays = task.showdays,
+                            hidedays = task.hidedays,
+                            displayDays = task.displayDays,
+                            disable = task.disable
+                        )
+                    }
+                    "optional" -> {
+                        val existing = existingPractice[taskName]
+                        mergedPractice[taskName] = existing?.copy(
+                            showdays = task.showdays,
+                            hidedays = task.hidedays,
+                            displayDays = task.displayDays,
+                            disable = task.disable
+                        ) ?: PracticeProgress(
+                            timesCompleted = 0,
+                            correct = null,
+                            incorrect = null,
+                            questionsAnswered = null,
+                            showdays = task.showdays,
+                            hidedays = task.hidedays,
+                            displayDays = task.displayDays,
+                            disable = task.disable
+                        )
+                    }
+                    "bonus" -> {
+                        val existing = existingBonus[taskName]
+                        mergedBonus[taskName] = existing?.copy(
+                            showdays = task.showdays,
+                            hidedays = task.hidedays,
+                            displayDays = task.displayDays,
+                            disable = task.disable
+                        ) ?: PracticeProgress(
+                            timesCompleted = 0,
+                            correct = null,
+                            incorrect = null,
+                            questionsAnswered = null,
+                            showdays = task.showdays,
+                            hidedays = task.hidedays,
+                            displayDays = task.displayDays,
+                            disable = task.disable
+                        )
+                    }
+                    else -> { /* other sections ignored for merge */ }
+                }
+            }
+            section.items?.forEach { item ->
+                val itemName = item.label ?: return@forEach
+                val itemStars = item.stars ?: 0
+                val existing = existingChecklist[itemName]
+                mergedChecklist[itemName] = ChecklistItemProgress(
+                    done = existing?.done ?: false,
+                    stars = itemStars,
+                    displayDays = item.displayDays
+                )
             }
         }
-        
-        // Normalize any legacy local timestamps to EST DB format (no offset).
-        normalizeAllTimestamps()
-        
-        // Step 1: Run daily_reset_process()
-        dailyResetProcess(profile)
-        
-        // Step 2: Run cloud_sync()
-        cloudSync(profile)
-        
-        Log.d(TAG, "Completed daily_reset_process() and cloud_sync() for profile: $profile")
-        Result.success(Unit)
+
+        val optionalTaskNames = config.sections?.find { it.id == "optional" }?.tasks?.mapNotNull { it.title }?.toSet() ?: emptySet()
+        val bonusTaskNames = config.sections?.find { it.id == "bonus" }?.tasks?.mapNotNull { it.title }?.toSet() ?: emptySet()
+        val requiredTaskNames = config.sections?.find { it.id == "required" }?.tasks?.mapNotNull { it.title }?.toSet() ?: emptySet()
+        mergedRequired.keys.removeAll { it !in requiredTaskNames }
+        mergedPractice.keys.removeAll { it !in optionalTaskNames }
+        mergedBonus.keys.removeAll { it !in bonusTaskNames }
+        val configChecklistNames = config.sections?.flatMap { section ->
+            section.items?.mapNotNull { it.label } ?: emptyList()
+        }?.toSet() ?: emptySet()
+        mergedChecklist.keys.removeAll { it !in configChecklistNames }
+
+        val requiredStars = mergedRequired.values.sumOf { tp ->
+            if (isTaskVisibleToday(tp.showdays, tp.hidedays, tp.displayDays, tp.disable)) tp.stars ?: 0 else 0
+        }
+        val checklistStars = mergedChecklist.values.sumOf { p ->
+            if (isTaskVisibleToday(null, null, p.displayDays, null)) p.stars else 0
+        }
+        val possibleStars = requiredStars + checklistStars
+
+        val now = syncService.generateESTTimestamp()
+        val merged = CloudUserData(
+            profile = profile,
+            lastReset = current?.lastReset,
+            requiredTasks = mergedRequired,
+            practiceTasks = mergedPractice,
+            bonusTasks = mergedBonus,
+            checklistItems = mergedChecklist,
+            possibleStars = possibleStars,
+            bankedMins = current?.bankedMins ?: 0,
+            berriesEarned = current?.berriesEarned ?: 0,
+            coinsEarned = current?.coinsEarned ?: 0,
+            chores = current?.chores ?: emptyList(),
+            pokemonUnlocked = current?.pokemonUnlocked ?: 0,
+            gameIndices = current?.gameIndices ?: emptyMap(),
+            lastUpdated = now
+        )
+        // PATCH only task-related columns so we never overwrite berries_earned or banked_mins (they stay in DB).
+        val patchPayload = mapOf<String, Any>(
+            "required_tasks" to mergedRequired,
+            "checklist_items" to mergedChecklist,
+            "practice_tasks" to mergedPractice,
+            "bonus_tasks" to mergedBonus,
+            "possible_stars" to possibleStars,
+            "last_updated" to now
+        )
+        val uploadResult = syncService.patchUserDataColumns(profile, patchPayload)
+        if (uploadResult.isSuccess) {
+            val refetch = userDataRepository.fetchUserData(profile).getOrNull()
+            if (refetch != null) progressManager.setProgressDataAfterFetch(refetch)
+            Log.d(TAG, "mergeTaskStructuresFromGitHubAndPatchDb: merged and patched task columns for profile $profile; session data refreshed from DB")
+        }
+        uploadResult
     }
     
     /**
-     * Daily reset process according to requirements:
-     * - If local.profile.last_reset is today (date part only, EST), do nothing
-     * - Otherwise, compare with cloud.profile.last_reset
-     *   - If cloud not available after retries -> call reset_local()
-     *   - If cloud is today -> attempt cloud_sync()
-     *   - If cloud is older than today -> call reset_local()
+     * UNUSED in ONLINE-ONLY mode. Legacy path (local prefs + sync). The only reset flow is
+     * dailyResetProcessAndSync: fetch from DB → if last_reset not today run reset in DB → load from DB.
      */
+    @Suppress("UNUSED")
     private suspend fun dailyResetProcess(profile: String) = withContext(Dispatchers.IO) {
         Log.d(TAG, "daily_reset_process() started for profile: $profile")
         
-        val localLastReset = getLocalLastReset(profile)
+        val localLastReset = getStoredLastReset(profile)
         val isLocalToday = isTodayInEST(localLastReset)
         
         // Check if required_tasks is empty - if so, populate it even if last_reset is today
@@ -118,7 +338,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             cloudLastReset == null -> {
                 // Cloud not available after retries (network issue or no cloud record yet).
                 // Reset locally and push reset to cloud so cloud stays in sync with reset state.
-                // coins_earned and pokemon_unlocked are protected: updateCloudWithLocal() uses
+                // coins_earned and pokemon_unlocked are protected: uploadToDb() uses
                 // max(local, cloud) for those two columns so we never overwrite with lower values.
                 Log.d(TAG, "Cloud last_reset not available after retries, calling reset_local() then pushResetToCloud()")
                 resetLocal(profile)
@@ -163,13 +383,13 @@ class DailyResetAndSyncManager(private val context: Context) {
         resetLocalProgressData(profile)
         
         // Set local.profile.last_updated = local.profile.last_reset
-        setLocalLastUpdatedTimestamp(profile, convertToISOTimestamp(estTimestamp))
+        setStoredLastUpdatedTimestamp(profile, convertToISOTimestamp(estTimestamp))
         
         // Call get_content_from_json()
         getContentFromJson(profile)
         
-        // Invalidate repository cache so next read uses prefs (reset state) until pushResetToCloud updates cache
-        userDataRepository.invalidateCache(profile)
+        // Clear progress data for this flow so next read comes from fetch/DB
+        progressManager.clearProgressDataAfterRequest()
         
         Log.d(TAG, "reset_local() completed for profile: $profile, timestamp: $estTimestamp")
     }
@@ -195,14 +415,14 @@ class DailyResetAndSyncManager(private val context: Context) {
         // CRITICAL: Check if a reset just happened (local last_reset is today but cloud is older)
         // In this case, we must push to cloud to ensure reset values are saved
         try {
-            val localLastReset = getLocalLastReset(profile)
+            val localLastReset = getStoredLastReset(profile)
             val cloudLastReset = getCloudLastReset(profile)
             val localResetIsToday = isTodayInEST(localLastReset)
             val cloudResetIsOlder = cloudLastReset != null && !isTodayInEST(cloudLastReset)
 
             if (localResetIsToday && cloudResetIsOlder) {
                 Log.d(TAG, "CRITICAL: Reset just happened (local today, cloud older), pushing reset to cloud immediately")
-                updateCloudWithLocal(profile)
+                uploadToDb(profile)
                 return@withContext
             }
         } catch (e: Exception) {
@@ -210,7 +430,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             // Continue with normal sync if check fails
         }
 
-        val localLastUpdated = getLocalLastUpdatedTimestamp(profile)
+        val localLastUpdated = getStoredLastUpdatedTimestamp(profile)
         val cloudLastUpdated = getCloudLastUpdated(profile)
 
         if (cloudLastUpdated == null) {
@@ -237,9 +457,8 @@ class DailyResetAndSyncManager(private val context: Context) {
             comparison > 0 -> {
                 // Local is newer
                 Log.d(TAG, "Local is newer ($localLastUpdated > $cloudLastUpdated), calling update_cloud_with_local()")
-                // CRITICAL: Before pushing local to cloud, verify that local data actually changed
-                // If cloud was just applied, local should match cloud, so we shouldn't push
-                val localData = dataCollector.collectLocalData(profile)
+                // Use session data for comparison when available (DB-only); else fall back to prefs payload
+                val localData = progressManager.getCurrentSessionData(profile) ?: dataCollector.buildUploadPayloadFromPrefs(profile)
                 val cloudDataResult = syncService.downloadUserData(profile)
                 if (cloudDataResult.isSuccess) {
                     val cloudData = cloudDataResult.getOrNull()
@@ -259,36 +478,24 @@ class DailyResetAndSyncManager(private val context: Context) {
                             Log.w(TAG, "  This suggests local timestamp was incorrectly updated after cloud sync")
                             Log.w(TAG, "  Skipping update_cloud_with_local() to prevent overwriting cloud data")
                             // Update local timestamp to match cloud to prevent this from happening again
-                            setLocalLastUpdatedTimestamp(profile, cloudLastUpdated)
+                            setStoredLastUpdatedTimestamp(profile, cloudLastUpdated)
                             Log.d(TAG, "  Updated local timestamp to match cloud: $cloudLastUpdated")
                             return@withContext
                         }
                     }
                 }
-                updateCloudWithLocal(profile)
+                uploadToDb(profile)
             }
             else -> {
-                // Cloud is newer - but avoid overwriting local progress when cloud was only
-                // updated by a partial write (e.g. banked_mins) that advanced last_updated
-                // without full task/berry data. If local has more berries, prefer local.
-                val localData = dataCollector.collectLocalData(profile)
-                val cloudDataResult = syncService.downloadUserData(profile)
-                val cloudData = cloudDataResult.getOrNull()
-                if (cloudData != null && localData.berriesEarned > cloudData.berriesEarned) {
-                    Log.w(TAG, "Cloud is newer by timestamp but local has more progress (berries ${localData.berriesEarned} > ${cloudData.berriesEarned}) - pushing local to avoid overwriting progress")
-                    updateCloudWithLocal(profile)
+                // Cloud is newer: pull from DB (timestamps determine winner; no protective overwrite).
+                Log.d(TAG, "Cloud is newer ($cloudLastUpdated > $localLastUpdated), calling update_local_with_cloud()")
+                fetchFromDbAndApplyToPrefs(profile)
+                val storedTimestamp = getStoredLastUpdatedTimestamp(profile)
+                if (storedTimestamp != cloudLastUpdated) {
+                    Log.e(TAG, "CRITICAL: After update_local_with_cloud(), local timestamp ($storedTimestamp) doesn't match cloud ($cloudLastUpdated)")
+                    setStoredLastUpdatedTimestamp(profile, cloudLastUpdated)
                 } else {
-                    Log.d(TAG, "Cloud is newer ($cloudLastUpdated > $localLastUpdated), calling update_local_with_cloud()")
-                    updateLocalWithCloud(profile)
-                    // CRITICAL: After applying cloud data, verify timestamp was stored correctly
-                    val storedTimestamp = getLocalLastUpdatedTimestamp(profile)
-                    if (storedTimestamp != cloudLastUpdated) {
-                        Log.e(TAG, "CRITICAL: After update_local_with_cloud(), local timestamp ($storedTimestamp) doesn't match cloud ($cloudLastUpdated)")
-                        Log.e(TAG, "  This suggests timestamp was overwritten - fixing by setting to cloud timestamp")
-                        setLocalLastUpdatedTimestamp(profile, cloudLastUpdated)
-                    } else {
-                        Log.d(TAG, "Verified: Local timestamp correctly matches cloud after update_local_with_cloud()")
-                    }
+                    Log.d(TAG, "Verified: Local timestamp correctly matches cloud after update_local_with_cloud()")
                 }
             }
         }
@@ -306,7 +513,7 @@ class DailyResetAndSyncManager(private val context: Context) {
         
         try {
             Log.d(TAG, "pushResetToCloud() started for profile: $profile")
-            updateCloudWithLocal(profile)
+            uploadToDb(profile)
             Log.d(TAG, "pushResetToCloud() completed for profile: $profile")
         } catch (e: Exception) {
             Log.e(TAG, "Error pushing reset to cloud, will retry in cloud_sync()", e)
@@ -315,202 +522,62 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Advances local last_updated to now() EST (sync commit). Call this when a task/game completes
-     * *before* launching any async sync, so that cloudSync (e.g. on BattleHub return) sees local
-     * newer than cloud and uploads instead of applying stale cloud over local.
+     * No-op for ONLINE-ONLY. Call when a task/game completes; next upload to DB uses now() at EST in payload.
+     * (Previously wrote last_updated to prefs; progress is DB-only now.)
      */
     fun advanceLocalTimestampForProfile(profile: String) {
-        val nowISO = generateESTISOTimestamp()
-        setLocalLastUpdatedTimestamp(profile, nowISO)
-        Log.d(TAG, "CRITICAL: advanceLocalTimestampForProfile($profile) -> $nowISO (sync)")
+        Log.d(TAG, "advanceLocalTimestampForProfile($profile) (DB-only, no prefs)")
     }
 
     /**
-     * Updates local.profile.last_updated timestamp to now() EST and then uploads to DB with retry.
-     * Only consider the write "done" when this returns success — DB is the source of truth.
+     * Uploads current progress to DB with lastUpdated = now() at EST. DB only; no local storage.
+     * Call after task/game completion so progress is persisted. Success = DB write succeeded.
      *
-     * @return Result.success(Unit) when upload succeeded; Result.failure when upload failed after retries
+     * @return Result.success(Unit) when upload to DB succeeded; Result.failure when upload failed after retries
      */
     suspend fun updateLocalTimestampAndSyncToCloud(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
-        Log.d(TAG, "updateLocalTimestampAndSyncToCloud() started for profile: $profile")
-        
-        val nowISO = generateESTISOTimestamp()
-        val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-        val timestampKey = "${profile}_last_updated_timestamp"
-        val timestampSuccess = progressPrefs.edit()
-            .putString(timestampKey, nowISO)
-            .commit()
-        
-        if (!timestampSuccess) {
-            Log.e(TAG, "CRITICAL ERROR: Failed to save last_updated timestamp in updateLocalTimestampAndSyncToCloud!")
-        } else {
-            Log.d(TAG, "CRITICAL: Updated last_updated timestamp to: $nowISO (saved synchronously)")
-        }
-        
+        Log.d(TAG, "Uploading progress to DB for profile: $profile")
         try {
-            updateCloudWithLocal(profile)
+            uploadToDb(profile)
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "updateLocalTimestampAndSyncToCloud failed", e)
+            Log.e(TAG, "Upload to DB failed", e)
             Result.failure(e)
         }
     }
     
     /**
-     * Updates cloud with local data (all or nothing operation).
-     * All fields are updated atomically. last_updated should already be set before calling this.
+     * No-op: all writes go via RPCs (af_update_*, af_daily_reset). Kept for API compatibility.
+     * Callers that need fresh session data should refetch (fetchUserData + setProgressDataAfterFetch).
      */
-    private suspend fun updateCloudWithLocal(profile: String) = withContext(Dispatchers.IO) {
-        Log.d(TAG, "update_cloud_with_local() started for profile: $profile")
-        
-        try {
-            // CRITICAL: Log what data we're about to push
-            Log.d(TAG, "CRITICAL: About to collect local data for upload to cloud for profile: $profile")
-            
-            // Collect all local data
-            val localData = dataCollector.collectLocalData(profile)
-            
-            // CRITICAL: Log what data was collected
-            Log.d(TAG, "CRITICAL: Collected local data - berriesEarned: ${localData.berriesEarned}, bankedMins: ${localData.bankedMins}, requiredTasks size: ${localData.requiredTasks.size} for profile: $profile")
-            
-            // CRITICAL: Log Math task status specifically
-            val mathTask = localData.requiredTasks["Math"]
-            if (mathTask != null) {
-                Log.d(TAG, "CRITICAL: Math task in collected data - status: ${mathTask.status}, correct: ${mathTask.correct}, incorrect: ${mathTask.incorrect}, questions: ${mathTask.questions}")
-            } else {
-                Log.d(TAG, "CRITICAL: Math task NOT FOUND in collected requiredTasks! Available tasks: ${localData.requiredTasks.keys.take(10).joinToString()}")
-            }
-            
-            // Safeguard: coins_earned and pokemon_unlocked must never go backwards on cloud.
-            // If cloud has a higher value, use that so we never overwrite with a lower value.
-            val cloudData = syncService.downloadUserData(profile).getOrNull()
-            val coinsToUpload = maxOf(localData.coinsEarned, cloudData?.coinsEarned ?: 0)
-            val pokemonToUpload = maxOf(localData.pokemonUnlocked, cloudData?.pokemonUnlocked ?: 0)
-            if (coinsToUpload != localData.coinsEarned || pokemonToUpload != localData.pokemonUnlocked) {
-                Log.d(TAG, "Safeguard: using max for coins_earned ($coinsToUpload) and pokemon_unlocked ($pokemonToUpload) so values never go backwards")
-            }
-            
-            // Set timestamp to "now" right before upload so we win the timestamp check.
-            // Collect can take several seconds (e.g. GitHub fetch); cloud may have been updated in between.
-            val nowISO = generateESTISOTimestamp()
-            setLocalLastUpdatedTimestamp(profile, nowISO)
-            // Preserve lastCoinsPayoutAt from cloud so we don't wipe it on upload (report sets it when parent pays out).
-            val localDataWithCorrectTimestamp = localData.copy(
-                lastUpdated = nowISO,
-                coinsEarned = coinsToUpload,
-                pokemonUnlocked = pokemonToUpload,
-                lastCoinsPayoutAt = cloudData?.lastCoinsPayoutAt
-            )
-            
-            Log.d(TAG, "CRITICAL: About to upload with timestamp: $nowISO for profile: $profile")
-            
-            // Upload to cloud with retry; on success repository cache is updated so UI is never stale
-            val result = userDataRepository.uploadUserData(localDataWithCorrectTimestamp)
-            
-            if (result.isSuccess) {
-                Log.d(TAG, "update_cloud_with_local() completed successfully for profile: $profile")
-            } else {
-                Log.e(TAG, "update_cloud_with_local() failed for profile: $profile: ${result.exceptionOrNull()?.message}")
-                throw result.exceptionOrNull() ?: Exception("Upload failed")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in update_cloud_with_local()", e)
-            throw e // Re-throw to allow retry later
-        }
+    private suspend fun uploadToDb(profile: String) = withContext(Dispatchers.IO) {
+        Log.d(TAG, "uploadToDb() no-op for profile: $profile (writes via RPCs)")
     }
-    
+
     /**
-     * Updates local with cloud data (all or nothing operation).
-     * All fields are updated atomically. last_updated should already be set before calling this.
+     * Fetches from DB and applies to prefs (all or nothing).
      */
-    private suspend fun updateLocalWithCloud(profile: String) = withContext(Dispatchers.IO) {
-        Log.d(TAG, "update_local_with_cloud() started for profile: $profile")
-        
+    private suspend fun fetchFromDbAndApplyToPrefs(profile: String) = withContext(Dispatchers.IO) {
+        Log.d(TAG, "fetchFromDbAndApplyToPrefs() started for profile: $profile")
         try {
-            // Download cloud data
-            val result = syncService.downloadUserData(profile)
-            
+            val result = userDataRepository.fetchUserData(profile)
             if (result.isSuccess) {
-                val cloudData = result.getOrNull()
-                if (cloudData != null) {
-                    // CRITICAL: Log what we're about to apply
-                    Log.d(TAG, "CRITICAL: About to apply cloud data - berriesEarned: ${cloudData.berriesEarned}, bankedMins: ${cloudData.bankedMins}, requiredTasks size: ${cloudData.requiredTasks.size} for profile: $profile")
-                    
-                    // Apply cloud data to local (all or nothing)
-                    dataApplier.applyCloudDataToLocal(cloudData)
-                    // Keep repository cache in sync so DailyProgressManager and UI read from DB-backed data
-                    userDataRepository.setCache(profile, cloudData)
-
-                    // If local required_tasks are empty, rebuild from GitHub content and update last_updated.
-                    // This matches the spec: empty local tasks should be populated from GitHub, then synced.
-                    val progressPrefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                    val requiredTasksKey = "${profile}_required_tasks"
-                    val requiredTasksJson = progressPrefs.getString(requiredTasksKey, "{}") ?: "{}"
-                    val requiredTasksMap = gson.fromJson<Map<String, TaskProgress>>(
-                        requiredTasksJson,
-                        object : TypeToken<Map<String, TaskProgress>>() {}.type
-                    ) ?: emptyMap()
-
-                    if (requiredTasksMap.isEmpty()) {
-                        Log.w(TAG, "CRITICAL: Local required_tasks empty after applying cloud data - refreshing from GitHub")
-                        getContentFromJson(profile, updateTimestamp = true)
-                        
-                        // CRITICAL: Verify tasks were actually written after getContentFromJson()
-                        val progressPrefsAfter = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-                        val requiredTasksJsonAfter = progressPrefsAfter.getString(requiredTasksKey, "{}") ?: "{}"
-                        val requiredTasksMapAfter = gson.fromJson<Map<String, TaskProgress>>(
-                            requiredTasksJsonAfter,
-                            object : TypeToken<Map<String, TaskProgress>>() {}.type
-                        ) ?: emptyMap()
-                        
-                        if (requiredTasksMapAfter.isEmpty()) {
-                            Log.e(TAG, "CRITICAL ERROR: Tasks still empty after getContentFromJson()! This should never happen!")
-                        } else {
-                            Log.d(TAG, "CRITICAL: Successfully populated ${requiredTasksMapAfter.size} tasks from GitHub after cloud sync")
-                            
-                            // CRITICAL: After populating from GitHub, local last_updated was updated.
-                            // We must now push to cloud since local is now newer (has tasks, cloud has empty).
-                            // Check if local is now newer than cloud and push immediately.
-                            val localLastUpdatedAfter = getLocalLastUpdatedTimestamp(profile)
-                            val cloudLastUpdatedAfter = getCloudLastUpdated(profile)
-                            
-                            if (cloudLastUpdatedAfter != null) {
-                                val comparisonAfter = compareTimestamps(localLastUpdatedAfter, cloudLastUpdatedAfter)
-                                if (comparisonAfter > 0) {
-                                    Log.d(TAG, "CRITICAL: After populating from GitHub, local is newer ($localLastUpdatedAfter > $cloudLastUpdatedAfter), pushing to cloud immediately")
-                                    updateCloudWithLocal(profile)
-                                } else {
-                                    Log.w(TAG, "CRITICAL: After populating from GitHub, local timestamp ($localLastUpdatedAfter) is not newer than cloud ($cloudLastUpdatedAfter) - this shouldn't happen!")
-                                }
-                            } else {
-                                Log.w(TAG, "CRITICAL: Cloud last_updated is null, cannot push populated tasks to cloud")
-                            }
-                        }
+                val dbData = result.getOrNull()
+                if (dbData != null) {
+                    Log.d(TAG, "Applying DB data - berriesEarned: ${dbData.berriesEarned}, bankedMins: ${dbData.bankedMins}, requiredTasks size: ${dbData.requiredTasks.size} for profile: $profile")
+                    dataApplier.applyDbDataToPrefs(dbData)
+                    progressManager.setProgressDataAfterFetch(dbData)
+                    // If DB required_tasks are empty, populate from GitHub then sync.
+                    if (dbData.requiredTasks.isEmpty()) {
+                        Log.w(TAG, "DB required_tasks empty after apply - running from-config RPCs then refetch")
+                        invokeConfigFromGitHubRpcsThenRefetch(profile)
                     }
-                    
-                    // CRITICAL: Verify the data was actually written correctly
-                    val progressPrefsVerify = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
-                    val bankedMinsKey = "${profile}_banked_reward_minutes"
-                    val writtenBankedMins = progressPrefsVerify.getInt(bankedMinsKey, -999)
-                    
-                    val berriesPrefs = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-                    val berriesKey = "${profile}_earnedBerries"
-                    val writtenBerries = berriesPrefs.getInt(berriesKey, -999)
-                    
-                    Log.d(TAG, "CRITICAL: After applyCloudDataToLocal() - written bankedMins: $writtenBankedMins (expected: ${cloudData.bankedMins}), written berries: $writtenBerries (expected: ${cloudData.berriesEarned}) for profile: $profile")
-                    
-                    if (writtenBankedMins != cloudData.bankedMins || writtenBerries != cloudData.berriesEarned) {
-                        Log.e(TAG, "CRITICAL ERROR: Data mismatch after applying cloud data! This should never happen!")
-                        Log.e(TAG, "  Expected: bankedMins=${cloudData.bankedMins}, berries=${cloudData.berriesEarned}")
-                        Log.e(TAG, "  Actual: bankedMins=$writtenBankedMins, berries=$writtenBerries")
-                    }
-                    
-                    Log.d(TAG, "update_local_with_cloud() completed successfully for profile: $profile")
+                    Log.d(TAG, "fetchFromDbAndApplyToPrefs() completed for profile: $profile")
                 } else {
-                    Log.w(TAG, "update_local_with_cloud() - cloud data is null")
+                    Log.w(TAG, "fetchFromDbAndApplyToPrefs() - DB data is null")
                 }
             } else {
-                Log.e(TAG, "update_local_with_cloud() failed for profile: $profile: ${result.exceptionOrNull()?.message}")
+                Log.e(TAG, "fetchFromDbAndApplyToPrefs() failed for profile: $profile: ${result.exceptionOrNull()?.message}")
                 throw result.exceptionOrNull() ?: Exception("Download failed")
             }
         } catch (e: Exception) {
@@ -554,7 +621,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             // Do NOT update if this is called after update_local_with_cloud() to preserve cloud timestamp
             if (updateTimestamp) {
                 val nowISO = generateESTISOTimestamp()
-                setLocalLastUpdatedTimestamp(profile, nowISO)
+                setStoredLastUpdatedTimestamp(profile, nowISO)
                 Log.d(TAG, "Updated local.profile.last_updated to now() EST: $nowISO")
             } else {
                 Log.d(TAG, "Skipping timestamp update to preserve cloud timestamp")
@@ -659,30 +726,18 @@ class DailyResetAndSyncManager(private val context: Context) {
                     stars = itemStars,
                     displayDays = item.displayDays
                 )
-                // CRITICAL: Add checklist items to required_tasks so getRequiredTasks() returns them;
-                // progress, coins, and possible_stars then include checklist stars.
-                requiredTasks[itemName] = TaskProgress(
-                    status = "incomplete",
-                    correct = null,
-                    incorrect = null,
-                    questions = null,
-                    stars = itemStars,
-                    showdays = null,
-                    hidedays = null,
-                    displayDays = item.displayDays,
-                    disable = null
-                )
+                // checklist_items are a separate DB column; do not add to required_tasks.
             }
         }
         
-        // Calculate possible_stars: sum of stars from required tasks AND checklist items visible today
-        val possibleStars = requiredTasks.values.sumOf { taskProgress ->
-            if (isTaskVisibleToday(taskProgress.showdays, taskProgress.hidedays, taskProgress.displayDays, taskProgress.disable)) {
-                taskProgress.stars ?: 0
-            } else {
-                0
-            }
+        // possible_stars: required section tasks + checklist items (each visible today)
+        val requiredStars = requiredTasks.values.sumOf { tp ->
+            if (isTaskVisibleToday(tp.showdays, tp.hidedays, tp.displayDays, tp.disable)) tp.stars ?: 0 else 0
         }
+        val checklistStars = checklistItems.values.sumOf { p ->
+            if (isTaskVisibleToday(null, null, p.displayDays, null)) p.stars else 0
+        }
+        val possibleStars = requiredStars + checklistStars
         
         // Save to SharedPreferences - use commit() to ensure data is written before cloud sync
         val saved = progressPrefs.edit()
@@ -711,7 +766,12 @@ class DailyResetAndSyncManager(private val context: Context) {
         val updatedRequiredTasks = existingRequiredTasks.toMutableMap()
         val practiceTasks = mutableMapOf<String, PracticeProgress>()
         val checklistItems = mutableMapOf<String, ChecklistItemProgress>()
-        
+        val existingChecklistJson = progressPrefs.getString("${profile}_checklist_items", "{}") ?: "{}"
+        val existingChecklist = gson.fromJson<Map<String, ChecklistItemProgress>>(
+            existingChecklistJson,
+            object : TypeToken<Map<String, ChecklistItemProgress>>() {}.type
+        ) ?: emptyMap()
+
         config.sections?.forEach { section ->
             section.tasks?.forEach { task ->
                 val taskName = task.title ?: return@forEach
@@ -750,44 +810,29 @@ class DailyResetAndSyncManager(private val context: Context) {
             section.items?.forEach { item ->
                 val itemName = item.label ?: return@forEach
                 val itemStars = item.stars ?: 0
-                val existingItem = existingRequiredTasks[itemName]
-                val isDone = existingItem?.status == "complete"
+                val isDone = existingChecklist[itemName]?.done == true
                 checklistItems[itemName] = ChecklistItemProgress(
                     done = isDone,
                     stars = itemStars,
                     displayDays = item.displayDays
                 )
-                // CRITICAL: Preserve checklist items in required_tasks so completions and possible_stars are correct
-                updatedRequiredTasks[itemName] = existingItem ?: TaskProgress(
-                    status = "incomplete",
-                    correct = null,
-                    incorrect = null,
-                    questions = null,
-                    stars = itemStars,
-                    showdays = null,
-                    hidedays = null,
-                    displayDays = item.displayDays,
-                    disable = null
-                )
             }
         }
         
-        // Remove tasks that no longer exist in JSON
+        // Remove only required/practice task names that no longer exist (checklist_items are separate).
         val configTaskNames = config.sections?.flatMap { section ->
-            (section.tasks?.mapNotNull { it.title } ?: emptyList()) +
-            (section.items?.mapNotNull { it.label } ?: emptyList())
+            section.tasks?.mapNotNull { it.title } ?: emptyList()
         }?.toSet() ?: emptySet()
         
         updatedRequiredTasks.keys.removeAll { it !in configTaskNames }
         
-        // Calculate possible_stars: sum of stars from required tasks AND checklist items visible today
-        val possibleStars = updatedRequiredTasks.values.sumOf { taskProgress ->
-            if (isTaskVisibleToday(taskProgress.showdays, taskProgress.hidedays, taskProgress.displayDays, taskProgress.disable)) {
-                taskProgress.stars ?: 0
-            } else {
-                0
-            }
+        val requiredStars = updatedRequiredTasks.values.sumOf { tp ->
+            if (isTaskVisibleToday(tp.showdays, tp.hidedays, tp.displayDays, tp.disable)) tp.stars ?: 0 else 0
         }
+        val checklistStars = checklistItems.values.sumOf { p ->
+            if (isTaskVisibleToday(null, null, p.displayDays, null)) p.stars else 0
+        }
+        val possibleStars = requiredStars + checklistStars
         
         // Save to SharedPreferences - use commit() to ensure data is written before cloud sync
         val saved = progressPrefs.edit()
@@ -805,13 +850,12 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Resets local progress data (berries, banked_mins, tasks, etc.)
+     * Resets local progress data (berries, banked_mins, tasks, etc.). Banked mins: cache only (no prefs).
      */
     private fun resetLocalProgressData(profile: String) {
         val progressPrefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val bankedMinsKey = "${profile}_banked_reward_minutes"
         val berriesKey = "${profile}_earnedBerries"
-        
+
         // Reset berries
         val success1 = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
             .edit()
@@ -820,14 +864,9 @@ class DailyResetAndSyncManager(private val context: Context) {
         if (!success1) {
             Log.e(TAG, "CRITICAL ERROR: Failed to reset berries!")
         }
-        
-        // Reset banked_mins
-        val success2 = progressPrefs.edit()
-            .putInt(bankedMinsKey, 0)
-            .commit() // Use commit() for synchronous write
-        if (!success2) {
-            Log.e(TAG, "CRITICAL ERROR: Failed to reset banked_mins!")
-        }
+
+        // Reset banked_mins in cache only (DB is source of truth; sync will persist)
+        progressManager.setBankedRewardMinutesForProfile(profile, 0)
         
         // Reset tasks (set to null by clearing the keys)
         val success3 = progressPrefs.edit()
@@ -864,35 +903,80 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Checks if a timestamp (in format yyyy-MM-dd HH:mm:ss.SSS) is today in EST
+     * Checks if a timestamp is today in EST (date part only).
+     * Compares: (today in EST, date only yyyy-MM-dd) vs (last_reset interpreted in EST, date only).
+     * If same date → do NOT run reset. If different or parse failure → treat as "today" (do NOT reset) to avoid accidental wipe.
+     * Only run reset when we are certain the stored date is a different calendar day in EST.
      */
     private fun isTodayInEST(timestamp: String?): Boolean {
-        if (timestamp.isNullOrEmpty()) return false
-        
+        val todayDatePart = getTodayDatePartEST()
+        val storedDatePart = getLastResetDatePartEST(timestamp)
+        return when {
+            storedDatePart == null -> {
+                Log.w(TAG, "Could not parse last_reset (treat as today, do not reset): $timestamp")
+                true
+            }
+            storedDatePart != todayDatePart -> {
+                Log.d(TAG, "last_reset date not today: stored=$storedDatePart, today=$todayDatePart → will run reset")
+                false
+            }
+            else -> true
+        }
+    }
+
+    /** Today's date in EST (yyyy-MM-dd). System now() is UTC; we convert to EST for comparison with last_reset. */
+    private fun getTodayDatePartEST(): String {
+        val estZone = TimeZone.getTimeZone("America/New_York")
+        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = estZone }
+        return fmt.format(Date())
+    }
+
+    /** Parses last_reset to a Date then formats that instant in EST as yyyy-MM-dd. Returns null on parse failure. */
+    private fun getLastResetDatePartEST(timestamp: String?): String? {
+        if (timestamp.isNullOrEmpty()) return null
+        val estZone = TimeZone.getTimeZone("America/New_York")
+        val date = parseLastResetToDate(timestamp.trim()) ?: return null
+        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = estZone }
+        return fmt.format(date)
+    }
+
+    /**
+     * Parses last_reset string from user_data. The DB stores and returns last_reset in EST;
+     * do not treat it as UTC or convert it — parse as EST only.
+     */
+    private fun parseLastResetToDate(timestamp: String): Date? {
+        val trimmed = timestamp.trim()
+        val estZone = TimeZone.getTimeZone("America/New_York")
         return try {
-            val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-            timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
-            val resetDate = timestampFormat.parse(timestamp)
-            
-            if (resetDate == null) return false
-            
-            val today = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
-            val resetCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
-            resetCalendar.time = resetDate
-            
-            // Compare date part only
-            today.get(Calendar.YEAR) == resetCalendar.get(Calendar.YEAR) &&
-            today.get(Calendar.DAY_OF_YEAR) == resetCalendar.get(Calendar.DAY_OF_YEAR)
+            // user_data.last_reset is stored and returned in EST (no conversion).
+            if (!trimmed.contains("T")) {
+                // Space format: yyyy-MM-dd HH:mm:ss.SSS or yyyy-MM-dd HH:mm:ss
+                val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).apply { timeZone = estZone }
+                fmt.parse(trimmed)
+                    ?: SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply { timeZone = estZone }.parse(trimmed)
+            } else {
+                // ISO-style with T: 2026-02-18T15:30:00 or 2026-02-18T15:30:00.000 — still EST from DB
+                val normalized = trimmed.replace("T", " ").let { s ->
+                    when {
+                        s.endsWith("Z") -> s.dropLast(1)
+                        s.contains("+") -> s.substringBefore("+").trim()
+                        s.lastIndexOf("-") > 10 -> s.substring(0, s.lastIndexOf("-")).trim()
+                        else -> s
+                    }
+                }
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).apply { timeZone = estZone }.parse(normalized)
+                    ?: SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply { timeZone = estZone }.parse(normalized)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error parsing timestamp: $timestamp", e)
-            false
+            Log.e(TAG, "parseLastResetToDate failed: $timestamp", e)
+            null
         }
     }
     
     /**
      * Gets local last_reset timestamp for profile
      */
-    private fun getLocalLastReset(profile: String): String? {
+    private fun getStoredLastReset(profile: String): String? {
         val key = "${profile}_$KEY_PROFILE_LAST_RESET"
         return prefs.getString(key, null)
     }
@@ -1042,17 +1126,16 @@ class DailyResetAndSyncManager(private val context: Context) {
     /**
      * Gets local last_updated timestamp
      */
-    private fun getLocalLastUpdatedTimestamp(profile: String): String {
+    private fun getStoredLastUpdatedTimestamp(profile: String): String {
         val key = "${profile}_$KEY_LAST_UPDATED"
         val timestamp = prefs.getString(key, null)
         return timestamp ?: "1970-01-01T00:00:00.000-05:00" // Very old timestamp if not found
     }
     
     /**
-     * Sets local last_updated timestamp
-     * Uses commit() to ensure timestamp is written synchronously before cloud sync
+     * Sets stored last_updated timestamp in prefs (after apply or after upload). Uses commit() for synchronous write.
      */
-    private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
+    private fun setStoredLastUpdatedTimestamp(profile: String, timestamp: String) {
         val key = "${profile}_$KEY_LAST_UPDATED"
         val saved = prefs.edit().putString(key, timestamp).commit()
         if (!saved) {
@@ -1061,7 +1144,7 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
 
     /**
-     * Normalizes local timestamps to EST DB format (yyyy-MM-dd HH:mm:ss.SSS, no offset).
+     * Normalizes stored timestamps in prefs to EST DB format (yyyy-MM-dd HH:mm:ss.SSS, no offset).
      * This prevents offset/ISO variants from causing bad comparisons.
      */
     private fun normalizeAllTimestamps() {
@@ -1167,8 +1250,9 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Generates EST timestamp in format: yyyy-MM-dd HH:mm:ss.SSS
+     * Now() at EST. Format: yyyy-MM-dd HH:mm:ss.SSS (America/New_York).
      */
+    /** System now() is UTC; we convert to EST for the DB. */
     private fun generateESTTimestampString(): String {
         val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
         timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
@@ -1176,7 +1260,7 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Generates EST timestamp in database format (no timezone suffix).
+     * Now() at EST in database format (yyyy-MM-dd HH:mm:ss.SSS, no timezone suffix).
      */
     private fun generateESTISOTimestamp(): String {
         return generateESTTimestampString()
@@ -1243,37 +1327,36 @@ class DailyResetAndSyncManager(private val context: Context) {
     
     /**
      * Checks if a task is visible today based on showdays, hidedays, displayDays, and disable fields.
-     * This matches the logic in DailyProgressManager.isTaskVisible().
+     * "Today" is in EST. Matches the logic in DailyProgressManager.isTaskVisible().
      */
     private fun isTaskVisibleToday(showdays: String?, hidedays: String?, displayDays: String?, disable: String?): Boolean {
-        // Check disable date first - if current date is before disable date, hide the task
+        val estZone = TimeZone.getTimeZone("America/New_York")
+        // Check disable date first - if current date (EST) is before disable date, hide the task
         if (!disable.isNullOrEmpty()) {
             try {
                 val disableDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).parse(disable)
                 if (disableDate != null) {
-                    val today = Calendar.getInstance().apply {
+                    val today = Calendar.getInstance(estZone).apply {
                         set(Calendar.HOUR_OF_DAY, 0)
                         set(Calendar.MINUTE, 0)
                         set(Calendar.SECOND, 0)
                         set(Calendar.MILLISECOND, 0)
                     }
-                    // If today is before the disable date, task is disabled (not visible)
-                    if (today.before(Calendar.getInstance().apply {
+                    val disableCal = Calendar.getInstance(estZone).apply {
                         time = disableDate
                         set(Calendar.HOUR_OF_DAY, 0)
                         set(Calendar.MINUTE, 0)
                         set(Calendar.SECOND, 0)
                         set(Calendar.MILLISECOND, 0)
-                    })) {
-                        return false
                     }
+                    if (today.before(disableCal)) return false
                 }
             } catch (e: Exception) {
                 // Invalid disable date format, ignore
             }
         }
 
-        val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+        val today = Calendar.getInstance(estZone).get(Calendar.DAY_OF_WEEK)
         val todayShort = when (today) {
             Calendar.MONDAY -> "mon"
             Calendar.TUESDAY -> "tue"

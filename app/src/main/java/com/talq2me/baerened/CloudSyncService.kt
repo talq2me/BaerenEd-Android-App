@@ -73,8 +73,8 @@ class CloudSyncService {
     }
 
     /**
-     * Generates EST timestamp in database format (no timezone suffix).
-     * Format: yyyy-MM-dd HH:mm:ss.SSS (EST)
+     * Current time as now() converted to EST. System now() is UTC; we format in America/New_York for the DB.
+     * Format: yyyy-MM-dd HH:mm:ss.SSS (no timezone suffix).
      */
     fun generateESTTimestamp(): String {
         val estTimeZone = TimeZone.getTimeZone("America/New_York")
@@ -140,7 +140,13 @@ class CloudSyncService {
                 }
             }
             
-            val json = gson.toJson(data)
+            // CRITICAL: Do NOT send last_reset on progress uploads. last_reset is only set by runDailyResetInDb (or "Reset all progress").
+            // Sending prefs' profile_last_reset (often null or stale) would overwrite the DB and cause the next load to run a full reset.
+            val tree = gson.toJsonTree(data)
+            if (tree.isJsonObject) {
+                tree.asJsonObject.remove("last_reset")
+            }
+            val json = gson.toJson(tree)
             
             // CRITICAL: Log what we're about to upload
             Log.d(TAG, "CRITICAL: About to upload data for profile: ${data.profile}")
@@ -347,6 +353,281 @@ class CloudSyncService {
     }
 
     /**
+     * Calls Postgres function af_daily_reset(p_profile) which, for the given profile's user_data row
+     * where last_reset date (EST) is not today (EST), blanks required_tasks, checklist_items,
+     * practice_tasks, berries_earned, banked_mins, chores and sets last_reset/last_updated to now() EST.
+     * Call before fetching user_data so screens always see reset-applied data.
+     */
+    suspend fun invokeAfDailyReset(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        try {
+            val url = "${getSupabaseUrl()}/rest/v1/rpc/af_daily_reset"
+            val body = """{"p_profile":"$profile"}""".toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
+                .build()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                response.close()
+                Log.d(TAG, "af_daily_reset() invoked successfully")
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string() ?: "Unknown error"
+                Log.e(TAG, "af_daily_reset() failed: ${response.code} - $errorBody")
+                response.close()
+                Result.failure(Exception("af_daily_reset failed: ${response.code} - $errorBody"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "invokeAfDailyReset error", e)
+            Result.failure(e)
+        }
+    }
+
+    /** POST to an RPC with body {"p_profile":"<profile>"}. Logs and returns failure on non-2xx. */
+    private suspend fun invokeRpcProfileOnly(rpcName: String, profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        try {
+            val url = "${getSupabaseUrl()}/rest/v1/rpc/$rpcName"
+            val body = """{"p_profile":"$profile"}""".toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
+                .build()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                response.close()
+                Log.d(TAG, "$rpcName() invoked successfully")
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string() ?: "Unknown error"
+                Log.w(TAG, "$rpcName() failed: ${response.code} - $errorBody")
+                response.close()
+                Result.failure(Exception("$rpcName failed: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "$rpcName error", e)
+            Result.failure(e)
+        }
+    }
+
+    /** Calls af_required_tasks_from_config(p_profile); DB fetches config from GitHub and merges with existing. */
+    suspend fun invokeAfRequiredTasksFromConfig(profile: String): Result<Unit> = invokeRpcProfileOnly("af_required_tasks_from_config", profile)
+
+    /** Calls af_practice_tasks_from_config(p_profile); DB fetches config from GitHub and merges optional section into practice_tasks. */
+    suspend fun invokeAfPracticeTasksFromConfig(profile: String): Result<Unit> = invokeRpcProfileOnly("af_practice_tasks_from_config", profile)
+
+    /** Calls af_bonus_tasks_from_config(p_profile); DB fetches config from GitHub and merges bonus section into bonus_tasks. */
+    suspend fun invokeAfBonusTasksFromConfig(profile: String): Result<Unit> = invokeRpcProfileOnly("af_bonus_tasks_from_config", profile)
+
+    /** Calls af_checklist_items_from_config(p_profile); DB fetches config from GitHub and merges with existing. */
+    suspend fun invokeAfChecklistItemsFromConfig(profile: String): Result<Unit> = invokeRpcProfileOnly("af_checklist_items_from_config", profile)
+
+    /** Calls af_chores_from_github(p_profile); DB fetches chores.json from GitHub and merges with existing. */
+    suspend fun invokeAfChoresFromGitHub(profile: String): Result<Unit> = invokeRpcProfileOnly("af_chores_from_github", profile)
+
+    /** POST to an RPC with arbitrary JSON body. Logs and returns failure on non-2xx. */
+    private suspend fun invokeRpc(rpcName: String, body: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        try {
+            val url = "${getSupabaseUrl()}/rest/v1/rpc/$rpcName"
+            val request = Request.Builder()
+                .url(url)
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
+                .build()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                response.close()
+                Log.d(TAG, "$rpcName() invoked successfully")
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string() ?: "Unknown error"
+                Log.w(TAG, "$rpcName() failed: ${response.code} - $errorBody")
+                response.close()
+                Result.failure(Exception("$rpcName failed: ${response.code}"))
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "$rpcName error", e)
+            Result.failure(e)
+        }
+    }
+
+    /** Calls af_update_required_task; DB updates task and berries_earned/banked_mins. correct/incorrect/questions always sent (0 when null) so DB stores them. */
+    suspend fun invokeAfUpdateRequiredTask(
+        profile: String,
+        taskTitle: String,
+        status: String? = null,
+        correct: Int? = null,
+        incorrect: Int? = null,
+        questions: Int? = null
+    ): Result<Unit> {
+        val obj = JsonObject().apply {
+            addProperty("p_profile", profile)
+            addProperty("p_task_title", taskTitle)
+            status?.let { addProperty("p_status", it) }
+            addProperty("p_correct", correct ?: 0)
+            addProperty("p_incorrect", incorrect ?: 0)
+            addProperty("p_questions", questions ?: 0)
+        }
+        return invokeRpc("af_update_required_task", Gson().toJson(obj))
+    }
+
+    /** Calls af_update_practice_task; DB updates task and berries_earned/banked_mins when p_stars provided. correct/incorrect/questions_answered always sent (0 when null). */
+    suspend fun invokeAfUpdatePracticeTask(
+        profile: String,
+        taskTitle: String,
+        timesCompleted: Int? = null,
+        stars: Int? = null,
+        correct: Int? = null,
+        incorrect: Int? = null,
+        questionsAnswered: Int? = null
+    ): Result<Unit> {
+        val obj = JsonObject().apply {
+            addProperty("p_profile", profile)
+            addProperty("p_task_title", taskTitle)
+            timesCompleted?.let { addProperty("p_times_completed", it) }
+            stars?.let { addProperty("p_stars", it) }
+            addProperty("p_correct", correct ?: 0)
+            addProperty("p_incorrect", incorrect ?: 0)
+            addProperty("p_questions_answered", questionsAnswered ?: 0)
+        }
+        return invokeRpc("af_update_practice_task", Gson().toJson(obj))
+    }
+
+    /** Calls af_update_bonus_task; same as practice task but updates bonus_tasks column. */
+    suspend fun invokeAfUpdateBonusTask(
+        profile: String,
+        taskTitle: String,
+        timesCompleted: Int? = null,
+        stars: Int? = null,
+        correct: Int? = null,
+        incorrect: Int? = null,
+        questionsAnswered: Int? = null
+    ): Result<Unit> {
+        val obj = JsonObject().apply {
+            addProperty("p_profile", profile)
+            addProperty("p_task_title", taskTitle)
+            timesCompleted?.let { addProperty("p_times_completed", it) }
+            stars?.let { addProperty("p_stars", it) }
+            addProperty("p_correct", correct ?: 0)
+            addProperty("p_incorrect", incorrect ?: 0)
+            addProperty("p_questions_answered", questionsAnswered ?: 0)
+        }
+        return invokeRpc("af_update_bonus_task", Gson().toJson(obj))
+    }
+
+    /** Calls af_update_checklist_item; DB updates item and berries_earned/banked_mins. */
+    suspend fun invokeAfUpdateChecklistItem(profile: String, itemLabel: String, done: Boolean): Result<Unit> {
+        val body = """{"p_profile":"${profile.escapeJson()}", "p_item_label":"${itemLabel.escapeJson()}", "p_done":$done}"""
+        return invokeRpc("af_update_checklist_item", body)
+    }
+
+    /** Calls af_update_chore; DB updates chore and coins_earned. */
+    suspend fun invokeAfUpdateChore(profile: String, choreId: Int, done: Boolean): Result<Unit> {
+        val body = """{"p_profile":"${profile.escapeJson()}", "p_chore_id":$choreId, "p_done":$done}"""
+        return invokeRpc("af_update_chore", body)
+    }
+
+    private fun String.escapeJson(): String = replace("\\", "\\\\").replace("\"", "\\\"")
+
+    /** Calls af_update_game_index; params only (no JSON). */
+    suspend fun invokeAfUpdateGameIndex(profile: String, gameKey: String, index: Int): Result<Unit> {
+        val body = """{"p_profile":"${profile.escapeJson()}", "p_game_key":"${gameKey.escapeJson()}", "p_index":$index}"""
+        return invokeRpc("af_update_game_index", body)
+    }
+
+    /** Calls af_update_pokemon_unlocked; params only (no JSON). */
+    suspend fun invokeAfUpdatePokemonUnlocked(profile: String, pokemonUnlocked: Int): Result<Unit> {
+        val body = """{"p_profile":"${profile.escapeJson()}", "p_pokemon_unlocked":$pokemonUnlocked}"""
+        return invokeRpc("af_update_pokemon_unlocked", body)
+    }
+
+    /**
+     * ONLINE-ONLY: Runs daily reset in the DB. Blanks required_tasks, checklist_items, practice_tasks,
+     * berries_earned, banked_mins, chores. Sets last_reset and last_updated to now() EST.
+     * Does NOT change coins_earned, pokemon_unlocked, or game_indices.
+     * Prefer invoking af_daily_reset() RPC before fetch; this remains for one-off reset (e.g. "Reset all progress").
+     */
+    suspend fun runDailyResetInDb(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        try {
+            val now = generateESTTimestamp()
+            val payload = mapOf(
+                "last_reset" to now,
+                "last_updated" to now,
+                "required_tasks" to emptyMap<String, Any>(),
+                "checklist_items" to emptyMap<String, Any>(),
+                "practice_tasks" to emptyMap<String, Any>(),
+                "bonus_tasks" to emptyMap<String, Any>(),
+                "berries_earned" to 0,
+                "banked_mins" to 0,
+                "chores" to emptyList<Any>()
+            )
+            val result = patchUserDataColumns(profile, payload)
+            if (result.isSuccess) {
+                Log.d(TAG, "runDailyResetInDb: success for profile $profile")
+            }
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "runDailyResetInDb failed", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * ONLINE-ONLY: PATCH only the given columns for the profile. Used for authoritative writes
+     * (e.g. restore chores from GitHub, update single task completion). No timestamp conflict check.
+     */
+    suspend fun patchUserDataColumns(profile: String, columns: Map<String, Any>): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        try {
+            val json = gson.toJson(columns)
+            val baseUrl = "${getSupabaseUrl()}/rest/v1/user_data"
+            val requestBody = json.toRequestBody("application/json".toMediaType())
+            val updateUrl = "$baseUrl?profile=eq.$profile"
+            val patchRequest = Request.Builder()
+                .url(updateUrl)
+                .patch(requestBody)
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
+                .build()
+            val response = client.newCall(patchRequest).execute()
+            if (response.isSuccessful) {
+                response.close()
+                Result.success(Unit)
+            } else {
+                val errorBody = response.body?.string() ?: "Unknown error"
+                Log.e(TAG, "patchUserDataColumns failed: ${response.code} - $errorBody")
+                response.close()
+                Result.failure(Exception("PATCH failed: ${response.code} - $errorBody"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "patchUserDataColumns error", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Resets progress in cloud
      */
     suspend fun resetProgressInCloud(profile: String, resetData: Map<String, Any>): Result<Unit> = withContext(Dispatchers.IO) {
@@ -425,7 +706,7 @@ class CloudSyncService {
      */
     private fun fixJsonbFieldsInObject(obj: JsonObject) {
         // JSONB fields that should be objects (not strings)
-        val jsonbObjectFields = listOf("required_tasks", "practice_tasks", "checklist_items", "game_indices")
+        val jsonbObjectFields = listOf("required_tasks", "practice_tasks", "bonus_tasks", "checklist_items", "game_indices")
         jsonbObjectFields.forEach { fieldName ->
             val field = obj.get(fieldName)
             if (field != null) {

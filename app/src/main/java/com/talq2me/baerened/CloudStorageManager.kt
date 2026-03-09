@@ -50,7 +50,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     private val dataCollector = ProgressDataCollector(context)
     private val syncService = CloudSyncService()
     private val dataApplier = CloudDataApplier(context) { profile, timestamp ->
-        setLocalLastUpdatedTimestamp(profile, timestamp)
+        setStoredLastUpdatedTimestamp(profile, timestamp)
     }
 
     /**
@@ -125,7 +125,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
 
         try {
             // Collect data using ProgressDataCollector
-            val userData = dataCollector.collectLocalData(profile)
+            val userData = dataCollector.buildUploadPayloadFromPrefs(profile)
             
             // Log task counts for debugging config sync
             Log.d(TAG, "Uploading to cloud: profile=${userData.profile}, requiredTasks=${userData.requiredTasks.size}, practiceTasks=${userData.practiceTasks.size}, checklistItems=${userData.checklistItems.size}")
@@ -158,7 +158,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                 Log.d(TAG, "Cloud data last updated: ${userData.lastUpdated}, should apply: $shouldApplyCloudData")
 
                 if (shouldApplyCloudData) {
-                    dataApplier.applyCloudDataToLocal(userData)
+                    dataApplier.applyDbDataToPrefs(userData)
                     Log.d(TAG, "Applied cloud data to local storage for profile: $profile")
                 } else {
                     Log.d(TAG, "Skipped applying cloud data - local data is newer or same day for profile: $profile")
@@ -439,7 +439,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
      * collectPracticeTasksData, collectAllGameIndices, collectAppListFromBaerenLock, getConfigChecklistSection,
      * getConfigTasksForSection, isTaskVisible, parseDisableDate) have been removed.
      * 
-     * CloudStorageManager now uses dataCollector.collectLocalData() instead.
+     * CloudStorageManager now uses dataCollector.buildUploadPayloadFromPrefs() instead.
      */
     
     /**
@@ -454,18 +454,12 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                 return false
             }
 
-            val localTimestamp = getLocalLastUpdatedTimestamp(profile)
-            
-            // Both cloud and local timestamps are in EST format
-            // Parse both as EST and compare directly
+            val storedTimestamp = getStoredLastUpdatedTimestamp(profile)
             val cloudTime = parseTimestampAsEST(cloudTimestamp)
-            val localTime = parseTimestampAsEST(localTimestamp)
-            
-            // Apply if cloud timestamp is newer than local timestamp
-            val shouldApply = cloudTime > localTime
-            
-            Log.d(TAG, "shouldApplyCloudData - Cloud: $cloudTimestamp (parsed: $cloudTime ms), Local: $localTimestamp (parsed: $localTime ms)")
-            Log.d(TAG, "shouldApplyCloudData - Cloud is newer: $shouldApply (cloudTime > localTime: ${cloudTime > localTime})")
+            val storedTime = parseTimestampAsEST(storedTimestamp)
+            val shouldApply = cloudTime > storedTime
+            Log.d(TAG, "shouldApplyCloudData - Cloud: $cloudTimestamp (parsed: $cloudTime ms), Stored: $storedTimestamp (parsed: $storedTime ms)")
+            Log.d(TAG, "shouldApplyCloudData - Cloud is newer: $shouldApply (cloudTime > storedTime: ${cloudTime > storedTime})")
             
             return shouldApply
 
@@ -602,7 +596,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
      * CRITICAL: Do NOT generate a new timestamp here - this would make local always appear newer
      * If no timestamp exists, return a very old timestamp so cloud will be considered newer
      */
-    private fun getLocalLastUpdatedTimestamp(profile: String): String {
+    private fun getStoredLastUpdatedTimestamp(profile: String): String {
         // Try to get stored timestamp from SharedPreferences
         val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
         val storedTimestampKey = "${profile}_last_updated_timestamp"
@@ -621,7 +615,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     /**
      * Stores the local last updated timestamp after applying cloud data
      */
-    private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
+    private fun setStoredLastUpdatedTimestamp(profile: String, timestamp: String) {
         val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
         val storedTimestampKey = "${profile}_last_updated_timestamp"
         val success = progressPrefs.edit()
@@ -648,9 +642,8 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
         Log.d(TAG, "Starting sync for profile: $profile")
 
         try {
-            // Get local timestamp
-            val localTimestamp = getLocalLastUpdatedTimestamp(profile)
-            Log.d(TAG, "Local timestamp: $localTimestamp")
+            val storedTimestamp = getStoredLastUpdatedTimestamp(profile)
+            Log.d(TAG, "Stored timestamp: $storedTimestamp")
 
             // Download cloud data (without applying yet)
             val cloudDataResult = syncService.downloadUserData(profile)
@@ -660,8 +653,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
             Log.d(TAG, "Cloud timestamp: $cloudTimestamp")
 
             if (cloudTimestamp.isNullOrEmpty()) {
-                // No cloud data exists, upload local data
-                Log.d(TAG, "No cloud data exists, uploading local data")
+                Log.d(TAG, "No cloud data exists, uploading to DB")
                 val uploadResult = uploadToCloud(profile)
                 val settingsUploadResult = uploadSettingsToCloud()
                 return if (uploadResult.isSuccess && settingsUploadResult.isSuccess) {
@@ -674,46 +666,41 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                 }
             }
 
-            // Compare timestamps
-            val localTime = parseTimestampAsEST(localTimestamp)
+            val storedTime = parseTimestampAsEST(storedTimestamp)
             val cloudTime = parseTimestampAsEST(cloudTimestamp)
-
-            Log.d(TAG, "Timestamp comparison - Local: $localTimestamp ($localTime ms), Cloud: $cloudTimestamp ($cloudTime ms)")
-
-            if (cloudTime > localTime) {
+            Log.d(TAG, "Timestamp comparison - Stored: $storedTimestamp ($storedTime ms), Cloud: $cloudTimestamp ($cloudTime ms)")
+            if (cloudTime > storedTime) {
                 // Cloud is newer: download and apply cloud data
-                // CRITICAL: applyCloudDataToLocal will update local timestamp to match cloud timestamp via callback
+                // applyDbDataToPrefs will update stored timestamp via callback
                 Log.d(TAG, "Cloud is newer, downloading and applying cloud data")
-                dataApplier.applyCloudDataToLocal(cloudUserData!!)
+                dataApplier.applyDbDataToPrefs(cloudUserData!!)
                 prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
                 
                 // Verify local timestamp was updated to match cloud timestamp
-                val updatedLocalTimestamp = getLocalLastUpdatedTimestamp(profile)
-                Log.d(TAG, "After applying cloud data - Local timestamp updated to: $updatedLocalTimestamp (should match cloud: $cloudTimestamp)")
+                val updatedStoredTimestamp = getStoredLastUpdatedTimestamp(profile)
+                Log.d(TAG, "After applyDbDataToPrefs - stored timestamp: $updatedStoredTimestamp (should match DB: $cloudTimestamp)")
                 
                 val settingsDownloadResult = downloadSettingsFromCloud()
-                Log.d(TAG, "Successfully applied cloud data to local storage")
+                Log.d(TAG, "Successfully applied DB data to prefs")
                 return if (settingsDownloadResult.isSuccess) {
                     Result.success(Unit)
                 } else {
                     Result.failure(settingsDownloadResult.exceptionOrNull() ?: Exception("Settings download failed"))
                 }
-            } else if (localTime > cloudTime) {
-                // Local is newer: upload local data
-                Log.d(TAG, "Local is newer, uploading local data to cloud")
+            } else if (storedTime > cloudTime) {
+                Log.d(TAG, "Stored is newer, uploading to DB")
                 val uploadResult = uploadToCloud(profile)
                 val settingsUploadResult = uploadSettingsToCloud()
                 return if (uploadResult.isSuccess && settingsUploadResult.isSuccess) {
-                    Log.d(TAG, "Successfully uploaded local data to cloud")
+                    Log.d(TAG, "Successfully uploaded to DB")
                     Result.success(Unit)
                 } else {
                     val error = uploadResult.exceptionOrNull() ?: settingsUploadResult.exceptionOrNull() ?: Exception("Upload failed")
-                    Log.e(TAG, "Failed to upload local data", error)
+                    Log.e(TAG, "Failed to upload to DB", error)
                     Result.failure(error)
                 }
             } else {
-                // Timestamps are equal - no sync needed (data is already in sync)
-                Log.d(TAG, "Local and cloud timestamps are equal - no sync needed")
+                Log.d(TAG, "Stored and DB timestamps are equal - no sync needed")
                 return Result.success(Unit)
             }
 

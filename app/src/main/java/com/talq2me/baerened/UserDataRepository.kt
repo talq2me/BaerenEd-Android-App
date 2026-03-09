@@ -5,14 +5,10 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
-
 /**
- * Single source of truth for user progress: reads and writes go through Supabase with retry.
- * In-memory cache holds the last successfully fetched or uploaded data; never use stale data.
- *
- * - Read: fetch from DB with retry; cache only after successful fetch. Callers get data only after fetch succeeds.
- * - Write: upload to DB with retry; on success update cache. No progress is "saved" until DB write succeeds.
+ * DB is the only source of truth. No in-memory cache.
+ * - Fetch: read from DB (caller uses result and applies to prefs / uses for this flow only).
+ * - Upload: write to DB. Caller builds payload from prefs (which were updated on last fetch + local changes).
  */
 class UserDataRepository(private val context: Context) {
 
@@ -32,15 +28,15 @@ class UserDataRepository(private val context: Context) {
     }
 
     private val syncService = CloudSyncService()
-    private val cache = ConcurrentHashMap<String, CloudUserData>()
 
-    /**
-     * Fetches user data from Supabase with retry. On success updates in-memory cache and returns the data.
-     * Call this when about to show progress UI (e.g. onResume) so UI never shows stale data.
-     */
+    /** Fetches from DB. Caller must use the result (e.g. apply to prefs) and must not rely on any cache. */
     suspend fun fetchUserData(profile: String): Result<CloudUserData> = withContext(Dispatchers.IO) {
         if (!syncService.isConfigured()) {
             return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        // Run Postgres daily reset for this profile so row with last_reset date <> today (EST) is reset before we read
+        syncService.invokeAfDailyReset(profile).onFailure {
+            Log.w(TAG, "af_daily_reset($profile) failed (continuing with fetch): ${it.message}")
         }
         var lastError: Exception? = null
         repeat(MAX_RETRIES) { attempt ->
@@ -49,7 +45,6 @@ class UserDataRepository(private val context: Context) {
                 result.isSuccess -> {
                     val data = result.getOrNull()
                     if (data != null) {
-                        cache[profile] = data
                         Log.d(TAG, "fetchUserData: success for $profile (attempt ${attempt + 1})")
                         return@withContext Result.success(data)
                     }
@@ -63,20 +58,20 @@ class UserDataRepository(private val context: Context) {
         Result.failure(lastError ?: Exception("Fetch failed after $MAX_RETRIES attempts"))
     }
 
-    /**
-     * Uploads user data to Supabase with retry. On success updates in-memory cache.
-     * Call after any progress change (game complete, task complete, berries, banked_mins, etc.).
-     */
+    /** Uploads to DB. No in-memory store; caller keeps the data they passed if needed. */
     suspend fun uploadUserData(data: CloudUserData): Result<Unit> = withContext(Dispatchers.IO) {
         if (!syncService.isConfigured()) {
             return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        // Run Postgres daily reset for this profile before write so DB is in reset state
+        syncService.invokeAfDailyReset(data.profile).onFailure {
+            Log.w(TAG, "af_daily_reset(${data.profile}) before upload failed (continuing): ${it.message}")
         }
         var lastError: Exception? = null
         repeat(MAX_RETRIES) { attempt ->
             val result = syncService.uploadUserData(data)
             when {
                 result.isSuccess -> {
-                    cache[data.profile] = data
                     Log.d(TAG, "uploadUserData: success for ${data.profile} (attempt ${attempt + 1})")
                     return@withContext Result.success(Unit)
                 }
@@ -86,20 +81,5 @@ class UserDataRepository(private val context: Context) {
             if (attempt < MAX_RETRIES - 1) delay(RETRY_DELAY_MS)
         }
         Result.failure(lastError ?: Exception("Upload failed after $MAX_RETRIES attempts"))
-    }
-
-    /** Returns cached data only (from last successful fetch or upload). May be null if no fetch/upload has succeeded yet. */
-    fun getCached(profile: String): CloudUserData? = cache[profile]
-
-    /** Clears cache for profile (e.g. after daily reset so next read refetches). */
-    fun invalidateCache(profile: String) {
-        cache.remove(profile)
-        Log.d(TAG, "invalidateCache: $profile")
-    }
-
-    /** Sets cache from external source (e.g. after update_local_with_cloud so UI reads fresh data). */
-    fun setCache(profile: String, data: CloudUserData) {
-        cache[profile] = data
-        Log.d(TAG, "setCache: $profile (from download)")
     }
 }

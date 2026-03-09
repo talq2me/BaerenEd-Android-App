@@ -66,14 +66,104 @@ class DailyProgressManager(private val context: Context) {
         private const val KEY_EARNED_STARS_AT_BATTLE_END = "earned_stars_at_battle_end" // Track earned stars when battle ended (for reset detection)
         private const val KEY_COINS_EARNED = "coins_earned" // Chores 4 $$ - never reset
         private const val KEY_CHORES = "chores" // Chores 4 $$ - JSON array of ChoreProgress
-        /** Shared cache so invalidation in one instance (e.g. GameActivity) is seen when another (e.g. MainActivity Layout) reads. */
         @Volatile internal var completedTasksMapCacheKey: String? = null
         @Volatile internal var completedTasksMapCache: Map<String, Boolean>? = null
+
+        /** Shared across all instances so any Activity's progressManager sees last DB fetch. */
+        @Volatile var currentSessionData: CloudUserData? = null
+
+        /** Global callback for upload; set from Application. Receives app context and payload to upload. */
+        var onUploadNeeded: ((Context, CloudUserData) -> Unit)? = null
+
+        /** Callback to sync a single task/checklist/chore to DB via RPC (af_update_*). Set from Application. */
+        var onSyncSingleItemToDb: ((Context, SingleItemUpdate) -> Unit)? = null
+
+        fun setGlobalUploadCallback(callback: (Context, CloudUserData) -> Unit) {
+            onUploadNeeded = callback
+        }
+
+        fun setGlobalSyncSingleItemCallback(callback: (Context, SingleItemUpdate) -> Unit) {
+            onSyncSingleItemToDb = callback
+        }
+    }
+
+    /** Payload for single-item DB update RPCs (af_update_required_task, etc.). */
+    sealed class SingleItemUpdate {
+        data class RequiredTask(
+            val profile: String,
+            val taskTitle: String,
+            val status: String,
+            val correct: Int?,
+            val incorrect: Int?,
+            val questions: Int?
+        ) : SingleItemUpdate()
+        data class PracticeTask(
+            val profile: String,
+            val taskTitle: String,
+            val timesCompleted: Int,
+            val stars: Int,
+            val correct: Int?,
+            val incorrect: Int?,
+            val questionsAnswered: Int?
+        ) : SingleItemUpdate()
+        data class BonusTask(
+            val profile: String,
+            val taskTitle: String,
+            val timesCompleted: Int,
+            val stars: Int,
+            val correct: Int?,
+            val incorrect: Int?,
+            val questionsAnswered: Int?
+        ) : SingleItemUpdate()
+        data class ChecklistItem(val profile: String, val itemLabel: String, val done: Boolean) : SingleItemUpdate()
+        data class Chore(val profile: String, val choreId: Int, val done: Boolean) : SingleItemUpdate()
+        data class GameIndex(val profile: String, val gameKey: String, val index: Int) : SingleItemUpdate()
+        data class PokemonUnlocked(val profile: String, val pokemonUnlocked: Int) : SingleItemUpdate()
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val gson = Gson()
-    private val userDataRepository = UserDataRepository.getInstance(context)
+
+    fun setProgressDataAfterFetch(data: CloudUserData?) {
+        currentSessionData = data
+        invalidateCompletedTasksMapCache()
+    }
+
+    fun clearProgressDataAfterRequest() {
+        currentSessionData = null
+        invalidateCompletedTasksMapCache()
+    }
+
+    /** Session data for profile. Shared globally; null if no fetch yet. */
+    fun getCurrentSessionData(profile: String): CloudUserData? =
+        currentSessionData?.takeIf { it.profile == toCloudProfile(profile) }
+
+    /** @deprecated No prefs; use getCurrentSessionData */
+    private fun getProgressDataForRequest(profile: String): CloudUserData? = getCurrentSessionData(profile)
+
+    fun getProgressDataForUpload(profile: String): CloudUserData? = getCurrentSessionData(profile)
+
+    /** Game index from session data (last DB fetch). No prefs. */
+    fun getGameIndexFromCache(profile: String, gameKey: String): Int {
+        val data = getCurrentSessionData(profile)
+        return data?.gameIndices?.get(gameKey) ?: 0
+    }
+
+    /** Updates session data with new game index and syncs to DB via RPC. No prefs. */
+    fun updateGameIndexInCache(profile: String, gameKey: String, index: Int) {
+        val current = getCurrentSessionData(profile) ?: return
+        val newIndices = current.gameIndices.toMutableMap().apply { put(gameKey, index) }
+        val merged = current.copy(gameIndices = newIndices)
+        currentSessionData = merged
+        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.GameIndex(toCloudProfile(profile), gameKey, index))
+        Log.d("DailyProgressManager", "Game index $gameKey=$index for profile: $profile; sync via RPC")
+    }
+
+    /** Uses passed-in data, or current session data from last DB fetch. No prefs. */
+    private fun dataForProfile(profile: String, progressData: CloudUserData?): CloudUserData? {
+        if (progressData != null && progressData.profile == toCloudProfile(profile)) return progressData
+        return currentSessionData?.takeIf { it.profile == toCloudProfile(profile) }
+    }
 
     init {
         // Run migration asynchronously to avoid blocking the main thread during onCreate
@@ -89,11 +179,13 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Gets the current date as a string for daily reset tracking
+     * Gets the current date as a string for daily reset tracking. Uses EST.
      */
     private fun getCurrentDateString(): String {
-        val date = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
-        Log.d("DailyProgressManager", "Current date string: $date")
+        val format = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault())
+        format.timeZone = TimeZone.getTimeZone("America/New_York")
+        val date = format.format(Date())
+        Log.d("DailyProgressManager", "Current date string (EST): $date")
         return date
     }
 
@@ -151,7 +243,7 @@ class DailyProgressManager(private val context: Context) {
                                     response.close()
                                     
                                     if (!cloudLastReset.isNullOrEmpty()) {
-                                        // Convert cloud's ISO 8601 timestamp to local format
+                                        // user_data.last_reset is returned in EST — parse as EST, do not convert
                                         try {
                                             val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
                                             
@@ -245,7 +337,6 @@ class DailyProgressManager(private val context: Context) {
     private fun resetProgressForNewDay() {
         val currentDate = getCurrentDateString()
         val profile = getCurrentKid()
-        val bankedMinsKey = "${profile}_banked_reward_minutes"
         val completedTasksKey = "${profile}_$KEY_COMPLETED_TASKS"
         val completedTaskNamesKey = "${profile}_$KEY_COMPLETED_TASK_NAMES"
         val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
@@ -269,14 +360,14 @@ class DailyProgressManager(private val context: Context) {
                     if (resetResult.isSuccess) {
                         // Update local timestamp to match cloud after successful reset
                         // Use the timestamp that was generated (same one sent to database)
-                        setLocalLastUpdatedTimestamp(profile, resetTimestamp)
+                        setStoredLastUpdatedTimestamp(profile, resetTimestamp)
                         Log.d("DailyProgressManager", "Successfully synced daily reset to cloud for profile: $profile, timestamp: $resetTimestamp")
                     } else {
                         Log.e("DailyProgressManager", "Failed to sync daily reset to cloud: ${resetResult.exceptionOrNull()?.message}")
                     }
                 } else {
                     // Cloud not enabled, just update local timestamp
-                    setLocalLastUpdatedTimestamp(profile, resetTimestamp)
+                    setStoredLastUpdatedTimestamp(profile, resetTimestamp)
                     Log.d("DailyProgressManager", "Cloud not enabled, updated local timestamp only: $resetTimestamp")
                 }
             } catch (e: Exception) {
@@ -290,14 +381,14 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Helper function to set local last updated timestamp (used after cloud reset)
      */
-    private fun setLocalLastUpdatedTimestamp(profile: String, timestamp: String) {
+    private fun setStoredLastUpdatedTimestamp(profile: String, timestamp: String) {
         val progressPrefs = context.getSharedPreferences("daily_progress_prefs", Context.MODE_PRIVATE)
         val storedTimestampKey = "${profile}_last_updated_timestamp"
         val success = progressPrefs.edit()
             .putString(storedTimestampKey, timestamp)
             .commit() // Use commit() for synchronous write to prevent race conditions
         if (!success) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save last_updated_timestamp in setLocalLastUpdatedTimestamp!")
+            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save last_updated_timestamp in setStoredLastUpdatedTimestamp!")
         }
     }
     
@@ -509,12 +600,12 @@ class DailyProgressManager(private val context: Context) {
      */
     private fun resetLocalProgressOnly(profile: String) {
         val currentDate = getCurrentDateString()
-        val bankedMinsKey = "${profile}_banked_reward_minutes"
         val completedTasksKey = "${profile}_$KEY_COMPLETED_TASKS"
         val completedTaskNamesKey = "${profile}_$KEY_COMPLETED_TASK_NAMES"
         val totalStarsKey = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
         val requiredTasksKey = "${profile}_$KEY_REQUIRED_TASKS"
         val practiceTasksKey = "${profile}_$KEY_PRACTICE_TASKS"
+        val checklistItemsKey = "${profile}_checklist_items"
         
         Log.d("DailyProgressManager", "resetLocalProgressOnly: Resetting local progress for profile: $profile")
         
@@ -560,14 +651,17 @@ class DailyProgressManager(private val context: Context) {
         // Clear practice_tasks_cumulative_times so times_completed in cloud reflects today only
         val cumulativeTimesKey = "${profile}_practice_tasks_cumulative_times"
 
-        // Reset local storage
+        // Reset banked minutes in cache only (no prefs; DB is source of truth)
+        setBankedRewardMinutesForProfile(profile, 0)
+
+        // Reset local storage (no banked_reward_minutes key — cache/DB only)
         val success = prefs.edit()
             .putString(completedTasksKey, gson.toJson(emptyMap<String, Boolean>()))
             .putString(completedTaskNamesKey, gson.toJson(emptyMap<String, String>()))
             .putString(requiredTasksKey, gson.toJson(resetRequiredTasks))
             .putString(practiceTasksKey, gson.toJson(resetPracticeTasks))
+            .putString(checklistItemsKey, "{}")
             .putString(KEY_LAST_RESET_DATE, currentDate)
-            .putInt(bankedMinsKey, 0)
             .putInt(totalStarsKey, 0)
             .putInt(KEY_EARNED_STARS_AT_BATTLE_END, 0)
             .remove(cumulativeTimesKey)
@@ -596,16 +690,11 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Clears the banked reward minutes for the current profile.
+     * Clears the banked reward minutes for the current profile. Cache only; sync will persist to DB.
      */
     fun clearBankedRewardMinutes() {
-        val profile = getCurrentKid()
-        val key = "${profile}_banked_reward_minutes"
-        val success = prefs.edit().putInt(key, 0).commit() // Use commit() for synchronous write
-        if (!success) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to clear banked reward minutes!")
-        }
-        Log.d("DailyProgressManager", "Banked reward minutes cleared for profile: $profile")
+        setBankedRewardMinutes(0)
+        Log.d("DailyProgressManager", "Banked reward minutes cleared for current profile (cache only)")
     }
 
     /**
@@ -636,129 +725,117 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Gets the required tasks map for today (NEW: Uses cloud format - task names → TaskProgress).
-     * For display: returns cache merged with prefs so local completions (e.g. checklist just saved) always show.
+     * Gets required tasks from the passed-in data (from a fetch). No in-memory storage; caller passes DB result.
      */
-    private fun getRequiredTasks(): MutableMap<String, TaskProgress> {
-        if (shouldResetProgress()) {
-            resetProgressForNewDay()
-        }
-        val profile = getCurrentKid()
-        val cloudProfile = toCloudProfile(profile)
-        val fromPrefs = readRequiredTasksFromPrefs(profile)
-        val cached = userDataRepository.getCached(cloudProfile)?.requiredTasks
-        return when {
-            cached.isNullOrEmpty() -> fromPrefs
-            else -> {
-                val merged = cached.toMutableMap()
-                fromPrefs.forEach { (k, v) -> merged[k] = v }
-                merged
-            }
-        }
+    /** Reads required_tasks from session data (last DB fetch). No prefs. */
+    private fun getRequiredTasks(progressData: CloudUserData? = null): MutableMap<String, TaskProgress> {
+        val data = dataForProfile(getCurrentKid(), progressData)
+        return (data?.requiredTasks)?.toMutableMap() ?: mutableMapOf()
     }
 
-    /**
-     * Gets the current required tasks for updating (merge new completion into existing).
-     * Always merges prefs into cache so checklist completions (often only in prefs) are never lost when saving.
-     */
-    private fun getRequiredTasksForUpdate(): MutableMap<String, TaskProgress> {
-        if (shouldResetProgress()) {
-            resetProgressForNewDay()
-        }
-        val profile = getCurrentKid()
-        val cloudProfile = toCloudProfile(profile)
-        val fromPrefs = readRequiredTasksFromPrefs(profile)
-        val cached = userDataRepository.getCached(cloudProfile)?.requiredTasks
-        return when {
-            cached.isNullOrEmpty() -> fromPrefs
-            else -> {
-                val merged = cached.toMutableMap()
-                fromPrefs.forEach { (k, v) -> merged[k] = v }
-                merged
-            }
-        }
+    private fun getRequiredTasksForUpdate(progressData: CloudUserData? = null): MutableMap<String, TaskProgress> {
+        return getRequiredTasks(progressData)
     }
 
-    private fun readRequiredTasksFromPrefs(profile: String): MutableMap<String, TaskProgress> {
-        val key = "${profile}_$KEY_REQUIRED_TASKS"
-        val json = prefs.getString(key, "{}") ?: "{}"
-        val type = object : TypeToken<MutableMap<String, TaskProgress>>() {}.type
-        return gson.fromJson<MutableMap<String, TaskProgress>>(json, type) ?: mutableMapOf()
-    }
-
-    /** Updates the repository cache with new required tasks so the UI (e.g. trainer map) shows completion without waiting for upload. */
-    private fun updateRepositoryCacheWithRequiredTasks(requiredTasks: Map<String, TaskProgress>) {
+    /** Builds updated CloudUserData with new required tasks (caller must upload to DB). No storage. */
+    private fun buildWithRequiredTasks(progressData: CloudUserData?, requiredTasks: Map<String, TaskProgress>): CloudUserData {
         val profile = getCurrentKid()
         val cloudProfile = toCloudProfile(profile)
-        val current = userDataRepository.getCached(cloudProfile)
-        val updated = current?.copy(requiredTasks = requiredTasks)
+        return progressData?.copy(requiredTasks = requiredTasks)
             ?: CloudUserData(profile = cloudProfile, requiredTasks = requiredTasks)
-        userDataRepository.setCache(cloudProfile, updated)
+    }
+
+    /** Checklist_items are a separate DB column; never store them in required_tasks. */
+    private val checklistItemsType = object : TypeToken<Map<String, ChecklistItemProgress>>() {}.type
+
+    /** Checklist items from session data (last DB fetch). No prefs. */
+    fun getChecklistItemsFromPrefs(profile: String): Map<String, ChecklistItemProgress> {
+        val data = currentSessionData?.takeIf { it.profile == toCloudProfile(profile) }
+        return data?.checklistItems ?: emptyMap()
     }
 
     /**
-     * True when we have fresh progress data from DB (after a successful fetch). Only show progress UI when this is true.
+     * Marks a checklist item as completed. Merges into session data and triggers upload to DB. No prefs.
+     * @return Stars earned (0 if already completed)
      */
-    fun hasProgressDataAvailable(): Boolean {
+    fun markChecklistItemCompleted(itemLabel: String, stars: Int, displayDays: String? = null): Int {
         val profile = getCurrentKid()
-        val cloudProfile = toCloudProfile(profile)
-        return userDataRepository.getCached(cloudProfile) != null
+        val current = getCurrentSessionData(profile) ?: return 0
+        val existing = current.checklistItems.toMutableMap()
+        val wasDone = existing[itemLabel]?.done == true
+        existing[itemLabel] = ChecklistItemProgress(done = true, stars = stars, displayDays = displayDays)
+        val merged = current.copy(checklistItems = existing)
+        currentSessionData = merged
+        invalidateCompletedTasksMapCache()
+        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.ChecklistItem(
+            profile = toCloudProfile(profile),
+            itemLabel = itemLabel,
+            done = true
+        ))
+        return if (wasDone) 0 else stars
+    }
+
+    /** Notify that a chore was toggled so the DB RPC (af_update_chore) can be invoked. Call from ChoresActivity. */
+    fun notifyChoreUpdated(profile: String, choreId: Int, done: Boolean) {
+        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.Chore(
+            profile = toCloudProfile(profile),
+            choreId = choreId,
+            done = done
+        ))
+    }
+
+    /** True when progressData is non-null for current profile (caller passes result of fetch). */
+    fun hasProgressDataAvailable(progressData: CloudUserData? = null): Boolean {
+        return dataForProfile(getCurrentKid(), progressData) != null
     }
 
     /**
-     * Gets the completion status map for today (public method for batch reads)
-     * Keys: required_tasks and practice_tasks are keyed by task TITLE (e.g. "Word Factory", "Léo et la Boîte Mystérieuse");
-     * checklist items by label. UI lookups must use the same key (task.title for required/optional, not task.launch).
+     * Gets the completion status map for today (public method for batch reads).
+     * Required, practice (optional), and bonus maps are separate; there is no combined case.
+     * Keys: task TITLE for required/optional/bonus; checklist items by label. UI lookups use task.title (not task.launch).
      *
-     * @param mapType Optional: "required" or "optional" to filter by map type. If null, returns both (for backward compatibility)
+     * @param mapType "required", "optional", or "bonus". Other values return empty map.
      */
-    fun getCompletedTasksMap(mapType: String? = null): Map<String, Boolean> {
+    fun getCompletedTasksMap(mapType: String? = null, progressData: CloudUserData? = null): Map<String, Boolean> {
         val profile = getCurrentKid()
-        val cacheKey = "$profile|${mapType ?: "all"}"
+        val cacheKey = "$profile|${mapType ?: "none"}"
         if (completedTasksMapCacheKey == cacheKey && completedTasksMapCache != null) {
             return completedTasksMapCache!!
         }
         val allTasks = mutableMapOf<String, Boolean>()
-        val cloudProfile = toCloudProfile(profile)
+        val data = dataForProfile(profile, progressData)
+        val checklistItems = data?.checklistItems ?: getChecklistItemsFromPrefs(profile)
         when (mapType) {
             "required" -> {
-                val requiredTasks = getRequiredTasks()
+                val requiredTasks = getRequiredTasks(progressData)
                 requiredTasks.forEach { (name, progress) ->
                     allTasks[name] = progress.status == "complete"
                 }
-                // Show checklist completions from cache (e.g. from DB) so UI stays green after sync
-                userDataRepository.getCached(cloudProfile)?.checklistItems?.forEach { (name, progress) ->
+                checklistItems.forEach { (name, progress) ->
                     if (progress.done) allTasks[name] = true
                 }
             }
             "optional" -> {
-                val practiceTasks = getPracticeTasks()
+                val practiceTasks = getPracticeTasks(progressData)
                 practiceTasks.forEach { (name, progress) ->
                     allTasks[name] = progress.status == "complete"
                 }
             }
-            else -> {
-                val requiredTasks = getRequiredTasks()
-                val practiceTasks = getPracticeTasks()
-                requiredTasks.forEach { (name, progress) ->
-                    allTasks[name] = progress.status == "complete"
-                }
-                practiceTasks.forEach { (name, progress) ->
-                    if (!allTasks.containsKey(name)) {
-                        allTasks[name] = progress.status == "complete"
-                    }
-                }
-                userDataRepository.getCached(cloudProfile)?.checklistItems?.forEach { (name, progress) ->
-                    if (progress.done) allTasks[name] = true
+            "bonus" -> {
+                // Bonus tasks never show completion status; always show as playable (never green)
+                val bonusTasks = getBonusTasks(progressData)
+                bonusTasks.forEach { (name, _) ->
+                    allTasks[name] = false
                 }
             }
+            else -> { /* No combined map; required/optional/bonus are separate. Return empty. */ }
         }
         completedTasksMapCacheKey = cacheKey
         completedTasksMapCache = allTasks.toMap()
         return completedTasksMapCache!!
     }
 
-    private fun invalidateCompletedTasksMapCache() {
+    internal fun invalidateCompletedTasksMapCache() {
         completedTasksMapCacheKey = null
         completedTasksMapCache = null
     }
@@ -770,16 +847,42 @@ class DailyProgressManager(private val context: Context) {
         return getRequiredTasks()
     }
     
-    /**
-     * Gets the practice tasks map (task names → TaskProgress)
-     * Practice tasks are stored separately from required tasks
-     */
-    private fun getPracticeTasks(): MutableMap<String, TaskProgress> {
-        val profile = getCurrentKid()
-        val key = "${profile}_$KEY_PRACTICE_TASKS"
-        val json = prefs.getString(key, "{}") ?: "{}"
-        val type = object : TypeToken<MutableMap<String, TaskProgress>>() {}.type
-        return gson.fromJson(json, type) ?: mutableMapOf()
+    /** Practice tasks (optional section) from session data. Display-incomplete set can override status. */
+    private fun getPracticeTasks(progressData: CloudUserData? = null): MutableMap<String, TaskProgress> {
+        val practice = dataForProfile(getCurrentKid(), progressData)?.practiceTasks ?: return mutableMapOf()
+        return practice.mapValues { (_, p) ->
+            val showComplete = p.timesCompleted > 0
+            TaskProgress(
+                status = if (showComplete) "complete" else "incomplete",
+                correct = p.correct,
+                incorrect = p.incorrect,
+                questions = p.questionsAnswered,
+                stars = null,
+                showdays = p.showdays,
+                hidedays = p.hidedays,
+                displayDays = p.displayDays,
+                disable = p.disable
+            )
+        }.toMutableMap()
+    }
+
+    /** Bonus tasks (bonus section) from session data. No display-incomplete reset (bonus do not reset to do-again). */
+    private fun getBonusTasks(progressData: CloudUserData? = null): MutableMap<String, TaskProgress> {
+        val bonus = dataForProfile(getCurrentKid(), progressData)?.bonusTasks ?: return mutableMapOf()
+        return bonus.mapValues { (_, p) ->
+            val showComplete = p.timesCompleted > 0
+            TaskProgress(
+                status = if (showComplete) "complete" else "incomplete",
+                correct = p.correct,
+                incorrect = p.incorrect,
+                questions = p.questionsAnswered,
+                stars = null,
+                showdays = p.showdays,
+                hidedays = p.hidedays,
+                displayDays = p.displayDays,
+                disable = p.disable
+            )
+        }.toMutableMap()
     }
     
     /**
@@ -789,87 +892,14 @@ class DailyProgressManager(private val context: Context) {
         return getPracticeTasks()
     }
 
-    /**
-     * Saves the required tasks map for the current profile (NEW: Uses cloud format)
-     * Also updates local.profile.last_updated timestamp
-     */
-    private fun saveRequiredTasks(requiredTasks: Map<String, TaskProgress>) {
-        val profile = getCurrentKid()
-        val key = "${profile}_$KEY_REQUIRED_TASKS"
-        val json = gson.toJson(requiredTasks)
-        
-        Log.d("DailyProgressManager", "CRITICAL: Saving required tasks for profile: $profile")
-        Log.d("DailyProgressManager", "CRITICAL: JSON being saved: $json")
-        Log.d("DailyProgressManager", "CRITICAL: Task keys being saved: ${requiredTasks.keys}")
-        
-        // CRITICAL: Use commit() instead of apply() to ensure synchronous write
-        // This prevents race conditions where TrainingMapActivity might read before data is written
-        val success = prefs.edit()
-            .putString(key, json)
-            .commit()
-        
-        if (!success) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save required tasks!")
-        }
+    /** No-op: progress is in session data only; task completion uses merge + onSyncSingleItemToDb (RPC). */
+    private fun saveRequiredTasks(requiredTasks: Map<String, TaskProgress>, progressData: CloudUserData? = null) {
         invalidateCompletedTasksMapCache()
-        // Update local.profile.last_updated to now() EST when tasks are saved
-        // CRITICAL: Must update timestamp SYNCHRONOUSLY using commit() to ensure it's written
-        // before any other code (like onResume cloud sync) can read it
-        val syncService = CloudSyncService()
-        val nowISO = syncService.generateESTTimestamp()
-        val timestampKey = "${profile}_last_updated_timestamp"
-        val timestampSuccess = prefs.edit()
-            .putString(timestampKey, nowISO)
-            .commit() // Use commit() for synchronous write
-        
-        if (!timestampSuccess) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save last_updated timestamp!")
-        } else {
-            Log.d("DailyProgressManager", "CRITICAL: Updated last_updated timestamp to: $nowISO (saved synchronously)")
-        }
-        
-        // NOTE: Cloud sync is handled by the caller (e.g., GameActivity) after all updates are complete
-        // This prevents concurrent syncs and ensures all data is updated before syncing
     }
-    
-    /**
-     * Saves the practice tasks map for the current profile
-     * Also updates local.profile.last_updated timestamp
-     */
-    private fun savePracticeTasks(practiceTasks: Map<String, TaskProgress>) {
-        val profile = getCurrentKid()
-        val key = "${profile}_$KEY_PRACTICE_TASKS"
-        val json = gson.toJson(practiceTasks)
-        
-        Log.d("DailyProgressManager", "CRITICAL: Saving practice tasks for profile: $profile")
-        Log.d("DailyProgressManager", "CRITICAL: JSON being saved: $json")
-        Log.d("DailyProgressManager", "CRITICAL: Task keys being saved: ${practiceTasks.keys}")
-        
-        // CRITICAL: Use commit() instead of apply() to ensure synchronous write
-        val success = prefs.edit()
-            .putString(key, json)
-            .commit()
-        
-        if (!success) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save practice tasks!")
-        }
+
+    /** No-op: progress is in session data only; task completion uses merge + onSyncSingleItemToDb (RPC). */
+    private fun savePracticeTasks(practiceTasks: Map<String, TaskProgress>, taskNameJustCompleted: String? = null) {
         invalidateCompletedTasksMapCache()
-        
-        // Update local.profile.last_updated to now() EST when tasks are saved
-        val syncService = CloudSyncService()
-        val nowISO = syncService.generateESTTimestamp()
-        val timestampKey = "${profile}_last_updated_timestamp"
-        val timestampSuccess = prefs.edit()
-            .putString(timestampKey, nowISO)
-            .commit() // Use commit() for synchronous write
-        
-        if (!timestampSuccess) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save last_updated timestamp!")
-        } else {
-            Log.d("DailyProgressManager", "CRITICAL: Updated last_updated timestamp to: $nowISO (saved synchronously)")
-        }
-        
-        // NOTE: Cloud sync is handled by the caller (e.g., GameActivity) after all updates are complete
     }
 
     /**
@@ -1002,47 +1032,39 @@ class DailyProgressManager(private val context: Context) {
      * For optional tasks: only banks reward time, doesn't affect progress, can be completed multiple times
      */
     fun markTaskCompletedWithName(
-        taskId: String, 
-        taskName: String, 
-        stars: Int, 
-        isRequiredTask: Boolean = false, 
-        config: MainContent? = null, 
+        taskId: String,
+        taskName: String,
+        stars: Int,
+        isRequiredTask: Boolean = false,
+        config: MainContent? = null,
         sectionId: String? = null,
         correctAnswers: Int? = null,
         incorrectAnswers: Int? = null,
         questionsAnswered: Int? = null
     ): Int {
         Log.d("DailyProgressManager", "markTaskCompletedWithName called: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, sectionId=$sectionId")
-        // Use getRequiredTasksForUpdate() so we merge with existing (cache or prefs); never overwrite with partial map
-        val requiredTasks = getRequiredTasksForUpdate()
-
-        // Generate unique task ID that includes section information (for optional tasks)
-        val uniqueTaskId = getUniqueTaskId(taskId, sectionId)
-
-        // Determine if this is actually a required task based on the section ID first
-        // If sectionId is explicitly provided, use that (sectionId == "required" means it's required)
-        // Otherwise, fall back to checking config or the flag
-        val actualIsRequired = when {
-            sectionId != null -> sectionId == "required"  // Explicit section ID takes precedence
-            config != null -> isTaskFromRequiredSection(taskId, config)  // Check config if no sectionId
-            else -> isRequiredTask  // Fall back to flag
+        val profile = getCurrentKid()
+        val current = getCurrentSessionData(profile)
+        if (current == null) {
+            Log.w("DailyProgressManager", "markTaskCompletedWithName: no session data for $profile; ensure fetch ran first")
+            return 0
         }
 
-        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, uniqueTaskId=$uniqueTaskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, actualIsRequired=$actualIsRequired, sectionId=$sectionId")
-        Log.d("DailyProgressManager", "Current required tasks: ${requiredTasks.keys}")
+        val uniqueTaskId = getUniqueTaskId(taskId, sectionId)
+        val actualIsRequired = when {
+            sectionId != null -> sectionId == "required"
+            config != null -> isTaskFromRequiredSection(taskId, config)
+            else -> isRequiredTask
+        }
+
+        Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, uniqueTaskId=$uniqueTaskId, taskName=$taskName, actualIsRequired=$actualIsRequired")
 
         if (actualIsRequired) {
-            // Required tasks: only award once per day, counts toward progress
-            // Use config task title as storage key when it matches taskName (so collector/UI find it).
-            // When multiple tasks share the same launch (e.g. bookReader), use taskName so we don't overwrite the wrong one.
             val task = findTaskInConfig(taskId, config)
             val storageKey = task?.takeIf { it.title == taskName }?.title ?: taskName
-            val existingProgress = requiredTasks[storageKey] ?: requiredTasks[taskName]
-            Log.d("DailyProgressManager", "CRITICAL: Checking existing progress for '$storageKey' (taskName=$taskName): status=${existingProgress?.status}, exists=${existingProgress != null}")
-            
+            val existingProgress = current.requiredTasks[storageKey] ?: current.requiredTasks[taskName]
             val checklistStars = findChecklistItemStarsInConfig(storageKey, config)
             val taskStars = task?.stars ?: checklistStars ?: stars
-            
             val wasAlreadyComplete = existingProgress?.status == "complete"
             val taskProgress = TaskProgress(
                 status = "complete",
@@ -1055,61 +1077,87 @@ class DailyProgressManager(private val context: Context) {
                 displayDays = task?.displayDays,
                 disable = task?.disable
             )
-            requiredTasks[storageKey] = taskProgress
-            if (storageKey != taskName) requiredTasks.remove(taskName)
-            saveRequiredTasks(requiredTasks)
-            // Update repository cache so UI (e.g. trainer map) sees completion immediately
-            updateRepositoryCacheWithRequiredTasks(requiredTasks)
-
-            if (wasAlreadyComplete) {
-                Log.d("DailyProgressManager", "CRITICAL: Required task $taskId ($taskName) was already complete, but updated with latest completion data (correct=$correctAnswers, incorrect=$incorrectAnswers, questions=$questionsAnswered)")
-            } else {
-                Log.d("DailyProgressManager", "CRITICAL: Required task $taskId ($taskName) completed, earned $taskStars stars (counts toward progress), stored in TaskProgress")
+            val newRequired = current.requiredTasks.toMutableMap().apply {
+                this[storageKey] = taskProgress
+                if (storageKey != taskName) remove(taskName)
             }
-            Log.d("DailyProgressManager", "CRITICAL: Saved task with key: '$storageKey', status: '${taskProgress.status}'")
-            Log.d("DailyProgressManager", "CRITICAL: Current required tasks keys after save: ${requiredTasks.keys}")
-            
-            // Only award stars if this is the first completion today. Return taskStars so reward time matches stored value (in case caller passed 0).
+            val merged = current.copy(requiredTasks = newRequired)
+            currentSessionData = merged
+            invalidateCompletedTasksMapCache()
+            onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.RequiredTask(
+                profile = toCloudProfile(profile),
+                taskTitle = storageKey,
+                status = "complete",
+                correct = correctAnswers,
+                incorrect = incorrectAnswers,
+                questions = questionsAnswered
+            ))
+            Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $taskStars stars")
             return if (wasAlreadyComplete) 0 else taskStars
         } else {
-            // Practice tasks: ALWAYS award stars each time completed, banks reward time but doesn't affect progress
-            // CRITICAL: Practice tasks are stored separately from required tasks
-            val practiceTasks = getPracticeTasks()
             val task = findTaskInConfig(taskId, config)
             val checklistStars = findChecklistItemStarsInConfig(taskName, config)
-            val taskStars = task?.stars ?: checklistStars ?: stars // Prefer config so reward time is correct
-
-            // For practice tasks: set correct/incorrect/questions and times_completed (additive)
-            // Get existing progress to add to it
-            val existingProgress = practiceTasks[taskName]
-            val existingCorrect = existingProgress?.correct ?: 0
-            val existingIncorrect = existingProgress?.incorrect ?: 0
-            val existingQuestions = existingProgress?.questions ?: 0
-            
-            val taskProgress = TaskProgress(
-                status = "complete", // Practice tasks can be completed multiple times, but show as complete on map
-                correct = (existingCorrect + (correctAnswers ?: 0)),
-                incorrect = (existingIncorrect + (incorrectAnswers ?: 0)),
-                questions = (existingQuestions + (questionsAnswered ?: 0)),
-                stars = taskStars, // Store stars value for future reference
-                showdays = task?.showdays,
-                hidedays = task?.hidedays,
-                displayDays = task?.displayDays,
-                disable = task?.disable
-            )
-            practiceTasks[taskName] = taskProgress
-            savePracticeTasks(practiceTasks)
-            Log.d("DailyProgressManager", "Practice task $taskId ($taskName) completed, earned $taskStars stars (banks reward time only, doesn't affect progress) - can be completed again for more reward time, stored in TaskProgress")
-            
-            // Increment cumulative times_completed for this practice task in database
-            incrementPracticeTaskTimesCompleted(taskName)
-            
-            // Check if all practice tasks are completed and reset them if so
-            if (config != null) {
-                checkAndResetPracticeTasksIfAllCompleted(config)
+            val taskStars = task?.stars ?: checklistStars ?: stars
+            val isBonus = sectionId == "bonus"
+            if (isBonus) {
+                val existing = current.bonusTasks[taskName]
+                val newBonus = current.bonusTasks.toMutableMap().apply {
+                    this[taskName] = PracticeProgress(
+                        timesCompleted = (existing?.timesCompleted ?: 0) + 1,
+                        correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
+                        incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
+                        questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0),
+                        showdays = task?.showdays ?: existing?.showdays,
+                        hidedays = task?.hidedays ?: existing?.hidedays,
+                        displayDays = task?.displayDays ?: existing?.displayDays,
+                        disable = task?.disable ?: existing?.disable
+                    )
+                }
+                val newTc = (existing?.timesCompleted ?: 0) + 1
+                val merged = current.copy(bonusTasks = newBonus)
+                currentSessionData = merged
+                invalidateCompletedTasksMapCache()
+                onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.BonusTask(
+                    profile = toCloudProfile(profile),
+                    taskTitle = taskName,
+                    timesCompleted = newTc,
+                    stars = taskStars,
+                    correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
+                    incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
+                    questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0)
+                ))
+                Log.d("DailyProgressManager", "Bonus task $taskId ($taskName) completed, earned $taskStars stars")
+                return taskStars
+            } else {
+                val existing = current.practiceTasks[taskName]
+                val newPractice = current.practiceTasks.toMutableMap().apply {
+                    this[taskName] = PracticeProgress(
+                        timesCompleted = (existing?.timesCompleted ?: 0) + 1,
+                        correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
+                        incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
+                        questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0),
+                        showdays = task?.showdays ?: existing?.showdays,
+                        hidedays = task?.hidedays ?: existing?.hidedays,
+                        displayDays = task?.displayDays ?: existing?.displayDays,
+                        disable = task?.disable ?: existing?.disable
+                    )
+                }
+                val newTc = (existing?.timesCompleted ?: 0) + 1
+                val merged = current.copy(practiceTasks = newPractice)
+                currentSessionData = merged
+                invalidateCompletedTasksMapCache()
+                onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.PracticeTask(
+                    profile = toCloudProfile(profile),
+                    taskTitle = taskName,
+                    timesCompleted = newTc,
+                    stars = taskStars,
+                    correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
+                    incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
+                    questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0)
+                ))
+                Log.d("DailyProgressManager", "Practice task $taskId ($taskName) completed, earned $taskStars stars")
+                return taskStars
             }
-            
-            return taskStars  // Always return stars for practice tasks so reward time matches stored value
         }
     }
     
@@ -1145,64 +1193,6 @@ class DailyProgressManager(private val context: Context) {
         }
     }
     
-    /**
-     * Checks if all visible practice tasks (optional section) are completed.
-     * If all are completed, increments cumulative times_completed for each in storage and resets them.
-     */
-    fun checkAndResetPracticeTasksIfAllCompleted(config: MainContent) {
-        try {
-            // Get all visible optional tasks from config
-            val optionalSection = config.sections?.find { it.id == "optional" }
-            val visibleOptionalTasks = optionalSection?.tasks?.filter { task ->
-                task.title != null && 
-                task.launch != null && 
-                TaskVisibilityChecker.isTaskVisible(task)
-            } ?: emptyList()
-            
-            if (visibleOptionalTasks.isEmpty()) {
-                Log.d("DailyProgressManager", "No visible optional tasks to check")
-                return
-            }
-            
-            // Check if all visible optional tasks are completed (via practice tasks storage)
-            val practiceTasks = getPracticeTasks()
-            
-            val allCompleted = visibleOptionalTasks.all { task ->
-                val taskTitle = task.title ?: ""
-                practiceTasks[taskTitle]?.status == "complete"
-            }
-            
-            if (allCompleted) {
-                Log.d("DailyProgressManager", "All ${visibleOptionalTasks.size} visible practice tasks are completed - resetting them")
-                
-                // Reset all practice tasks to incomplete (this makes them appear uncompleted on the map)
-                // Note: Cumulative times_completed is already being incremented each time a task is completed,
-                // so we just need to reset the completion status
-                val updatedPracticeTasks = practiceTasks.toMutableMap()
-                visibleOptionalTasks.forEach { task ->
-                    val taskTitle = task.title ?: ""
-                    val existingProgress = updatedPracticeTasks[taskTitle]
-                    if (existingProgress != null) {
-                        // Reset status to incomplete, preserve other data
-                        updatedPracticeTasks[taskTitle] = existingProgress.copy(status = "incomplete")
-                    }
-                }
-                savePracticeTasks(updatedPracticeTasks)
-                Log.d("DailyProgressManager", "Reset practice tasks completion status - they will now appear uncompleted on the map")
-                
-                // NOTE: Cloud sync is handled by the caller (e.g., GameActivity) after all updates are complete
-            } else {
-                val completedCount = visibleOptionalTasks.count { task ->
-                    val taskTitle = task.title ?: ""
-                    practiceTasks[taskTitle]?.status == "complete"
-                }
-                Log.d("DailyProgressManager", "Practice tasks not all completed: $completedCount/${visibleOptionalTasks.size} completed")
-            }
-        } catch (e: Exception) {
-            Log.e("DailyProgressManager", "Error checking/resetting practice tasks", e)
-        }
-    }
-
     /**
      * Finds a task in config by task ID (task.launch)
      */
@@ -1463,11 +1453,11 @@ class DailyProgressManager(private val context: Context) {
      * Gets cached total possible stars for the current profile (for when config isn't available).
      * Prefers DB-backed cache when available.
      */
-    /** Online-only: no prefs fallback. Returns 0 when no fresh data (caller should only use when hasProgressDataAvailable()). */
+    /** Reads from prefs (updated when we apply cloud data). No cache. */
     fun getCachedTotalPossibleStars(): Int {
         val profile = getCurrentKid()
-        val cloudProfile = toCloudProfile(profile)
-        return userDataRepository.getCached(cloudProfile)?.possibleStars ?: 0
+        val key = "${profile}_$KEY_TOTAL_POSSIBLE_STARS"
+        return prefs.getInt(key, 0)
     }
 
     /**
@@ -1481,37 +1471,18 @@ class DailyProgressManager(private val context: Context) {
      * Battle Berry Management - tracks berries spent on battles
      */
     
-    /**
-     * Gets the earned berries count (simple counter that resets to 0 on battle)
-     * Prefers DB-backed cache when available so UI never shows stale data.
-     */
-    /** Online-only: no prefs fallback. Returns 0 when no fresh data so we never show stale. */
+    /** Earned berries from session data (last DB fetch). No prefs. */
     fun getEarnedBerries(): Int {
-        val profile = getCurrentKid()
-        val cloudProfile = toCloudProfile(profile)
-        return userDataRepository.getCached(cloudProfile)?.berriesEarned ?: 0
+        val data = dataForProfile(getCurrentKid(), null)
+        return data?.berriesEarned ?: 0
     }
-    
-    /**
-     * Sets earned berries (local only). Caller is responsible for syncing to cloud after
-     * all local updates (e.g. mark task complete + grant rewards) so one sync pushes everything.
-     */
+
+    /** Updates session data with earned berries (display only). DB berries are updated only by task/checklist RPCs when status=complete or done=true. */
     fun setEarnedBerries(amount: Int) {
         val profile = getCurrentKid()
-        val key = "${profile}_earnedBerries"
-        // CRITICAL: Use commit() for synchronous write so caller can sync immediately after
-        val success = context.getSharedPreferences("pokemonBattleHub", Context.MODE_PRIVATE)
-            .edit()
-            .putInt(key, amount)
-            .commit() // Use commit() for synchronous write
-        
-        if (!success) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save earned berries!")
-        } else {
-            Log.d("DailyProgressManager", "CRITICAL: Saved earned berries: $amount for profile: $profile")
-        }
-        // NOTE: Do NOT trigger sync here. Caller (GameActivity, TrainingMapActivity, BattleHubActivity)
-        // updates all local state first, then calls updateLocalTimestampAndSyncToCloud once.
+        val current = getCurrentSessionData(profile) ?: return
+        currentSessionData = current.copy(berriesEarned = amount)
+        Log.d("DailyProgressManager", "Set earned berries: $amount for profile: $profile (session only; DB updated by task RPCs)")
     }
     
     /**
@@ -1525,17 +1496,25 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Grants all rewards for a task completion in one place: reward time (banked minutes), berries, and coins.
      * Call this after markTaskCompletedWithName when earnedStars > 0.
-     * Ensures time, berries, and (via progress) coins are updated together so no partial rewards occur.
+     * The task/checklist RPCs (af_update_required_task, af_update_practice_task, af_update_checklist_item)
+     * already update berries_earned and banked_mins in the DB when status=complete or done=true; we only update local session here for display.
      *
      * @param earnedStars Stars earned from this completion
      * @param sectionId "required", "optional", or null. Required and optional tasks get time + berries; others get time only.
      */
     fun grantRewardsForTaskCompletion(earnedStars: Int, sectionId: String?) {
         if (earnedStars <= 0) return
-        addStarsToRewardBank(earnedStars)
-        if (sectionId == "required" || sectionId == "optional") {
-            addEarnedBerries(earnedStars)
+        val profile = getCurrentKid()
+        val current = getCurrentSessionData(profile) ?: return
+        val addedMinutes = convertStarsToMinutes(earnedStars)
+        val newBanked = (current.bankedMins + addedMinutes).coerceIn(0, 1000)
+        val newBerries = if (sectionId == "required" || sectionId == "optional" || sectionId == "bonus") {
+            current.berriesEarned + earnedStars
+        } else {
+            current.berriesEarned
         }
+        currentSessionData = current.copy(berriesEarned = newBerries, bankedMins = newBanked)
+        Log.d("DailyProgressManager", "grantRewardsForTaskCompletion: +$earnedStars stars, session now berries=$newBerries banked=$newBanked (DB already updated by task RPC)")
     }
     
     /**
@@ -1705,40 +1684,22 @@ class DailyProgressManager(private val context: Context) {
      * Gets the current number of unlocked Pokemon for the current kid
      * Prefers DB-backed cache when available.
      */
-    /** Online-only: no prefs fallback. Returns 0 when no fresh data. */
+    /** Reads from prefs (updated when we apply cloud data). No cache. */
     fun getUnlockedPokemonCount(): Int {
         val kid = getCurrentKid()
-        val cloudKid = toCloudProfile(kid)
-        return userDataRepository.getCached(cloudKid)?.pokemonUnlocked ?: 0
+        return prefs.getInt("${kid}_$KEY_POKEMON_UNLOCKED", 0)
     }
 
-    /**
-     * Sets the number of unlocked Pokemon for the current kid
-     */
+    /** Writes to prefs; caller must sync to DB. */
     fun setUnlockedPokemonCount(count: Int) {
         val kid = getCurrentKid()
-        val cloudKid = toCloudProfile(kid)
-        val success1 = prefs.edit().putInt("${cloudKid}_$KEY_POKEMON_UNLOCKED", count).commit() // Use commit() for synchronous write
-        if (!success1) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save unlocked Pokemon count!")
+        prefs.edit().putInt("${kid}_$KEY_POKEMON_UNLOCKED", count).apply()
+        val cloudProfile = toCloudProfile(kid)
+        currentSessionData?.takeIf { it.profile == cloudProfile }?.let { cur ->
+            currentSessionData = cur.copy(pokemonUnlocked = count)
         }
-        
-        // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
-        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-        val now = java.util.Date()
-        val offsetMillis = estTimeZone.getOffset(now.time)
-        val offsetHours = offsetMillis / (1000 * 60 * 60)
-        val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
-        val offsetString = String.format("%+03d:%02d", offsetHours, offsetMinutes)
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault())
-        dateFormat.timeZone = estTimeZone
-        val lastUpdatedTimestamp = dateFormat.format(now) + offsetString
-        
-        val success2 = prefs.edit().putString("${cloudKid}_last_updated_timestamp", lastUpdatedTimestamp).commit() // Use commit() for synchronous write
-        if (!success2) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save last_updated_timestamp in setUnlockedPokemonCount!")
-        }
-        Log.d("DailyProgressManager", "Set unlocked Pokemon count to $count for profile: $cloudKid, updated last_updated: $lastUpdatedTimestamp")
+        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.PokemonUnlocked(cloudProfile, count))
+        Log.d("DailyProgressManager", "Pokemon unlocked set to $count for profile: $kid; sync via RPC")
     }
 
     /**
@@ -1752,11 +1713,10 @@ class DailyProgressManager(private val context: Context) {
      * Coins earned (Chores 4 $$) - never reset. Battle Hub displays this.
      * Prefers DB-backed cache when available.
      */
-    /** Online-only: no prefs fallback. Returns 0 when no fresh data. */
+    /** Reads from prefs (updated when we apply cloud data or addCoinsEarned). No cache. */
     fun getCoinsEarned(profile: String? = null): Int {
         val p = profile ?: getCurrentKid()
-        val cloudP = toCloudProfile(p)
-        return userDataRepository.getCached(cloudP)?.coinsEarned ?: 0
+        return prefs.getInt("${p}_$KEY_COINS_EARNED", 0)
     }
 
     /**
@@ -1772,22 +1732,27 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Chores list (Chores 4 $$) for the profile. Call loadChoresFromJsonIfNeeded() first if empty.
-     * Prefers DB-backed cache when available.
+     * Chores list (Chores 4 $$) for the profile. Prefers session data (from last DB fetch), then prefs.
+     * Call loadChoresFromJsonIfNeeded() first if empty.
      */
-    /** Online-only: no prefs fallback. Returns empty list when no fresh data. */
     fun getChores(profile: String? = null): List<ChoreProgress> {
         val p = profile ?: getCurrentKid()
-        val cloudP = toCloudProfile(p)
-        return userDataRepository.getCached(cloudP)?.chores ?: emptyList()
+        val fromSession = currentSessionData?.takeIf { it.profile == toCloudProfile(p) }?.chores
+        if (!fromSession.isNullOrEmpty()) return fromSession
+        val key = "${p}_chores"
+        val json = prefs.getString(key, "[]") ?: "[]"
+        return try {
+            gson.fromJson(json, object : TypeToken<List<ChoreProgress>>() {}.type) ?: emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
     }
 
-    /**
-     * Save chores list (Chores 4 $$).
-     */
+    /** Writes to prefs; caller must sync to DB. */
     fun saveChores(profile: String? = null, chores: List<ChoreProgress>) {
         val p = profile ?: getCurrentKid()
-        prefs.edit().putString("${p}_$KEY_CHORES", gson.toJson(chores)).commit()
+        prefs.edit().putString("${p}_chores", gson.toJson(chores)).apply()
+        Log.d("DailyProgressManager", "Chores updated for profile: $p (${chores.size} items); persist via DB write")
     }
 
     /**
@@ -1895,62 +1860,26 @@ class DailyProgressManager(private val context: Context) {
         }
     }
 
-    /**
-     * Gets the current banked reward minutes for the current profile.
-     * Prefers DB-backed cache when available so UI never shows stale data.
-     */
-    /** Online-only: no prefs fallback. Returns 0 when no fresh data. */
+    /** Banked minutes from session data (last DB fetch). No prefs. */
     fun getBankedRewardMinutes(): Int {
-        val profile = getCurrentKid()
-        val cloudProfile = toCloudProfile(profile)
-        return userDataRepository.getCached(cloudProfile)?.bankedMins ?: 0
+        val data = dataForProfile(getCurrentKid(), null)
+        return data?.bankedMins ?: 0
     }
 
-    /**
-     * Sets the banked reward minutes for the current profile.
-     * Includes validation to prevent suspicious values.
-     * Per 000Requirements.md and Daily Reset Logic: sync is full (update_cloud_with_local) only —
-     * on game completion or when BattleHub/Trainer Map load runs cloud_sync(). No partial sync.
-     */
     fun setBankedRewardMinutes(minutes: Int) {
-        // Validate: reward minutes should be non-negative and reasonable (max 1000 minutes = ~16 hours)
+        setBankedRewardMinutesForProfile(getCurrentKid(), minutes)
+    }
+
+    /** Updates session data with banked minutes (display only). DB banked_mins is updated only by task/checklist RPCs when status=complete or done=true. */
+    fun setBankedRewardMinutesForProfile(profile: String, minutes: Int) {
         val validatedMinutes = when {
-            minutes < 0 -> {
-                Log.w("DailyProgressManager", "Attempted to set negative reward minutes ($minutes), setting to 0")
-                0
-            }
-            minutes > 1000 -> {
-                Log.w("DailyProgressManager", "Attempted to set suspiciously high reward minutes ($minutes), capping at 1000")
-                1000
-            }
+            minutes < 0 -> 0
+            minutes > 1000 -> 1000
             else -> minutes
         }
-        
-        val profile = getCurrentKid()
-        val key = "${profile}_banked_reward_minutes"
-        val timestampKey = "${profile}_banked_reward_minutes_timestamp"
-        
-        // Generate timestamp in EST format per Daily Reset Logic.md: yyyy-MM-dd HH:mm:ss.SSS
-        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.getDefault())
-        dateFormat.timeZone = estTimeZone
-        val timestamp = dateFormat.format(java.util.Date())
-        
-        // Update last_updated timestamp (in EST format) as per Daily Reset Logic
-        val lastUpdatedKey = "${profile}_last_updated_timestamp"
-        val lastUpdatedTimestamp = timestamp
-        
-        val success = prefs.edit()
-            .remove(key) // Explicitly remove to avoid type conflicts
-            .putInt(key, validatedMinutes)
-            .putString(timestampKey, timestamp) // Store timestamp for this update
-            .putString(lastUpdatedKey, lastUpdatedTimestamp) // Update last_updated so next cloud_sync() can push
-            .commit() // Use commit() for synchronous write to prevent race conditions
-        if (!success) {
-            Log.e("DailyProgressManager", "CRITICAL ERROR: Failed to save banked reward minutes and timestamp!")
-        }
-        
-        Log.d("DailyProgressManager", "Set banked reward minutes to $validatedMinutes (requested: $minutes) for profile: $profile, timestamp: $timestamp, last_updated: $lastUpdatedTimestamp")
+        val current = getCurrentSessionData(profile) ?: return
+        currentSessionData = current.copy(bankedMins = validatedMinutes)
+        Log.d("DailyProgressManager", "Set banked minutes: $validatedMinutes for profile: $profile (session only; DB updated by task RPCs)")
     }
 
     /**

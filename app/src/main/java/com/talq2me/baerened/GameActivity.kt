@@ -298,6 +298,9 @@ class GameActivity : AppCompatActivity() {
                                 putExtra("GAME_TYPE", actualGameType)
                                 putExtra("GAME_STARS", earnedStars)
                                 putExtra("REWARDS_APPLIED", true)
+                                putExtra("GAME_CORRECT", correctCount)
+                                putExtra("GAME_INCORRECT", incorrectCount)
+                                putExtra("GAME_QUESTIONS_ANSWERED", questionsAnswered)
                                 currentBattleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
                                 sectionId?.let { putExtra("SECTION_ID", it) }
                             }

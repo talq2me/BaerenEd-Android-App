@@ -19,8 +19,11 @@ data class CloudUserData(
     // Required tasks progress (name: complete/incomplete, #correct/#incorrect, #questions)
     @SerializedName("required_tasks") val requiredTasks: Map<String, TaskProgress> = emptyMap(),
 
-    // Practice tasks progress (name: # times_completed, #correct/#incorrect, #questions_answered)
+    // Practice tasks progress (Extra Practice Map only, section id "optional")
     @SerializedName("practice_tasks") val practiceTasks: Map<String, PracticeProgress> = emptyMap(),
+
+    // Bonus tasks progress (Bonus Training Map only, section id "bonus")
+    @SerializedName("bonus_tasks") val bonusTasks: Map<String, PracticeProgress> = emptyMap(),
 
     // Checklist items progress (name: done status, stars, display days)
     @SerializedName("checklist_items") val checklistItems: Map<String, ChecklistItemProgress> = emptyMap(),

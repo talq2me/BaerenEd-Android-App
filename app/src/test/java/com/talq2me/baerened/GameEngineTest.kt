@@ -183,15 +183,27 @@ class GameEngineTest {
 
     @Test
     fun `getCurrentQuestion wraps around when index exceeds questions size`() {
-        // Given: A game engine with progress at index 5 (beyond questions size)
-        every { mockPrefs.getInt(any(), any()) } returns 5
-        val engine = GameEngine(mockContext, "testGame", questions, config)
+        // Given: Game index is read from DailyProgressManager session (not prefs); prime session with index 5.
+        // GameProgress uses SettingsManager.readProfile(context) for profile; ensure it returns "AM".
+        mockkObject(SettingsManager)
+        every { SettingsManager.readProfile(any()) } returns "AM"
+        try {
+            val dpm = DailyProgressManager(mockContext)
+            dpm.setProgressDataAfterFetch(
+                CloudUserData(profile = "AM", gameIndices = mapOf("testGame" to 5))
+            )
+            assertEquals(5, dpm.getGameIndexFromCache("AM", "testGame"))
+            val engine = GameEngine(mockContext, "testGame", questions, config)
 
-        // When: Getting current question
-        val question = engine.getCurrentQuestion()
+            // When: Getting current question
+            val question = engine.getCurrentQuestion()
 
-        // Then: Should wrap around (5 % 3 = 2, so question 3)
-        assertEquals("Question 3", question.prompt?.text)
+            // Then: Should wrap around (5 % 3 = 2, so question 3)
+            assertEquals("Question 3", question.prompt?.text)
+        } finally {
+            DailyProgressManager(mockContext).setProgressDataAfterFetch(null)
+            unmockkObject(SettingsManager)
+        }
     }
 
     @Test

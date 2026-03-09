@@ -130,17 +130,9 @@ class ChromePageActivity : AppCompatActivity() {
                     sendBroadcast(broadcastIntent)
                     Log.d(TAG, "Sent broadcast to BaerenLock to start reward time for Je Lis ($currentMinutes minutes)")
                     
-                    // Clear the banked minutes from BaerenEd local storage AFTER successful sync to cloud
-                    // This matches the pattern used in RewardSelectionActivity
-                    // BaerenLock will manage clearing from cloud when it uses the time
-                    // Only clear if we successfully synced to cloud and sent the broadcast
-                    val profile = progressManager.getCurrentKid()
-                    val key = "${profile}_banked_reward_minutes"
-                    getSharedPreferences("daily_progress_prefs", MODE_PRIVATE)
-                        .edit()
-                        .putInt(key, 0)
-                        .apply()
-                    Log.d(TAG, "Cleared banked reward minutes from BaerenEd local storage (cloud still has minutes for BaerenLock)")
+                    // Clear the banked minutes from BaerenEd cache (DB is source of truth; BaerenLock will clear from cloud when it uses the time)
+                    progressManager.setBankedRewardMinutes(0)
+                    Log.d(TAG, "Cleared banked reward minutes from BaerenEd cache (cloud still has minutes for BaerenLock)")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to send broadcast to BaerenLock", e)
                     // Don't clear banked minutes if broadcast failed - BaerenLock will read from cloud

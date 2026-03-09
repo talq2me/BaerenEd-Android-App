@@ -46,6 +46,9 @@ class WebGameActivity : AppCompatActivity() {
         const val EXTRA_SECTION_ID = "section_id"
         const val EXTRA_STARS = "stars"
         const val EXTRA_TASK_TITLE = "task_title"
+        const val EXTRA_CORRECT_ANSWERS = "correct_answers"
+        const val EXTRA_INCORRECT_ANSWERS = "incorrect_answers"
+        const val EXTRA_QUESTIONS_ANSWERED = "questions_answered"
         const val RESULT_LAUNCH_GAME = 100
         const val RESULT_EXTRA_GAME_ID = "game_id_to_launch"
         const val CAMERA_PERMISSION_REQUEST_CODE = 1001
@@ -63,7 +66,9 @@ class WebGameActivity : AppCompatActivity() {
     private var cameraSuccessCallback: String? = null
     private var cameraErrorCallback: String? = null
     private var cameraImageFile: File? = null // Store file path for full resolution image
-    
+    private var lastWebGameCorrectAnswers: Int = -1
+    private var lastWebGameIncorrectAnswers: Int = -1
+
     // HTTP client for fetching JSON from GitHub
     private val httpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -214,6 +219,11 @@ class WebGameActivity : AppCompatActivity() {
             sectionId?.let { putExtra(EXTRA_SECTION_ID, it) }
             putExtra(EXTRA_STARS, stars)
             taskTitle?.let { putExtra(EXTRA_TASK_TITLE, it) }
+            if (lastWebGameCorrectAnswers >= 0) {
+                putExtra(EXTRA_CORRECT_ANSWERS, lastWebGameCorrectAnswers)
+                putExtra(EXTRA_INCORRECT_ANSWERS, lastWebGameIncorrectAnswers)
+                putExtra(EXTRA_QUESTIONS_ANSWERED, lastWebGameCorrectAnswers + lastWebGameIncorrectAnswers)
+            }
         }
         setResult(RESULT_OK, resultIntent)
         finish()
@@ -248,6 +258,8 @@ class WebGameActivity : AppCompatActivity() {
                     android.util.Log.d("WebGameActivity", "Saved game index $finalIndex for $taskId (game_indices)")
                 }
                 timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
+                lastWebGameCorrectAnswers = correctAnswers
+                lastWebGameIncorrectAnswers = incorrectAnswers
                 finishGameWithResult(taskId)
             }
         }

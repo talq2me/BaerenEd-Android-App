@@ -2,7 +2,12 @@ package com.talq2me.baerened
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.BackgroundColorSpan
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.Gravity
@@ -56,6 +61,15 @@ class BookReaderActivity : AppCompatActivity() {
 
     private lateinit var timeTracker: TimeTracker
     private var ttsUtteranceIdForPage: String? = null
+    /** Character ranges (start, end) for each spoken chunk on the current content page. */
+    private var currentPageChunkSpans: List<Pair<Int, Int>> = emptyList()
+    /** Character ranges (start, end) for each word on the current page, for time-based word highlight. */
+    private var currentPageWordSpans: List<Pair<Int, Int>> = emptyList()
+    private val ttsHighlightColor = 0x40FFEB3B.toInt() // soft yellow
+    /** ~2.4 syl/s at rate 0.85; used to estimate word timings for highlight. */
+    private val estimatedSyllablesPerSecond = 2.4f
+    private val ttsHighlightHandler = Handler(Looper.getMainLooper())
+    private val pendingWordHighlightRunnables = mutableListOf<Runnable>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,12 +144,59 @@ class BookReaderActivity : AppCompatActivity() {
     }
 
     private fun setupTtsListener() {
+        val chunkUidRegex = Regex("""book_tts_\d+_chunk_(\d+)""")
         val listener = object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {}
+            override fun onStart(utteranceId: String?) {
+                runOnUiThread {
+                    cancelPendingWordHighlights()
+                    val chunkIndex = utteranceId?.let { id ->
+                        chunkUidRegex.find(id)?.groupValues?.get(1)?.toIntOrNull()
+                            ?: if (id == ttsUtteranceIdForPage) currentPageChunkSpans.lastIndex.takeIf { it >= 0 } else null
+                    }
+                    if (chunkIndex == null || currentPageChunkSpans.getOrNull(chunkIndex) == null) return@runOnUiThread
+                    val (cStart, cEnd) = currentPageChunkSpans[chunkIndex]
+                    val full = pageText.text.toString()
+                    if (full.isEmpty()) return@runOnUiThread
+                    // Words in this chunk (overlap with [cStart, cEnd])
+                    val wordIndices = currentPageWordSpans.mapIndexed { i, (wStart, wEnd) ->
+                        if (wStart < cEnd && wEnd > cStart) i else null
+                    }.filterNotNull()
+                    if (wordIndices.isEmpty()) {
+                        val span = SpannableStringBuilder(full)
+                        span.setSpan(BackgroundColorSpan(ttsHighlightColor), cStart, cEnd.coerceAtMost(full.length), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        pageText.setText(span)
+                        return@runOnUiThread
+                    }
+                    val syllableCounts = wordIndices.map { i ->
+                        val (ws, we) = currentPageWordSpans[i]
+                        estimateSyllables(full.substring(ws.coerceIn(0, full.length), we.coerceAtMost(full.length)))
+                    }
+                    val totalSyllables = syllableCounts.sum()
+                    if (totalSyllables <= 0) return@runOnUiThread
+                    val durationMs = (totalSyllables / estimatedSyllablesPerSecond * 1000).toLong()
+                    var accSyllables = 0
+                    wordIndices.forEachIndexed { idx, wi ->
+                        val (wStart, wEnd) = currentPageWordSpans[wi]
+                        val delayMs = (accSyllables.toFloat() / totalSyllables * durationMs).toLong()
+                        accSyllables += syllableCounts[idx]
+                        val r = Runnable {
+                            if (wStart in 0..full.length && wEnd in 0..full.length && wStart <= wEnd) {
+                                val sp = SpannableStringBuilder(full)
+                                sp.setSpan(BackgroundColorSpan(ttsHighlightColor), wStart, wEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                                pageText.setText(sp)
+                            }
+                        }
+                        pendingWordHighlightRunnables.add(r)
+                        ttsHighlightHandler.postDelayed(r, delayMs)
+                    }
+                }
+            }
             override fun onDone(utteranceId: String?) {
                 runOnUiThread {
                     if (utteranceId != null && ttsUtteranceIdForPage == utteranceId) {
                         ttsUtteranceIdForPage = null
+                        cancelPendingWordHighlights()
+                        pageText.text = pageText.text.toString()
                         enableNextButton()
                     }
                 }
@@ -144,6 +205,7 @@ class BookReaderActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (utteranceId != null && ttsUtteranceIdForPage == utteranceId) {
                         ttsUtteranceIdForPage = null
+                        cancelPendingWordHighlights()
                         enableNextButton()
                     }
                 }
@@ -215,9 +277,61 @@ class BookReaderActivity : AppCompatActivity() {
         pageText.text = fullText
         textContainer.visibility = View.VISIBLE
 
+        currentPageChunkSpans = buildChunkSpans(fullText)
+        currentPageWordSpans = buildWordSpans(fullText)
+
         btnNext.isEnabled = false
         ttsUtteranceIdForPage = "book_tts_${currentIndex}_done"
-        speakPageText(b.language, page.text, ttsUtteranceIdForPage!!)
+        speakPageTextByChunks(b.language, fullText, ttsUtteranceIdForPage!!)
+    }
+
+    private fun buildWordSpans(fullText: String): List<Pair<Int, Int>> {
+        val words = fullText.split(Regex("\\s+")).filter { it.isNotEmpty() }
+        if (words.isEmpty()) return emptyList()
+        val spans = mutableListOf<Pair<Int, Int>>()
+        var searchStart = 0
+        for (w in words) {
+            val start = fullText.indexOf(w, searchStart).coerceAtLeast(0)
+            val end = start + w.length
+            spans.add(start to end)
+            searchStart = end
+        }
+        return spans
+    }
+
+    /** Splits by sentence boundaries so TTS gets context (e.g. "à" pronounced correctly in "va à l'école"). */
+    private fun buildChunkSpans(fullText: String): List<Pair<Int, Int>> {
+        val chunks = fullText.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
+        if (chunks.isEmpty()) {
+            if (fullText.isNotBlank()) return listOf(0 to fullText.length)
+            return emptyList()
+        }
+        val spans = mutableListOf<Pair<Int, Int>>()
+        var searchStart = 0
+        for (chunk in chunks) {
+            val start = fullText.indexOf(chunk, searchStart).coerceIn(0, fullText.length)
+            val end = (start + chunk.length).coerceAtMost(fullText.length)
+            if (end > start) spans.add(start to end)
+            searchStart = end
+        }
+        return spans
+    }
+
+    /** Rough syllable count for timing (French/English). Vowel groups + silent-e heuristic. */
+    private fun estimateSyllables(word: String): Int {
+        if (word.isBlank()) return 1
+        val v = Regex("""[aeiouyàâäéèêëïîôùûüœæAEIOUYÀÂÄÉÈÊËÏÎÔÙÛÜŒÆ]+""")
+        val groups = v.findAll(word).toList()
+        var count = groups.size.coerceAtLeast(1)
+        val last = word.last().lowercaseChar()
+        if (count > 1 && (last == 'e' || last == 'é') && !word.lowercase().endsWith("ée"))
+            count-- // silent e / e muet
+        return count.coerceAtLeast(1)
+    }
+
+    private fun cancelPendingWordHighlights() {
+        pendingWordHighlightRunnables.forEach { ttsHighlightHandler.removeCallbacks(it) }
+        pendingWordHighlightRunnables.clear()
     }
 
     private fun speakSingleLine(language: String?, text: String, doneUtteranceId: String) {
@@ -230,20 +344,22 @@ class BookReaderActivity : AppCompatActivity() {
         })
     }
 
-    private fun speakPageText(language: String?, lines: List<String>, doneUtteranceId: String) {
+    /** Speaks the page text by sentence/chunk so TTS has context (e.g. French "à" is pronounced correctly, not "a accent grave"). */
+    private fun speakPageTextByChunks(language: String?, fullText: String, doneUtteranceId: String) {
         val locale = when (language?.lowercase()?.take(2)) {
             "fr" -> Locale.FRENCH
             else -> Locale.US
         }
         TtsManager.whenReady(Runnable {
-            if (lines.isEmpty()) {
+            val chunks = fullText.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
+            if (chunks.isEmpty()) {
                 runOnUiThread { enableNextButton() }
                 return@Runnable
             }
-            lines.forEachIndexed { i, line ->
-                val uid = if (i == lines.lastIndex) doneUtteranceId else "book_tts_${currentIndex}_$i"
+            chunks.forEachIndexed { i, chunk ->
+                val uid = if (i == chunks.lastIndex) doneUtteranceId else "book_tts_${currentIndex}_chunk_$i"
                 val mode = if (i == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-                TtsManager.speak(line, locale, mode, uid)
+                TtsManager.speak(chunk, locale, mode, uid)
             }
         })
     }
@@ -405,6 +521,7 @@ class BookReaderActivity : AppCompatActivity() {
         if (currentIndex <= 0) return
         TtsManager.stop()
         ttsUtteranceIdForPage = null
+        cancelPendingWordHighlights()
         showScreen(currentIndex - 1)
     }
 
@@ -415,6 +532,7 @@ class BookReaderActivity : AppCompatActivity() {
         }
         TtsManager.stop()
         ttsUtteranceIdForPage = null
+        cancelPendingWordHighlights()
         showScreen(currentIndex + 1)
     }
 
@@ -438,6 +556,7 @@ class BookReaderActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         TtsManager.stop()
+        cancelPendingWordHighlights()
         TtsManager.setOnUtteranceProgressListener(null)
         super.onDestroy()
     }
