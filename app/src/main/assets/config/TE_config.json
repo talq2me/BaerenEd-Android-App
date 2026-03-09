@@ -31,7 +31,8 @@
           "title": "Léo et la Boîte Mystérieuse",
           "launch": "bookReader",
           "url": "file=fr_boit_mysterieux.json",
-          "stars": 3
+          "stars": 3,
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Boukili",
@@ -45,7 +46,8 @@
           "launch": "spellingRace",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsTE.json",
           "stars": 3,
-          "webGame": true
+          "webGame": true,
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Math",
