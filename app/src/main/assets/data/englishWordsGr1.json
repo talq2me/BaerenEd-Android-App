@@ -1,13 +1,15 @@
 [
-  {"word":"mule","sentence":"The mule carried the heavy load."},
-  {"word":"mute","sentence":"Please mute your microphone."},
-  {"word":"cute","sentence":"The puppy is so cute."},
-  {"word":"cube","sentence":"I put an ice cube in my drink."},
-  {"word":"use","sentence":"I use a pencil to write."},
-  {"word":"muse","sentence":"The artist found a muse in nature."},
-  {"word":"fuse","sentence":"The fuse blew when the lights flickered."},
-  {"word":"fume","sentence":"Smoke began to fume from the engine."},
+  {"word":"tune","sentence":"She hummed a happy tune."},
+  {"word":"tone","sentence":"He spoke in a kind tone."},
+  {"word":"cone","sentence":"I ate an ice cream cone."},
+  {"word":"cane","sentence":"The sugar cane grows tall."},
+  {"word":"tame","sentence":"The rabbit is tame and gentle."},
+  {"word":"time","sentence":"What time is it?"},
+  {"word":"dime","sentence":"A dime is worth ten cents."},
+  {"word":"dome","sentence":"The dome on the building is round."},
+  {"word":"who","sentence":"Who is at the door?"},
+  {"word":"my","sentence":"This is my favorite book."},
+  {"word":"by","sentence":"The cat sat by the window."},
   {"word":"one","sentence":"I have one apple left."},
-  {"word":"once","sentence":"I went to the zoo once."},
-  {"word":"who","sentence":"Who is at the door?"}
+  {"word":"once","sentence":"I went to the zoo once."}
 ]
