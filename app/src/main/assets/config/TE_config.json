@@ -285,24 +285,11 @@
       "description": "Optional tasks for more stars",
       "tasks": [
         {
-          "title": "Sight Words",
-          "launch": "sightWords",
-          "stars": 1,
-          "totalQuestions": 1
-        },
-        {
           "title": "Math",
           "launch": "jkmath",
           "stars": 1,
           "totalQuestions": 1
         },
-        {
-          "title": "Sk Spellings",
-          "launch": "skSpelling",
-          "stars": 1,
-          "totalQuestions": 1
-        },
-       
         {
           "title": "Time Telling",
           "launch": "timeTelling",
