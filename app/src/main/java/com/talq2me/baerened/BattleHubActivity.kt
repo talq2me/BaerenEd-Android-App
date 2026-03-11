@@ -351,6 +351,10 @@ class BattleHubActivity : AppCompatActivity() {
         
         // Hide victory overlay initially
         victoryOverlay.visibility = View.GONE
+
+        // Earn Extra button: hidden/disabled until updateEarnButtonsState() confirms all required tasks are complete
+        earnExtraBerriesButton.visibility = View.GONE
+        earnExtraBerriesButton.isEnabled = false
         
         // Ensure sprites are visible
         playerPokemonSprite.visibility = View.VISIBLE
@@ -1345,6 +1349,8 @@ class BattleHubActivity : AppCompatActivity() {
         
         if (currentContent != null) {
             val progressManager = DailyProgressManager(this)
+            // Ensure we use current session data, not a stale cache
+            progressManager.invalidateCompletedTasksMapCache()
             // Use "required" so we only check required-section (and checklist) completion, not practice
             val completedTasksMap = progressManager.getCompletedTasksMap("required")
             
@@ -1407,8 +1413,13 @@ class BattleHubActivity : AppCompatActivity() {
                 true // No tasks without titles, so this check passes
             }
             
-            // When there are no required tasks, treat as "all complete" so Practice map can be shown
-            val allRequiredCompleted = (uniqueRequiredTaskNames.isEmpty() || allUniqueTasksCompleted) && allTasksWithoutTitlesCompleted
+            // Enable Earn Extra only when: (1) config has no required tasks at all, OR (2) all visible required tasks are completed.
+            // Do not enable when required tasks exist but are all filtered out (e.g. by day) — treat that as "not all complete".
+            val allRequiredCompleted = if (allRequiredTasks.isEmpty()) {
+                true
+            } else {
+                allUniqueTasksCompleted && allTasksWithoutTitlesCompleted
+            }
             
             android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: allRequiredCompleted: $allRequiredCompleted")
             
@@ -1418,6 +1429,10 @@ class BattleHubActivity : AppCompatActivity() {
             earnExtraBerriesButton.alpha = if (allRequiredCompleted) 1f else 0.5f
         } else {
             android.util.Log.w("BattleHubActivity", "updateEarnButtonsState: currentContent is null, cannot check task completion")
+            // When we can't verify completion, keep Earn Extra disabled and hidden
+            earnExtraBerriesButton.visibility = View.GONE
+            earnExtraBerriesButton.isEnabled = false
+            earnExtraBerriesButton.alpha = 0.5f
         }
     }
     
