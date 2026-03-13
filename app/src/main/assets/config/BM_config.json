@@ -24,6 +24,17 @@
       "tasks": [
        
         {
+          "title": "Google Classroom",
+          "launch": "googleClassroom",
+          "url": "https://classroom.google.com/c/Nzk1NzkwMDE0Mzk3",
+          "stars": 3,
+          "chromePage": true,
+          "disable": "Jan 2, 2026",
+          "displayDays": "tue,fri"
+        }
+
+
+        {
           "title": "Translation",
           "launch": "translation",
           "stars": 3,
@@ -41,6 +52,137 @@
           "stars": 3,
           "totalQuestions": 5
         },
+        {
+          "title": "Duological",
+          "launch": "duologicalGame",
+          "stars": 3,
+          "disable": "Jan 2, 2026",
+          "totalQuestions": 5,
+          "blockOutlines": true,
+          "displayDays": "fri"
+        },
+
+
+
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "mon",
+          "disable": "Mar 23, 2026",
+          "displayDays": "mon"
+        },
+        {
+          "title": "Word Garden",
+          "launch": "wordGarden",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "displayDays": "tue"
+        },
+        {
+          "title": "Word Fishing",
+          "launch": "wordFishing",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "displayDays": "wed"
+        },
+        {
+          "title": "Spelling Race",
+          "launch": "spellingRace",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "displayDays": "thu"
+        },
+        {
+          "title": "Eng Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=englishWordsGr4.json",
+          "stars": 3,
+          "disable": "Mar 3, 2026",
+          "displayDays": "tue,wed,thu"
+        },
+
+
+
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "easydays": "tue,wed",
+          "harddays": "thu,fri",
+          "displayDays": "tue,wed,thu,fri,sat,sun,mon"
+        },
+        {
+          "title": "FR Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=frenchWordsGr4.json",
+          "stars": 3,
+          "disable": "Mar 24, 2026",
+          "displayDays": "sat,sun,mon"
+        },
+        {
+          "title": "Word Garden",
+          "launch": "wordGarden",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "displayDays": "wed,sat"
+        },
+        {
+          "title": "Word Fishing",
+          "launch": "wordFishing",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "displayDays": "thu,sun"
+        },
+        {
+          "title": "Spelling Race",
+          "launch": "spellingRace",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=frenchWordsGr4.json",
+          "stars": 3,
+          "webGame": true,
+          "disable": "Mar 24, 2026",
+          "displayDays": "fri,mon"
+        },
+       
+
+
+         {
+          "title": "Google Read Along",
+          "launch": "googleReadAlong",
+          "disable": "Jan 2, 2026",
+          "stars": 1
+        },
+        {
+          "title": "Boukili",
+          "launch": "boukili",
+          "stars": 1
+        },
+        {
+          "title": "Je Lis",
+          "launch": "jeLis",
+          "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
+          "stars": 1,
+          "chromePage": true,
+          "displayDays": "tue,sat"
+        },
+
+
+        
         {
           "title": "Times Tables",
           "launch": "timesTables",
@@ -66,88 +208,6 @@
           "totalQuestions": 5,
           "displayDays": "thu"
         },
-        {
-          "title": "Eng Spelling",
-          "launch": "engSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "easydays": "mon",
-          "displayDays": "mon"
-        },
-        
-        {
-          "title": "Word Garden",
-          "launch": "wordGarden",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "displayDays": "tue"
-        },
-        
-        {
-          "title": "Word Fishing",
-          "launch": "wordFishing",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "displayDays": "wed"
-        },
-        {
-          "title": "Spelling Race",
-          "launch": "spellingRace",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "displayDays": "thu"
-        },
-        {
-          "title": "Fr Spelling",
-          "launch": "frSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
-          "stars": 3,
-          "webGame": true,
-          "easydays": "tue,wed",
-          "harddays": "thu,fri",
-          "displayDays": "tue,wed,thu,fri,sat,sun,mon"
-        },
-        
-        {
-          "title": "Eng Spelling OCR",
-          "launch": "spellingOCR",
-          "url": "file=englishWordsGr4.json",
-          "stars": 3,
-          "displayDays": "tue,wed,thu"
-        },
-        {
-          "title": "FR Spelling OCR",
-          "launch": "spellingOCR",
-          "url": "file=frenchWordsGr4.json",
-          "stars": 3,
-          "displayDays": "sat,sun,mon"
-        },
-       
-         {
-          "title": "Google Read Along",
-          "launch": "googleReadAlong",
-          "disable": "Jan 2, 2026",
-          "stars": 3
-        },
-        {
-          "title": "Boukili",
-          "launch": "boukili",
-          "stars": 3
-        },
-        {
-          "title": "Duological",
-          "launch": "duologicalGame",
-          "stars": 3,
-          "disable": "Jan 2, 2026",
-          "totalQuestions": 5,
-          "blockOutlines": true,
-          "displayDays": "fri"
-        },
-        
         {
           "title": "Fractions",
           "launch": "gr3fractions",
@@ -182,24 +242,8 @@
           "stars": 3,
           "totalQuestions": 5,
           "displayDays": "sun"
-        },
-        {
-          "title": "Je Lis",
-          "launch": "jeLis",
-          "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
-          "stars": 3,
-          "chromePage": true,
-          "displayDays": "tue,sat"
-        },
-        {
-          "title": "Google Classroom",
-          "launch": "googleClassroom",
-          "url": "https://classroom.google.com/c/Nzk1NzkwMDE0Mzk3",
-          "stars": 3,
-          "chromePage": true,
-          "disable": "Jan 2, 2026",
-          "displayDays": "tue,fri"
         }
+
       ]
     },
     {
@@ -207,9 +251,11 @@
       "title": "Checklist",
       "description": "Mark each one when done",
       "items": [
-        { "label": "French Reading", "stars": 0, "done": false, "id": "bm_french_reading", "displayDays": "thu,fri,sat,sun,mon,tue" },
+        { "label": "French Reading", "stars": 0, "done": false, "id": "bm_french_reading", "displayDays": "thu,fri,sat,sun,mon,tue", "disable": "Mar 25, 2026"},
+        { "label": "French Presentation", "stars": 0, "done": false, "id": "bm_french_presentation"},
+        { "label": "Math Club", "stars": 0, "done": false, "id": "bm_math_club"},
+        
         { "label": "Laundry", "stars": 0, "done": false, "id": "bm_laundry" },
-        { "label": "Speech", "stars": 0, "done": false, "id": "bm_speech" },
         { "label": "Practice Kung Fu", "stars": 0, "done": false, "id": "bm_practice_kung_fu" },
         { "label": "Push Ups: Pushes 22 reg & 5 knuckle", "stars": 0, "done": false, "id": "bm_push_ups" },
         { "label": "Practice piano", "stars": 0, "done": false, "id": "bm_practice_piano" }

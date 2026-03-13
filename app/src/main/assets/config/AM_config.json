@@ -32,119 +32,25 @@
           "stars": 3
         },
         {
-          "title": "Math",
-          "launch": "jkmath",
+          "title": "Google Classroom",
+          "launch": "googleClassroom",
+          "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
           "stars": 3,
-          "totalQuestions": 5,
-          "displayDays": "mon,wed,fri"
+          "chromePage": true,
+          "disable": "Jan 2, 2026",
+          "displayDays": "tue,fri"
         },
         {
-          "title": "Eng Spelling OCR",
-          "launch": "spellingOCR",
-          "url": "file=englishWordsGr1.json",
+          "title": "Je Lis",
+          "launch": "jeLis",
+          "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
           "stars": 3,
-          "displayDays": "thu,fri"
+          "chromePage": true,
+          "displayDays": "tue,sat"
         },
-        {
-          "title": "FR Spelling OCR",
-          "launch": "spellingOCR",
-          "url": "file=frenchWordsGr1.json",
-          "stars": 3,
-          "displayDays": "mon,tue,wed"
-        },
-        {
-          "title": "Eng Spelling",
-          "launch": "engSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
-          "stars": 3,
-          "webGame": true,
-          "easydays": "mon",
-          "harddays": "tue,wed",
-          "displayDays": "mon,tue,wed"
-        },
-        {
-          "title": "Fr Spelling",
-          "launch": "frSpelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
-          "stars": 3,
-          "webGame": true,
-          "easydays": "thu,fri",
-          "harddays": "sat,sun",
-          "displayDays": "thu,fri,sat,sun"
-        },
+
+
         
-        {
-          "title": "Time Telling",
-          "launch": "timeTelling",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
-          "stars": 3,
-          "webGame": true,
-          "totalQuestions": 5,
-          "displayDays": "thu"
-        },
-        {
-          "title": "Printing Practice",
-          "launch": "printing",
-          "stars": 3
-        },
-        {
-          "title": "Money Game",
-          "launch": "canadianMoneyEasy",
-          "stars": 3,
-          "totalQuestions": 5,
-          "displayDays": "wed"
-        },
-        {
-          "title": "Sentence Builder",
-          "launch": "englishSentences",
-          "stars": 3,
-          "totalQuestions": 3,
-          "blockOutlines": true
-        },
-        
-        {
-          "title": "Snake Catch",
-          "launch": "snakeCatch",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
-          "stars": 3,
-          "webGame": true,
-          "displayDays": "tue,fri,sat"
-        },
-        
-        {
-          "title": "Math Hole",
-          "launch": "mathHole",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
-          "stars": 3,
-          "webGame": true,
-          "totalQuestions": 5,
-          "displayDays": "wed,fri"
-        },
-        {
-          "title": "Word Garden",
-          "launch": "wordGarden",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
-          "stars": 3,
-          "webGame": true,
-          "displayDays": "tue,fri,sun"
-        },
-        {
-          "title": "Number Line Math",
-          "launch": "numberLineMath",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
-          "stars": 3,
-          "webGame": true,
-          "totalQuestions": 5
-        },
-        
-        {
-          "title": "Ten Frame Math",
-          "launch": "tenFrameMath",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
-          "stars": 3,
-          "webGame": true,
-          "totalQuestions": 5
-        },
         {
           "title": "Word Fishing",
           "launch": "wordFishing",
@@ -161,15 +67,124 @@
           "webGame": true,
           "displayDays": "thu,sun"
         },
+        {
+          "title": "FR Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=frenchWordsGr1.json",
+          "stars": 3,
+          "displayDays": "mon,tue,wed"
+        },
+        {
+          "title": "Fr Spelling",
+          "launch": "frSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "thu,fri",
+          "harddays": "sat,sun",
+          "displayDays": "thu,fri,sat,sun"
+        },
+        {
+          "title": "Word Garden",
+          "launch": "wordGarden",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri,sun"
+        },
+        {
+          "title": "Snake Catch",
+          "launch": "snakeCatch",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "tue,fri,sat"
+        },
+
+
+
+        {
+          "title": "Eng Spelling OCR",
+          "launch": "spellingOCR",
+          "url": "file=englishWordsGr1.json",
+          "stars": 3,
+          "displayDays": "thu,fri"
+        },
+        {
+          "title": "Eng Spelling",
+          "launch": "engSpelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "easydays": "mon",
+          "harddays": "tue,wed",
+          "displayDays": "mon,tue,wed"
+        },
+        
+        
         
         {
-          "title": "Google Classroom",
-          "launch": "googleClassroom",
-          "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
+          "title": "Printing Practice",
+          "launch": "printing",
+          "stars": 3
+        },
+        {
+          "title": "Sentence Builder",
+          "launch": "englishSentences",
           "stars": 3,
-          "chromePage": true,
-          "disable": "Jan 2, 2026",
-          "displayDays": "tue,fri"
+          "totalQuestions": 3,
+          "blockOutlines": true
+        },
+
+
+
+        {
+          "title": "Time Telling",
+          "launch": "timeTelling",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5,
+          "displayDays": "thu"
+        },
+        {
+          "title": "Money Game",
+          "launch": "canadianMoneyEasy",
+          "stars": 3,
+          "totalQuestions": 5,
+          "displayDays": "wed"
+        },        
+        {
+          "title": "Math Hole",
+          "launch": "mathHole",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5,
+          "displayDays": "wed,fri"
+        },
+        {
+          "title": "Number Line Math",
+          "launch": "numberLineMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
+        },
+        {
+          "title": "Math",
+          "launch": "jkmath",
+          "stars": 3,
+          "totalQuestions": 5,
+          "displayDays": "mon,wed,fri"
+        },
+        {
+          "title": "Ten Frame Math",
+          "launch": "tenFrameMath",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5
         }
       ]
     },
