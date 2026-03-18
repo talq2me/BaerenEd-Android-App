@@ -1,19 +1,21 @@
-remove checklist button
+\
 remove 2 extra options in baerened settings>profiles
 
 
-wordfactory is conveyorbelt only include letters in the word in random order so it doens't take too long.
+spelling gives option of loading OCR or Picture version
 
 
+bank account real $$ account
+daily tracking of coins earned > parent approval for earned coins > some kind of submittal for approval each week?
 
+parent report with weekly schedule with toggle on/off to enable/disable tasks for that day
 
+make <- back to reports button at top of all reports instead of bottom
 
+remove payout button from am/bm progress report
 
-take picture and upload to cloud?
+chores 4 $ report shows  chores completed today because it doesn't refresh to pull the current days complete chores**or the daily reset is not resetting these!!!
 
-Test on telephone
-
-Content updates
 google classroom on baels tablet.
 
 
