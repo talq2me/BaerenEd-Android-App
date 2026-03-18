@@ -1,6 +1,7 @@
 package com.talq2me.baerened
 
 import com.google.gson.annotations.SerializedName
+import java.math.BigDecimal
 
 /**
  * Data classes for cloud storage
@@ -33,6 +34,9 @@ data class CloudUserData(
     @SerializedName("banked_mins") val bankedMins: Int = 0,
     @SerializedName("berries_earned") val berriesEarned: Int = 0,
     @SerializedName("coins_earned") val coinsEarned: Int = 0,
+
+    // Kids virtual bank balance (parent updates; app displays). Nullable to avoid overwriting on uploads.
+    @SerializedName("kid_bank_balance") val kidBankBalance: BigDecimal? = null,
 
     // When set (e.g. by parent report "Pay out coins"), tablets accept cloud coins_earned=0 and apply it (override safeguard).
     @SerializedName("last_coins_payout_at") val lastCoinsPayoutAt: String? = null,

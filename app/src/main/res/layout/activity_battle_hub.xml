@@ -36,6 +36,16 @@
                     android:paddingEnd="8dp">
                     
                     <TextView
+                        android:id="@+id/bankCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="$0.00 🏦"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
                         android:id="@+id/coinCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

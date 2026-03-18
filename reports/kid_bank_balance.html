@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏦 Kids Bank Balance</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: #333;
+            padding: 10px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .kid-row {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border: 3px solid rgba(0,0,0,0.06);
+            padding: 16px;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .kid-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .profile-label {
+            font-size: 1.15em;
+            font-weight: 800;
+        }
+        .balance-label {
+            font-size: 1.3em;
+            font-weight: 900;
+            color: #0097A7;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        button {
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 10px 14px;
+            font-weight: 700;
+            color: white;
+        }
+        .btn-add { background: #43a047; }
+        .btn-remove { background: #e53935; }
+        .btn-cancel { background: #e0e0e0; color: #333; }
+        .btn-confirm { background: #4CAF50; color: white; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            min-width: 320px;
+        }
+        .modal-box h4 { margin-bottom: 12px; color: #333; }
+        .modal-box label { display: block; margin-bottom: 8px; color: #666; font-weight: 600; }
+        .modal-box input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .modal-actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Kids Bank Balance</h1>
+            <p>Parents can add or subtract virtual bank money per profile.</p>
+            <a href="index.html" class="back-button">← Back to Selection</a>
+        </div>
+
+        <div id="loading" style="text-align:center; color:#666;">Loading balances...</div>
+        <div id="error" class="error" style="display:none; color:#d32f2f; font-weight:700;"></div>
+        <div id="content" style="display:none;"></div>
+
+        <div id="adjustModal" class="modal-overlay">
+            <div class="modal-box">
+                <h4 id="adjustModalTitle">Adjust bank balance</h4>
+                <label for="adjustAmount">Amount (0.01 increments)</label>
+                <input type="number" id="adjustAmount" min="0" step="0.01" />
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="adjustCancel">Cancel</button>
+                    <button type="button" class="btn-confirm" id="adjustConfirm">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const isSafariOrIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome'));
+        const BANK_ICON = isSafariOrIOS ? '💰' : '🏦';
+
+        const supabaseUrl = localStorage.getItem('supabaseUrl');
+        const supabaseKey = localStorage.getItem('supabaseKey');
+
+        let adjustProfile = null;
+        let adjustMode = null; // "add" | "remove"
+        let lastBalancesByProfile = {};
+
+        function nowEST() {
+            const t = new Date();
+            const tf = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/New_York',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false
+            });
+            const parts = tf.formatToParts(t);
+            const get = (type) => parts.find(p => p.type === type).value;
+            const pad2 = (s) => String(s).padStart(2, '0');
+            return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
+        }
+
+        function formatMoney(amount) {
+            const safe = (typeof amount === 'number' && isFinite(amount)) ? amount : 0;
+            return `$${safe.toFixed(2)}`;
+        }
+
+        function setModalState(title, profile, mode, currentBalance) {
+            adjustProfile = profile;
+            adjustMode = mode;
+            const modalTitle = document.getElementById('adjustModalTitle');
+            modalTitle.textContent = title;
+
+            const input = document.getElementById('adjustAmount');
+            input.value = '0.00';
+            input.min = '0';
+            input.max = mode === 'remove' ? currentBalance : '';
+            input.focus();
+            input.select();
+        }
+
+        function openAdjustModal(profile, mode) {
+            const current = (lastBalancesByProfile[profile] || {}).kid_bank_balance || 0;
+            if (mode === 'remove') {
+                setModalState(`Remove money from ${profile}'s bank`, profile, mode, current);
+            } else {
+                setModalState(`Add money to ${profile}'s bank`, profile, mode, current);
+            }
+            document.getElementById('adjustModal').classList.add('show');
+        }
+
+        function closeAdjustModal() {
+            adjustProfile = null;
+            adjustMode = null;
+            document.getElementById('adjustModal').classList.remove('show');
+        }
+
+        async function fetchBalances() {
+            if (!supabaseUrl || !supabaseKey) {
+                throw new Error('Configuration required: set Supabase URL and API Key on index.html');
+            }
+            const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=in.(AM,BM,TE)&select=profile,kid_bank_balance`, {
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+
+            const rows = await response.json();
+            lastBalancesByProfile = {};
+            (rows || []).forEach(r => {
+                const raw = r.kid_bank_balance;
+                const num = (raw === null || raw === undefined) ? 0 : parseFloat(raw);
+                lastBalancesByProfile[r.profile] = { kid_bank_balance: isFinite(num) ? num : 0 };
+            });
+            return lastBalancesByProfile;
+        }
+
+        async function applyAdjust(profile, mode, amount) {
+            if (!supabaseUrl || !supabaseKey) return;
+
+            const current = (lastBalancesByProfile[profile] || {}).kid_bank_balance || 0;
+            const delta = Math.max(0, amount);
+
+            let next = current;
+            if (mode === 'add') {
+                next = current + delta;
+            } else if (mode === 'remove') {
+                next = current - delta;
+                // Clamp at 0 so we never create negative "virtual money".
+                next = Math.max(0, next);
+            }
+
+            // Keep to 2 decimals for storage.
+            next = Math.round(next * 100) / 100;
+
+            const now = nowEST();
+            const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${profile}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({
+                    kid_bank_balance: next,
+                    last_updated: now
+                })
+            });
+            if (!response.ok) throw new Error(await response.text() || response.statusText);
+        }
+
+        function render() {
+            const profiles = ['AM', 'BM', 'TE'];
+            const content = document.getElementById('content');
+
+            content.innerHTML = profiles.map(profile => {
+                const balance = (lastBalancesByProfile[profile] || {}).kid_bank_balance || 0;
+                return `
+                    <div class="kid-row">
+                        <div class="kid-left">
+                            <div class="profile-label">${profile}</div>
+                            <div class="balance-label">${formatMoney(balance)} ${BANK_ICON}</div>
+                        </div>
+                        <div class="actions">
+                            <button type="button" class="btn-add" onclick="openAdjustModal('${profile}', 'add')">Add</button>
+                            <button type="button" class="btn-remove" onclick="openAdjustModal('${profile}', 'remove')">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('adjustCancel').addEventListener('click', closeAdjustModal);
+        document.getElementById('adjustModal').addEventListener('click', (e) => {
+            if (e.target.id === 'adjustModal') closeAdjustModal();
+        });
+
+        document.getElementById('adjustConfirm').addEventListener('click', async () => {
+            if (!adjustProfile || !adjustMode) return;
+            const input = document.getElementById('adjustAmount');
+            const amount = parseFloat(input.value);
+
+            if (!isFinite(amount) || amount < 0) {
+                alert('Please enter a valid amount (0 or more).');
+                return;
+            }
+            try {
+                await applyAdjust(adjustProfile, adjustMode, amount);
+                closeAdjustModal();
+                await fetchBalances();
+                render();
+            } catch (e) {
+                alert('Update failed: ' + (e.message || e));
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                await fetchBalances();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                render();
+            } catch (e) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').innerHTML = '<strong>Error:</strong> ' + (e.message || e);
+            }
+        });
+    </script>
+</body>
+</html>
+

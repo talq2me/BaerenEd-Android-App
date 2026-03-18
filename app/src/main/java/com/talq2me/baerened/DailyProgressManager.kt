@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
+import java.math.BigDecimal
 
 /**
  * Manages daily progress tracking for games and tasks.
@@ -1717,6 +1718,16 @@ class DailyProgressManager(private val context: Context) {
     fun getCoinsEarned(profile: String? = null): Int {
         val p = profile ?: getCurrentKid()
         return prefs.getInt("${p}_$KEY_COINS_EARNED", 0)
+    }
+
+    /**
+     * Kids virtual bank balance (parent adds/subtracts). Never reset.
+     * This is read from the last DB fetch session data so app UI can display it,
+     * while uploads/payloads omit it when unknown (nullable in CloudUserData).
+     */
+    fun getKidBankBalance(profile: String? = null): BigDecimal {
+        val p = profile ?: getCurrentKid()
+        return dataForProfile(p, null)?.kidBankBalance ?: BigDecimal.ZERO
     }
 
     /**

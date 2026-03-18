@@ -42,6 +42,7 @@ class BattleHubActivity : AppCompatActivity() {
 
     private lateinit var headerTitle: TextView
     private lateinit var coinCount: TextView
+    private lateinit var bankCount: TextView
     private lateinit var berryCountDisplay: TextView
     private lateinit var minuteCount: TextView
     private lateinit var pokedexContent: HorizontalScrollView
@@ -286,6 +287,9 @@ class BattleHubActivity : AppCompatActivity() {
             }
             
             // Display coins and berries - coins from required tasks, berries show all earned
+            val kidBankBalance = progressManager.getKidBankBalance()
+            val bankAmount = kidBankBalance.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+            bankCount.text = "$$bankAmount 🏦"
             coinCount.text = "$earnedCoins ${icons.coinsIcon}"
             // Simple: just get earned berries directly
             val allEarnedStars = progressManager.getEarnedBerries()
@@ -304,6 +308,9 @@ class BattleHubActivity : AppCompatActivity() {
             
             android.util.Log.d("BattleHubActivity", "updateCountsDisplay (fallback): earnedCoins=$earnedCoins, earnedStars=$earnedStars, rewardMinutes=$rewardMinutes")
             
+            val kidBankBalance = progressManager.getKidBankBalance()
+            val bankAmount = kidBankBalance.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+            bankCount.text = "$$bankAmount 🏦"
             coinCount.text = "$earnedCoins 🪙"
             berryCountDisplay.text = "$earnedStars 🍍"
             minuteCount.text = "$rewardMinutes ⏱️"
@@ -321,6 +328,7 @@ class BattleHubActivity : AppCompatActivity() {
     
     private fun initializeViews() {
         headerTitle = findViewById(R.id.headerTitle)
+        bankCount = findViewById(R.id.bankCount)
         coinCount = findViewById(R.id.coinCount)
         berryCountDisplay = findViewById(R.id.berryCountDisplay)
         minuteCount = findViewById(R.id.minuteCount)

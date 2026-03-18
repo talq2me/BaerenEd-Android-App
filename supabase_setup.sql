@@ -95,6 +95,9 @@ CREATE TABLE IF NOT EXISTS user_data (
     berries_earned INTEGER DEFAULT 0,
     coins_earned INTEGER DEFAULT 0,
 
+    -- Kids virtual bank balance (parent can add/remove; displayed in BaerenEd Battle Hub)
+    kid_bank_balance NUMERIC(12,2) DEFAULT 0,
+
     -- Parent report "Pay out coins": when set, tablets accept cloud coins_earned=0 (override safeguard). TIMESTAMP(3) EST, same as last_updated.
     last_coins_payout_at TIMESTAMP(3) NULL,
 
