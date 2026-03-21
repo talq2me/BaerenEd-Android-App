@@ -13,6 +13,22 @@ APK_SOURCE="app/build/outputs/apk/release/app-release.apk"
 PAGES_APK_PATH="app/release/app-release.apk"
 
 ### --- HELPER FUNCTION --- ###
+# Stop Gradle daemon (helps release file locks on Windows before clean).
+stop_gradle_daemon() {
+    ./gradlew --stop 2>/dev/null || true
+}
+
+# Run clean if possible; on Windows clean often fails if IDE/Explorer/antivirus holds app/build — don't abort the script.
+try_clean() {
+    stop_gradle_daemon
+    if ./gradlew clean; then
+        echo "Clean succeeded."
+    else
+        echo "WARN: gradlew clean failed (often Windows file locks on app/build). Continuing without clean."
+        echo "      Close Android Studio, Explorer windows in the project, or retry after ./gradlew --stop"
+    fi
+}
+
 # Read property from local.properties file
 getLocalProperty() {
     local key=$1
@@ -46,7 +62,8 @@ echo "New version: $NEW_VERSION"
 echo "Running pre-build check (unit tests) to verify code quality..."
 echo "This ensures the build will succeed and tests pass before we update version numbers."
 
-./gradlew clean test
+try_clean
+./gradlew test
 
 if [ $? -ne 0 ]; then
     echo "ERROR: Pre-build check failed! Fix compilation errors or failing tests before releasing."
@@ -89,7 +106,8 @@ sed -i "s/\"latestVersionCode\":.*/\"latestVersionCode\": $NEW_VERSION,/" "$VERS
 ### --- BUILD SIGNED APK --- ###
 echo "Building signed APK..."
 
-./gradlew clean assembleRelease -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
+try_clean
+./gradlew assembleRelease -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
   -Pandroid.injected.signing.store.password="$STOREPASS" \
   -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
   -Pandroid.injected.signing.key.password="$STOREPASS"
