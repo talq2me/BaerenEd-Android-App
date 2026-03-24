@@ -19,7 +19,7 @@ BEGIN
   UPDATE user_data
   SET
     game_indices = jsonb_set(COALESCE(cur, '{}'::jsonb), ARRAY[p_game_key], to_jsonb(p_index)::jsonb, true),
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;

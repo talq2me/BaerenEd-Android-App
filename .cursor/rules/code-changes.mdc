@@ -25,7 +25,7 @@ These require explicit user approval before ANY modification:
 
 - ❌ Never add "protective" logic like `max(local, cloud)` - timestamps determine winner
 - ❌ Never add extra sync calls "just to be safe"
-- ❌ Never change timestamp formats (must be `yyyy-MM-dd HH:mm:ss.SSS` in EST)
+- ❌ Never change timestamp formats (must be `yyyy-MM-dd HH:mm:ss.SSS` in America/Toronto)
 - ❌ Never rename SharedPreferences keys
 - ❌ Never assume you know better than the requirements docs
 

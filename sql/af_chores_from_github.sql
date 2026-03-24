@@ -42,7 +42,7 @@ BEGIN
   ) INTO merged_chores
   FROM jsonb_array_elements(chores_json) c;
 
-  UPDATE user_data SET chores = COALESCE(merged_chores, '[]'::jsonb), last_updated = (NOW() AT TIME ZONE 'America/New_York') WHERE profile = p_profile;
+  UPDATE user_data SET chores = COALESCE(merged_chores, '[]'::jsonb), last_updated = (NOW() AT TIME ZONE 'America/Toronto') WHERE profile = p_profile;
 END;
 $$;
 

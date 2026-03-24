@@ -70,10 +70,14 @@ class ContentUpdateService : Service() {
     }
 
     /**
-     * ONLINE-ONLY: Fetch from GitHub only. No fallback to cache or asset — if network fails, returns null
-     * so the UI can show that content is unavailable (no network).
+     * Main config JSON: in-memory if already fetched this session, else GitHub raw URL.
+     * No local asset fallback — Trainer Map / RPC merge is expected to populate DB; UI that needs config loads after network succeeds.
      */
     fun getCachedMainContent(context: Context): String? {
+        inMemoryMainContent?.let {
+            Log.d(TAG, "getCachedMainContent: using in-memory copy (length=${it.length})")
+            return it
+        }
         return try {
             val baseUrl = getContentUrlForChild(context)
             val urlWithBust = "$baseUrl?nocache=${System.currentTimeMillis()}"
@@ -88,6 +92,11 @@ class ContentUpdateService : Service() {
                 if (body != null) {
                     Log.d(TAG, "getCachedMainContent: Fetched from GitHub (length=${body.length})")
                     inMemoryMainContent = body
+                    try {
+                        val content = Gson().fromJson(body, MainContent::class.java)
+                        inMemoryMainContentVersion = content.version
+                    } catch (_: Exception) { /* ignore */ }
+                    response.close()
                     return body
                 }
             }

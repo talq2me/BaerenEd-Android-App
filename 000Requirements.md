@@ -22,8 +22,8 @@ This document contains all requirements for the BaerenEd application.
 
 ## Daily Reset
 
-- When we try to read content from the DB and **last_reset was not today** (compare **date part** only, EST):
-  1. Run a **DB update** that **blanks**: **required_tasks**, **checklist_items**, **practice_tasks**, **berries_earned**, **banked_mins**, **chores**. Set **last_reset** to now() EST.
+- When we try to read content from the DB and **last_reset was not today** (compare **date part** only, Toronto time):
+  1. Run a **DB update** that **blanks**: **required_tasks**, **checklist_items**, **practice_tasks**, **berries_earned**, **banked_mins**, **chores**. Set **last_reset** to now() in `America/Toronto`.
   2. **Do not** change **coins_earned**, **pokemon_unlocked**, or **game_indices**.
   3. **Restore from GitHub** as needed: tasks/checklist when Trainer Map loads; **chores** from chores config when the app needs to show chores (default all `done = false`).
   4. Then **load data from the DB** and show it.
@@ -35,6 +35,30 @@ This document contains all requirements for the BaerenEd application.
 - On display/refresh: **Check last_reset** to determine if a daily reset is needed; if so, run the DB reset above, then load from DB.
 - **Read from DB** for the profile: **berries_earned**, **coins_earned**, **banked_mins** (reward time), **pokemon_unlocked**.
 - Draw those elements from the loaded DB data only (no local cache for this).
+
+---
+
+## Reward Time Usage Flow (BaerenLock + Parent Add Time)
+
+- **banked_mins remains the stored reward pool** in DB. Kids earn it from tasks; parents can add minutes from BaerenEd or BaerenLock.
+- **BaerenLock does not auto-start reward sessions.** A child must press **Use Reward Time**.
+- **BaerenLock reward button visibility:**
+  - Show **Pause Reward Time** when `reward_time_expiry` exists and is still in the future (active session).
+  - Show **Use Reward Time** when there is no active session and `banked_mins > 0`.
+  - Show no reward action button when there is no active session and `banked_mins = 0`.
+- **Start/Unpause (`use_reward_time`):**
+  - DB function reads `banked_mins`, sets `reward_time_expiry = now(America/Toronto) + banked_mins`, then sets `banked_mins = 0`.
+  - BaerenLock then allows reward apps.
+- **Pause (`pause_reward_time`):**
+  - BaerenLock removes/blocks reward apps immediately.
+  - DB function calculates remaining time as `reward_time_expiry - now(America/Toronto)` in whole minutes, writes that back to `banked_mins`, and clears `reward_time_expiry`.
+- **Active session check:**
+  - While a reward session is active, BaerenLock checks DB every minute.
+  - If `now(America/Toronto) >= reward_time_expiry`, BaerenLock blocks reward apps and calls `expire_rewards` to clear `reward_time_expiry`.
+  - If `now(America/Toronto) < reward_time_expiry`, BaerenLock keeps reward apps available.
+- **Parent add-time behavior (`add_reward_time`):**
+  - If `reward_time_expiry` is active/future, add minutes to `reward_time_expiry`.
+  - If no active expiry, add minutes to `banked_mins`.
 
 ---
 

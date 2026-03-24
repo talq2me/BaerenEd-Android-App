@@ -14,7 +14,7 @@ BEGIN
   UPDATE user_data
   SET
     pokemon_unlocked = p_pokemon_unlocked,
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;

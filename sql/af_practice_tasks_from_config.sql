@@ -54,7 +54,7 @@ BEGIN
 
   UPDATE user_data SET
     practice_tasks = merged_practice,
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;

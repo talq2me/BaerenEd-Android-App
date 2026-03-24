@@ -184,7 +184,7 @@ class DailyProgressManager(private val context: Context) {
      */
     private fun getCurrentDateString(): String {
         val format = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault())
-        format.timeZone = TimeZone.getTimeZone("America/New_York")
+        format.timeZone = TimeZone.getTimeZone("America/Toronto")
         val date = format.format(Date())
         Log.d("DailyProgressManager", "Current date string (EST): $date")
         return date
@@ -246,7 +246,7 @@ class DailyProgressManager(private val context: Context) {
                                     if (!cloudLastReset.isNullOrEmpty()) {
                                         // user_data.last_reset is returned in EST — parse as EST, do not convert
                                         try {
-                                            val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                                            val estTimeZone = java.util.TimeZone.getTimeZone("America/Toronto")
                                             
                                             // Strip timezone offset and milliseconds if present
                                             // Handle formats like: "2026-01-12T07:40:28", "2026-01-12T07:40:28.123", "2026-01-12T07:40:28-05:00", "2026-01-12T07:40:28Z"
@@ -410,7 +410,7 @@ class DailyProgressManager(private val context: Context) {
         // Parse the timestamp and check if it's today
         try {
             val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-            timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+            timestampFormat.timeZone = TimeZone.getTimeZone("America/Toronto")
             val resetDate = timestampFormat.parse(profileLastReset)
             
             if (resetDate == null) {
@@ -419,8 +419,8 @@ class DailyProgressManager(private val context: Context) {
             }
             
             // Get today's date in EST
-            val today = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
-            val resetCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
+            val today = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"))
+            val resetCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"))
             resetCalendar.time = resetDate
             
             val isToday = today.get(Calendar.YEAR) == resetCalendar.get(Calendar.YEAR) &&
@@ -478,7 +478,7 @@ class DailyProgressManager(private val context: Context) {
                         if (!cloudLastReset.isNullOrEmpty()) {
                             // Convert cloud's ISO 8601 timestamp to our format (yyyy-MM-dd HH:mm:ss.SSS)
                             try {
-                                val estTimeZone = TimeZone.getTimeZone("America/New_York")
+                                val estTimeZone = TimeZone.getTimeZone("America/Toronto")
                                 
                                 // Strip timezone offset and parse
                                 var timestampToParse = cloudLastReset
@@ -552,7 +552,7 @@ class DailyProgressManager(private val context: Context) {
         } else {
             // Cloud not enabled - generate timestamp locally
             val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-            timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+            timestampFormat.timeZone = TimeZone.getTimeZone("America/Toronto")
             val formattedTimestamp = timestampFormat.format(Date())
             
             val profileLastResetKey = "${profile}_$KEY_PROFILE_LAST_RESET"
@@ -1478,6 +1478,39 @@ class DailyProgressManager(private val context: Context) {
         return data?.berriesEarned ?: 0
     }
 
+    /** user_data.possible_stars from last DB fetch (session). */
+    fun getPossibleStarsFromSession(): Int {
+        return dataForProfile(getCurrentKid(), null)?.possibleStars ?: 0
+    }
+
+    /**
+     * True when every **visible today** required task and every **visible** checklist item (with stars) is done.
+     * Uses `required_tasks` / `checklist_items` from the last DB fetch only — no GitHub config.
+     */
+    fun areAllVisibleRequiredAndChecklistCompleteFromDb(): Boolean {
+        val data = dataForProfile(getCurrentKid(), null) ?: return false
+        var anyVisible = false
+
+        data.requiredTasks.forEach { (_, tp) ->
+            if (!TaskVisibilityChecker.isTaskVisible(tp.showdays, tp.hidedays, tp.displayDays, tp.disable)) return@forEach
+            anyVisible = true
+            if (tp.status != "complete") return false
+        }
+
+        data.checklistItems.forEach { (_, cp) ->
+            if (cp.stars <= 0) return@forEach
+            if (!TaskVisibilityChecker.isTaskVisible(null, null, cp.displayDays, null)) return@forEach
+            anyVisible = true
+            if (!cp.done) return false
+        }
+
+        // Nothing visible today: only treat as "all done" if there is literally nothing in DB.
+        if (!anyVisible) {
+            return data.requiredTasks.isEmpty() && data.checklistItems.isEmpty()
+        }
+        return true
+    }
+
     /** Updates session data with earned berries (display only). DB berries are updated only by task/checklist RPCs when status=complete or done=true. */
     fun setEarnedBerries(amount: Int) {
         val profile = getCurrentKid()
@@ -1750,13 +1783,9 @@ class DailyProgressManager(private val context: Context) {
         val p = profile ?: getCurrentKid()
         val fromSession = currentSessionData?.takeIf { it.profile == toCloudProfile(p) }?.chores
         if (!fromSession.isNullOrEmpty()) return fromSession
-        val key = "${p}_chores"
-        val json = prefs.getString(key, "[]") ?: "[]"
-        return try {
-            gson.fromJson(json, object : TypeToken<List<ChoreProgress>>() {}.type) ?: emptyList()
-        } catch (_: Exception) {
-            emptyList()
-        }
+        // No local/prefs fallback: chores must come from the last DB fetch/reset.
+        Log.w("DailyProgressManager", "getChores: returning empty (no DB/session chores) for profile: $p")
+        return emptyList()
     }
 
     /** Writes to prefs; caller must sync to DB. */
@@ -1772,33 +1801,9 @@ class DailyProgressManager(private val context: Context) {
      * Call from getContentFromJson and Chores screen.
      */
     fun loadChoresFromJsonIfNeeded(profile: String? = null) {
-        val p = profile ?: getCurrentKid()
-        val stored = getChores(p)
-        val json = ContentUpdateService().getCachedChores(context)
-        val fromFile = if (!json.isNullOrEmpty()) {
-            try {
-                val type = object : com.google.gson.reflect.TypeToken<List<ChoreJsonItem>>() {}.type
-                val list: List<ChoreJsonItem> = gson.fromJson(json, type) ?: emptyList()
-                list.map { ChoreProgress(choreId = it.id, description = it.description, coinsReward = it.coins, done = false) }
-            } catch (e: Exception) {
-                Log.e("DailyProgressManager", "Error parsing chores.json", e)
-                emptyList<ChoreProgress>()
-            }
-        } else {
-            emptyList<ChoreProgress>()
-        }
-        if (fromFile.isEmpty()) return
-        val merged = if (stored.isEmpty()) {
-            fromFile
-        } else {
-            val byId = stored.associateBy { it.choreId }
-            fromFile.map { from ->
-                byId[from.choreId]?.let { existing ->
-                    from.copy(done = existing.done)
-                } ?: from
-            }
-        }
-        saveChores(p, merged)
+        // Intentionally disabled: chores must be DB-backed. If the DB/restore fails,
+        // we want the UI to show empty + error (not silently repopulate from local GitHub/assets).
+        Log.w("DailyProgressManager", "loadChoresFromJsonIfNeeded: ignored; chores must come from DB for profile=${profile ?: getCurrentKid()}")
     }
 
     private data class ChoreJsonItem(val id: Int, val description: String, val coins: Int)

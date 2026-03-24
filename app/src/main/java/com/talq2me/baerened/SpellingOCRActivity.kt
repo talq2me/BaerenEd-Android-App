@@ -651,7 +651,7 @@ class SpellingOCRActivity : AppCompatActivity() {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
                 val base64Image = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
                 
-                // Get timestamp in EST
+                // Get timestamp in America/Toronto
                 val captureDateTime = cloudSyncService.generateESTTimestamp()
                 
                 val supabaseUrl = cloudSyncService.getSupabaseUrl()

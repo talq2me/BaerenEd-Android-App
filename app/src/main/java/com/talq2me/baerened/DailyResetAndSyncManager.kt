@@ -287,7 +287,6 @@ class DailyResetAndSyncManager(private val context: Context) {
             "checklist_items" to mergedChecklist,
             "practice_tasks" to mergedPractice,
             "bonus_tasks" to mergedBonus,
-            "possible_stars" to possibleStars,
             "last_updated" to now
         )
         val uploadResult = syncService.patchUserDataColumns(profile, patchPayload)
@@ -670,8 +669,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             updateTaskStructuresFromConfig(mainContent, profile, progressPrefs, existingRequiredTasks)
         }
 
-        // Populate chores from chores.json if needed (merge by chore_id)
-        progressManager.loadChoresFromJsonIfNeeded(profile)
+        // Chores must be DB-backed; local chores.json fallback intentionally disabled.
     }
     
     /**
@@ -926,7 +924,7 @@ class DailyResetAndSyncManager(private val context: Context) {
 
     /** Today's date in EST (yyyy-MM-dd). System now() is UTC; we convert to EST for comparison with last_reset. */
     private fun getTodayDatePartEST(): String {
-        val estZone = TimeZone.getTimeZone("America/New_York")
+        val estZone = TimeZone.getTimeZone("America/Toronto")
         val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = estZone }
         return fmt.format(Date())
     }
@@ -934,7 +932,7 @@ class DailyResetAndSyncManager(private val context: Context) {
     /** Parses last_reset to a Date then formats that instant in EST as yyyy-MM-dd. Returns null on parse failure. */
     private fun getLastResetDatePartEST(timestamp: String?): String? {
         if (timestamp.isNullOrEmpty()) return null
-        val estZone = TimeZone.getTimeZone("America/New_York")
+        val estZone = TimeZone.getTimeZone("America/Toronto")
         val date = parseLastResetToDate(timestamp.trim()) ?: return null
         val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply { timeZone = estZone }
         return fmt.format(date)
@@ -946,7 +944,7 @@ class DailyResetAndSyncManager(private val context: Context) {
      */
     private fun parseLastResetToDate(timestamp: String): Date? {
         val trimmed = timestamp.trim()
-        val estZone = TimeZone.getTimeZone("America/New_York")
+        val estZone = TimeZone.getTimeZone("America/Toronto")
         return try {
             // user_data.last_reset is stored and returned in EST (no conversion).
             if (!trimmed.contains("T")) {
@@ -1169,7 +1167,7 @@ class DailyResetAndSyncManager(private val context: Context) {
         val all = targetPrefs.all
         if (all.isEmpty()) return
 
-        val estZone = TimeZone.getTimeZone("America/New_York")
+        val estZone = TimeZone.getTimeZone("America/Toronto")
         val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault()).apply {
             timeZone = estZone
         }
@@ -1226,7 +1224,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             }
             baseTimestamp = baseTimestamp.replace('T', ' ')
 
-            val estZone = TimeZone.getTimeZone("America/New_York")
+            val estZone = TimeZone.getTimeZone("America/Toronto")
             val formats = listOf(
                 "yyyy-MM-dd HH:mm:ss.SSS",
                 "yyyy-MM-dd HH:mm:ss.SS",
@@ -1250,12 +1248,12 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
     
     /**
-     * Now() at EST. Format: yyyy-MM-dd HH:mm:ss.SSS (America/New_York).
+     * Now() in America/Toronto. Format: yyyy-MM-dd HH:mm:ss.SSS.
      */
     /** System now() is UTC; we convert to EST for the DB. */
     private fun generateESTTimestampString(): String {
         val timestampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-        timestampFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+        timestampFormat.timeZone = TimeZone.getTimeZone("America/Toronto")
         return timestampFormat.format(Date())
     }
     
@@ -1303,7 +1301,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             for (formatStr in formats) {
                 try {
                     val parseFormat = SimpleDateFormat(formatStr, Locale.getDefault())
-                    parseFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+                    parseFormat.timeZone = TimeZone.getTimeZone("America/Toronto")
                     parsedDate = parseFormat.parse(baseTimestamp)
                     if (parsedDate != null) break
                 } catch (e: Exception) {
@@ -1313,7 +1311,7 @@ class DailyResetAndSyncManager(private val context: Context) {
             
             if (parsedDate != null) {
                 val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
-                outputFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+                outputFormat.timeZone = TimeZone.getTimeZone("America/Toronto")
                 outputFormat.format(parsedDate)
             } else {
                 Log.e(TAG, "Could not parse timestamp with any format: $isoTimestamp")
@@ -1330,7 +1328,7 @@ class DailyResetAndSyncManager(private val context: Context) {
      * "Today" is in EST. Matches the logic in DailyProgressManager.isTaskVisible().
      */
     private fun isTaskVisibleToday(showdays: String?, hidedays: String?, displayDays: String?, disable: String?): Boolean {
-        val estZone = TimeZone.getTimeZone("America/New_York")
+        val estZone = TimeZone.getTimeZone("America/Toronto")
         // Check disable date first - if current date (EST) is before disable date, hide the task
         if (!disable.isNullOrEmpty()) {
             try {
@@ -1395,7 +1393,7 @@ class DailyResetAndSyncManager(private val context: Context) {
         Log.d(TAG, "setLastResetToYesterday() started for profile: $profile")
         
         // Calculate yesterday in EST
-        val estTimeZone = TimeZone.getTimeZone("America/New_York")
+        val estTimeZone = TimeZone.getTimeZone("America/Toronto")
         val calendar = Calendar.getInstance(estTimeZone)
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         

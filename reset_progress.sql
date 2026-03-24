@@ -39,8 +39,8 @@ BEGIN
         banked_mins = 0,
         
         -- Update reset timestamp
-        last_reset = NOW() AT TIME ZONE 'EST',
-        last_updated = NOW() AT TIME ZONE 'EST'
+        last_reset = NOW() AT TIME ZONE 'America/Toronto',
+        last_updated = NOW() AT TIME ZONE 'America/Toronto'
     WHERE profile = target_profile;
     
     RAISE NOTICE 'Progress reset completed for profile: %', target_profile;
@@ -77,8 +77,8 @@ BEGIN
         banked_mins = 0,
         
         -- Update reset timestamp
-        last_reset = NOW() AT TIME ZONE 'EST',
-        last_updated = NOW() AT TIME ZONE 'EST';
+        last_reset = NOW() AT TIME ZONE 'America/Toronto',
+        last_updated = NOW() AT TIME ZONE 'America/Toronto';
     
     RAISE NOTICE 'Progress reset completed for all profiles';
 END;

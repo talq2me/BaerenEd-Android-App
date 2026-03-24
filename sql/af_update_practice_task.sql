@@ -108,7 +108,7 @@ BEGIN
     practice_tasks = updated_practice,
     berries_earned = COALESCE(berries_earned, 0) + add_berries,
     banked_mins = COALESCE(banked_mins, 0) + add_mins,
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;

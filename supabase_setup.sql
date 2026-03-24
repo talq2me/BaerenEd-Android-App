@@ -19,7 +19,7 @@
 -- ============================================================================
 -- When parent clicks "Pay out coins" on the report, we set coins_earned=0 and last_coins_payout_at.
 -- Tablets then accept cloud coins_earned=0 on sync (override of the usual "never go backwards" safeguard).
--- Same as other timestamp columns: TIMESTAMP(3), EST.
+-- Same as other timestamp columns: TIMESTAMP(3), America/Toronto.
 --
 -- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS last_coins_payout_at TIMESTAMP(3) NULL;
 --
@@ -28,23 +28,23 @@
 -- ============================================================================
 -- If upgrading from a version that had TIMESTAMP WITH TIME ZONE, run these
 -- commands to convert all timestamp fields to TIMESTAMP(3) without timezone.
--- All timestamps are stored in EST and should be compared as EST times.
+-- All timestamps are stored in America/Toronto and should be compared in that timezone.
 -- The code expects timestamps without timezone suffixes (e.g., no +00:00 or -05:00).
 --
 -- Run these ALTER statements to remove timezone from timestamp fields:
 --
--- ALTER TABLE settings ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'EST');
--- ALTER TABLE user_data ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'EST');
--- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING (last_reset AT TIME ZONE 'EST');
--- ALTER TABLE devices ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'EST');
--- ALTER TABLE devices ALTER COLUMN baerenlock_last_health_check TYPE TIMESTAMP(3) USING (baerenlock_last_health_check AT TIME ZONE 'EST');
+-- ALTER TABLE settings ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'America/Toronto');
+-- ALTER TABLE user_data ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'America/Toronto');
+-- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING (last_reset AT TIME ZONE 'America/Toronto');
+-- ALTER TABLE devices ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING (last_updated AT TIME ZONE 'America/Toronto');
+-- ALTER TABLE devices ALTER COLUMN baerenlock_last_health_check TYPE TIMESTAMP(3) USING (baerenlock_last_health_check AT TIME ZONE 'America/Toronto');
 --
 -- ============================================================================
 -- Previous upgrade scripts (for reference):
 --
 -- Note: If upgrading from previous version, you may need to run:
 -- ALTER TABLE user_data ALTER COLUMN last_updated TYPE TIMESTAMP(3) USING last_updated AT TIME ZONE 'UTC' AT TIME ZONE 'GMT';
--- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING last_reset AT TIME ZONE 'UTC' AT TIME ZONE 'EST';
+-- ALTER TABLE user_data ALTER COLUMN last_reset TYPE TIMESTAMP(3) USING last_reset AT TIME ZONE 'UTC' AT TIME ZONE 'America/Toronto';
 --
 -- Upgrade script to add checklist_items column (run this if the column doesn't exist):
 -- ALTER TABLE user_data ADD COLUMN IF NOT EXISTS checklist_items JSONB DEFAULT '{}'::jsonb;
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Kids virtual bank balance (parent can add/remove; displayed in BaerenEd Battle Hub)
     kid_bank_balance NUMERIC(12,2) DEFAULT 0,
 
-    -- Parent report "Pay out coins": when set, tablets accept cloud coins_earned=0 (override safeguard). TIMESTAMP(3) EST, same as last_updated.
+    -- Parent report "Pay out coins": when set, tablets accept cloud coins_earned=0 (override safeguard). TIMESTAMP(3) America/Toronto, same as last_updated.
     last_coins_payout_at TIMESTAMP(3) NULL,
 
     -- Chores 4 $$: JSONB array of { chore_id, description, coins_reward, done }; done resets daily
@@ -111,10 +111,10 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Includes regular games, web games, and videos
     game_indices JSONB DEFAULT '{}'::jsonb,
 
-    -- Metadata (stored in EST)
-    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST'),
+    -- Metadata (stored in America/Toronto)
+    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto'),
 
-    -- Reward time expiry: when reward minutes must be used by (EST). Null = no expiry. Set by BaerenLock when granting time.
+    -- Reward time expiry: when reward minutes must be used by (America/Toronto). Null = no expiry. Set by BaerenLock when granting time.
     reward_time_expiry TIMESTAMP(3) NULL,
 
     reward_apps TEXT, -- JSON array of package names as string
@@ -157,7 +157,7 @@ CREATE POLICY "Allow all operations" ON user_data
 -- CREATE OR REPLACE FUNCTION update_last_updated()
 -- RETURNS TRIGGER AS $$
 -- BEGIN
---     NEW.last_updated = NOW() AT TIME ZONE 'EST';
+--     NEW.last_updated = NOW() AT TIME ZONE 'America/Toronto';
 --     RETURN NEW;
 -- END;
 -- $$ LANGUAGE plpgsql;
@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS settings (
     parent_email VARCHAR(128),
     pin VARCHAR(8),
     aggressive_cleanup BOOLEAN DEFAULT true,
-    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST')
+    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto')
 );
 
 
@@ -196,7 +196,7 @@ CREATE POLICY "Allow all operations on settings" ON settings
 -- CREATE OR REPLACE FUNCTION update_settings_timestamp()
 -- RETURNS TRIGGER AS $$
 -- BEGIN
---     NEW.last_updated = NOW() AT TIME ZONE 'EST';
+--     NEW.last_updated = NOW() AT TIME ZONE 'America/Toronto';
 --     RETURN NEW;
 -- END;
 -- $$ LANGUAGE plpgsql;
@@ -225,9 +225,9 @@ BEGIN
         required_tasks = '{}'::jsonb,
         practice_tasks = '{}'::jsonb,
         bonus_tasks = '{}'::jsonb,
-        last_reset = NOW() AT TIME ZONE 'EST',
+        last_reset = NOW() AT TIME ZONE 'America/Toronto',
         berries_earned = 0,
-        last_updated = NOW() AT TIME ZONE 'EST';
+        last_updated = NOW() AT TIME ZONE 'America/Toronto';
 
     -- Log the reset operation
     RAISE NOTICE 'Daily progress reset completed for all profiles at %', NOW();
@@ -247,7 +247,7 @@ $$;
 -- NOTE: Daily reset trigger has been removed.
 -- Daily reset is now handled by the app code (daily_reset_process() method).
 -- The app compares local.profile.last_reset with cloud.profile.last_reset to determine when to reset.
--- To manually trigger a reset, set cloud.profile.last_reset and local.profile.last_reset to now() at EST - 1 day.
+-- To manually trigger a reset, set cloud.profile.last_reset and local.profile.last_reset to now() at America/Toronto - 1 day.
 
 -- Add devices table to store active profile per device
 -- This allows BaerenLock and BaerenEd to sync the active profile between apps on the same device
@@ -263,7 +263,7 @@ CREATE TABLE IF NOT EXISTS devices (
     baerenlock_health_issues TEXT, -- Description of health issues (e.g., "Accessibility service is disabled")
     baerenlock_last_health_check TIMESTAMP(3), -- Timestamp of last health check
     
-    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST')
+    last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto')
 );
 
 -- Create index on device_id for faster lookups (though it's already the primary key)
@@ -289,7 +289,7 @@ CREATE POLICY "Allow all operations on devices" ON devices
 -- CREATE OR REPLACE FUNCTION update_devices_timestamp()
 -- RETURNS TRIGGER AS $$
 -- BEGIN
---     NEW.last_updated = NOW() AT TIME ZONE 'EST';
+--     NEW.last_updated = NOW() AT TIME ZONE 'America/Toronto';
 --     RETURN NEW;
 -- END;
 -- $$ LANGUAGE plpgsql;
@@ -306,7 +306,7 @@ CREATE TABLE IF NOT EXISTS image_uploads (
     profile TEXT NOT NULL, -- "AM" or "BM"
     task TEXT NOT NULL, -- Task name (e.g., "englishSpellingJumblePhoto", "frenchSpellingJumblePhoto")
     image TEXT NOT NULL, -- Base64 encoded image data
-    capture_date_time TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'EST'), -- When the photo was taken/uploaded (in EST)
+    capture_date_time TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto'), -- When the photo was taken/uploaded (Toronto time)
     
     -- Ensure one image per profile/task combination (new uploads overwrite previous ones)
     UNIQUE(profile, task)
@@ -329,3 +329,94 @@ CREATE POLICY "Allow all operations on image_uploads" ON image_uploads
     WITH CHECK (true);
 
 CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;
+
+-- Reward-time RPCs (Toronto timezone, DST-aware; DB is source of truth)
+CREATE OR REPLACE FUNCTION use_reward_time(p_profile TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_banked INTEGER;
+BEGIN
+    SELECT COALESCE(banked_mins, 0) INTO v_banked
+    FROM user_data
+    WHERE profile = p_profile
+    FOR UPDATE;
+
+    IF v_banked <= 0 THEN
+        RETURN;
+    END IF;
+
+    UPDATE user_data
+    SET reward_time_expiry = (NOW() AT TIME ZONE 'America/Toronto') + (v_banked * INTERVAL '1 minute'),
+        banked_mins = 0,
+        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+    WHERE profile = p_profile;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION pause_reward_time(p_profile TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_expiry TIMESTAMP(3);
+    v_remaining INTEGER;
+BEGIN
+    SELECT reward_time_expiry INTO v_expiry
+    FROM user_data
+    WHERE profile = p_profile
+    FOR UPDATE;
+
+    IF v_expiry IS NULL THEN
+        RETURN;
+    END IF;
+
+    v_remaining := GREATEST(0, CEIL(EXTRACT(EPOCH FROM (v_expiry - (NOW() AT TIME ZONE 'America/Toronto'))) / 60.0));
+
+    UPDATE user_data
+    SET banked_mins = v_remaining,
+        reward_time_expiry = NULL,
+        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+    WHERE profile = p_profile;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION expire_rewards(p_profile TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE user_data
+    SET reward_time_expiry = NULL,
+        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+    WHERE profile = p_profile
+      AND reward_time_expiry IS NOT NULL
+      AND reward_time_expiry <= (NOW() AT TIME ZONE 'America/Toronto');
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION add_reward_time(p_profile TEXT, p_minutes INTEGER)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF p_minutes IS NULL OR p_minutes <= 0 THEN
+        RETURN;
+    END IF;
+
+    UPDATE user_data
+    SET reward_time_expiry = CASE
+            WHEN reward_time_expiry IS NOT NULL AND reward_time_expiry > (NOW() AT TIME ZONE 'America/Toronto')
+                THEN reward_time_expiry + (p_minutes * INTERVAL '1 minute')
+            ELSE reward_time_expiry
+        END,
+        banked_mins = CASE
+            WHEN reward_time_expiry IS NULL OR reward_time_expiry <= (NOW() AT TIME ZONE 'America/Toronto')
+                THEN COALESCE(banked_mins, 0) + p_minutes
+            ELSE banked_mins
+        END,
+        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+    WHERE profile = p_profile;
+END;
+$$;

@@ -6,7 +6,7 @@
 
 ## IMPORTANT CLARIFICATIONS (still apply)
 
-1. **Date comparison**: To determine if it is "today", use the date part only, in EST. All relevant timestamps read and written use EST. Example format: `2026-01-14 11:48:34.401`.
+1. **Date comparison**: To determine if it is "today", use the date part only, in Toronto time (`America/Toronto`). All relevant timestamps read and written use Toronto time. Example format: `2026-01-14 11:48:34.401`.
 
 2. **GitHub JSON source of truth**: Always check GitHub first for config JSON. When the app cannot diff GitHub vs existing data, pull from GitHub and overwrite/merge as described (e.g. Trainer Map merge).
 
@@ -16,7 +16,7 @@
 
 5. **BaerenLock app lists**: The user_data table has columns reward_apps, blacklisted_apps, white_listed_apps for the profile (JSONB). See BaerenLock section below for online-only behavior and what may be stored locally.
 
-6. **Timestamp format**: Store in EST. Example: `2026-01-14 11:48:34.401`.
+6. **Timestamp format**: Store in Toronto time (`America/Toronto`). Example: `2026-01-14 11:48:34.401`.
 
 7. **Chores**: Same as required_tasks/checklist_items for reset: **blank** the chores column on daily reset, then **restore** chores from GitHub (chores config) into the DB (default all `done = false`). Read from DB for display; write to DB when marked complete. Coins_earned: read/write DB; **not** reset on daily reset.
 
@@ -30,7 +30,7 @@
 
 ## "Reset all progress" (settings menu)
 
-The settings menu item **"Reset all progress"** should set **DB** `last_reset` to **now() at EST minus 1 day** (using only the **date** part for the comparison). That forces the next screen load to see `last_reset` ≠ today (by date) and run the daily reset (DB update) and then load from DB. No local copy of last_reset to update in online-only.
+The settings menu item **"Reset all progress"** should set **DB** `last_reset` to **now() at America/Toronto minus 1 day** (using only the **date** part for the comparison). That forces the next screen load to see `last_reset` ≠ today (by date) and run the daily reset (DB update) and then load from DB. No local copy of last_reset to update in online-only.
 
 ---
 
@@ -49,11 +49,11 @@ So: **whenever we try to read content from the DB**, we first check last_reset; 
 When a screen needs to display data:
 
 1. **Read** from DB the current profile row (at least `last_reset`).
-2. **If** `last_reset` (date part, EST) **is today**  
+2. **If** `last_reset` (date part, Toronto time) **is today**  
    → do nothing, continue to load/display from DB.
 3. **Else** (`last_reset` is not today, by **date part** only):
    - **Run a single DB update** that:
-     - Sets `last_reset = now()` at EST.
+    - Sets `last_reset = now()` at `America/Toronto`.
      - **Blanks**: `required_tasks`, `checklist_items`, `practice_tasks`, `berries_earned`, `banked_mins`, **chores** (same as the others – blank the column).
      - Does **not** change `coins_earned`, `pokemon_unlocked`, or `game_indices`.
    - Then **restore from GitHub** where needed: required_tasks/checklist_items/practice_tasks are restored when Trainer Map loads (merge from GitHub into DB); **chores** are restored from GitHub (chores config) into the DB when the app needs to show chores (default all `done = false`).
@@ -125,7 +125,7 @@ BaerenLock also treats **DB and GitHub as source of truth**. It should **not** s
 
 - **May store locally** (and not read every time, since they rarely change): **profile in use**, **admin password**, **parent email**, **whitelist** (white_listed_apps), **reward apps**, **blocked apps** (blacklisted_apps).
 - **Reward time (banked_mins)**: **Read from DB** when displaying; **set in DB** when the user changes it. Do **not** store reward time locally.
-- **Daily reset**: BaerenLock can detect when a daily reset is needed (last_reset date ≠ today) and run the **same reset logic** as BaerenEd: blank required_tasks, checklist_items, practice_tasks, berries_earned, banked_mins, chores in the DB; set last_reset = now() EST; do not change coins_earned, pokemon_unlocked, game_indices. Then restore from GitHub as needed (e.g. when loading screens that need tasks or chores).
+- **Daily reset**: BaerenLock can detect when a daily reset is needed (last_reset date ≠ today) and run the **same reset logic** as BaerenEd: blank required_tasks, checklist_items, practice_tasks, berries_earned, banked_mins, chores in the DB; set last_reset = now() in `America/Toronto`; do not change coins_earned, pokemon_unlocked, game_indices. Then restore from GitHub as needed (e.g. when loading screens that need tasks or chores).
 
 ---
 

@@ -228,6 +228,22 @@
             background: #757575;
         }
 
+        .danger-button {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 6px;
+            transition: background 0.2s;
+        }
+
+        .danger-button:hover {
+            background: #b71c1c;
+        }
+
         .edit-container {
             display: flex;
             align-items: center;
@@ -278,10 +294,10 @@
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
 
-        // Format now as EST timestamp: yyyy-MM-dd HH:mm:ss.SSS (matches app; same as daily_progress_report.html).
+        // Format now as Toronto timestamp: yyyy-MM-dd HH:mm:ss.SSS (matches app; same as daily_progress_report.html).
         function nowEST() {
             const t = new Date();
-            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
             const parts = tf.formatToParts(t);
             const get = (type) => parts.find(p => p.type === type).value;
             const pad2 = (s) => String(s).padStart(2, '0');
@@ -376,6 +392,10 @@
                     <span id="${bankedTimeId}" class="info-value banked-time" onclick="editBankedTime('${kidData.kid}', ${kidData.bankedMins})">${kidData.bankedMins} minutes</span>
                 </div>
                 <div class="info-row">
+                    <span class="info-label">Reward Session:</span>
+                    <button class="danger-button" onclick="expireRewardTime('${kidData.kid}')">Expire Reward Time</button>
+                </div>
+                <div class="info-row">
                     <span class="info-label">Last Updated:</span>
                     <span class="info-value date">${formatTimestamp(kidData.lastUpdated)}</span>
                 </div>
@@ -393,8 +413,8 @@
             const editContainer = document.createElement('div');
             editContainer.className = 'edit-container';
             editContainer.innerHTML = `
-                <input type="number" class="edit-input" id="edit-input-${profile}" value="${currentValue}" min="0" step="1">
-                <button class="save-button" onclick="saveBankedTime('${profile}')">Save</button>
+                <input type="number" class="edit-input" id="edit-input-${profile}" value="" min="1" step="1" placeholder="+ mins">
+                <button class="save-button" onclick="saveBankedTime('${profile}')">Add</button>
                 <button class="cancel-button" onclick="cancelEdit('${profile}', ${currentValue})">Cancel</button>
             `;
             
@@ -434,8 +454,8 @@
             const input = document.getElementById(`edit-input-${profile}`);
             const newValue = parseInt(input.value, 10);
             
-            if (isNaN(newValue) || newValue < 0) {
-                alert('Please enter a valid number (0 or greater)');
+            if (isNaN(newValue) || newValue <= 0) {
+                alert('Please enter a valid number greater than 0');
                 return;
             }
 
@@ -445,9 +465,9 @@
             }
 
             try {
-                // Update the banked_mins value in the database
-                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${profile}`, {
-                    method: 'PATCH',
+                // Use RPC so active sessions extend reward_expiry and inactive sessions add to banked_mins.
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/add_reward_time`, {
+                    method: 'POST',
                     headers: {
                         'apikey': supabaseKey,
                         'Authorization': `Bearer ${supabaseKey}`,
@@ -455,8 +475,8 @@
                         'Prefer': 'return=representation'
                     },
                     body: JSON.stringify({
-                        banked_mins: newValue,
-                        last_updated: nowEST()
+                        p_profile: profile,
+                        p_minutes: newValue
                     })
                 });
 
@@ -464,8 +484,9 @@
                     const errorText = await response.text();
                     throw new Error(`Failed to update: ${response.status} ${response.statusText} - ${errorText}`);
                 }
-
-                const updatedData = await response.json();
+                
+                // Re-read profile state after RPC to get current visible banked mins.
+                const refreshed = await fetchKidData(profile);
                 
                 // Update the display
                 const editContainer = input.closest('.edit-container');
@@ -474,13 +495,13 @@
                 const element = document.createElement('span');
                 element.id = elementId;
                 element.className = 'info-value banked-time';
-                element.textContent = `${newValue} minutes`;
-                element.onclick = () => editBankedTime(profile, newValue);
+                element.textContent = `${refreshed.bankedMins} minutes`;
+                element.onclick = () => editBankedTime(profile, refreshed.bankedMins);
                 
                 editContainer.parentNode.replaceChild(element, editContainer);
                 
                 // Update last_updated display
-                const lastUpdated = updatedData[0]?.last_updated || nowEST();
+                const lastUpdated = refreshed.lastUpdated || nowEST();
                 const lastUpdatedRow = element.closest('.kid-card').querySelector('.info-row:last-child .info-value');
                 if (lastUpdatedRow) {
                     lastUpdatedRow.textContent = formatTimestamp(lastUpdated);
@@ -489,6 +510,43 @@
             } catch (error) {
                 console.error('Error saving banked time:', error);
                 alert(`Error saving banked time: ${error.message}`);
+            }
+        }
+
+        // Force-expire reward time for a profile
+        async function expireRewardTime(profile) {
+            if (!supabaseUrl || !supabaseKey) {
+                alert('Configuration error: Supabase URL and API Key required');
+                return;
+            }
+
+            const confirmed = confirm(`Expire reward time for ${profile}? This immediately ends active reward access.`);
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/expire_rewards`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        p_profile: profile
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to expire reward time: ${response.status} ${response.statusText} - ${errorText}`);
+                }
+
+                // Refresh the full report view so values/timestamps reflect DB state.
+                await loadData();
+            } catch (error) {
+                console.error('Error expiring reward time:', error);
+                alert(`Error expiring reward time: ${error.message}`);
             }
         }
 

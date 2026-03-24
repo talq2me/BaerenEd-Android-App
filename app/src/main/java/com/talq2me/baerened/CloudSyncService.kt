@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
+import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
@@ -73,11 +74,11 @@ class CloudSyncService {
     }
 
     /**
-     * Current time as now() converted to EST. System now() is UTC; we format in America/New_York for the DB.
+     * Current time as now() converted to America/Toronto. System now() is UTC; we format in America/Toronto for the DB.
      * Format: yyyy-MM-dd HH:mm:ss.SSS (no timezone suffix).
      */
     fun generateESTTimestamp(): String {
-        val estTimeZone = TimeZone.getTimeZone("America/New_York")
+        val estTimeZone = TimeZone.getTimeZone("America/Toronto")
         val now = Date()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
         dateFormat.timeZone = estTimeZone
@@ -270,7 +271,7 @@ class CloudSyncService {
             }
             baseTimestamp = baseTimestamp.replace('T', ' ')
 
-            val estZone = TimeZone.getTimeZone("America/New_York")
+            val estZone = TimeZone.getTimeZone("America/Toronto")
             val formats = listOf(
                 "yyyy-MM-dd HH:mm:ss.SSS",
                 "yyyy-MM-dd HH:mm:ss.SS",
@@ -542,6 +543,29 @@ class CloudSyncService {
         return invokeRpc("af_update_chore", body)
     }
 
+    /**
+     * Calls af_update_berries_banked — single DB path for berries_earned / banked_mins / last_updated.
+     * If [bankedMins] is null, omits p_banked_mins so the DB leaves banked_mins unchanged (see SQL).
+     */
+    suspend fun invokeAfUpdateBerriesBanked(
+        profile: String,
+        berriesEarned: Int,
+        bankedMins: Int? = null
+    ): Result<Unit> {
+        val ensureResult = ensureUserDataProfileExists(profile)
+        if (ensureResult.isFailure) return ensureResult
+        val obj = JsonObject().apply {
+            addProperty("p_profile", profile)
+            addProperty("p_berries_earned", berriesEarned)
+            if (bankedMins != null) {
+                addProperty("p_banked_mins", bankedMins)
+            } else {
+                add("p_banked_mins", JsonNull.INSTANCE)
+            }
+        }
+        return invokeRpc("af_update_berries_banked", Gson().toJson(obj))
+    }
+
     private fun String.escapeJson(): String = replace("\\", "\\\\").replace("\"", "\\\"")
 
     /** Calls af_update_game_index; params only (no JSON). */
@@ -554,6 +578,122 @@ class CloudSyncService {
     suspend fun invokeAfUpdatePokemonUnlocked(profile: String, pokemonUnlocked: Int): Result<Unit> {
         val body = """{"p_profile":"${profile.escapeJson()}", "p_pokemon_unlocked":$pokemonUnlocked}"""
         return invokeRpc("af_update_pokemon_unlocked", body)
+    }
+
+    /**
+     * Activates banked reward time: calls use_reward_time(p_profile).
+     * DB sets reward_time_expiry = now + banked_mins and banked_mins = 0 (see 000Requirements.md).
+     * Use this when the child presses "Use Reward Time" — not add_reward_time.
+     */
+    suspend fun invokeUseRewardTime(profile: String): Result<Unit> {
+        val ensureResult = ensureUserDataProfileExists(profile)
+        if (ensureResult.isFailure) return ensureResult
+        val body = """{"p_profile":"${profile.escapeJson()}"}"""
+        return invokeRpc("use_reward_time", body)
+    }
+
+    /** Adds reward minutes using DB function add_reward_time(p_profile, p_minutes). Parent/add-time path. */
+    suspend fun invokeAddRewardTime(profile: String, minutes: Int): Result<Unit> {
+        val ensureResult = ensureUserDataProfileExists(profile)
+        if (ensureResult.isFailure) return ensureResult
+
+        val body = """{"p_profile":"${profile.escapeJson()}", "p_minutes":$minutes}"""
+        val rpcResult = invokeRpc("add_reward_time", body)
+        if (rpcResult.isSuccess) return rpcResult
+
+        // Fallback path for environments where add_reward_time RPC has not been deployed yet.
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "${getSupabaseUrl()}/rest/v1/user_data?profile=eq.${profile.escapeJson()}&select=banked_mins"
+                val request = Request.Builder()
+                    .url(url)
+                    .get()
+                    .addHeader("apikey", getSupabaseKey())
+                    .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                    .build()
+                val response = client.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    val err = response.body?.string() ?: "Unknown error"
+                    response.close()
+                    return@withContext Result.failure(Exception("add_reward_time RPC failed and fallback read failed: $err"))
+                }
+                val bodyText = response.body?.string() ?: "[]"
+                response.close()
+                val rows = gson.fromJson(bodyText, object : TypeToken<List<Map<String, Any?>>>() {}.type) as? List<Map<String, Any?>>
+                val row = rows?.firstOrNull()
+                val current = (row?.get("banked_mins") as? Number)?.toInt() ?: 0
+                val updated = (current + minutes).coerceAtLeast(0)
+                val patchResult = patchUserDataColumns(
+                    profile,
+                    mapOf(
+                        "banked_mins" to updated,
+                        "last_updated" to generateESTTimestamp()
+                    )
+                )
+                if (patchResult.isSuccess) {
+                    Log.w(TAG, "Used fallback add_reward_time path for profile=$profile, minutes=$minutes")
+                }
+                patchResult
+            } catch (e: Exception) {
+                Result.failure(Exception("add_reward_time RPC failed and fallback failed: ${e.message}"))
+            }
+        }
+    }
+
+    /**
+     * Ensures there is a user_data row for the profile so RPC/PATCH calls do not silently affect 0 rows.
+     */
+    private suspend fun ensureUserDataProfileExists(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) {
+            return@withContext Result.failure(Exception("Supabase not configured"))
+        }
+        try {
+            val checkUrl = "${getSupabaseUrl()}/rest/v1/user_data?profile=eq.${profile.escapeJson()}&select=profile"
+            val checkRequest = Request.Builder()
+                .url(checkUrl)
+                .get()
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .build()
+            val checkResponse = client.newCall(checkRequest).execute()
+            if (!checkResponse.isSuccessful) {
+                val err = checkResponse.body?.string() ?: "Unknown error"
+                checkResponse.close()
+                return@withContext Result.failure(Exception("Profile existence check failed: $err"))
+            }
+            val checkBody = checkResponse.body?.string() ?: "[]"
+            checkResponse.close()
+            val exists = checkBody != "[]" && checkBody.isNotBlank()
+            if (exists) return@withContext Result.success(Unit)
+
+            val upsertJson = gson.toJson(
+                mapOf(
+                    "profile" to profile,
+                    "banked_mins" to 0,
+                    "last_updated" to generateESTTimestamp()
+                )
+            )
+            val upsertRequest = Request.Builder()
+                .url("${getSupabaseUrl()}/rest/v1/user_data")
+                .post(upsertJson.toRequestBody("application/json".toMediaType()))
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "resolution=merge-duplicates,return=minimal")
+                .build()
+            val upsertResponse = client.newCall(upsertRequest).execute()
+            return@withContext if (upsertResponse.isSuccessful) {
+                upsertResponse.close()
+                Log.d(TAG, "Created missing user_data row for profile=$profile")
+                Result.success(Unit)
+            } else {
+                val err = upsertResponse.body?.string() ?: "Unknown error"
+                upsertResponse.close()
+                Result.failure(Exception("Failed creating profile row ($profile): $err"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     /**

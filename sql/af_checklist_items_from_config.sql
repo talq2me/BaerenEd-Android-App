@@ -45,7 +45,7 @@ BEGIN
     '{}'::jsonb
   ) INTO merged_checklist;
 
-  UPDATE user_data SET checklist_items = merged_checklist, last_updated = (NOW() AT TIME ZONE 'America/New_York') WHERE profile = p_profile;
+  UPDATE user_data SET checklist_items = merged_checklist, last_updated = (NOW() AT TIME ZONE 'America/Toronto') WHERE profile = p_profile;
 END;
 $$;
 

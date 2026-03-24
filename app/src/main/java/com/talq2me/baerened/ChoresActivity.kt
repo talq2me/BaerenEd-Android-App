@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,10 +34,23 @@ class ChoresActivity : AppCompatActivity() {
         choresListRight = findViewById(R.id.choresListRight)
 
         lifecycleScope.launch(Dispatchers.IO) {
-            DailyResetAndSyncManager(this@ChoresActivity).dailyResetProcessAndSync(profile)
-            progressManager.loadChoresFromJsonIfNeeded(profile)
+            val resetResult = DailyResetAndSyncManager(this@ChoresActivity).dailyResetProcessAndSync(profile)
+            if (resetResult.isFailure) {
+                val errMsg = resetResult.exceptionOrNull()?.message ?: "unknown error"
+                Log.e("ChoresActivity", "Failed to load chores for profile=$profile: $errMsg", resetResult.exceptionOrNull())
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ChoresActivity, "Failed to load chores from DB.", Toast.LENGTH_LONG).show()
+                    chores = mutableListOf()
+                    buildChoreRows()
+                }
+                return@launch
+            }
+
             val fromDb = progressManager.getChores(profile).toMutableList()
             withContext(Dispatchers.Main) {
+                if (fromDb.isEmpty()) {
+                    Toast.makeText(this@ChoresActivity, "No chores returned by DB for today.", Toast.LENGTH_LONG).show()
+                }
                 chores = fromDb
                 buildChoreRows()
             }

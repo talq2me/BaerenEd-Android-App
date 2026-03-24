@@ -570,7 +570,8 @@ class BattleHubActivity : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         view.isEnabled = true
                         if (result.isSuccess) {
-                            refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = true)
+                            // Always refresh by re-fetching from DB so UI is guaranteed to match server state.
+                            refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = false)
                             Toast.makeText(this@BattleHubActivity, "Refreshed from server", Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(this@BattleHubActivity, "Could not refresh. Check connection.", Toast.LENGTH_LONG).show()
@@ -907,13 +908,24 @@ class BattleHubActivity : AppCompatActivity() {
                 val minutesText = minutesInput.text.toString()
                 val minutes = minutesText.toIntOrNull()
                 if (minutes != null && minutes > 0) {
-                    val progressManager = DailyProgressManager(this)
-                    val newTotal = progressManager.addRewardMinutes(minutes)
-                    // Refresh counts display to show updated minutes
-                    updateCountsDisplay()
-                    android.widget.Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", android.widget.Toast.LENGTH_LONG).show()
-                    // Note: setBankedRewardMinutes updates cache; sync persists to DB
-                    // Sync will run automatically next time BattleHub or Trainer Map loads (per Daily Reset Logic.md)
+                    lifecycleScope.launch {
+                        val rawProfile = SettingsManager.readProfile(this@BattleHubActivity) ?: "AM"
+                        val profile = when (rawProfile) {
+                            "A" -> "AM"
+                            "B" -> "BM"
+                            else -> rawProfile
+                        }
+                        val result = CloudSyncService().invokeAddRewardTime(profile, minutes)
+                        if (result.isSuccess) {
+                            android.util.Log.d("BattleHubActivity", "Granted $minutes minutes via DB for profile=$profile (raw=$rawProfile)")
+                            refreshProgressFromDbThenUpdateUI()
+                            android.widget.Toast.makeText(this@BattleHubActivity, "Granted $minutes minutes", android.widget.Toast.LENGTH_LONG).show()
+                        } else {
+                            val message = result.exceptionOrNull()?.message ?: "unknown error"
+                            android.util.Log.e("BattleHubActivity", "Failed granting minutes via DB for profile=$profile (raw=$rawProfile): $message")
+                            android.widget.Toast.makeText(this@BattleHubActivity, "Could not grant minutes: $message", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    }
                 } else {
                     android.widget.Toast.makeText(this, "Please enter a valid number of minutes", android.widget.Toast.LENGTH_SHORT).show()
                 }
@@ -1346,102 +1358,24 @@ class BattleHubActivity : AppCompatActivity() {
     
     
     private fun updateEarnButtonsState() {
-        val currentContent = try {
-            val jsonString = mainContentJson ?: ContentUpdateService().getCachedMainContent(this)
-            if (jsonString != null && jsonString.isNotEmpty()) {
-                Gson().fromJson(jsonString, MainContent::class.java)
-            } else null
-        } catch (e: Exception) {
-            null
+        val progressManager = DailyProgressManager(this)
+        progressManager.invalidateCompletedTasksMapCache()
+
+        // DB is source of truth: required_tasks + checklist_items from last fetch (session).
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        if (progressManager.getCurrentSessionData(profile) != null) {
+            val allDone = progressManager.areAllVisibleRequiredAndChecklistCompleteFromDb()
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState (DB): allRequiredCompleted=$allDone")
+            earnExtraBerriesButton.visibility = if (allDone) android.view.View.VISIBLE else android.view.View.GONE
+            earnExtraBerriesButton.isEnabled = allDone
+            earnExtraBerriesButton.alpha = if (allDone) 1f else 0.5f
+            return
         }
-        
-        if (currentContent != null) {
-            val progressManager = DailyProgressManager(this)
-            // Ensure we use current session data, not a stale cache
-            progressManager.invalidateCompletedTasksMapCache()
-            // Use "required" so we only check required-section (and checklist) completion, not practice
-            val completedTasksMap = progressManager.getCompletedTasksMap("required")
-            
-            // Check if all required tasks are completed
-            val requiredSection = currentContent.sections?.find { it.id == "required" }
-            val allRequiredTasks = requiredSection?.tasks ?: emptyList()
-            
-            val requiredTasks = allRequiredTasks.filter { task ->
-                val hasTitle = task.title != null
-                val hasLaunch = task.launch != null
-                val isVisible = TaskVisibilityChecker.isTaskVisible(task)
-                
-                // Log tasks that are being filtered out
-                if (!isVisible && hasTitle && hasLaunch) {
-                    android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: Filtering out task '${task.title}' (disable: ${task.disable}, showdays: ${task.showdays}, hidedays: ${task.hidedays}, displayDays: ${task.displayDays})")
-                }
-                
-                hasTitle && hasLaunch && isVisible
-            }
-            
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: requiredTasks count (after filtering): ${requiredTasks.size}")
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: requiredTasks titles: ${requiredTasks.map { it.title }}")
-            
-            // Handle duplicate task titles by using a Set of unique task names
-            // If a task appears multiple times, we only need to check it once
-            val uniqueRequiredTaskNames = requiredTasks.mapNotNull { it.title }.toSet()
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: uniqueRequiredTaskNames count: ${uniqueRequiredTaskNames.size}, names: $uniqueRequiredTaskNames")
-            
-            val allUniqueTasksCompleted = uniqueRequiredTaskNames.isNotEmpty() && uniqueRequiredTaskNames.all { taskName ->
-                // Use task name as key (matches how markTaskCompletedWithName stores tasks)
-                val completed = completedTasksMap[taskName] == true
-                android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: unique task '$taskName' completed: $completed (value in map: ${completedTasksMap[taskName]})")
-                completed
-            }
-            
-            // Also check tasks that might not have titles (fallback to task ID)
-            val tasksWithoutTitles = requiredTasks.filter { it.title.isNullOrEmpty() }
-            val allTasksWithoutTitlesCompleted = if (tasksWithoutTitles.isNotEmpty()) {
-                android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: Found ${tasksWithoutTitles.size} tasks without titles, checking by ID")
-                tasksWithoutTitles.all { task ->
-                    val baseTaskId = task.launch ?: ""
-                    var taskId = baseTaskId
-                    
-                    // Handle diagramLabeler with unique IDs
-                    if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                        val originalUrl = task.url
-                        if (originalUrl.contains("diagram=")) {
-                            val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                            if (diagramParam.isNotEmpty()) {
-                                taskId = "${baseTaskId}_$diagramParam"
-                            }
-                        }
-                    }
-                    
-                    val completed = completedTasksMap[taskId] == true
-                    android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: task without title (ID: $taskId) completed: $completed")
-                    completed
-                }
-            } else {
-                true // No tasks without titles, so this check passes
-            }
-            
-            // Enable Earn Extra only when: (1) config has no required tasks at all, OR (2) all visible required tasks are completed.
-            // Do not enable when required tasks exist but are all filtered out (e.g. by day) — treat that as "not all complete".
-            val allRequiredCompleted = if (allRequiredTasks.isEmpty()) {
-                true
-            } else {
-                allUniqueTasksCompleted && allTasksWithoutTitlesCompleted
-            }
-            
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState: allRequiredCompleted: $allRequiredCompleted")
-            
-            // Show and enable Practice (Extra Berries) button only when all required tasks are completed
-            earnExtraBerriesButton.visibility = if (allRequiredCompleted) android.view.View.VISIBLE else android.view.View.GONE
-            earnExtraBerriesButton.isEnabled = allRequiredCompleted
-            earnExtraBerriesButton.alpha = if (allRequiredCompleted) 1f else 0.5f
-        } else {
-            android.util.Log.w("BattleHubActivity", "updateEarnButtonsState: currentContent is null, cannot check task completion")
-            // When we can't verify completion, keep Earn Extra disabled and hidden
-            earnExtraBerriesButton.visibility = View.GONE
-            earnExtraBerriesButton.isEnabled = false
-            earnExtraBerriesButton.alpha = 0.5f
-        }
+
+        android.util.Log.w("BattleHubActivity", "updateEarnButtonsState: no session data yet (fetch user_data first); hiding Earn Extra")
+        earnExtraBerriesButton.visibility = View.GONE
+        earnExtraBerriesButton.isEnabled = false
+        earnExtraBerriesButton.alpha = 0.5f
     }
     
     // Removed isTaskVisible() - now using TaskVisibilityChecker for consistency with Layout.kt
@@ -1876,55 +1810,12 @@ class BattleHubActivity : AppCompatActivity() {
     private fun updateBerryMeter() {
         android.util.Log.d("BattleHubActivity", "updateBerryMeter() CALLED")
         val progressManager = DailyProgressManager(this)
-        
-        // Check if mainContentJson is null and reload if needed
-        if (mainContentJson == null) {
-            android.util.Log.d("BattleHubActivity", "updateBerryMeter: mainContentJson is NULL, reloading from cache")
-            mainContentJson = ContentUpdateService().getCachedMainContent(this)
-        }
-        
-        // Reload mainContentJson if it's null or empty
-        if (mainContentJson == null || mainContentJson!!.isEmpty()) {
-            android.util.Log.d("BattleHubActivity", "updateBerryMeter: mainContentJson is null/empty, reloading from cache")
-            mainContentJson = ContentUpdateService().getCachedMainContent(this)
-            android.util.Log.d("BattleHubActivity", "updateBerryMeter: Reloaded mainContentJson, is ${if (mainContentJson != null && mainContentJson!!.isNotEmpty()) "NOT NULL (length=${mainContentJson!!.length})" else "NULL or EMPTY"}")
-        }
-        
-        // Try to get current content (parse JSON string to MainContent)
-        val jsonString = mainContentJson ?: ContentUpdateService().getCachedMainContent(this)
-        android.util.Log.d("BattleHubActivity", "updateBerryMeter: jsonString is ${if (jsonString != null) "NOT NULL (length=${jsonString.length})" else "NULL"}")
-        
-        val currentContent = try {
-            if (jsonString != null && jsonString.isNotEmpty()) {
-                Gson().fromJson(jsonString, MainContent::class.java)
-            } else {
-                android.util.Log.w("BattleHubActivity", "updateBerryMeter: MainContent JSON is null or empty")
-                null
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("BattleHubActivity", "Error parsing MainContent JSON", e)
-            null
-        }
-        
-        android.util.Log.d("BattleHubActivity", "updateBerryMeter: currentContent is ${if (currentContent != null) "NOT NULL" else "NULL"}")
-        
-        if (currentContent != null) {
-            // Simple: just get earned berries directly
-            earnedStars = progressManager.getEarnedBerries()
-            
-            // Before battle: Show required berries earned out of total required berries
-            val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
-            totalStars = progressData.second.second // Total required stars
-            
-            android.util.Log.d("BattleHubActivity", "Berry meter: earnedStars=$earnedStars, totalStars=$totalStars")
 
-            android.util.Log.d("BattleHubActivity", "DEBUG updateBerryMeter: currentContent required_tasks count=${currentContent.sections?.sumOf { it.tasks?.size ?: 0 } ?: 0}")
-        } else {
-            android.util.Log.w("BattleHubActivity", "CurrentContent is null, using defaults")
-            earnedStars = 0
-            totalStars = 100
-        }
-        
+        // DB only: berries_earned + possible_stars (session after fetch). No GitHub/config fallback.
+        earnedStars = progressManager.getEarnedBerries()
+        totalStars = progressManager.getPossibleStarsFromSession()
+        android.util.Log.d("BattleHubActivity", "updateBerryMeter: DB berries_earned=$earnedStars / possible_stars=$totalStars")
+
         val percentage = if (totalStars > 0) (earnedStars * 100 / totalStars) else 0
         
         // Animate berry meter fill - berryFill is a LinearLayout inside FrameLayout, so use FrameLayout.LayoutParams
@@ -1966,65 +1857,109 @@ class BattleHubActivity : AppCompatActivity() {
         updateBossHPColor(100) // Boss starts at 100%
         updatePlayerHPColor(100) // Player starts at 100%
         
-        // Enable battle button if berries are full
-        battleButton.isEnabled = percentage >= 100
+        // Enable battle button if berries are full (need a positive cap from DB)
+        battleButton.isEnabled = totalStars > 0 && percentage >= 100
     }
     
     private fun startBattle() {
         if (isBattling) return
-        
-        // Check if berries are full
-        if (earnedStars < totalStars) {
+
+        // Check if berries are full (DB-driven; no config fallback)
+        if (totalStars <= 0 || earnedStars < totalStars) {
             android.widget.Toast.makeText(this, "You need to earn all berries to battle!", android.widget.Toast.LENGTH_SHORT).show()
             return
         }
-        
-        isBattling = true
+
         battleButton.isEnabled = false
-        battleButton.text = "⚔️ Battling... ⚔️"
-        
-        // Clear any existing battle messages
-        clearBattleMessage()
-        
-        // Reset battle state
-        playerHealth = 100
-        bossHealth = 100
-        playerPowerValue = 100
-        bossPowerValue = 100
-        
-        // Reset HP bars to 100
-        playerHP.progress = 100
-        bossHP.progress = 100
-        updateBossHPColor(100)
-        updatePlayerHPColor(100)
-        
-        // Reset power bars: boss to 100, player to 100 (since berries are full)
-        bossPower.progress = 100
-        playerPower.progress = 100
-        updatePlayerPowerColor(100)
-        updateBossPowerColor(100)
-        
-        // Reset sprite states
-        playerPokemonSprite.alpha = 1f
-        playerPokemonSprite.rotation = 0f
-        playerPokemonSprite.translationX = 0f
-        playerPokemonSprite.translationY = 0f
-        playerPokemonSprite.scaleX = 1f
-        playerPokemonSprite.scaleY = 1f
-        bossPokemonSprite.alpha = 1f
-        bossPokemonSprite.rotation = 0f
-        bossPokemonSprite.translationX = 0f
-        bossPokemonSprite.translationY = 0f
-        bossPokemonSprite.scaleX = 1f
-        bossPokemonSprite.scaleY = 1f
-        
-        // Start battle sequence
-        showBattleMessage("Battle begins!")
-        
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+        battleButton.text = "…"
+
+        val rawProfile = SettingsManager.readProfile(this) ?: "AM"
+        val profile = when (rawProfile) {
+            "A" -> "AM"
+            "B" -> "BM"
+            else -> rawProfile
+        }
+
+        lifecycleScope.launch {
+            val sync = CloudSyncService()
+            if (!sync.isConfigured()) {
+                android.widget.Toast.makeText(this@BattleHubActivity, "Cannot start battle: cloud not configured.", android.widget.Toast.LENGTH_LONG).show()
+                battleButton.isEnabled = totalStars > 0 && earnedStars >= totalStars
+                battleButton.text = "⚔️ Battle ⚔️"
+                return@launch
+            }
+            val result = withContext(Dispatchers.IO) {
+                sync.invokeAfUpdateBerriesBanked(profile, berriesEarned = 0, bankedMins = null)
+            }
+            if (result.isFailure) {
+                val msg = result.exceptionOrNull()?.message ?: "Unknown error"
+                android.util.Log.e("BattleHubActivity", "invokeAfUpdateBerriesBanked (battle) failed: $msg")
+                android.widget.Toast.makeText(this@BattleHubActivity, "Could not save battle (berries): $msg", android.widget.Toast.LENGTH_LONG).show()
+                battleButton.isEnabled = totalStars > 0 && earnedStars >= totalStars
+                battleButton.text = "⚔️ Battle ⚔️"
+                return@launch
+            }
+
+            val progressManager = DailyProgressManager(this@BattleHubActivity)
+            progressManager.setEarnedBerries(0)
+            earnedStars = 0
+            updateBerryMeter()
+            // Header row (berryCountDisplay) uses updateCountsDisplay; meter uses updateBerryMeter only.
+            updateCountsDisplay()
+
+            try {
+                val json = mainContentJson ?: ContentUpdateService().getCachedMainContent(this@BattleHubActivity)
+                if (json != null && json.isNotEmpty()) {
+                    mainContentJson = json
+                    val c = Gson().fromJson(json, MainContent::class.java)
+                    progressManager.setEarnedStarsAtBattleEnd(progressManager.getEarnedStarsWithoutSpentBerries(c))
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("BattleHubActivity", "Could not snapshot task stars at battle start", e)
+            }
+
+            isBattling = true
+            battleButton.text = "⚔️ Battling... ⚔️"
+
+            // Clear any existing battle messages
             clearBattleMessage()
-            battleRound(1)
-        }, 1500)
+
+            // Reset battle state
+            playerHealth = 100
+            bossHealth = 100
+            playerPowerValue = 100
+            bossPowerValue = 100
+
+            playerHP.progress = 100
+            bossHP.progress = 100
+            updateBossHPColor(100)
+            updatePlayerHPColor(100)
+
+            bossPower.progress = 100
+            playerPower.progress = 100
+            updatePlayerPowerColor(100)
+            updateBossPowerColor(100)
+
+            playerPokemonSprite.alpha = 1f
+            playerPokemonSprite.rotation = 0f
+            playerPokemonSprite.translationX = 0f
+            playerPokemonSprite.translationY = 0f
+            playerPokemonSprite.scaleX = 1f
+            playerPokemonSprite.scaleY = 1f
+            bossPokemonSprite.alpha = 1f
+            bossPokemonSprite.rotation = 0f
+            bossPokemonSprite.translationX = 0f
+            bossPokemonSprite.translationY = 0f
+            bossPokemonSprite.scaleX = 1f
+            bossPokemonSprite.scaleY = 1f
+
+            showBattleMessage("Battle begins!")
+
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                clearBattleMessage()
+                battleRound(1)
+            }, 1500)
+        }
     }
     
     private fun showBattleMessage(text: String) {
@@ -2534,31 +2469,9 @@ class BattleHubActivity : AppCompatActivity() {
             val progressManager = DailyProgressManager(this)
             val currentUnlocked = progressManager.getUnlockedPokemonCount()
             progressManager.setUnlockedPokemonCount(currentUnlocked + 1)
-            
-            // Mark that berries were spent on battle - store in SharedPreferences so it persists across all screens
-            val currentContent = try {
-                val jsonString = mainContentJson ?: ContentUpdateService().getCachedMainContent(this)
-                if (jsonString != null && jsonString.isNotEmpty()) {
-                    Gson().fromJson(jsonString, MainContent::class.java)
-                } else null
-            } catch (e: Exception) {
-                null
-            }
-            if (currentContent != null) {
-                // Simple: reset earned berries to 0 when battle is won
-                progressManager.resetEarnedBerries()
-                // Also store for detecting new required task completions (for reset logic)
-                val requiredEarnedStars = progressManager.getEarnedStarsWithoutSpentBerries(currentContent)
-                progressManager.setEarnedStarsAtBattleEnd(requiredEarnedStars)
-                android.util.Log.d("BattleHubActivity", "Battle won: Reset earned berries to 0")
 
-                // Sync berries spent to cloud after battle victory
-                val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-                val cloudStorageManager = CloudStorageManager(this)
-                lifecycleScope.launch {
-                    cloudStorageManager.saveIfEnabled(currentProfile)
-                }
-            }
+            // Berries were cleared in user_data when Battle was tapped (af_update_berries_banked).
+            android.util.Log.d("BattleHubActivity", "Battle won: berries were already cleared in DB at battle start")
             updateBerryMeter()
             
             // Show victory dialog
@@ -2664,7 +2577,8 @@ class BattleHubActivity : AppCompatActivity() {
             runOnUiThread {
                 if (result.isSuccess) {
                     android.util.Log.d("BattleHubActivity", "Daily reset and sync completed in onResume for profile $profile")
-                    refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = true)
+                    // Always fetch so berries/tasks UI reflects the latest user_data row.
+                    refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = false)
                     updateTitle()
                 } else {
                     android.util.Log.e("BattleHubActivity", "Daily reset and sync failed in onResume", result.exceptionOrNull())
@@ -2734,6 +2648,8 @@ class BattleHubActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 result.getOrNull()?.let { data ->
                     CloudDataApplier(this@BattleHubActivity).applyDbDataToPrefs(data)
+                    // Session (berries_earned, required_tasks, etc.) lives in DailyProgressManager; applyDbDataToPrefs does not set it.
+                    DailyProgressManager(this@BattleHubActivity).setProgressDataAfterFetch(data)
                 }
                 updateBerryMeter()
                 updateEarnButtonsState()
@@ -2763,7 +2679,8 @@ class BattleHubActivity : AppCompatActivity() {
                 val result = runCatching { DailyResetAndSyncManager(this@BattleHubActivity).dailyResetProcessAndSync(profile) }.getOrElse { Result.failure(it) }
                 runOnUiThread {
                     if (result.isSuccess) {
-                        refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = true)
+                        // Always fetch so berry meter + Earn Extra buttons are driven by current server row.
+                        refreshProgressFromDbThenUpdateUI(skipFetchIfRecent = false)
                     } else {
                         Toast.makeText(this@BattleHubActivity, "Could not load progress. Check connection.", Toast.LENGTH_LONG).show()
                     }

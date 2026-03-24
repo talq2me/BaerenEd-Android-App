@@ -34,7 +34,7 @@ class UserDataRepository(private val context: Context) {
         if (!syncService.isConfigured()) {
             return@withContext Result.failure(Exception("Supabase not configured"))
         }
-        // Run Postgres daily reset for this profile so row with last_reset date <> today (EST) is reset before we read
+        // Run Postgres daily reset for this profile so row with last_reset date <> today (America/Toronto) is reset before we read
         syncService.invokeAfDailyReset(profile).onFailure {
             Log.w(TAG, "af_daily_reset($profile) failed (continuing with fetch): ${it.message}")
         }

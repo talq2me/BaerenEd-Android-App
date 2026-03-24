@@ -94,10 +94,10 @@ class ProgressDataCollector(private val context: Context) {
         // Convert from "dd-MM-yyyy hh:mm:ss a" format to ISO 8601 with EST timezone
         return try {
             val parseFormat = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault())
-            parseFormat.timeZone = TimeZone.getTimeZone("America/New_York")
+            parseFormat.timeZone = TimeZone.getTimeZone("America/Toronto")
             val parsedDate = parseFormat.parse(lastResetDateString)
             if (parsedDate != null) {
-                val estTimeZone = TimeZone.getTimeZone("America/New_York")
+                val estTimeZone = TimeZone.getTimeZone("America/Toronto")
                 val offsetMillis = estTimeZone.getOffset(parsedDate.time)
                 val offsetHours = offsetMillis / (1000 * 60 * 60)
                 val offsetMinutes = Math.abs((offsetMillis % (1000 * 60 * 60)) / (1000 * 60))
@@ -117,10 +117,10 @@ class ProgressDataCollector(private val context: Context) {
     }
 
     /**
-     * Now() at EST in ISO 8601 format (America/New_York).
+     * Now() in America/Toronto in ISO 8601 format.
      */
     private fun generateESTTimestamp(): String {
-        val estTimeZone = TimeZone.getTimeZone("America/New_York")
+        val estTimeZone = TimeZone.getTimeZone("America/Toronto")
         val now = Date()
         val offsetMillis = estTimeZone.getOffset(now.time)
         val offsetHours = offsetMillis / (1000 * 60 * 60)

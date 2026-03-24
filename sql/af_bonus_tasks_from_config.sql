@@ -53,7 +53,7 @@ BEGIN
 
   UPDATE user_data SET
     bonus_tasks = merged_bonus,
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;

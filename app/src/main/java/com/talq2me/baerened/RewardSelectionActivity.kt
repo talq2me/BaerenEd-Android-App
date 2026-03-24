@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class RewardSelectionActivity : AppCompatActivity() {
 
@@ -29,35 +31,34 @@ class RewardSelectionActivity : AppCompatActivity() {
             return
         }
 
-        try {
-            val progressManager = DailyProgressManager(this)
-            val currentMinutes = progressManager.getBankedRewardMinutes()
-            
-            if (currentMinutes > 0) {
-                // Sync reward minutes to cloud first (so BaerenLock can read them from the database)
-                // BaerenLock will read the minutes from the cloud database instead of receiving them via Intent
-                // Banked minutes sync to cloud via full update_cloud_with_local on next BattleHub/Trainer Map load or game completion (per requirements)
-                progressManager.setBankedRewardMinutes(currentMinutes)
-                Log.d(TAG, "Synced $currentMinutes minutes to cloud for BaerenLock to read")
-                
-                // Launch BaerenLock without sending minutes via Intent/Broadcast
-                // BaerenLock will read the minutes from the cloud database when it starts
+        lifecycleScope.launch {
+            try {
+                val rawProfile = SettingsManager.readProfile(this@RewardSelectionActivity) ?: "AM"
+                val profile = when (rawProfile) {
+                    "A" -> "AM"
+                    "B" -> "BM"
+                    else -> rawProfile
+                }
+                val syncService = CloudSyncService()
+                // Must use use_reward_time (not add_reward_time): moves banked_mins → reward_time_expiry so BaerenLock shows reward apps.
+                val result = syncService.invokeUseRewardTime(profile)
+                if (result.isFailure) {
+                    val message = result.exceptionOrNull()?.message ?: "unknown error"
+                    Log.e(TAG, "Failed use_reward_time for profile $profile (raw=$rawProfile): $message")
+                    Toast.makeText(this@RewardSelectionActivity, "Could not start reward time: $message", Toast.LENGTH_LONG).show()
+                    finish()
+                    return@launch
+                }
+
+                Log.d(TAG, "Activated reward session via use_reward_time for profile $profile (raw=$rawProfile), had $remainingMinutes banked locally")
+                DailyProgressManager(this@RewardSelectionActivity).useAllRewardMinutes()
                 launchBaerenLock()
-                
-                // Clear the banked minutes from BaerenEd cache (DB is source of truth; BaerenLock will clear from cloud when it uses the time)
-                progressManager.setBankedRewardMinutes(0)
-                Log.d(TAG, "Cleared banked reward minutes from BaerenEd cache (cloud still has minutes for BaerenLock)")
-            } else {
-                Toast.makeText(this, "No reward time available", Toast.LENGTH_SHORT).show()
+                finish()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching BaerenLock", e)
+                Toast.makeText(this@RewardSelectionActivity, "Error launching reward app. Please try again.", Toast.LENGTH_SHORT).show()
+                finish()
             }
-
-            // Close this activity after launching BaerenLock
-            finish()
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error launching BaerenLock", e)
-            Toast.makeText(this, "Error launching reward app. Please try again.", Toast.LENGTH_SHORT).show()
-            finish() // Ensure the activity finishes even on error
         }
     }
 

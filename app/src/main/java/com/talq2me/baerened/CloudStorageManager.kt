@@ -159,6 +159,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
 
                 if (shouldApplyCloudData) {
                     dataApplier.applyDbDataToPrefs(userData)
+                    DailyProgressManager(context).setProgressDataAfterFetch(userData)
                     Log.d(TAG, "Applied cloud data to local storage for profile: $profile")
                 } else {
                     Log.d(TAG, "Skipped applying cloud data - local data is newer or same day for profile: $profile")
@@ -402,7 +403,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
      * This ensures all local timestamps use EST, matching cloud timestamps.
      */
     private fun generateESTTimestamp(): String {
-        val estTimeZone = java.util.TimeZone.getTimeZone("America/New_York")
+        val estTimeZone = java.util.TimeZone.getTimeZone("America/Toronto")
         val now = java.util.Date()
         val offsetMillis = estTimeZone.getOffset(now.time)
         val offsetHours = offsetMillis / (1000 * 60 * 60)
@@ -470,7 +471,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     }
     
     /**
-     * Parses timestamp string as EST (America/New_York timezone)
+     * Parses timestamp string as Toronto time (America/Toronto timezone)
      * Both cloud and local timestamps are stored in EST format
      * Strips any timezone offset suffix if present and parses the base time as EST
      */
@@ -499,7 +500,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                 else -> timestamp
             }
             
-            // Parse the base time as EST (America/New_York timezone)
+            // Parse the base time as Toronto time (America/Toronto timezone)
             // Try multiple formats: with milliseconds (3 or 2 decimal places), without milliseconds
             val formats = listOf(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS",
@@ -513,7 +514,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
             for (formatStr in formats) {
                 try {
                     val dateFormat = java.text.SimpleDateFormat(formatStr, java.util.Locale.getDefault()).apply {
-                        timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                        timeZone = java.util.TimeZone.getTimeZone("America/Toronto")
                     }
                     val date = dateFormat.parse(baseTimestamp)
                     if (date != null) {
@@ -674,6 +675,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                 // applyDbDataToPrefs will update stored timestamp via callback
                 Log.d(TAG, "Cloud is newer, downloading and applying cloud data")
                 dataApplier.applyDbDataToPrefs(cloudUserData!!)
+                DailyProgressManager(context).setProgressDataAfterFetch(cloudUserData)
                 prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
                 
                 // Verify local timestamp was updated to match cloud timestamp
@@ -820,9 +822,9 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
                 else -> timestamp
             }
             
-            // Parse the base time as EST (America/New_York timezone)
+            // Parse the base time as Toronto time (America/Toronto timezone)
             val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", java.util.Locale.getDefault()).apply {
-                timeZone = java.util.TimeZone.getTimeZone("America/New_York")
+                timeZone = java.util.TimeZone.getTimeZone("America/Toronto")
             }
             
             val date = dateFormat.parse(baseTimestamp)

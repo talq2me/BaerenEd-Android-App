@@ -49,7 +49,7 @@ BEGIN
   SET
     chores = COALESCE(new_chores, '[]'::jsonb),
     coins_earned = COALESCE(coins_earned, 0) + add_coins,
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;

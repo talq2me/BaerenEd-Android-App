@@ -347,7 +347,7 @@
         // Format now as EST timestamp: yyyy-MM-dd HH:mm:ss.SSS (matches app TIMESTAMP(3) EST).
         function nowEST() {
             const t = new Date();
-            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const tf = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
             const parts = tf.formatToParts(t);
             const get = (type) => parts.find(p => p.type === type).value;
             const pad2 = (s) => String(s).padStart(2, '0');

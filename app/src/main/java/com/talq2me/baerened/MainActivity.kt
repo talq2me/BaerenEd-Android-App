@@ -1598,18 +1598,24 @@ class MainActivity : AppCompatActivity() {
                 val minutes = minutesText.toIntOrNull()
                 
                 if (minutes != null && minutes > 0) {
-                    // Add minutes to reward bank
-                    val progressManager = DailyProgressManager(this)
-                    val newTotal = progressManager.addRewardMinutes(minutes)
-                    
-                    // Refresh progress display
-                    layout.refreshProgressDisplay()
-                    
-                    Toast.makeText(this, "Granted $minutes minutes! Total: $newTotal minutes", Toast.LENGTH_LONG).show()
-                    Log.d(TAG, "Granted $minutes reward minutes. New total: $newTotal minutes")
-                    // Per Daily Reset Logic: settings change updated local + last_updated; trigger cloud sync
-                    // so reward_time and last_updated are pushed (MainActivity does not run sync on resume).
-                    saveToCloudIfEnabled()
+                    lifecycleScope.launch {
+                        val rawProfile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
+                        val profile = when (rawProfile) {
+                            "A" -> "AM"
+                            "B" -> "BM"
+                            else -> rawProfile
+                        }
+                        val result = CloudSyncService().invokeAddRewardTime(profile, minutes)
+                        if (result.isSuccess) {
+                            Toast.makeText(this@MainActivity, "Granted $minutes minutes", Toast.LENGTH_LONG).show()
+                            Log.d(TAG, "Granted $minutes reward minutes via DB for profile=$profile (raw=$rawProfile)")
+                            layout.refreshProgressDisplay()
+                        } else {
+                            val message = result.exceptionOrNull()?.message ?: "unknown error"
+                            Log.e(TAG, "Failed granting reward minutes via DB for profile=$profile (raw=$rawProfile): $message")
+                            Toast.makeText(this@MainActivity, "Could not grant minutes: $message", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 } else {
                     Toast.makeText(this, "Please enter a valid number of minutes", Toast.LENGTH_SHORT).show()
                 }

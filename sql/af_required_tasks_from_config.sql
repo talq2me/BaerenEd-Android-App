@@ -25,6 +25,12 @@ DECLARE
   http_status int;
   existing_required jsonb;
   merged_required jsonb;
+  merged_checklist jsonb;
+  v_today_short text := lower(to_char((NOW() AT TIME ZONE 'America/Toronto'), 'Dy'));
+  v_today_date date := (NOW() AT TIME ZONE 'America/Toronto')::date;
+  v_required_possible_stars int := 0;
+  v_checklist_possible_stars int := 0;
+  v_possible_stars int := 0;
 BEGIN
   -- Resolve config: use p_config_json if provided, else fetch from GitHub
   IF p_config_json IS NOT NULL AND p_config_json != 'null'::jsonb THEN
@@ -68,10 +74,68 @@ BEGIN
     '{}'::jsonb
   ) INTO merged_required;
 
+  -- Keep checklist_items in sync from the same config before computing possible_stars.
+  PERFORM af_checklist_items_from_config(p_profile, config_json);
+
+  SELECT COALESCE(checklist_items, '{}'::jsonb) INTO merged_checklist
+  FROM user_data
+  WHERE profile = p_profile;
+
+  SELECT COALESCE(SUM(COALESCE((e.value->>'stars')::int, 0)), 0)
+  INTO v_required_possible_stars
+  FROM jsonb_each(COALESCE(merged_required, '{}'::jsonb)) AS e(key, value)
+  WHERE
+    -- hide if today is before disable date
+    NOT (
+      NULLIF(TRIM(COALESCE(e.value->>'disable', '')), '') IS NOT NULL
+      AND to_date(e.value->>'disable', 'Mon DD, YYYY') IS NOT NULL
+      AND v_today_date < to_date(e.value->>'disable', 'Mon DD, YYYY')
+    )
+    -- hide if today is in hidedays
+    AND NOT EXISTS (
+      SELECT 1
+      FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'hidedays', ''), ' ', '')), ',')) AS d(day_token)
+      WHERE d.day_token = v_today_short
+    )
+    -- if displayDays exists, today must be in displayDays
+    AND (
+      NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NULL
+      OR EXISTS (
+        SELECT 1
+        FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'displayDays', ''), ' ', '')), ',')) AS d(day_token)
+        WHERE d.day_token = v_today_short
+      )
+    )
+    -- else if showdays exists, today must be in showdays
+    AND (
+      NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NOT NULL
+      OR NULLIF(TRIM(COALESCE(e.value->>'showdays', '')), '') IS NULL
+      OR EXISTS (
+        SELECT 1
+        FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
+        WHERE d.day_token = v_today_short
+      )
+    );
+
+  -- Checklist visibility uses displayDays only (same as app logic); null/empty means visible every day.
+  SELECT COALESCE(SUM(COALESCE((e.value->>'stars')::int, 0)), 0)
+  INTO v_checklist_possible_stars
+  FROM jsonb_each(COALESCE(merged_checklist, '{}'::jsonb)) AS e(key, value)
+  WHERE
+    NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NULL
+    OR EXISTS (
+      SELECT 1
+      FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'displayDays', ''), ' ', '')), ',')) AS d(day_token)
+      WHERE d.day_token = v_today_short
+    );
+
+  v_possible_stars := v_required_possible_stars + v_checklist_possible_stars;
+
   UPDATE user_data
   SET
     required_tasks = merged_required,
-    last_updated = (NOW() AT TIME ZONE 'America/New_York')
+    possible_stars = v_possible_stars,
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
 END;
 $$;
