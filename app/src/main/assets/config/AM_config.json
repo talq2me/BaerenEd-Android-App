@@ -52,7 +52,7 @@
 
         
         {
-          "title": "Word Fishing",
+          "title": "Word Fishing FR",
           "launch": "wordFishing",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr1.json",
           "stars": 3,
@@ -60,7 +60,7 @@
           "displayDays": "wed,sat"
         },
         {
-          "title": "Word Factory",
+          "title": "Word Factory FR",
           "launch": "wordFactory",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsGr1.json",
           "stars": 3,
@@ -85,7 +85,7 @@
           "displayDays": "thu,fri,sat,sun"
         },
         {
-          "title": "Word Garden",
+          "title": "Word Garden FR",
           "launch": "wordGarden",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
           "stars": 3,
@@ -93,7 +93,7 @@
           "displayDays": "tue,fri,sun"
         },
         {
-          "title": "Snake Catch",
+          "title": "Snake Catch FR",
           "launch": "snakeCatch",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsGr1.json",
           "stars": 3,
@@ -108,7 +108,17 @@
           "launch": "spellingOCR",
           "url": "file=englishWordsGr1.json",
           "stars": 3,
+          "disable": "Jan 2, 2027",
           "displayDays": "thu,fri"
+        },
+        
+        {
+          "title": "Word Fishing Eng",
+          "launch": "wordFishing",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "displayDays": "thu,fri,sat,sun"
         },
         {
           "title": "Eng Spelling",

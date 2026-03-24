@@ -75,7 +75,7 @@
           "displayDays": "mon"
         },
         {
-          "title": "Word Garden",
+          "title": "Word Garden Eng",
           "launch": "wordGarden",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
           "stars": 3,
@@ -84,7 +84,7 @@
           "displayDays": "tue"
         },
         {
-          "title": "Word Fishing",
+          "title": "Word Fishing Eng",
           "launch": "wordFishing",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
           "stars": 3,
@@ -93,7 +93,7 @@
           "displayDays": "wed"
         },
         {
-          "title": "Spelling Race",
+          "title": "Spelling Race Eng",
           "launch": "spellingRace",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
           "stars": 3,
@@ -132,7 +132,7 @@
           "displayDays": "sat,sun,mon"
         },
         {
-          "title": "Word Garden",
+          "title": "Word Garden FR",
           "launch": "wordGarden",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr4.json",
           "stars": 3,
@@ -141,7 +141,7 @@
           "displayDays": "wed,sat"
         },
         {
-          "title": "Word Fishing",
+          "title": "Word Fishing FR",
           "launch": "wordFishing",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr4.json",
           "stars": 3,
@@ -150,7 +150,7 @@
           "displayDays": "thu,sun"
         },
         {
-          "title": "Spelling Race",
+          "title": "Spelling Race FR",
           "launch": "spellingRace",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=frenchWordsGr4.json",
           "stars": 3,
