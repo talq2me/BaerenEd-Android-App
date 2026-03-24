@@ -1,8 +1,11 @@
--- BaerenEd: Today's visible required tasks + checklist items from user_data, single combined list.
--- Output (3 columns):
--- - task_list: "name:status,name:status" (required uses status complete/incomplete; checklist uses complete/incomplete from done)
--- - possible_berries: sum of stars for all visible rows
--- - possible_mins: sum(af_stars_to_minutes(stars)) for all visible rows
+-- BaerenEd: Today's visible required tasks + checklist items from user_data.
+-- One row per task (required + visible checklist), sorted by name.
+--
+-- Columns:
+--   task_name          — key in required_tasks or checklist_items JSON
+--   completion_status  — 'complete' | 'incomplete'
+--   berry_value        — stars for that task (berries if completed toward goal)
+--   mins_value         — screen/reward minutes for that task (via af_stars_to_minutes)
 --
 -- Call:
 -- POST /rest/v1/rpc/af_get_current_required_tasks {"p_profile":"AM"}
@@ -11,9 +14,10 @@ DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 
 CREATE OR REPLACE FUNCTION af_get_current_required_tasks(p_profile text)
 RETURNS TABLE (
-  task_list text,
-  possible_berries int,
-  possible_mins int
+  task_name text,
+  completion_status text,
+  berry_value int,
+  mins_value int
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -86,10 +90,12 @@ BEGIN
     SELECT item_name, completion_status, stars FROM visible_checklist
   )
   SELECT
-    COALESCE(string_agg(item_name || ':' || completion_status, ',' ORDER BY item_name), '')::text AS task_list,
-    COALESCE(SUM(stars), 0)::int AS possible_berries,
-    COALESCE(SUM(af_stars_to_minutes(stars)), 0)::int AS possible_mins
-  FROM combined;
+    c.item_name::text,
+    c.completion_status::text,
+    c.stars::int AS berry_value,
+    af_stars_to_minutes(c.stars)::int AS mins_value
+  FROM combined c
+  ORDER BY c.item_name;
 END;
 $$;
 

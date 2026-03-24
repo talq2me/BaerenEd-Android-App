@@ -71,8 +71,10 @@
           "stars": 3,
           "webGame": true,
           "easydays": "mon",
+          "harddays": "tue,wed",
+          "extremedays": "thu,fri",
           "disable": "Mar 23, 2026",
-          "displayDays": "mon"
+          "displayDays": "mon,tue,wed,thu,fri"
         },
         {
           "title": "Word Garden Eng",
@@ -106,7 +108,7 @@
           "launch": "spellingOCR",
           "url": "file=englishWordsGr4.json",
           "stars": 3,
-          "disable": "Mar 3, 2026",
+          "disable": "Mar 3, 2027",
           "displayDays": "tue,wed,thu"
         },
 
@@ -121,6 +123,7 @@
           "disable": "Mar 24, 2026",
           "easydays": "tue,wed",
           "harddays": "thu,fri",
+          "extremedays": "sat,sun,mon",
           "displayDays": "tue,wed,thu,fri,sat,sun,mon"
         },
         {
@@ -128,7 +131,7 @@
           "launch": "spellingOCR",
           "url": "file=frenchWordsGr4.json",
           "stars": 3,
-          "disable": "Mar 24, 2026",
+          "disable": "Mar 24, 2027",
           "displayDays": "sat,sun,mon"
         },
         {

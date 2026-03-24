@@ -72,6 +72,7 @@
           "launch": "spellingOCR",
           "url": "file=frenchWordsGr1.json",
           "stars": 3,
+          "disable": "Mar 24, 2027",
           "displayDays": "mon,tue,wed"
         },
         {
@@ -81,8 +82,8 @@
           "stars": 3,
           "webGame": true,
           "easydays": "thu,fri",
-          "harddays": "sat,sun",
-          "displayDays": "thu,fri,sat,sun"
+          "harddays": "sat,sun,mon,tue,wed",
+          "displayDays": "thu,fri,sat,sun,mon,tue,wed"
         },
         {
           "title": "Word Garden FR",
