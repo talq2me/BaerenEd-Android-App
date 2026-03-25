@@ -88,6 +88,10 @@ class TaskLauncher(
             task.launch == "bookReader" -> {
                 launchBookReader(task, sectionId, sourceTaskId, resultHandler)
             }
+            // Tappable Text (assets/tappableText JSON + TTS + tappable word questions)
+            task.launch == "tappableText" -> {
+                launchTappableText(task, sectionId, sourceTaskId, resultHandler)
+            }
             // Printing Game
             task.launch == "printing" -> {
                 launchPrintingGame(task, sectionId, sourceTaskId, resultHandler)
@@ -273,6 +277,37 @@ class TaskLauncher(
             putExtra(BookReaderActivity.EXTRA_TASK_TITLE, task.title ?: "Book")
         }
         resultHandler?.launchActivity(intent, 1007) ?: (context as? Activity)?.startActivityForResult(intent, 1007)
+    }
+
+    /**
+     * Launch TappableTextActivity (book-style JSON from assets/tappableText/).
+     * task.url should be like "file=milo-sandwich-geant-g4_tappable.json" (or just the filename).
+     */
+    private fun launchTappableText(
+        task: Task,
+        sectionId: String,
+        sourceTaskId: String?,
+        resultHandler: ActivityResultHandler?
+    ) {
+        val tappableTextFile = task.url ?: ""
+        if (tappableTextFile.isBlank()) {
+            Toast.makeText(context, "No tappableText file specified for tappableText task", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val taskId = sourceTaskId ?: (task.launch ?: "tappableText")
+        val gameTitle = task.title ?: "Tappable Text"
+        Log.d(TAG, "Launching TappableText: $tappableTextFile")
+
+        val intent = Intent(context, TappableTextActivity::class.java).apply {
+            putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, tappableTextFile)
+            putExtra(TappableTextActivity.EXTRA_TASK_ID, taskId)
+            putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
+            putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
+            putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+        }
+
+        resultHandler?.launchActivity(intent, 1008) ?: (context as? Activity)?.startActivityForResult(intent, 1008)
     }
 
     /**

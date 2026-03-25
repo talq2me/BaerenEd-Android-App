@@ -90,6 +90,11 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity
+            android:name=".TappableTextActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
             android:name=".BattleHubActivity"

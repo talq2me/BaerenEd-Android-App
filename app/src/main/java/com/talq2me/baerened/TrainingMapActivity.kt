@@ -850,6 +850,25 @@ class TrainingMapActivity : AppCompatActivity() {
             startActivityForResult(intent, 1007)
             return
         }
+
+        // Check for Tappable Text (assets/tappableText JSON + tappable word questions)
+        if (task.launch == "tappableText") {
+            val ttFile = task.url
+            if (ttFile.isNullOrBlank()) {
+                android.widget.Toast.makeText(this, "No tappableText file specified for tappableText task", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+            lastLaunchedGameSectionId = sectionId
+            val intent = Intent(this, TappableTextActivity::class.java).apply {
+                putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
+                putExtra(TappableTextActivity.EXTRA_TASK_ID, gameType)
+                putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+            }
+            startActivityForResult(intent, 1008)
+            return
+        }
         
         // Check for Printing Game (doesn't need JSON)
         if (gameType == "printing") {
@@ -1169,6 +1188,32 @@ class TrainingMapActivity : AppCompatActivity() {
                     progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
                 }
                 android.util.Log.d("TrainingMapActivity", "Marked bookReader task as completed: taskId=$taskId, sectionId=$sectionId, earnedStars=$earnedStars")
+            }
+        }
+
+        // Handle TappableTextActivity result (requestCode 1008)
+        if (requestCode == 1008 && resultCode == RESULT_OK && data != null) {
+            val taskId = data.getStringExtra(TappableTextActivity.EXTRA_TASK_ID)
+            var taskTitle = data.getStringExtra(TappableTextActivity.EXTRA_TASK_TITLE)
+            val sectionId = data.getStringExtra(TappableTextActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
+            val stars = data.getIntExtra(TappableTextActivity.EXTRA_STARS, 0)
+            if (!taskId.isNullOrEmpty()) {
+                if (taskTitle.isNullOrEmpty()) {
+                    taskTitle = "Tappable Text"
+                    currentContent?.sections?.forEach { section ->
+                        section.tasks?.find { it.launch == taskId }?.let { task ->
+                            taskTitle = task.title ?: taskTitle
+                        }
+                    }
+                }
+                val progressManager = DailyProgressManager(this)
+                val earnedStars = progressManager.markTaskCompletedWithName(
+                    taskId, taskTitle ?: "Tappable Text", stars, sectionId == "required", currentContent, sectionId
+                )
+                if (earnedStars > 0) {
+                    progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                }
+                android.util.Log.d("TrainingMapActivity", "Marked tappableText task as completed: taskId=$taskId, sectionId=$sectionId, earnedStars=$earnedStars")
             }
         }
         

@@ -1,0 +1,161 @@
+{
+  "id": "milo-sandwich-geant-g4",
+  "title": "Le Sandwich Géant de Milo (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Milo ouvre son frigo et dit : « J’ai faim… très faim ! »",
+        "Il voit du pain, du fromage, des tomates… et un énorme concombre.",
+        "Il décide de faire un sandwich géant."
+      ],
+      "image": {
+        "image_id": "milo_page1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'fridge'.",
+          "correct_word": "frigo"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'cucumber'.",
+          "correct_word": "concombre"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que décide Milo de faire ?",
+        "options": ["Un sandwich petit", "Un sandwich géant", "Une soupe", "Un gâteau"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Milo empile les ingrédients.",
+        "Le sandwich devient plus haut que lui.",
+        "Il dit : « Ça va être délicieux… si ça ne tombe pas ! »"
+      ],
+      "image": {
+        "image_id": "milo_page2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'high'.",
+          "correct_word": "haut"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'falls'.",
+          "correct_word": "tombe"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'delicious'.",
+          "correct_word": "délicieux"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Son chien Pipo entre dans la cuisine.",
+        "Pipo renifle le sandwich et éternue.",
+        "Le sandwich tremble dangereusement."
+      ],
+      "image": {
+        "image_id": "milo_page3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'dog'.",
+          "correct_word": "chien"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'sniffs'.",
+          "correct_word": "renifle"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'sneezes'.",
+          "correct_word": "éternue"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Que fait Pipo avec le sandwich ?",
+        "options": ["Il mange", "Il renifle et éternue", "Il peint", "Il dort"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "BOUM ! Le sandwich s’écroule partout.",
+        "Milo et Pipo sont couverts de fromage et de tomates.",
+        "Milo éclate de rire : « Au moins, on a assez pour partager ! »"
+      ],
+      "image": {
+        "image_id": "milo_page4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'falls down'.",
+          "correct_word": "s'écroule"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'everywhere'.",
+          "correct_word": "partout"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'share'.",
+          "correct_word": "partager"
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Milo prépare plusieurs petits sandwichs.",
+        "Il les apporte à ses amis dans le jardin.",
+        "Tout le monde rit en voyant son histoire du sandwich géant."
+      ],
+      "image": {
+        "image_id": "milo_page5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'friends'.",
+          "correct_word": "amis"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'garden'.",
+          "correct_word": "jardin"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'laugh'.",
+          "correct_word": "rit"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p5_c1",
+        "prompt": "Qu'est-ce que tout le monde fait à la fin ?",
+        "options": ["Ils dorment", "Ils lisent", "Ils rient", "Ils pleurent"],
+        "correct_index": 2
+      }
+    }
+  ]
+}
+

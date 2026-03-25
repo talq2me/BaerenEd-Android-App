@@ -950,6 +950,22 @@ class Layout(private val activity: MainActivity) {
                     android.widget.Toast.makeText(activity, "No book file specified", android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
+            else if (task.launch == "tappableText") {
+                val ttFile = task.url
+                if (!ttFile.isNullOrBlank()) {
+                    android.util.Log.d("Layout", "Launching TappableText from battle hub: $ttFile")
+                    val intent = android.content.Intent(activity, TappableTextActivity::class.java).apply {
+                        putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
+                        putExtra(TappableTextActivity.EXTRA_TASK_ID, gameType)
+                        putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
+                        putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
+                        putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+                    }
+                    activity.startActivity(intent)
+                } else {
+                    android.widget.Toast.makeText(activity, "No tappableText file specified", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
             else {
                 // Handle regular game content
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -1800,6 +1816,22 @@ class Layout(private val activity: MainActivity) {
                 putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
                 putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
                 putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
+            }
+            activity.startActivity(intent)
+        }
+        else if (task.launch == "tappableText") {
+            val ttFile = task.url
+            if (ttFile.isNullOrBlank()) {
+                android.widget.Toast.makeText(activity, "No tappableText file specified for tappableText task", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+            android.util.Log.d("Layout", "Launching TappableText: $ttFile")
+            val intent = android.content.Intent(activity, TappableTextActivity::class.java).apply {
+                putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
+                putExtra(TappableTextActivity.EXTRA_TASK_ID, gameType)
+                putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
             }
             activity.startActivity(intent)
         }
