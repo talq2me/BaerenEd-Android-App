@@ -181,8 +181,6 @@
         }
         
         .number.math-expression {
-            width: clamp(54px, 15vmin, 90px);
-            height: clamp(54px, 15vmin, 90px);
             font-size: clamp(0.6rem, 3vmin, 1.8em);
         }
         
@@ -426,6 +424,8 @@
         }
         
         let numbers = [];
+        let placementPositions = [];
+        let placementIndex = 0;
         let isDragging = false;
         let dragOffset = { x: 0, y: 0 };
         let holeElement = null;
@@ -863,6 +863,12 @@
             const wrongCount = numCount - correctCount;
             
             currentQuestionScore = 0;
+
+            // Evenly spread all answer bubbles on a fixed grid.
+            // This prevents answers from overlapping (especially when math-expression
+            // renders slightly differently than plain numbers).
+            placementPositions = buildEvenlySpacedPositions(gameAreaRect, numCount);
+            placementIndex = 0;
             
             for (let i = 0; i < correctCount; i++) {
                 const format = getRandomFormat(currentAnswer);
@@ -881,23 +887,18 @@
         }
         
 function getRandomFormat(value) {
-    // Ten frames only work well for values 0-10
-    // For values > 10, use number or math-expression only
+    // Ten frames have been disabled for Math Hole because they can cause a stuck
+    // round state (correct answers remain but the round never finishes).
+    // Use only plain numbers and math-expression formats.
     if (value > 10) {
         console.log('getRandomFormat called with value > 10:', value, '- returning number or math-expression');
         const rand = Math.random();
         return rand < 0.5 ? 'number' : 'math-expression';
     }
 
-    // For values 0-10, randomly choose between number, ten-frame, or math-expression
+    // For values 0-10, randomly choose between number or math-expression
     const rand = Math.random();
-    if (rand < 0.33) {
-        return 'number';
-    } else if (rand < 0.66) {
-        return 'ten-frame';
-    } else {
-        return 'math-expression';
-    }
+    return rand < 0.5 ? 'number' : 'math-expression';
 }
 
         function generateWrongAnswers(count) {
@@ -932,28 +933,9 @@ function getRandomFormat(value) {
             num.className = 'number';
 
             if (format === 'ten-frame') {
-                // Ten frames should only be used for values 0-10, but double-check just in case
-                if (value > 10) {
-                    // Fallback to number format if value is too large
-                    console.warn('Attempted to create ten-frame for value > 10:', value, '- falling back to number format');
-                    num.textContent = value;
-                    return num;
-                }
-
-                num.classList.add('ten-frame');
-                const grid = document.createElement('div');
-                grid.className = 'ten-frame-grid';
-
-                for (let i = 0; i < 10; i++) {
-                    const dot = document.createElement('div');
-                    dot.className = 'ten-frame-dot';
-                    if (i < value) {
-                        dot.classList.add('filled');
-                    }
-                    grid.appendChild(dot);
-                }
-
-                num.appendChild(grid);
+                // Ten frames disabled: render as a plain value instead.
+                num.textContent = value;
+                return num;
             } else if (format === 'math-expression' && value === currentAnswer) {
                 num.classList.add('math-expression');
                 // Create a simple math expression representation
@@ -1078,6 +1060,49 @@ function getRandomFormat(value) {
             return { size: Math.min(cellW, cellH) * 0.85, pad, cols, rows };
         }
 
+        function buildEvenlySpacedPositions(gameAreaRect, numCount) {
+            const { size: numSize, pad: padding, cols, rows } = getPlacementCellSize();
+            const holeSize = getHoleSize();
+
+            const w = gameAreaRect.width;
+            const h = gameAreaRect.height;
+            const maxX = Math.max(0, w - numSize - padding);
+            const maxY = Math.max(0, h - numSize - padding);
+
+            const cellW = (cols <= 1) ? 0 : (maxX - padding) / (cols - 1);
+            const cellH = (rows <= 1) ? 0 : (maxY - padding) / (rows - 1);
+
+            const holeX = parseFloat(holeElement.style.left) || 0;
+            const holeY = parseFloat(holeElement.style.top) || 0;
+            const holeCenterX = holeX + holeSize / 2;
+            const holeCenterY = holeY + holeSize / 2;
+
+            const positions = [];
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const x = Math.min(maxX, padding + col * cellW);
+                    const y = Math.min(maxY, padding + row * cellH);
+                    const cx = x + numSize / 2;
+                    const cy = y + numSize / 2;
+                    const distToHole = Math.sqrt(Math.pow(cx - holeCenterX, 2) + Math.pow(cy - holeCenterY, 2));
+                    positions.push({ x, y, distToHole });
+                }
+            }
+
+            // Prefer cells farther away from the hole so we don't auto-swallow
+            // everything immediately.
+            positions.sort((a, b) => b.distToHole - a.distToHole);
+
+            // Try to keep any cells that are "too close" to the hole out of the main set.
+            // If we still need more positions, fall back to the remaining cells.
+            const safePositions = positions.filter(p => !isTooCloseToHole(p.x, p.y, numSize, holeSize));
+            const chosen = (safePositions.length >= numCount)
+                ? safePositions.slice(0, numCount)
+                : safePositions.concat(positions.filter(p => !safePositions.includes(p))).slice(0, numCount);
+
+            return chosen;
+        }
+
         function placeNumberRandomly(element, gameAreaRect) {
             const w = gameAreaRect.width;
             const h = gameAreaRect.height;
@@ -1086,6 +1111,16 @@ function getRandomFormat(value) {
             const minDistance = numSize * 0.9;
             const maxX = Math.max(0, w - numSize - padding);
             const maxY = Math.max(0, h - numSize - padding);
+
+            // If we precomputed evenly-spaced positions for this round, use them.
+            if (placementPositions && placementPositions.length > 0) {
+                const pos = placementPositions[Math.min(placementIndex, placementPositions.length - 1)];
+                placementIndex++;
+                element.style.left = pos.x + 'px';
+                element.style.top = pos.y + 'px';
+                gameArea.appendChild(element);
+                return;
+            }
             
             let x, y;
             let attempts = 0;
