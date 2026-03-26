@@ -90,7 +90,7 @@ class TappableTextActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_book_reader)
+        setContentView(R.layout.activity_tappable_text)
 
         val tappableTextFile = intent.getStringExtra(EXTRA_TAPPABLE_TEXT_FILE)
         val taskId = intent.getStringExtra(EXTRA_TASK_ID)
