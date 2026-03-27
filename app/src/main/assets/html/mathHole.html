@@ -738,8 +738,15 @@
                 updateScoreAboveHole();
                 
                 setTimeout(() => {
+                    // Remove by element — never use the captured `index` here. When several
+                    // correct bubbles are swallowed in quick succession, each handler's stale
+                    // index shifts after earlier splices and can remove the wrong row or leave
+                    // a correct bubble "stuck" so the round never finishes.
+                    const idxNow = numbers.findIndex(n => n.element === numElement);
+                    if (idxNow !== -1) {
+                        numbers.splice(idxNow, 1);
+                    }
                     numElement.remove();
-                    numbers.splice(index, 1);
                     delete numElement.dataset.processing;
                     
                     // Check if all correct numbers are swallowed
