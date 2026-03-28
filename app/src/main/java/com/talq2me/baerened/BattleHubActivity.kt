@@ -29,7 +29,6 @@ import kotlinx.coroutines.*
 
 class BattleHubActivity : AppCompatActivity() {
 
-    private lateinit var cloudStorageManager: CloudStorageManager
     private var loadingDialog: android.app.ProgressDialog? = null
 
     data class ParsedPokemon(
@@ -83,9 +82,6 @@ class BattleHubActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         android.util.Log.d("BattleHubActivity", "onCreate() CALLED")
         setContentView(R.layout.activity_battle_hub)
-        
-        // Initialize managers
-        cloudStorageManager = CloudStorageManager(this)
         
         // Initialize views immediately so onResume() can safely update them
         initializeViews()
@@ -700,30 +696,23 @@ class BattleHubActivity : AppCompatActivity() {
                 
                 val progressManager = DailyProgressManager(this)
                 val previousCount = progressManager.getUnlockedPokemonCount()
-                progressManager.unlockPokemon(count)
-                val newCount = progressManager.getUnlockedPokemonCount()
-                
-                android.util.Log.d("BattleHubActivity", "Unlocked $count Pokemon via admin. Previous: $previousCount, New total: $newCount")
-                
-                // Sync to cloud
-                val profile = SettingsManager.readProfile(this) ?: "AM"
-                lifecycleScope.launch {
-                    try {
-                        val result = cloudStorageManager.saveIfEnabled(profile)
-                        if (result.isSuccess) {
-                            android.util.Log.d("BattleHubActivity", "Successfully synced Pokemon unlock to cloud")
-                        } else {
-                            android.util.Log.w("BattleHubActivity", "Failed to sync Pokemon unlock to cloud: ${result.exceptionOrNull()?.message}")
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val r = progressManager.unlockPokemon(count)
+                    withContext(Dispatchers.Main) {
+                        if (r.isFailure) {
+                            android.widget.Toast.makeText(
+                                this@BattleHubActivity,
+                                r.exceptionOrNull()?.message ?: "Could not save unlock.",
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                            return@withContext
                         }
-                    } catch (e: Exception) {
-                        android.util.Log.e("BattleHubActivity", "Error syncing Pokemon unlock to cloud", e)
+                        val newCount = progressManager.getUnlockedPokemonCount()
+                        android.util.Log.d("BattleHubActivity", "Unlocked $count Pokemon via admin. Previous: $previousCount, New total: $newCount")
+                        loadPokemonData()
+                        android.widget.Toast.makeText(this@BattleHubActivity, "Unlocked $count Pokemon! Total: $newCount", android.widget.Toast.LENGTH_LONG).show()
                     }
                 }
-                
-                // Refresh Pokemon data to show new unlocks
-                loadPokemonData()
-                
-                android.widget.Toast.makeText(this, "Unlocked $count Pokemon! Total: $newCount", android.widget.Toast.LENGTH_LONG).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -2465,17 +2454,27 @@ class BattleHubActivity : AppCompatActivity() {
         clearBattleMessage()
         
         if (playerWon && currentBossPokemon != null) {
-            // Unlock the boss Pokemon
+            val boss = currentBossPokemon!!
             val progressManager = DailyProgressManager(this)
             val currentUnlocked = progressManager.getUnlockedPokemonCount()
-            progressManager.setUnlockedPokemonCount(currentUnlocked + 1)
-
-            // Berries were cleared in user_data when Battle was tapped (af_update_berries_banked).
-            android.util.Log.d("BattleHubActivity", "Battle won: berries were already cleared in DB at battle start")
-            updateBerryMeter()
-            
-            // Show victory dialog
-            showVictory(currentBossPokemon!!)
+            lifecycleScope.launch(Dispatchers.IO) {
+                val r = progressManager.setUnlockedPokemonCount(currentUnlocked + 1)
+                withContext(Dispatchers.Main) {
+                    if (r.isFailure) {
+                        android.widget.Toast.makeText(
+                            this@BattleHubActivity,
+                            r.exceptionOrNull()?.message ?: "Could not save Pokemon unlock.",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                        battleButton.isEnabled = true
+                        battleButton.text = "⚔️ Battle ⚔️"
+                        return@withContext
+                    }
+                    android.util.Log.d("BattleHubActivity", "Battle won: berries were already cleared in DB at battle start")
+                    updateBerryMeter()
+                    showVictory(boss)
+                }
+            }
         } else {
             // Battle failed
             battleButton.isEnabled = true
@@ -2612,13 +2611,6 @@ class BattleHubActivity : AppCompatActivity() {
                 // This prevents optional tasks from resetting the flag
                 if (currentEarnedStars > earnedStarsAtBattleEnd) {
                     progressManager.resetBattleEndTracking()
-
-                    // Sync to cloud when new required tasks are completed
-                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-                    val cloudStorageManager = CloudStorageManager(this)
-                    lifecycleScope.launch {
-                        cloudStorageManager.saveIfEnabled(currentProfile)
-                    }
                 }
             }
         }

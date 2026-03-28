@@ -47,7 +47,7 @@ class YouTubePlayerActivity : AppCompatActivity() {
         val currentTaskId = taskId
         val currentSectionId = sectionId
         val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
-            progressManager.getUniqueTaskId(currentTaskId, currentSectionId)
+            progressManager.getUniqueTaskId(currentTaskId, taskTitle, currentSectionId)
         } else {
             currentTaskId ?: "video"
         }

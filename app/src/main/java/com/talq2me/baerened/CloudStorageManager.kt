@@ -24,11 +24,8 @@ import com.talq2me.baerened.Task
  * This works alongside local storage and can be toggled on/off
  * Supabase credentials are embedded in BuildConfig at build time
  * 
- * CRITICAL REQUIREMENT: ALL sync operations MUST compare cloud and local timestamps before updating.
- * Never update cloud data without first checking if cloud timestamp is newer than local timestamp.
- * This prevents overwriting newer cloud data with older local data.
- * 
- * See CLOUD_SYNC_TIMESTAMP_REQUIREMENT.md for full documentation.
+ * User progress: DB is source of truth ([UserDataRepository.fetchUserData]); writes use RPCs from [DailyProgressManager].
+ * [downloadFromCloud] applies the fetched row to prefs/session whenever the download succeeds (no local-vs-DB last_updated gate).
  */
 class CloudStorageManager(private val context: Context) : ICloudStorageManager {
 
@@ -49,6 +46,7 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     // Delegates for better separation of concerns
     private val dataCollector = ProgressDataCollector(context)
     private val syncService = CloudSyncService()
+    private val userDataRepository = UserDataRepository.getInstance(context)
     private val dataApplier = CloudDataApplier(context) { profile, timestamp ->
         setStoredLastUpdatedTimestamp(profile, timestamp)
     }
@@ -115,60 +113,27 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     // Removed profile conversion - use profile names directly
 
     /**
-     * Uploads all local data to cloud for the current profile
-     * Profile can be in local format (A/B) or cloud format (AM/BM)
+     * Legacy full-document upload from prefs is disabled: progress writes use RPCs (af_update_*).
+     * Config seeding uses [DailyResetAndSyncManager.invokeConfigFromGitHubRpcsThenRefetch].
      */
     override suspend fun uploadToCloud(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!isConfigured()) {
-            return@withContext Result.failure(Exception("Supabase not configured in BuildConfig"))
-        }
-
-        try {
-            // Collect data using ProgressDataCollector
-            val userData = dataCollector.buildUploadPayloadFromPrefs(profile)
-            
-            // Log task counts for debugging config sync
-            Log.d(TAG, "Uploading to cloud: profile=${userData.profile}, requiredTasks=${userData.requiredTasks.size}, practiceTasks=${userData.practiceTasks.size}, checklistItems=${userData.checklistItems.size}")
-            
-            // Upload using CloudSyncService
-            val result = syncService.uploadUserData(userData)
-            
-            if (result.isSuccess) {
-                prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
-            }
-            
-            result
-        } catch (e: Exception) {
-            Log.e(TAG, "Error uploading to cloud", e)
-            Result.failure(e)
-        }
+        Log.w(TAG, "uploadToCloud(profile=$profile) ignored — full prefs upload disabled; use RPCs + DB refetch")
+        Result.success(Unit)
     }
 
     /**
-     * Internal method to download data from cloud and return the data
+     * Fetches user_data from DB and applies it to prefs/session. DB row is authoritative.
      */
     private suspend fun downloadFromCloudInternal(profile: String): Result<CloudUserData?> = withContext(Dispatchers.IO) {
-        // Use syncService to download
         val result = syncService.downloadUserData(profile)
         if (result.isSuccess) {
             val userData = result.getOrNull()
             if (userData != null) {
-                // Check if we should apply cloud data based on timestamps and content
-                val shouldApplyCloudData = shouldApplyCloudData(userData, profile)
-                Log.d(TAG, "Cloud data last updated: ${userData.lastUpdated}, should apply: $shouldApplyCloudData")
-
-                if (shouldApplyCloudData) {
-                    dataApplier.applyDbDataToPrefs(userData)
-                    DailyProgressManager(context).setProgressDataAfterFetch(userData)
-                    Log.d(TAG, "Applied cloud data to local storage for profile: $profile")
-                } else {
-                    Log.d(TAG, "Skipped applying cloud data - local data is newer or same day for profile: $profile")
-                    // Even if we don't apply all data, still apply app lists if cloud has them and local doesn't
-                    dataApplier.applyAppListsFromCloudIfLocalEmpty(userData)
-                }
-
+                Log.d(TAG, "Applying DB snapshot for profile: $profile (last_updated=${userData.lastUpdated})")
+                dataApplier.applyDbDataToPrefs(userData)
+                DailyProgressManager(context).setProgressDataAfterFetch(userData)
                 prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
-                Log.d(TAG, "Successfully downloaded data from cloud for profile: $profile")
+                Log.d(TAG, "Applied downloaded DB data to local storage for profile: $profile")
             }
         }
         result
@@ -444,33 +409,6 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
      */
     
     /**
-     * Determines if cloud data should be applied to local storage
-     * Simple timestamp-based: if cloud timestamp is newer than local, apply cloud data
-     */
-    private fun shouldApplyCloudData(cloudData: CloudUserData, profile: String): Boolean {
-        try {
-            val cloudTimestamp = cloudData.lastUpdated
-            if (cloudTimestamp.isNullOrEmpty()) {
-                Log.d(TAG, "Cloud data has no timestamp, not applying")
-                return false
-            }
-
-            val storedTimestamp = getStoredLastUpdatedTimestamp(profile)
-            val cloudTime = parseTimestampAsEST(cloudTimestamp)
-            val storedTime = parseTimestampAsEST(storedTimestamp)
-            val shouldApply = cloudTime > storedTime
-            Log.d(TAG, "shouldApplyCloudData - Cloud: $cloudTimestamp (parsed: $cloudTime ms), Stored: $storedTimestamp (parsed: $storedTime ms)")
-            Log.d(TAG, "shouldApplyCloudData - Cloud is newer: $shouldApply (cloudTime > storedTime: ${cloudTime > storedTime})")
-            
-            return shouldApply
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking if cloud data should be applied", e)
-            return false
-        }
-    }
-    
-    /**
      * Parses timestamp string as Toronto time (America/Toronto timezone)
      * Both cloud and local timestamps are stored in EST format
      * Strips any timezone offset suffix if present and parses the base time as EST
@@ -630,85 +568,36 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     // Data application logic moved to CloudDataApplier class
 
     /**
-     * Syncs data (downloads from cloud if cloud is enabled)
-     * Simple logic: Compare timestamps, if cloud newer -> download and apply (update local timestamp),
-     * if local newer -> upload
+     * Pulls DB (source of truth) and applies to prefs/session. No local-vs-cloud timestamp compare and no prefs upload.
      */
-    override suspend fun syncIfEnabled(profile: String): Result<Unit> {
+    override suspend fun syncIfEnabled(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
         if (!isCloudStorageEnabled() || !isConfigured()) {
             Log.d(TAG, "Cloud sync disabled or not configured")
-            return Result.success(Unit)
+            return@withContext Result.success(Unit)
         }
-
-        Log.d(TAG, "Starting sync for profile: $profile")
-
+        Log.d(TAG, "syncIfEnabled: fetch from DB for profile $profile (no prefs upload)")
         try {
-            val storedTimestamp = getStoredLastUpdatedTimestamp(profile)
-            Log.d(TAG, "Stored timestamp: $storedTimestamp")
-
-            // Download cloud data (without applying yet)
-            val cloudDataResult = syncService.downloadUserData(profile)
-            val cloudUserData = if (cloudDataResult.isSuccess) cloudDataResult.getOrNull() else null
-            val cloudTimestamp = cloudUserData?.lastUpdated
-
-            Log.d(TAG, "Cloud timestamp: $cloudTimestamp")
-
-            if (cloudTimestamp.isNullOrEmpty()) {
-                Log.d(TAG, "No cloud data exists, uploading to DB")
-                val uploadResult = uploadToCloud(profile)
-                val settingsUploadResult = uploadSettingsToCloud()
-                return if (uploadResult.isSuccess && settingsUploadResult.isSuccess) {
-                    Log.d(TAG, "Successfully uploaded local data to cloud")
-                    Result.success(Unit)
-                } else {
-                    val error = uploadResult.exceptionOrNull() ?: settingsUploadResult.exceptionOrNull() ?: Exception("Upload failed")
-                    Log.e(TAG, "Failed to upload local data", error)
-                    Result.failure(error)
-                }
+            val fetchResult = userDataRepository.fetchUserData(profile)
+            if (fetchResult.isFailure) {
+                return@withContext Result.failure(fetchResult.exceptionOrNull() ?: Exception("Fetch failed"))
             }
-
-            val storedTime = parseTimestampAsEST(storedTimestamp)
-            val cloudTime = parseTimestampAsEST(cloudTimestamp)
-            Log.d(TAG, "Timestamp comparison - Stored: $storedTimestamp ($storedTime ms), Cloud: $cloudTimestamp ($cloudTime ms)")
-            if (cloudTime > storedTime) {
-                // Cloud is newer: download and apply cloud data
-                // applyDbDataToPrefs will update stored timestamp via callback
-                Log.d(TAG, "Cloud is newer, downloading and applying cloud data")
-                dataApplier.applyDbDataToPrefs(cloudUserData!!)
-                DailyProgressManager(context).setProgressDataAfterFetch(cloudUserData)
-                prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
-                
-                // Verify local timestamp was updated to match cloud timestamp
-                val updatedStoredTimestamp = getStoredLastUpdatedTimestamp(profile)
-                Log.d(TAG, "After applyDbDataToPrefs - stored timestamp: $updatedStoredTimestamp (should match DB: $cloudTimestamp)")
-                
-                val settingsDownloadResult = downloadSettingsFromCloud()
-                Log.d(TAG, "Successfully applied DB data to prefs")
-                return if (settingsDownloadResult.isSuccess) {
-                    Result.success(Unit)
-                } else {
-                    Result.failure(settingsDownloadResult.exceptionOrNull() ?: Exception("Settings download failed"))
-                }
-            } else if (storedTime > cloudTime) {
-                Log.d(TAG, "Stored is newer, uploading to DB")
-                val uploadResult = uploadToCloud(profile)
-                val settingsUploadResult = uploadSettingsToCloud()
-                return if (uploadResult.isSuccess && settingsUploadResult.isSuccess) {
-                    Log.d(TAG, "Successfully uploaded to DB")
-                    Result.success(Unit)
-                } else {
-                    val error = uploadResult.exceptionOrNull() ?: settingsUploadResult.exceptionOrNull() ?: Exception("Upload failed")
-                    Log.e(TAG, "Failed to upload to DB", error)
-                    Result.failure(error)
-                }
+            val data = fetchResult.getOrNull()
+            if (data != null) {
+                dataApplier.applyDbDataToPrefs(data)
+                DailyProgressManager(context).setProgressDataAfterFetch(data)
             } else {
-                Log.d(TAG, "Stored and DB timestamps are equal - no sync needed")
-                return Result.success(Unit)
+                val empty = CloudUserData(profile = profile)
+                dataApplier.applyDbDataToPrefs(empty)
+                DailyProgressManager(context).setProgressDataAfterFetch(empty)
             }
-
+            prefs.edit().putLong(KEY_LAST_SYNC, System.currentTimeMillis()).apply()
+            downloadSettingsFromCloud().onFailure {
+                Log.w(TAG, "downloadSettingsFromCloud failed: ${it.message}")
+            }
+            Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "Error during sync", e)
-            return Result.failure(e)
+            Log.e(TAG, "syncIfEnabled failed", e)
+            Result.failure(e)
         }
     }
 
@@ -836,29 +725,19 @@ class CloudStorageManager(private val context: Context) : ICloudStorageManager {
     }
 
     /**
-     * Saves data to cloud if cloud storage is enabled
+     * Persists app settings to cloud if enabled. User progress is not uploaded from prefs (RPCs only).
      */
-    override suspend fun saveIfEnabled(profile: String): Result<Unit> {
-        Log.d(TAG, "saveIfEnabled called for profile: $profile")
+    override suspend fun saveIfEnabled(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        Log.d(TAG, "saveIfEnabled called for profile: $profile (user-data upload disabled; uses RPCs)")
         if (!isCloudStorageEnabled() || !isConfigured()) {
             Log.d(TAG, "Cloud sync skipped - enabled: ${isCloudStorageEnabled()}, configured: ${isConfigured()}")
-            return Result.success(Unit)
+            return@withContext Result.success(Unit)
         }
-
-        Log.d(TAG, "Starting cloud sync for profile: $profile")
-        val userDataResult = uploadToCloud(profile)
         val settingsResult = uploadSettingsToCloud()
-
-        Log.d(TAG, "Cloud sync results - userData: ${userDataResult.isSuccess}, settings: ${settingsResult.isSuccess}")
-
-        return if (userDataResult.isSuccess && settingsResult.isSuccess) {
-            Log.d(TAG, "Cloud sync completed successfully")
-            Result.success(Unit)
-        } else {
-            val error = userDataResult.exceptionOrNull() ?: settingsResult.exceptionOrNull() ?: Exception("Save failed")
-            Log.e(TAG, "Cloud sync failed", error)
-            Result.failure(error)
+        if (settingsResult.isFailure) {
+            Log.e(TAG, "saveIfEnabled: settings upload failed", settingsResult.exceptionOrNull())
         }
+        settingsResult
     }
 
     /**

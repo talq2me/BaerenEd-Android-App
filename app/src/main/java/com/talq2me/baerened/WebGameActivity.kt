@@ -37,6 +37,10 @@ import java.util.concurrent.TimeUnit
 import android.util.Base64
 import android.net.Uri
 import android.graphics.BitmapFactory
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WebGameActivity : AppCompatActivity() {
 
@@ -93,7 +97,7 @@ class WebGameActivity : AppCompatActivity() {
         val currentTaskId = taskId
         val currentSectionId = sectionId
         val uniqueTaskId = if (currentTaskId != null && currentSectionId != null) {
-            progressManager.getUniqueTaskId(currentTaskId, currentSectionId)
+            progressManager.getUniqueTaskId(currentTaskId, taskTitle, currentSectionId)
         } else {
             currentTaskId ?: "webgame"
         }
@@ -248,28 +252,49 @@ class WebGameActivity : AppCompatActivity() {
         @JavascriptInterface
         fun gameCompleted(correctAnswers: Int, incorrectAnswers: Int, finalIndex: Int) {
             android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted() with correct: $correctAnswers, incorrect: $incorrectAnswers, finalIndex: $finalIndex")
-            // JavascriptInterface methods run on a WebView worker thread, so we must use runOnUiThread
-            // for Activity methods like setResult() and finish()
-            runOnUiThread {
-                // Save game index before finishing so game_indices and last_updated sync to cloud (same as GameActivity)
+            // Never block the main thread: saveIndex does RPC + refetch (was runBlocking inside runOnUiThread → ANR).
+            lifecycleScope.launch(Dispatchers.IO) {
                 if (taskId != null && finalIndex >= 0) {
                     val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
-                    webGameProgress.saveIndex(finalIndex)
-                    android.util.Log.d("WebGameActivity", "Saved game index $finalIndex for $taskId (game_indices)")
+                    val r = webGameProgress.saveIndex(finalIndex)
+                    if (r.isFailure) {
+                        android.util.Log.e("WebGameActivity", "saveIndex failed", r.exceptionOrNull())
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@WebGameActivity,
+                                r.exceptionOrNull()?.message ?: "Could not save game progress.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    } else {
+                        android.util.Log.d("WebGameActivity", "Saved game index $finalIndex for $taskId (game_indices)")
+                    }
                 }
-                timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
-                lastWebGameCorrectAnswers = correctAnswers
-                lastWebGameIncorrectAnswers = incorrectAnswers
-                finishGameWithResult(taskId)
+                withContext(Dispatchers.Main) {
+                    timeTracker.updateAnswerCounts("webgame", correctAnswers, incorrectAnswers)
+                    lastWebGameCorrectAnswers = correctAnswers
+                    lastWebGameIncorrectAnswers = incorrectAnswers
+                    finishGameWithResult(taskId)
+                }
             }
         }
 
         @JavascriptInterface
         fun saveProgress(index: Int) {
             android.util.Log.d("WebGameActivity", "JavaScript called saveProgress() with index: $index for taskId: $taskId")
-            if (taskId != null) {
-                val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
-                webGameProgress.saveIndex(index)
+            val tid = taskId ?: return
+            lifecycleScope.launch(Dispatchers.IO) {
+                val r = WebGameProgress(this@WebGameActivity, tid).saveIndex(index)
+                if (r.isFailure) {
+                    android.util.Log.e("WebGameActivity", "saveProgress saveIndex failed", r.exceptionOrNull())
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@WebGameActivity,
+                            r.exceptionOrNull()?.message ?: "Could not save progress.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
             }
         }
 
@@ -305,7 +330,30 @@ class WebGameActivity : AppCompatActivity() {
         fun loadJsonFile(fileName: String): String {
             val cacheFile = File(this@WebGameActivity.cacheDir, fileName)
 
-            // 1. Try fetching from GitHub first (cache-bust + force network so tablets always get latest)
+            // 1. Bundled assets first — fast, no network (avoids multi-second block on JS bridge thread).
+            try {
+                val inputStream: InputStream = assets.open("data/$fileName")
+                inputStream.use { ins ->
+                    val content = ins.bufferedReader(Charset.forName("UTF-8")).readText()
+                    android.util.Log.d("WebGameActivity", "Loaded JSON from bundled asset: $fileName")
+                    return content
+                }
+            } catch (e: IOException) {
+                android.util.Log.d("WebGameActivity", "No bundled asset for $fileName, trying cache/GitHub.", e)
+            }
+
+            // 2. Cache (e.g. after a previous GitHub fetch)
+            if (cacheFile.exists()) {
+                try {
+                    val cachedContent = cacheFile.readText()
+                    android.util.Log.d("WebGameActivity", "Loaded JSON from cache: $fileName")
+                    return cachedContent
+                } catch (e: Exception) {
+                    android.util.Log.e("WebGameActivity", "Error reading JSON from cache.", e)
+                }
+            }
+
+            // 3. Last resort: GitHub (slow; blocks bridge thread until complete)
             try {
                 val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$fileName?nocache=${System.currentTimeMillis()}"
                 val request = Request.Builder()
@@ -316,49 +364,23 @@ class WebGameActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         val body = response.body?.string()
                         if (body != null) {
-                            android.util.Log.d("WebGameActivity", "Successfully fetched JSON from GitHub: $fileName")
-                            // Save to cache for offline use
+                            android.util.Log.d("WebGameActivity", "Fetched JSON from GitHub: $fileName")
                             try {
                                 FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                                android.util.Log.d("WebGameActivity", "Saved JSON to cache: $fileName")
                             } catch (e: IOException) {
                                 android.util.Log.e("WebGameActivity", "Error writing JSON to cache", e)
                             }
                             return body
                         }
                     }
-                    android.util.Log.w("WebGameActivity", "GitHub fetch failed with code: ${response.code}. Trying cache.")
+                    android.util.Log.w("WebGameActivity", "GitHub fetch failed with code: ${response.code}.")
                 }
             } catch (e: IOException) {
-                android.util.Log.w("WebGameActivity", "Network error fetching JSON: ${e.message}. Trying cache.")
+                android.util.Log.w("WebGameActivity", "Network error fetching JSON: ${e.message}")
             }
 
-            // 2. Network failed, try loading from Cache
-            if (cacheFile.exists()) {
-                try {
-                    val cachedContent = cacheFile.readText()
-                    android.util.Log.d("WebGameActivity", "Successfully loaded JSON from cache: $fileName")
-                    return cachedContent
-                } catch (e: Exception) {
-                    android.util.Log.e("WebGameActivity", "Error reading JSON from cache. Trying assets.", e)
-                }
-            }
-
-            // 3. Cache failed or doesn't exist, fall back to bundled Assets
-            try {
-                android.util.Log.d("WebGameActivity", "Loading JSON from bundled asset: $fileName")
-                val inputStream: InputStream = assets.open("data/$fileName")
-                val size = inputStream.available()
-                val buffer = ByteArray(size)
-                inputStream.read(buffer)
-                inputStream.close()
-                val content = String(buffer, Charset.forName("UTF-8"))
-                android.util.Log.d("WebGameActivity", "Successfully loaded JSON from assets: $fileName")
-                return content
-            } catch (e: IOException) {
-                android.util.Log.e("WebGameActivity", "Error loading JSON file from assets: $fileName", e)
-                return "[]"
-            }
+            android.util.Log.e("WebGameActivity", "Could not load JSON: $fileName")
+            return "[]"
         }
 
         @JavascriptInterface
@@ -416,11 +438,19 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun unlockPokemon(count: Int) {
-            try {
-                DailyProgressManager(this@WebGameActivity).unlockPokemon(count)
-                android.util.Log.d("WebGameActivity", "Unlocked $count Pokemon via JavaScript interface")
-            } catch (e: Exception) {
-                android.util.Log.e("WebGameActivity", "Error unlocking Pokemon", e)
+            lifecycleScope.launch(Dispatchers.IO) {
+                val r = DailyProgressManager(this@WebGameActivity).unlockPokemon(count)
+                if (r.isFailure) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@WebGameActivity,
+                            r.exceptionOrNull()?.message ?: "Could not unlock Pokemon.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                } else {
+                    android.util.Log.d("WebGameActivity", "Unlocked $count Pokemon via JavaScript interface")
+                }
             }
         }
 

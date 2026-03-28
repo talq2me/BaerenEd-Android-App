@@ -617,12 +617,6 @@ class MainActivity : AppCompatActivity() {
                     )
                     layout.refreshSections()
                     
-                    // Sync progress to cloud after task completion (including berries)
-                    val profile = SettingsManager.readProfile(this) ?: "AM"
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
-                    }
-                    
                     Toast.makeText(
                         this,
                         "Great reading! You spent ${timeElapsedSeconds}s in Read Along.",
@@ -715,12 +709,6 @@ class MainActivity : AppCompatActivity() {
                         completionMessage = "📚 Boukili completed! Great job reading!"
                     )
                     layout.refreshSections()
-                    
-                    // Sync progress to cloud after task completion (including berries)
-                    val profile = SettingsManager.readProfile(this) ?: "AM"
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
-                    }
                     
                     Toast.makeText(
                         this,
@@ -833,13 +821,6 @@ class MainActivity : AppCompatActivity() {
             if (taskId != null && taskTitle != null) {
                 val indexToPass = if (videoIndex != -1) videoIndex else null
                 layout.handleVideoCompletion(taskId, taskTitle, stars, videoFile, indexToPass)
-
-                // Sync progress to cloud after video completion
-                val profile = SettingsManager.readProfile(this) ?: "AM"
-                android.util.Log.d("MainActivity", "Video completed, triggering cloud sync for profile: $profile")
-                lifecycleScope.launch(Dispatchers.IO) {
-                    CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
-                }
             } else {
                 android.util.Log.d("MainActivity", "VIDEO COMPLETION: Missing taskId or taskTitle in data")
             }
@@ -888,12 +869,6 @@ class MainActivity : AppCompatActivity() {
                     layout.refreshTrainingMap()
                 }
             }
-
-            // Sync progress to cloud after game completion
-            val profile = SettingsManager.readProfile(this) ?: "A"
-            lifecycleScope.launch(Dispatchers.IO) {
-                CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
-            }
         }
     }
     
@@ -935,12 +910,6 @@ class MainActivity : AppCompatActivity() {
 
             if (taskId != null && taskTitle != null) {
                 layout.handleChromePageCompletion(taskId, taskTitle, stars, sectionId)
-
-                // Sync progress to cloud after chrome page completion
-                val profile = SettingsManager.readProfile(this) ?: "AM"
-                lifecycleScope.launch(Dispatchers.IO) {
-                    CloudStorageManager(this@MainActivity).saveIfEnabled(profile)
-                }
             }
         }
     }
@@ -1226,13 +1195,13 @@ class MainActivity : AppCompatActivity() {
                     kotlinx.coroutines.delay(100)
                     val profile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
                     try {
-                        val uploadResult = cloudStorageManager.uploadToCloud(profile)
-                        if (!uploadResult.isSuccess) {
-                            val errorMsg = uploadResult.exceptionOrNull()?.message ?: "Unknown error"
-                            Log.e(TAG, "Failed to sync config tasks to cloud: $errorMsg")
+                        val rpcResult = DailyResetAndSyncManager(this@MainActivity).invokeConfigFromGitHubRpcsThenRefetch(profile)
+                        if (!rpcResult.isSuccess) {
+                            val errorMsg = rpcResult.exceptionOrNull()?.message ?: "Unknown error"
+                            Log.e(TAG, "Failed to sync config to DB via RPC: $errorMsg")
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Error syncing config tasks to cloud", e)
+                        Log.e(TAG, "Error syncing config to DB via RPC", e)
                     }
                     
                     withContext(Dispatchers.Main) {
@@ -1338,14 +1307,13 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
-     * Saves data to cloud if cloud storage is enabled
-     * Call this after any data changes
+     * Refetches progress from DB when cloud is enabled (writes use RPCs, not prefs upload).
      */
     fun saveToCloudIfEnabled() {
         if (cloudStorageManager.isCloudStorageEnabled()) {
             val profile = SettingsManager.readProfile(this) ?: "A"
             lifecycleScope.launch(Dispatchers.IO) {
-                cloudStorageManager.saveIfEnabled(profile)
+                DailyResetAndSyncManager(this@MainActivity).dailyResetProcessAndSync(profile)
             }
         }
     }

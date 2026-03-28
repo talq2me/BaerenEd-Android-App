@@ -12,9 +12,13 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.max
 
@@ -309,22 +313,23 @@ class PokemonActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
                 
-                // Both PIN and count are valid
-                val previousCount = progressManager.getUnlockedPokemonCount()
-                progressManager.unlockPokemon(count)
-                val newCount = progressManager.getUnlockedPokemonCount()
-                
-                Log.d(TAG, "Unlocked $count Pokemon via admin modal. Previous: $previousCount, New total: $newCount")
-                
-                // Refresh the UI
-                updateRecentlyUnlocked()
-                loadPokemonData()
-                
-                // Show success message
-                Toast.makeText(this, "Unlocked $count Pokemon! Total: $newCount", Toast.LENGTH_LONG).show()
-                
-                // Close the dialog
-                dialog.dismiss()
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val previousCount = progressManager.getUnlockedPokemonCount()
+                    val r = progressManager.unlockPokemon(count)
+                    withContext(Dispatchers.Main) {
+                        if (r.isFailure) {
+                            adminMessage.text = r.exceptionOrNull()?.message ?: "Could not save unlock."
+                            adminMessage.visibility = android.view.View.VISIBLE
+                            return@withContext
+                        }
+                        val newCount = progressManager.getUnlockedPokemonCount()
+                        Log.d(TAG, "Unlocked $count Pokemon via admin modal. Previous: $previousCount, New total: $newCount")
+                        updateRecentlyUnlocked()
+                        loadPokemonData()
+                        Toast.makeText(this@PokemonActivity, "Unlocked $count Pokemon! Total: $newCount", Toast.LENGTH_LONG).show()
+                        dialog.dismiss()
+                    }
+                }
             }
         }
 

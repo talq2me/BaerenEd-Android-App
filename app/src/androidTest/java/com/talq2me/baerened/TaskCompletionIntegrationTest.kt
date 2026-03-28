@@ -8,6 +8,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.Assert.*
+import kotlinx.coroutines.runBlocking
 
 /**
  * Integration tests for task completion flow
@@ -48,9 +49,11 @@ class TaskCompletionIntegrationTest {
         // When: Starting activity, completing task, and ending activity
         timeTracker.startActivity(taskId, "game", taskName)
         Thread.sleep(200) // Simulate some time passing (increased to ensure duration > 0)
-        val earnedStars = progressManager.markTaskCompletedWithName(
-            taskId, taskName, stars, isRequiredTask = true
-        )
+        val earnedStars = runBlocking {
+            progressManager.markTaskCompletedWithName(
+                taskId, taskName, stars, isRequiredTask = true
+            ).getOrThrow()
+        }
         val session = timeTracker.endActivity("game")
 
         // Then: Task should be completed and time tracked
@@ -68,8 +71,12 @@ class TaskCompletionIntegrationTest {
         val stars = 3
 
         // When: Completing it twice
-        val firstStars = progressManager.markTaskCompleted(taskId, stars, isRequiredTask = true)
-        val secondStars = progressManager.markTaskCompleted(taskId, stars, isRequiredTask = true)
+        val firstStars = runBlocking {
+            progressManager.markTaskCompleted(taskId, stars, isRequiredTask = true).getOrThrow()
+        }
+        val secondStars = runBlocking {
+            progressManager.markTaskCompleted(taskId, stars, isRequiredTask = true).getOrThrow()
+        }
 
         // Then: First completion earns stars, second returns 0
         assertEquals(stars, firstStars)
@@ -84,14 +91,18 @@ class TaskCompletionIntegrationTest {
         val stars = 1
 
         // When: Completing it multiple times
-        val firstStars = progressManager.markTaskCompletedWithName(
-            taskId, "Optional Task", stars, 
-            isRequiredTask = false, sectionId = "optional"
-        )
-        val secondStars = progressManager.markTaskCompletedWithName(
-            taskId, "Optional Task", stars,
-            isRequiredTask = false, sectionId = "optional"
-        )
+        val firstStars = runBlocking {
+            progressManager.markTaskCompletedWithName(
+                taskId, "Optional Task", stars,
+                isRequiredTask = false, sectionId = "optional"
+            ).getOrThrow()
+        }
+        val secondStars = runBlocking {
+            progressManager.markTaskCompletedWithName(
+                taskId, "Optional Task", stars,
+                isRequiredTask = false, sectionId = "optional"
+            ).getOrThrow()
+        }
 
         // Then: Both completions should earn stars
         assertEquals(stars, firstStars)
@@ -115,7 +126,9 @@ class TaskCompletionIntegrationTest {
         )
 
         // When: Completing one task
-        progressManager.markTaskCompleted("task1", 3, isRequiredTask = true)
+        runBlocking {
+            progressManager.markTaskCompleted("task1", 3, isRequiredTask = true).getOrThrow()
+        }
 
         // Then: Progress should reflect completion
         val (earned, total) = progressManager.getCurrentProgressWithActualStars(config)
@@ -164,14 +177,18 @@ class TaskCompletionIntegrationTest {
         val stars = 3
 
         // When: Completing in required and optional sections
-        val requiredStars = progressManager.markTaskCompletedWithName(
-            taskId, "Duological", stars, 
-            isRequiredTask = true, sectionId = "required"
-        )
-        val optionalStars = progressManager.markTaskCompletedWithName(
-            taskId, "Duological", stars,
-            isRequiredTask = false, sectionId = "optional"
-        )
+        val requiredStars = runBlocking {
+            progressManager.markTaskCompletedWithName(
+                taskId, "Duological", stars,
+                isRequiredTask = true, sectionId = "required"
+            ).getOrThrow()
+        }
+        val optionalStars = runBlocking {
+            progressManager.markTaskCompletedWithName(
+                taskId, "Duological", stars,
+                isRequiredTask = false, sectionId = "optional"
+            ).getOrThrow()
+        }
 
         // Then: Both should earn stars (they're tracked separately)
         assertEquals(stars, requiredStars)

@@ -51,10 +51,9 @@ class GameEngine(
             android.util.Log.d("GameEngine", "Answer submitted - question already answered (not counting), isCorrect: $isCorrect")
         }
 
-        // Only advance to next question when answer is correct
+        // Only advance to next question when answer is correct (in-memory only; DB writes on game completion)
         if (isCorrect) {
             currentIndex++
-            progress.saveIndex(currentIndex)
             android.util.Log.d("GameEngine", "Advanced currentIndex to: $currentIndex")
         } else {
             android.util.Log.d("GameEngine", "Staying on currentIndex: $currentIndex (answer was incorrect)")

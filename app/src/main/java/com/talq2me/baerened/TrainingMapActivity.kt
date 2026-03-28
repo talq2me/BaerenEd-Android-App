@@ -1,5 +1,6 @@
 package com.talq2me.baerened
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -69,6 +70,39 @@ class TrainingMapActivity : AppCompatActivity() {
             .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .setCancelable(false)
             .show()
+    }
+
+    /**
+     * Runs suspend [DailyProgressManager] completion on IO, grants rewards on success, shows error on RPC/refetch failure.
+     */
+    private fun completeTaskFromChildResult(
+        sectionIdForRewards: String?,
+        logLabel: String,
+        block: suspend (DailyProgressManager) -> Result<Int>
+    ) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val pm = DailyProgressManager(this@TrainingMapActivity)
+            val result = block(pm)
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { earned ->
+                        if (earned > 0) {
+                            pm.grantRewardsForTaskCompletion(earned, sectionIdForRewards)
+                        }
+                        Log.d("TrainingMapActivity", "$logLabel, earnedStars=$earned")
+                    },
+                    onFailure = { e ->
+                        Log.e("TrainingMapActivity", "Task completion failed: $logLabel", e)
+                        AlertDialog.Builder(this@TrainingMapActivity)
+                            .setTitle("Could not save progress")
+                            .setMessage(e.message ?: "Server sync failed. Nothing was saved.")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .setCancelable(false)
+                            .show()
+                    }
+                )
+            }
+        }
     }
     
     private fun runSyncAndFinishLoadingTrainingMap(profile: String) {
@@ -253,8 +287,6 @@ class TrainingMapActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val contentUpdateService = ContentUpdateService()
-                val cloudStorageManager = CloudStorageManager(this@TrainingMapActivity)
-                val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
                 
                 // Step 1: Try to fetch latest from GitHub
                 var jsonString: String? = null
@@ -1063,24 +1095,21 @@ class TrainingMapActivity : AppCompatActivity() {
             val chromeTaskTitle = data.getStringExtra(ChromePageActivity.EXTRA_TASK_TITLE)
             
             if (!chromeTaskId.isNullOrEmpty()) {
-                val progressManager = DailyProgressManager(this)
                 val displayTitle = chromeTaskTitle ?: "Chrome Page: $chromeTaskId"
                 val isRequiredTask = chromeSectionId == "required"
-                
-                // Mark task as completed and get earned stars
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    chromeTaskId,
-                    displayTitle,
-                    chromeStars,
-                    isRequiredTask,
-                    currentContent,
-                    chromeSectionId
-                )
-                
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, chromeSectionId)
+                completeTaskFromChildResult(
+                    chromeSectionId,
+                    "Marked Chrome page task as completed: taskId=$chromeTaskId, sectionId=$chromeSectionId, stars=$chromeStars"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        chromeTaskId,
+                        displayTitle,
+                        chromeStars,
+                        isRequiredTask,
+                        currentContent,
+                        chromeSectionId
+                    )
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked Chrome page task as completed: taskId=$chromeTaskId, sectionId=$chromeSectionId, stars=$chromeStars, earnedStars=$earnedStars")
             }
         }
         
@@ -1096,35 +1125,27 @@ class TrainingMapActivity : AppCompatActivity() {
             
             // Mark task as completed (same logic as Layout.handleWebGameCompletion)
             if (!taskId.isNullOrEmpty()) {
-                val progressManager = DailyProgressManager(this)
-                
-                // Use task title from parameter or create default
                 val displayTitle = taskTitle ?: "Web Game: $taskId"
-                
-                // Determine if task is required based on section ID
                 val isRequiredTask = sectionId == "required"
-                
                 val correct = if (correctAnswers >= 0) correctAnswers else null
                 val incorrect = if (incorrectAnswers >= 0) incorrectAnswers else null
                 val questions = if (questionsAnswered >= 0) questionsAnswered else null
-                
-                // Mark task as completed and get earned stars (include correct/incorrect so DB and reports record them)
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    taskId,
-                    displayTitle,
-                    stars,
-                    isRequiredTask,
-                    currentContent,  // Pass config to verify section
-                    sectionId,  // Pass section ID to create unique task IDs
-                    correctAnswers = correct,
-                    incorrectAnswers = incorrect,
-                    questionsAnswered = questions
-                )
-                
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                completeTaskFromChildResult(
+                    sectionId,
+                    "Marked web game task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, correct=$correct, incorrect=$incorrect"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        taskId,
+                        displayTitle,
+                        stars,
+                        isRequiredTask,
+                        currentContent,
+                        sectionId,
+                        correctAnswers = correct,
+                        incorrectAnswers = incorrect,
+                        questionsAnswered = questions
+                    )
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked web game task as completed: taskId=$taskId, sectionId=$sectionId, stars=$stars, correct=$correct, incorrect=$incorrect, earnedStars=$earnedStars")
             }
         }
         
@@ -1132,36 +1153,27 @@ class TrainingMapActivity : AppCompatActivity() {
         if (requestCode == 1005 && resultCode == RESULT_OK && data != null) {
             val gameType = data.getStringExtra("GAME_TYPE")
             val gameStars = data.getIntExtra("GAME_STARS", 0)
+            val resultGameTitle = data.getStringExtra("GAME_TITLE")
             
             // Use the stored section ID from when we launched the game
             val gameSectionId = lastLaunchedGameSectionId ?: mapType
             
             if (!gameType.isNullOrEmpty()) {
-                // Find the task in currentContent to get its title
-                var gameTitle = "Game: $gameType"
-                currentContent?.sections?.forEach { section ->
-                    section.tasks?.find { it.launch == gameType }?.let { task ->
-                        gameTitle = task.title ?: gameTitle
-                    }
-                }
-                
-                val progressManager = DailyProgressManager(this)
+                val gameTitle = resultGameTitle ?: "Game: $gameType"
                 val isRequiredTask = gameSectionId == "required"
-                
-                // Mark task as completed and get earned stars
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    gameType,
-                    gameTitle,
-                    gameStars,
-                    isRequiredTask,
-                    currentContent,
-                    gameSectionId
-                )
-                
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
+                completeTaskFromChildResult(
+                    gameSectionId,
+                    "Marked printing game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        gameType,
+                        gameTitle,
+                        gameStars,
+                        isRequiredTask,
+                        currentContent,
+                        gameSectionId
+                    )
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked printing game task as completed: taskId=$gameType, sectionId=$gameSectionId, stars=$gameStars, earnedStars=$earnedStars")
             }
         }
         
@@ -1174,20 +1186,15 @@ class TrainingMapActivity : AppCompatActivity() {
             if (!taskId.isNullOrEmpty()) {
                 if (taskTitle.isNullOrEmpty()) {
                     taskTitle = "Book"
-                    currentContent?.sections?.forEach { section ->
-                        section.tasks?.find { it.launch == taskId }?.let { task ->
-                            taskTitle = task.title ?: taskTitle
-                        }
-                    }
                 }
-                val progressManager = DailyProgressManager(this)
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    taskId, taskTitle ?: "Book", stars, sectionId == "required", currentContent, sectionId
-                )
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                completeTaskFromChildResult(
+                    sectionId,
+                    "Marked bookReader task as completed: taskId=$taskId, sectionId=$sectionId"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        taskId, taskTitle ?: "Book", stars, sectionId == "required", currentContent, sectionId
+                    )
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked bookReader task as completed: taskId=$taskId, sectionId=$sectionId, earnedStars=$earnedStars")
             }
         }
 
@@ -1200,20 +1207,15 @@ class TrainingMapActivity : AppCompatActivity() {
             if (!taskId.isNullOrEmpty()) {
                 if (taskTitle.isNullOrEmpty()) {
                     taskTitle = "Tappable Text"
-                    currentContent?.sections?.forEach { section ->
-                        section.tasks?.find { it.launch == taskId }?.let { task ->
-                            taskTitle = task.title ?: taskTitle
-                        }
-                    }
                 }
-                val progressManager = DailyProgressManager(this)
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    taskId, taskTitle ?: "Tappable Text", stars, sectionId == "required", currentContent, sectionId
-                )
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                completeTaskFromChildResult(
+                    sectionId,
+                    "Marked tappableText task as completed: taskId=$taskId, sectionId=$sectionId"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        taskId, taskTitle ?: "Tappable Text", stars, sectionId == "required", currentContent, sectionId
+                    )
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked tappableText task as completed: taskId=$taskId, sectionId=$sectionId, earnedStars=$earnedStars")
             }
         }
         
@@ -1222,21 +1224,18 @@ class TrainingMapActivity : AppCompatActivity() {
             val rewardsAlreadyApplied = data.getBooleanExtra("REWARDS_APPLIED", false)
             if (!rewardsAlreadyApplied) {
                 val gameType = data.getStringExtra("GAME_TYPE")
+                val resultGameTitle = data.getStringExtra("GAME_TITLE")
                 val gameStars = data.getIntExtra("GAME_STARS", 0)
                 val gameSectionId = data.getStringExtra("SECTION_ID") ?: lastLaunchedGameSectionId ?: mapType
                 if (!gameType.isNullOrEmpty()) {
-                    var gameTitle = "Game: $gameType"
-                    currentContent?.sections?.forEach { section ->
-                        section.tasks?.find { it.launch == gameType }?.let { task ->
-                            gameTitle = task.title ?: gameTitle
-                        }
-                    }
-                    val progressManager = DailyProgressManager(this)
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        gameType, gameTitle, gameStars, gameSectionId == "required", currentContent, gameSectionId
-                    )
-                    if (earnedStars > 0) {
-                        progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
+                    val gameTitle = resultGameTitle ?: "Game: $gameType"
+                    completeTaskFromChildResult(
+                        gameSectionId,
+                        "Marked spelling OCR task as completed: taskId=$gameType, sectionId=$gameSectionId"
+                    ) { pm ->
+                        pm.markTaskCompletedWithName(
+                            gameType, gameTitle, gameStars, gameSectionId == "required", currentContent, gameSectionId
+                        )
                     }
                 }
             }
@@ -1247,21 +1246,18 @@ class TrainingMapActivity : AppCompatActivity() {
             val rewardsAlreadyApplied = data.getBooleanExtra("REWARDS_APPLIED", false)
             if (!rewardsAlreadyApplied) {
                 val gameType = data.getStringExtra("GAME_TYPE")
+                val resultGameTitle = data.getStringExtra("GAME_TITLE")
                 val gameStars = data.getIntExtra("GAME_STARS", 0)
                 val gameSectionId = data.getStringExtra("SECTION_ID") ?: lastLaunchedGameSectionId ?: mapType
                 if (!gameType.isNullOrEmpty()) {
-                    var gameTitle = "Game: $gameType"
-                    currentContent?.sections?.forEach { section ->
-                        section.tasks?.find { it.launch == gameType }?.let { task ->
-                            gameTitle = task.title ?: gameTitle
-                        }
-                    }
-                    val progressManager = DailyProgressManager(this)
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        gameType, gameTitle, gameStars, gameSectionId == "required", currentContent, gameSectionId
-                    )
-                    if (earnedStars > 0) {
-                        progressManager.grantRewardsForTaskCompletion(earnedStars, gameSectionId)
+                    val gameTitle = resultGameTitle ?: "Game: $gameType"
+                    completeTaskFromChildResult(
+                        gameSectionId,
+                        "Marked GameActivity task as completed: taskId=$gameType, sectionId=$gameSectionId"
+                    ) { pm ->
+                        pm.markTaskCompletedWithName(
+                            gameType, gameTitle, gameStars, gameSectionId == "required", currentContent, gameSectionId
+                        )
                     }
                 }
             }
@@ -1275,24 +1271,21 @@ class TrainingMapActivity : AppCompatActivity() {
             val videoTaskTitle = data.getStringExtra("TASK_TITLE")
             
             if (!videoTaskId.isNullOrEmpty()) {
-                val progressManager = DailyProgressManager(this)
                 val displayTitle = videoTaskTitle ?: "Video: $videoTaskId"
                 val isRequiredTask = videoSectionId == "required"
-                
-                // Mark task as completed and get earned stars
-                val earnedStars = progressManager.markTaskCompletedWithName(
-                    videoTaskId,
-                    displayTitle,
-                    videoStars,
-                    isRequiredTask,
-                    currentContent,
-                    videoSectionId
-                )
-                
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, videoSectionId)
+                completeTaskFromChildResult(
+                    videoSectionId,
+                    "Marked video task as completed: taskId=$videoTaskId, sectionId=$videoSectionId, stars=$videoStars"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        videoTaskId,
+                        displayTitle,
+                        videoStars,
+                        isRequiredTask,
+                        currentContent,
+                        videoSectionId
+                    )
                 }
-                android.util.Log.d("TrainingMapActivity", "Marked video task as completed: taskId=$videoTaskId, sectionId=$videoSectionId, stars=$videoStars, earnedStars=$earnedStars")
             }
         }
         
@@ -1300,10 +1293,7 @@ class TrainingMapActivity : AppCompatActivity() {
         // Only refresh if the task was completed (RESULT_OK) to avoid unnecessary refreshes
         if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005 || requestCode == 1006 || requestCode == 1007) && resultCode == RESULT_OK) {
             val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-            // Advance local last_updated synchronously so cloudSync (e.g. on BattleHub return)
-            // sees local newer than cloud and uploads instead of applying stale cloud over berries/tasks.
-            DailyResetAndSyncManager(this).advanceLocalTimestampForProfile(currentProfile)
-            // Blocking: finish sync before redraw so onResume (e.g. on BattleHub) has nothing to do.
+            // Task writes already went via RPC; refetch DB and apply before redraw.
             lifecycleScope.launch(Dispatchers.IO) {
                 val syncResult = DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(currentProfile)
                 if (syncResult.isFailure) {
@@ -1408,54 +1398,54 @@ class TrainingMapActivity : AppCompatActivity() {
                     val finalTaskTitle = foundTask!!.title ?: taskTitle
                     val finalStars = foundTask!!.stars ?: stars
                     val finalSectionId = foundSectionId ?: sectionId ?: mapType
-                    
-                    // Mark task as completed
                     val isRequiredTask = finalSectionId == "required"
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        finalTaskId,
-                        finalTaskTitle,
-                        finalStars,
-                        isRequiredTask,
-                        currentContent,
-                        finalSectionId
-                    )
-                    
-                    // Add stars to reward bank
-                    if (earnedStars > 0) {
-                        progressManager.grantRewardsForTaskCompletion(earnedStars, finalSectionId)
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val result = progressManager.markTaskCompletedWithName(
+                            finalTaskId,
+                            finalTaskTitle,
+                            finalStars,
+                            isRequiredTask,
+                            currentContent,
+                            finalSectionId
+                        )
+                        withContext(Dispatchers.Main) {
+                            result.fold(
+                                onSuccess = { earnedStars ->
+                                    if (earnedStars > 0) {
+                                        progressManager.grantRewardsForTaskCompletion(earnedStars, finalSectionId)
+                                    }
+                                    mapContainer.removeAllViews()
+                                    loadTasksIntoMap()
+                                    android.widget.Toast.makeText(
+                                        this@TrainingMapActivity,
+                                        "Great reading! You spent ${timeElapsedSeconds}s in Read Along.",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                    readAlongPrefs.edit()
+                                        .remove("read_along_start_time")
+                                        .remove("read_along_task_id")
+                                        .remove("read_along_task_title")
+                                        .remove("read_along_stars")
+                                        .remove("read_along_section_id")
+                                        .apply()
+                                },
+                                onFailure = { e ->
+                                    Log.e("TrainingMapActivity", "Read Along completion save failed", e)
+                                    AlertDialog.Builder(this@TrainingMapActivity)
+                                        .setTitle("Could not save progress")
+                                        .setMessage(e.message ?: "Server sync failed.")
+                                        .setPositiveButton(android.R.string.ok, null)
+                                        .show()
+                                }
+                            )
+                        }
                     }
-                    
-                    // Sync progress to cloud
-                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-                    val cloudStorageManager = CloudStorageManager(this)
-                    lifecycleScope.launch {
-                        cloudStorageManager.saveIfEnabled(currentProfile)
-                    }
-                    
-                    // Refresh the map to show updated completion status
-                    mapContainer.removeAllViews()
-                    loadTasksIntoMap()
-                    
-                    android.widget.Toast.makeText(
-                        this,
-                        "Great reading! You spent ${timeElapsedSeconds}s in Read Along.",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
                 } else {
                     android.util.Log.w("TrainingMapActivity", "Google Read Along task not found in current content")
                 }
             } else {
                 android.util.Log.w("TrainingMapActivity", "No current content available for Read Along completion")
             }
-            
-            // Clear the start time
-            readAlongPrefs.edit()
-                .remove("read_along_start_time")
-                .remove("read_along_task_id")
-                .remove("read_along_task_title")
-                .remove("read_along_stars")
-                .remove("read_along_section_id")
-                .apply()
         } else {
             // Not enough time - show message but keep the start time (they can try again)
             val remainingSeconds = MIN_READ_ALONG_DURATION_SECONDS - timeElapsedSeconds
@@ -1527,53 +1517,54 @@ class TrainingMapActivity : AppCompatActivity() {
                     val finalTaskTitle = foundTask!!.title ?: taskTitle
                     val finalStars = foundTask!!.stars ?: stars
                     val finalSectionId = foundSectionId ?: sectionId ?: mapType
-                    
-                    // Mark task as completed
                     val isRequiredTask = finalSectionId == "required"
-                    val earnedStars = progressManager.markTaskCompletedWithName(
-                        finalTaskId,
-                        finalTaskTitle,
-                        finalStars,
-                        isRequiredTask,
-                        currentContent,
-                        finalSectionId
-                    )
-                    
-                    if (earnedStars > 0) {
-                        progressManager.grantRewardsForTaskCompletion(earnedStars, finalSectionId)
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val result = progressManager.markTaskCompletedWithName(
+                            finalTaskId,
+                            finalTaskTitle,
+                            finalStars,
+                            isRequiredTask,
+                            currentContent,
+                            finalSectionId
+                        )
+                        withContext(Dispatchers.Main) {
+                            result.fold(
+                                onSuccess = { earnedStars ->
+                                    if (earnedStars > 0) {
+                                        progressManager.grantRewardsForTaskCompletion(earnedStars, finalSectionId)
+                                    }
+                                    mapContainer.removeAllViews()
+                                    loadTasksIntoMap()
+                                    android.widget.Toast.makeText(
+                                        this@TrainingMapActivity,
+                                        "Great reading! You spent ${timeElapsedSeconds}s in Boukili.",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                    boukiliPrefs.edit()
+                                        .remove("boukili_start_time")
+                                        .remove("boukili_task_id")
+                                        .remove("boukili_task_title")
+                                        .remove("boukili_stars")
+                                        .remove("boukili_section_id")
+                                        .apply()
+                                },
+                                onFailure = { e ->
+                                    Log.e("TrainingMapActivity", "Boukili completion save failed", e)
+                                    AlertDialog.Builder(this@TrainingMapActivity)
+                                        .setTitle("Could not save progress")
+                                        .setMessage(e.message ?: "Server sync failed.")
+                                        .setPositiveButton(android.R.string.ok, null)
+                                        .show()
+                                }
+                            )
+                        }
                     }
-                    
-                    // Sync progress to cloud
-                    val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-                    val cloudStorageManager = CloudStorageManager(this)
-                    lifecycleScope.launch {
-                        cloudStorageManager.saveIfEnabled(currentProfile)
-                    }
-                    
-                    // Refresh the map to show updated completion status
-                    mapContainer.removeAllViews()
-                    loadTasksIntoMap()
-                    
-                    android.widget.Toast.makeText(
-                        this,
-                        "Great reading! You spent ${timeElapsedSeconds}s in Boukili.",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
                 } else {
                     android.util.Log.w("TrainingMapActivity", "Boukili task not found in current content")
                 }
             } else {
                 android.util.Log.w("TrainingMapActivity", "No current content available for Boukili completion")
             }
-            
-            // Clear the start time
-            boukiliPrefs.edit()
-                .remove("boukili_start_time")
-                .remove("boukili_task_id")
-                .remove("boukili_task_title")
-                .remove("boukili_stars")
-                .remove("boukili_section_id")
-                .apply()
         } else {
             // Not enough time - show message but keep the start time (they can try again)
             val remainingSeconds = MIN_BOUKILI_DURATION_SECONDS - timeElapsedSeconds
@@ -1909,25 +1900,25 @@ class TrainingMapActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
-                
-                // checklist_items are a separate DB column; use markChecklistItemCompleted only (never required_tasks).
-                val earnedStars = progressManager.markChecklistItemCompleted(taskName, stars, null)
-                if (earnedStars > 0) {
-                    progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
-                }
-                
-                // Sync checklist completion to cloud first, then redraw (blocking so onResume has nothing to do).
-                val profile = SettingsManager.readProfile(this@TrainingMapActivity) ?: "AM"
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val syncResult = DailyResetAndSyncManager(this@TrainingMapActivity).updateLocalTimestampAndSyncToCloud(profile)
-                    if (syncResult.isFailure) {
-                        android.util.Log.e("TrainingMapActivity", "Error syncing checklist to cloud", syncResult.exceptionOrNull())
-                        withContext(Dispatchers.Main) {
-                            android.widget.Toast.makeText(this@TrainingMapActivity, "Progress may not have been saved. Check connection.", android.widget.Toast.LENGTH_LONG).show()
-                        }
-                    }
+                    val result = progressManager.markChecklistItemCompleted(taskName, stars, null)
                     withContext(Dispatchers.Main) {
-                        loadTasksIntoMap()
+                        result.fold(
+                            onSuccess = { earnedStars ->
+                                if (earnedStars > 0) {
+                                    progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
+                                }
+                                loadTasksIntoMap()
+                            },
+                            onFailure = { e ->
+                                Log.e("TrainingMapActivity", "Checklist item save failed", e)
+                                AlertDialog.Builder(this@TrainingMapActivity)
+                                    .setTitle("Could not save progress")
+                                    .setMessage(e.message ?: "Server sync failed.")
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show()
+                            }
+                        )
                     }
                 }
             }

@@ -4,9 +4,12 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PrintingGameActivity : AppCompatActivity() {
     private lateinit var drawingCanvas: DrawingCanvasView
@@ -61,7 +64,7 @@ class PrintingGameActivity : AppCompatActivity() {
         timeTracker = TimeTracker(this)
         
         val uniqueTaskId = if (sectionId != null) {
-            progressManager.getUniqueTaskId(gameType, sectionId)
+            progressManager.getUniqueTaskId(gameType, gameTitle, sectionId)
         } else {
             gameType
         }
@@ -165,38 +168,44 @@ class PrintingGameActivity : AppCompatActivity() {
     
     private fun completeGame() {
         val totalStars = wordStars.values.sum()
-        val earnedStars = progressManager.markTaskCompletedWithName(
-            gameType, gameTitle, gameStars, isRequiredGame, null, sectionId
-        )
-        
-        if (earnedStars > 0) {
-            val effectiveSectionId = if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
-            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
-            timeTracker.updateStarsEarned("game", earnedStars)
-        }
-        
-        // Sync to cloud
-        val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-        val cloudStorageManager = CloudStorageManager(this)
-        lifecycleScope.launch {
-            cloudStorageManager.saveIfEnabled(currentProfile)
-        }
-        
-        // Return result if launched from battle hub
-        if (battleHubTaskId != null) {
-            val resultIntent = android.content.Intent().apply {
-                putExtra("BATTLE_HUB_TASK_ID", battleHubTaskId)
-                putExtra("GAME_TYPE", gameType)
-                putExtra("GAME_STARS", earnedStars)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = progressManager.markTaskCompletedWithName(
+                gameType, gameTitle, gameStars, isRequiredGame, null, sectionId
+            )
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { earnedStars ->
+                        if (earnedStars > 0) {
+                            val effectiveSectionId =
+                                if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
+                            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
+                            timeTracker.updateStarsEarned("game", earnedStars)
+                        }
+                        if (battleHubTaskId != null) {
+                            val resultIntent = android.content.Intent().apply {
+                                putExtra("BATTLE_HUB_TASK_ID", battleHubTaskId)
+                                putExtra("GAME_TYPE", gameType)
+                                putExtra("GAME_TITLE", gameTitle)
+                                putExtra("GAME_STARS", earnedStars)
+                                sectionId?.let { putExtra("SECTION_ID", it) }
+                            }
+                            setResult(RESULT_OK, resultIntent)
+                        }
+                        Toast.makeText(this@PrintingGameActivity, "🎉 Great job! You completed all words!", Toast.LENGTH_LONG).show()
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            finish()
+                        }, 3000)
+                    },
+                    onFailure = { e ->
+                        AlertDialog.Builder(this@PrintingGameActivity)
+                            .setTitle("Could not save progress")
+                            .setMessage(e.message ?: "Server sync failed.")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    }
+                )
             }
-            setResult(RESULT_OK, resultIntent)
         }
-        
-        Toast.makeText(this, "🎉 Great job! You completed all words!", Toast.LENGTH_LONG).show()
-        
-        android.os.Handler().postDelayed({
-            finish()
-        }, 3000)
     }
     
     private fun generateAlphabetSentence(): List<String> {

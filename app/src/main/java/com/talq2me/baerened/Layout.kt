@@ -12,9 +12,13 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.talq2me.baerened.ProfileButton
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -408,50 +412,54 @@ class Layout(private val activity: MainActivity) {
         // Only grant rewards if this is a legitimate completion (not manual exit)
         // The video activities will only call this on actual completion
         if (stars > 0) {
-            val progressManager = DailyProgressManager(activity)
-            val currentContent = activity.getCurrentMainContent()
-            // Videos are typically in required section, but pass config to verify
-            val earnedStars = progressManager.markTaskCompletedWithName(
-                taskId, 
-                taskTitle, 
-                stars, 
-                false,  // Default to optional, config will verify
-                currentContent  // Pass config to verify section
-            )
-
-            android.util.Log.d("Layout", "markTaskCompletedWithName returned: $earnedStars stars")
-
-            if (earnedStars > 0) {
-                val currentContent = activity.getCurrentMainContent()
-                val isFromRequiredOrOptional = currentContent?.sections?.any { section ->
-                    (section.id == "required" || section.id == "optional") &&
-                    section.tasks?.any { it.launch == taskId } == true
-                } ?: false
-                val sectionIdForRewards = if (isFromRequiredOrOptional) "optional" else null
-                progressManager.grantRewardsForTaskCompletion(earnedStars, sectionIdForRewards)
-
-                android.util.Log.d("Layout", "Video task $taskId ($taskTitle) completed, earned $earnedStars stars")
-                Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
-                if (isFromRequiredOrOptional) {
-                    refreshBattleHub()
+            val currentContentForVideo = activity.getCurrentMainContent()
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                val pm = DailyProgressManager(activity)
+                val result = pm.markTaskCompletedWithName(
+                    taskId,
+                    taskTitle,
+                    stars,
+                    false,
+                    currentContentForVideo
+                )
+                withContext(Dispatchers.Main) {
+                    result.fold(
+                        onSuccess = { earnedStars ->
+                            android.util.Log.d("Layout", "markTaskCompletedWithName returned: $earnedStars stars")
+                            if (earnedStars > 0) {
+                                val refreshedContent = activity.getCurrentMainContent()
+                                val isFromRequiredOrOptional = refreshedContent?.sections?.any { section ->
+                                    (section.id == "required" || section.id == "optional") &&
+                                        section.tasks?.any { it.launch == taskId } == true
+                                } ?: false
+                                val sectionIdForRewards = if (isFromRequiredOrOptional) "optional" else null
+                                pm.grantRewardsForTaskCompletion(earnedStars, sectionIdForRewards)
+                                android.util.Log.d("Layout", "Video task $taskId ($taskTitle) completed, earned $earnedStars stars")
+                                Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+                                if (isFromRequiredOrOptional) {
+                                    refreshBattleHub()
+                                }
+                                if (refreshedContent != null) {
+                                    displayContent(refreshedContent)
+                                } else {
+                                    android.util.Log.e("Layout", "Current content is null, cannot refresh UI")
+                                }
+                                refreshProgressDisplay()
+                            } else {
+                                android.util.Log.d("Layout", "Task $taskId was already completed today, no additional stars awarded")
+                                Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onFailure = { e ->
+                            android.util.Log.e("Layout", "Video task completion save failed", e)
+                            android.app.AlertDialog.Builder(activity)
+                                .setTitle("Could not save progress")
+                                .setMessage(e.message ?: "Server sync failed.")
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show()
+                        }
+                    )
                 }
-
-                // Force refresh the entire content to ensure task completion is reflected
-                if (currentContent != null) {
-                    android.util.Log.d("Layout", "Re-displaying content to update task completion state")
-                    displayContent(currentContent)
-                    android.util.Log.d("Layout", "Content re-displayed, checking if task completion is now reflected")
-                } else {
-                    android.util.Log.e("Layout", "Current content is null, cannot refresh UI")
-                }
-
-                // Also refresh progress display
-                refreshProgressDisplay()
-
-                android.util.Log.d("Layout", "Task completion UI refresh completed")
-            } else {
-                android.util.Log.d("Layout", "Task $taskId was already completed today, no additional stars awarded")
-                Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
             }
         } else {
             android.util.Log.d("Layout", "No stars to award for task $taskId")
@@ -480,35 +488,42 @@ class Layout(private val activity: MainActivity) {
             
             // Pass config and sectionId to markTaskCompletedWithName so it can track tasks separately per section
             // Use actualTaskId (without battleHub_ prefix) for completion tracking
-            val earnedStars = progressManager.markTaskCompletedWithName(
-                actualTaskId, 
-                displayTitle, 
-                stars, 
+            val result = progressManager.markTaskCompletedWithName(
+                actualTaskId,
+                displayTitle,
+                stars,
                 isRequiredTask,
-                currentContent,  // Pass config to verify section
-                sectionId  // Pass section ID to create unique task IDs
+                currentContent,
+                sectionId
             )
 
-            if (earnedStars > 0) {
-                progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
-                android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
-                Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
-                if (sectionId == "required" || sectionId == "optional") {
-                    refreshBattleHub()
-                    refreshGymMap()
+            result.fold(
+                onSuccess = { earnedStars ->
+                    if (earnedStars > 0) {
+                        progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                        android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
+                        Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+                        if (sectionId == "required" || sectionId == "optional") {
+                            refreshBattleHub()
+                            refreshGymMap()
+                        }
+                        if (currentContent != null) {
+                            android.util.Log.d("Layout", "Re-displaying content to update task completion state")
+                            displayContent(currentContent)
+                        } else {
+                            android.util.Log.e("Layout", "Current content is null, cannot refresh UI")
+                        }
+                        refreshProgressDisplay()
+                    } else {
+                        android.util.Log.d("Layout", "Web game task $taskId was already completed today, no additional stars awarded")
+                        Toast.makeText(activity, "Web game already completed today", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onFailure = { e ->
+                    android.util.Log.e("Layout", "Web game completion save failed", e)
+                    Toast.makeText(activity, e.message ?: "Could not save progress.", Toast.LENGTH_LONG).show()
                 }
-
-                if (currentContent != null) {
-                    android.util.Log.d("Layout", "Re-displaying content to update task completion state")
-                    displayContent(currentContent)
-                } else {
-                    android.util.Log.e("Layout", "Current content is null, cannot refresh UI")
-                }
-                refreshProgressDisplay()
-            } else {
-                android.util.Log.d("Layout", "Web game task $taskId was already completed today, no additional stars awarded")
-                Toast.makeText(activity, "Web game already completed today", Toast.LENGTH_SHORT).show()
-            }
+            )
         } else {
             android.util.Log.d("Layout", "No taskId provided for web game completion.")
             Toast.makeText(activity, "Web game completed, but no reward was issued.", Toast.LENGTH_SHORT).show()
@@ -518,39 +533,50 @@ class Layout(private val activity: MainActivity) {
     fun handleChromePageCompletion(taskId: String, taskTitle: String, stars: Int, sectionId: String?) {
         android.util.Log.d(TAG, "handleChromePageCompletion: taskId=$taskId, taskTitle=$taskTitle, stars=$stars, sectionId=$sectionId")
 
-        val progressManager = DailyProgressManager(activity)
         val currentContent = activity.getCurrentMainContent()
-        
-        // Determine if task is required based on section ID
         val isRequiredTask = sectionId == "required"
-        
-        // Pass config and sectionId to markTaskCompletedWithName so it can track tasks separately per section
-        val earnedStars = progressManager.markTaskCompletedWithName(
-            taskId, 
-            taskTitle, 
-            stars, 
-            isRequiredTask,
-            currentContent,  // Pass config to verify section
-            sectionId  // Pass section ID to create unique task IDs
-        )
 
-        if (earnedStars > 0) {
-            progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
-            android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
-            Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
-            if (sectionId == "required" || sectionId == "optional") {
-                refreshBattleHub()
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            val pm = DailyProgressManager(activity)
+            val result = pm.markTaskCompletedWithName(
+                taskId,
+                taskTitle,
+                stars,
+                isRequiredTask,
+                currentContent,
+                sectionId
+            )
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { earnedStars ->
+                        if (earnedStars > 0) {
+                            pm.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                            android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
+                            Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
+                            if (sectionId == "required" || sectionId == "optional") {
+                                refreshBattleHub()
+                            }
+                        } else {
+                            android.util.Log.d(TAG, "Chrome page task $taskId already completed today or no stars to award")
+                            Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
+                        }
+                        if (currentContent != null) {
+                            android.util.Log.d(TAG, "Refreshing content after Chrome page completion")
+                            displayContent(currentContent)
+                        }
+                        refreshProgressDisplay()
+                    },
+                    onFailure = { e ->
+                        android.util.Log.e(TAG, "Chrome page completion save failed", e)
+                        android.app.AlertDialog.Builder(activity)
+                            .setTitle("Could not save progress")
+                            .setMessage(e.message ?: "Server sync failed.")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    }
+                )
             }
-        } else {
-            android.util.Log.d(TAG, "Chrome page task $taskId already completed today or no stars to award")
-            Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
         }
-
-        if (currentContent != null) {
-            android.util.Log.d(TAG, "Refreshing content after Chrome page completion")
-            displayContent(currentContent)
-        }
-        refreshProgressDisplay()
     }
 
     fun handleManualTaskCompletion(
@@ -563,37 +589,40 @@ class Layout(private val activity: MainActivity) {
         android.util.Log.d(TAG, "handleManualTaskCompletion: taskId=$taskId, sectionId=$sectionId, stars=$stars")
         val currentContent = activity.getCurrentMainContent()
         val isRequiredTask = sectionId == "required"
-        val earnedStars = progressManager.markTaskCompletedWithName(
-            taskId,
-            taskTitle,
-            stars,
-            isRequiredTask,
-            currentContent,
-            sectionId
-        )
-
-        if (earnedStars > 0) {
-            progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
-            android.util.Log.d(TAG, "Manual task completion awarded $earnedStars stars")
-            if (sectionId == "required" || sectionId == "optional") {
-                
-                // Sync berries to cloud immediately after adding them
-                val profile = SettingsManager.readProfile(activity) ?: "AM"
-                val cloudStorageManager = CloudStorageManager(activity)
-                // Use GlobalScope since Layout doesn't have lifecycle scope
-                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                    cloudStorageManager.saveIfEnabled(profile)
-                }
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            val result = progressManager.markTaskCompletedWithName(
+                taskId,
+                taskTitle,
+                stars,
+                isRequiredTask,
+                currentContent,
+                sectionId
+            )
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { earnedStars ->
+                        if (earnedStars > 0) {
+                            progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
+                            android.util.Log.d(TAG, "Manual task completion awarded $earnedStars stars")
+                            Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
+                        } else {
+                            android.util.Log.d(TAG, "Manual task $taskId already completed today")
+                            Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
+                        }
+                        currentContent?.let { displayContent(it) }
+                        refreshProgressDisplay()
+                    },
+                    onFailure = { e ->
+                        android.util.Log.e(TAG, "Manual task completion save failed", e)
+                        android.app.AlertDialog.Builder(activity)
+                            .setTitle("Could not save progress")
+                            .setMessage(e.message ?: "Server sync failed.")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    }
+                )
             }
-            
-            Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
-        } else {
-            android.util.Log.d(TAG, "Manual task $taskId already completed today")
-            Toast.makeText(activity, "Task already completed today", Toast.LENGTH_SHORT).show()
         }
-
-        currentContent?.let { displayContent(it) }
-        refreshProgressDisplay()
     }
 
     private fun addPokemonButtonToProgressLayout() {
@@ -619,19 +648,27 @@ class Layout(private val activity: MainActivity) {
             }
 
             setOnClickListener {
-                // Auto-unlock one Pokemon and record the unlock
                 val currentUnlocked = progressManager.getUnlockedPokemonCount()
-                progressManager.setUnlockedPokemonCount(currentUnlocked + 1)
-                progressManager.recordPokemonUnlockToday()
-
-                // Refresh progress display to hide the button (since we unlocked a Pokemon today)
-                refreshProgressDisplay()
-
-                // Refresh header buttons to show My Pokedex if this is the first Pokemon
-                refreshHeaderButtons()
-
-                // Open Pokemon collection
-                activity.openPokemonCollection()
+                activity.lifecycleScope.launch(Dispatchers.IO) {
+                    val result = progressManager.setUnlockedPokemonCount(currentUnlocked + 1)
+                    withContext(Dispatchers.Main) {
+                        result.fold(
+                            onSuccess = {
+                                progressManager.recordPokemonUnlockToday()
+                                refreshProgressDisplay()
+                                refreshHeaderButtons()
+                                activity.openPokemonCollection()
+                            },
+                            onFailure = { e ->
+                                android.app.AlertDialog.Builder(activity)
+                                    .setTitle("Could not save unlock")
+                                    .setMessage(e.message ?: "Server sync failed.")
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show()
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -1595,28 +1632,32 @@ class Layout(private val activity: MainActivity) {
 
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked && !isCompleted) {
-                        // checklist_items are a separate DB column; use markChecklistItemCompleted only (never required_tasks).
                         val itemLabel = item.label ?: itemId
                         val stars = item.stars ?: 0
-                        val earnedStars = progressManager.markChecklistItemCompleted(itemLabel, stars, item.displayDays)
-                        if (earnedStars > 0) {
-                            progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
-                        }
-                        // Sync to cloud so checklist completion is persisted (even when 0 stars)
-                        val profile = SettingsManager.readProfile(activity) ?: "AM"
-                        val cloudStorageManager = CloudStorageManager(activity)
-                        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                            cloudStorageManager.saveIfEnabled(profile)
-                        }
-                        // Always update visual state when we marked it complete (even with 0 stars)
-                        updateProgressDisplay()
-                        post {
-                            isEnabled = false
-                            setTextColor(android.graphics.Color.GRAY)
-                            alpha = 0.6f
-                            labelView.setTextColor(android.graphics.Color.GRAY)
-                            labelView.alpha = 0.6f
-                            starsView.setTextColor(android.graphics.Color.GRAY)
+                        activity.lifecycleScope.launch(Dispatchers.IO) {
+                            val result = progressManager.markChecklistItemCompleted(itemLabel, stars, item.displayDays)
+                            withContext(Dispatchers.Main) {
+                                result.fold(
+                                    onSuccess = { earnedStars ->
+                                        if (earnedStars > 0) {
+                                            progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
+                                        }
+                                        updateProgressDisplay()
+                                        post {
+                                            isEnabled = false
+                                            setTextColor(android.graphics.Color.GRAY)
+                                            alpha = 0.6f
+                                            labelView.setTextColor(android.graphics.Color.GRAY)
+                                            labelView.alpha = 0.6f
+                                            starsView.setTextColor(android.graphics.Color.GRAY)
+                                        }
+                                    },
+                                    onFailure = { e ->
+                                        this@apply.isChecked = false
+                                        Toast.makeText(activity, e.message ?: "Could not save checklist.", Toast.LENGTH_LONG).show()
+                                    }
+                                )
+                            }
                         }
                     } else if (isChecked && isCompleted) {
                         // If already completed but checkbox was checked again, ensure visual state
@@ -2122,7 +2163,18 @@ class Layout(private val activity: MainActivity) {
         
         @android.webkit.JavascriptInterface
         fun unlockPokemon(count: Int) {
-            DailyProgressManager(activity).unlockPokemon(count)
+            val r = runBlocking(Dispatchers.IO) {
+                DailyProgressManager(activity).unlockPokemon(count)
+            }
+            if (r.isFailure) {
+                activity.runOnUiThread {
+                    Toast.makeText(
+                        activity,
+                        r.exceptionOrNull()?.message ?: "Could not unlock Pokemon.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
         }
         
         @android.webkit.JavascriptInterface
@@ -2309,106 +2361,125 @@ class Layout(private val activity: MainActivity) {
         
         @android.webkit.JavascriptInterface
         fun grantTestBerries(amount: Int) {
-            activity.runOnUiThread {
+            activity.lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     android.util.Log.d("Layout", "grantTestBerries called with amount: $amount")
                     val progressManager = DailyProgressManager(activity)
                     val currentContent = activity.getCurrentMainContent()
-                    
-                    if (currentContent != null) {
-                        // Find an incomplete required task from the config to mark as completed
-                        // This ensures the progress actually increases since it's a real task
-                        val requiredSection = currentContent.sections?.find { it.id == "required" }
-                        val incompleteTask = requiredSection?.tasks?.firstOrNull { task ->
-                            val taskId = task.launch ?: ""
-                            taskId.isNotEmpty() && !progressManager.isTaskCompleted(taskId) && (task.stars ?: 0) > 0
+                    if (currentContent == null) {
+                        withContext(Dispatchers.Main) {
+                            android.util.Log.e("Layout", "Cannot grant test berries - currentContent is null")
+                            Toast.makeText(activity, "Error: Content not loaded", Toast.LENGTH_SHORT).show()
                         }
-                        
-                        if (incompleteTask != null) {
-                            // Mark the first incomplete required task as completed with the test amount
-                            val taskId = incompleteTask.launch ?: "test_task"
-                            val taskStars = incompleteTask.stars ?: amount
-                            
-                            // Use the task's actual star value, but if it's less than amount, we'll mark multiple tasks
-                            var remainingAmount = amount
-                            var tasksMarked = 0
-                            
-                            // Mark tasks until we've granted the full amount
-                            requiredSection.tasks?.forEach { task ->
-                                if (remainingAmount > 0) {
-                                    val tId = task.launch ?: ""
-                                    if (tId.isNotEmpty() && !progressManager.isTaskCompleted(tId)) {
-                                        val tStars = task.stars ?: 0
-                                        if (tStars > 0) {
-                                            val starsToGrant = minOf(remainingAmount, tStars)
-                                            val earnedStars = progressManager.markTaskCompletedWithName(
-                                                tId,
-                                                task.title ?: "Test Task",
-                                                starsToGrant,
-                                                true,
-                                                currentContent,
-                                                "required"
-                                            )
-                                            if (earnedStars > 0) {
-                                                remainingAmount -= earnedStars
-                                                tasksMarked++
-                                                progressManager.addStarsToRewardBank(earnedStars)
-                                            }
-                                        }
-                                    }
+                        return@launch
+                    }
+                    val requiredSection = currentContent.sections?.find { it.id == "required" }
+                    val incompleteTask = requiredSection?.tasks?.firstOrNull { task ->
+                        val taskId = task.launch ?: ""
+                        taskId.isNotEmpty() && !progressManager.isTaskCompleted(taskId) && (task.stars ?: 0) > 0
+                    }
+                    if (incompleteTask != null && requiredSection != null) {
+                        var remainingAmount = amount
+                        var tasksMarked = 0
+                        for (task in requiredSection.tasks ?: emptyList()) {
+                            if (remainingAmount <= 0) break
+                            val tId = task.launch ?: ""
+                            if (tId.isEmpty() || progressManager.isTaskCompleted(tId)) continue
+                            val tStars = task.stars ?: 0
+                            if (tStars <= 0) continue
+                            val starsToGrant = minOf(remainingAmount, tStars)
+                            val res = progressManager.markTaskCompletedWithName(
+                                tId,
+                                task.title ?: "Test Task",
+                                starsToGrant,
+                                true,
+                                currentContent,
+                                "required"
+                            )
+                            if (res.isFailure) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        activity,
+                                        res.exceptionOrNull()?.message ?: "Could not save progress",
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 }
+                                return@launch
                             }
-                            
-                            // If we still need more, mark additional test tasks
-                            while (remainingAmount > 0) {
-                                val testTaskId = "test_berries_${System.currentTimeMillis()}_${tasksMarked}"
-                                val testStars = minOf(remainingAmount, 50) // Mark in chunks of up to 50
-                                val earnedStars = progressManager.markTaskCompletedWithName(
-                                    testTaskId,
-                                    "Test Berries & Coins",
-                                    testStars,
-                                    true,
-                                    currentContent,
-                                    "required"
-                                )
-                                if (earnedStars > 0) {
-                                    remainingAmount -= earnedStars
-                                    tasksMarked++
-                                    progressManager.addStarsToRewardBank(earnedStars)
-                                } else {
-                                    break // Can't mark more
+                            val earnedStars = res.getOrNull() ?: 0
+                            if (earnedStars > 0) {
+                                remainingAmount -= earnedStars
+                                tasksMarked++
+                                progressManager.addStarsToRewardBank(earnedStars)
+                            }
+                        }
+                        while (remainingAmount > 0) {
+                            val testTaskId = "test_berries_${System.currentTimeMillis()}_${tasksMarked}"
+                            val testStars = minOf(remainingAmount, 50)
+                            val res = progressManager.markTaskCompletedWithName(
+                                testTaskId,
+                                "Test Berries & Coins",
+                                testStars,
+                                true,
+                                currentContent,
+                                "required"
+                            )
+                            if (res.isFailure) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        activity,
+                                        res.exceptionOrNull()?.message ?: "Could not save progress",
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 }
+                                return@launch
                             }
-                            
-                            val totalRewardMinutes = progressManager.getBankedRewardMinutes()
-                            android.util.Log.d("Layout", "Granted test berries and coins, marked $tasksMarked tasks, total reward minutes: $totalRewardMinutes")
-                            
-                            // Refresh progress display and header buttons to show updated progress
+                            val earnedStars = res.getOrNull() ?: 0
+                            if (earnedStars > 0) {
+                                remainingAmount -= earnedStars
+                                tasksMarked++
+                                progressManager.addStarsToRewardBank(earnedStars)
+                            } else {
+                                break
+                            }
+                        }
+                        val totalRewardMinutes = progressManager.getBankedRewardMinutes()
+                        android.util.Log.d(
+                            "Layout",
+                            "Granted test berries and coins, marked $tasksMarked tasks, total reward minutes: $totalRewardMinutes"
+                        )
+                        withContext(Dispatchers.Main) {
                             refreshProgressDisplay()
                             refreshHeaderButtons()
-                            
-                            // Reload battle hub to update berry meter
                             refreshBattleHub()
-                            
-                            // Show toast notification
-                            android.widget.Toast.makeText(activity, "Granted $amount berries and coins! Total: $totalRewardMinutes minutes", android.widget.Toast.LENGTH_SHORT).show()
-                        } else {
-                            // No incomplete tasks found, just add stars to reward bank
-                            val totalRewardMinutes = progressManager.addStarsToRewardBank(amount)
-                            android.util.Log.d("Layout", "No incomplete tasks, granted $amount stars to reward bank only, total: $totalRewardMinutes")
-                            refreshProgressDisplay()
-                            refreshHeaderButtons()
-                            refreshBattleHub()
-                            android.widget.Toast.makeText(activity, "Granted $amount berries (all tasks completed)! Total: $totalRewardMinutes minutes", android.widget.Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                activity,
+                                "Granted $amount berries and coins! Total: $totalRewardMinutes minutes",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else {
-                        android.util.Log.e("Layout", "Cannot grant test berries - currentContent is null")
-                        android.widget.Toast.makeText(activity, "Error: Content not loaded", android.widget.Toast.LENGTH_SHORT).show()
+                        val totalRewardMinutes = progressManager.addStarsToRewardBank(amount)
+                        android.util.Log.d(
+                            "Layout",
+                            "No incomplete tasks, granted $amount stars to reward bank only, total: $totalRewardMinutes"
+                        )
+                        withContext(Dispatchers.Main) {
+                            refreshProgressDisplay()
+                            refreshHeaderButtons()
+                            refreshBattleHub()
+                            Toast.makeText(
+                                activity,
+                                "Granted $amount berries (all tasks completed)! Total: $totalRewardMinutes minutes",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("Layout", "Error granting test berries", e)
-                    e.printStackTrace()
-                    android.widget.Toast.makeText(activity, "Error granting test berries: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(activity, "Error granting test berries: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

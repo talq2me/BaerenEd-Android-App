@@ -14,7 +14,7 @@ import java.util.*
 
 /**
  * Manages daily reset and progress load according to Daily Reset Logic.md.
- * DB-only: all progress is read from and written to the DB. Prefs hold the last applied DB data for display; we upload from prefs to DB on change.
+ * DB-only: progress is read from and written to the DB (RPCs + fetch). Prefs hold the last applied DB snapshot for display.
  * - Entry point: dailyResetProcessAndSync(profile) — fetch from DB; if last_reset (date, EST) is not today,
  *   run daily reset in DB, restore chores from GitHub, then load from DB. Writes go straight to DB (e.g. uploadToDb).
  */
@@ -529,21 +529,11 @@ class DailyResetAndSyncManager(private val context: Context) {
     }
 
     /**
-     * Uploads current progress to DB with lastUpdated = now() at EST. DB only; no local storage.
-     * Call after task/game completion so progress is persisted. Success = DB write succeeded.
-     *
-     * @return Result.success(Unit) when upload to DB succeeded; Result.failure when upload failed after retries
+     * After a child activity completes a task, RPCs have already written to the DB.
+     * Refetches from DB and applies to prefs/session so the map matches server state.
      */
-    suspend fun updateLocalTimestampAndSyncToCloud(profile: String): Result<Unit> = withContext(Dispatchers.IO) {
-        Log.d(TAG, "Uploading progress to DB for profile: $profile")
-        try {
-            uploadToDb(profile)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Upload to DB failed", e)
-            Result.failure(e)
-        }
-    }
+    suspend fun updateLocalTimestampAndSyncToCloud(profile: String): Result<Unit> =
+        dailyResetProcessAndSync(profile)
     
     /**
      * No-op: all writes go via RPCs (af_update_*, af_daily_reset). Kept for API compatibility.

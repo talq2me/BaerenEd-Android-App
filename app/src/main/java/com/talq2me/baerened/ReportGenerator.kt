@@ -70,7 +70,8 @@ class ReportGenerator(private val context: Context) {
             val isRequired = section.id == "required"
             section.tasks?.forEach { task ->
                 val taskId = task.launch ?: return@forEach
-                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, section.id ?: "unknown")
+                val taskName = task.title ?: taskId
+                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, taskName, section.id ?: "unknown")
                 
                 // Find matching completed game sessions
                 report.completedGameSessions.forEach { session ->
@@ -116,7 +117,7 @@ class ReportGenerator(private val context: Context) {
                 val taskName = task.title ?: taskId
                 
                 // Use unique task ID to match sessions (includes section info for optional tasks)
-                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, section.id ?: "unknown")
+                val uniqueTaskId = progressManager.getUniqueTaskId(taskId, taskName, section.id ?: "unknown")
                 
                 // Check completion status using the appropriate task ID
                 val isCompleted = if (isRequired) {

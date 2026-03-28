@@ -329,6 +329,9 @@ class ReportGeneratorTest {
     @Test
     fun `completed games are shown separately for required and optional sections`() {
         // Given: A progress report with games completed in both required and optional sections
+        // Activity IDs must match [DailyProgressManager.getUniqueTaskId] (section::task title).
+        val requiredSessionId = "required::French Stories"
+        val optionalSessionId = "optional::French Stories"
         val today = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.getDefault()).format(Date())
         val report = DailyProgressManager.ComprehensiveProgressReport(
             date = today,
@@ -340,11 +343,14 @@ class ReportGeneratorTest {
             totalTimeMinutes = 20,
             gamesPlayed = 2,
             videosWatched = 0,
-            completedTasks = listOf("frenchStories", "optional_frenchStories"),
-            completedTaskNames = mapOf("frenchStories" to "French Stories", "optional_frenchStories" to "French Stories"),
+            completedTasks = listOf("frenchStories", optionalSessionId),
+            completedTaskNames = mapOf(
+                "frenchStories" to "French Stories",
+                optionalSessionId to "French Stories"
+            ),
             gameSessions = listOf(
                 TimeTracker.ActivitySession(
-                    activityId = "frenchStories",
+                    activityId = requiredSessionId,
                     activityType = "game",
                     activityName = "French Stories",
                     startTime = System.currentTimeMillis() - 600000,
@@ -356,7 +362,7 @@ class ReportGeneratorTest {
                     incorrectAnswers = 0
                 ),
                 TimeTracker.ActivitySession(
-                    activityId = "optional_frenchStories",
+                    activityId = optionalSessionId,
                     activityType = "game",
                     activityName = "French Stories",
                     startTime = System.currentTimeMillis() - 300000,
@@ -373,7 +379,7 @@ class ReportGeneratorTest {
             chromePageSessions = emptyList(),
             completedGameSessions = listOf(
                 TimeTracker.ActivitySession(
-                    activityId = "frenchStories",
+                    activityId = requiredSessionId,
                     activityType = "game",
                     activityName = "French Stories",
                     startTime = System.currentTimeMillis() - 600000,
@@ -385,7 +391,7 @@ class ReportGeneratorTest {
                     incorrectAnswers = 0
                 ),
                 TimeTracker.ActivitySession(
-                    activityId = "optional_frenchStories",
+                    activityId = optionalSessionId,
                     activityType = "game",
                     activityName = "French Stories",
                     startTime = System.currentTimeMillis() - 300000,

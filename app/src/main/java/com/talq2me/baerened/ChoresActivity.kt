@@ -83,12 +83,27 @@ class ChoresActivity : AppCompatActivity() {
     private fun onChoreCheckedChanged(index: Int, isChecked: Boolean) {
         if (index !in chores.indices) return
         val chore = chores[index]
-        val delta = if (isChecked) chore.coinsReward else -chore.coinsReward
-        progressManager.addCoinsEarned(profile, delta)
-        chores[index] = chore.copy(done = isChecked)
-        progressManager.saveChores(profile, chores)
-        progressManager.notifyChoreUpdated(profile, chore.choreId, isChecked)
-        // Set last_updated so cloud sync runs when returning to Battle Hub
-        DailyResetAndSyncManager(this).advanceLocalTimestampForProfile(profile)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val r = progressManager.notifyChoreUpdated(profile, chore.choreId, isChecked)
+            if (r.isFailure) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@ChoresActivity,
+                        r.exceptionOrNull()?.message ?: "Could not save chore to server.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    chores = progressManager.getChores(profile).toMutableList()
+                    buildChoreRows()
+                }
+                return@launch
+            }
+            val delta = if (isChecked) chore.coinsReward else -chore.coinsReward
+            progressManager.addCoinsEarned(profile, delta)
+            chores = progressManager.getChores(profile).toMutableList()
+            withContext(Dispatchers.Main) {
+                buildChoreRows()
+            }
+            DailyResetAndSyncManager(this@ChoresActivity).advanceLocalTimestampForProfile(profile)
+        }
     }
 }

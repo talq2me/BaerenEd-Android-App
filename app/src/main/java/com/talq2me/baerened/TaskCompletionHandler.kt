@@ -1,34 +1,24 @@
 package com.talq2me.baerened
 
 import android.content.Context
-import android.util.Log
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
- * Centralized task completion handler
- * Handles marking tasks as completed and syncing to cloud
+ * Centralized task completion handler.
+ * Writes go to the DB via RPCs in [DailyProgressManager], then session is refreshed from DB.
  */
 class TaskCompletionHandler(
     private val context: Context,
-    private val progressManager: DailyProgressManager,
-    private val cloudStorageManager: CloudStorageManager? = null
+    private val progressManager: DailyProgressManager
 ) {
-    companion object {
-        private const val TAG = "TaskCompletionHandler"
-    }
-
-    /**
-     * Result of task completion
-     */
     data class CompletionResult(
         val earnedStars: Int,
         val wasAlreadyCompleted: Boolean
     )
 
     /**
-     * Handles task completion
+     * [Result.failure] if RPC or DB refetch failed — caller should surface the error.
      */
     fun handleCompletion(
         taskId: String,
@@ -36,48 +26,37 @@ class TaskCompletionHandler(
         stars: Int,
         sectionId: String?,
         config: MainContent? = null
-    ): CompletionResult {
+    ): Result<CompletionResult> {
         val isRequiredTask = sectionId == "required"
-        
-        val earnedStars = progressManager.markTaskCompletedWithName(
-            taskId,
-            taskTitle,
-            stars,
-            isRequiredTask,
-            config,
-            sectionId
-        )
-        
-        // Sync to cloud if enabled
-        cloudStorageManager?.let { manager ->
-            val profile = SettingsManager.readProfile(context) ?: "AM"
-            CoroutineScope(Dispatchers.IO).launch {
-                manager.saveIfEnabled(profile)
+        return runBlocking(Dispatchers.IO) {
+            progressManager.markTaskCompletedWithName(
+                taskId,
+                taskTitle,
+                stars,
+                isRequiredTask,
+                config,
+                sectionId
+            ).map { earnedStars ->
+                CompletionResult(
+                    earnedStars = earnedStars,
+                    wasAlreadyCompleted = earnedStars == 0 && stars > 0
+                )
             }
         }
-        
-        return CompletionResult(
-            earnedStars = earnedStars,
-            wasAlreadyCompleted = earnedStars == 0 && stars > 0
-        )
     }
 
-    /**
-     * Handles task completion with berries (for battle hub)
-     */
     fun handleCompletionWithBerries(
         taskId: String,
         taskTitle: String,
         stars: Int,
         sectionId: String?,
         config: MainContent? = null
-    ): CompletionResult {
-        val result = handleCompletion(taskId, taskTitle, stars, sectionId, config)
-        
-        if (result.earnedStars > 0) {
-            progressManager.grantRewardsForTaskCompletion(result.earnedStars, sectionId)
+    ): Result<CompletionResult> {
+        return handleCompletion(taskId, taskTitle, stars, sectionId, config).map { result ->
+            if (result.earnedStars > 0) {
+                progressManager.grantRewardsForTaskCompletion(result.earnedStars, sectionId)
+            }
+            result
         }
-        
-        return result
     }
 }

@@ -124,6 +124,78 @@ class DailyProgressManager(private val context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val syncService = CloudSyncService()
+    private val userDataRepository = UserDataRepository.getInstance(context.applicationContext)
+    private val dataApplier = CloudDataApplier(context) { p, t -> setStoredLastUpdatedTimestamp(p, t) }
+
+    /** Runs one RPC (no session mutation). */
+    private suspend fun invokeSingleItemRpcOnly(update: SingleItemUpdate): Result<Unit> {
+        val r = when (update) {
+            is SingleItemUpdate.RequiredTask -> syncService.invokeAfUpdateRequiredTask(
+                update.profile, update.taskTitle, update.status,
+                update.correct, update.incorrect, update.questions
+            )
+            is SingleItemUpdate.PracticeTask -> syncService.invokeAfUpdatePracticeTask(
+                update.profile, update.taskTitle, update.timesCompleted, update.stars,
+                update.correct, update.incorrect, update.questionsAnswered
+            )
+            is SingleItemUpdate.BonusTask -> syncService.invokeAfUpdateBonusTask(
+                update.profile, update.taskTitle, update.timesCompleted, update.stars,
+                update.correct, update.incorrect, update.questionsAnswered
+            )
+            is SingleItemUpdate.ChecklistItem -> syncService.invokeAfUpdateChecklistItem(
+                update.profile, update.itemLabel, update.done
+            )
+            is SingleItemUpdate.Chore -> syncService.invokeAfUpdateChore(update.profile, update.choreId, update.done)
+            is SingleItemUpdate.GameIndex -> syncService.invokeAfUpdateGameIndex(update.profile, update.gameKey, update.index)
+            is SingleItemUpdate.PokemonUnlocked -> syncService.invokeAfUpdatePokemonUnlocked(update.profile, update.pokemonUnlocked)
+        }
+        if (r.isFailure) {
+            Log.e("DailyProgressManager", "RPC failed for ${update::class.simpleName}: ${r.exceptionOrNull()?.message}")
+        }
+        return r
+    }
+
+    /** Replaces session + prefs mirror from DB row (gold standard). */
+    suspend fun refetchSessionFromDb(cloudProfile: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val fetch = userDataRepository.fetchUserData(cloudProfile)
+        if (fetch.isFailure) {
+            Log.e("DailyProgressManager", "refetchSessionFromDb failed: ${fetch.exceptionOrNull()?.message}")
+            return@withContext Result.failure(fetch.exceptionOrNull() ?: Exception("Fetch failed"))
+        }
+        val data = fetch.getOrNull()
+        if (data != null) {
+            dataApplier.applyDbDataToPrefs(data)
+            setProgressDataAfterFetch(data)
+        } else {
+            val empty = CloudUserData(profile = cloudProfile)
+            dataApplier.applyDbDataToPrefs(empty)
+            setProgressDataAfterFetch(empty)
+        }
+        Result.success(Unit)
+    }
+
+    /**
+     * Writes each update to the DB via RPC in order, then **one** read from DB to refresh session.
+     * On any RPC failure, session is unchanged and the failure is returned.
+     */
+    suspend fun applyRpcChainThenRefetch(updates: List<SingleItemUpdate>): Result<Unit> {
+        if (updates.isEmpty()) return Result.success(Unit)
+        for (u in updates) {
+            val step = invokeSingleItemRpcOnly(u)
+            if (step.isFailure) return step
+        }
+        val cloudProfile = when (val first = updates.first()) {
+            is SingleItemUpdate.RequiredTask -> first.profile
+            is SingleItemUpdate.PracticeTask -> first.profile
+            is SingleItemUpdate.BonusTask -> first.profile
+            is SingleItemUpdate.ChecklistItem -> first.profile
+            is SingleItemUpdate.Chore -> first.profile
+            is SingleItemUpdate.GameIndex -> first.profile
+            is SingleItemUpdate.PokemonUnlocked -> first.profile
+        }
+        return refetchSessionFromDb(cloudProfile)
+    }
 
     fun setProgressDataAfterFetch(data: CloudUserData?) {
         currentSessionData = data
@@ -150,14 +222,16 @@ class DailyProgressManager(private val context: Context) {
         return data?.gameIndices?.get(gameKey) ?: 0
     }
 
-    /** Updates session data with new game index and syncs to DB via RPC. No prefs. */
-    fun updateGameIndexInCache(profile: String, gameKey: String, index: Int) {
-        val current = getCurrentSessionData(profile) ?: return
-        val newIndices = current.gameIndices.toMutableMap().apply { put(gameKey, index) }
-        val merged = current.copy(gameIndices = newIndices)
-        currentSessionData = merged
-        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.GameIndex(toCloudProfile(profile), gameKey, index))
-        Log.d("DailyProgressManager", "Game index $gameKey=$index for profile: $profile; sync via RPC")
+    /**
+     * Persists game index: RPC + DB refetch. Session is only updated from the returned row.
+     */
+    suspend fun updateGameIndexInDbSync(profile: String, gameKey: String, index: Int): Result<Unit> {
+        if (getCurrentSessionData(profile) == null) {
+            return Result.failure(Exception("No session; load progress first"))
+        }
+        return applyRpcChainThenRefetch(
+            listOf(SingleItemUpdate.GameIndex(toCloudProfile(profile), gameKey, index))
+        )
     }
 
     /** Uses passed-in data, or current session data from last DB fetch. No prefs. */
@@ -756,33 +830,34 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Marks a checklist item as completed. Merges into session data and triggers upload to DB. No prefs.
-     * @return Stars earned (0 if already completed)
+     * Marks a checklist item complete: RPC then refetch from DB. Session matches DB after success.
      */
-    fun markChecklistItemCompleted(itemLabel: String, stars: Int, displayDays: String? = null): Int {
+    suspend fun markChecklistItemCompleted(itemLabel: String, stars: Int, displayDays: String? = null): Result<Int> {
         val profile = getCurrentKid()
-        val current = getCurrentSessionData(profile) ?: return 0
-        val existing = current.checklistItems.toMutableMap()
-        val wasDone = existing[itemLabel]?.done == true
-        existing[itemLabel] = ChecklistItemProgress(done = true, stars = stars, displayDays = displayDays)
-        val merged = current.copy(checklistItems = existing)
-        currentSessionData = merged
-        invalidateCompletedTasksMapCache()
-        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.ChecklistItem(
-            profile = toCloudProfile(profile),
-            itemLabel = itemLabel,
-            done = true
-        ))
-        return if (wasDone) 0 else stars
+        val current = getCurrentSessionData(profile)
+            ?: return Result.failure(Exception("No session; load progress first"))
+        val wasDone = current.checklistItems[itemLabel]?.done == true
+        if (wasDone) return Result.success(0)
+        val sync = applyRpcChainThenRefetch(
+            listOf(
+                SingleItemUpdate.ChecklistItem(
+                    profile = toCloudProfile(profile),
+                    itemLabel = itemLabel,
+                    done = true
+                )
+            )
+        )
+        if (sync.isFailure) {
+            return Result.failure(sync.exceptionOrNull() ?: Exception("Could not save checklist to server"))
+        }
+        return Result.success(stars)
     }
 
-    /** Notify that a chore was toggled so the DB RPC (af_update_chore) can be invoked. Call from ChoresActivity. */
-    fun notifyChoreUpdated(profile: String, choreId: Int, done: Boolean) {
-        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.Chore(
-            profile = toCloudProfile(profile),
-            choreId = choreId,
-            done = done
-        ))
+    /** Chore toggle: RPC then DB refetch. */
+    suspend fun notifyChoreUpdated(profile: String, choreId: Int, done: Boolean): Result<Unit> {
+        return applyRpcChainThenRefetch(
+            listOf(SingleItemUpdate.Chore(toCloudProfile(profile), choreId, done))
+        )
     }
 
     /** True when progressData is non-null for current profile (caller passes result of fetch). */
@@ -999,7 +1074,7 @@ class DailyProgressManager(private val context: Context) {
      * For required/once-per-day tasks: only award once per day
      * For optional tasks: award each time completed
      */
-    fun markTaskCompleted(taskId: String, stars: Int, isRequiredTask: Boolean = false): Int {
+    suspend fun markTaskCompleted(taskId: String, stars: Int, isRequiredTask: Boolean = false): Result<Int> {
         return markTaskCompletedWithName(taskId, taskId, stars, isRequiredTask)
     }
 
@@ -1028,11 +1103,23 @@ class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Marks a task as completed with a display name and returns the stars earned
-     * For required tasks: counts toward progress and coins, only award once per day
-     * For optional tasks: only banks reward time, doesn't affect progress, can be completed multiple times
+     * Canonical identifier for completion tracking: section + title.
+     * Falls back to section + taskId when title is missing.
      */
-    fun markTaskCompletedWithName(
+    fun getUniqueTaskId(taskId: String, taskTitle: String?, sectionId: String?): String {
+        val normalizedTitle = taskTitle?.trim()?.takeIf { it.isNotEmpty() }
+        return if (sectionId != null && normalizedTitle != null) {
+            "$sectionId::$normalizedTitle"
+        } else {
+            getUniqueTaskId(taskId, sectionId)
+        }
+    }
+
+    /**
+     * Marks a task complete: RPC(s) then **one** DB refetch. Session is only updated from the DB row.
+     * [preRpcUpdates] runs first (e.g. [SingleItemUpdate.GameIndex] with game completion index).
+     */
+    suspend fun markTaskCompletedWithName(
         taskId: String,
         taskName: String,
         stars: Int,
@@ -1041,17 +1128,18 @@ class DailyProgressManager(private val context: Context) {
         sectionId: String? = null,
         correctAnswers: Int? = null,
         incorrectAnswers: Int? = null,
-        questionsAnswered: Int? = null
-    ): Int {
+        questionsAnswered: Int? = null,
+        preRpcUpdates: List<SingleItemUpdate> = emptyList()
+    ): Result<Int> {
         Log.d("DailyProgressManager", "markTaskCompletedWithName called: taskId=$taskId, taskName=$taskName, stars=$stars, isRequiredTask=$isRequiredTask, sectionId=$sectionId")
         val profile = getCurrentKid()
         val current = getCurrentSessionData(profile)
         if (current == null) {
             Log.w("DailyProgressManager", "markTaskCompletedWithName: no session data for $profile; ensure fetch ran first")
-            return 0
+            return Result.failure(Exception("No session; load progress first"))
         }
 
-        val uniqueTaskId = getUniqueTaskId(taskId, sectionId)
+        val uniqueTaskId = getUniqueTaskId(taskId, taskName, sectionId)
         val actualIsRequired = when {
             sectionId != null -> sectionId == "required"
             config != null -> isTaskFromRequiredSection(taskId, config)
@@ -1061,64 +1149,37 @@ class DailyProgressManager(private val context: Context) {
         Log.d("DailyProgressManager", "markTaskCompletedWithName: taskId=$taskId, uniqueTaskId=$uniqueTaskId, taskName=$taskName, actualIsRequired=$actualIsRequired")
 
         if (actualIsRequired) {
-            val task = findTaskInConfig(taskId, config)
+            val task = findTaskInConfig(taskId, taskName, sectionId, config)
             val storageKey = task?.takeIf { it.title == taskName }?.title ?: taskName
             val existingProgress = current.requiredTasks[storageKey] ?: current.requiredTasks[taskName]
             val checklistStars = findChecklistItemStarsInConfig(storageKey, config)
             val taskStars = task?.stars ?: checklistStars ?: stars
             val wasAlreadyComplete = existingProgress?.status == "complete"
-            val taskProgress = TaskProgress(
-                status = "complete",
-                correct = correctAnswers,
-                incorrect = incorrectAnswers,
-                questions = questionsAnswered,
-                stars = taskStars,
-                showdays = task?.showdays,
-                hidedays = task?.hidedays,
-                displayDays = task?.displayDays,
-                disable = task?.disable
-            )
-            val newRequired = current.requiredTasks.toMutableMap().apply {
-                this[storageKey] = taskProgress
-                if (storageKey != taskName) remove(taskName)
-            }
-            val merged = current.copy(requiredTasks = newRequired)
-            currentSessionData = merged
-            invalidateCompletedTasksMapCache()
-            onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.RequiredTask(
+            if (wasAlreadyComplete) return Result.success(0)
+            val taskUpdate = SingleItemUpdate.RequiredTask(
                 profile = toCloudProfile(profile),
                 taskTitle = storageKey,
                 status = "complete",
                 correct = correctAnswers,
                 incorrect = incorrectAnswers,
                 questions = questionsAnswered
-            ))
-            Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $taskStars stars")
-            return if (wasAlreadyComplete) 0 else taskStars
+            )
+            val chain = preRpcUpdates + taskUpdate
+            val sync = applyRpcChainThenRefetch(chain)
+            if (sync.isFailure) {
+                return Result.failure(sync.exceptionOrNull() ?: Exception("Could not save task to server"))
+            }
+            Log.d("DailyProgressManager", "Required task $taskId ($taskName) completed, earned $taskStars stars (DB refetched)")
+            return Result.success(taskStars)
         } else {
-            val task = findTaskInConfig(taskId, config)
+            val task = findTaskInConfig(taskId, taskName, sectionId, config)
             val checklistStars = findChecklistItemStarsInConfig(taskName, config)
             val taskStars = task?.stars ?: checklistStars ?: stars
             val isBonus = sectionId == "bonus"
             if (isBonus) {
                 val existing = current.bonusTasks[taskName]
-                val newBonus = current.bonusTasks.toMutableMap().apply {
-                    this[taskName] = PracticeProgress(
-                        timesCompleted = (existing?.timesCompleted ?: 0) + 1,
-                        correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
-                        incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
-                        questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0),
-                        showdays = task?.showdays ?: existing?.showdays,
-                        hidedays = task?.hidedays ?: existing?.hidedays,
-                        displayDays = task?.displayDays ?: existing?.displayDays,
-                        disable = task?.disable ?: existing?.disable
-                    )
-                }
                 val newTc = (existing?.timesCompleted ?: 0) + 1
-                val merged = current.copy(bonusTasks = newBonus)
-                currentSessionData = merged
-                invalidateCompletedTasksMapCache()
-                onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.BonusTask(
+                val taskUpdate = SingleItemUpdate.BonusTask(
                     profile = toCloudProfile(profile),
                     taskTitle = taskName,
                     timesCompleted = newTc,
@@ -1126,28 +1187,18 @@ class DailyProgressManager(private val context: Context) {
                     correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
                     incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
                     questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0)
-                ))
-                Log.d("DailyProgressManager", "Bonus task $taskId ($taskName) completed, earned $taskStars stars")
-                return taskStars
+                )
+                val chain = preRpcUpdates + taskUpdate
+                val sync = applyRpcChainThenRefetch(chain)
+                if (sync.isFailure) {
+                    return Result.failure(sync.exceptionOrNull() ?: Exception("Could not save bonus task to server"))
+                }
+                Log.d("DailyProgressManager", "Bonus task $taskId ($taskName) completed, earned $taskStars stars (DB refetched)")
+                return Result.success(taskStars)
             } else {
                 val existing = current.practiceTasks[taskName]
-                val newPractice = current.practiceTasks.toMutableMap().apply {
-                    this[taskName] = PracticeProgress(
-                        timesCompleted = (existing?.timesCompleted ?: 0) + 1,
-                        correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
-                        incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
-                        questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0),
-                        showdays = task?.showdays ?: existing?.showdays,
-                        hidedays = task?.hidedays ?: existing?.hidedays,
-                        displayDays = task?.displayDays ?: existing?.displayDays,
-                        disable = task?.disable ?: existing?.disable
-                    )
-                }
                 val newTc = (existing?.timesCompleted ?: 0) + 1
-                val merged = current.copy(practiceTasks = newPractice)
-                currentSessionData = merged
-                invalidateCompletedTasksMapCache()
-                onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.PracticeTask(
+                val taskUpdate = SingleItemUpdate.PracticeTask(
                     profile = toCloudProfile(profile),
                     taskTitle = taskName,
                     timesCompleted = newTc,
@@ -1155,9 +1206,14 @@ class DailyProgressManager(private val context: Context) {
                     correct = (existing?.correct ?: 0) + (correctAnswers ?: 0),
                     incorrect = (existing?.incorrect ?: 0) + (incorrectAnswers ?: 0),
                     questionsAnswered = (existing?.questionsAnswered ?: 0) + (questionsAnswered ?: 0)
-                ))
-                Log.d("DailyProgressManager", "Practice task $taskId ($taskName) completed, earned $taskStars stars")
-                return taskStars
+                )
+                val chain = preRpcUpdates + taskUpdate
+                val sync = applyRpcChainThenRefetch(chain)
+                if (sync.isFailure) {
+                    return Result.failure(sync.exceptionOrNull() ?: Exception("Could not save practice task to server"))
+                }
+                Log.d("DailyProgressManager", "Practice task $taskId ($taskName) completed, earned $taskStars stars (DB refetched)")
+                return Result.success(taskStars)
             }
         }
     }
@@ -1197,10 +1253,27 @@ class DailyProgressManager(private val context: Context) {
     /**
      * Finds a task in config by task ID (task.launch)
      */
-    private fun findTaskInConfig(taskId: String, config: MainContent?): Task? {
+    private fun findTaskInConfig(taskId: String, taskName: String, sectionId: String?, config: MainContent?): Task? {
         if (config == null) return null
-        return config.sections?.flatMap { it.tasks?.filterNotNull() ?: emptyList() }
-            ?.find { (it.launch ?: "") == taskId }
+        val sections = config.sections ?: return null
+
+        // First choice: exact section + exact title.
+        sections.firstOrNull { it.id == sectionId }
+            ?.tasks
+            ?.filterNotNull()
+            ?.firstOrNull { (it.title ?: "") == taskName }
+            ?.let { return it }
+
+        // Second choice: exact title anywhere (handles old callers that don't pass section).
+        sections.asSequence()
+            .flatMap { (it.tasks ?: emptyList()).asSequence().filterNotNull() }
+            .firstOrNull { (it.title ?: "") == taskName }
+            ?.let { return it }
+
+        // Last resort only: launch id.
+        return sections.asSequence()
+            .flatMap { (it.tasks ?: emptyList()).asSequence().filterNotNull() }
+            .firstOrNull { (it.launch ?: "") == taskId }
     }
 
     /** Finds a checklist item in config by label (taskName) and returns its star value for reward calculation. */
@@ -1227,7 +1300,7 @@ class DailyProgressManager(private val context: Context) {
             null
         }
         
-        val task = findTaskInConfig(taskId, config)
+        val task = findTaskInConfig(taskId, taskId, null, config)
         val taskName = task?.title ?: taskId // Fallback to taskId if name not found
         
         val requiredTasks = getRequiredTasks()
@@ -1718,22 +1791,19 @@ class DailyProgressManager(private val context: Context) {
      * Gets the current number of unlocked Pokemon for the current kid
      * Prefers DB-backed cache when available.
      */
-    /** Reads from prefs (updated when we apply cloud data). No cache. */
+    /** Prefers last DB-backed session; then prefs. */
     fun getUnlockedPokemonCount(): Int {
         val kid = getCurrentKid()
+        val cloud = toCloudProfile(kid)
+        currentSessionData?.takeIf { it.profile == cloud }?.let { return it.pokemonUnlocked }
         return prefs.getInt("${kid}_$KEY_POKEMON_UNLOCKED", 0)
     }
 
-    /** Writes to prefs; caller must sync to DB. */
-    fun setUnlockedPokemonCount(count: Int) {
+    /** Pokemon count: RPC then DB refetch (prefs/session from row). */
+    suspend fun setUnlockedPokemonCount(count: Int): Result<Unit> {
         val kid = getCurrentKid()
-        prefs.edit().putInt("${kid}_$KEY_POKEMON_UNLOCKED", count).apply()
         val cloudProfile = toCloudProfile(kid)
-        currentSessionData?.takeIf { it.profile == cloudProfile }?.let { cur ->
-            currentSessionData = cur.copy(pokemonUnlocked = count)
-        }
-        onSyncSingleItemToDb?.invoke(context.applicationContext, SingleItemUpdate.PokemonUnlocked(cloudProfile, count))
-        Log.d("DailyProgressManager", "Pokemon unlocked set to $count for profile: $kid; sync via RPC")
+        return applyRpcChainThenRefetch(listOf(SingleItemUpdate.PokemonUnlocked(cloudProfile, count)))
     }
 
     /**
@@ -1809,12 +1879,11 @@ class DailyProgressManager(private val context: Context) {
     private data class ChoreJsonItem(val id: Int, val description: String, val coins: Int)
 
     /**
-     * Unlocks additional Pokemon (admin function)
+     * Unlocks additional Pokemon (admin function). RPC + refetch on success.
      */
-    fun unlockPokemon(count: Int): Boolean {
+    suspend fun unlockPokemon(count: Int): Result<Unit> {
         val currentCount = getUnlockedPokemonCount()
-        setUnlockedPokemonCount(currentCount + count)
-        return true
+        return setUnlockedPokemonCount(currentCount + count)
     }
 
     /**

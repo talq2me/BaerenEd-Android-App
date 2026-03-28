@@ -12,22 +12,20 @@ class GameProgress(private val context: Context, private val launchId: String) {
     }
 
     fun getCurrentIndex(): Int {
-        // ONLINE-ONLY: Read from DB cache (progressDataAfterFetch); no local storage for game_indices.
         val profile = SettingsManager.readProfile(context) ?: "AM"
         val progressManager = DailyProgressManager(context)
         val index = progressManager.getGameIndexFromCache(profile, launchId)
-        android.util.Log.d("GameProgress", "getCurrentIndex for $launchId: $index (from DB cache)")
+        android.util.Log.d("GameProgress", "getCurrentIndex for $launchId: $index (from DB-backed session)")
         return index
     }
 
-    fun saveIndex(index: Int) {
-        // ONLINE-ONLY: Update DB cache only; sync to DB is done by caller (e.g. updateLocalTimestampAndSyncToCloud).
+    /** RPC + DB refetch — call only from a coroutine (never block the main thread). */
+    suspend fun saveIndex(index: Int): Result<Unit> {
         val profile = SettingsManager.readProfile(context) ?: "AM"
-        DailyProgressManager(context).updateGameIndexInCache(profile, launchId, index)
-        android.util.Log.d("GameProgress", "saveIndex for $launchId: $index (cache only, sync by caller)")
+        return DailyProgressManager(context).updateGameIndexInDbSync(profile, launchId, index)
     }
 
-    fun resetProgress() {
+    suspend fun resetProgress() {
         saveIndex(0)
     }
 }
@@ -42,18 +40,15 @@ class WebGameProgress(private val context: Context, private val gameId: String) 
     }
 
     fun getCurrentIndex(): Int {
-        // ONLINE-ONLY: Read from DB cache; no local storage for game_indices.
         val profile = SettingsManager.readProfile(context) ?: "AM"
         val index = DailyProgressManager(context).getGameIndexFromCache(profile, gameId)
-        android.util.Log.d("WebGameProgress", "getCurrentIndex for $gameId: $index (from DB cache)")
+        android.util.Log.d("WebGameProgress", "getCurrentIndex for $gameId: $index (from DB-backed session)")
         return index
     }
 
-    fun saveIndex(index: Int) {
-        // ONLINE-ONLY: Update DB cache only; sync to DB is done by caller when sync runs.
+    suspend fun saveIndex(index: Int): Result<Unit> {
         val profile = SettingsManager.readProfile(context) ?: "AM"
-        DailyProgressManager(context).updateGameIndexInCache(profile, gameId, index)
-        android.util.Log.d("WebGameProgress", "saveIndex for $gameId: $index (cache only)")
+        return DailyProgressManager(context).updateGameIndexInDbSync(profile, gameId, index)
     }
 
     fun getProgressData(): Map<String, Int> {

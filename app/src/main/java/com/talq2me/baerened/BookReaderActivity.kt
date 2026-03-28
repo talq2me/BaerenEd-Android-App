@@ -82,7 +82,7 @@ class BookReaderActivity : AppCompatActivity() {
 
         timeTracker = TimeTracker(this)
         val uniqueTaskId = if (taskId != null && sectionId != null) {
-            DailyProgressManager(this).getUniqueTaskId(taskId, sectionId)
+            DailyProgressManager(this).getUniqueTaskId(taskId, taskTitle, sectionId)
         } else {
             taskId ?: "bookReader"
         }

@@ -100,7 +100,7 @@ class TappableTextActivity : AppCompatActivity() {
         // Time tracking (for rewards / reporting). This matches the BookReader approach.
         val timeTracker = TimeTracker(this)
         val uniqueTaskId = if (taskId != null && sectionId != null) {
-            DailyProgressManager(this).getUniqueTaskId(taskId, sectionId)
+            DailyProgressManager(this).getUniqueTaskId(taskId, taskTitle, sectionId)
         } else {
             taskId ?: "tappableText"
         }

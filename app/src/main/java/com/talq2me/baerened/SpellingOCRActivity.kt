@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
@@ -123,7 +124,7 @@ class SpellingOCRActivity : AppCompatActivity() {
         timeTracker = TimeTracker(this)
         
         val uniqueTaskId = if (sectionId != null) {
-            progressManager.getUniqueTaskId(gameType, sectionId)
+            progressManager.getUniqueTaskId(gameType, gameTitle, sectionId)
         } else {
             gameType
         }
@@ -746,40 +747,49 @@ class SpellingOCRActivity : AppCompatActivity() {
         }
         
         Log.d(TAG, "CRITICAL: About to mark task as complete - gameType: '$gameType', gameTitle: '$gameTitle', isRequiredGame: $isRequiredGame, sectionId: $sectionId")
-        val earnedStars = progressManager.markTaskCompletedWithName(
-            gameType, gameTitle, gameStars, isRequiredGame, config, sectionId
-        )
-        Log.d(TAG, "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
-        
-        if (earnedStars > 0) {
-            val effectiveSectionId = if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
-            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
-            timeTracker.updateStarsEarned("game", earnedStars)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = progressManager.markTaskCompletedWithName(
+                gameType, gameTitle, gameStars, isRequiredGame, config, sectionId
+            )
+            withContext(Dispatchers.Main) {
+                result.fold(
+                    onSuccess = { earnedStars ->
+                        Log.d(TAG, "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
+                        if (earnedStars > 0) {
+                            val effectiveSectionId =
+                                if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
+                            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
+                            timeTracker.updateStarsEarned("game", earnedStars)
+                        }
+                        val resultIntent = android.content.Intent().apply {
+                            putExtra("GAME_TYPE", gameType)
+                            putExtra("GAME_TITLE", gameTitle)
+                            putExtra("GAME_STARS", earnedStars)
+                            putExtra("REWARDS_APPLIED", true)
+                            battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+                            sectionId?.let { putExtra("SECTION_ID", it) }
+                        }
+                        setResult(RESULT_OK, resultIntent)
+                        Toast.makeText(
+                            this@SpellingOCRActivity,
+                            "🎉🎆 Great job! You completed all the spelling words! 🎆🎉",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            finish()
+                        }, 3000)
+                    },
+                    onFailure = { e ->
+                        Log.e(TAG, "Task completion failed", e)
+                        AlertDialog.Builder(this@SpellingOCRActivity)
+                            .setTitle("Could not save progress")
+                            .setMessage(e.message ?: "Server sync failed.")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    }
+                )
+            }
         }
-        
-        // Sync to cloud (update_cloud_with_local according to Daily Reset Logic)
-        val currentProfile = SettingsManager.readProfile(this) ?: "AM"
-        val cloudStorageManager = CloudStorageManager(this)
-        lifecycleScope.launch {
-            // saveIfEnabled calls update_cloud_with_local if cloud is enabled
-            cloudStorageManager.saveIfEnabled(currentProfile)
-        }
-        
-        // Return result for TrainingMapActivity (always set result, not just for battle hub)
-        val resultIntent = android.content.Intent().apply {
-            putExtra("GAME_TYPE", gameType)
-            putExtra("GAME_STARS", earnedStars)
-            putExtra("REWARDS_APPLIED", true)
-            battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
-            sectionId?.let { putExtra("SECTION_ID", it) }
-        }
-        setResult(RESULT_OK, resultIntent)
-        
-        Toast.makeText(this, "🎉🎆 Great job! You completed all the spelling words! 🎆🎉", Toast.LENGTH_LONG).show()
-        
-        android.os.Handler().postDelayed({
-            finish()
-        }, 3000)
     }
     
     override fun onDestroy() {
