@@ -391,7 +391,8 @@
         let words = [];
         let correctCount = 0;
         let incorrectCount = 0;
-        let maxQuestions = 10;
+        // Use the full loaded word list by default.
+        let maxQuestions = 0;
         let currentWordIndex = 0;
         let currentWord = {};
         let caughtLetters = [];
@@ -429,7 +430,7 @@
                     } else {
                         words = [];
                     }
-                    maxQuestions = Math.min(words.length, maxQuestions);
+                    maxQuestions = words.length;
                     startGame();
                 } catch (error) {
                     console.error('Error loading words file:', error);
@@ -449,7 +450,7 @@
                         } else {
                             words = [];
                         }
-                        maxQuestions = Math.min(words.length, maxQuestions);
+                        maxQuestions = words.length;
                         startGame();
                     })
                     .catch(error => {

@@ -98,10 +98,18 @@
         let currentWordIndex = 0;
         let currentWord = {};
         let selectedLetters = [];
+        let selectedLetterElements = [];
         let gameMode = 'hard';
         let isInPracticeMode = false;
         let practiceCorrectAttempts = 0;
         let practiceSelectedLetters = [];
+        let practiceSelectedLetterElements = [];
+
+        function getSelectionState() {
+            return isInPracticeMode
+                ? { letters: practiceSelectedLetters, elements: practiceSelectedLetterElements }
+                : { letters: selectedLetters, elements: selectedLetterElements };
+        }
 
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -199,6 +207,7 @@
             if (currentWordIndex >= maxQuestions) return endGame(true);
             currentWord = words[currentWordIndex];
             selectedLetters = [];
+            selectedLetterElements = [];
             isInPracticeMode = false;
             isFirstAttempt = true; // Reset for new word
             document.getElementById('spelledWord').textContent = '';
@@ -248,38 +257,43 @@
 
         function handleLetterClick(element, letter) {
             if (element.classList.contains('used')) return;
-            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
-            targetArray.push(letter);
+            const state = getSelectionState();
+            state.letters.push(letter);
+            state.elements.push(element);
             element.classList.add('used');
             updateSpelledWord();
         }
 
         function addLetter(letter) {
-            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
-            targetArray.push(letter);
+            const state = getSelectionState();
+            state.letters.push(letter);
+            // Keyboard input has no letter-bank element to re-enable on delete.
+            state.elements.push(null);
             updateSpelledWord();
         }
 
         function handleDelete() {
-            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
-            if (targetArray.length === 0) return;
-            const lastLetter = targetArray.pop();
+            const state = getSelectionState();
+            if (state.letters.length === 0) return;
+            state.letters.pop();
+            const lastElement = state.elements.pop();
             const useLetterBank = gameMode !== 'extreme' || isInPracticeMode;
-            if (useLetterBank) {
+            if (useLetterBank && lastElement) {
+                lastElement.classList.remove('used');
+            } else if (useLetterBank) {
+                // Fallback for any legacy state where we don't have the exact element reference.
                 const letterButtons = document.querySelectorAll('#letterBank .letter.used');
                 for (let i = letterButtons.length - 1; i >= 0; i--) {
-                    if (letterButtons[i].textContent.toLowerCase() === lastLetter) {
-                        letterButtons[i].classList.remove('used');
-                        break;
-                    }
+                    letterButtons[i].classList.remove('used');
+                    break;
                 }
             }
             updateSpelledWord();
         }
 
         function updateSpelledWord() {
-            const targetArray = isInPracticeMode ? practiceSelectedLetters : selectedLetters;
-            document.getElementById('spelledWord').textContent = targetArray.join('').toUpperCase();
+            const state = getSelectionState();
+            document.getElementById('spelledWord').textContent = state.letters.join('').toUpperCase();
         }
 
         function handleSubmit() {
@@ -305,6 +319,7 @@
             isInPracticeMode = true;
             practiceCorrectAttempts = 0;
             practiceSelectedLetters = [];
+            practiceSelectedLetterElements = [];
             document.getElementById('letterBank').style.display = 'flex';
             document.getElementById('deleteBtn').style.display = 'inline-block';
             document.getElementById('submitBtn').style.display = 'inline-block';
@@ -342,6 +357,7 @@
             attemptsContainer.appendChild(attemptDiv);
 
             practiceSelectedLetters = [];
+            practiceSelectedLetterElements = [];
             document.querySelectorAll('#letterBank .letter').forEach(el => el.classList.remove('used'));
             updateSpelledWord();
 
