@@ -1,12 +1,12 @@
 [
-  {"word":"mon","sentence":"C'est mon livre."},
-  {"word":"ma","sentence":"C'est ma sœur."},
-  {"word":"mes","sentence":"Ce sont mes amis."},
-  {"word":"route","sentence":"La route est longue."},
-  {"word":"rue","sentence":"J'habite dans cette rue."},
-  {"word":"rouge","sentence":"J'ai un ballon rouge."},
-  {"word":"il a","sentence":"Il a un chat."},
-  {"word":"elle a","sentence":"Elle a un chien."},
-  {"word":"il est","sentence":"Il est grand."},
-  {"word":"elle est","sentence":"Elle est contente."}
+  {"word":"du","sentence":"Je bois du lait."},
+  {"word":"de","sentence":"J'ai besoin de mon cahier."},
+  {"word":"des","sentence":"Il y a des fleurs sur la table."},
+  {"word":"de la","sentence":"Je veux de la confiture."},
+  {"word":"robe","sentence":"Elle porte une robe bleue."},
+  {"word":"table","sentence":"Le livre est sur la table."},
+  {"word":"j'aime","sentence":"J'aime lire des histoires."},
+  {"word":"il aime","sentence":"Il aime jouer au ballon."},
+  {"word":"elle aime","sentence":"Elle aime dessiner."},
+  {"word":"et","sentence":"J'ai un crayon et une gomme."}
 ]
