@@ -73,7 +73,7 @@
           "easydays": "mon",
           "harddays": "tue,wed",
           "extremedays": "thu,fri",
-          "disable": "Apr 13, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "mon,tue,wed,thu,fri"
         },
         {
@@ -82,7 +82,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Apr 13, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "tue"
         },
         {
@@ -91,7 +91,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Apr 13, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "wed"
         },
         {
@@ -100,7 +100,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Apr 13, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "thu"
         },
         {
