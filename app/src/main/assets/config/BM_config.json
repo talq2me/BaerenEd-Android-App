@@ -73,7 +73,7 @@
           "easydays": "mon",
           "harddays": "tue,wed",
           "extremedays": "thu,fri",
-          "disable": "Mar 23, 2026",
+          "disable": "Apr 13, 2026",
           "displayDays": "mon,tue,wed,thu,fri"
         },
         {
@@ -82,7 +82,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 13, 2026",
           "displayDays": "tue"
         },
         {
@@ -91,7 +91,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 13, 2026",
           "displayDays": "wed"
         },
         {
@@ -100,7 +100,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 13, 2026",
           "displayDays": "thu"
         },
         {
@@ -120,7 +120,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 7, 2026",
           "easydays": "tue,wed",
           "harddays": "thu,fri",
           "extremedays": "sat,sun,mon",
@@ -140,7 +140,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "wed,sat"
         },
         {
@@ -149,7 +149,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "thu,sun"
         },
         {
@@ -158,7 +158,7 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=frenchWordsGr4.json",
           "stars": 3,
           "webGame": true,
-          "disable": "Mar 24, 2026",
+          "disable": "Apr 7, 2026",
           "displayDays": "fri,mon"
         },
        
