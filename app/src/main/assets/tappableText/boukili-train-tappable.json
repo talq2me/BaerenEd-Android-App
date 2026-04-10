@@ -1,0 +1,353 @@
+{
+  "id": "boukili-train-tappable",
+  "title": "Boukili — Télésphore (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Télésphore, le petit train, regarde",
+        "le grand train."
+      ],
+      "image": {
+        "image_id": "boukili/train/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'look'.",
+          "correct_word": "regarde"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'petit'.",
+          "correct_word": "petit"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Télésphore dit : - Je suis trop",
+        "petit. Je ne suis pas un bon train."
+      ],
+      "image": {
+        "image_id": "boukili/train/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'petit'.",
+          "correct_word": "petit"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'train'.",
+          "correct_word": "train"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Six petits cochons dans un",
+        "wagon supplient le petit train :",
+        "- Télésphore, transporte-nous",
+        "jusqu'à la ferme."
+      ],
+      "image": {
+        "image_id": "boukili/train/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'transporte-nous'.",
+          "correct_word": "transporte-nous"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'beg'.",
+          "correct_word": "supplient"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Pourquoi Télésphore dit-il qu'il n'est pas un bon train ?",
+        "options": [
+          "Il est en panne",
+          "Il se croit trop petit",
+          "Il n'a pas de rails",
+          "Il n'aime pas les cochons"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Télésphore dit : - Je suis trop",
+        "petit. Je ne suis pas un bon train."
+      ],
+      "image": {
+        "image_id": "boukili/train/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'petit'.",
+          "correct_word": "petit"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'train'.",
+          "correct_word": "train"
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Les cochons demandent encore :",
+        "- S'il te plaît, Télésphore!"
+      ],
+      "image": {
+        "image_id": "boukili/train/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'demandent'.",
+          "correct_word": "demandent"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'pigs'.",
+          "correct_word": "cochons"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Télésphore tire et tire, mais le",
+        "wagon de cochons n'avance pas.",
+        "Les cochons disent : - Tu es fort,",
+        "tu es fort. Essaie encore, essaie",
+        "encore!"
+      ],
+      "image": {
+        "image_id": "boukili/train/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'advances'.",
+          "correct_word": "n'avance"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'pigs'.",
+          "correct_word": "cochons"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Télésphore essaie, essaie, essaie",
+        "encore et le wagon rempli de",
+        "cochons bouge. Il avance! Il roule!"
+      ],
+      "image": {
+        "image_id": "boukili/train/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'pigs'.",
+          "correct_word": "cochons"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'essaie'.",
+          "correct_word": "essaie"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p7_c1",
+        "prompt": "Comment Télésphore arrive-t-il en haut de la montagne ?",
+        "options": [
+          "En volant",
+          "En tirant encore et encore",
+          "Les cochons poussent seuls",
+          "Il abandonne"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Le petit train est content et les",
+        "cochons chantonnent : - Tu es",
+        "fort, tu es fort. Essaie encore,",
+        "essaie encore!"
+      ],
+      "image": {
+        "image_id": "boukili/train/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'sing'.",
+          "correct_word": "chantonnent"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'happy'.",
+          "correct_word": "content"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'pigs'.",
+          "correct_word": "cochons"
+        }
+      ]
+    },
+    {
+      "page_number": 9,
+      "text": [
+        "Oh! Oh! Télésphore arrive à une",
+        "petite montagne.",
+        "Télésphore dit : - La montagne",
+        "est trop grosse. Je suis trop petit."
+      ],
+      "image": {
+        "image_id": "boukili/train/p9"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p9_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p9_tw2",
+          "prompt": "Tape le mot qui veut dire 'mountain'.",
+          "correct_word": "montagne"
+        },
+        {
+          "id": "p9_tw3",
+          "prompt": "Tape le mot qui veut dire 'arrive'.",
+          "correct_word": "arrive"
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "text": [
+        "Les cochons disent : - Tu es fort,",
+        "tu es fort. Essaie encore, essaie",
+        "encore!"
+      ],
+      "image": {
+        "image_id": "boukili/train/p10"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p10_tw1",
+          "prompt": "Tape le mot qui veut dire 'pigs'.",
+          "correct_word": "cochons"
+        },
+        {
+          "id": "p10_tw2",
+          "prompt": "Tape le mot qui veut dire 'disent'.",
+          "correct_word": "disent"
+        },
+        {
+          "id": "p10_tw3",
+          "prompt": "Tape le mot qui veut dire 'essaie'.",
+          "correct_word": "Essaie"
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "text": [
+        "Télésphore tire et tire et tire",
+        "encore et il arrive enfin tout en",
+        "haut de la montagne.",
+        "Voilà la ferme!",
+        "Les cochons disent : - Tu es fort,",
+        "tu es fort. Télésphore est très,",
+        "très fort!"
+      ],
+      "image": {
+        "image_id": "boukili/train/p11"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p11_tw1",
+          "prompt": "Tape le mot qui veut dire 'telesphore'.",
+          "correct_word": "Télésphore"
+        },
+        {
+          "id": "p11_tw2",
+          "prompt": "Tape le mot qui veut dire 'mountain'.",
+          "correct_word": "montagne"
+        },
+        {
+          "id": "p11_tw3",
+          "prompt": "Tape le mot qui veut dire 'pigs'.",
+          "correct_word": "cochons"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p11_c1",
+        "prompt": "À la fin, que disent les cochons sur Télésphore ?",
+        "options": [
+          "Qu'il est trop lent",
+          "Qu'il est très fort",
+          "Qu'il est trop petit",
+          "Qu'il dort"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

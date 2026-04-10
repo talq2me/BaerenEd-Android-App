@@ -1165,8 +1165,13 @@ class MainActivity : AppCompatActivity() {
             layout.showTrainingMap()
         } else if (showOptionalTrainingMap) {
             battleHubPrefs.edit().remove("showOptionalTrainingMap").apply()
-            Log.d(TAG, "Showing optional training map from battle hub")
-            layout.showOptionalTrainingMap()
+            if (canShowOptionalTrainingMapNow(currentMainContent)) {
+                Log.d(TAG, "Showing optional training map from battle hub")
+                layout.showOptionalTrainingMap()
+            } else {
+                Log.d(TAG, "Blocking optional training map: required tasks are not all complete for current day")
+                layout.showTrainingMap()
+            }
         } else if (showBonusTrainingMap) {
             battleHubPrefs.edit().remove("showBonusTrainingMap").apply()
             Log.d(TAG, "Showing bonus training map from battle hub")
@@ -1175,6 +1180,30 @@ class MainActivity : AppCompatActivity() {
             currentMainContent?.let { content ->
                 layout.displayContent(content)
             }
+        }
+    }
+
+    /**
+     * Optional (extra practice) map should only be shown once required tasks are completed.
+     * This blocks stale persisted flags from reopening optional practice after an overnight restart.
+     */
+    private fun canShowOptionalTrainingMapNow(content: MainContent?): Boolean {
+        val mainContent = content ?: return false
+        val requiredSection = mainContent.sections?.find { it.id == "required" } ?: return false
+        val requiredTasks = requiredSection.tasks?.filter { task ->
+            task.title != null &&
+                task.launch != null &&
+                TaskVisibilityChecker.isTaskVisible(task)
+        } ?: emptyList()
+
+        if (requiredTasks.isEmpty()) return false
+
+        val completedTasksMap = DailyProgressManager(this).getCompletedTasksMap("required")
+        return requiredTasks.all { task ->
+            val taskTitle = task.title ?: ""
+            val baseTaskId = task.launch ?: ""
+            val key = if (taskTitle.isNotEmpty()) taskTitle else baseTaskId
+            completedTasksMap[key] == true
         }
     }
 
@@ -2252,7 +2281,9 @@ data class Task(
     val showdays: String? = null,
     val hidedays: String? = null,
     val displayDays: String? = null,
-    val disable: String? = null
+    val disable: String? = null,
+    /** When true, tappableText uses simpler English hints for tap questions (see [TappableTextActivity]). */
+    val easy: Boolean? = null
 )
 
 data class ChecklistItem(

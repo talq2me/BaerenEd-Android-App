@@ -1,0 +1,137 @@
+{
+  "id": "reya-lumi-oiseau-g1",
+  "title": "Reya, Lumi et l'Oiseau Perdu (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Reya et Lumi marchent près de la rivière.",
+        "Il y a beaucoup de vent aujourd'hui.",
+        "Le ciel devient gris."
+      ],
+      "image": { "image_id": "reya_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'river'.", "correct_word": "rivière" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'wind'.", "correct_word": "vent" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'sky'.", "correct_word": "ciel" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'est-ce qui est tombé par terre ?",
+        "options": ["Un fruit", "Un nid", "Une fleur", "Un chapeau"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Elles voient un petit nid par terre.",
+        "Le nid est tombé de l'arbre.",
+        "« Oh non ! » dit la princesse Reya."
+      ],
+      "image": { "image_id": "reya_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'nest'.", "correct_word": "nid" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'tree'.", "correct_word": "arbre" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'princess'.", "correct_word": "princesse" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Un petit oiseau bleu pleure.",
+        "Il ne peut pas voler très haut.",
+        "Il veut retourner dans son arbre."
+      ],
+      "image": { "image_id": "reya_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'bird'.", "correct_word": "oiseau" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'blue'.", "correct_word": "bleu" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'fly'.", "correct_word": "voler" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "De quelle couleur est l'oiseau ?",
+        "options": ["Rouge", "Vert", "Jaune", "Bleu"],
+        "correct_index": 3
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Lumi dit : « Ne t'inquiète pas, petit oiseau. »",
+        "Lumi s'abaisse pour aider l'oiseau.",
+        "Reya ramasse doucement le nid."
+      ],
+      "image": { "image_id": "reya_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'help'.", "correct_word": "aider" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'gently'.", "correct_word": "doucement" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'picks up'.", "correct_word": "ramasse" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Reya monte sur le dos de Lumi.",
+        "Elle tient le nid très fort.",
+        "Lumi est prête à sauter."
+      ],
+      "image": { "image_id": "reya_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'back'.", "correct_word": "dos" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'holds'.", "correct_word": "tient" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'ready'.", "correct_word": "prête" }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "La corne de Lumi brille pour aider Reya.",
+        "Reya place le nid sur une branche haute.",
+        "L'oiseau est en sécurité maintenant."
+      ],
+      "image": { "image_id": "reya_page6" },
+      "tappable_word_questions": [
+        { "id": "p6_tw1", "prompt": "Tape le mot qui veut dire 'shines'.", "correct_word": "brille" },
+        { "id": "p6_tw2", "prompt": "Tape le mot qui veut dire 'branch'.", "correct_word": "branche" },
+        { "id": "p6_tw3", "prompt": "Tape le mot qui veut dire 'safe'.", "correct_word": "sécurité" }
+      ],
+      "comprehension_question": {
+        "id": "p6_c1",
+        "prompt": "Comment Reya remet-elle le nid dans l'arbre ?",
+        "options": ["Avec une échelle", "En montant sur Lumi", "En lançant le nid", "Avec un ballon"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "L'oiseau chante une jolie chanson.",
+        "Il est très heureux d'être à la maison.",
+        "« Merci, mes amies ! » chante-t-il."
+      ],
+      "image": { "image_id": "reya_page7" },
+      "tappable_word_questions": [
+        { "id": "p7_tw1", "prompt": "Tape le mot qui veut dire 'sings'.", "correct_word": "chante" },
+        { "id": "p7_tw2", "prompt": "Tape le mot qui veut dire 'song'.", "correct_word": "chanson" },
+        { "id": "p7_tw3", "prompt": "Tape le mot qui veut dire 'happy'.", "correct_word": "heureux" }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Le soleil revient enfin.",
+        "Reya et Lumi continuent leur promenade.",
+        "C'est bien d'aider les petits amis !"
+      ],
+      "image": { "image_id": "reya_page8" },
+      "tappable_word_questions": [
+        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'sun'.", "correct_word": "soleil" },
+        { "id": "p8_tw2", "prompt": "Tape le mot qui veut dire 'walk'.", "correct_word": "promenade" },
+        { "id": "p8_tw3", "prompt": "Tape le mot qui veut dire 'help'.", "correct_word": "aider" }
+      ]
+    }
+  ]
+}

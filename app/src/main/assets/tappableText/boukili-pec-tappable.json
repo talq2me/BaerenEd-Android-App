@@ -1,0 +1,402 @@
+{
+  "id": "boukili-pec-tappable",
+  "title": "Boukili — Pic-Bois (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "L'hirondelle chante tra, la, la! La",
+        "corneille crie câ, câ, câ! Le",
+        "moineau chante cui, cui, cui!",
+        "Le gros hibou crie, ou, ou, ou! :",
+        "- Pic-bois, viens jouer avec nous!"
+      ],
+      "image": {
+        "image_id": "boukili/pec/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'swallow'.",
+          "correct_word": "L'hirondelle"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'crow'.",
+          "correct_word": "corneille"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'woodpecker'.",
+          "correct_word": "Pic-bois"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Mais le pic-bois tape si fort, pic,",
+        "pic, pic, qu'il ne les entend pas.",
+        "Vite-vite-vite! Lent ... te ... ment ...",
+        "Pic-pic-bois tambourine tout",
+        "l'temps."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'vite-vite-vite'.",
+          "correct_word": "Vite-vite-vite"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'pic-pic-bois'.",
+          "correct_word": "Pic-pic-bois"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "- Viens jouer avec nous, chantent",
+        "les oiseaux.",
+        "Mais Pic-Bois tambourine",
+        "toc-toc-toc.",
+        "Pic-Bois n'entend pas les",
+        "cui-cui-cui.",
+        "Il creuse un trou pour y faire son",
+        "nid."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'toc-toc-toc'.",
+          "correct_word": "toc-toc-toc"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'cui-cui-cui'.",
+          "correct_word": "cui-cui-cui"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Vite-vite-vite! Lent ... te ... ment ...",
+        "Pic-pic-bois tambourine tout",
+        "l'temps."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'vite-vite-vite'.",
+          "correct_word": "Vite-vite-vite"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'pic-pic-bois'.",
+          "correct_word": "Pic-pic-bois"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Pourquoi Pic-Bois n'entend pas les autres oiseaux ?",
+        "options": [
+          "Il dort",
+          "Il tambourine trop fort",
+          "Il est tout seul",
+          "Il a peur"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "- Câ, câ! Nous t'attendons, crie la",
+        "corneille.",
+        "Mais Pic-Bois tambourine",
+        "toc-toc-toc. Il n'entend pas les",
+        "câ-câ-câ.",
+        "Pic-Bois voit venir sa belle amie",
+        "qui pond de jolis œufs dans leur",
+        "joli nid."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'attendons'.",
+          "correct_word": "t'attendons"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'toc-toc-toc'.",
+          "correct_word": "toc-toc-toc"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Vite-vite-vite! Lent ... te ... ment ...",
+        "Pic-pic-bois tambourine tout",
+        "l'temps."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'vite-vite-vite'.",
+          "correct_word": "Vite-vite-vite"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'pic-pic-bois'.",
+          "correct_word": "Pic-pic-bois"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "- Cui, cui, cui, les moineaux",
+        "pépient.",
+        "Mais Pic-Bois tambourine",
+        "toc-toc-toc. Il n'entend pas les",
+        "cui-cui-cui.",
+        "Il protège son nid et chasse les",
+        "intrus."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'toc-toc-toc'.",
+          "correct_word": "toc-toc-toc"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'cui-cui-cui'.",
+          "correct_word": "cui-cui-cui"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Vite-vite-vite! Lent ... te ... ment ...",
+        "Pic-pic-bois tambourine tout",
+        "l'temps."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'vite-vite-vite'.",
+          "correct_word": "Vite-vite-vite"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'pic-pic-bois'.",
+          "correct_word": "Pic-pic-bois"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Que fait Pic-Bois près de son nid ?",
+        "options": [
+          "Il part en voyage",
+          "Il protège son nid et chasse les intrus",
+          "Il dort",
+          "Il pond des œufs"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 9,
+      "text": [
+        "- V-viens, v-viens, v-viens, vibre",
+        "le colibri.",
+        "Mais Pic-Bois tambourine",
+        "toc-toc-toc. Et toc-toc-toc, les",
+        "bébes brisent leur coquille.",
+        "Les bebes ont faim, Pic-Bois les",
+        "nourrit."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p9"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p9_tw1",
+          "prompt": "Tape le mot qui veut dire 'toc-toc-toc'.",
+          "correct_word": "toc-toc-toc"
+        },
+        {
+          "id": "p9_tw2",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        },
+        {
+          "id": "p9_tw3",
+          "prompt": "Tape le mot qui veut dire 'woodpecker'.",
+          "correct_word": "Pic-Bois"
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "text": [
+        "Vite-vite-vite! Lent ... te ... ment ...",
+        "Pic-pic-bois tambourine tout",
+        "l'temps."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p10"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p10_tw1",
+          "prompt": "Tape le mot qui veut dire 'vite-vite-vite'.",
+          "correct_word": "Vite-vite-vite"
+        },
+        {
+          "id": "p10_tw2",
+          "prompt": "Tape le mot qui veut dire 'pic-pic-bois'.",
+          "correct_word": "Pic-pic-bois"
+        },
+        {
+          "id": "p10_tw3",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "text": [
+        "Les Pic-Bois font de la musique :",
+        "Papa Pic-Bois tambourine",
+        "toc-toc-toc.",
+        "Maman Pic-Bois tambourine,",
+        "tac-tac-tac.",
+        "Bébés Pic-Bois tambourinent",
+        "tic-tac-toc."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p11"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p11_tw1",
+          "prompt": "Tape le mot qui veut dire 'tambourinent'.",
+          "correct_word": "tambourinent"
+        },
+        {
+          "id": "p11_tw2",
+          "prompt": "Tape le mot qui veut dire 'toc-toc-toc'.",
+          "correct_word": "toc-toc-toc"
+        },
+        {
+          "id": "p11_tw3",
+          "prompt": "Tape le mot qui veut dire 'tac-tac-tac'.",
+          "correct_word": "tac-tac-tac"
+        }
+      ]
+    },
+    {
+      "page_number": 12,
+      "text": [
+        "Vite-vite-vite! Lent ... te ... ment ... La",
+        "famille Pic-Bois tambourine tout",
+        "l'temps."
+      ],
+      "image": {
+        "image_id": "boukili/pec/p12"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p12_tw1",
+          "prompt": "Tape le mot qui veut dire 'vite-vite-vite'.",
+          "correct_word": "Vite-vite-vite"
+        },
+        {
+          "id": "p12_tw2",
+          "prompt": "Tape le mot qui veut dire 'drums'.",
+          "correct_word": "tambourine"
+        },
+        {
+          "id": "p12_tw3",
+          "prompt": "Tape le mot qui veut dire 'woodpecker'.",
+          "correct_word": "Pic-Bois"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p12_c1",
+        "prompt": "À la fin, qui fait de la musique ensemble ?",
+        "options": [
+          "Seulement les autres oiseaux",
+          "La famille Pic-Bois",
+          "Le hibou",
+          "La corneille"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

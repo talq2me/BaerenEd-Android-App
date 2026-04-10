@@ -1,0 +1,19 @@
+---
+description: Regenerating Boukili tappableText JSON when adding books under assets/boukili
+globs: scripts/generate_boukili_tappable.py,**/assets/boukili/**/*
+alwaysApply: false
+---
+
+# Boukili → tappableText
+
+Canonical generator: **`scripts/generate_boukili_tappable.py`**
+
+- Reads `app/src/main/assets/boukili/<folder>/<txt>` (pages = blocks split by 3+ newlines).
+- Expects `p1.png` … `pN.png` in the same folder; **page count must equal `N`**.
+- Writes `app/src/main/assets/tappableText/<id>.json` (`*_tappable.json` for game rotation).
+
+**Add a new book:** extend `BOOKS` and `FR_EN` in that script, then run:
+
+`python scripts/generate_boukili_tappable.py`
+
+**TappableTextActivity** loads images from `books/images/…` or, when `image_id` contains `/`, from assets e.g. `boukili/singe/p4.png`.

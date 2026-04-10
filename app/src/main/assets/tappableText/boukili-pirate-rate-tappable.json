@@ -1,0 +1,261 @@
+{
+  "id": "boukili-pirate-rate-tappable",
+  "title": "Boukili — Le Pirate Raté voyage sur la mer (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Le Pirate Raté voyage sur la mer.",
+        "Son équipage voyage avec lui."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'equipage'.",
+          "correct_word": "équipage"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'pirate'.",
+          "correct_word": "Pirate"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'voyage'.",
+          "correct_word": "voyage"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Le Pirate Raté regarde une carte au trésor.",
+        "Il regarde les points sur la carte.",
+        "Les points montrent la route vers le trésor."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'montrent'.",
+          "correct_word": "montrent"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'look'.",
+          "correct_word": "regarde"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'pirate'.",
+          "correct_word": "Pirate"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Que montre la carte au trésor au Pirate Raté ?",
+        "options": [
+          "Seulement la mer",
+          "La route vers le trésor",
+          "Le nom du bateau",
+          "Les poissons"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Le bateau arrive à destination.",
+        "Le Pirate Raté aperçoit le trésor.",
+        "C'est une montagne de sucettes."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'aperçoit'.",
+          "correct_word": "destination"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'apercoit'.",
+          "correct_word": "aperçoit"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'mountain'.",
+          "correct_word": "montagne"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Le Pirate Raté demande de l'aide.",
+        "Son équipage et lui transportent le trésor.",
+        "Ils transportent l'énorme sac jusqu'au bateau."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'transportent'.",
+          "correct_word": "transportent"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'equipage'.",
+          "correct_word": "équipage"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'enorme'.",
+          "correct_word": "l'énorme"
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Mais le trésor est très lourd.",
+        "Le bateau va couler! dit le canard.",
+        "- Qu'allons-nous faire? dit le singe.",
+        "-Qu'allons-nous faire? répète le perroquet."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'allons-nous'.",
+          "correct_word": "Qu'allons-nous"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'parrot'.",
+          "correct_word": "perroquet"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'tresor'.",
+          "correct_word": "trésor"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p5_c1",
+        "prompt": "Quel choix difficile doit faire le Pirate Raté ?",
+        "options": [
+          "Quitter la mer",
+          "Son équipage ou les sucettes",
+          "Le canard ou le perroquet",
+          "Nager ou rester"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Le Pirate Raté doit choisir...",
+        "son équipage ou les sucettes."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'equipage'.",
+          "correct_word": "équipage"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'lollipops'.",
+          "correct_word": "sucettes"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'choisir'.",
+          "correct_word": "choisir"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Le Pirate Raté reprend la mer.",
+        "Le singe, le canard et le perroquet l'accompagnent."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'accompany'.",
+          "correct_word": "l'accompagnent"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'parrot'.",
+          "correct_word": "perroquet"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'reprend'.",
+          "correct_word": "reprend"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Le Pirate Raté a fait le bon choix.",
+        "Les vrais trésors sont les bons amis! dit-il."
+      ],
+      "image": {
+        "image_id": "boukili/les vrais tresors/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'tresors'.",
+          "correct_word": "trésors"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'pirate'.",
+          "correct_word": "Pirate"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'dit-il'.",
+          "correct_word": "dit-il"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Selon le Pirate Raté à la fin, quels sont les vrais trésors ?",
+        "options": [
+          "Les sucettes",
+          "Les bons amis",
+          "L'énorme sac",
+          "Le bateau"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

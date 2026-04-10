@@ -883,13 +883,10 @@ class TrainingMapActivity : AppCompatActivity() {
             return
         }
 
-        // Check for Tappable Text (assets/tappableText JSON + tappable word questions)
+        // Check for Tappable Text (assets/tappableText JSON + tappable word questions).
+        // Empty url → rotate through all *_tappable.json using per-kid game_indices.tappableTextBooks.
         if (task.launch == "tappableText") {
-            val ttFile = task.url
-            if (ttFile.isNullOrBlank()) {
-                android.widget.Toast.makeText(this, "No tappableText file specified for tappableText task", android.widget.Toast.LENGTH_SHORT).show()
-                return
-            }
+            val ttFile = task.url ?: ""
             lastLaunchedGameSectionId = sectionId
             val intent = Intent(this, TappableTextActivity::class.java).apply {
                 putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
@@ -897,6 +894,7 @@ class TrainingMapActivity : AppCompatActivity() {
                 putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
                 putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
                 putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+                putExtra(TappableTextActivity.EXTRA_EASY_MODE, task.easy == true)
             }
             startActivityForResult(intent, 1008)
             return

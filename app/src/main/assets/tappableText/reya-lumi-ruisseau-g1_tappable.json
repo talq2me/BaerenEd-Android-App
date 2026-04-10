@@ -1,0 +1,137 @@
+{
+  "id": "reya-lumi-ruisseau-g1",
+  "title": "Reya, Lumi et le Ruisseau Bloqué (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Reya et Lumi se promènent dans la vallée.",
+        "Elles aiment écouter le bruit de l'eau.",
+        "Mais aujourd'hui, le ruisseau est silencieux."
+      ],
+      "image": { "image_id": "reya_ruisseau_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'valley'.", "correct_word": "vallée" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'stream'.", "correct_word": "ruisseau" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'silent'.", "correct_word": "silencieux" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Pourquoi le ruisseau ne coulait plus ?",
+        "options": ["Il faisait trop chaud", "Il était gelé", "Des branches le bloquaient", "Il n'y avait plus d'eau"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "« C'est étrange », dit Reya.",
+        "Lumi regarde l'eau immobile.",
+        "Le ruisseau ne coule plus."
+      ],
+      "image": { "image_id": "reya_ruisseau_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'strange'.", "correct_word": "étrange" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'still'.", "correct_word": "immobile" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'flow'.", "correct_word": "coule" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Elles marchent en amont pour chercher la cause.",
+        "Le sol est humide mais l'eau ne bouge pas.",
+        "Reya entend un petit gargouillis."
+      ],
+      "image": { "image_id": "reya_ruisseau_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'upstream'.", "correct_word": "amont" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'wet'.", "correct_word": "humide" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'ground'.", "correct_word": "sol" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Comment Lumi aide-t-elle Reya ?",
+        "options": ["Elle vole très haut", "Elle rend les branches plus légères", "Elle appelle un ami", "Elle creuse un trou"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Elles trouvent un gros tas de branches.",
+        "Les branches bloquent l'eau.",
+        "« Oh ! Le ruisseau est coincé ! » dit Reya."
+      ],
+      "image": { "image_id": "reya_ruisseau_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'branches'.", "correct_word": "branches" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'block'.", "correct_word": "bloquent" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'stuck'.", "correct_word": "coincé" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Reya tire une petite branche.",
+        "Lumi pousse doucement avec son museau.",
+        "Mais le tas est trop lourd."
+      ],
+      "image": { "image_id": "reya_ruisseau_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'pulls'.", "correct_word": "tire" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'snout'.", "correct_word": "museau" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'heavy'.", "correct_word": "lourd" }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "« J'ai une idée ! » dit Lumi.",
+        "Sa corne brille de mille couleurs.",
+        "Les branches deviennent plus légères."
+      ],
+      "image": { "image_id": "reya_ruisseau_page6" },
+      "tappable_word_questions": [
+        { "id": "p6_tw1", "prompt": "Tape le mot qui veut dire 'idea'.", "correct_word": "idée" },
+        { "id": "p6_tw2", "prompt": "Tape le mot qui veut dire 'horn'.", "correct_word": "corne" },
+        { "id": "p6_tw3", "prompt": "Tape le mot qui veut dire 'lighter'.", "correct_word": "légères" }
+      ],
+      "comprehension_question": {
+        "id": "p6_c1",
+        "prompt": "Que se passe-t-il quand le ruisseau est débloqué ?",
+        "options": ["Il disparaît", "Il devient rouge", "Il coule à nouveau", "Il se transforme en lac"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Reya et Lumi retirent les branches ensemble.",
+        "L'eau recommence à couler.",
+        "Le ruisseau chante à nouveau."
+      ],
+      "image": { "image_id": "reya_ruisseau_page7" },
+      "tappable_word_questions": [
+        { "id": "p7_tw1", "prompt": "Tape le mot qui veut dire 'remove'.", "correct_word": "retirent" },
+        { "id": "p7_tw2", "prompt": "Tape le mot qui veut dire 'water'.", "correct_word": "eau" },
+        { "id": "p7_tw3", "prompt": "Tape le mot qui veut dire 'again'.", "correct_word": "nouveau" }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Des poissons sautillent de joie.",
+        "Reya rit et Lumi secoue sa crinière arc-en-ciel.",
+        "Elles sont fières d'avoir aidé la nature."
+      ],
+      "image": { "image_id": "reya_ruisseau_page8" },
+      "tappable_word_questions": [
+        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'fish'.", "correct_word": "poissons" },
+        { "id": "p8_tw2", "prompt": "Tape le mot qui veut dire 'proud'.", "correct_word": "fières" },
+        { "id": "p8_tw3", "prompt": "Tape le mot qui veut dire 'nature'.", "correct_word": "nature" }
+      ]
+    }
+  ]
+}

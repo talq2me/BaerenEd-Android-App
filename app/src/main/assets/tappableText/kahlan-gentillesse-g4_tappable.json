@@ -1,0 +1,160 @@
+{
+  "id": "kahlan-gentillesse-g4",
+  "title": "Kahlan et le Pouvoir de la Gentillesse (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Kahlan a 10 ans et rêve de devenir un super héros.",
+        "Il a les cheveux blond foncé et un regard déterminé.",
+        "Chaque jour, il s'entraîne à courir, sauter et grimper.",
+        "Il veut sauver le monde avec force et courage.",
+        "Son meilleur ami est un loup sage nommé Kai.",
+        "Kai pense que la gentillesse est plus puissante que la force."
+      ],
+      "image": { "image_id": "kahlan_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'hero'.", "correct_word": "héros" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'wolf'.", "correct_word": "loup" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'kindness'.", "correct_word": "gentillesse" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Pourquoi Kahlan veut-il devenir un super héros ?",
+        "options": ["Pour être célèbre", "Pour aider les gens", "Pour impressionner Kai", "Pour gagner des combats"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Un jour, Kahlan entend des cris près du village.",
+        "Il court avec Kai pour voir ce qui se passe.",
+        "Un garçon pleure parce que son cerf-volant est coincé dans un arbre.",
+        "Kahlan grimpe rapidement pour le récupérer.",
+        "Il descend avec le cerf-volant et le donne au garçon.",
+        "Kai sourit : « Tu as aidé sans combattre. »"
+      ],
+      "image": { "image_id": "kahlan_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'kite'.", "correct_word": "cerf-volant" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'climbs'.", "correct_word": "grimpe" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'cries'.", "correct_word": "pleure" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Plus tard, Kahlan voit deux enfants qui se disputent.",
+        "Il veut intervenir comme un héros.",
+        "Mais Kai dit : « Écoute-les d'abord. »",
+        "Kahlan parle doucement aux enfants.",
+        "Il découvre qu'ils veulent jouer avec le même ballon.",
+        "Il propose de jouer tous ensemble."
+      ],
+      "image": { "image_id": "kahlan_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'argue'.", "correct_word": "disputent" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'softly'.", "correct_word": "doucement" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'ball'.", "correct_word": "ballon" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Que pense Kai du vrai pouvoir ?",
+        "options": ["C'est la vitesse", "C'est la magie", "C'est la gentillesse", "C'est la force"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Le soir, Kahlan se sent fier mais aussi confus.",
+        "Il demande à Kai : « Est-ce que je suis vraiment un héros ? »",
+        "Kai répond : « Être gentil demande du courage. »",
+        "Kahlan pense à ses actions de la journée.",
+        "Il n'a pas combattu, mais il a aidé.",
+        "Il commence à comprendre le vrai pouvoir."
+      ],
+      "image": { "image_id": "kahlan_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'proud'.", "correct_word": "fier" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'confused'.", "correct_word": "confus" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'courage'.", "correct_word": "courage" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Le lendemain, une vieille dame tombe dans la rue.",
+        "Kahlan court pour l'aider à se relever.",
+        "Il lui apporte de l'eau et l'aide à rentrer chez elle.",
+        "Elle lui dit : « Tu es un garçon très spécial. »",
+        "Kai lui fait un clin d'œil : « Encore une victoire de la gentillesse. »"
+      ],
+      "image": { "image_id": "kahlan_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'old lady'.", "correct_word": "dame" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'street'.", "correct_word": "rue" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'special'.", "correct_word": "spécial" }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Kahlan commence à porter une cape bleue.",
+        "Il dit : « C'est ma cape de gentillesse. »",
+        "Il aide les enfants à traverser la rue.",
+        "Il ramasse les déchets dans le parc.",
+        "Il écoute les histoires des personnes âgées.",
+        "Kai est toujours à ses côtés, fier."
+      ],
+      "image": { "image_id": "kahlan_page6" },
+      "tappable_word_questions": [
+        { "id": "p6_tw1", "prompt": "Tape le mot qui veut dire 'cape'.", "correct_word": "cape" },
+        { "id": "p6_tw2", "prompt": "Tape le mot qui veut dire 'cross'.", "correct_word": "traverser" },
+        { "id": "p6_tw3", "prompt": "Tape le mot qui veut dire 'trash'.", "correct_word": "déchets" }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Un jour, un garçon veut se battre avec Kahlan.",
+        "Kahlan respire profondément et dit : « Je ne veux pas me battre. »",
+        "Il parle calmement et propose de jouer à un jeu.",
+        "Le garçon accepte et sourit.",
+        "Kai dit : « Tu as gagné sans force. »",
+        "Kahlan comprend que la gentillesse peut changer les cœurs."
+      ],
+      "image": { "image_id": "kahlan_page7" },
+      "tappable_word_questions": [
+        { "id": "p7_tw1", "prompt": "Tape le mot qui veut dire 'fight'.", "correct_word": "battre" },
+        { "id": "p7_tw2", "prompt": "Tape le mot qui veut dire 'calmly'.", "correct_word": "calmement" },
+        { "id": "p7_tw3", "prompt": "Tape le mot qui veut dire 'hearts'.", "correct_word": "cœurs" }
+      ],
+      "comprehension_question": {
+        "id": "p7_c1",
+        "prompt": "Comment Kahlan résout-il le conflit avec le garçon qui veut se battre ?",
+        "options": ["Il court", "Il se bat", "Il demande de l'aide", "Il parle calmement"],
+        "correct_index": 3
+      }
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Kahlan regarde le ciel étoilé avec Kai.",
+        "Il dit : « Je suis un héros, mais pas comme je pensais. »",
+        "Kai répond : « Tu es un héros du cœur. »",
+        "Kahlan sourit et serre Kai dans ses bras.",
+        "Il sait maintenant que la gentillesse est sa vraie force.",
+        "Et il est prêt à changer le monde, un geste à la fois."
+      ],
+      "image": { "image_id": "kahlan_page8" },
+      "tappable_word_questions": [
+        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'starry sky'.", "correct_word": "étoilé" },
+        { "id": "p8_tw2", "prompt": "Tape le mot qui veut dire 'hugs'.", "correct_word": "serre" },
+        { "id": "p8_tw3", "prompt": "Tape le mot qui veut dire 'world'.", "correct_word": "monde" }
+      ]
+    }
+  ]
+}

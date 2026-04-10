@@ -988,20 +988,20 @@ class Layout(private val activity: MainActivity) {
                 }
             }
             else if (task.launch == "tappableText") {
-                val ttFile = task.url
-                if (!ttFile.isNullOrBlank()) {
-                    android.util.Log.d("Layout", "Launching TappableText from battle hub: $ttFile")
-                    val intent = android.content.Intent(activity, TappableTextActivity::class.java).apply {
-                        putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
-                        putExtra(TappableTextActivity.EXTRA_TASK_ID, gameType)
-                        putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
-                        putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
-                        putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
-                    }
-                    activity.startActivity(intent)
-                } else {
-                    android.widget.Toast.makeText(activity, "No tappableText file specified", android.widget.Toast.LENGTH_SHORT).show()
+                val ttFile = task.url ?: ""
+                android.util.Log.d(
+                    "Layout",
+                    "Launching TappableText from battle hub: ${if (ttFile.isBlank()) "(book rotation)" else ttFile}"
+                )
+                val intent = android.content.Intent(activity, TappableTextActivity::class.java).apply {
+                    putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
+                    putExtra(TappableTextActivity.EXTRA_TASK_ID, gameType)
+                    putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
+                    putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
+                    putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+                    putExtra(TappableTextActivity.EXTRA_EASY_MODE, task.easy == true)
                 }
+                activity.startActivity(intent)
             }
             else {
                 // Handle regular game content
@@ -1861,18 +1861,18 @@ class Layout(private val activity: MainActivity) {
             activity.startActivity(intent)
         }
         else if (task.launch == "tappableText") {
-            val ttFile = task.url
-            if (ttFile.isNullOrBlank()) {
-                android.widget.Toast.makeText(activity, "No tappableText file specified for tappableText task", android.widget.Toast.LENGTH_SHORT).show()
-                return
-            }
-            android.util.Log.d("Layout", "Launching TappableText: $ttFile")
+            val ttFile = task.url ?: ""
+            android.util.Log.d(
+                "Layout",
+                "Launching TappableText: ${if (ttFile.isBlank()) "(book rotation)" else ttFile}"
+            )
             val intent = android.content.Intent(activity, TappableTextActivity::class.java).apply {
                 putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
                 putExtra(TappableTextActivity.EXTRA_TASK_ID, gameType)
                 putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
                 putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
                 putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+                putExtra(TappableTextActivity.EXTRA_EASY_MODE, task.easy == true)
             }
             activity.startActivity(intent)
         }

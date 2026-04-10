@@ -281,7 +281,8 @@ class TaskLauncher(
 
     /**
      * Launch TappableTextActivity (book-style JSON from assets/tappableText/).
-     * task.url should be like "file=milo-sandwich-geant-g4_tappable.json" (or just the filename).
+     * task.url empty or "rotate" / "list" → rotate through all `*_tappable.json` (per-kid game_indices key [TappableTextActivity.GAME_KEY_TAPPABLE_BOOK_ROTATION]).
+     * Otherwise url is a single book, e.g. "file=milo-sandwich-geant-g4_tappable.json" or the filename.
      */
     private fun launchTappableText(
         task: Task,
@@ -290,14 +291,13 @@ class TaskLauncher(
         resultHandler: ActivityResultHandler?
     ) {
         val tappableTextFile = task.url ?: ""
-        if (tappableTextFile.isBlank()) {
-            Toast.makeText(context, "No tappableText file specified for tappableText task", Toast.LENGTH_SHORT).show()
-            return
-        }
 
         val taskId = sourceTaskId ?: (task.launch ?: "tappableText")
         val gameTitle = task.title ?: "Tappable Text"
-        Log.d(TAG, "Launching TappableText: $tappableTextFile")
+        Log.d(
+            TAG,
+            "Launching TappableText: ${if (tappableTextFile.isBlank()) "(book rotation)" else tappableTextFile}"
+        )
 
         val intent = Intent(context, TappableTextActivity::class.java).apply {
             putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, tappableTextFile)
@@ -305,6 +305,7 @@ class TaskLauncher(
             putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
             putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
             putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
+            putExtra(TappableTextActivity.EXTRA_EASY_MODE, task.easy == true)
         }
 
         resultHandler?.launchActivity(intent, 1008) ?: (context as? Activity)?.startActivityForResult(intent, 1008)

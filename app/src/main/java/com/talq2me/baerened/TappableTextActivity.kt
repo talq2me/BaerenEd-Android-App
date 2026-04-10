@@ -20,7 +20,11 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
@@ -29,6 +33,7 @@ import java.util.Locale
  * - Speaks page text and question prompts via TTS
  * - For tappable word questions: kid taps the correct word *inside the page text*
  * - For comprehension: optional multiple-choice question per page
+ * - Easy mode ([EXTRA_EASY_MODE]): tap prompts become English, e.g. "Fridge in French is frigo. Tap the word frigo on the page."
  */
 class TappableTextActivity : AppCompatActivity() {
 
@@ -41,6 +46,16 @@ class TappableTextActivity : AppCompatActivity() {
         const val EXTRA_SECTION_ID = "section_id"
         const val EXTRA_STARS = "stars"
         const val EXTRA_TASK_TITLE = "task_title"
+
+        /** When true, tappable-word questions use English hints and US TTS (see [buildEasyTapPrompt]). */
+        const val EXTRA_EASY_MODE = "easy_mode"
+
+        /**
+         * [DailyProgressManager.getGameIndexFromCache] / [DailyProgressManager.updateGameIndexInDbSync] key
+         * for which tappable book to play next (same pattern as other games' game_indices).
+         * Playing book at index `i` saves `(i + 1) % n` on successful completion.
+         */
+        const val GAME_KEY_TAPPABLE_BOOK_ROTATION = "tappableTextBooks"
     }
 
     private var game: TappableTextRoot? = null
@@ -88,11 +103,21 @@ class TappableTextActivity : AppCompatActivity() {
     private val tapDebounceHandler = Handler(Looper.getMainLooper())
     private var tapDebounceRunnable: Runnable? = null
 
+    /** When true, [GAME_KEY_TAPPABLE_BOOK_ROTATION] is advanced after a successful run. */
+    private var useBookRotation: Boolean = false
+    private var rotationBookIndex: Int = 0
+    private var rotationBookCount: Int = 0
+
+    /** Younger-learner prompts for tap questions (English hint + tap instruction). */
+    private var easyMode: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tappable_text)
 
-        val tappableTextFile = intent.getStringExtra(EXTRA_TAPPABLE_TEXT_FILE)
+        easyMode = intent.getBooleanExtra(EXTRA_EASY_MODE, false)
+
+        val rawUrl = intent.getStringExtra(EXTRA_TAPPABLE_TEXT_FILE)?.trim().orEmpty()
         val taskId = intent.getStringExtra(EXTRA_TASK_ID)
         val sectionId = intent.getStringExtra(EXTRA_SECTION_ID)
         val taskTitle = intent.getStringExtra(EXTRA_TASK_TITLE) ?: "Tappable Text"
@@ -106,14 +131,24 @@ class TappableTextActivity : AppCompatActivity() {
         }
         timeTracker.startActivity(uniqueTaskId, "tappableText", taskTitle)
 
-        if (tappableTextFile.isNullOrBlank()) {
-            Toast.makeText(this, "No tappableText file specified", Toast.LENGTH_LONG).show()
+        val resolvedFileName = resolveTappableJsonFileName(rawUrl)
+        if (resolvedFileName == null) {
+            Toast.makeText(this, "No tappable books found in assets.", Toast.LENGTH_LONG).show()
             timeTracker.endActivity("tappableText")
             finish()
             return
         }
 
-        game = loadGame(tappableTextFile)
+        Log.d(
+            TAG,
+            if (useBookRotation) {
+                "Book rotation: playing $resolvedFileName (index $rotationBookIndex / $rotationBookCount, key=$GAME_KEY_TAPPABLE_BOOK_ROTATION)"
+            } else {
+                "Single book: $resolvedFileName"
+            }
+        )
+
+        game = loadGame(resolvedFileName)
         if (game == null) {
             Toast.makeText(this, "Could not load tappableText game", Toast.LENGTH_LONG).show()
             timeTracker.endActivity("tappableText")
@@ -154,12 +189,52 @@ class TappableTextActivity : AppCompatActivity() {
         pageText.movementMethod = LinkMovementMethod.getInstance()
     }
 
-    private fun loadGame(tappableTextFile: String): TappableTextRoot? {
-        val fileName = when {
-            tappableTextFile.startsWith("file=") -> tappableTextFile.removePrefix("file=").trim()
-            tappableTextFile.endsWith(".json") -> tappableTextFile
-            else -> "$tappableTextFile.json"
+    /**
+     * Empty url, "rotate", or "list" → pick a file from assets/tappableText/ whose name ends with
+     * "_tappable.json", using the per-kid game index ([GAME_KEY_TAPPABLE_BOOK_ROTATION]).
+     * Any other value → load that JSON only (no rotation index update).
+     */
+    private fun resolveTappableJsonFileName(rawUrl: String): String? {
+        val legacyExplicit = rawUrl.isNotEmpty() &&
+            !rawUrl.equals("rotate", ignoreCase = true) &&
+            !rawUrl.equals("list", ignoreCase = true)
+
+        if (legacyExplicit) {
+            useBookRotation = false
+            return normalizeTappableJsonFileName(rawUrl)
         }
+
+        useBookRotation = true
+        val files = discoverTappableBookFiles()
+        if (files.isEmpty()) return null
+
+        rotationBookCount = files.size
+        val dpm = DailyProgressManager(this)
+        val profile = dpm.getCurrentKid()
+        val cached = dpm.getGameIndexFromCache(profile, GAME_KEY_TAPPABLE_BOOK_ROTATION)
+        rotationBookIndex = cached.mod(rotationBookCount)
+        return files[rotationBookIndex]
+    }
+
+    private fun discoverTappableBookFiles(): List<String> {
+        return try {
+            assets.list("tappableText")
+                ?.filter { it.endsWith("_tappable.json", ignoreCase = true) }
+                ?.sorted()
+                ?: emptyList()
+        } catch (e: Exception) {
+            Log.e(TAG, "discoverTappableBookFiles", e)
+            emptyList()
+        }
+    }
+
+    private fun normalizeTappableJsonFileName(raw: String): String {
+        val trimmed = raw.removePrefix("file=").trim()
+        return if (trimmed.endsWith(".json", ignoreCase = true)) trimmed else "$trimmed.json"
+    }
+
+    private fun loadGame(tappableTextFile: String): TappableTextRoot? {
+        val fileName = normalizeTappableJsonFileName(tappableTextFile)
 
         return try {
             val path = "tappableText/$fileName"
@@ -207,14 +282,47 @@ class TappableTextActivity : AppCompatActivity() {
         TtsManager.setOnUtteranceProgressListener(listener)
     }
 
-    private fun speakSingleLine(language: String?, text: String, doneUtteranceId: String) {
-        val locale = when (language?.lowercase()?.take(2)) {
+    private fun speakSingleLine(
+        language: String?,
+        text: String,
+        doneUtteranceId: String,
+        localeOverride: Locale? = null
+    ) {
+        val locale = localeOverride ?: when (language?.lowercase()?.take(2)) {
             "fr" -> Locale.FRENCH
             else -> Locale.US
         }
         TtsManager.whenReady(Runnable {
             TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, doneUtteranceId)
         })
+    }
+
+    /**
+     * Pulls the English gloss from legacy JSON prompts such as
+     * `Tape le mot qui veut dire 'fridge'.`
+     */
+    private fun extractEnglishGlossFromPrompt(prompt: String): String? {
+        val normalized = prompt.replace('’', '\'').replace('«', '"').replace('»', '"')
+        Regex("veut dire\\s+['\"]([^'\"]+)['\"]", RegexOption.IGNORE_CASE)
+            .find(normalized)?.groupValues?.getOrNull(1)?.trim()?.let { if (it.isNotEmpty()) return it }
+        Regex("dire\\s+['\"]([^'\"]+)['\"]", RegexOption.IGNORE_CASE)
+            .find(normalized)?.groupValues?.getOrNull(1)?.trim()?.let { if (it.isNotEmpty()) return it }
+        return null
+    }
+
+    /**
+     * Easy-mode copy for tap questions: English instruction naming the French answer.
+     */
+    private fun buildEasyTapPrompt(question: TappableWordQuestion): String {
+        val fr = question.correctWord.trim()
+        val gloss = extractEnglishGlossFromPrompt(question.prompt)
+        if (gloss.isNullOrEmpty()) {
+            return "Tap the word $fr on the page."
+        }
+        val sentenceStart = gloss.replaceFirstChar { c ->
+            if (c.isLowerCase()) c.titlecase(Locale.ENGLISH) else c.toString()
+        }
+        return "$sentenceStart in French is $fr. Tap the word $fr on the page."
     }
 
     private fun speakTextByChunks(language: String?, fullText: String, doneUtteranceId: String) {
@@ -306,9 +414,22 @@ class TappableTextActivity : AppCompatActivity() {
         interactionEnabled = false
         activeTapCorrectNormalizedToken = null
 
-        val prompt = when (q) {
-            is PageQuestion.TapWord -> q.question.prompt
-            is PageQuestion.Comprehension -> q.question.prompt
+        val prompt: String
+        val tapPromptLocale: Locale?
+        when (q) {
+            is PageQuestion.TapWord -> {
+                if (easyMode) {
+                    prompt = buildEasyTapPrompt(q.question)
+                    tapPromptLocale = Locale.US
+                } else {
+                    prompt = q.question.prompt
+                    tapPromptLocale = null
+                }
+            }
+            is PageQuestion.Comprehension -> {
+                prompt = q.question.prompt
+                tapPromptLocale = null
+            }
         }
 
         questionTitle.text = prompt
@@ -318,7 +439,7 @@ class TappableTextActivity : AppCompatActivity() {
         val utteranceId = "tt_page_${currentPageIndex}_q_${questionIndex}_done"
         ttsQuestionDoneUtteranceId = utteranceId
         ttsPageDoneUtteranceId = null
-        speakSingleLine(g.language, prompt, utteranceId)
+        speakSingleLine(g.language, prompt, utteranceId, tapPromptLocale)
 
         when (q) {
             is PageQuestion.TapWord -> {
@@ -417,8 +538,26 @@ class TappableTextActivity : AppCompatActivity() {
             putExtra(EXTRA_SECTION_ID, intent.getStringExtra(EXTRA_SECTION_ID))
             putExtra(EXTRA_STARS, intent.getIntExtra(EXTRA_STARS, 0))
         }
-        setResult(RESULT_OK, resultIntent)
-        finish()
+        if (!useBookRotation || rotationBookCount <= 0) {
+            setResult(RESULT_OK, resultIntent)
+            finish()
+            return
+        }
+        val nextIndex = (rotationBookIndex + 1).mod(rotationBookCount)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val dpm = DailyProgressManager(this@TappableTextActivity)
+            val profile = dpm.getCurrentKid()
+            val r = dpm.updateGameIndexInDbSync(profile, GAME_KEY_TAPPABLE_BOOK_ROTATION, nextIndex)
+            if (r.isFailure) {
+                Log.e(TAG, "Failed to save tappable book rotation index=$nextIndex", r.exceptionOrNull())
+            } else {
+                Log.d(TAG, "Saved tappable book rotation nextIndex=$nextIndex for profile=$profile")
+            }
+            withContext(Dispatchers.Main) {
+                setResult(RESULT_OK, resultIntent)
+                finish()
+            }
+        }
     }
 
     override fun onBackPressed() {
@@ -511,23 +650,28 @@ class TappableTextActivity : AppCompatActivity() {
 
     private fun loadPageImage(page: TappableTextPage) {
         val imageId = page.image?.imageId ?: return
-        val pathWebp = "books/images/$imageId.webp"
-        val pathPng = "books/images/$imageId.png"
-        try {
-            assets.open(pathWebp).use { stream ->
-                val bitmap = BitmapFactory.decodeStream(stream)
-                imageView.setImageBitmap(bitmap)
-            }
-        } catch (_: Exception) {
+        // Default: books/images/<id>.webp|.png — Boukili captures: full path e.g. boukili/singe/p1
+        val tryPaths = if (imageId.contains('/')) {
+            listOf("$imageId.webp", "$imageId.png")
+        } else {
+            listOf("books/images/$imageId.webp", "books/images/$imageId.png")
+        }
+        var loaded = false
+        for (path in tryPaths) {
             try {
-                assets.open(pathPng).use { stream ->
+                assets.open(path).use { stream ->
                     val bitmap = BitmapFactory.decodeStream(stream)
                     imageView.setImageBitmap(bitmap)
+                    loaded = true
                 }
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not load image: $pathWebp or $pathPng", e)
-                imageView.setImageDrawable(null)
+            } catch (_: Exception) {
+                continue
             }
+            if (loaded) break
+        }
+        if (!loaded) {
+            Log.w(TAG, "Could not load image for image_id=$imageId (tried $tryPaths)")
+            imageView.setImageDrawable(null)
         }
 
         imageView.visibility = View.VISIBLE

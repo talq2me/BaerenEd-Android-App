@@ -1,0 +1,87 @@
+{
+  "id": "noah-robot-perdu-g4",
+  "title": "Noah et le Robot Perdu (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Noah marche vers la bibliothèque.",
+        "Il entend un petit bruit métallique.",
+        "Il trouve un robot jouet cassé."
+      ],
+      "image": { "image_id": "noah_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'library'.", "correct_word": "bibliothèque" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'metallic'.", "correct_word": "métallique" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'robot'.", "correct_word": "robot" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Où Noah trouve-t-il le robot ?",
+        "options": ["Dans la bibliothèque", "Dans le parc", "Sur le trottoir", "Dans la classe"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Le robot clignote et dit : « Je suis perdu. »",
+        "Noah veut l'aider.",
+        "Il regarde autour de lui."
+      ],
+      "image": { "image_id": "noah_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'blinks'.", "correct_word": "clignote" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'lost'.", "correct_word": "perdu" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'help'.", "correct_word": "aider" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Noah demande aux enfants du parc : « Avez-vous perdu un robot ? »",
+        "Personne ne le reconnaît."
+      ],
+      "image": { "image_id": "noah_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'park'.", "correct_word": "parc" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'asks'.", "correct_word": "demande" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'recognizes'.", "correct_word": "reconnaît" }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Noah remarque une étiquette sous le robot.",
+        "Il lit : « Classe 3B ». ",
+        "Il court vers l'école."
+      ],
+      "image": { "image_id": "noah_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'notices'.", "correct_word": "remarque" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'label'.", "correct_word": "étiquette" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'reads'.", "correct_word": "lit" }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Comment Noah retrouve-t-il le propriétaire ?",
+        "options": ["Il demande au professeur", "Il lit une étiquette", "Il cherche sur Internet", "Il devine"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Dans la classe 3B, une fille dit : « C'est mon robot ! Merci ! »",
+        "Noah est content d'avoir aidé."
+      ],
+      "image": { "image_id": "noah_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'girl'.", "correct_word": "fille" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'thanks'.", "correct_word": "Merci" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'happy'.", "correct_word": "content" }
+      ]
+    }
+  ]
+}

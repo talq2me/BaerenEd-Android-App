@@ -1,0 +1,148 @@
+{
+  "id": "le-petit-chat-gris-fsl-g4",
+  "title": "Le Petit Chat Gris (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Mimi est un petit chat gris.",
+        "Elle aime regarder dehors par la fenêtre.",
+        "Un matin, elle voit un papillon bleu."
+      ],
+      "image": { "image_id": "chat_gris1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'cat'.", "correct_word": "chat" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'window'.", "correct_word": "fenêtre" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'butterfly'.", "correct_word": "papillon" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que voit Mimi le matin ?",
+        "options": ["Un chien", "Un papillon bleu", "Un oiseau", "Un autre chat"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Le papillon vole très lentement.",
+        "Mimi pense : « Il a peut-être un problème. »",
+        "Elle décide d'aller dehors."
+      ],
+      "image": { "image_id": "chat_gris2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'flies'.", "correct_word": "vole" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'slowly'.", "correct_word": "lentement" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'outside'.", "correct_word": "dehors" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Pourquoi Mimi sort-elle dehors ?",
+        "options": ["Elle veut jouer", "Elle veut manger", "Elle veut aider le papillon", "Elle veut courir"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Dans le jardin, Mimi suit le papillon.",
+        "Elle marche doucement pour ne pas lui faire peur."
+      ],
+      "image": { "image_id": "chat_gris3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'garden'.", "correct_word": "jardin" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'follows'.", "correct_word": "suit" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'gently'.", "correct_word": "doucement" }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Le papillon se pose sur une fleur.",
+        "Ses ailes bougent un peu.",
+        "Mimi dit : « Tu es fatigué ? Je peux t'aider. »"
+      ],
+      "image": { "image_id": "chat_gris4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'flower'.", "correct_word": "fleur" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'wings'.", "correct_word": "ailes" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'tired'.", "correct_word": "fatigué" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Le papillon explique qu'un vent fort l'a éloigné de son groupe.",
+        "Mimi dit : « Je peux marcher avec toi jusqu'au grand arbre.",
+        "Beaucoup de papillons vont là-bas. »"
+      ],
+      "image": { "image_id": "chat_gris5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'wind'.", "correct_word": "vent" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'tree'.", "correct_word": "arbre" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'explains'.", "correct_word": "explique" }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Mimi avance lentement.",
+        "Le papillon la suit.",
+        "Mimi veut qu'il se sente en sécurité."
+      ],
+      "image": { "image_id": "chat_gris6" },
+      "tappable_word_questions": [
+        { "id": "p6_tw1", "prompt": "Tape le mot qui veut dire 'moves forward'.", "correct_word": "avance" },
+        { "id": "p6_tw2", "prompt": "Tape le mot qui veut dire 'follows'.", "correct_word": "suit" },
+        { "id": "p6_tw3", "prompt": "Tape le mot qui veut dire 'safe'.", "correct_word": "sécurité" }
+      ],
+      "comprehension_question": {
+        "id": "p6_c1",
+        "prompt": "Comment Mimi se sent-elle à la fin ?",
+        "options": ["Triste", "Fâchée", "Contente", "Surprise"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Au grand arbre, plusieurs papillons bleus attendent.",
+        "Le petit papillon retrouve son groupe.",
+        "Il remercie Mimi."
+      ],
+      "image": { "image_id": "chat_gris7" },
+      "tappable_word_questions": [
+        { "id": "p7_tw1", "prompt": "Tape le mot qui veut dire 'several'.", "correct_word": "plusieurs" },
+        { "id": "p7_tw2", "prompt": "Tape le mot qui veut dire 'group'.", "correct_word": "groupe" },
+        { "id": "p7_tw3", "prompt": "Tape le mot qui veut dire 'thanks'.", "correct_word": "remercie" }
+      ],
+      "comprehension_question": {
+        "id": "p7_c1",
+        "prompt": "Où le papillon retrouve-t-il son groupe ?",
+        "options": ["Dans la maison", "Dans le jardin", "Au grand arbre", "Dans la rue"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Mimi retourne à la maison.",
+        "Elle est contente.",
+        "Elle a aidé quelqu'un aujourd'hui."
+      ],
+      "image": { "image_id": "chat_gris8" },
+      "tappable_word_questions": [
+        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'returns'.", "correct_word": "retourne" },
+        { "id": "p8_tw2", "prompt": "Tape le mot qui veut dire 'happy'.", "correct_word": "contente" },
+        { "id": "p8_tw3", "prompt": "Tape le mot qui veut dire 'helped'.", "correct_word": "aidé" }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Quel est le message de l'histoire ?",
+        "options": ["Il faut courir vite", "Il faut aider les autres", "Les papillons sont dangereux", "Les chats n'aiment pas sortir"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

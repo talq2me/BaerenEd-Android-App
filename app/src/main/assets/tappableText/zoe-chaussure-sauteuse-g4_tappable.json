@@ -1,0 +1,89 @@
+{
+  "id": "zoe-chaussure-sauteuse-g4",
+  "title": "Zoé et la Chaussure Sauteuse (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Zoé cherche sa chaussure pour aller à l'école.",
+        "Elle regarde sous le lit, dans le placard, derrière la porte.",
+        "Soudain, la chaussure saute toute seule !"
+      ],
+      "image": { "image_id": "zoe_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'shoe'.", "correct_word": "chaussure" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'school'.", "correct_word": "école" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'suddenly'.", "correct_word": "Soudain" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Pourquoi la chaussure saute-t-elle ?",
+        "options": ["Elle est magique", "Un ressort est coincé dessous", "Zoé la lance", "Elle a des ailes"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "La chaussure bondit dans le couloir.",
+        "Zoé court derrière en criant : « Reviens ici ! »",
+        "La chaussure saute comme un lapin."
+      ],
+      "image": { "image_id": "zoe_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'hallway'.", "correct_word": "couloir" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'runs'.", "correct_word": "court" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'rabbit'.", "correct_word": "lapin" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "La chaussure sort dans le jardin.",
+        "Elle saute dans une flaque de boue.",
+        "Zoé soupire : « Oh non… maman ne va pas aimer ça. »"
+      ],
+      "image": { "image_id": "zoe_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'garden'.", "correct_word": "jardin" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'puddle'.", "correct_word": "flaque" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'mud'.", "correct_word": "boue" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Où la chaussure va-t-elle avant que Zoé ne l'attrape ?",
+        "options": ["Dans la cuisine", "Dans le jardin", "À l'école", "Chez le voisin"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Zoé attrape enfin la chaussure.",
+        "Elle découvre un petit ressort coincé dessous.",
+        "Elle rit : « Pas étonnant que tu sautes partout ! »"
+      ],
+      "image": { "image_id": "zoe_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'catches'.", "correct_word": "attrape" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'spring'.", "correct_word": "ressort" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'stuck'.", "correct_word": "coincé" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "À l'école, Zoé raconte son aventure.",
+        "Ses amis rient tellement qu'ils tombent presque de leurs chaises.",
+        "Zoé dit : « Je vais garder ce ressort… juste au cas où ! »"
+      ],
+      "image": { "image_id": "zoe_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'tells'.", "correct_word": "raconte" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'adventure'.", "correct_word": "aventure" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'chairs'.", "correct_word": "chaises" }
+      ]
+    }
+  ]
+}

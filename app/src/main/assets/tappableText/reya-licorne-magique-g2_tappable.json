@@ -1,0 +1,137 @@
+{
+  "id": "reya-licorne-magique-g2",
+  "title": "Reya et la Licorne Magique (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Reya est une petite princesse de 7 ans.",
+        "Elle vit dans un château entouré de fleurs.",
+        "Reya est toujours gentille avec tout le monde."
+      ],
+      "image": { "image_id": "reya_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'princess'.", "correct_word": "princesse" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'castle'.", "correct_word": "château" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'kind'.", "correct_word": "gentille" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qui est Lumi ?",
+        "options": ["Une fée", "Un lapin", "Une licorne", "Un dragon"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Son meilleur ami est une licorne magique.",
+        "La licorne s'appelle Lumi.",
+        "Lumi a une crinière arc-en-ciel et des ailes brillantes."
+      ],
+      "image": { "image_id": "reya_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'unicorn'.", "correct_word": "licorne" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'mane'.", "correct_word": "crinière" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'wings'.", "correct_word": "ailes" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Un matin, Reya entend un bruit triste dans la forêt.",
+        "Elle monte sur Lumi et part vite voir.",
+        "Ils trouvent un petit lapin qui pleure."
+      ],
+      "image": { "image_id": "reya_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'forest'.", "correct_word": "forêt" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'rabbit'.", "correct_word": "lapin" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'cries'.", "correct_word": "pleure" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Pourquoi Reya aide le petit lapin ?",
+        "options": ["Il est perdu", "Il a faim", "Il a peur de Lumi", "Il veut jouer"],
+        "correct_index": 0
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Le lapin a perdu sa maman.",
+        "Reya dit : « Ne t'inquiète pas, on va t'aider ! »",
+        "Lumi fait briller sa corne pour chercher."
+      ],
+      "image": { "image_id": "reya_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'lost'.", "correct_word": "perdu" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'horn'.", "correct_word": "corne" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'to look for'.", "correct_word": "chercher" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Ils volent au-dessus des arbres.",
+        "Reya regarde partout avec ses jumelles.",
+        "Enfin, elle voit une maman lapin près d'un buisson."
+      ],
+      "image": { "image_id": "reya_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'trees'.", "correct_word": "arbres" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'binoculars'.", "correct_word": "jumelles" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'bush'.", "correct_word": "buisson" }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Reya descend doucement avec Lumi.",
+        "Le petit lapin court vers sa maman.",
+        "Ils se font un gros câlin."
+      ],
+      "image": { "image_id": "reya_page6" },
+      "tappable_word_questions": [
+        { "id": "p6_tw1", "prompt": "Tape le mot qui veut dire 'gently'.", "correct_word": "doucement" },
+        { "id": "p6_tw2", "prompt": "Tape le mot qui veut dire 'runs'.", "correct_word": "court" },
+        { "id": "p6_tw3", "prompt": "Tape le mot qui veut dire 'hug'.", "correct_word": "câlin" }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "La maman lapin remercie Reya et Lumi.",
+        "Reya dit : « C'est normal d'aider les amis. »",
+        "Lumi fait un petit saut de joie."
+      ],
+      "image": { "image_id": "reya_page7" },
+      "tappable_word_questions": [
+        { "id": "p7_tw1", "prompt": "Tape le mot qui veut dire 'thanks'.", "correct_word": "remercie" },
+        { "id": "p7_tw2", "prompt": "Tape le mot qui veut dire 'friends'.", "correct_word": "amis" },
+        { "id": "p7_tw3", "prompt": "Tape le mot qui veut dire 'joy'.", "correct_word": "joie" }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Reya rentre au château avec Lumi.",
+        "Elle pense à tous les amis qu'elle veut aider.",
+        "Elle sourit : « Demain sera encore magique ! »"
+      ],
+      "image": { "image_id": "reya_page8" },
+      "tappable_word_questions": [
+        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'returns'.", "correct_word": "rentre" },
+        { "id": "p8_tw2", "prompt": "Tape le mot qui veut dire 'magical'.", "correct_word": "magique" },
+        { "id": "p8_tw3", "prompt": "Tape le mot qui veut dire 'smiles'.", "correct_word": "sourit" }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Comment Reya se sent-elle à la fin de l'aventure ?",
+        "options": ["En colère", "Heureuse et prête à aider encore", "Endormie", "Perdue"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,403 @@
+{
+  "id": "boukili-singe-tappable",
+  "title": "Boukili — Le bébé singe (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Dans la brousse, clic, clic, les",
+        "voyageurs prennent beaucoup de",
+        "photos : des girafes, des",
+        "éléphants, et toutes sortes",
+        "d'animaux.",
+        "Leur jeep s'arrête près d'une",
+        "famille de singes et clic, clic, clic!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'travelers'.",
+          "correct_word": "voyageurs"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'elephants'.",
+          "correct_word": "éléphants"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'animals'.",
+          "correct_word": "d'animaux"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "- Regarde comme il est beau, le",
+        "plus petit! Il nous fait des",
+        "grimaces, on dirait qu'il sourit.",
+        "Ce bébé singe aime les photos!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'faces'.",
+          "correct_word": "grimaces"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'look'.",
+          "correct_word": "Regarde"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'dirait'.",
+          "correct_word": "dirait"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Les clics clics des appareils",
+        "amusent le bébé.",
+        "Il est curieux, il veut toucher.",
+        "Oh, le beau jouet! Il s'approche et",
+        "tend la main.",
+        "Sa grand-maman le trouve malin."
+      ],
+      "image": {
+        "image_id": "boukili/singe/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'grandmother'.",
+          "correct_word": "grand-maman"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'approaches'.",
+          "correct_word": "s'approche"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'cameras'.",
+          "correct_word": "appareils"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "- Regarde le petit, comme il est",
+        "beau!",
+        "Ce bébé singe aime les photos!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'look'.",
+          "correct_word": "Regarde"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'photos'.",
+          "correct_word": "photos"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'petit'.",
+          "correct_word": "petit"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Qu'est-ce que le bébé singe aime beaucoup dans cette histoire ?",
+        "options": [
+          "Les girafes",
+          "Les photos",
+          "La jeep",
+          "Les éléphants"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Au revoir! Les voyageurs font des",
+        "« bye bye ».",
+        "Les singes retournent à leur",
+        "travail."
+      ],
+      "image": {
+        "image_id": "boukili/singe/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'retournent'.",
+          "correct_word": "retournent"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'travelers'.",
+          "correct_word": "voyageurs"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'work'.",
+          "correct_word": "travail"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "- Mais où est le bébé? demande",
+        "Maman.",
+        "- Où est-il? s'inquiète",
+        "Grand-maman.",
+        "Peut-être qu'il joue à",
+        "« clic-clic-clic » ...",
+        "Ce bébé singe aime les photos!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'clic-clic-clic'.",
+          "correct_word": "clic-clic-clic"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'grandmother'.",
+          "correct_word": "Grand-maman"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'inquiete'.",
+          "correct_word": "s'inquiète"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Un éléphant demande aux singes",
+        "agités :",
+        "- Avez-vous perdu votre bébé?",
+        "- L'as-tu vu? Où est-il?",
+        "demandent Maman et",
+        "Grand-maman.",
+        "À dos d'éléphant, elles partent",
+        "vite comme le vent."
+      ],
+      "image": {
+        "image_id": "boukili/singe/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'grandmother'.",
+          "correct_word": "Grand-maman"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'elephant'.",
+          "correct_word": "d'éléphant"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'avez-vous'.",
+          "correct_word": "Avez-vous"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "L'elephant rit : - J'ai entendu",
+        "clic-clic-clic dans un arbre très",
+        "haut.",
+        "Ce bébé singe aime les photos!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'clic-clic-clic'.",
+          "correct_word": "clic-clic-clic"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'elephant'.",
+          "correct_word": "L'elephant"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'entendu'.",
+          "correct_word": "entendu"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Qu'est-ce que l'éléphant dit avoir entendu ?",
+        "options": [
+          "Un bébé qui pleure",
+          "Clic-clic-clic dans un arbre",
+          "La grand-maman",
+          "Les voyageurs"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 9,
+      "text": [
+        "Grand-maman et Maman",
+        "arrivent à dos d'éléphant.",
+        "Elles voient le bébé singe qui rit",
+        "han, han, han!",
+        "Et clic, clic, clic! Il prend des",
+        "photos de tous les voyageurs, les",
+        "petits et les gros."
+      ],
+      "image": {
+        "image_id": "boukili/singe/p9"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p9_tw1",
+          "prompt": "Tape le mot qui veut dire 'grandmother'.",
+          "correct_word": "Grand-maman"
+        },
+        {
+          "id": "p9_tw2",
+          "prompt": "Tape le mot qui veut dire 'elephant'.",
+          "correct_word": "d'éléphant"
+        },
+        {
+          "id": "p9_tw3",
+          "prompt": "Tape le mot qui veut dire 'travelers'.",
+          "correct_word": "voyageurs"
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "text": [
+        "Les voyageurs rient, ils crient :",
+        "- Bravo! Ce bébé singe aime les",
+        "photos!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p10"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p10_tw1",
+          "prompt": "Tape le mot qui veut dire 'travelers'.",
+          "correct_word": "voyageurs"
+        },
+        {
+          "id": "p10_tw2",
+          "prompt": "Tape le mot qui veut dire 'shout'.",
+          "correct_word": "crient"
+        },
+        {
+          "id": "p10_tw3",
+          "prompt": "Tape le mot qui veut dire 'photos'.",
+          "correct_word": "photos"
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "text": [
+        "Grand-maman dit : - Redonne le",
+        "clic-clic, arrête de jouer!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p11"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p11_tw1",
+          "prompt": "Tape le mot qui veut dire 'grandmother'.",
+          "correct_word": "Grand-maman"
+        },
+        {
+          "id": "p11_tw2",
+          "prompt": "Tape le mot qui veut dire 'clic-clic'.",
+          "correct_word": "clic-clic"
+        },
+        {
+          "id": "p11_tw3",
+          "prompt": "Tape le mot qui veut dire 'redonne'.",
+          "correct_word": "Redonne"
+        }
+      ]
+    },
+    {
+      "page_number": 12,
+      "text": [
+        "Maman dit : - Viens, mon bébé,",
+        "c'est l'heure du coucher!",
+        "- Ton lit t'attend, dit le gentil",
+        "éléphant.",
+        "Les voyageurs donnent une",
+        "photo au bébé. Le petit singe se",
+        "regarde grimacer.",
+        "Ce bébé singe aime les photos!"
+      ],
+      "image": {
+        "image_id": "boukili/singe/p12"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p12_tw1",
+          "prompt": "Tape le mot qui veut dire 'travelers'.",
+          "correct_word": "voyageurs"
+        },
+        {
+          "id": "p12_tw2",
+          "prompt": "Tape le mot qui veut dire 'attend'.",
+          "correct_word": "t'attend"
+        },
+        {
+          "id": "p12_tw3",
+          "prompt": "Tape le mot qui veut dire 'elephant'.",
+          "correct_word": "éléphant"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p12_c1",
+        "prompt": "Que donnent les voyageurs au petit singe à la fin ?",
+        "options": [
+          "Un jouet",
+          "Une photo",
+          "Une sucette",
+          "Un appareil neuf"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

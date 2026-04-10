@@ -37,7 +37,8 @@
         {
           "title": "Tappable Text Milo",
           "launch": "tappableText",
-          "url": "file=milo-sandwich-geant-g4_tappable.json",
+          "url": "",
+          "easy": true,
           "stars": 3
         },
         {

@@ -1,0 +1,338 @@
+{
+  "id": "boukili-nid-tappable",
+  "title": "Boukili — Le nid (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Rachelle la recycleuse regarde",
+        "deux petits oiseaux.",
+        "Elle les appelle Mimi et Momo.",
+        "Ils travaillent fort jour et nuit."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'travaillent'.",
+          "correct_word": "travaillent"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'recycler'.",
+          "correct_word": "recycleuse"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'rachelle'.",
+          "correct_word": "Rachelle"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Cui, cui, cui, pour se bâtir un nid."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'batir'.",
+          "correct_word": "bâtir"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Momo voit une belle branche",
+        "pour leur nid.",
+        "Il dit tout joyeux : - Viens m'aider,",
+        "Mimi, à porter cette belle",
+        "branche."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'branch'.",
+          "correct_word": "branche"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'aider'.",
+          "correct_word": "m'aider"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'joyful'.",
+          "correct_word": "joyeux"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Cui, cui, cui, pour nous bâtir un",
+        "nid."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'batir'.",
+          "correct_word": "bâtir"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Qui prend la branche que Momo voulait utiliser pour le nid ?",
+        "options": [
+          "Rachelle",
+          "La pie voleuse",
+          "Momo",
+          "Mimi"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Mais voici la pie voleuse avec son",
+        "grand cri qui dit :",
+        "- Elle est à moi cette branche, je",
+        "la prends pour mon nid."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'thief'.",
+          "correct_word": "voleuse"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'branch'.",
+          "correct_word": "branche"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'prends'.",
+          "correct_word": "prends"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Cui, cui, cui, pour me bâtir un nid."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'batir'.",
+          "correct_word": "bâtir"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Momo est fâché et Mimi dit :",
+        "- Qu'allons-nous prendre pour",
+        "bâtir notre nid, si cette grande pie",
+        "vole notre branche?"
+      ],
+      "image": {
+        "image_id": "boukili/nid/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'allons-nous'.",
+          "correct_word": "Qu'allons-nous"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'prendre'.",
+          "correct_word": "prendre"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'branch'.",
+          "correct_word": "branche"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Cui, cui, cui, pour se bâtir un nid."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'batir'.",
+          "correct_word": "bâtir"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Qu'est-ce que Rachelle apporte pour aider les oiseaux ?",
+        "options": [
+          "Une branche neuve",
+          "Un chandail usé",
+          "Des œufs",
+          "Un nid tout fait"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 9,
+      "text": [
+        "Rachelle la recycleuse a une",
+        "bonne idée.",
+        "Elle court chercher un chandail",
+        "usé."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p9"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p9_tw1",
+          "prompt": "Tape le mot qui veut dire 'recycler'.",
+          "correct_word": "recycleuse"
+        },
+        {
+          "id": "p9_tw2",
+          "prompt": "Tape le mot qui veut dire 'rachelle'.",
+          "correct_word": "Rachelle"
+        },
+        {
+          "id": "p9_tw3",
+          "prompt": "Tape le mot qui veut dire 'chercher'.",
+          "correct_word": "chercher"
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "text": [
+        "Elle place la laine sur le gazon et",
+        "pousse un petit cri :",
+        "- Cui, cui, cui, c'est pour bâtir",
+        "votre nid!"
+      ],
+      "image": {
+        "image_id": "boukili/nid/p10"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p10_tw1",
+          "prompt": "Tape le mot qui veut dire 'pushes'.",
+          "correct_word": "pousse"
+        },
+        {
+          "id": "p10_tw2",
+          "prompt": "Tape le mot qui veut dire 'place'.",
+          "correct_word": "place"
+        },
+        {
+          "id": "p10_tw3",
+          "prompt": "Tape le mot qui veut dire 'wool'.",
+          "correct_word": "laine"
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "text": [
+        "Rachelle la recycleuse regarde le",
+        "beau nid tout doux, tout doux de",
+        "Momo et Mimi.",
+        "Bientôt il y aura des œufs dans",
+        "ce beau petit nid."
+      ],
+      "image": {
+        "image_id": "boukili/nid/p11"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p11_tw1",
+          "prompt": "Tape le mot qui veut dire 'recycler'.",
+          "correct_word": "recycleuse"
+        },
+        {
+          "id": "p11_tw2",
+          "prompt": "Tape le mot qui veut dire 'rachelle'.",
+          "correct_word": "Rachelle"
+        },
+        {
+          "id": "p11_tw3",
+          "prompt": "Tape le mot qui veut dire 'look'.",
+          "correct_word": "regarde"
+        }
+      ]
+    },
+    {
+      "page_number": 12,
+      "text": [
+        "Momo dit : - Merci, Rachelle!",
+        "Mimi dit aussi : - Merci pour ton",
+        "aide à bâtir notre nid!"
+      ],
+      "image": {
+        "image_id": "boukili/nid/p12"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p12_tw1",
+          "prompt": "Tape le mot qui veut dire 'rachelle'.",
+          "correct_word": "Rachelle"
+        },
+        {
+          "id": "p12_tw2",
+          "prompt": "Tape le mot qui veut dire 'merci'.",
+          "correct_word": "Merci"
+        },
+        {
+          "id": "p12_tw3",
+          "prompt": "Tape le mot qui veut dire 'batir'.",
+          "correct_word": "bâtir"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p12_c1",
+        "prompt": "Pourquoi Momo et Mimi remercient-ils Rachelle ?",
+        "options": [
+          "Pour la musique",
+          "Pour l'aide à bâtir leur nid",
+          "Pour des graines",
+          "Pour une photo"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

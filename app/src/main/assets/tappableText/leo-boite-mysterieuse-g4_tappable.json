@@ -1,0 +1,94 @@
+{
+  "id": "leo-boite-mysterieuse-g4",
+  "title": "Léo et la Boîte Mystérieuse (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Léo marche à l'école avec son sac à dos.",
+        "Sur le trottoir, il voit une petite boîte rouge.",
+        "Il la ramasse doucement."
+      ],
+      "image": { "image_id": "leo_page1" },
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'sidewalk'.", "correct_word": "trottoir" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'box'.", "correct_word": "boîte" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'red'.", "correct_word": "rouge" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'est-ce que Léo trouve dans la boîte ?",
+        "options": ["Des bonbons", "Des crayons", "Des clés", "Des jouets"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Léo ouvre la boîte.",
+        "À l'intérieur, il trouve trois crayons de couleur très brillants.",
+        "Il sourit."
+      ],
+      "image": { "image_id": "leo_page2" },
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'opens'.", "correct_word": "ouvre" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'pencils'.", "correct_word": "crayons" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'bright'.", "correct_word": "brillants" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "À l'école, son amie Sara dit : « Je n'ai pas de crayons aujourd'hui. »",
+        "Léo pense un moment."
+      ],
+      "image": { "image_id": "leo_page3" },
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'friend'.", "correct_word": "amie" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'today'.", "correct_word": "aujourd'hui" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'thinks'.", "correct_word": "pense" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Qui n'a pas de crayons ?",
+        "options": ["Léo", "Sara", "Max", "Le professeur"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Léo donne un crayon à Sara.",
+        "Puis il donne un autre crayon à Max.",
+        "Il garde le dernier pour lui."
+      ],
+      "image": { "image_id": "leo_page4" },
+      "tappable_word_questions": [
+        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'gives'.", "correct_word": "donne" },
+        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'another'.", "correct_word": "autre" },
+        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'last'.", "correct_word": "dernier" }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Ses amis sont contents.",
+        "Léo se sent bien.",
+        "Partager rend la journée plus belle."
+      ],
+      "image": { "image_id": "leo_page5" },
+      "tappable_word_questions": [
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'friends'.", "correct_word": "amis" },
+        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'share'.", "correct_word": "Partager" },
+        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'beautiful'.", "correct_word": "belle" }
+      ],
+      "comprehension_question": {
+        "id": "p5_c1",
+        "prompt": "Combien de crayons Léo garde-t-il ?",
+        "options": ["0", "1", "2", "3"],
+        "correct_index": 1
+      }
+    }
+  ]
+}
