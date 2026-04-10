@@ -285,11 +285,25 @@
         let opponentInterval = null;
         let isFirstAttempt = true;
         let raceStarted = false;
+        /** BCP-47 tag passed to Android TTS; set from URL or word-list filename (same idea as wordGarden / wordFishing). */
+        let ttsLanguage = 'en-US';
 
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            return file || 'englishWordsGr1.json';
+            const fileName = file || 'englishWordsGr1.json';
+            const langParam = (urlParams.get('lang') || '').toLowerCase().trim();
+            // Explicit override: ?lang=fr or ?lang=french (also en / english)
+            if (langParam === 'fr' || langParam === 'french') {
+                ttsLanguage = 'fr-FR';
+            } else if (langParam === 'en' || langParam === 'english') {
+                ttsLanguage = 'en-US';
+            } else if (fileName.toLowerCase().includes('french')) {
+                ttsLanguage = 'fr-FR';
+            } else {
+                ttsLanguage = 'en-US';
+            }
+            return fileName;
         }
 
         function loadWords(fileName) {
@@ -378,8 +392,17 @@
 
         function playInstruction() {
             const { word, sentence } = currentWord;
-            const textToRead = sentence ? `Race to spell: ${word}. ${sentence}` : `Race to spell: ${word}`;
-            readText(textToRead, 'en-US', 0.8, () => {
+            let textToRead;
+            if (ttsLanguage === 'fr-FR') {
+                textToRead = sentence
+                    ? `Épelez le mot rapidement : ${word}. ${sentence}`
+                    : `Épelez le mot rapidement : ${word}`;
+            } else {
+                textToRead = sentence
+                    ? `Race to spell: ${word}. ${sentence}`
+                    : `Race to spell: ${word}`;
+            }
+            readText(textToRead, ttsLanguage, 0.8, () => {
                 startRace();
             });
         }
