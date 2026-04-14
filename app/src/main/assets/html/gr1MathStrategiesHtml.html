@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gr1 Math Strategies</title>
+  <style>
+    body { font-family: "Comic Sans MS", "Arial Rounded MT Bold", sans-serif; margin: 0; background: #f4f9ff; color: #123; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    h1 { margin: 0 0 10px; color: #235; font-size: 1.6rem; }
+    .meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; font-weight: bold; color: #345; }
+    .problem { font-size: 2rem; text-align: center; margin: 12px 0 16px; color: #114; }
+    .section { margin: 14px 0; }
+    .section h2 { margin: 0 0 8px; font-size: 1.1rem; color: #235; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 10px; }
+    button { border: 0; border-radius: 12px; padding: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; background: #dbeafe; color: #123; }
+    button:hover { background: #bfdbfe; }
+    button.answer { background: #dcfce7; }
+    button.answer:hover { background: #bbf7d0; }
+    .hidden { display: none; }
+    .feedback { margin-top: 10px; font-size: 1rem; font-weight: 700; min-height: 1.2em; }
+    .ok { color: #0a7b2f; }
+    .bad { color: #b42318; }
+    .explain { margin-top: 8px; background: #eef7ff; border-radius: 10px; padding: 10px; color: #234; }
+    .next { margin-top: 14px; width: 100%; background: #facc15; }
+    .next:hover { background: #eab308; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Math Strategies Race</h1>
+      <div class="meta">
+        <div id="progress">Question 1 / 1</div>
+        <div id="score">Score: 0</div>
+      </div>
+      <div id="problem" class="problem">0 + 0 = ?</div>
+
+      <div class="section" id="strategySection">
+        <h2>1) Which strategy helps most?</h2>
+        <div id="strategyButtons" class="grid"></div>
+        <div id="strategyFeedback" class="feedback"></div>
+        <div id="strategyExplain" class="explain hidden"></div>
+      </div>
+
+      <div class="section hidden" id="answerSection">
+        <h2>2) Now solve it</h2>
+        <div id="answerButtons" class="grid"></div>
+        <div id="answerFeedback" class="feedback"></div>
+      </div>
+
+      <button id="nextBtn" class="next hidden">Next Question</button>
+    </div>
+  </div>
+
+  <script>
+    let questions = [];
+    let current = 0;
+    let score = 0;
+    let strategyAnswered = false;
+    let answerAnswered = false;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let maxQuestions = 10;
+
+    function getFileName() {
+      const params = new URLSearchParams(window.location.search);
+      const explicit = params.get("file");
+      if (explicit) return explicit;
+      const base = params.get("fileBase");
+      if (base) {
+        const week = getWeekVariantSuffix();
+        return `${base}${week}.json`;
+      }
+      return "gr1MathStrategies.json";
+    }
+
+    function getWeekVariantSuffix() {
+      const now = new Date();
+      const jan1 = new Date(now.getFullYear(), 0, 1);
+      const elapsedDays = Math.floor((now - jan1) / 86400000);
+      const week = Math.floor((elapsedDays + jan1.getDay()) / 7) + 1;
+      const mod = (week - 1) % 3;
+      if (mod === 0) return "A";
+      if (mod === 1) return "B";
+      return "C";
+    }
+
+    function getMaxQuestions() {
+      const params = new URLSearchParams(window.location.search);
+      const raw = params.get("totalQuestions");
+      const parsed = Number(raw);
+      if (Number.isInteger(parsed) && parsed > 0) return parsed;
+      return 10;
+    }
+
+    function parsePrompt(prompt) {
+      const m = prompt.match(/^\s*(\d+)\s*([+-])\s*(\d+)\s*=\s*\?\s*$/);
+      if (!m) return null;
+      return { a: Number(m[1]), op: m[2], b: Number(m[3]) };
+    }
+
+    function inferStrategy(problem) {
+      if (!problem) return "Grouping";
+      const { a, b, op } = problem;
+      if (op === "+" && a === b) return "Doubles";
+      if (op === "+" && Math.abs(a - b) <= 3) return "Near Doubles";
+      if (op === "+" && (a >= 8 || b >= 8) && a + b > 10) return "Make 10 / Grouping";
+      if (op === "-" && a >= 10) return "Grouping";
+      return "Grouping";
+    }
+
+    function strategyHint(problem, strategy) {
+      if (!problem) return "Break numbers into smaller friendly parts.";
+      const { a, b, op } = problem;
+      if (strategy === "Doubles") return `${a} and ${b} are the same, so double one number.`;
+      if (strategy === "Near Doubles") return `Use the close double, then add or subtract the small difference.`;
+      if (strategy === "Make 10 / Grouping" && op === "+") return `Make 10 first, then add what is left.`;
+      if (op === "-") return `Break apart the number you subtract into easy chunks.`;
+      return `Group numbers into easier parts, then solve.`;
+    }
+
+    function shuffle(arr) {
+      const out = [...arr];
+      for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+      }
+      return out;
+    }
+
+    function classifyQuestion(q) {
+      const s = inferStrategy(parsePrompt(q?.prompt?.text || ""));
+      if (s === "Doubles") return "Doubles";
+      if (s === "Near Doubles") return "Near Doubles";
+      if (s === "Make 10 / Grouping") return "Make 10 / Grouping";
+      return "Grouping";
+    }
+
+    function buildMixedQuestionSet(allQuestions, desiredCount) {
+      const buckets = {
+        "Doubles": [],
+        "Near Doubles": [],
+        "Make 10 / Grouping": [],
+        "Grouping": []
+      };
+
+      allQuestions.forEach(q => {
+        buckets[classifyQuestion(q)].push(q);
+      });
+
+      Object.keys(buckets).forEach(k => {
+        buckets[k] = shuffle(buckets[k]);
+      });
+
+      const selected = [];
+      // First pass: ensure we introduce each available concept.
+      ["Doubles", "Near Doubles", "Make 10 / Grouping", "Grouping"].forEach(k => {
+        if (selected.length < desiredCount && buckets[k].length > 0) {
+          selected.push(buckets[k].pop());
+        }
+      });
+
+      // Fill remaining slots from all remaining questions.
+      const remaining = shuffle([
+        ...buckets["Doubles"],
+        ...buckets["Near Doubles"],
+        ...buckets["Make 10 / Grouping"],
+        ...buckets["Grouping"]
+      ]);
+      while (selected.length < desiredCount && remaining.length > 0) {
+        selected.push(remaining.pop());
+      }
+      return shuffle(selected);
+    }
+
+    function loadQuestions(fileName) {
+      try {
+        if (window.Android && typeof window.Android.loadJsonFile === "function") {
+          const json = window.Android.loadJsonFile(fileName);
+          questions = JSON.parse(json) || [];
+        }
+      } catch (e) {
+        console.error("Android load failed:", e);
+      }
+
+      if (!questions.length) {
+        fetch(`../data/${fileName}`)
+          .then(r => r.json())
+          .then(data => {
+            const loaded = Array.isArray(data) ? data : [];
+            questions = buildMixedQuestionSet(loaded, Math.min(maxQuestions, loaded.length));
+            start();
+          })
+          .catch(() => {
+            questions = [];
+            start();
+          });
+        return;
+      }
+      questions = buildMixedQuestionSet(questions, Math.min(maxQuestions, questions.length));
+      start();
+    }
+
+    function setText(id, text) { document.getElementById(id).textContent = text; }
+
+    function renderQuestion() {
+      const q = questions[current];
+      if (!q) return endGame();
+      strategyAnswered = false;
+      answerAnswered = false;
+
+      setText("progress", `Question ${current + 1} / ${questions.length}`);
+      setText("score", `Score: ${score}`);
+      setText("problem", q.prompt.text);
+      setText("strategyFeedback", "");
+      setText("answerFeedback", "");
+
+      const explain = document.getElementById("strategyExplain");
+      explain.classList.add("hidden");
+      explain.textContent = "";
+
+      const strategyButtons = document.getElementById("strategyButtons");
+      strategyButtons.innerHTML = "";
+      const answerButtons = document.getElementById("answerButtons");
+      answerButtons.innerHTML = "";
+
+      document.getElementById("answerSection").classList.add("hidden");
+      document.getElementById("nextBtn").classList.add("hidden");
+
+      const inferred = inferStrategy(parsePrompt(q.prompt.text));
+      const strategies = shuffle(["Doubles", "Near Doubles", "Make 10 / Grouping", "Grouping"]);
+
+      strategies.forEach(s => {
+        const btn = document.createElement("button");
+        btn.textContent = s;
+        btn.onclick = () => {
+          if (strategyAnswered) return;
+          strategyAnswered = true;
+          const correct = s === inferred || (inferred === "Grouping" && s === "Make 10 / Grouping");
+          const fb = document.getElementById("strategyFeedback");
+          fb.className = `feedback ${correct ? "ok" : "bad"}`;
+          fb.textContent = correct ? "Great strategy choice!" : `Good try. A strong choice here is: ${inferred}`;
+          if (correct) score += 1;
+
+          explain.textContent = strategyHint(parsePrompt(q.prompt.text), inferred);
+          explain.classList.remove("hidden");
+          document.getElementById("answerSection").classList.remove("hidden");
+          renderAnswers(q);
+          setText("score", `Score: ${score}`);
+        };
+        strategyButtons.appendChild(btn);
+      });
+    }
+
+    function renderAnswers(q) {
+      const correct = q.correctChoices[0].text;
+      const extras = (q.extraChoices || []).map(x => x.text);
+      const choices = shuffle([correct, ...extras].slice(0, 5));
+      const wrap = document.getElementById("answerButtons");
+      wrap.innerHTML = "";
+
+      choices.forEach(c => {
+        const btn = document.createElement("button");
+        btn.className = "answer";
+        btn.textContent = c;
+        btn.onclick = () => {
+          if (answerAnswered) return;
+          answerAnswered = true;
+          const good = c === correct;
+          const fb = document.getElementById("answerFeedback");
+          fb.className = `feedback ${good ? "ok" : "bad"}`;
+          fb.textContent = good ? "Correct!" : `Not quite. The answer is ${correct}.`;
+          if (good) {
+            score += 2;
+            correctCount += 1;
+          } else {
+            incorrectCount += 1;
+          }
+          setText("score", `Score: ${score}`);
+          document.getElementById("nextBtn").classList.remove("hidden");
+        };
+        wrap.appendChild(btn);
+      });
+    }
+
+    function endGame() {
+      setText("problem", "Great work!");
+      document.getElementById("strategySection").innerHTML =
+        `<h2>You finished ${questions.length} questions.</h2><div class="feedback ok">Final score: ${score}</div>`;
+      document.getElementById("answerSection").classList.add("hidden");
+      document.getElementById("nextBtn").classList.add("hidden");
+
+      if (window.Android && typeof window.Android.gameCompleted === "function") {
+        window.Android.gameCompleted(correctCount, incorrectCount);
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "gameCompleted", correct: correctCount, incorrect: incorrectCount }, "*");
+        }
+      }
+    }
+
+    function start() {
+      if (!Array.isArray(questions) || questions.length === 0) {
+        setText("problem", "No questions found.");
+        return;
+      }
+      document.getElementById("nextBtn").onclick = () => {
+        current += 1;
+        if (current >= questions.length) endGame();
+        else renderQuestion();
+      };
+      renderQuestion();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      maxQuestions = getMaxQuestions();
+      loadQuestions(getFileName());
+    });
+  </script>
+</body>
+</html>

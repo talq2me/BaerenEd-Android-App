@@ -1,0 +1,12 @@
+[
+  {"prompt":{"text":"4 + 4 = ?"},"correctChoices":[{"text":"8"}],"extraChoices":[{"text":"7"},{"text":"9"},{"text":"6"},{"text":"10"}]},
+  {"prompt":{"text":"6 + 7 = ?"},"correctChoices":[{"text":"13"}],"extraChoices":[{"text":"12"},{"text":"14"},{"text":"11"},{"text":"15"}]},
+  {"prompt":{"text":"8 + 5 = ?"},"correctChoices":[{"text":"13"}],"extraChoices":[{"text":"12"},{"text":"14"},{"text":"11"},{"text":"15"}]},
+  {"prompt":{"text":"14 - 6 = ?"},"correctChoices":[{"text":"8"}],"extraChoices":[{"text":"7"},{"text":"9"},{"text":"6"},{"text":"10"}]},
+  {"prompt":{"text":"10 + 6 = ?"},"correctChoices":[{"text":"16"}],"extraChoices":[{"text":"15"},{"text":"17"},{"text":"14"},{"text":"18"}]},
+  {"prompt":{"text":"6 + 6 = ?"},"correctChoices":[{"text":"12"}],"extraChoices":[{"text":"11"},{"text":"13"},{"text":"10"},{"text":"14"}]},
+  {"prompt":{"text":"7 + 8 = ?"},"correctChoices":[{"text":"15"}],"extraChoices":[{"text":"14"},{"text":"16"},{"text":"13"},{"text":"17"}]},
+  {"prompt":{"text":"9 + 4 = ?"},"correctChoices":[{"text":"13"}],"extraChoices":[{"text":"12"},{"text":"14"},{"text":"11"},{"text":"15"}]},
+  {"prompt":{"text":"13 - 5 = ?"},"correctChoices":[{"text":"8"}],"extraChoices":[{"text":"7"},{"text":"9"},{"text":"6"},{"text":"10"}]},
+  {"prompt":{"text":"10 + 4 = ?"},"correctChoices":[{"text":"14"}],"extraChoices":[{"text":"13"},{"text":"15"},{"text":"12"},{"text":"16"}]}
+]
