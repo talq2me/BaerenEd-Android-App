@@ -18,11 +18,14 @@
     button:hover { background: #bfdbfe; }
     button.answer { background: #dcfce7; }
     button.answer:hover { background: #bbf7d0; }
+    button.dimmed { background: #e5e7eb; color: #6b7280; cursor: not-allowed; }
+    button.helpful { outline: 3px solid #22c55e; }
     .hidden { display: none; }
     .feedback { margin-top: 10px; font-size: 1rem; font-weight: 700; min-height: 1.2em; }
     .ok { color: #0a7b2f; }
     .bad { color: #b42318; }
     .explain { margin-top: 8px; background: #eef7ff; border-radius: 10px; padding: 10px; color: #234; }
+    .math-path { margin-top: 8px; padding: 10px; border-radius: 10px; background: #ecfeff; color: #155e75; font-weight: 700; line-height: 1.6; }
     .next { margin-top: 14px; width: 100%; background: #facc15; }
     .next:hover { background: #eab308; }
   </style>
@@ -42,6 +45,7 @@
         <div id="strategyButtons" class="grid"></div>
         <div id="strategyFeedback" class="feedback"></div>
         <div id="strategyExplain" class="explain hidden"></div>
+        <div id="mathPath" class="math-path hidden"></div>
       </div>
 
       <div class="section hidden" id="answerSection">
@@ -121,6 +125,27 @@
       return `Group numbers into easier parts, then solve.`;
     }
 
+    function speakText(text, rate = 0.9, onEndCallback = null) {
+      if (window.Android && typeof window.Android.readText === "function") {
+        window.Android.readText(text, "en-US");
+        setTimeout(() => {
+          if (onEndCallback) onEndCallback();
+        }, 1200);
+      } else if ("speechSynthesis" in window) {
+        if (window.currentTTSUtterance) window.speechSynthesis.cancel();
+        window.currentTTSUtterance = new SpeechSynthesisUtterance(text);
+        window.currentTTSUtterance.lang = "en-US";
+        window.currentTTSUtterance.rate = rate;
+        window.currentTTSUtterance.onend = () => {
+          if (onEndCallback) onEndCallback();
+          window.currentTTSUtterance = null;
+        };
+        window.speechSynthesis.speak(window.currentTTSUtterance);
+      } else if (onEndCallback) {
+        onEndCallback();
+      }
+    }
+
     function shuffle(arr) {
       const out = [...arr];
       for (let i = out.length - 1; i > 0; i--) {
@@ -136,6 +161,105 @@
       if (s === "Near Doubles") return "Near Doubles";
       if (s === "Make 10 / Grouping") return "Make 10 / Grouping";
       return "Grouping";
+    }
+
+    function getHelpfulStrategies(problem) {
+      if (!problem) return ["Grouping"];
+      const { a, b, op } = problem;
+      if (op === "+" && a === b) return ["Doubles"];
+      if (op === "+" && Math.abs(a - b) <= 3) return ["Near Doubles", "Doubles"];
+      if (op === "+" && (a >= 8 || b >= 8) && a + b > 10) return ["Make 10 / Grouping", "Grouping"];
+      if (op === "-") return ["Grouping"];
+      return ["Grouping"];
+    }
+
+    function breakdownForStrategy(problem, strategy) {
+      if (!problem) return "Let's break the numbers into easier parts.";
+      const { a, b, op } = problem;
+
+      if (op === "+" && strategy === "Doubles") {
+        return `${a} plus ${b}. They are the same, so this is a double. Double ${a} is ${a + b}.`;
+      }
+
+      if (op === "+" && strategy === "Near Doubles") {
+        const low = Math.min(a, b);
+        const high = Math.max(a, b);
+        const diff = high - low;
+        return `${a} plus ${b}. Start with double ${low}, which is ${low * 2}. Then add ${diff} more to get ${a + b}.`;
+      }
+
+      if (op === "+" && (strategy === "Make 10 / Grouping" || strategy === "Grouping")) {
+        const big = Math.max(a, b);
+        const small = Math.min(a, b);
+        const need = Math.max(0, 10 - big);
+        const left = small - need;
+        if (need > 0 && left >= 0) {
+          return `${a} plus ${b}. Take ${need} from ${small} to make ${big} into 10. Now do 10 plus ${left}, which is ${a + b}.`;
+        }
+        return `${a} plus ${b}. Group friendly numbers first, then add the rest to get ${a + b}.`;
+      }
+
+      if (op === "-" && strategy === "Grouping") {
+        const first = Math.min(5, b);
+        const second = b - first;
+        const mid = a - first;
+        return `${a} minus ${b}. Break ${b} into ${first} and ${second}. First do ${a} minus ${first} = ${mid}. Then ${mid} minus ${second} = ${a - b}.`;
+      }
+
+      return strategyHint(problem, strategy);
+    }
+
+    function visualBreakdown(problem, strategy) {
+      if (!problem) return "";
+      const { a, b, op } = problem;
+
+      if (op === "+" && strategy === "Doubles") {
+        return `${a} + ${b} -> double ${a} -> ${a + b}`;
+      }
+
+      if (op === "+" && strategy === "Near Doubles") {
+        const low = Math.min(a, b);
+        const high = Math.max(a, b);
+        const diff = high - low;
+        return `${a} + ${b} -> ${low} + ${low} + ${diff} -> ${low * 2} + ${diff} -> ${a + b}`;
+      }
+
+      if (op === "+" && (strategy === "Make 10 / Grouping" || strategy === "Grouping")) {
+        const big = Math.max(a, b);
+        const small = Math.min(a, b);
+        const need = Math.max(0, 10 - big);
+        const left = small - need;
+        if (need > 0 && left >= 0) {
+          return `${a} + ${b} -> ${big} + ${need} + ${left} -> 10 + ${left} -> ${a + b}`;
+        }
+        return `${a} + ${b} -> group friendly parts -> ${a + b}`;
+      }
+
+      if (op === "-" && strategy === "Grouping") {
+        const first = Math.min(5, b);
+        const second = b - first;
+        const mid = a - first;
+        return `${a} - ${b} -> ${a} - ${first} - ${second} -> ${mid} - ${second} -> ${a - b}`;
+      }
+
+      return `${a} ${op} ${b} -> ${a + (op === "+" ? b : -b)}`;
+    }
+
+    function updateStrategyButtonStates(helpfulStrategies, selectedStrategy = null) {
+      const wrap = document.getElementById("strategyButtons");
+      const buttons = wrap.querySelectorAll("button");
+      buttons.forEach(btn => {
+        btn.classList.remove("dimmed", "helpful");
+        const isHelpful = helpfulStrategies.includes(btn.dataset.strategy);
+        if (!isHelpful) {
+          btn.classList.add("dimmed");
+        } else {
+          btn.classList.add("helpful");
+        }
+        if (selectedStrategy && btn.dataset.strategy === selectedStrategy) {
+          btn.classList.remove("helpful");
+        }
+      });
     }
 
     function buildMixedQuestionSet(allQuestions, desiredCount) {
@@ -220,6 +344,9 @@
       const explain = document.getElementById("strategyExplain");
       explain.classList.add("hidden");
       explain.textContent = "";
+      const mathPath = document.getElementById("mathPath");
+      mathPath.classList.add("hidden");
+      mathPath.textContent = "";
 
       const strategyButtons = document.getElementById("strategyButtons");
       strategyButtons.innerHTML = "";
@@ -230,28 +357,45 @@
       document.getElementById("nextBtn").classList.add("hidden");
 
       const inferred = inferStrategy(parsePrompt(q.prompt.text));
+      const helpfulStrategies = getHelpfulStrategies(parsePrompt(q.prompt.text));
       const strategies = shuffle(["Doubles", "Near Doubles", "Make 10 / Grouping", "Grouping"]);
 
       strategies.forEach(s => {
         const btn = document.createElement("button");
         btn.textContent = s;
+        btn.dataset.strategy = s;
         btn.onclick = () => {
           if (strategyAnswered) return;
-          strategyAnswered = true;
-          const correct = s === inferred || (inferred === "Grouping" && s === "Make 10 / Grouping");
+          const correct = helpfulStrategies.includes(s);
           const fb = document.getElementById("strategyFeedback");
-          fb.className = `feedback ${correct ? "ok" : "bad"}`;
-          fb.textContent = correct ? "Great strategy choice!" : `Good try. A strong choice here is: ${inferred}`;
-          if (correct) score += 1;
+          const problem = parsePrompt(q.prompt.text);
 
-          explain.textContent = strategyHint(parsePrompt(q.prompt.text), inferred);
+          if (!correct) {
+            fb.className = "feedback bad";
+            fb.textContent = "Let's try picking one of the helpful strategies for this question.";
+            updateStrategyButtonStates(helpfulStrategies);
+            speakText("Let's try picking one of the helpful strategies for this question.");
+            return;
+          }
+
+          strategyAnswered = true;
+          fb.className = "feedback ok";
+          fb.textContent = "Great strategy choice!";
+          score += 1;
+          setText("score", `Score: ${score}`);
+
+          updateStrategyButtonStates(helpfulStrategies, s);
+          explain.textContent = breakdownForStrategy(problem, s);
           explain.classList.remove("hidden");
+          mathPath.textContent = visualBreakdown(problem, s);
+          mathPath.classList.remove("hidden");
           document.getElementById("answerSection").classList.remove("hidden");
           renderAnswers(q);
-          setText("score", `Score: ${score}`);
+          speakText(`Great choice. ${explain.textContent}`);
         };
         strategyButtons.appendChild(btn);
       });
+      speakText("Pick a helpful strategy for this question.");
     }
 
     function renderAnswers(q) {
