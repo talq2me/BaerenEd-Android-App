@@ -1211,7 +1211,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Clear game/video fetch state")
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email")
 
         AlertDialog.Builder(this)
             .setTitle("Settings")
@@ -1220,17 +1220,10 @@ class MainActivity : AppCompatActivity() {
                     0 -> showChangeProfileDialog()
                     1 -> showChangePinDialog()
                     2 -> showChangeEmailDialog()
-                    3 -> clearConfigCache()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun clearConfigCache() {
-        GitHubGameContentService().clearCache(this)
-        Toast.makeText(this, "Game/video fetch state cleared.", Toast.LENGTH_LONG).show()
-        loadMainContent()
     }
 
     private fun showAskForTimeDialog() {

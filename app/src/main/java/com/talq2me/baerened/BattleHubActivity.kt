@@ -553,30 +553,19 @@ class BattleHubActivity : AppCompatActivity() {
     }
     
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Old Style Main", "Change Profile", "Change PIN", "Change Parent Email", "Unlock Pokemon", "Clear game/video fetch state")
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Unlock Pokemon")
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Settings")
             .setItems(settingsOptions) { _, which ->
                 when (which) {
-                    0 -> {
-                        // Navigate to old MainActivity
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                    }
-                    1 -> showChangeProfileDialog()
-                    2 -> showChangePinDialog()
-                    3 -> showChangeEmailDialog()
-                    4 -> showUnlockPokemonDialog()
-                    5 -> clearConfigCache()
+                    0 -> showChangeProfileDialog()
+                    1 -> showChangePinDialog()
+                    2 -> showChangeEmailDialog()
+                    3 -> showUnlockPokemonDialog()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun clearConfigCache() {
-        GitHubGameContentService().clearCache(this)
-        android.widget.Toast.makeText(this, "Game/video fetch state cleared.", android.widget.Toast.LENGTH_LONG).show()
     }
     
     private fun showUnlockPokemonDialog() {
