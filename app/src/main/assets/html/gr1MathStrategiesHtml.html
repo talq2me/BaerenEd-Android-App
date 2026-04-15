@@ -106,13 +106,11 @@
     }
 
     function inferStrategy(problem) {
-      if (!problem) return "Grouping";
-      const { a, b, op } = problem;
-      if (op === "+" && a === b) return "Doubles";
-      if (op === "+" && Math.abs(a - b) <= 3) return "Near Doubles";
-      if (op === "+" && (a >= 8 || b >= 8) && a + b > 10) return "Make 10 / Grouping";
-      if (op === "-" && a >= 10) return "Grouping";
-      return "Grouping";
+      const helpful = getHelpfulStrategies(problem);
+      if (!helpful || helpful.length === 0) return "Grouping";
+      // Prefer make-10 for larger near-ten sums when multiple strategies are possible.
+      if (helpful.includes("Make 10 / Grouping")) return "Make 10 / Grouping";
+      return helpful[0];
     }
 
     function strategyHint(problem, strategy) {
@@ -156,21 +154,49 @@
     }
 
     function classifyQuestion(q) {
-      const s = inferStrategy(parsePrompt(q?.prompt?.text || ""));
+      const guidance = getQuestionGuidance(q);
+      const s = guidance.primaryStrategy;
       if (s === "Doubles") return "Doubles";
       if (s === "Near Doubles") return "Near Doubles";
       if (s === "Make 10 / Grouping") return "Make 10 / Grouping";
       return "Grouping";
     }
 
+    function getQuestionGuidance(q) {
+      const problem = parsePrompt(q?.prompt?.text || "");
+      const explicitHelpful = q?.strategyGuidance?.helpfulStrategies;
+      const helpfulStrategies = Array.isArray(explicitHelpful) && explicitHelpful.length > 0
+        ? explicitHelpful
+        : getHelpfulStrategies(problem);
+
+      const breakdowns = q?.strategyGuidance?.breakdowns || {};
+      const visuals = q?.strategyGuidance?.visuals || {};
+      const primaryStrategy = helpfulStrategies[0] || "Grouping";
+      return { problem, helpfulStrategies, breakdowns, visuals, primaryStrategy };
+    }
+
     function getHelpfulStrategies(problem) {
       if (!problem) return ["Grouping"];
       const { a, b, op } = problem;
-      if (op === "+" && a === b) return ["Doubles"];
-      if (op === "+" && Math.abs(a - b) <= 3) return ["Near Doubles", "Doubles"];
-      if (op === "+" && (a >= 8 || b >= 8) && a + b > 10) return ["Make 10 / Grouping", "Grouping"];
       if (op === "-") return ["Grouping"];
-      return ["Grouping"];
+      if (op !== "+") return ["Grouping"];
+
+      const diff = Math.abs(a - b);
+      const high = Math.max(a, b);
+      const sum = a + b;
+      const helpful = [];
+
+      // Exact doubles only when numbers match.
+      if (a === b) helpful.push("Doubles");
+
+      // Near doubles is strongest when numbers are close (±1 or ±2).
+      if (diff > 0 && diff <= 2) helpful.push("Near Doubles");
+
+      // Make-10 is very helpful for larger sums around ten/teens.
+      if (sum > 10 && high >= 8) helpful.push("Make 10 / Grouping");
+
+      if (helpful.length === 0) helpful.push("Grouping");
+      return [...new Set(helpful)];
     }
 
     function breakdownForStrategy(problem, strategy) {
@@ -260,6 +286,13 @@
           btn.classList.remove("helpful");
         }
       });
+    }
+
+    function helpfulStrategiesText(helpfulStrategies) {
+      if (!helpfulStrategies || helpfulStrategies.length === 0) return "Grouping";
+      if (helpfulStrategies.length === 1) return helpfulStrategies[0];
+      if (helpfulStrategies.length === 2) return `${helpfulStrategies[0]} or ${helpfulStrategies[1]}`;
+      return `${helpfulStrategies.slice(0, -1).join(", ")}, or ${helpfulStrategies[helpfulStrategies.length - 1]}`;
     }
 
     function buildMixedQuestionSet(allQuestions, desiredCount) {
@@ -356,9 +389,10 @@
       document.getElementById("answerSection").classList.add("hidden");
       document.getElementById("nextBtn").classList.add("hidden");
 
-      const inferred = inferStrategy(parsePrompt(q.prompt.text));
-      const helpfulStrategies = getHelpfulStrategies(parsePrompt(q.prompt.text));
+      const guidance = getQuestionGuidance(q);
+      const helpfulStrategies = guidance.helpfulStrategies;
       const strategies = shuffle(["Doubles", "Near Doubles", "Make 10 / Grouping", "Grouping"]);
+      updateStrategyButtonStates(helpfulStrategies);
 
       strategies.forEach(s => {
         const btn = document.createElement("button");
@@ -368,13 +402,14 @@
           if (strategyAnswered) return;
           const correct = helpfulStrategies.includes(s);
           const fb = document.getElementById("strategyFeedback");
-          const problem = parsePrompt(q.prompt.text);
+          const problem = guidance.problem;
 
           if (!correct) {
             fb.className = "feedback bad";
-            fb.textContent = "Let's try picking one of the helpful strategies for this question.";
+            const helpfulText = helpfulStrategiesText(helpfulStrategies);
+            fb.textContent = `Let's try one of these helpful strategies: ${helpfulText}.`;
             updateStrategyButtonStates(helpfulStrategies);
-            speakText("Let's try picking one of the helpful strategies for this question.");
+            speakText(`Let's try one of these helpful strategies: ${helpfulText}.`);
             return;
           }
 
@@ -385,9 +420,9 @@
           setText("score", `Score: ${score}`);
 
           updateStrategyButtonStates(helpfulStrategies, s);
-          explain.textContent = breakdownForStrategy(problem, s);
+          explain.textContent = guidance.breakdowns[s] || breakdownForStrategy(problem, s);
           explain.classList.remove("hidden");
-          mathPath.textContent = visualBreakdown(problem, s);
+          mathPath.textContent = guidance.visuals[s] || visualBreakdown(problem, s);
           mathPath.classList.remove("hidden");
           document.getElementById("answerSection").classList.remove("hidden");
           renderAnswers(q);
