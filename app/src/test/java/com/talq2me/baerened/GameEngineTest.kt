@@ -190,7 +190,7 @@ class GameEngineTest {
         try {
             val dpm = DailyProgressManager(mockContext)
             dpm.setProgressDataAfterFetch(
-                CloudUserData(profile = "AM", gameIndices = mapOf("testGame" to 5))
+                DbUserData(profile = "AM", gameIndices = mapOf("testGame" to 5))
             )
             assertEquals(5, dpm.getGameIndexFromCache("AM", "testGame"))
             val engine = GameEngine(mockContext, "testGame", questions, config)

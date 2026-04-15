@@ -102,7 +102,7 @@ class DailyProgressManagerTest {
     @Test
     fun `getBankedRewardMinutes returns current banked minutes`() {
         // Given: Session data has banked minutes (DailyProgressManager reads from session)
-        progressManager.setProgressDataAfterFetch(CloudUserData(profile = "AM", bankedMins = 20))
+        progressManager.setProgressDataAfterFetch(DbUserData(profile = "AM", bankedMins = 20))
 
         // When: Getting banked minutes
         val minutes = progressManager.getBankedRewardMinutes()
@@ -114,7 +114,7 @@ class DailyProgressManagerTest {
     @Test
     fun `setBankedRewardMinutes sets reward minutes`() {
         // Given: Session data exists (banked minutes are session-only; no prefs)
-        progressManager.setProgressDataAfterFetch(CloudUserData(profile = "AM", bankedMins = 0))
+        progressManager.setProgressDataAfterFetch(DbUserData(profile = "AM", bankedMins = 0))
 
         // When: Setting to 30 minutes
         progressManager.setBankedRewardMinutes(30)
@@ -126,7 +126,7 @@ class DailyProgressManagerTest {
     @Test
     fun `addRewardMinutes adds minutes to reward bank`() {
         // Given: Session data has initial minutes (getBankedRewardMinutes reads from session)
-        progressManager.setProgressDataAfterFetch(CloudUserData(profile = "AM", bankedMins = 5))
+        progressManager.setProgressDataAfterFetch(DbUserData(profile = "AM", bankedMins = 5))
 
         // When: Adding 10 minutes
         val newTotal = progressManager.addRewardMinutes(10)

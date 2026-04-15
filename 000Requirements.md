@@ -46,17 +46,17 @@ This document contains all requirements for the BaerenEd application.
   - Show **Pause Reward Time** when `reward_time_expiry` exists and is still in the future (active session).
   - Show **Use Reward Time** when there is no active session and `banked_mins > 0`.
   - Show no reward action button when there is no active session and `banked_mins = 0`.
-- **Start/Unpause (`use_reward_time`):**
+- **Start/Unpause (`af_reward_time_use`):**
   - DB function reads `banked_mins`, sets `reward_time_expiry = now(America/Toronto) + banked_mins`, then sets `banked_mins = 0`.
   - BaerenLock then allows reward apps.
-- **Pause (`pause_reward_time`):**
+- **Pause (`af_reward_time_pause`):**
   - BaerenLock removes/blocks reward apps immediately.
   - DB function calculates remaining time as `reward_time_expiry - now(America/Toronto)` in whole minutes, writes that back to `banked_mins`, and clears `reward_time_expiry`.
 - **Active session check:**
   - While a reward session is active, BaerenLock checks DB every minute.
-  - If `now(America/Toronto) >= reward_time_expiry`, BaerenLock blocks reward apps and calls `expire_rewards` to clear `reward_time_expiry`.
+  - If `now(America/Toronto) >= reward_time_expiry`, BaerenLock blocks reward apps and calls `af_reward_time_expire` to clear `reward_time_expiry`.
   - If `now(America/Toronto) < reward_time_expiry`, BaerenLock keeps reward apps available.
-- **Parent add-time behavior (`add_reward_time`):**
+- **Parent add-time behavior (`af_reward_time_add`):**
   - If `reward_time_expiry` is active/future, add minutes to `reward_time_expiry`.
   - If no active expiry, add minutes to `banked_mins`.
 

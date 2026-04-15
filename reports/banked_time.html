@@ -466,7 +466,7 @@
 
             try {
                 // Use RPC so active sessions extend reward_expiry and inactive sessions add to banked_mins.
-                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/add_reward_time`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_reward_time_add`, {
                     method: 'POST',
                     headers: {
                         'apikey': supabaseKey,
@@ -524,7 +524,7 @@
             if (!confirmed) return;
 
             try {
-                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/expire_rewards`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_reward_time_expire`, {
                     method: 'POST',
                     headers: {
                         'apikey': supabaseKey,

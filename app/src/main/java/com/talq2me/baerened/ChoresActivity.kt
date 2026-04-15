@@ -34,7 +34,7 @@ class ChoresActivity : AppCompatActivity() {
         choresListRight = findViewById(R.id.choresListRight)
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val resetResult = DailyResetAndSyncManager(this@ChoresActivity).dailyResetProcessAndSync(profile)
+            val resetResult = DbProfileSessionLoader(this@ChoresActivity).loadAfterDailyResetRpcThenApply(profile)
             if (resetResult.isFailure) {
                 val errMsg = resetResult.exceptionOrNull()?.message ?: "unknown error"
                 Log.e("ChoresActivity", "Failed to load chores for profile=$profile: $errMsg", resetResult.exceptionOrNull())
@@ -103,7 +103,7 @@ class ChoresActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 buildChoreRows()
             }
-            DailyResetAndSyncManager(this@ChoresActivity).advanceLocalTimestampForProfile(profile)
+            DbProfileSessionLoader(this@ChoresActivity).advanceLocalTimestampForProfile(profile)
         }
     }
 }

@@ -14,6 +14,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.talq2me.baerened.ProfileButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,7 +33,7 @@ import java.util.Locale
  * Layout manager class responsible for creating and managing UI layouts
  * for the MainActivity. This separates layout concerns from business logic.
  */
-class Layout(private val activity: MainActivity) {
+open class Layout(protected val activity: MainActivity) {
 
     private val TAG = "Layout"
 
@@ -81,15 +83,9 @@ class Layout(private val activity: MainActivity) {
         titleText.text = "$titleWithoutProfile v$version - $profileDisplay"
         titleText.visibility = View.VISIBLE
 
-        // Setup progress with dynamic calculation
-        if (content.progress != null) {
-            progressLayout.visibility = View.VISIBLE
-            setupProgress(content.progress, content)
-        } else {
-            progressLayout.visibility = View.GONE
-            // Always calculate totals from config to ensure correct caching
-            progressManager.calculateTotalsFromConfig(content)
-        }
+        // Progress display is DB/session-backed only.
+        progressLayout.visibility = View.VISIBLE
+        setupProgress(content.progress)
 
         // Display battle hub at the top (embedded WebView)
         setupBattleHub()
@@ -159,9 +155,6 @@ class Layout(private val activity: MainActivity) {
             Button("⚙ Settings", "settings")
         )
 
-        // Add internet-availability indicator (read-only)
-        addInternetIndicator()
-
         defaultButtons.forEach { button ->
             val btn = android.widget.Button(activity).apply {
                 text = button.label ?: "Button"
@@ -184,43 +177,6 @@ class Layout(private val activity: MainActivity) {
             }
             headerLayout.addView(btn)
         }
-    }
-
-    private fun isNetworkAvailable(): Boolean {
-        val cm = activity.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
-            ?: return false
-        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            val network = cm.activeNetwork ?: return false
-            val caps = cm.getNetworkCapabilities(network) ?: return false
-            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        } else {
-            @Suppress("DEPRECATION")
-            (cm.activeNetworkInfo?.isConnected == true)
-        }
-    }
-
-    /** Read-only indicator: shows whether internet is available (GitHub and Supabase need it). */
-    private fun addInternetIndicator() {
-        val online = isNetworkAvailable()
-        val indicator = android.widget.Button(activity).apply {
-            text = if (online) "🌐 Online" else "🌐 Offline"
-            textSize = 14f
-            isClickable = false
-            isFocusable = false
-            layoutParams = LinearLayout.LayoutParams(
-                100.dpToPx(),
-                70.dpToPx()
-            ).apply {
-                marginEnd = 12.dpToPx()
-            }
-            background = activity.resources.getDrawable(
-                if (online) R.drawable.button_rounded_success else R.drawable.button_rounded
-            )
-            setTextColor(activity.resources.getColor(android.R.color.white))
-            setPadding(8.dpToPx(), 8.dpToPx(), 8.dpToPx(), 8.dpToPx())
-        }
-        headerLayout.addView(indicator)
     }
 
     private fun addMyPokedexButton() {
@@ -246,9 +202,8 @@ class Layout(private val activity: MainActivity) {
         headerLayout.addView(pokedexButton)
     }
 
-    private fun setupProgress(progress: Progress, content: MainContent) {
-        // Use the provided content for accurate calculation
-        val progressData = progressManager.getCurrentProgressWithTotals(content)
+    private fun setupProgress(progress: Progress?) {
+        val progressData = progressManager.getCurrentProgressWithTotals()
         val earnedCoins = progressData.first.first
         val totalCoins = progressData.first.second
         val earnedStars = progressData.second.first
@@ -259,11 +214,11 @@ class Layout(private val activity: MainActivity) {
 
         val icons = IconConfigLoader.loadIconConfig(activity)
         val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
-        progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - ${progress.message ?: "Complete tasks to earn berries and time!"}"
+        progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - ${progress?.message ?: "Complete tasks to earn berries and time!"}"
         progressBar.max = totalStars.coerceAtLeast(1)
         progressBar.progress = earnedStars
 
-        if (progressManager.shouldShowPokemonUnlockButton(content)) {
+        if (progressManager.shouldShowPokemonUnlockButton()) {
             addPokemonButtonToProgressLayout()
         } else {
             removePokemonButtonFromProgressLayout()
@@ -281,52 +236,29 @@ class Layout(private val activity: MainActivity) {
     }
 
     private fun updateProgressDisplay() {
-        val currentContent = activity.getCurrentMainContent()
-        if (currentContent != null) {
-            // Get current progress with accurate calculation
-            val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
-            val earnedCoins = progressData.first.first
-            val totalCoins = progressData.first.second
-            val earnedStars = progressData.second.first
-            val totalStars = progressData.second.second
+        val progressData = progressManager.getCurrentProgressWithTotals()
+        val earnedCoins = progressData.first.first
+        val totalCoins = progressData.first.second
+        val earnedStars = progressData.second.first
+        val totalStars = progressData.second.second
+        val rewardMinutes = progressManager.getBankedRewardMinutes()
 
-            // Get actual banked reward minutes (not recalculated from stars)
-            val rewardMinutes = progressManager.getBankedRewardMinutes()
+        val icons = IconConfigLoader.loadIconConfig(activity)
+        val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
+        progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn berries and time!"
+        progressBar.max = totalStars.coerceAtLeast(1)
+        progressBar.progress = earnedStars
 
-            val icons = IconConfigLoader.loadIconConfig(activity)
-            val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
-            progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn berries and time!"
-            progressBar.max = totalStars.coerceAtLeast(1)
-            progressBar.progress = earnedStars
-
-            if (progressManager.shouldShowPokemonUnlockButton(currentContent)) {
-                addPokemonButtonToProgressLayout()
-            } else {
-                removePokemonButtonFromProgressLayout()
-            }
-
-            // Update Use Rewards button visibility
-            if (rewardMinutes > 0) {
-                addUseRewardsButtonToProgressLayout(rewardMinutes)
-            } else {
-                removeUseRewardsButtonFromProgressLayout()
-            }
+        if (progressManager.shouldShowPokemonUnlockButton()) {
+            addPokemonButtonToProgressLayout()
         } else {
-            // Fallback - use cached values but ensure they're calculated correctly
-            val progressData = progressManager.getCurrentProgressWithTotals()
-            val earnedCoins = progressData.first.first
-            val totalCoins = progressData.first.second
-            val earnedStars = progressData.second.first
-            val totalStars = progressData.second.second
+            removePokemonButtonFromProgressLayout()
+        }
 
-            // Get actual banked reward minutes (not recalculated from stars)
-            val rewardMinutes = progressManager.getBankedRewardMinutes()
-
-            val icons = IconConfigLoader.loadIconConfig(activity)
-            val coinsPart = if (totalCoins > 0) "$earnedCoins/$totalCoins" else "$earnedCoins"
-            progressText.text = "$coinsPart ${icons.coinsIcon} + $earnedStars ${icons.starsIcon} = $rewardMinutes mins - Complete tasks to earn berries and time!"
-            progressBar.max = totalStars.coerceAtLeast(1)
-            progressBar.progress = earnedStars
+        if (rewardMinutes > 0) {
+            addUseRewardsButtonToProgressLayout(rewardMinutes)
+        } else {
+            removeUseRewardsButtonFromProgressLayout()
         }
     }
 
@@ -418,9 +350,7 @@ class Layout(private val activity: MainActivity) {
                 val result = pm.markTaskCompletedWithName(
                     taskId,
                     taskTitle,
-                    stars,
-                    false,
-                    currentContentForVideo
+                    stars
                 )
                 withContext(Dispatchers.Main) {
                     result.fold(
@@ -432,8 +362,6 @@ class Layout(private val activity: MainActivity) {
                                     (section.id == "required" || section.id == "optional") &&
                                         section.tasks?.any { it.launch == taskId } == true
                                 } ?: false
-                                val sectionIdForRewards = if (isFromRequiredOrOptional) "optional" else null
-                                pm.grantRewardsForTaskCompletion(earnedStars, sectionIdForRewards)
                                 android.util.Log.d("Layout", "Video task $taskId ($taskTitle) completed, earned $earnedStars stars")
                                 Toast.makeText(activity, "🎥 Video completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
                                 if (isFromRequiredOrOptional) {
@@ -484,23 +412,18 @@ class Layout(private val activity: MainActivity) {
             val displayTitle = taskTitle ?: "Web Game: $actualTaskId"
             
             // Determine if task is required based on section ID
-            val isRequiredTask = sectionId == "required"
-            
             // Pass config and sectionId to markTaskCompletedWithName so it can track tasks separately per section
             // Use actualTaskId (without battleHub_ prefix) for completion tracking
             val result = progressManager.markTaskCompletedWithName(
                 actualTaskId,
                 displayTitle,
                 stars,
-                isRequiredTask,
-                currentContent,
                 sectionId
             )
 
             result.fold(
                 onSuccess = { earnedStars ->
                     if (earnedStars > 0) {
-                        progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
                         android.util.Log.d("Layout", "Web game completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
                         Toast.makeText(activity, "🎮 Web game completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
                         if (sectionId == "required" || sectionId == "optional") {
@@ -534,23 +457,18 @@ class Layout(private val activity: MainActivity) {
         android.util.Log.d(TAG, "handleChromePageCompletion: taskId=$taskId, taskTitle=$taskTitle, stars=$stars, sectionId=$sectionId")
 
         val currentContent = activity.getCurrentMainContent()
-        val isRequiredTask = sectionId == "required"
-
         activity.lifecycleScope.launch(Dispatchers.IO) {
             val pm = DailyProgressManager(activity)
             val result = pm.markTaskCompletedWithName(
                 taskId,
                 taskTitle,
                 stars,
-                isRequiredTask,
-                currentContent,
                 sectionId
             )
             withContext(Dispatchers.Main) {
                 result.fold(
                     onSuccess = { earnedStars ->
                         if (earnedStars > 0) {
-                            pm.grantRewardsForTaskCompletion(earnedStars, sectionId)
                             android.util.Log.d(TAG, "Chrome page completed (taskId=$taskId, section=$sectionId), earned $earnedStars stars")
                             Toast.makeText(activity, "🌐 Task completed! Earned $earnedStars stars!", Toast.LENGTH_LONG).show()
                             if (sectionId == "required" || sectionId == "optional") {
@@ -588,21 +506,17 @@ class Layout(private val activity: MainActivity) {
     ) {
         android.util.Log.d(TAG, "handleManualTaskCompletion: taskId=$taskId, sectionId=$sectionId, stars=$stars")
         val currentContent = activity.getCurrentMainContent()
-        val isRequiredTask = sectionId == "required"
         activity.lifecycleScope.launch(Dispatchers.IO) {
             val result = progressManager.markTaskCompletedWithName(
                 taskId,
                 taskTitle,
                 stars,
-                isRequiredTask,
-                currentContent,
                 sectionId
             )
             withContext(Dispatchers.Main) {
                 result.fold(
                     onSuccess = { earnedStars ->
                         if (earnedStars > 0) {
-                            progressManager.grantRewardsForTaskCompletion(earnedStars, sectionId)
                             android.util.Log.d(TAG, "Manual task completion awarded $earnedStars stars")
                             Toast.makeText(activity, completionMessage, Toast.LENGTH_LONG).show()
                         } else {
@@ -727,37 +641,20 @@ class Layout(private val activity: MainActivity) {
         val rewardMinutes = progressManager.getBankedRewardMinutes() // Use banked minutes directly
         android.util.Log.d("Layout", "useRewardMinutes: Retrieved $rewardMinutes banked reward minutes")
         if (rewardMinutes > 0) {
-            // Send progress report using the launcher - this will show the email app first,
-            // and then launch reward selection after the user returns from email
             try {
-                if (activity is MainActivity) {
-                    android.util.Log.d("Layout", "Sending report with $rewardMinutes minutes (will match BaerenLock Intent)")
-                    (activity as MainActivity).sendProgressReportForRewardTime(rewardMinutes.toInt())
-                } else {
-                    // Fallback if not MainActivity (shouldn't happen, but just in case)
-                    val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
-                        putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes.toInt())
-                    }
-                    activity.startActivity(intent)
+                val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
+                    putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes.toInt())
                 }
+                activity.startActivity(intent)
             } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error sending progress report when using reward time", e)
-                // If there's an error, still try to launch reward selection
-                try {
-                    val intent = Intent(activity, RewardSelectionActivity::class.java).apply {
-                        putExtra(RewardSelectionActivity.EXTRA_REWARD_MINUTES, rewardMinutes.toInt())
-                    }
-                    activity.startActivity(intent)
-                } catch (e2: Exception) {
-                    android.util.Log.e("Layout", "Error launching reward selection", e2)
-                }
+                android.util.Log.e("Layout", "Error launching reward selection", e)
             }
 
             // Refresh progress display to update the UI
             refreshProgressDisplay()
 
             // Show confirmation message
-            android.widget.Toast.makeText(activity, "📧 Sending progress report, then select a reward app! You have ${rewardMinutes.toInt()} minutes!", android.widget.Toast.LENGTH_LONG).show()
+            android.widget.Toast.makeText(activity, "Select a reward app! You have ${rewardMinutes.toInt()} minutes.", android.widget.Toast.LENGTH_LONG).show()
 
         } else {
             android.widget.Toast.makeText(activity, "No reward minutes to use!", android.widget.Toast.LENGTH_SHORT).show()
@@ -1639,9 +1536,6 @@ class Layout(private val activity: MainActivity) {
                             withContext(Dispatchers.Main) {
                                 result.fold(
                                     onSuccess = { earnedStars ->
-                                        if (earnedStars > 0) {
-                                            progressManager.grantRewardsForTaskCompletion(earnedStars, "required")
-                                        }
                                         updateProgressDisplay()
                                         post {
                                             isEnabled = false
@@ -2051,91 +1945,65 @@ class Layout(private val activity: MainActivity) {
         gymMapWebView?.reload()
     }
     
-    // JavaScript interface for gym map
+    // JavaScript interface for gym map (af_get_tasks_required RPC only; no dashboard JSON)
     inner class GymMapInterface {
-        @android.webkit.JavascriptInterface
-        fun getConfigJson(): String {
-            return try {
-                val contentUpdateService = com.talq2me.baerened.ContentUpdateService()
-                val cachedContent = contentUpdateService.getCachedMainContent(activity)
-                if (cachedContent != null) {
-                    android.util.Log.d("Layout", "Returning cached config for gym map")
-                    cachedContent
-                } else {
-                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "AM"
-                    val configFileName = "${profile}_config.json"
-                    activity.assets.open("config/$configFileName").bufferedReader().use { it.readText() }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error getting config JSON for gym map", e)
-                "{}"
-            }
-        }
-        
         @android.webkit.JavascriptInterface
         fun getCompletedTasks(): String {
             return try {
-                val completedTasksMap = progressManager.getCompletedTasksMap("required")
-                val completedTasks = completedTasksMap.filter { it.value }.keys.toList()
-                com.google.gson.Gson().toJson(completedTasks)
+                runBlocking(Dispatchers.IO) {
+                    val profile = SettingsManager.readProfile(activity) ?: "AM"
+                    val res = SupabaseInterface().invokeAfGetRequiredTasksRows(profile)
+                    val arr = res.getOrNull() ?: return@runBlocking "[]"
+                    val launches = TrainerMapTaskMerge.parseRows(arr)
+                        .filter { it.completionStatus == "complete" && !it.launch.isNullOrBlank() }
+                        .map { it.launch!!.trim() }
+                    Gson().toJson(launches)
+                }
             } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error getting completed tasks", e)
+                android.util.Log.e("Layout", "gym getCompletedTasks RPC", e)
                 "[]"
             }
         }
-        
+
         @android.webkit.JavascriptInterface
         fun getRequiredTasks(): String {
             return try {
-                // Use the same method the main page uses to get required tasks
-                val currentContent = activity.getCurrentMainContent()
-                if (currentContent != null) {
-                    val requiredSection = currentContent.sections?.find { it.id == "required" }
-                    // Filter tasks the same way the main page does - only show tasks visible today
-                    val requiredTasks = requiredSection?.tasks?.filter { task ->
-                        task.title != null && 
-                        task.launch != null && 
-                        TaskVisibilityChecker.isTaskVisible(task)
-                    } ?: emptyList()
-                    android.util.Log.d("Layout", "Returning ${requiredTasks.size} visible required tasks for gym map (out of ${requiredSection?.tasks?.size ?: 0} total)")
-                    com.google.gson.Gson().toJson(requiredTasks)
-                } else {
-                    android.util.Log.w("Layout", "No current content available for gym map")
-                    "[]"
+                runBlocking(Dispatchers.IO) {
+                    val profile = SettingsManager.readProfile(activity) ?: "AM"
+                    val res = SupabaseInterface().invokeAfGetRequiredTasksRows(profile)
+                    val arr = res.getOrNull() ?: return@runBlocking "[]"
+                    val ja = JsonArray()
+                    for (r in TrainerMapTaskMerge.parseRows(arr)) {
+                        if (r.launch.isNullOrBlank()) continue
+                        val o = JsonObject()
+                        o.addProperty("title", r.taskName)
+                        o.addProperty("launch", r.launch)
+                        o.addProperty("stars", r.berryValue)
+                        ja.add(o)
+                    }
+                    Gson().toJson(ja)
                 }
             } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error getting required tasks", e)
+                android.util.Log.e("Layout", "gym getRequiredTasks RPC", e)
                 "[]"
             }
         }
-        
+
         @android.webkit.JavascriptInterface
         fun launchGame(gameId: String) {
-            android.util.Log.d("Layout", "JavaScript requested to launch game from gym map: $gameId")
-            activity.runOnUiThread {
-                // Launch game from gym map (same logic as battle hub)
-                val currentContent = activity.getCurrentMainContent() ?: return@runOnUiThread
-                
-                var taskToLaunch: com.talq2me.baerened.Task? = null
-                var sectionId: String? = null
-                
-                currentContent.sections?.forEach { section ->
-                    section.tasks?.forEach { task ->
-                        if (task.launch == gameId) {
-                            taskToLaunch = task
-                            sectionId = section.id
-                            return@forEach
-                        }
+            android.util.Log.d("Layout", "Gym map launch: $gameId")
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                val profile = SettingsManager.readProfile(activity) ?: "AM"
+                val arr = SupabaseInterface().invokeAfGetRequiredTasksRows(profile).getOrNull()
+                val row = arr?.let { TrainerMapTaskMerge.parseRows(it).find { r -> r.launch?.trim() == gameId.trim() } }
+                val task = row?.let { TrainerMapTaskMerge.taskFromDbRow(it) }
+                withContext(Dispatchers.Main) {
+                    if (task == null) {
+                        android.util.Log.w("Layout", "Gym map: no RPC row for launch=$gameId")
+                        Toast.makeText(activity, "Task not found: $gameId", Toast.LENGTH_SHORT).show()
+                    } else {
+                        launchTaskFromBattleHub(task, "required", "gymMap_$gameId")
                     }
-                }
-                
-                if (taskToLaunch != null && sectionId != null) {
-                    android.util.Log.d("Layout", "Found task for gym map: ${taskToLaunch.title}, totalQuestions=${taskToLaunch.totalQuestions}, stars=${taskToLaunch.stars}")
-                    // Use battleHubTaskId prefix to track that it came from gym map
-                    val gymMapTaskId = "gymMap_$gameId"
-                    launchTaskFromBattleHub(taskToLaunch, sectionId, gymMapTaskId)
-                } else {
-                    android.util.Log.w("Layout", "Task not found for gameId: $gameId")
                 }
             }
         }
@@ -2177,52 +2045,9 @@ class Layout(private val activity: MainActivity) {
             }
         }
         
+        /** Battle hub UI uses [getTotalStars] / [getEarnedStars] / Pokemon bridges, not task lists from parent JSON. */
         @android.webkit.JavascriptInterface
-        fun launchGame(gameId: String) {
-            android.util.Log.d("Layout", "JavaScript requested to launch game: $gameId")
-            activity.runOnUiThread {
-                // Launch game from battle hub (same logic as before)
-                val currentContent = activity.getCurrentMainContent() ?: return@runOnUiThread
-                
-                var taskToLaunch: com.talq2me.baerened.Task? = null
-                var sectionId: String? = null
-                
-                currentContent.sections?.forEach { section ->
-                    section.tasks?.forEach { task ->
-                        if (task.launch == gameId) {
-                            taskToLaunch = task
-                            sectionId = section.id
-                            return@forEach
-                        }
-                    }
-                }
-                
-                if (taskToLaunch != null && sectionId != null) {
-                    launchTaskFromBattleHub(taskToLaunch!!, sectionId, "battleHub_$gameId")
-                } else {
-                    android.widget.Toast.makeText(activity, "Game not found: $gameId", android.widget.Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-        
-        @android.webkit.JavascriptInterface
-        fun getConfigJson(): String {
-            return try {
-                val contentUpdateService = com.talq2me.baerened.ContentUpdateService()
-                val cachedContent = contentUpdateService.getCachedMainContent(activity)
-                if (cachedContent != null) {
-                    android.util.Log.d("Layout", "Returning cached config")
-                    cachedContent
-                } else {
-                    val profile = com.talq2me.baerened.SettingsManager.readProfile(activity) ?: "AM"
-                    val configFileName = "${profile}_config.json"
-                    activity.assets.open("config/$configFileName").bufferedReader().use { it.readText() }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error getting config JSON", e)
-                "{}"
-            }
-        }
+        fun getConfigJson(): String = "{}"
         
         @android.webkit.JavascriptInterface
         fun setEarnedBerries(amount: Int) {
@@ -2286,32 +2111,15 @@ class Layout(private val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun getTotalStars(): Int {
             return try {
-                val currentContent = activity.getCurrentMainContent()
-                if (currentContent != null) {
-                    val (_, totalStars) = DailyProgressManager(activity).calculateTotalsFromConfig(currentContent)
-                    totalStars
-                } else {
-                    100 // Fallback default
-                }
+                DailyProgressManager(activity).getPossibleStarsFromSession()
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error getting total stars", e)
-                100 // Fallback default
+                0
             }
         }
         
         @android.webkit.JavascriptInterface
-        fun getIconConfig(): String {
-            return try {
-                val inputStream = activity.assets.open("config/icon_config.json")
-                val configJson = inputStream.bufferedReader().use { it.readText() }
-                inputStream.close()
-                configJson
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error loading icon config", e)
-                // Return default config
-                """{"starsIcon":"🍍","coinsIcon":"🪙"}"""
-            }
-        }
+        fun getIconConfig(): String = """{"starsIcon":"🍍","coinsIcon":"🪙"}"""
         
         @android.webkit.JavascriptInterface
         fun navigateToTrainingMap() {
@@ -2330,18 +2138,10 @@ class Layout(private val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun getEarnedStars(): Int {
             return try {
-                val currentContent = activity.getCurrentMainContent()
-                if (currentContent != null) {
-                    val progressManager = DailyProgressManager(activity)
-                    val progressData = progressManager.getCurrentProgressWithTotals(currentContent)
-                    val earnedStars = progressData.second.first // Get earned stars from the same method as daily homework dashboard
-                    earnedStars
-                } else {
-                    0 // Fallback default
-                }
+                DailyProgressManager(activity).getEarnedBerries()
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error getting earned stars", e)
-                0 // Fallback default
+                0
             }
         }
         
@@ -2349,12 +2149,6 @@ class Layout(private val activity: MainActivity) {
         fun navigateToNativeBattleHub() {
             activity.runOnUiThread {
                 val intent = android.content.Intent(activity, BattleHubActivity::class.java)
-                // Pass MainContent as JSON string extra so BattleHubActivity can use it
-                val currentContent = activity.getCurrentMainContent()
-                if (currentContent != null) {
-                    val jsonString = Gson().toJson(currentContent)
-                    intent.putExtra("mainContentJson", jsonString)
-                }
                 activity.startActivity(intent)
             }
         }
@@ -2392,8 +2186,6 @@ class Layout(private val activity: MainActivity) {
                                 tId,
                                 task.title ?: "Test Task",
                                 starsToGrant,
-                                true,
-                                currentContent,
                                 "required"
                             )
                             if (res.isFailure) {
@@ -2410,7 +2202,6 @@ class Layout(private val activity: MainActivity) {
                             if (earnedStars > 0) {
                                 remainingAmount -= earnedStars
                                 tasksMarked++
-                                progressManager.addStarsToRewardBank(earnedStars)
                             }
                         }
                         while (remainingAmount > 0) {
@@ -2420,8 +2211,6 @@ class Layout(private val activity: MainActivity) {
                                 testTaskId,
                                 "Test Berries & Coins",
                                 testStars,
-                                true,
-                                currentContent,
                                 "required"
                             )
                             if (res.isFailure) {
@@ -2438,7 +2227,6 @@ class Layout(private val activity: MainActivity) {
                             if (earnedStars > 0) {
                                 remainingAmount -= earnedStars
                                 tasksMarked++
-                                progressManager.addStarsToRewardBank(earnedStars)
                             } else {
                                 break
                             }
@@ -2459,10 +2247,10 @@ class Layout(private val activity: MainActivity) {
                             ).show()
                         }
                     } else {
-                        val totalRewardMinutes = progressManager.addStarsToRewardBank(amount)
+                        val totalRewardMinutes = progressManager.getBankedRewardMinutes()
                         android.util.Log.d(
                             "Layout",
-                            "No incomplete tasks, granted $amount stars to reward bank only, total: $totalRewardMinutes"
+                            "No incomplete tasks to convert for test berries flow, total: $totalRewardMinutes"
                         )
                         withContext(Dispatchers.Main) {
                             refreshProgressDisplay()
@@ -2470,7 +2258,7 @@ class Layout(private val activity: MainActivity) {
                             refreshBattleHub()
                             Toast.makeText(
                                 activity,
-                                "Granted $amount berries (all tasks completed)! Total: $totalRewardMinutes minutes",
+                                "No incomplete required tasks found. Total: $totalRewardMinutes minutes",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -2715,81 +2503,67 @@ class Layout(private val activity: MainActivity) {
         return container
     }
     
+    protected open suspend fun prepareEmbeddedTrainerMap(
+        @Suppress("UNUSED_PARAMETER") currentContent: MainContent,
+        mapType: String,
+        sessionCompletionMap: MutableMap<String, Boolean>
+    ): TrainerMapTaskMerge.PrepareTrainerMapResult {
+        val profile = SettingsManager.readProfile(activity) ?: "AM"
+        return TrainerMapTaskMerge.prepareFromDbStrict(
+            mapType,
+            profile,
+            sessionCompletionMap,
+            SupabaseInterface()
+        )
+    }
+
+    protected open fun onEmbeddedTrainerMapLoadFailed(progressInfo: TextView, error: Throwable) {
+        progressInfo.text = error.message ?: "Could not load map"
+        android.app.AlertDialog.Builder(activity)
+            .setTitle("Could not load map")
+            .setMessage(error.message ?: "Check your connection and try again.")
+            .setPositiveButton("Retry") { _, _ -> refreshTrainingMap() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun loadTasksIntoMap(mapContainer: RelativeLayout, progressInfo: TextView, mapType: String) {
         val currentContent = activity.getCurrentMainContent() ?: return
-        val completedTasksMap = progressManager.getCompletedTasksMap(mapType).toMutableMap()
-        
-        // Get tasks for this map type
-        val section = currentContent.sections?.find { it.id == mapType }
-        val tasks = section?.tasks?.filter { task ->
-            task.title != null && 
-            task.launch != null && 
-            TaskVisibilityChecker.isTaskVisible(task)
-        } ?: emptyList()
-        
-        if (tasks.isEmpty()) {
-            progressInfo.text = "No ${mapType} tasks available"
-            return
-        }
-        
-        // Clear existing gyms
-        mapContainer.removeAllViews()
-        
-        // For bonus tasks, never grey out (always enabled)
-        // For optional tasks, check if all are completed - if so, reset them all (practice tasks stored by task title)
-        if (mapType == "optional") {
-            val allCompleted = tasks.all { task ->
-                val taskTitle = task.title ?: ""
-                val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
-                completedTasksMap[keyForOptional] == true
-            }
-            
-            // If all optional tasks are completed, reset them all (never ending)
-            if (allCompleted && tasks.isNotEmpty()) {
-                // Reset is handled in DB by af_update_practice_task; refetch/refresh will show updated state
-                completedTasksMap.clear()
-                completedTasksMap.putAll(progressManager.getCompletedTasksMap("optional"))
-            }
-        }
-        
-        // Calculate progress
-        val completedCount = tasks.count { task ->
-            val baseTaskId = task.launch ?: ""
-            val taskTitle = task.title ?: ""
-            // For diagramLabeler and similar games with URL parameters, check for unique taskId
-            var taskId = if (mapType == "required") {
-                baseTaskId
-            } else {
-                "${mapType}_$baseTaskId"
-            }
-            // Required and optional (practice) are keyed by task title in DB; bonus by section_taskId
-            val keyForCount = when {
-                mapType == "required" -> if (taskTitle.isNotEmpty()) taskTitle else baseTaskId
-                mapType == "optional" -> if (taskTitle.isNotEmpty()) taskTitle else taskId
-                else -> taskId
-            }
-            // Check if this is a diagramLabeler task and if there's a unique ID with diagram parameter
-            if (baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                val originalUrl = task.url
-                if (originalUrl.contains("diagram=")) {
-                    val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                    if (diagramParam.isNotEmpty()) {
-                        val uniqueTaskId = if (mapType == "required") {
-                            "${baseTaskId}_$diagramParam"
-                        } else {
-                            "${mapType}_${baseTaskId}_$diagramParam"
+        progressInfo.text = "Loading tasks..."
+        activity.lifecycleScope.launch {
+            val sessionCompletionMap = progressManager.getCompletedTasksMap(mapType).toMutableMap()
+            when (val prep = prepareEmbeddedTrainerMap(currentContent, mapType, sessionCompletionMap)) {
+                is TrainerMapTaskMerge.PrepareTrainerMapResult.NoTasks -> {
+                    progressInfo.text = prep.message
+                    mapContainer.removeAllViews()
+                    return@launch
+                }
+                is TrainerMapTaskMerge.PrepareTrainerMapResult.Failed -> {
+                    mapContainer.removeAllViews()
+                    onEmbeddedTrainerMapLoadFailed(progressInfo, prep.error)
+                    return@launch
+                }
+                is TrainerMapTaskMerge.PrepareTrainerMapResult.Ready -> {
+                    val tasks = prep.tasks
+                    val completedTasksMap = prep.sessionCompletionMap
+                    val dbCompletionByTitle = prep.dbCompletionByTitle
+                    mapContainer.removeAllViews()
+                    if (mapType == "optional" && dbCompletionByTitle == null) {
+                        val allCompleted = tasks.all { task ->
+                            val taskTitle = task.title ?: ""
+                            val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
+                            completedTasksMap[keyForOptional] == true
                         }
-                        if (completedTasksMap[uniqueTaskId] == true) {
-                            return@count true
+                        if (allCompleted && tasks.isNotEmpty()) {
+                            completedTasksMap.clear()
+                            completedTasksMap.putAll(progressManager.getCompletedTasksMap("optional"))
                         }
                     }
-                }
-            }
+                    val completedCount = tasks.count { task ->
+                        TrainerMapTaskMerge.isCompletedOnMap(task, mapType, completedTasksMap, dbCompletionByTitle)
+                    }
+                    progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
 
-            completedTasksMap[keyForCount] == true
-        }
-        progressInfo.text = "${mapType.capitalize()} Training: $completedCount / ${tasks.size} completed"
-        
         // Generate random positions for gyms
         val density = activity.resources.displayMetrics.density
         val mapWidth = mapContainer.width.takeIf { it > 0 } ?: (activity.resources.displayMetrics.widthPixels - (32 * density).toInt())
@@ -2809,41 +2583,9 @@ class Layout(private val activity: MainActivity) {
         val gymButtons = mutableListOf<Pair<View, Pair<Int, Int>>>()
         
         tasks.forEachIndexed { index, task ->
-            val baseTaskId = task.launch ?: ""
-            val taskTitle = task.title ?: ""
-            // For diagramLabeler and similar games with URL parameters, check for unique taskId
-            var taskId = if (mapType == "required") {
-                baseTaskId
-            } else {
-                "${mapType}_$baseTaskId"
-            }
-            // Required and optional (practice) are keyed by task title in DB; bonus uses section-prefixed id
-            val keyForCompleted = when {
-                mapType == "bonus" -> taskId
-                taskTitle.isNotEmpty() -> taskTitle
-                mapType == "required" -> baseTaskId
-                else -> taskId
-            }
-            // Check if this is a diagramLabeler task and if there's a unique ID with diagram parameter
-            // For bonus tasks, never mark as completed (always enabled, never grey out)
-            var isCompleted = if (mapType == "bonus") false else completedTasksMap[keyForCompleted] == true
-            if (!isCompleted && baseTaskId == "diagramLabeler" && !task.url.isNullOrEmpty()) {
-                // Extract diagram parameter directly from URL (don't need to call getGameModeUrl for checking)
-                val originalUrl = task.url
-                if (originalUrl.contains("diagram=")) {
-                    val diagramParam = originalUrl.substringAfter("diagram=").substringBefore("&").substringBefore("#")
-                    if (diagramParam.isNotEmpty()) {
-                        val uniqueTaskId = if (mapType == "required") {
-                            "${baseTaskId}_$diagramParam"
-                        } else {
-                            "${mapType}_${baseTaskId}_$diagramParam"
-                        }
-                        // Check both the unique ID and the base ID (for backward compatibility)
-                        // For bonus tasks, never mark as completed
-                        isCompleted = if (mapType == "bonus") false else (completedTasksMap[uniqueTaskId] == true || completedTasksMap[keyForCompleted] == true)
-                    }
-                }
-            }
+            val isCompleted = TrainerMapTaskMerge.isCompletedOnMap(
+                task, mapType, completedTasksMap, dbCompletionByTitle
+            )
             
             // Generate random position (with padding from edges)
             var x: Int
@@ -3009,6 +2751,9 @@ class Layout(private val activity: MainActivity) {
                         }
                         it.addView(showOptionalButton, mapIndex + 1)
                     }
+                }
+            }
+        }
                 }
             }
         }

@@ -1,3 +1,6 @@
+-- Call sites (BaerenEd Android, this repo):
+--   SupabaseInterface.invokeAfUpdateGameIndex; DailyProgressManager (SingleItemUpdate.GameIndex).
+
 -- BaerenEd: Update a single key in game_indices for a profile (scalar params only).
 -- If the game key is not yet in the JSON, it is added (new games get an entry on first play).
 -- Call: POST /rest/v1/rpc/af_update_game_index with body {"p_profile": "TE", "p_game_key": "spellingRace", "p_index": 2}

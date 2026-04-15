@@ -23,7 +23,7 @@ import java.util.Calendar
  */
 class TaskLauncher(
     private val context: Context,
-    private val contentUpdateService: ContentUpdateService
+    private val contentUpdateService: GitHubGameContentService
 ) {
     companion object {
         private const val TAG = "TaskLauncher"

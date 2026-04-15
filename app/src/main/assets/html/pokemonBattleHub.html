@@ -978,7 +978,6 @@
         // - Android.getUnlockedPokemonCount() -> returns number
         // - Android.getPokemonFileList() -> returns JSON string array of filenames
         // - Android.unlockPokemon(count) -> unlocks count Pokemon
-        // - Android.launchGame(gameId) -> launches educational game
         function loadPokemonData() {
             // Get unlocked count from Android or localStorage
             if (isAndroidWebView() && typeof Android.getUnlockedPokemonCount === 'function') {
@@ -1109,9 +1108,7 @@
         // Game state
         let gameState = {
             earnedStars: 0, // Will be updated from Android to match daily homework dashboard
-            totalStars: 100, // Will be updated from Android to match total stars
-            requiredGames: [],
-            optionalGames: []
+            totalStars: 100 // Will be updated from Android to match total stars
         };
 
         // Load state from Android (earned stars from daily homework dashboard)
@@ -1150,87 +1147,10 @@
             toggle.classList.toggle('collapsed');
         }
 
-        // Load games from config
-        function loadGamesFromConfig() {
-            try {
-                let configJson = '{}';
-                
-                // Try to get config from Android interface
-                if (isAndroidWebView() && typeof Android.getConfigJson === 'function') {
-                    configJson = Android.getConfigJson();
-                } else {
-                    // Browser fallback: try to load from localStorage or use defaults
-                    const savedConfig = localStorage.getItem('battleHubConfig');
-                    if (savedConfig) {
-                        configJson = savedConfig;
-                    } else {
-                        // Use hardcoded defaults for browser testing
-                        gameState.requiredGames = [
-                            { title: 'Google Read Along', launch: 'googleReadAlong', berries: 20 },
-                            { title: 'Duological', launch: 'duologicalGame', berries: 20 },
-                            { title: 'Translation', launch: 'translation', berries: 20 },
-                            { title: 'French Stories', launch: 'frenchStories', berries: 20 },
-                            { title: 'Times Tables', launch: 'timesTables', berries: 20 }
-                        ];
-                        gameState.optionalGames = [
-                            { title: 'Word Garden', launch: 'wordGarden', berries: 10 },
-                            { title: 'Potion Maker', launch: 'potionMaker', berries: 10 },
-                            { title: 'Spelling Race', launch: 'spellingRace', berries: 10 }
-                        ];
-                        return;
-                    }
-                }
-                
-                const config = JSON.parse(configJson);
-                
-                // Extract required games from "required" section
-                const requiredSection = config.sections?.find(s => s.id === 'required');
-                if (requiredSection && requiredSection.tasks) {
-                    gameState.requiredGames = requiredSection.tasks
-                        .filter(task => task.title && task.launch)
-                        .map(task => ({
-                            title: task.title,
-                            launch: task.launch,
-                            berries: (task.stars || 3) // 1 star = 1 berry
-                        }));
-                }
-                
-                // Extract optional games from "optional" section
-                const optionalSection = config.sections?.find(s => s.id === 'optional');
-                if (optionalSection && optionalSection.tasks) {
-                    gameState.optionalGames = optionalSection.tasks
-                        .filter(task => task.title && task.launch)
-                        .map(task => ({
-                            title: task.title,
-                            launch: task.launch,
-                            berries: (task.stars || 3) // 1 star = 1 berry
-                        }));
-                }
-                
-                console.log('Loaded games from config:', {
-                    required: gameState.requiredGames.length,
-                    optional: gameState.optionalGames.length
-                });
-            } catch (e) {
-                console.error('Error loading games from config:', e);
-                // Use fallback defaults
-                gameState.requiredGames = [
-                    { title: 'Google Read Along', launch: 'googleReadAlong', berries: 20 },
-                    { title: 'Duological', launch: 'duologicalGame', berries: 20 },
-                    { title: 'Translation', launch: 'translation', berries: 20 }
-                ];
-                gameState.optionalGames = [
-                    { title: 'Word Garden', launch: 'wordGarden', berries: 10 },
-                    { title: 'Potion Maker', launch: 'potionMaker', berries: 10 }
-                ];
-            }
-        }
-
         // Initialize
         function init() {
             loadState();
-            loadGamesFromConfig(); // Load games from config first
-            
+
             // Get total stars from Android to set totalStars
             if (isAndroidWebView() && typeof Android.getTotalStars === 'function') {
                 try {
@@ -1414,68 +1334,6 @@
                 button.style.animation = 'glow 1s infinite alternate';
             } else {
                 button.style.animation = 'none';
-            }
-        }
-
-        // Show Games List
-        function showGamesList() {
-            const list = document.getElementById('gamesList');
-            const container = document.getElementById('gamesContainer');
-            
-            container.innerHTML = '';
-            
-            // Add required games
-            const requiredTitle = document.createElement('h4');
-            requiredTitle.textContent = 'Required Tasks:';
-            requiredTitle.style.color = '#e74c3c';
-            requiredTitle.style.marginTop = '10px';
-            container.appendChild(requiredTitle);
-            
-            gameState.requiredGames.forEach(game => {
-                const item = document.createElement('div');
-                item.className = 'game-item';
-                item.innerHTML = `🎮 ${game.title} (+${game.berries} ${iconConfig.starsIcon})`;
-                item.onclick = () => launchGame(game);
-                container.appendChild(item);
-            });
-
-            // Add optional games
-            const optionalTitle = document.createElement('h4');
-            optionalTitle.textContent = 'Optional Tasks:';
-            optionalTitle.style.color = '#3498db';
-            optionalTitle.style.marginTop = '20px';
-            container.appendChild(optionalTitle);
-            
-            gameState.optionalGames.forEach(game => {
-                const item = document.createElement('div');
-                item.className = 'game-item';
-                item.innerHTML = `🎮 ${game.title} (+${game.berries} ${iconConfig.starsIcon})`;
-                item.onclick = () => launchGame(game);
-                container.appendChild(item);
-            });
-
-            list.style.display = list.style.display === 'none' ? 'block' : 'none';
-        }
-
-        // Launch Game
-        function launchGame(game) {
-            // Keep games list open so user can easily pick another game
-            // Don't hide the list - let user close it manually if they want
-            
-            // Try to use Android interface if available
-            if (isAndroidWebView() && typeof Android.launchGame === 'function') {
-                Android.launchGame(game.launch);
-            } else {
-                // Browser mode: simulate game completion for testing
-                alert(`Launching ${game.title}...\n\nIn the app, this will open the game.\n\nSimulating completion for browser testing.`);
-                // Simulate earning stars after game completion (for browser testing)
-                setTimeout(() => {
-                    gameState.earnedStars = Math.min(gameState.earnedStars + game.berries, gameState.totalStars);
-                    saveState();
-                    updateBerryMeter();
-                    updateBattleArena();
-                    updateBattleButton();
-                }, 2000);
             }
         }
 
@@ -1873,8 +1731,7 @@
             if (isAndroidWebView() && typeof Android.navigateToTrainingMap === 'function') {
                 Android.navigateToTrainingMap();
             } else {
-                // Browser fallback: show games list inline
-                showGamesList();
+                alert('Training map navigation is only available in Android app');
             }
         }
         
@@ -1883,8 +1740,7 @@
             if (isAndroidWebView() && typeof Android.navigateToOptionalTrainingMap === 'function') {
                 Android.navigateToOptionalTrainingMap();
             } else {
-                // Browser fallback: show games list inline
-                showGamesList();
+                alert('Optional training map navigation is only available in Android app');
             }
         }
         

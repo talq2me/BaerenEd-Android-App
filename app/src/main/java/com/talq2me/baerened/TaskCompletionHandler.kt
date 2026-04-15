@@ -24,17 +24,13 @@ class TaskCompletionHandler(
         taskId: String,
         taskTitle: String,
         stars: Int,
-        sectionId: String?,
-        config: MainContent? = null
+        sectionId: String?
     ): Result<CompletionResult> {
-        val isRequiredTask = sectionId == "required"
         return runBlocking(Dispatchers.IO) {
             progressManager.markTaskCompletedWithName(
                 taskId,
                 taskTitle,
                 stars,
-                isRequiredTask,
-                config,
                 sectionId
             ).map { earnedStars ->
                 CompletionResult(
@@ -49,14 +45,8 @@ class TaskCompletionHandler(
         taskId: String,
         taskTitle: String,
         stars: Int,
-        sectionId: String?,
-        config: MainContent? = null
+        sectionId: String?
     ): Result<CompletionResult> {
-        return handleCompletion(taskId, taskTitle, stars, sectionId, config).map { result ->
-            if (result.earnedStars > 0) {
-                progressManager.grantRewardsForTaskCompletion(result.earnedStars, sectionId)
-            }
-            result
-        }
+        return handleCompletion(taskId, taskTitle, stars, sectionId)
     }
 }

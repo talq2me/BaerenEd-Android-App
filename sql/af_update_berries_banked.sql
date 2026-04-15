@@ -1,3 +1,6 @@
+-- Call sites (BaerenEd Android, this repo):
+--   SupabaseInterface.invokeAfUpdateBerriesBanked; BattleHubActivity (post-battle berry sync).
+
 -- BaerenEd: Update berries_earned and optionally banked_mins for a profile (scalar params only).
 -- Call when berries/banked change without a task completion (e.g. battle spend, reset).
 --

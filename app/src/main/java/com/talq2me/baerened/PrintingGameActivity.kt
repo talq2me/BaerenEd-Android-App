@@ -170,15 +170,12 @@ class PrintingGameActivity : AppCompatActivity() {
         val totalStars = wordStars.values.sum()
         lifecycleScope.launch(Dispatchers.IO) {
             val result = progressManager.markTaskCompletedWithName(
-                gameType, gameTitle, gameStars, isRequiredGame, null, sectionId
+                gameType, gameTitle, gameStars, sectionId
             )
             withContext(Dispatchers.Main) {
                 result.fold(
                     onSuccess = { earnedStars ->
                         if (earnedStars > 0) {
-                            val effectiveSectionId =
-                                if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
-                            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
                             timeTracker.updateStarsEarned("game", earnedStars)
                         }
                         if (battleHubTaskId != null) {

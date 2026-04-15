@@ -14,7 +14,6 @@ import android.widget.TextView
 import android.widget.Toast
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -27,10 +26,12 @@ import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.util.*
+import kotlin.coroutines.resume
 
 class SpellingOCRActivity : AppCompatActivity() {
     private lateinit var drawingCanvas: DrawingCanvasView
@@ -74,6 +75,7 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     // Writing mode (printing vs cursive)
     private var isPrintingMode = true
+    private var isCheckingSpelling = false
     
     data class WordData(val word: String, val sentence: String)
     
@@ -152,7 +154,7 @@ class SpellingOCRActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 // Same strategy as Word Garden: fetch from GitHub first (cache-bust), then cache, then assets
-                val contentUpdateService = ContentUpdateService()
+                val contentUpdateService = GitHubGameContentService()
                 val json = contentUpdateService.fetchGameContent(this@SpellingOCRActivity, fileName)
                 if (json.isNullOrEmpty()) {
                     withContext(Dispatchers.Main) {
@@ -307,6 +309,12 @@ class SpellingOCRActivity : AppCompatActivity() {
     }
     
     private fun checkSpelling() {
+        if (isCheckingSpelling) {
+            return
+        }
+        if (currentWordIndex >= words.size) {
+            return
+        }
         val wordData = words[currentWordIndex]
         val drawing = drawingCanvas.getDrawingBitmap()
         
@@ -315,38 +323,44 @@ class SpellingOCRActivity : AppCompatActivity() {
             return
         }
         
-        // Disable check button during processing
+        // Disable check button during processing and prevent repeated taps
+        isCheckingSpelling = true
         checkButton.isEnabled = false
-        
-        // Perform OCR
-        // Capture the expected word explicitly to ensure we use the correct word, not OCR result
+        val originalButtonText = checkButton.text
+        checkButton.text = "Checking..."
+
+        // Capture expected values explicitly so async flow is stable
         val expectedWord = wordData.word
-        val isCursiveMode = !isPrintingMode // Capture mode for validation
-        recognizeText(drawing) { recognizedText ->
+        val isCursiveMode = !isPrintingMode
+        val wordIndexForUpload = currentWordIndex
+
+        lifecycleScope.launch {
+            val recognizedText = recognizeText(drawing, isCursiveMode)
+
+            checkButton.text = originalButtonText
             checkButton.isEnabled = true
-            
+            isCheckingSpelling = false
+
             val isCorrect = isSpellingCorrect(recognizedText, expectedWord, isCursiveMode)
-            
+
             // Upload image with correct status (only once per word)
             // Use the expected word (from JSON), NOT the OCR recognized text
-            // Pass currentWordIndex now so async upload uses correct question number (1-based in report)
             if (!hasUploadedImage) {
-                uploadSpellingImage(drawing, wordData, isCorrect, expectedWord, currentWordIndex)
+                uploadSpellingImage(drawing, wordData, isCorrect, expectedWord, wordIndexForUpload)
                 hasUploadedImage = true
             }
-            
+
             // Move to next word regardless of correctness
             // Parent can review incorrect answers in the report
             correctWords++
             currentWordIndex++
-            
+
             if (isCorrect) {
                 showFireworks()
                 android.os.Handler().postDelayed({
                     showNextWord()
                 }, 2000)
             } else {
-                // No message - just move to next word silently
                 android.os.Handler().postDelayed({
                     showNextWord()
                 }, 500)
@@ -354,23 +368,31 @@ class SpellingOCRActivity : AppCompatActivity() {
         }
     }
     
-    private fun recognizeText(bitmap: Bitmap, onResult: (String) -> Unit) {
-        // Preprocess image to improve OCR accuracy
-        // Use less aggressive preprocessing for cursive mode
-        val processedBitmap = preprocessImageForOCR(bitmap, !isPrintingMode)
+    private suspend fun recognizeText(bitmap: Bitmap, isCursiveMode: Boolean): String {
+        // Heavy bitmap preprocessing off the UI thread to avoid stutter/ANR symptoms.
+        val processedBitmap = withContext(Dispatchers.Default) {
+            preprocessImageForOCR(bitmap, isCursiveMode)
+        }
         val image = InputImage.fromBitmap(processedBitmap, 0)
-        
-        textRecognizer.process(image)
-            .addOnSuccessListener { visionText ->
-                val recognizedText = visionText.text.trim().lowercase()
-                Log.d(TAG, "OCR recognized: '$recognizedText'")
-                onResult(recognizedText)
+
+        return try {
+            suspendCancellableCoroutine { cont ->
+                textRecognizer.process(image)
+                    .addOnSuccessListener { visionText ->
+                        val recognizedText = visionText.text.trim().lowercase()
+                        Log.d(TAG, "OCR recognized: '$recognizedText'")
+                        if (cont.isActive) cont.resume(recognizedText)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "OCR failed: ${e.message}", e)
+                        if (cont.isActive) cont.resume("")
+                    }
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "OCR failed: ${e.message}", e)
-                Toast.makeText(this, "Could not read your writing. Please try again.", Toast.LENGTH_SHORT).show()
-                onResult("")
+        } finally {
+            if (processedBitmap != bitmap && !processedBitmap.isRecycled) {
+                processedBitmap.recycle()
             }
+        }
     }
     
     /**
@@ -584,7 +606,7 @@ class SpellingOCRActivity : AppCompatActivity() {
     private fun clearOldSpellingOcrImagesOnLaunch() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val cloudSyncService = CloudSyncService()
+                val cloudSyncService = SupabaseInterface()
                 if (!cloudSyncService.isConfigured()) {
                     Log.d(TAG, "Supabase not configured, skipping clear of old spelling OCR images")
                     return@launch
@@ -596,18 +618,11 @@ class SpellingOCRActivity : AppCompatActivity() {
                     else -> "EngSpellingOCR"
                 }
                 // PostgREST: task ilike 'EngSpellingOCR%' -> task=ilike.EngSpellingOCR%25 (URL-encoded %)
-                val encodedPattern = java.net.URLEncoder.encode("$taskPrefix%", "UTF-8")
-                val deleteUrl = "${cloudSyncService.getSupabaseUrl()}/rest/v1/image_uploads?profile=eq.$profile&task=ilike.$encodedPattern"
-                val deleteRequest = Request.Builder()
-                    .url(deleteUrl)
-                    .delete()
-                    .addHeader("apikey", cloudSyncService.getSupabaseKey())
-                    .addHeader("Authorization", "Bearer ${cloudSyncService.getSupabaseKey()}")
-                    .build()
-                val httpClient = cloudSyncService.getClient()
-                val response = httpClient.newCall(deleteRequest).execute()
-                Log.d(TAG, "Cleared old spelling OCR images (profile=$profile, task like $taskPrefix%): response ${response.code}")
-                response.close()
+                val n = cloudSyncService.invokeAfDeleteImageUploadsIlike(profile, "$taskPrefix%").getOrElse {
+                    Log.e(TAG, "clear spelling OCR images RPC failed: ${it.message}")
+                    return@launch
+                }
+                Log.d(TAG, "Cleared old spelling OCR images (profile=$profile, pattern=$taskPrefix%): deleted $n rows")
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing old spelling OCR images: ${e.message}", e)
             }
@@ -624,7 +639,7 @@ class SpellingOCRActivity : AppCompatActivity() {
     private fun uploadSpellingImage(bitmap: Bitmap, wordData: WordData, isCorrect: Boolean, expectedWord: String, wordIndex: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val cloudSyncService = CloudSyncService()
+                val cloudSyncService = SupabaseInterface()
                 if (!cloudSyncService.isConfigured()) {
                     Log.d(TAG, "Supabase not configured, skipping image upload")
                     return@launch
@@ -653,75 +668,19 @@ class SpellingOCRActivity : AppCompatActivity() {
                 val base64Image = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
                 
                 // Get timestamp in America/Toronto
-                val captureDateTime = cloudSyncService.generateESTTimestamp()
-                
-                val supabaseUrl = cloudSyncService.getSupabaseUrl()
-                val supabaseKey = cloudSyncService.getSupabaseKey()
-                val httpClient = cloudSyncService.getClient()
-                
-                // Create JSON body
-                val requestBody = JsonObject().apply {
-                    addProperty("profile", profile)
-                    addProperty("task", task)
-                    addProperty("image", base64Image)
-                    addProperty("capture_date_time", captureDateTime)
-                }
-                
-                val mediaType = "application/json".toMediaType()
-                val body = requestBody.toString().toRequestBody(mediaType)
-                
                 Log.d(TAG, "Uploading spelling image (profile=$profile, task=$task)")
-                
-                // Check if entry exists for this profile/game/question/word (any status)
-                // URL encode the pattern for LIKE query
-                // Use expectedWord (the word asked to spell), NOT the OCR recognized text
-                val taskPattern = "$gameName-$questionNumber-$expectedWord-"
-                val encodedPattern = java.net.URLEncoder.encode(taskPattern, "UTF-8") + "%25"
-                val queryUrl = "$supabaseUrl/rest/v1/image_uploads?profile=eq.$profile&task=like.$encodedPattern&select=id"
-                
-                val queryRequest = Request.Builder()
-                    .url(queryUrl)
-                    .addHeader("apikey", supabaseKey)
-                    .addHeader("Authorization", "Bearer $supabaseKey")
-                    .build()
-                
-                val queryResponse = httpClient.newCall(queryRequest).execute()
-                val queryBody = queryResponse.body?.string()
-                
-                if (queryResponse.isSuccessful && queryBody != null && queryBody != "[]") {
-                    // Found existing entry - delete it first (to handle UNIQUE constraint)
-                    val existingId = com.google.gson.JsonParser.parseString(queryBody)
-                        .asJsonArray[0].asJsonObject["id"].asLong
-                    
-                    val deleteUrl = "$supabaseUrl/rest/v1/image_uploads?id=eq.$existingId"
-                    val deleteRequest = Request.Builder()
-                        .url(deleteUrl)
-                        .delete()
-                        .addHeader("apikey", supabaseKey)
-                        .addHeader("Authorization", "Bearer $supabaseKey")
-                        .build()
-                    
-                    val deleteResponse = httpClient.newCall(deleteRequest).execute()
-                    Log.d(TAG, "Deleted existing image entry (response: ${deleteResponse.code})")
-                    deleteResponse.close()
+                val taskPattern = "$gameName-$questionNumber-$expectedWord-%"
+                val existingId = cloudSyncService.invokeAfGetImageUploadId(profile, taskPattern).getOrNull()
+                if (existingId != null) {
+                    cloudSyncService.invokeAfDeleteImageUploadById(existingId)
+                    Log.d(TAG, "Deleted existing image entry id=$existingId before upsert")
                 }
-                
-                queryResponse.close()
-                
-                // INSERT new record (or re-insert after delete)
-                val postUrl = "$supabaseUrl/rest/v1/image_uploads"
-                val postRequest = Request.Builder()
-                    .url(postUrl)
-                    .post(body)
-                    .addHeader("apikey", supabaseKey)
-                    .addHeader("Authorization", "Bearer $supabaseKey")
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Prefer", "return=representation")
-                    .build()
-                
-                val response = httpClient.newCall(postRequest).execute()
-                Log.d(TAG, "Image upload POST response code: ${response.code}")
-                response.close()
+                val up = cloudSyncService.invokeAfUpsertImageUpload(profile, task, base64Image)
+                if (up.isFailure) {
+                    Log.e(TAG, "Image upload RPC failed: ${up.exceptionOrNull()?.message}")
+                } else {
+                    Log.d(TAG, "Image upload RPC ok")
+                }
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Error uploading spelling image: ${e.message}", e)
@@ -732,33 +691,16 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     
     private fun completeGame() {
-        // Load config to pass to markTaskCompletedWithName (needed to find task and update properly)
-        val contentUpdateService = ContentUpdateService()
-        val configJson = contentUpdateService.getCachedMainContent(this)
-        val config = if (!configJson.isNullOrEmpty()) {
-            try {
-                Gson().fromJson(configJson, MainContent::class.java)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error parsing config JSON", e)
-                null
-            }
-        } else {
-            null
-        }
-        
         Log.d(TAG, "CRITICAL: About to mark task as complete - gameType: '$gameType', gameTitle: '$gameTitle', isRequiredGame: $isRequiredGame, sectionId: $sectionId")
         lifecycleScope.launch(Dispatchers.IO) {
             val result = progressManager.markTaskCompletedWithName(
-                gameType, gameTitle, gameStars, isRequiredGame, config, sectionId
+                gameType, gameTitle, gameStars, sectionId
             )
             withContext(Dispatchers.Main) {
                 result.fold(
                     onSuccess = { earnedStars ->
                         Log.d(TAG, "CRITICAL: Task marked as complete, earnedStars: $earnedStars")
                         if (earnedStars > 0) {
-                            val effectiveSectionId =
-                                if (battleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
-                            progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
                             timeTracker.updateStarsEarned("game", earnedStars)
                         }
                         val resultIntent = android.content.Intent().apply {

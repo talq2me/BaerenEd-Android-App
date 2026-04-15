@@ -60,12 +60,11 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     private lateinit var loadingProgressBar: ProgressBar
-    lateinit var contentUpdateService: ContentUpdateService
+    lateinit var contentUpdateService: GitHubGameContentService
     private lateinit var layout: Layout
     private var currentMainContent: MainContent? = null
     private val readAlongPrefs by lazy { getSharedPreferences(READ_ALONG_PREFS_NAME, Context.MODE_PRIVATE) }
     private val boukiliPrefs by lazy { getSharedPreferences(BOUKILI_PREFS_NAME, Context.MODE_PRIVATE) }
-    private lateinit var cloudStorageManager: CloudStorageManager
     private var wasLaunchedForReadAlong: Boolean = false // Track if we were launched just for Read Along
     private var wasLaunchedForBoukili: Boolean = false // Track if we were launched just for Boukili
 
@@ -107,9 +106,6 @@ class MainActivity : AppCompatActivity() {
         SettingsManager.checkAndApplyProfileFromCloud(this)
         // Preload settings from Supabase on startup
         SettingsManager.preloadSettings(this)
-        
-        // Initialize cloud storage manager
-        cloudStorageManager = CloudStorageManager(this)
         
         // Check if this activity was launched to handle a specific task (e.g., from TrainingMapActivity)
         val launchTask = intent.getStringExtra("launchTask")
@@ -172,7 +168,7 @@ class MainActivity : AppCompatActivity() {
         swipeRefreshLayout = findViewById(R.id.mainSwipeRefresh)
 
         // Initialize content update service
-        contentUpdateService = ContentUpdateService()
+        contentUpdateService = GitHubGameContentService()
 
         // Initialize layout manager
         layout = Layout(this)
@@ -216,37 +212,10 @@ class MainActivity : AppCompatActivity() {
                     launchRewardSelectionActivity(minutes)
                 }
             } else if (timeSinceEmailLaunch <= 500) {
-                Log.w(MainActivity.TAG, "Email callback fired too quickly (${timeSinceEmailLaunch}ms), email may not have opened. Retrying...")
-                // Email didn't actually open, try again or show error
+                Log.w(MainActivity.TAG, "Email callback fired too quickly (${timeSinceEmailLaunch}ms), skipping app-side report retry")
                 rewardEmailInFlight = false
                 val minutes = getPendingRewardMinutes()
                 if (minutes != null && minutes > 0) {
-                    // Still try to show email one more time
-                    val parentEmail = SettingsManager.readEmail(this)
-                    if (!parentEmail.isNullOrBlank()) {
-                        try {
-                            val progressManager = DailyProgressManager(this)
-                            val timeTracker = TimeTracker(this)
-                            val reportGenerator = ReportGenerator(this)
-                            val mainContent = getCurrentMainContent() ?: MainContent()
-                            val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
-                            val currentKid = progressManager.getCurrentKid()
-                            val childName = currentKid
-                            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
-                            val subject = "Daily Progress Report - $childName - ${progressReport.date}"
-                            val emailIntent = buildEmailIntent(parentEmail, subject, report)
-                            if (emailIntent != null) {
-                                storePendingRewardMinutes(minutes)
-                                rewardEmailInFlight = true
-                                emailLaunchTime = System.currentTimeMillis()
-                                emailReportLauncher.launch(emailIntent)
-                                return@registerForActivityResult
-                            }
-                        } catch (e: Exception) {
-                            Log.e(MainActivity.TAG, "Error retrying email", e)
-                        }
-                    }
-                    // If retry fails, just launch BaerenLock
                     clearPendingRewardState()
                     launchRewardSelectionActivity(minutes)
                 }
@@ -255,12 +224,6 @@ class MainActivity : AppCompatActivity() {
 
         if (getOrCreateProfile() != null) {
             loadMainContent()
-        }
-
-        // Clean up any stale reward data on app start (on background thread to avoid blocking UI)
-        lifecycleScope.launch(Dispatchers.IO) {
-            cleanupStaleRewardData()
-            resetRewardDataForNewDay()
         }
 
         // Register download completion receiver (just for logging, no install prompts)
@@ -560,91 +523,36 @@ class MainActivity : AppCompatActivity() {
      * When BaerenEd comes back to foreground, check if enough time has passed since launch.
      */
     private fun checkGoogleReadAlongCompletion() {
-        val startTimeMs = readAlongPrefs.getLong(KEY_READ_ALONG_START_TIME, -1L)
-        if (startTimeMs <= 0L) {
-            // No pending Read Along session
-            return
-        }
-        
-        val taskId = readAlongPrefs.getString(KEY_READ_ALONG_TASK_ID, null) ?: return
-        val taskTitle = readAlongPrefs.getString(KEY_READ_ALONG_TASK_TITLE, taskId) ?: taskId
-        val stars = readAlongPrefs.getInt(KEY_READ_ALONG_STARS, 0)
-        val sectionId = readAlongPrefs.getString(KEY_READ_ALONG_SECTION_ID, null)?.takeIf { it.isNotBlank() }
-        
-        val now = System.currentTimeMillis()
-        val timeElapsedMs = now - startTimeMs
-        val timeElapsedSeconds = timeElapsedMs / 1000
-        val MIN_READ_ALONG_DURATION_SECONDS = 30L
-        
-        Log.d(TAG, "Checking Google Read Along completion: elapsed=${timeElapsedSeconds}s, required=${MIN_READ_ALONG_DURATION_SECONDS}s")
-        
-        // Only check if we've been away for at least a few seconds (to avoid checking immediately after launch)
-        if (timeElapsedMs < 2000L) {
-            Log.d(TAG, "Just launched Read Along (< 2s ago), skipping check")
-            return
-        }
-        
-        if (timeElapsedSeconds >= MIN_READ_ALONG_DURATION_SECONDS) {
-            // Enough time has passed - mark as complete
-            Log.d(TAG, "✅ Google Read Along completed! Time spent: ${timeElapsedSeconds}s")
-            
-            // Find the task in current content and mark it complete
-            val currentContent = getCurrentMainContent()
-            if (currentContent != null) {
-                var foundTask: Task? = null
-                var foundSectionId: String? = null
-                
-                currentContent.sections?.forEach { section ->
-                    section.tasks?.forEach { task ->
-                        if (task.launch == "googleReadAlong" || task.launch == taskId) {
-                            foundTask = task
-                            foundSectionId = section.id
-                            return@forEach
-                        }
-                    }
-                    if (foundTask != null) {
-                        return@forEach
-                    }
-                }
-                
-                if (foundTask != null) {
-                    layout.handleManualTaskCompletion(
-                        taskId = foundTask!!.launch ?: taskId,
-                        taskTitle = foundTask!!.title ?: taskTitle,
-                        stars = foundTask!!.stars ?: stars,
-                        sectionId = foundSectionId ?: sectionId,
-                        completionMessage = "📚 Google Read Along completed! Great job reading!"
-                    )
-                    layout.refreshSections()
-                    
-                    Toast.makeText(
-                        this,
-                        "Great reading! You spent ${timeElapsedSeconds}s in Read Along.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Log.w(TAG, "Google Read Along task not found in current content")
-                }
-            } else {
-                Log.w(TAG, "No current content available for Read Along completion")
+        when (val outcome = ExternalReadingCompletionBridge.checkReadAlong(this)) {
+            is ExternalReadingCompletionBridge.Outcome.None,
+            is ExternalReadingCompletionBridge.Outcome.TooSoon -> return
+
+            is ExternalReadingCompletionBridge.Outcome.NotEnoughTime -> {
+                val remainingSeconds = outcome.minSeconds - outcome.elapsedSeconds
+                Toast.makeText(
+                    this,
+                    "Stay in Google Read Along for at least ${outcome.minSeconds}s to earn rewards (only ${outcome.elapsedSeconds}s). Need ${remainingSeconds}s more.",
+                    Toast.LENGTH_LONG
+                ).show()
+                Log.d(TAG, "Read Along not completed yet: ${outcome.elapsedSeconds}s < ${outcome.minSeconds}s")
             }
-            
-            // Clear the start time
-            readAlongPrefs.edit().remove(KEY_READ_ALONG_START_TIME)
-                .remove(KEY_READ_ALONG_TASK_ID)
-                .remove(KEY_READ_ALONG_TASK_TITLE)
-                .remove(KEY_READ_ALONG_STARS)
-                .remove(KEY_READ_ALONG_SECTION_ID)
-                .apply()
-        } else {
-            // Not enough time - show message but keep the start time (they can try again)
-            val remainingSeconds = MIN_READ_ALONG_DURATION_SECONDS - timeElapsedSeconds
-            Toast.makeText(
-                this,
-                "Stay in Google Read Along for at least ${MIN_READ_ALONG_DURATION_SECONDS}s to earn rewards (only ${timeElapsedSeconds}s). Need ${remainingSeconds}s more.",
-                Toast.LENGTH_LONG
-            ).show()
-            Log.d(TAG, "⚠️ Google Read Along not completed yet: ${timeElapsedSeconds}s < ${MIN_READ_ALONG_DURATION_SECONDS}s")
+
+            is ExternalReadingCompletionBridge.Outcome.Complete -> {
+                layout.handleManualTaskCompletion(
+                    taskId = outcome.taskId,
+                    taskTitle = outcome.taskTitle,
+                    stars = outcome.stars,
+                    sectionId = outcome.sectionId,
+                    completionMessage = "📚 Google Read Along completed! Great job reading!"
+                )
+                layout.refreshSections()
+                Toast.makeText(
+                    this,
+                    "Great reading! You spent ${outcome.elapsedSeconds}s in Read Along.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                ExternalReadingCompletionBridge.clearReadAlong(this)
+            }
         }
     }
 
@@ -653,91 +561,36 @@ class MainActivity : AppCompatActivity() {
      * When BaerenEd comes back to foreground, check if enough time has passed since launch.
      */
     private fun checkBoukiliCompletion() {
-        val startTimeMs = boukiliPrefs.getLong(KEY_BOUKILI_START_TIME, -1L)
-        if (startTimeMs <= 0L) {
-            // No pending Boukili session
-            return
-        }
-        
-        val taskId = boukiliPrefs.getString(KEY_BOUKILI_TASK_ID, null) ?: return
-        val taskTitle = boukiliPrefs.getString(KEY_BOUKILI_TASK_TITLE, taskId) ?: taskId
-        val stars = boukiliPrefs.getInt(KEY_BOUKILI_STARS, 0)
-        val sectionId = boukiliPrefs.getString(KEY_BOUKILI_SECTION_ID, null)?.takeIf { it.isNotBlank() }
-        
-        val now = System.currentTimeMillis()
-        val timeElapsedMs = now - startTimeMs
-        val timeElapsedSeconds = timeElapsedMs / 1000
-        val MIN_BOUKILI_DURATION_SECONDS = 30L
-        
-        Log.d(TAG, "Checking Boukili completion: elapsed=${timeElapsedSeconds}s, required=${MIN_BOUKILI_DURATION_SECONDS}s")
-        
-        // Only check if we've been away for at least a few seconds (to avoid checking immediately after launch)
-        if (timeElapsedMs < 2000L) {
-            Log.d(TAG, "Just launched Boukili (< 2s ago), skipping check")
-            return
-        }
-        
-        if (timeElapsedSeconds >= MIN_BOUKILI_DURATION_SECONDS) {
-            // Enough time has passed - mark as complete
-            Log.d(TAG, "✅ Boukili completed! Time spent: ${timeElapsedSeconds}s")
-            
-            // Find the task in current content and mark it complete
-            val currentContent = getCurrentMainContent()
-            if (currentContent != null) {
-                var foundTask: Task? = null
-                var foundSectionId: String? = null
-                
-                currentContent.sections?.forEach { section ->
-                    section.tasks?.forEach { task ->
-                        if (task.launch == "boukili" || task.launch == taskId) {
-                            foundTask = task
-                            foundSectionId = section.id
-                            return@forEach
-                        }
-                    }
-                    if (foundTask != null) {
-                        return@forEach
-                    }
-                }
-                
-                if (foundTask != null) {
-                    layout.handleManualTaskCompletion(
-                        taskId = foundTask!!.launch ?: taskId,
-                        taskTitle = foundTask!!.title ?: taskTitle,
-                        stars = foundTask!!.stars ?: stars,
-                        sectionId = foundSectionId ?: sectionId,
-                        completionMessage = "📚 Boukili completed! Great job reading!"
-                    )
-                    layout.refreshSections()
-                    
-                    Toast.makeText(
-                        this,
-                        "Great reading! You spent ${timeElapsedSeconds}s in Boukili.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Log.w(TAG, "Boukili task not found in current content")
-                }
-            } else {
-                Log.w(TAG, "No current content available for Boukili completion")
+        when (val outcome = ExternalReadingCompletionBridge.checkBoukili(this)) {
+            is ExternalReadingCompletionBridge.Outcome.None,
+            is ExternalReadingCompletionBridge.Outcome.TooSoon -> return
+
+            is ExternalReadingCompletionBridge.Outcome.NotEnoughTime -> {
+                val remainingSeconds = outcome.minSeconds - outcome.elapsedSeconds
+                Toast.makeText(
+                    this,
+                    "Stay in Boukili for at least ${outcome.minSeconds}s to earn rewards (only ${outcome.elapsedSeconds}s). Need ${remainingSeconds}s more.",
+                    Toast.LENGTH_LONG
+                ).show()
+                Log.d(TAG, "Boukili not completed yet: ${outcome.elapsedSeconds}s < ${outcome.minSeconds}s")
             }
-            
-            // Clear the start time
-            boukiliPrefs.edit().remove(KEY_BOUKILI_START_TIME)
-                .remove(KEY_BOUKILI_TASK_ID)
-                .remove(KEY_BOUKILI_TASK_TITLE)
-                .remove(KEY_BOUKILI_STARS)
-                .remove(KEY_BOUKILI_SECTION_ID)
-                .apply()
-        } else {
-            // Not enough time - show message but keep the start time (they can try again)
-            val remainingSeconds = MIN_BOUKILI_DURATION_SECONDS - timeElapsedSeconds
-            Toast.makeText(
-                this,
-                "Stay in Boukili for at least ${MIN_BOUKILI_DURATION_SECONDS}s to earn rewards (only ${timeElapsedSeconds}s). Need ${remainingSeconds}s more.",
-                Toast.LENGTH_LONG
-            ).show()
-            Log.d(TAG, "⚠️ Boukili not completed yet: ${timeElapsedSeconds}s < ${MIN_BOUKILI_DURATION_SECONDS}s")
+
+            is ExternalReadingCompletionBridge.Outcome.Complete -> {
+                layout.handleManualTaskCompletion(
+                    taskId = outcome.taskId,
+                    taskTitle = outcome.taskTitle,
+                    stars = outcome.stars,
+                    sectionId = outcome.sectionId,
+                    completionMessage = "📚 Boukili completed! Great job reading!"
+                )
+                layout.refreshSections()
+                Toast.makeText(
+                    this,
+                    "Great reading! You spent ${outcome.elapsedSeconds}s in Boukili.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                ExternalReadingCompletionBridge.clearBoukili(this)
+            }
         }
     }
 
@@ -831,32 +684,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleWebGameCompletion(result: ActivityResult) {
         android.util.Log.d("MainActivity", "WebGame result received: resultCode=${result.resultCode}")
-        
-        // Check if battle hub requested to launch a game
-        if (result.resultCode == WebGameActivity.RESULT_LAUNCH_GAME && result.data != null) {
-            val gameId = result.data?.getStringExtra(WebGameActivity.RESULT_EXTRA_GAME_ID)
-            if (gameId != null) {
-                Log.d(TAG, "Battle hub requested to launch game: $gameId")
-                launchGameFromBattleHub(gameId)
-                return
-            }
-        }
-        
-        // Check if this was a game launched from battle hub (taskId starts with "battleHub_")
-            val taskId = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_ID)
+        val taskId = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_ID)
         val wasFromBattleHub = taskId?.startsWith("battleHub_") == true
         
         if (result.resultCode == RESULT_OK && result.data != null) {
             val sectionId = result.data?.getStringExtra(WebGameActivity.EXTRA_SECTION_ID)
             val stars = result.data?.getIntExtra(WebGameActivity.EXTRA_STARS, 0) ?: 0
             val taskTitle = result.data?.getStringExtra(WebGameActivity.EXTRA_TASK_TITLE)
-            
-            // If game was launched from battle hub, grant rewards (time + berries)
-            if (wasFromBattleHub && stars > 0) {
-                val progressManager = DailyProgressManager(this)
-                progressManager.grantRewardsForTaskCompletion(stars, "optional")
-                Log.d(TAG, "Saved $stars berries from battle hub game completion")
-            }
             
             lifecycleScope.launch(Dispatchers.Main) {
                 layout.handleWebGameCompletion(taskId, sectionId, stars, taskTitle)
@@ -869,34 +703,6 @@ class MainActivity : AppCompatActivity() {
                     layout.refreshTrainingMap()
                 }
             }
-        }
-    }
-    
-    private fun launchGameFromBattleHub(gameId: String) {
-        val currentContent = getCurrentMainContent() ?: return
-        
-        // Find the task in the config by launch ID
-        var taskToLaunch: Task? = null
-        var sectionId: String? = null
-        
-        currentContent.sections?.forEach { section ->
-            section.tasks?.forEach { task ->
-                if (task.launch == gameId) {
-                    taskToLaunch = task
-                    sectionId = section.id
-                    return@forEach
-                }
-            }
-        }
-        
-        if (taskToLaunch != null && sectionId != null) {
-            Log.d(TAG, "Found task for battle hub: ${taskToLaunch!!.title}, totalQuestions=${taskToLaunch!!.totalQuestions}, stars=${taskToLaunch!!.stars}")
-            // Launch the game using the same logic as Layout.kt
-            // Pass a modified task ID so we know it came from battle hub
-            layout.launchTaskFromBattleHub(taskToLaunch!!, sectionId, "battleHub_$gameId")
-        } else {
-            Log.w(TAG, "Game not found in config: $gameId")
-            Toast.makeText(this, "Game not found: $gameId", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -921,11 +727,7 @@ class MainActivity : AppCompatActivity() {
             val gameStars = result.data?.getIntExtra("GAME_STARS", 0) ?: 0
             val gameType = result.data?.getStringExtra("GAME_TYPE")
             
-            // Get sectionId from the current content to check if it's from required/optional
-            val currentContent = getCurrentMainContent()
-            val sectionId = currentContent?.sections?.find { section ->
-                section.tasks?.any { it.launch == gameType } == true
-            }?.id
+            val sectionId = result.data?.getStringExtra("SECTION_ID")
             
             // If game was launched from battle hub/gym map OR from required/optional section, refresh views
             val shouldRefresh = battleHubTaskId != null || (sectionId == "required" || sectionId == "optional")
@@ -1063,42 +865,6 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun cleanupStaleRewardData() {
-        try {
-            val progressManager = DailyProgressManager(this)
-            val pendingReward = progressManager.getPendingRewardData()
-
-            if (pendingReward != null) {
-                val (minutes, timestamp) = pendingReward
-                val currentTime = System.currentTimeMillis()
-                val oneHourInMillis = 60 * 60 * 1000L
-
-                if (currentTime - timestamp > oneHourInMillis) {
-                    progressManager.clearPendingRewardData()
-                    android.util.Log.d("MainActivity", "Cleaned up stale reward data: $minutes minutes from ${java.util.Date(timestamp)}")
-                }
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Error cleaning up stale reward data", e)
-        }
-    }
-
-    private fun resetRewardDataForNewDay() {
-        try {
-            val progressManager = DailyProgressManager(this)
-
-            val lastResetDate = progressManager.getLastResetDate()
-            val currentDate = java.text.SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", java.util.Locale.getDefault()).format(java.util.Date())
-
-            if (lastResetDate != currentDate) {
-                progressManager.clearPendingRewardData()
-                android.util.Log.d("MainActivity", "Reset reward data for new day: $currentDate")
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Error resetting reward data for new day", e)
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         
@@ -1165,7 +931,7 @@ class MainActivity : AppCompatActivity() {
             layout.showTrainingMap()
         } else if (showOptionalTrainingMap) {
             battleHubPrefs.edit().remove("showOptionalTrainingMap").apply()
-            if (canShowOptionalTrainingMapNow(currentMainContent)) {
+            if (canShowOptionalTrainingMapNow()) {
                 Log.d(TAG, "Showing optional training map from battle hub")
                 layout.showOptionalTrainingMap()
             } else {
@@ -1176,10 +942,6 @@ class MainActivity : AppCompatActivity() {
             battleHubPrefs.edit().remove("showBonusTrainingMap").apply()
             Log.d(TAG, "Showing bonus training map from battle hub")
             layout.showBonusTrainingMap()
-        } else {
-            currentMainContent?.let { content ->
-                layout.displayContent(content)
-            }
         }
     }
 
@@ -1187,79 +949,35 @@ class MainActivity : AppCompatActivity() {
      * Optional (extra practice) map should only be shown once required tasks are completed.
      * This blocks stale persisted flags from reopening optional practice after an overnight restart.
      */
-    private fun canShowOptionalTrainingMapNow(content: MainContent?): Boolean {
-        val mainContent = content ?: return false
-        val requiredSection = mainContent.sections?.find { it.id == "required" } ?: return false
-        val requiredTasks = requiredSection.tasks?.filter { task ->
-            task.title != null &&
-                task.launch != null &&
-                TaskVisibilityChecker.isTaskVisible(task)
-        } ?: emptyList()
-
+    private fun canShowOptionalTrainingMapNow(): Boolean {
+        val requiredTasks = DailyProgressManager(this).getRequiredTasksMap()
         if (requiredTasks.isEmpty()) return false
-
-        val completedTasksMap = DailyProgressManager(this).getCompletedTasksMap("required")
-        return requiredTasks.all { task ->
-            val taskTitle = task.title ?: ""
-            val baseTaskId = task.launch ?: ""
-            val key = if (taskTitle.isNotEmpty()) taskTitle else baseTaskId
-            completedTasksMap[key] == true
+        return requiredTasks.values.all { progress ->
+            progress.status.equals("complete", ignoreCase = true)
         }
     }
 
     private fun loadMainContent() {
         loadingProgressBar.visibility = View.VISIBLE
-        titleText.text = "Loading..."
+        titleText.text = "Syncing..."
         headerLayout.visibility = View.GONE
         progressLayout.visibility = View.GONE
         sectionsContainer.visibility = View.GONE
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val content = contentUpdateService.fetchMainContent(this@MainActivity)
-                if (content != null) {
-                    // CRITICAL: Always sync config tasks to cloud database when config is loaded from GitHub
-                    // This ensures required_tasks, practice_tasks, and checklist_items columns are populated for reporting
-                    // Wait a brief moment to ensure config is fully cached
-                    kotlinx.coroutines.delay(100)
-                    val profile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
-                    try {
-                        val rpcResult = DailyResetAndSyncManager(this@MainActivity).invokeConfigFromGitHubRpcsThenRefetch(profile)
-                        if (!rpcResult.isSuccess) {
-                            val errorMsg = rpcResult.exceptionOrNull()?.message ?: "Unknown error"
-                            Log.e(TAG, "Failed to sync config to DB via RPC: $errorMsg")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error syncing config to DB via RPC", e)
-                    }
-                    
-                    withContext(Dispatchers.Main) {
-                        displayContent(content)
-                        loadingProgressBar.visibility = View.GONE
-                        // Stop refresh indicator if it's showing
-                        if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
-                            swipeRefreshLayout.isRefreshing = false
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        titleText.text = "Failed to load content. Please check your connection."
-                        loadingProgressBar.visibility = View.GONE
-                        // Stop refresh indicator if it's showing
-                        if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
-                            swipeRefreshLayout.isRefreshing = false
-                        }
-                    }
+        lifecycleScope.launch(Dispatchers.IO) {
+            val profile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
+            val result = runCatching {
+                DbProfileSessionLoader(this@MainActivity).loadAfterDailyResetRpcThenApply(profile)
+            }.getOrElse { Result.failure(it) }
+            withContext(Dispatchers.Main) {
+                loadingProgressBar.visibility = View.GONE
+                if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
+                    swipeRefreshLayout.isRefreshing = false
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading main content", e)
-                withContext(Dispatchers.Main) {
-                    titleText.text = "Error loading content: ${e.message}"
-                    loadingProgressBar.visibility = View.GONE
-                    // Stop refresh indicator if it's showing
-                    if (::swipeRefreshLayout.isInitialized && swipeRefreshLayout.isRefreshing) {
-                        swipeRefreshLayout.isRefreshing = false
-                    }
+                if (result.isSuccess) {
+                    titleText.text = "Use Battle Hub / Training Map"
+                } else {
+                    titleText.text = "Could not sync progress. Check internet."
                 }
             }
         }
@@ -1302,48 +1020,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    fun toggleCloudStorage() {
-        val isCurrentlyEnabled = cloudStorageManager.isCloudStorageEnabled()
-        
-        if (!cloudStorageManager.isConfigured()) {
-            Toast.makeText(this, "Supabase not configured. Add SUPABASE_URL and SUPABASE_KEY to local.properties and rebuild.", Toast.LENGTH_LONG).show()
-            return
-        }
-        
-        if (!isCurrentlyEnabled) {
-            // Enable cloud storage
-            cloudStorageManager.setCloudStorageEnabled(true)
-            val profile = SettingsManager.readProfile(this) ?: "A"
-            lifecycleScope.launch(Dispatchers.IO) {
-                val result = cloudStorageManager.syncIfEnabled(profile)
-                runOnUiThread {
-                    if (result.isSuccess) {
-                        Toast.makeText(this@MainActivity, "Cloud storage enabled and synced", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "Cloud enabled but sync failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
-                    }
-                    // Refresh UI to update button
-                    currentMainContent?.let { layout.displayContent(it) }
-                }
-            }
-        } else {
-            // Disable cloud storage
-            cloudStorageManager.setCloudStorageEnabled(false)
-            Toast.makeText(this, "Cloud storage disabled", Toast.LENGTH_SHORT).show()
-            // Refresh UI to update button
-            currentMainContent?.let { layout.displayContent(it) }
-        }
-    }
-    
-    /**
-     * Refetches progress from DB when cloud is enabled (writes use RPCs, not prefs upload).
-     */
+    /** Refetches profile row from Supabase after writes (RPCs already updated DB). */
     fun saveToCloudIfEnabled() {
-        if (cloudStorageManager.isCloudStorageEnabled()) {
-            val profile = SettingsManager.readProfile(this) ?: "A"
-            lifecycleScope.launch(Dispatchers.IO) {
-                DailyResetAndSyncManager(this@MainActivity).dailyResetProcessAndSync(profile)
-            }
+        val profile = SettingsManager.readProfile(this) ?: "A"
+        if (!SupabaseInterface().isConfigured()) return
+        lifecycleScope.launch(Dispatchers.IO) {
+            DbProfileSessionLoader(this@MainActivity).loadAfterDailyResetRpcThenApply(profile)
         }
     }
 
@@ -1529,7 +1211,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSettingsListDialog() {
-        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Send Progress Report", "Reset All Progress", "Clear config cache")
+        val settingsOptions = arrayOf("Change Profile", "Change PIN", "Change Parent Email", "Clear game/video fetch state")
 
         AlertDialog.Builder(this)
             .setTitle("Settings")
@@ -1538,9 +1220,7 @@ class MainActivity : AppCompatActivity() {
                     0 -> showChangeProfileDialog()
                     1 -> showChangePinDialog()
                     2 -> showChangeEmailDialog()
-                    3 -> sendProgressReportInternal()
-                    4 -> showResetProgressConfirmationDialog()
-                    5 -> clearConfigCache()
+                    3 -> clearConfigCache()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -1548,8 +1228,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearConfigCache() {
-        ContentUpdateService().clearCache(this)
-        Toast.makeText(this, "Config cache cleared. Loading latest tasks…", Toast.LENGTH_LONG).show()
+        GitHubGameContentService().clearCache(this)
+        Toast.makeText(this, "Game/video fetch state cleared.", Toast.LENGTH_LONG).show()
         loadMainContent()
     }
 
@@ -1602,7 +1282,7 @@ class MainActivity : AppCompatActivity() {
                             "B" -> "BM"
                             else -> rawProfile
                         }
-                        val result = CloudSyncService().invokeAddRewardTime(profile, minutes)
+                        val result = SupabaseInterface().invokeAddRewardTime(profile, minutes)
                         if (result.isSuccess) {
                             Toast.makeText(this@MainActivity, "Granted $minutes minutes", Toast.LENGTH_LONG).show()
                             Log.d(TAG, "Granted $minutes reward minutes via DB for profile=$profile (raw=$rawProfile)")
@@ -1621,137 +1301,6 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showResetProgressConfirmationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Reset All Progress")
-            .setMessage("Are you sure you want to reset today's progress? This will clear:\n\n" +
-                    "• All completed tasks\n" +
-                    "• All time tracking data\n" +
-                    "• All reward minutes\n\n" +
-                    "This is the same as the daily reset. Game progress, Pokemon unlocks, and video progress will be preserved.")
-            .setPositiveButton("Reset All") { _, _ ->
-                resetAllProgress()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun resetAllProgress() {
-        try {
-            val profile = SettingsManager.readProfile(this) ?: "AM"
-            val resetAndSyncManager = DailyResetAndSyncManager(this)
-            
-            // Set last_reset to yesterday to force reset on next screen load
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    resetAndSyncManager.setLastResetToYesterday(profile)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@MainActivity, "Progress will be reset on next screen load", Toast.LENGTH_LONG).show()
-                    }
-                } catch (e: Exception) {
-                    Log.e(MainActivity.TAG, "Error resetting progress in cloud", e)
-                }
-            }
-            
-            // Refresh the UI
-            layout.refreshProgressDisplay()
-            layout.refreshSections()
-            
-            Toast.makeText(this, "Progress has been reset", Toast.LENGTH_LONG).show()
-            Log.d(MainActivity.TAG, "Progress reset completed")
-        } catch (e: Exception) {
-            Log.e(MainActivity.TAG, "Error resetting progress", e)
-            Toast.makeText(this, "Error resetting progress: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun sendProgressReport(view: android.view.View) {
-        sendProgressReportInternal()
-    }
-
-    /**
-     * Sends progress report programmatically (can be called without a View)
-     */
-    fun sendProgressReportInternal() {
-        try {
-            val progressManager = DailyProgressManager(this)
-            val timeTracker = TimeTracker(this)
-            val reportGenerator = ReportGenerator(this)
-
-            val mainContent = getCurrentMainContent() ?: MainContent()
-
-            val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
-
-            val currentKid = progressManager.getCurrentKid()
-            val childName = when (currentKid) { "A" -> "AM"; "B" -> "BM"; else -> currentKid }
-
-            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL)
-
-            // Get parent email from settings
-            val parentEmail = SettingsManager.readEmail(this)
-            
-            if (parentEmail.isNullOrBlank()) {
-                Toast.makeText(this, "Please set parent email in settings first", Toast.LENGTH_LONG).show()
-                return
-            }
-
-            val subject = "Daily Progress Report - $childName - ${progressReport.date}"
-            val emailIntent = buildEmailIntent(parentEmail, subject, report)
-
-            try {
-                if (emailIntent != null) {
-                    startActivity(emailIntent)
-                } else {
-                    throw IllegalStateException("No email apps available")
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this, "Error opening email: ${e.message}", Toast.LENGTH_SHORT).show()
-                android.util.Log.e("MainActivity", "Error opening email", e)
-            }
-
-        } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Error sending progress report", e)
-            Toast.makeText(this, "Error generating report", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * Sends progress report using ActivityResultLauncher (for reward time flow)
-     * This ensures the email app is shown and the user can send the email before
-     * the reward selection activity is launched
-     */
-    fun sendProgressReportForRewardTime(rewardMinutes: Int) {
-        try {
-            val progressManager = DailyProgressManager(this)
-            val timeTracker = TimeTracker(this)
-            val reportGenerator = ReportGenerator(this)
-
-            val mainContent = getCurrentMainContent() ?: MainContent()
-
-            val progressReport = progressManager.getComprehensiveProgressReport(mainContent, timeTracker)
-
-            val currentKid = progressManager.getCurrentKid()
-            val childName = when (currentKid) { "A" -> "AM"; "B" -> "BM"; else -> currentKid }
-
-            // Log the reward minutes being used for the report (should match what's sent to BaerenLock)
-            Log.d(TAG, "Generating report with reward minutes: $rewardMinutes (will be sent to BaerenLock)")
-            
-            val report = reportGenerator.generateDailyReport(progressReport, childName, ReportGenerator.ReportFormat.EMAIL, rewardMinutes)
-            val subject = "Daily Progress Report - $childName - ${progressReport.date}"
-            
-            // Store pending minutes BEFORE uploading
-            storePendingRewardMinutes(rewardMinutes)
-            
-            // Automatically upload to GitHub - no user interaction needed!
-            uploadReportToGitHub(report, subject, childName, rewardMinutes)
-
-        } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Error sending progress report for reward time", e)
-            rewardEmailInFlight = false
-            // If report generation fails, still launch reward selection
-            launchRewardSelectionActivity(rewardMinutes)
-        }
-    }
 
     /**
      * Launches the RewardSelectionActivity with the specified reward minutes
@@ -1787,231 +1336,6 @@ class MainActivity : AppCompatActivity() {
         val minutes = getPendingRewardMinutes() ?: return
         clearPendingRewardState()
         launchRewardSelectionActivity(minutes)
-    }
-
-    private fun buildEmailIntent(parentEmail: String, subject: String, body: String): Intent? {
-        // Use message/rfc822 type which filters chooser to email apps only (Gmail, Outlook, etc.)
-        // This way the chooser only shows email apps, not all share options
-        val emailIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"  // Email MIME type - limits to email apps
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(parentEmail))
-            putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, body)
-        }
-        // Create chooser with email apps only - user picks their preferred email app once
-        return Intent.createChooser(emailIntent, "Send Progress Report via Email")
-    }
-    
-    private fun buildSMSIntent(message: String): Intent? {
-        // Open SMS app with message body - user can enter phone number
-        val smsIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("smsto:")  // Empty recipient - user enters phone number
-            putExtra("sms_body", message)
-        }
-        
-        if (smsIntent.resolveActivity(this@MainActivity.packageManager) != null) {
-            return smsIntent
-        }
-        
-        // Fallback: use ACTION_SEND for SMS
-        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, message)
-        }
-        return Intent.createChooser(fallbackIntent, "Send Progress Report via SMS")
-    }
-    
-    /**
-     * Decrypts the GitHub token using AES-256-CBC decryption
-     * The encrypted token is stored in BuildConfig (from local.properties)
-     * The decryption key is hardcoded in source code (safe to commit - it's just a key, not the token)
-     * 
-     * Why this works: GitHub secret scanning looks for token PATTERNS (like "github_pat_", "ghp_")
-     * The encrypted token is just random-looking Base64, so GitHub won't detect it as a token
-     */
-    private fun decryptGitHubToken(): String {
-        return try {
-            val encryptedToken = BuildConfig.ENCRYPTED_GITHUB_TOKEN
-            
-            if (encryptedToken.isEmpty()) {
-                Log.w(MainActivity.TAG, "GitHub token encryption not configured")
-                return ""
-            }
-            
-            // Hardcoded decryption key - this is safe to commit (it's not the token, just a key)
-            // This key decrypts the token that's stored in BuildConfig.ENCRYPTED_GITHUB_TOKEN
-            val encryptionKeyB64 = "MOBRoFYjmXL0ZwELC/CcQXgWm2xThNJlTSElwRhReZI="  // Base64 encoded 32-byte key
-            
-            // Decode Base64 encrypted data and key
-            val encryptedBytes = Base64.decode(encryptedToken, Base64.DEFAULT)
-            val keyBytes = Base64.decode(encryptionKeyB64, Base64.DEFAULT)
-            
-            // Extract IV (first 16 bytes) and ciphertext (rest)
-            val iv = ByteArray(16)
-            System.arraycopy(encryptedBytes, 0, iv, 0, 16)
-            val ciphertextLength = encryptedBytes.size - 16
-            val ciphertext = ByteArray(ciphertextLength)
-            System.arraycopy(encryptedBytes, 16, ciphertext, 0, ciphertextLength)
-            
-            // Decrypt using AES-256-CBC
-            val secretKeySpec = SecretKeySpec(keyBytes, "AES")
-            val ivParameterSpec = IvParameterSpec(iv)
-            val cipher = Cipher.getInstance("AES/CBC/NoPadding")
-            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec)
-            
-            val decryptedBytes = cipher.doFinal(ciphertext)
-            
-            // Remove PKCS5 padding
-            val padLength = decryptedBytes[decryptedBytes.size - 1].toInt()
-            val unpaddedLength = decryptedBytes.size - padLength
-            val unpaddedBytes = ByteArray(unpaddedLength)
-            System.arraycopy(decryptedBytes, 0, unpaddedBytes, 0, unpaddedLength)
-            
-            String(unpaddedBytes, Charsets.UTF_8)
-        } catch (e: Exception) {
-            Log.e(MainActivity.TAG, "Failed to decrypt GitHub token", e)
-            ""
-        }
-    }
-    
-    /**
-     * Automatically uploads the progress report to GitHub as a text file
-     * No user interaction required - fully automated for young children
-     */
-    private fun uploadReportToGitHub(
-        report: String,
-        subject: String,
-        childName: String,
-        rewardMinutes: Int
-    ) {
-        // Decrypt GitHub token at runtime (encrypted token and key stored in BuildConfig)
-        val githubToken = decryptGitHubToken()
-        
-        // Check if GitHub token is configured
-        if (githubToken.isBlank()) {
-            Toast.makeText(this@MainActivity, "Report upload not configured. Contact administrator.", Toast.LENGTH_SHORT).show()
-            launchRewardSelectionActivity(rewardMinutes)
-            return
-        }
-        
-        // Show progress (optional, for feedback)
-        val progressDialog = AlertDialog.Builder(this@MainActivity)
-            .setTitle("Uploading Report")
-            .setMessage("Please wait...")
-            .setCancelable(false)
-            .create()
-        progressDialog.show()
-        
-        this@MainActivity.lifecycleScope.launch(Dispatchers.IO) {
-            val client = OkHttpClient()
-            try {
-                // Create simple filename - one file per kid, always overwrite
-                val fileName = "$childName.txt"
-                val filePath = "${MainActivity.GITHUB_REPORTS_PATH}/$fileName"
-                
-                // Full report content (subject + report)
-                val fullReport = "$subject\n\n$report"
-                
-                // Base64 encode the content (GitHub API requirement)
-                val contentBytes = fullReport.toByteArray(Charsets.UTF_8)
-                val base64Content = Base64.encodeToString(contentBytes, Base64.NO_WRAP)
-                
-                // GitHub API endpoint
-                val apiUrl = "https://api.github.com/repos/${MainActivity.GITHUB_OWNER}/${MainActivity.GITHUB_REPO}/contents/$filePath"
-                
-                // Check if file exists first (to get SHA for update)
-                // If file doesn't exist, GitHub API will create it; if it exists, we'll overwrite it
-                var existingSha: String? = null
-                var isUpdate = false
-                try {
-                    val checkRequest = Request.Builder()
-                        .url(apiUrl)
-                        .addHeader("Authorization", "token $githubToken")
-                        .addHeader("Accept", "application/vnd.github.v3+json")
-                        .get()
-                        .build()
-                    client.newCall(checkRequest).execute().use { checkResponse ->
-                        if (checkResponse.isSuccessful) {
-                            val checkBody = checkResponse.body?.string()
-                            if (!checkBody.isNullOrEmpty()) {
-                                val fileInfo = JSONObject(checkBody)
-                                existingSha = fileInfo.optString("sha", null)
-                                isUpdate = true
-                                Log.d(MainActivity.TAG, "File exists, will overwrite. SHA: $existingSha")
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    // File doesn't exist, will create new - this is fine
-                    Log.d(MainActivity.TAG, "File doesn't exist yet, will create new file")
-                }
-                
-                // Create JSON payload for GitHub API
-                val commitMessage = if (isUpdate) {
-                    "Update progress report for $childName"
-                } else {
-                    "Create progress report for $childName"
-                }
-                val json = JSONObject().apply {
-                    put("message", commitMessage)
-                    put("content", base64Content)
-                    put("branch", "main")  // Change to "master" if your repo uses that
-                    if (existingSha != null) {
-                        put("sha", existingSha)  // Required for updates/overwrites
-                    }
-                }
-                
-                // Create request
-                val mediaType = "application/json; charset=utf-8".toMediaType()
-                val body = json.toString().toRequestBody(mediaType)
-                
-                val request = Request.Builder()
-                    .url(apiUrl)
-                    .addHeader("Authorization", "token $githubToken")
-                    .addHeader("Accept", "application/vnd.github.v3+json")
-                    .put(body)
-                    .build()
-                
-                // Execute request
-                client.newCall(request).execute().use { response ->
-                    val responseBody = response.body?.string()
-                withContext(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                    
-                    if (response.isSuccessful) {
-                        Log.d(MainActivity.TAG, "Report uploaded successfully to GitHub: $filePath")
-                        Toast.makeText(this@MainActivity, "Report uploaded!", Toast.LENGTH_SHORT).show()
-                            
-                            // Successfully uploaded, immediately grant reward
-                            rewardEmailInFlight = false
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                triggerPendingRewardLaunch(force = true)
-                            }, 500)
-                        } else {
-                            Log.e(MainActivity.TAG, "GitHub upload failed: ${response.code} - $responseBody")
-                            val errorMsg = try {
-                                val errorJson = JSONObject(responseBody ?: "{}")
-                                errorJson.optString("message", "Upload failed")
-                            } catch (e: Exception) {
-                                "Upload failed: ${response.code}"
-                            }
-                            
-                            Toast.makeText(this@MainActivity, "Upload failed: $errorMsg", Toast.LENGTH_LONG).show()
-                            rewardEmailInFlight = false
-                            launchRewardSelectionActivity(rewardMinutes)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(MainActivity.TAG, "Error uploading report to GitHub", e)
-                withContext(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                    Toast.makeText(this@MainActivity, "Upload error: ${e.message}", Toast.LENGTH_LONG).show()
-                    rewardEmailInFlight = false
-                    launchRewardSelectionActivity(rewardMinutes)
-                }
-            }
-        }
     }
 
     private fun displayProfileSelection(content: MainContent) {
@@ -2198,10 +1522,7 @@ class MainActivity : AppCompatActivity() {
             
             Log.d(TAG, "Launching game: ${game.title}, totalQuestions from config: ${game.totalQuestions}, questions in content: ${questions.size}, final totalQuestions: $totalQuestions")
 
-            val currentContent = getCurrentMainContent()
-            val isRequired = currentContent?.sections?.any { section ->
-                section.id == "required" && section.tasks?.any { it.launch == game.type } == true
-            } ?: false
+            val isRequired = sectionId == "required"
 
             val intent = Intent(this, com.talq2me.baerened.GameActivity::class.java).apply {
                 putExtra("GAME_CONTENT", gameContent)

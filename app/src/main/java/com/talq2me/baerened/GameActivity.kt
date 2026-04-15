@@ -218,20 +218,7 @@ class GameActivity : AppCompatActivity() {
                     
                         // Game completed successfully - award stars to reward bank
                         // Use actualGameType (without battleHub_ prefix) for completion tracking
-                        // Load config to pass to markTaskCompletedWithName (needed to find task and update properly)
-                        val contentUpdateService = ContentUpdateService()
-                        val configJson = contentUpdateService.getCachedMainContent(this)
-                        val config = if (!configJson.isNullOrEmpty()) {
-                            try {
-                                Gson().fromJson(configJson, MainContent::class.java)
-                            } catch (e: Exception) {
-                                android.util.Log.e("GameActivity", "Error parsing config JSON", e)
-                                null
-                            }
-                        } else {
-                            android.util.Log.w("GameActivity", "Config JSON is null or empty")
-                            null
-                        }
+                        val config: MainContent? = null
                         
                         val correctCount = gameEngine.getCorrectCount()
                         val incorrectCount = gameEngine.getIncorrectCount()
@@ -250,8 +237,6 @@ class GameActivity : AppCompatActivity() {
                                 actualGameType,
                                 gameTitle,
                                 gameStars,
-                                isRequiredGame,
-                                config,
                                 sectionId,
                                 correctAnswers = correctCount,
                                 incorrectAnswers = incorrectCount,
@@ -275,9 +260,7 @@ class GameActivity : AppCompatActivity() {
                             android.util.Log.d("GameActivity", "CRITICAL: Task saved to DB and session refetched, earnedStars: $earnedStars")
 
                             if (earnedStars > 0) {
-                                val effectiveSectionId = if (currentBattleHubTaskId != null && (sectionId == null || sectionId !in listOf("required", "optional"))) "optional" else sectionId
-                                progressManager.grantRewardsForTaskCompletion(earnedStars, effectiveSectionId)
-                                android.util.Log.d("GameActivity", "Game $actualGameType completed, granted $earnedStars stars (section=$sectionId, effective=$effectiveSectionId)")
+                                android.util.Log.d("GameActivity", "Game $actualGameType completed, earned $earnedStars stars (DB already applied rewards)")
                                 timeTracker.updateStarsEarned("game", earnedStars)
                             }
 

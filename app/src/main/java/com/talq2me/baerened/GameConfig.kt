@@ -1,7 +1,6 @@
 package com.talq2me.baerened
 
 import android.content.Context
-import com.google.gson.Gson
 
 // GameConfig.kt
 data class GameConfig(
@@ -9,7 +8,6 @@ data class GameConfig(
     val requiredCorrectAnswers: Int
 )
 
-fun loadGameConfig(context: Context, fileName: String): GameConfig {
-    val json = context.assets.open("config/$fileName").bufferedReader().use { it.readText() }
-    return Gson().fromJson(json, GameConfig::class.java)
+fun loadGameConfig(@Suppress("UNUSED_PARAMETER") context: Context, @Suppress("UNUSED_PARAMETER") fileName: String): GameConfig {
+    throw UnsupportedOperationException("Asset-based config is disabled in DB/GitHub-only mode.")
 }

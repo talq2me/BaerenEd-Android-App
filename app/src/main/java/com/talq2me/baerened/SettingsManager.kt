@@ -134,41 +134,19 @@ object SettingsManager {
         }
 
         try {
-            val url = "${getSupabaseUrl(context)}/rest/v1/settings?id=eq.1&select=*"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("apikey", getSupabaseKey(context))
-                .addHeader("Authorization", "Bearer ${getSupabaseKey(context)}")
-                .build()
-
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-                response.close()
-
-                if (responseBody != null && responseBody != "[]" && responseBody != "{}") {
-                    val settingsArray = gson.fromJson(responseBody, object : TypeToken<Array<Map<String, Any>>>() {}.type) as? Array<Map<String, Any>>
-                    if (settingsArray != null && settingsArray.isNotEmpty()) {
-                        val settings = settingsArray[0]
-                        val pin = settings["pin"] as? String
-                        val parentEmail = settings["parent_email"] as? String
-                        val lastUpdated = settings["last_updated"] as? String
-                        
-                        val data = SettingsData(pin, parentEmail)
-                        cachedSettings = data
-                        Log.d(TAG, "Loaded settings from cloud: pin=${pin?.take(1)}..., email=$parentEmail, timestamp=$lastUpdated")
-                        return@withContext mapOf(
-                            "data" to data,
-                            "last_updated" to (lastUpdated ?: "")
-                        )
-                    }
-                }
-            } else {
-                val errorBody = response.body?.string() ?: "Unknown error"
-                Log.e(TAG, "Failed to load settings: ${response.code} - $errorBody")
-                response.close()
-            }
+            val sync = SupabaseInterface()
+            if (!sync.isConfigured()) return@withContext null
+            val row = sync.invokeAfGetSettingsRow().getOrNull() ?: return@withContext null
+            val pin = row.get("pin")?.takeIf { it.isJsonPrimitive && !it.isJsonNull }?.asString
+            val parentEmail = row.get("parent_email")?.takeIf { it.isJsonPrimitive && !it.isJsonNull }?.asString
+            val lastUpdated = row.get("last_updated")?.takeIf { it.isJsonPrimitive && !it.isJsonNull }?.asString
+            val data = SettingsData(pin, parentEmail)
+            cachedSettings = data
+            Log.d(TAG, "Loaded settings from cloud: pin=${pin?.take(1)}..., email=$parentEmail, timestamp=$lastUpdated")
+            return@withContext mapOf(
+                "data" to data,
+                "last_updated" to (lastUpdated ?: "")
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Error loading settings from cloud", e)
         }
@@ -179,8 +157,8 @@ object SettingsManager {
      * Saves settings to Supabase (async)
      */
     /**
-     * Saves settings to Supabase
-     * CRITICAL: Checks cloud timestamp before updating - only updates if local is newer
+     * Saves settings to Supabase.
+     * Dumb-UI mode: no local-vs-cloud timestamp arbitration.
      */
     private suspend fun saveSettingsToCloud(context: Context, data: SettingsData): Boolean = withContext(Dispatchers.IO) {
         if (!isConfigured(context)) {
@@ -189,77 +167,18 @@ object SettingsManager {
         }
 
         try {
-            // CRITICAL: Check cloud timestamp first before updating
-            val cloudResult = loadSettingsFromCloud(context)
-            if (cloudResult != null) {
-                val cloudTimestamp = cloudResult["last_updated"] as? String
-                val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-                val localTimestamp = prefs.getString("settings_timestamp", null)
-                
-                if (cloudTimestamp != null && localTimestamp != null) {
-                    val cloudIsNewer = compareTimestamps(cloudTimestamp, localTimestamp) > 0
-                    Log.d(TAG, "saveSettingsToCloud timestamp check: cloudIsNewer=$cloudIsNewer (cloud=$cloudTimestamp, local=$localTimestamp)")
-                    if (cloudIsNewer) {
-                        Log.d(TAG, "Cloud settings are newer, not updating cloud")
-                        return@withContext true // Cloud is newer, don't overwrite
-                    }
-                } else if (cloudTimestamp != null && localTimestamp == null) {
-                    Log.d(TAG, "Cloud has timestamp but local doesn't, not updating cloud")
-                    return@withContext true // Cloud has timestamp, don't overwrite
-                }
-            }
-            
-            val settingsMap = mutableMapOf<String, Any?>()
-            data.pin?.let { settingsMap["pin"] = it }
-            data.parentEmail?.let { settingsMap["parent_email"] = it }
-
-            val json = gson.toJson(settingsMap)
-            val baseUrl = "${getSupabaseUrl(context)}/rest/v1/settings"
-            val requestBody = json.toRequestBody("application/json".toMediaType())
-
-            // Try to update existing settings, fallback to insert
-            val updateUrl = "$baseUrl?id=eq.1"
-            val patchRequest = Request.Builder()
-                .url(updateUrl)
-                .patch(requestBody)
-                .addHeader("apikey", getSupabaseKey(context))
-                .addHeader("Authorization", "Bearer ${getSupabaseKey(context)}")
-                .addHeader("Prefer", "return=minimal")
-                .build()
-
-            val patchResponse = client.newCall(patchRequest).execute()
-            if (patchResponse.isSuccessful) {
-                patchResponse.close()
+            val sync = SupabaseInterface()
+            val r = sync.invokeAfUpsertSettingsRow(
+                parentEmail = data.parentEmail,
+                pin = data.pin,
+                aggressiveCleanup = null
+            )
+            if (r.isSuccess) {
                 cachedSettings = data
-                Log.d(TAG, "Updated settings in cloud")
+                Log.d(TAG, "Updated settings in cloud via RPC")
                 return@withContext true
-            } else if (patchResponse.code == 404) {
-                // No existing record, try to insert
-                patchResponse.close()
-                val insertRequest = Request.Builder()
-                    .url(baseUrl)
-                    .post(requestBody)
-                    .addHeader("apikey", getSupabaseKey(context))
-                    .addHeader("Authorization", "Bearer ${getSupabaseKey(context)}")
-                    .addHeader("Prefer", "return=minimal")
-                    .build()
-
-                val insertResponse = client.newCall(insertRequest).execute()
-                if (insertResponse.isSuccessful) {
-                    insertResponse.close()
-                    cachedSettings = data
-                    Log.d(TAG, "Inserted settings in cloud")
-                    return@withContext true
-                } else {
-                    val errorBody = insertResponse.body?.string() ?: "Unknown error"
-                    Log.e(TAG, "Failed to insert settings: ${insertResponse.code} - $errorBody")
-                    insertResponse.close()
-                }
-            } else {
-                val errorBody = patchResponse.body?.string() ?: "Unknown error"
-                Log.e(TAG, "Failed to update settings: ${patchResponse.code} - $errorBody")
-                patchResponse.close()
             }
+            Log.e(TAG, "Failed to patch settings: ${r.exceptionOrNull()?.message}")
         } catch (e: Exception) {
             Log.e(TAG, "Error saving settings to cloud", e)
         }
@@ -277,8 +196,8 @@ object SettingsManager {
     }
 
     /**
-     * Syncs active profile to cloud devices table asynchronously
-     * CRITICAL: Checks cloud timestamp before updating - only updates if local is newer
+     * Syncs active profile to cloud devices table asynchronously.
+     * Dumb-UI mode: no client-side timestamp comparison.
      */
     private fun syncActiveProfileToCloudAsync(context: Context, profile: String) {
         settingsScope.launch {
@@ -290,97 +209,18 @@ object SettingsManager {
                 
                 val deviceId = getDeviceId(context)
                 val deviceName = getDeviceName(context)
-                val localTimestamp = getLocalProfileTimestamp(context)
-                
-                // CRITICAL: Check cloud timestamp first before updating
-                val cloudProfileData = getActiveProfileFromCloud(context)
-                if (cloudProfileData != null) {
-                    val cloudTimestamp = cloudProfileData.lastUpdated
-                    Log.d(TAG, "syncActiveProfileToCloud: local=$profile (timestamp=$localTimestamp), cloud=${cloudProfileData.profile} (timestamp=$cloudTimestamp)")
-                    
-                    // Compare timestamps to determine if we should update
-                    val shouldUpdate = if (cloudTimestamp != null && localTimestamp != null) {
-                        val localTime = parseTimestampForComparison(localTimestamp)
-                        val cloudTime = parseTimestampForComparison(cloudTimestamp)
-                        val localIsNewer = localTime > cloudTime
-                        Log.d(TAG, "syncActiveProfileToCloud timestamp comparison:")
-                        Log.d(TAG, "  Local: $localTimestamp (parsed: $localTime)")
-                        Log.d(TAG, "  Cloud: $cloudTimestamp (parsed: $cloudTime)")
-                        Log.d(TAG, "  Local is newer: $localIsNewer")
-                        localIsNewer
-                    } else if (localTimestamp != null) {
-                        // Local has timestamp but cloud doesn't - update cloud
-                        Log.d(TAG, "Local has timestamp but cloud doesn't, updating cloud")
-                        true
-                    } else {
-                        // No local timestamp - don't overwrite cloud
-                        Log.d(TAG, "No local timestamp, not updating cloud")
-                        false
-                    }
-                    
-                    if (!shouldUpdate) {
-                        Log.d(TAG, "Cloud profile is newer or equal, not updating device record")
-                        return@launch
-                    }
-                    
-                    // Also check if profiles match - if they're the same, no need to update
-                    if (cloudProfileData.profile == profile && cloudTimestamp != null && localTimestamp != null) {
-                        Log.d(TAG, "Profiles match and timestamps exist, skipping update")
-                        return@launch
-                    }
-                }
-                
-                val updateMap = mapOf(
-                    "device_id" to deviceId,
-                    "device_name" to deviceName,
-                    "active_profile" to profile // Store in AM/BM format
-                    // Note: last_updated will be set by database trigger to current time
+                val sync = SupabaseInterface()
+                if (!sync.isConfigured()) return@launch
+                val r = sync.invokeAfUpsertDevice(
+                    deviceId = deviceId,
+                    deviceName = deviceName,
+                    activeProfile = profile,
+                    lastUpdated = null
                 )
-                
-                val json = gson.toJson(updateMap)
-                val baseUrl = "${getSupabaseUrl(context)}/rest/v1/devices"
-                val requestBody = json.toRequestBody("application/json".toMediaType())
-                
-                // Try to update existing device record first
-                val updateUrl = "$baseUrl?device_id=eq.$deviceId"
-                val patchRequest = Request.Builder()
-                    .url(updateUrl)
-                    .patch(requestBody)
-                    .addHeader("apikey", getSupabaseKey(context))
-                    .addHeader("Authorization", "Bearer ${getSupabaseKey(context)}")
-                    .addHeader("Prefer", "return=representation")
-                    .build()
-                
-                val patchResponse = client.newCall(patchRequest).execute()
-                val patchResponseBody = patchResponse.body?.string() ?: "[]"
-                patchResponse.close()
-                
-                if (patchResponse.isSuccessful && patchResponseBody != "[]" && patchResponseBody != "{}") {
-                    // Update succeeded
-                    Log.d(TAG, "Synced active profile to cloud devices table: deviceId=$deviceId, profile=$profile")
-                    return@launch
-                }
-                
-                // PATCH failed or no rows updated - try to insert
-                val insertRequest = Request.Builder()
-                    .url(baseUrl)
-                    .post(requestBody)
-                    .addHeader("apikey", getSupabaseKey(context))
-                    .addHeader("Authorization", "Bearer ${getSupabaseKey(context)}")
-                    .addHeader("Prefer", "return=representation")
-                    .build()
-                
-                val insertResponse = client.newCall(insertRequest).execute()
-                val insertResponseBody = insertResponse.body?.string() ?: "[]"
-                insertResponse.close()
-                
-                if (insertResponse.isSuccessful && insertResponseBody != "[]" && insertResponseBody != "{}") {
-                    Log.d(TAG, "Inserted active profile in cloud devices table: deviceId=$deviceId, profile=$profile")
-                } else if (insertResponse.code == 409) {
-                    // 409 = duplicate key - record already exists (another concurrent request created it)
-                    Log.d(TAG, "Device record already exists during active profile sync (409), record is fine: deviceId=$deviceId")
+                if (r.isSuccess) {
+                    Log.d(TAG, "Synced active profile to cloud devices via RPC: deviceId=$deviceId, profile=$profile")
                 } else {
-                    Log.w(TAG, "Failed to sync active profile to cloud: ${insertResponse.code} - $insertResponseBody")
+                    Log.w(TAG, "Failed to sync active profile via RPC: ${r.exceptionOrNull()?.message}")
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Could not sync active profile to cloud: ${e.message}")
@@ -389,40 +229,21 @@ object SettingsManager {
     }
 
     /**
-     * Synchronously writes profile to local storage and syncs to cloud devices table
-     * Note: Profile is stored in local SharedPreferences and synced to devices table
-     * Also stores a timestamp for comparison with cloud
+     * Synchronously writes profile to local storage and syncs to cloud devices table.
      */
     fun writeProfile(context: Context, newProfile: String) {
         // Profile is stored in local SharedPreferences
-        val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-        val timestamp = generateESTTimestamp()
-        prefs.edit().apply {
-            putString("profile", newProfile)
-            putString("profile_timestamp", timestamp)
-            apply()
-        }
-        Log.d(TAG, "Profile written: $newProfile, timestamp: $timestamp")
+        context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString("profile", newProfile)
+            .apply()
+        Log.d(TAG, "Profile written: $newProfile")
         
         // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
         updateLastUpdatedTimestamp(context, newProfile)
         
         // Sync to cloud devices table asynchronously
         syncActiveProfileToCloudAsync(context, newProfile)
-    }
-    
-    /**
-     * Gets the local profile timestamp (when profile was last changed locally)
-     */
-    private fun getLocalProfileTimestamp(context: Context): String? {
-        val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-        val raw = prefs.getString("profile_timestamp", null) ?: return null
-        val normalized = normalizeTimestampToDbFormat(raw)
-        if (normalized != raw) {
-            prefs.edit().putString("profile_timestamp", normalized).apply()
-            Log.d(TAG, "Normalized profile_timestamp from '$raw' to '$normalized'")
-        }
-        return normalized
     }
     
     /**
@@ -437,22 +258,6 @@ object SettingsManager {
     }
 
     /**
-     * Normalizes timestamps to DB format (yyyy-MM-dd HH:mm:ss.SSS, EST, no offset).
-     */
-    private fun normalizeTimestampToDbFormat(timestamp: String): String {
-        val needsNormalize = timestamp.contains('T') || timestamp.endsWith("Z") || timestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$"))
-        if (!needsNormalize) return timestamp
-
-        val parsedMillis = parseTimestampForComparison(timestamp)
-        if (parsedMillis <= 0L) return timestamp
-
-        val estZone = java.util.TimeZone.getTimeZone("America/Toronto")
-        val df = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.getDefault())
-        df.timeZone = estZone
-        return df.format(java.util.Date(parsedMillis))
-    }
-    
-    /**
      * Updates last_updated timestamp in daily_progress_prefs to trigger cloud sync
      * This is called whenever settings that should sync to cloud are changed (as per Daily Reset Logic)
      */
@@ -464,61 +269,6 @@ object SettingsManager {
         Log.d(TAG, "Updated last_updated timestamp for profile $profile: $timestamp")
     }
     
-    /**
-     * Compares two timestamps and returns:
-     * - Positive value if timestamp1 is newer than timestamp2
-     * - Negative value if timestamp1 is older than timestamp2
-     * - Zero if they are equal
-     */
-    private fun compareTimestamps(timestamp1: String, timestamp2: String): Int {
-        val time1 = parseTimestampForComparison(timestamp1)
-        val time2 = parseTimestampForComparison(timestamp2)
-        return time1.compareTo(time2)
-    }
-    
-    /**
-     * Parses timestamp string to milliseconds for comparison
-     */
-    private fun parseTimestampForComparison(timestamp: String): Long {
-        return try {
-            // Normalize timestamp: strip timezone suffixes and convert 'T' to space.
-            var baseTimestamp = when {
-                timestamp.endsWith("Z") -> timestamp.substring(0, timestamp.length - 1)
-                timestamp.matches(Regex(".*[+-]\\d{2}:\\d{2}$")) -> {
-                    val offsetStart = timestamp.lastIndexOfAny(charArrayOf('+', '-'))
-                    if (offsetStart > 10) timestamp.substring(0, offsetStart) else timestamp
-                }
-                else -> timestamp
-            }
-            baseTimestamp = baseTimestamp.replace('T', ' ')
-
-            val estZone = java.util.TimeZone.getTimeZone("America/Toronto")
-            val formats = listOf(
-                "yyyy-MM-dd HH:mm:ss.SSS",
-                "yyyy-MM-dd HH:mm:ss.SS",
-                "yyyy-MM-dd HH:mm:ss"
-            )
-            for (pattern in formats) {
-                try {
-                    val df = java.text.SimpleDateFormat(pattern, java.util.Locale.getDefault())
-                    df.timeZone = estZone
-                    val parsed = df.parse(baseTimestamp)
-                    if (parsed != null) {
-                        val result = parsed.time
-                        Log.d(TAG, "parseTimestampForComparison: $timestamp -> base=$baseTimestamp -> $result (parsed as EST)")
-                        return result
-                    }
-                } catch (_: Exception) {
-                    // try next pattern
-                }
-            }
-            0L
-        } catch (e: Exception) {
-            Log.w(TAG, "Error parsing timestamp for comparison: $timestamp", e)
-            0L
-        }
-    }
-
     /**
      * Synchronously reads PIN from cache, cloud, or local storage (in that order)
      */
@@ -585,12 +335,6 @@ object SettingsManager {
         // Update cache immediately
         val updatedSettings = cachedSettings?.copy(pin = newPin) ?: SettingsData(pin = newPin)
         cachedSettings = updatedSettings
-        
-        // Store timestamp when PIN is changed
-        val timestamp = generateESTTimestamp()
-        val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString("settings_timestamp", timestamp).apply()
-        Log.d(TAG, "PIN written, timestamp: $timestamp")
         
         // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
         val profile = readProfile(context) ?: "AM"
@@ -675,12 +419,6 @@ object SettingsManager {
         // Update cache immediately
         val updatedSettings = cachedSettings?.copy(parentEmail = newEmail) ?: SettingsData(parentEmail = newEmail)
         cachedSettings = updatedSettings
-        
-        // Store timestamp when email is changed
-        val timestamp = generateESTTimestamp()
-        val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString("settings_timestamp", timestamp).apply()
-        Log.d(TAG, "Email written, timestamp: $timestamp")
         
         // Update last_updated timestamp to trigger cloud sync (as per Daily Reset Logic)
         val profile = readProfile(context) ?: "AM"
@@ -804,33 +542,14 @@ object SettingsManager {
         
         try {
             val deviceId = getDeviceId(context)
-            val url = "${getSupabaseUrl(context)}/rest/v1/devices?device_id=eq.$deviceId&select=active_profile,last_updated"
-            val request = Request.Builder()
-                .url(url)
-                .get()
-                .addHeader("apikey", getSupabaseKey(context))
-                .addHeader("Authorization", "Bearer ${getSupabaseKey(context)}")
-                .build()
-            
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string() ?: "[]"
-                response.close()
-                
-                if (responseBody != "[]" && responseBody != "{}") {
-                    val devicesArray = gson.fromJson(responseBody, object : TypeToken<Array<Map<String, Any>>>() {}.type) as? Array<Map<String, Any>>
-                    val device = devicesArray?.firstOrNull()
-                    val activeProfile = device?.get("active_profile") as? String
-                    val lastUpdated = device?.get("last_updated") as? String
-                    if (activeProfile != null) {
-                        Log.d(TAG, "Got active profile from cloud: $activeProfile, last_updated: $lastUpdated")
-                        return@withContext ProfileWithTimestamp(activeProfile, lastUpdated)
-                    }
-                }
-            } else {
-                val errorBody = response.body?.string() ?: "Unknown error"
-                Log.e(TAG, "Failed to get active profile: ${response.code} - $errorBody")
-                response.close()
+            val sync = SupabaseInterface()
+            if (!sync.isConfigured()) return@withContext null
+            val row = sync.invokeAfGetDeviceRow(deviceId).getOrNull() ?: return@withContext null
+            val activeProfile = row.get("active_profile")?.takeIf { it.isJsonPrimitive && !it.isJsonNull }?.asString
+            val lastUpdated = row.get("last_updated")?.takeIf { it.isJsonPrimitive && !it.isJsonNull }?.asString
+            if (activeProfile != null) {
+                Log.d(TAG, "Got active profile from cloud: $activeProfile, last_updated: $lastUpdated")
+                return@withContext ProfileWithTimestamp(activeProfile, lastUpdated)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error getting active profile from cloud", e)
@@ -854,78 +573,12 @@ object SettingsManager {
                     val cloudProfileData = getActiveProfileFromCloud(context)
                     if (cloudProfileData != null) {
                         val currentProfile = readProfile(context)
-                        val localTimestamp = getLocalProfileTimestamp(context)
-                        val cloudTimestamp = cloudProfileData.lastUpdated
-                        
-                        Log.d(TAG, "Profile check: local=$currentProfile (timestamp=$localTimestamp), cloud=${cloudProfileData.profile} (timestamp=$cloudTimestamp)")
-                        
-                        // Compare timestamps to determine which is newer
-                        val shouldApplyCloud = if (cloudTimestamp != null && localTimestamp != null) {
-                            // Both timestamps exist - compare them
-                            try {
-                                val localTime = parseTimestampForComparison(localTimestamp)
-                                val cloudTime = parseTimestampForComparison(cloudTimestamp)
-                                val cloudIsNewer = cloudTime > localTime
-                                Log.d(TAG, "checkAndApplyProfileFromCloud timestamp comparison:")
-                                Log.d(TAG, "  Local: $localTimestamp (parsed: $localTime)")
-                                Log.d(TAG, "  Cloud: $cloudTimestamp (parsed: $cloudTime)")
-                                Log.d(TAG, "  Cloud is newer: $cloudIsNewer")
-                                cloudIsNewer
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error parsing timestamps for comparison", e)
-                                // On error, default to applying cloud (safer)
-                                true
-                            }
-                        } else if (cloudTimestamp != null) {
-                            // Only cloud has timestamp - apply cloud
-                            Log.d(TAG, "No local timestamp, applying cloud profile")
-                            true
-                        } else if (localTimestamp != null) {
-                            // Only local has timestamp - keep local (don't apply cloud)
-                            Log.d(TAG, "No cloud timestamp, keeping local profile")
-                            false
-                        } else {
-                            // Neither has timestamp - apply cloud if profiles differ (cloud is source of truth when no timestamps)
-                            val profilesDiffer = cloudProfileData.profile != currentProfile
-                            Log.d(TAG, "Neither has timestamp, profiles differ: $profilesDiffer, will ${if (profilesDiffer) "apply cloud" else "keep local"}")
-                            profilesDiffer
-                        }
-                        
-                        if (shouldApplyCloud && cloudProfileData.profile != currentProfile) {
+                        if (cloudProfileData.profile != currentProfile) {
                             Log.d(TAG, "Profile changed in cloud: $currentProfile -> ${cloudProfileData.profile}, applying locally")
-                            // Write profile WITHOUT syncing to cloud (we already have the cloud value)
-                            // CRITICAL: Always use the cloud's timestamp - never generate a new one
-                            val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-                            prefs.edit().apply {
-                                putString("profile", cloudProfileData.profile)
-                                if (cloudTimestamp != null) {
-                                    putString("profile_timestamp", cloudTimestamp)
-                                    Log.d(TAG, "Set local profile_timestamp to match cloud: $cloudTimestamp")
-                                } else {
-                                    // Remove local timestamp if cloud doesn't have one (shouldn't happen, but be safe)
-                                    remove("profile_timestamp")
-                                    Log.w(TAG, "Cloud has no timestamp, removed local profile_timestamp")
-                                }
-                                apply()
-                            }
-                            Log.d(TAG, "Applied cloud profile to local storage: ${cloudProfileData.profile} with cloud timestamp: $cloudTimestamp")
-                            // Profile was changed - could notify listeners here if needed
-                        } else if (!shouldApplyCloud && cloudProfileData.profile != currentProfile && localTimestamp != null) {
-                            // Only sync local to cloud if local has a timestamp (proving it was set locally)
-                            // If neither has timestamp, we already applied cloud above, so don't sync local
-                            Log.d(TAG, "Local profile is newer (has timestamp), will sync local to cloud: $currentProfile")
-                            // Local is newer - sync to cloud
-                            currentProfile?.let { profile ->
-                                syncActiveProfileToCloudAsync(context, profile)
-                            }
-                        } else if (!shouldApplyCloud && cloudProfileData.profile != currentProfile && localTimestamp == null) {
-                            // Profiles differ but neither has timestamp - this shouldn't happen, but if it does, apply cloud
-                            Log.w(TAG, "Profiles differ but neither has timestamp - applying cloud as source of truth: ${cloudProfileData.profile}")
-                            val prefs = context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
-                            prefs.edit().apply {
-                                putString("profile", cloudProfileData.profile)
-                                apply()
-                            }
+                            context.getSharedPreferences(LOCAL_PREFS_NAME, Context.MODE_PRIVATE)
+                                .edit()
+                                .putString("profile", cloudProfileData.profile)
+                                .apply()
                         }
                     }
                 }

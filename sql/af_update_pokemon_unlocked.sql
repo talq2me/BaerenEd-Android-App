@@ -1,3 +1,6 @@
+-- Call sites (BaerenEd Android, this repo):
+--   SupabaseInterface.invokeAfUpdatePokemonUnlocked; DailyProgressManager (SingleItemUpdate.PokemonUnlocked).
+
 -- BaerenEd: Update pokemon_unlocked for a profile (scalar param only).
 -- Call: POST /rest/v1/rpc/af_update_pokemon_unlocked with body {"p_profile": "TE", "p_pokemon_unlocked": 3}
 

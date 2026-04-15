@@ -40,6 +40,7 @@ import android.graphics.BitmapFactory
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class WebGameActivity : AppCompatActivity() {
@@ -53,8 +54,6 @@ class WebGameActivity : AppCompatActivity() {
         const val EXTRA_CORRECT_ANSWERS = "correct_answers"
         const val EXTRA_INCORRECT_ANSWERS = "incorrect_answers"
         const val EXTRA_QUESTIONS_ANSWERED = "questions_answered"
-        const val RESULT_LAUNCH_GAME = 100
-        const val RESULT_EXTRA_GAME_ID = "game_id_to_launch"
         const val CAMERA_PERMISSION_REQUEST_CODE = 1001
         const val CAMERA_REQUEST_CODE = 1002
     }
@@ -455,19 +454,6 @@ class WebGameActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun launchGame(gameId: String) {
-            android.util.Log.d("WebGameActivity", "JavaScript requested to launch game: $gameId")
-            // Return result to MainActivity so it can launch the game
-            runOnUiThread {
-                val resultIntent = Intent().apply {
-                    putExtra(RESULT_EXTRA_GAME_ID, gameId)
-                }
-                setResult(RESULT_LAUNCH_GAME, resultIntent)
-                finish() // Close battle hub and return to MainActivity
-            }
-        }
-
-        @JavascriptInterface
         fun getEarnedBerries(): Int {
             return try {
                 progressManager.getEarnedBerries()
@@ -488,28 +474,8 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun getConfigJson(): String {
-            return try {
-                // Try to get from cache first (most up-to-date)
-                val cacheFile = File(this@WebGameActivity.filesDir, "main_content.json")
-                if (cacheFile.exists()) {
-                    android.util.Log.d("WebGameActivity", "Returning cached config")
-                    cacheFile.readText()
-                } else {
-                    // Fallback to assets based on current profile
-                    val profile = SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
-                    val configFileName = "${profile}_config.json"
-                    android.util.Log.d("WebGameActivity", "Loading config from assets: $configFileName")
-                    val inputStream: InputStream = assets.open("config/$configFileName")
-                    val size = inputStream.available()
-                    val buffer = ByteArray(size)
-                    inputStream.read(buffer)
-                    inputStream.close()
-                    String(buffer, Charset.forName("UTF-8"))
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("WebGameActivity", "Error loading config JSON", e)
-                "{}"
-            }
+            // DB-first app: Web games should not depend on app-side main config.
+            return "{}"
         }
 
         @JavascriptInterface
@@ -585,11 +551,9 @@ class WebGameActivity : AppCompatActivity() {
                         imageBase64
                     }
                     
-                    // Get Supabase configuration from BuildConfig (same package, direct access)
-                    val supabaseUrl = try {
-                        BuildConfig.SUPABASE_URL
-                    } catch (e: Exception) {
-                        android.util.Log.e("WebGameActivity", "Supabase URL not configured", e)
+                    val sync = SupabaseInterface()
+                    if (!sync.isConfigured()) {
+                        android.util.Log.e("WebGameActivity", "Supabase not configured")
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
                             webView?.evaluateJavascript(
@@ -599,106 +563,13 @@ class WebGameActivity : AppCompatActivity() {
                         }
                         return@Thread
                     }
-                    
-                    val supabaseKey = try {
-                        BuildConfig.SUPABASE_KEY
-                    } catch (e: Exception) {
-                        android.util.Log.e("WebGameActivity", "Supabase key not configured", e)
-                        runOnUiThread {
-                            val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView?.evaluateJavascript(
-                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
-                                null
-                            )
-                        }
-                        return@Thread
+
+                    android.util.Log.d("WebGameActivity", "Uploading image via RPC (profile=$profile, task=$task, captureDateTime=$captureDateTime)")
+                    val uploadResult = runBlocking(Dispatchers.IO) {
+                        sync.invokeAfUpsertImageUpload(profile, task, base64Image)
                     }
-                    
-                    if (supabaseUrl.isBlank() || supabaseKey.isBlank()) {
-                        android.util.Log.e("WebGameActivity", "Supabase URL or key is blank")
-                        runOnUiThread {
-                            val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                            webView?.evaluateJavascript(
-                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
-                                null
-                            )
-                        }
-                        return@Thread
-                    }
-                    
-                    // Create JSON body for UPSERT
-                    val requestBody = JSONObject().apply {
-                        put("profile", profile)
-                        put("task", task)
-                        put("image", base64Image)
-                        put("capture_date_time", captureDateTime)
-                    }
-                    
-                    val mediaType = "application/json".toMediaType()
-                    val body = requestBody.toString().toRequestBody(mediaType)
-                    
-                    android.util.Log.d("WebGameActivity", "Uploading image (profile=$profile, task=$task)")
-                    
-                    // Try PATCH first (UPDATE if exists)
-                    val patchUrl = "$supabaseUrl/rest/v1/image_uploads?profile=eq.$profile&task=eq.$task"
-                    val patchRequest = Request.Builder()
-                        .url(patchUrl)
-                        .patch(body)
-                        .addHeader("apikey", supabaseKey)
-                        .addHeader("Authorization", "Bearer $supabaseKey")
-                        .addHeader("Content-Type", "application/json")
-                        .addHeader("Prefer", "return=representation")
-                        .build()
-                    
-                    android.util.Log.d("WebGameActivity", "Trying PATCH first: $patchUrl")
-                    var response = httpClient.newCall(patchRequest).execute()
-                    val responseBody = response.body?.string()
-                    android.util.Log.d("WebGameActivity", "PATCH response code: ${response.code}")
-                    
-                    // If PATCH returns 404 or 0 rows updated, do INSERT
-                    if (response.code == 404 || (response.isSuccessful && responseBody != null && responseBody == "[]")) {
-                        android.util.Log.d("WebGameActivity", "Record doesn't exist, doing INSERT")
-                        response.close()
-                        
-                        // INSERT new record
-                        val postUrl = "$supabaseUrl/rest/v1/image_uploads"
-                        val postRequest = Request.Builder()
-                            .url(postUrl)
-                            .post(body)
-                            .addHeader("apikey", supabaseKey)
-                            .addHeader("Authorization", "Bearer $supabaseKey")
-                            .addHeader("Content-Type", "application/json")
-                            .addHeader("Prefer", "return=representation")
-                            .build()
-                        
-                        android.util.Log.d("WebGameActivity", "Sending POST request: $postUrl")
-                        response = httpClient.newCall(postRequest).execute()
-                        val postResponseBody = response.body?.string()
-                        android.util.Log.d("WebGameActivity", "POST response code: ${response.code}")
-                        
-                        if (response.isSuccessful) {
-                            android.util.Log.d("WebGameActivity", "INSERT successful")
-                            runOnUiThread {
-                                val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
-                                webView?.evaluateJavascript(
-                                    "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']();",
-                                    null
-                                )
-                            }
-                        } else {
-                            android.util.Log.e("WebGameActivity", "INSERT failed: ${response.code}, body: $postResponseBody")
-                            val errorMsg = (postResponseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
-                            runOnUiThread {
-                                val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
-                                webView?.evaluateJavascript(
-                                    "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
-                                    null
-                                )
-                            }
-                        }
-                    } else if (response.isSuccessful) {
-                        // PATCH succeeded - record was updated
-                        android.util.Log.d("WebGameActivity", "UPDATE successful")
+                    if (uploadResult.isSuccess) {
+                        android.util.Log.d("WebGameActivity", "af_upsert_image_upload successful")
                         runOnUiThread {
                             val escapedCallback = successCallback.replace("\\", "\\\\").replace("'", "\\'")
                             webView?.evaluateJavascript(
@@ -707,18 +578,16 @@ class WebGameActivity : AppCompatActivity() {
                             )
                         }
                     } else {
-                        // PATCH failed for some other reason
-                        android.util.Log.e("WebGameActivity", "PATCH failed: ${response.code}, body: $responseBody")
-                        val errorMsg = (responseBody ?: "Upload failed with code ${response.code}").replace("'", "\\'").replace("\"", "\\\"")
+                        val msg = (uploadResult.exceptionOrNull()?.message ?: "Upload failed").replace("'", "\\'").replace("\"", "\\\"")
+                        android.util.Log.e("WebGameActivity", "af_upsert_image_upload failed: $msg")
                         runOnUiThread {
                             val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
                             webView?.evaluateJavascript(
-                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
+                                "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$msg');",
                                 null
                             )
                         }
                     }
-                    response.close()
                     
                 } catch (e: Exception) {
                     android.util.Log.e("WebGameActivity", "Error uploading image", e)

@@ -39,18 +39,18 @@ class RewardSelectionActivity : AppCompatActivity() {
                     "B" -> "BM"
                     else -> rawProfile
                 }
-                val syncService = CloudSyncService()
-                // Must use use_reward_time (not add_reward_time): moves banked_mins → reward_time_expiry so BaerenLock shows reward apps.
+                val syncService = SupabaseInterface()
+                // Must use af_reward_time_use (not af_reward_time_add): moves banked_mins → reward_time_expiry so BaerenLock shows reward apps.
                 val result = syncService.invokeUseRewardTime(profile)
                 if (result.isFailure) {
                     val message = result.exceptionOrNull()?.message ?: "unknown error"
-                    Log.e(TAG, "Failed use_reward_time for profile $profile (raw=$rawProfile): $message")
+                    Log.e(TAG, "Failed af_reward_time_use for profile $profile (raw=$rawProfile): $message")
                     Toast.makeText(this@RewardSelectionActivity, "Could not start reward time: $message", Toast.LENGTH_LONG).show()
                     finish()
                     return@launch
                 }
 
-                Log.d(TAG, "Activated reward session via use_reward_time for profile $profile (raw=$rawProfile), had $remainingMinutes banked locally")
+                Log.d(TAG, "Activated reward session via af_reward_time_use for profile $profile (raw=$rawProfile), had $remainingMinutes banked locally")
                 DailyProgressManager(this@RewardSelectionActivity).useAllRewardMinutes()
                 launchBaerenLock()
                 finish()

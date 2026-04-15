@@ -1,3 +1,8 @@
+-- Call sites (BaerenEd Android, this repo):
+--   (no Kotlin string match for this RPC name in this repo  -  optional / legacy / manual PostgREST.)
+-- Invoked from (PostgreSQL, this repo sql/):
+--   Uses af_get_stars_to_minutes; may be referenced by older DB setups or tooling.
+
 -- BaerenEd: Today's visible required tasks + checklist items from user_data.
 -- One row per task (required + visible checklist), sorted by name.
 --
@@ -5,7 +10,7 @@
 --   task_name          — key in required_tasks or checklist_items JSON
 --   completion_status  — 'complete' | 'incomplete'
 --   berry_value        — stars for that task
---   mins_value         — af_stars_to_minutes(stars)
+--   mins_value         — af_get_stars_to_minutes(stars)
 --
 -- Call:
 --   POST /rest/v1/rpc/af_get_current_required_tasks {"p_profile":"AM"}
@@ -94,7 +99,7 @@ AS $$
     c.item_name::text AS task_name,
     c.status_text::text AS completion_status,
     c.stars::int AS berry_value,
-    af_stars_to_minutes(c.stars)::int AS mins_value
+    af_get_stars_to_minutes(c.stars)::int AS mins_value
   FROM combined c
   ORDER BY c.item_name;
 $$;
