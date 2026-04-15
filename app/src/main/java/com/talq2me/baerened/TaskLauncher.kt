@@ -393,7 +393,8 @@ class TaskLauncher(
      * Launch game task (fetch content and launch GameActivity)
      */
     private fun launchGameTask(task: Task, sectionId: String, sourceTaskId: String?, resultHandler: ActivityResultHandler?) {
-        val gameType = task.launch ?: "unknown"
+        val requestedGameType = task.launch ?: "unknown"
+        val gameType = resolveWeeklyGameVariant(requestedGameType)
         val gameTitle = task.title ?: "Task"
 
         // Use GlobalScope since we don't have lifecycle scope here
@@ -437,6 +438,23 @@ class TaskLauncher(
                 }
             }
         }
+    }
+
+    /**
+     * Rotates specific game content by calendar week while keeping the same launch id/task tracking.
+     * Week cycle: A, B, C, then repeats.
+     */
+    private fun resolveWeeklyGameVariant(gameType: String): String {
+        if (gameType != "gr1MathStrategies") return gameType
+        val weekOfYear = Calendar.getInstance().get(Calendar.WEEK_OF_YEAR)
+        val variant = when ((weekOfYear - 1).mod(3)) {
+            0 -> "A"
+            1 -> "B"
+            else -> "C"
+        }
+        val resolved = "${gameType}${variant}"
+        Log.d(TAG, "Weekly strategy variant resolved: base=$gameType week=$weekOfYear -> $resolved")
+        return resolved
     }
 
     /**
