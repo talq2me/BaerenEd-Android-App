@@ -30,6 +30,8 @@ $files = @(
 
   "af_get_user_data.sql",
 
+  "af_get_reward_time_state.sql",
+
   "af_get_user_last_reset.sql",
 
   "af_get_user_last_updated.sql",
