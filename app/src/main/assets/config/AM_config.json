@@ -180,13 +180,30 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
           "stars": 3,
           "webGame": true,
-          "totalQuestions": 5
+          "totalQuestions": 5,
+          "disable": "Jan 2, 2027"
+        },
+        {
+          "title": "Math Strategies (Practice 1)",
+          "launch": "gr1MathStrategies",
+          "stars": 3,
+          "totalQuestions": 10
         },
         {
           "title": "Math",
           "launch": "jkmath",
           "stars": 3,
           "totalQuestions": 5,
+          "displayDays": "mon,wed,fri",
+          "disable": "Jan 2, 2027"
+        },
+        {
+          "title": "Math Strategies Coach",
+          "launch": "gr1MathStrategiesHtml",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 10,
           "displayDays": "mon,wed,fri"
         },
         {
@@ -195,7 +212,14 @@
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
           "stars": 3,
           "webGame": true,
-          "totalQuestions": 5
+          "totalQuestions": 5,
+          "disable": "Jan 2, 2027"
+        },
+        {
+          "title": "Math Strategies (Practice 2)",
+          "launch": "gr1MathStrategies",
+          "stars": 3,
+          "totalQuestions": 10
         }
       ]
     },
@@ -226,7 +250,8 @@
           "title": "Math",
           "launch": "jkmath",
           "stars": 1,
-          "totalQuestions": 1
+          "totalQuestions": 1,
+          "disable": "Jan 2, 2027"
         },
         
         {
