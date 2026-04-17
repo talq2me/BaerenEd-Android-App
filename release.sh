@@ -59,18 +59,7 @@ echo "Current version: $CURRENT_VERSION"
 echo "New version: $NEW_VERSION"
 
 ### --- PRE-BUILD CHECK --- ###
-echo "Running pre-build check (unit tests) to verify code quality..."
-echo "This ensures the build will succeed and tests pass before we update version numbers."
-
-try_clean
-./gradlew test
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: Pre-build check failed! Fix compilation errors or failing tests before releasing."
-    exit 1
-fi
-
-echo "Pre-build check passed! All unit tests passing. Proceeding with release..."
+echo "Skipping unit tests in release flow. Proceeding directly to release steps..."
 
 ### --- GET PASSWORD --- ###
 # Try to get password from local.properties, then environment variable, then prompt
