@@ -756,13 +756,6 @@ open class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
-        // Check for French Book Reader
-        if (task.launch == "frenchBookReader") {
-            val intent = Intent(this, FrenchBookReaderActivity::class.java)
-            startActivity(intent)
-            return
-        }
-        
         // Check for Book Reader (assets/books JSON, TTS, questions)
         if (task.launch == "bookReader") {
             val bookFile = task.url
@@ -783,7 +776,7 @@ open class TrainingMapActivity : AppCompatActivity() {
         }
 
         // Check for Tappable Text (assets/tappableText JSON + tappable word questions).
-        // Empty url → rotate through all *_tappable.json using per-kid game_indices.tappableTextBooks.
+        // Empty url, rotate/list, or lang= / language= → rotate; see TappableTextActivity.parseTappableUrlSpec.
         if (task.launch == "tappableText") {
             val ttFile = task.url ?: ""
             lastLaunchedGameSectionId = sectionId

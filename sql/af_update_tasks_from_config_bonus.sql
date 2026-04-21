@@ -9,7 +9,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  github_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   config_json jsonb;
   http_status int;
   existing_bonus jsonb;

@@ -331,7 +331,7 @@ class WebGameActivity : AppCompatActivity() {
 
             // 1. GitHub first — spelling/game JSON must match repo main, not stale APK assets.
             try {
-                val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$fileName?nocache=${System.currentTimeMillis()}"
+                val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data/$fileName?nocache=${System.currentTimeMillis()}"
                 val request = Request.Builder()
                     .url(url)
                     .cacheControl(CacheControl.FORCE_NETWORK)

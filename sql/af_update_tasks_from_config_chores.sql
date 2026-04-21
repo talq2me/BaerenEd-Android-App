@@ -9,7 +9,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  chores_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/chores.json';
+  chores_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/chores.json';
   chores_json jsonb;
   http_status int;
   existing_chores jsonb;

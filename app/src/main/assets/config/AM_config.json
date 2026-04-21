@@ -27,9 +27,17 @@
           "stars": 3
         },
         {
+          "title": "French reading (tappable book)",
+          "launch": "tappableText",
+          "url": "lang=fr",
+          "stars": 3,
+          "easy": true
+        },
+        {
           "title": "Boukili",
           "launch": "boukili",
-          "stars": 3
+          "stars": 3,
+          "disable": "Jan 1, 2027"
         },
         {
           "title": "Google Classroom",
@@ -46,7 +54,8 @@
           "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
           "stars": 3,
           "chromePage": true,
-          "displayDays": "tue,sat"
+          "displayDays": "tue,sat",
+          "disable": "Jan 1, 2027"
         },
 
 

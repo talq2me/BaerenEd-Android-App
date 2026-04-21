@@ -863,11 +863,6 @@ open class Layout(protected val activity: MainActivity) {
                 android.util.Log.d("Layout", "Launching Boukili from battle hub")
                 activity.launchBoukili(task, sectionId)
             }
-            else if (task.launch == "frenchBookReader") {
-                android.util.Log.d("Layout", "Launching French Book Reader from battle hub")
-                val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
-                activity.startActivity(intent)
-            }
             else if (task.launch == "bookReader") {
                 val bookFile = task.url
                 if (!bookFile.isNullOrBlank()) {
@@ -1452,10 +1447,6 @@ open class Layout(protected val activity: MainActivity) {
                     } else if (task.launch == "boukili") {
                         android.util.Log.d("Layout", "Launching Boukili with tracking")
                         activity.launchBoukili(task, sectionId)
-                    } else if (task.launch == "frenchBookReader") {
-                        android.util.Log.d("Layout", "Launching French Book Reader")
-                        val intent = Intent(activity, FrenchBookReaderActivity::class.java)
-                        activity.startActivity(intent)
                     } else if (task.launch == "bookReader") {
                         launchTask(task, sectionId, null)
                     } else {
@@ -1605,9 +1596,9 @@ open class Layout(protected val activity: MainActivity) {
         } ?: run {
             // Fallback if no buttons in content
             val fallbackButtons = listOf(
-                ProfileButton("AM Tasks", "https://via.placeholder.com/100", "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/AM_config.json"),
-                ProfileButton("BM Tasks", "https://via.placeholder.com/100", "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/BM_config.json"),
-                ProfileButton("TE Tasks", "https://via.placeholder.com/100", "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/TE_config.json")
+                ProfileButton("AM Tasks", "https://via.placeholder.com/100", "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/AM_config.json"),
+                ProfileButton("BM Tasks", "https://via.placeholder.com/100", "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/BM_config.json"),
+                ProfileButton("TE Tasks", "https://via.placeholder.com/100", "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/TE_config.json")
             )
 
             fallbackButtons.forEach { profileButton ->
@@ -1732,11 +1723,6 @@ open class Layout(protected val activity: MainActivity) {
         else if (task.launch == "boukili") {
             android.util.Log.d("Layout", "Launching Boukili")
             activity.launchBoukili(task, sectionId)
-        }
-        else if (task.launch == "frenchBookReader") {
-            android.util.Log.d("Layout", "Launching French Book Reader")
-            val intent = android.content.Intent(activity, FrenchBookReaderActivity::class.java)
-            activity.startActivity(intent)
         }
         else if (task.launch == "bookReader") {
             val bookFile = task.url

@@ -11,6 +11,7 @@ import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.text.style.ClickableSpan
 import android.text.method.LinkMovementMethod
+import android.util.JsonReader
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -25,6 +26,8 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 /**
@@ -58,6 +61,10 @@ class TappableTextActivity : AppCompatActivity() {
          * [DailyProgressManager.getGameIndexFromCache] / [DailyProgressManager.updateGameIndexInDbSync] key
          * for which tappable book to play next (same pattern as other games' game_indices).
          * Playing book at index `i` saves `(i + 1) % n` on successful completion.
+         *
+         * When rotating with a language filter ([EXTRA_TAPPABLE_TEXT_FILE] contains `lang=xx` or
+         * `language=xx`), the key becomes `tappableTextBooks_xx` so FR and EN rotations do not share
+         * the same index.
          */
         const val GAME_KEY_TAPPABLE_BOOK_ROTATION = "tappableTextBooks"
     }
@@ -109,8 +116,9 @@ class TappableTextActivity : AppCompatActivity() {
     private val tapDebounceHandler = Handler(Looper.getMainLooper())
     private var tapDebounceRunnable: Runnable? = null
 
-    /** When true, [GAME_KEY_TAPPABLE_BOOK_ROTATION] is advanced after a successful run. */
+    /** When true, [rotationGameKey] is advanced after a successful run. */
     private var useBookRotation: Boolean = false
+    private var rotationGameKey: String = GAME_KEY_TAPPABLE_BOOK_ROTATION
     private var rotationBookIndex: Int = 0
     private var rotationBookCount: Int = 0
 
@@ -147,7 +155,11 @@ class TappableTextActivity : AppCompatActivity() {
 
         val resolvedFileName = resolveTappableJsonFileName(rawUrl)
         if (resolvedFileName == null) {
-            Toast.makeText(this, "No tappable books found in assets.", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "No tappable books found in assets (check language filter if you used lang=).",
+                Toast.LENGTH_LONG
+            ).show()
             timeTracker.endActivity("tappableText")
             finish()
             return
@@ -156,7 +168,7 @@ class TappableTextActivity : AppCompatActivity() {
         Log.d(
             TAG,
             if (useBookRotation) {
-                "Book rotation: playing $resolvedFileName (index $rotationBookIndex / $rotationBookCount, key=$GAME_KEY_TAPPABLE_BOOK_ROTATION)"
+                "Book rotation: playing $resolvedFileName (index $rotationBookIndex / $rotationBookCount, key=$rotationGameKey)"
             } else {
                 "Single book: $resolvedFileName"
             }
@@ -204,34 +216,118 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     /**
-     * Empty url, "rotate", or "list" → pick a file from assets/tappableText/ whose name ends with
-     * "_tappable.json", using the per-kid game index ([GAME_KEY_TAPPABLE_BOOK_ROTATION]).
-     * Any other value → load that JSON only (no rotation index update).
+     * Resolves which `*_tappable.json` to load.
+     *
+     * **Rotation** (per-kid index in [DailyProgressManager], key [rotationGameKey]):
+     * - Empty url, `rotate`, or `list`
+     * - Query-only url, e.g. `lang=fr` or `language=en` (optional `&` / `?` separators)
+     *
+     * **Single book** (no rotation index update):
+     * - Bare filename, e.g. `milo-sandwich-geant-g4_tappable` or `file=milo-sandwich-geant-g4_tappable.json`
+     * - May combine `file=...&lang=fr` (language is ignored for loading; file wins)
      */
     private fun resolveTappableJsonFileName(rawUrl: String): String? {
-        val legacyExplicit = rawUrl.isNotEmpty() &&
-            !rawUrl.equals("rotate", ignoreCase = true) &&
-            !rawUrl.equals("list", ignoreCase = true)
+        rotationGameKey = GAME_KEY_TAPPABLE_BOOK_ROTATION
+        val spec = parseTappableUrlSpec(rawUrl.trim())
+        val langFilter = spec.languageFilter?.takeIf { it.length >= 2 }
 
-        if (legacyExplicit) {
+        if (!spec.useRotation && spec.explicitFile != null) {
             useBookRotation = false
-            return normalizeTappableJsonFileName(rawUrl)
+            return normalizeTappableJsonFileName(spec.explicitFile)
         }
 
         useBookRotation = true
-        val files = discoverTappableBookFiles()
+        rotationGameKey = langFilter?.let { "${GAME_KEY_TAPPABLE_BOOK_ROTATION}_$it" }
+            ?: GAME_KEY_TAPPABLE_BOOK_ROTATION
+        val files = discoverTappableBookFiles(langFilter)
         if (files.isEmpty()) return null
 
         rotationBookCount = files.size
         val dpm = DailyProgressManager(this)
         val profile = dpm.getCurrentKid()
-        val cached = dpm.getGameIndexFromCache(profile, GAME_KEY_TAPPABLE_BOOK_ROTATION)
+        val cached = dpm.getGameIndexFromCache(profile, rotationGameKey)
         rotationBookIndex = cached.mod(rotationBookCount)
         return files[rotationBookIndex]
     }
 
-    private fun discoverTappableBookFiles(): List<String> {
+    /**
+     * Parsed [Intent] extra [EXTRA_TAPPABLE_TEXT_FILE] / task.url for tappableText.
+     */
+    private data class TappableUrlSpec(
+        val useRotation: Boolean,
+        val explicitFile: String?,
+        val languageFilter: String?
+    )
+
+    private fun parseTappableUrlSpec(rawUrl: String): TappableUrlSpec {
+        val t = rawUrl.trim()
+        if (t.isEmpty() || t.equals("rotate", ignoreCase = true) || t.equals("list", ignoreCase = true)) {
+            return TappableUrlSpec(true, null, null)
+        }
+        val segments = t.split('?', '&').map { it.trim() }.filter { it.isNotEmpty() }
+        if (segments.size == 1 && !segments[0].contains('=')) {
+            return TappableUrlSpec(false, segments[0], null)
+        }
+        var filePart: String? = null
+        var langPart: String? = null
+        for (seg in segments) {
+            val eqIdx = seg.indexOf('=')
+            if (eqIdx < 0) continue
+            val key = seg.substring(0, eqIdx).trim().lowercase(Locale.US)
+            val value = seg.substring(eqIdx + 1).trim()
+            if (value.isEmpty()) continue
+            when (key) {
+                "file" -> filePart = value
+                "lang", "language" -> langPart = normalizeLangFilter(value)
+            }
+        }
+        return if (!filePart.isNullOrBlank()) {
+            TappableUrlSpec(false, filePart, langPart?.takeIf { it.length >= 2 })
+        } else {
+            TappableUrlSpec(true, null, langPart?.takeIf { it.length >= 2 })
+        }
+    }
+
+    /** First 2-letter tag from values like `fr`, `FR`, `fr-CA`. */
+    private fun normalizeLangFilter(value: String): String {
+        val token = value.lowercase(Locale.US)
+            .split(",", "_", " ", "-")
+            .firstOrNull { it.isNotBlank() }
+            ?: return ""
+        return token.take(2)
+    }
+
+    /**
+     * Reads root `"language"` from a tappable JSON without fully parsing the document.
+     */
+    private fun readRootLanguageFromTappableAsset(fileName: String): String? {
+        val path = "tappableText/$fileName"
         return try {
+            assets.open(path).use { input ->
+                JsonReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { reader ->
+                    reader.beginObject()
+                    var found: String? = null
+                    while (reader.hasNext()) {
+                        when (reader.nextName()) {
+                            "language" -> {
+                                val v = reader.nextString()?.trim()?.lowercase(Locale.US)?.take(2)
+                                if (!v.isNullOrEmpty()) found = v
+                            }
+                            else -> reader.skipValue()
+                        }
+                    }
+                    reader.endObject()
+                    found
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "readRootLanguageFromTappableAsset: $fileName", e)
+            null
+        }
+    }
+
+    private fun discoverTappableBookFiles(languageFilter: String?): List<String> {
+        val all = try {
             assets.list("tappableText")
                 ?.filter { it.endsWith("_tappable.json", ignoreCase = true) }
                 ?.sorted()
@@ -239,6 +335,11 @@ class TappableTextActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "discoverTappableBookFiles", e)
             emptyList()
+        }
+        val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
+            ?: return all
+        return all.filter { fileName ->
+            readRootLanguageFromTappableAsset(fileName) == filt
         }
     }
 
@@ -574,7 +675,7 @@ class TappableTextActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             val dpm = DailyProgressManager(this@TappableTextActivity)
             val profile = dpm.getCurrentKid()
-            val r = dpm.updateGameIndexInDbSync(profile, GAME_KEY_TAPPABLE_BOOK_ROTATION, nextIndex)
+            val r = dpm.updateGameIndexInDbSync(profile, rotationGameKey, nextIndex)
             if (r.isFailure) {
                 Log.e(TAG, "Failed to save tappable book rotation index=$nextIndex", r.exceptionOrNull())
             } else {

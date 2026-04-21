@@ -96,7 +96,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  github_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   config_json jsonb;
   http_status int;
   existing_checklist jsonb;
@@ -156,7 +156,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  chores_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/chores.json';
+  chores_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/chores.json';
   chores_json jsonb;
   http_status int;
   existing_chores jsonb;
@@ -209,7 +209,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  github_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   config_json jsonb;
   http_status int;
   existing_practice jsonb;
@@ -287,7 +287,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  github_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   config_json jsonb;
   http_status int;
   existing_bonus jsonb;
@@ -365,7 +365,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  github_url text := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url text := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   config_json jsonb;
   http_status int;
   existing_required jsonb;
@@ -1747,7 +1747,7 @@ BEGIN
   END IF;
 
   -- If all visible practice (optional) tasks are complete, reset all to incomplete so app shows them doable again
-  github_url := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   SELECT r.status, r.content::jsonb INTO http_status, config_json FROM http_get(github_url) r LIMIT 1;
   IF http_status = 200 AND config_json IS NOT NULL THEN
     SELECT array_agg(t->>'title')

@@ -65,7 +65,7 @@ BEGIN
   END IF;
 
   -- If all visible practice (optional) tasks are complete, reset all to incomplete so app shows them doable again
-  github_url := 'https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/config/' || p_profile || '_config.json';
+  github_url := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
   SELECT r.status, r.content::jsonb INTO http_status, config_json FROM http_get(github_url) r LIMIT 1;
   IF http_status = 200 AND config_json IS NOT NULL THEN
     SELECT array_agg(t->>'title')

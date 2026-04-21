@@ -20,7 +20,7 @@ class GitHubGameContentService {
     suspend fun fetchGameContent(context: Context, gameType: String): String? {
         val gameFileName = "${gameType}.json"
         return try {
-            val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/data/$gameFileName?nocache=${System.currentTimeMillis()}"
+            val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data/$gameFileName?nocache=${System.currentTimeMillis()}"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
@@ -42,7 +42,7 @@ class GitHubGameContentService {
     suspend fun fetchVideoContent(context: Context, videoFile: String): String? {
         val videoFileName = "${videoFile}.json"
         return try {
-            val url = "https://raw.githubusercontent.com/talq2me/BaerenEd-Android-App/refs/heads/main/app/src/main/assets/videos/$videoFileName?nocache=${System.currentTimeMillis()}"
+            val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/videos/$videoFileName?nocache=${System.currentTimeMillis()}"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {

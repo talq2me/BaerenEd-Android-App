@@ -80,10 +80,6 @@ class TaskLauncher(
             task.launch == "boukili" -> {
                 launchBoukili(task, sectionId)
             }
-            // French Book Reader
-            task.launch == "frenchBookReader" -> {
-                launchFrenchBookReader(resultHandler)
-            }
             // Book Reader (assets/books JSON + TTS + questions)
             task.launch == "bookReader" -> {
                 launchBookReader(task, sectionId, sourceTaskId, resultHandler)
@@ -249,15 +245,6 @@ class TaskLauncher(
     }
 
     /**
-     * Launch French Book Reader
-     */
-    private fun launchFrenchBookReader(resultHandler: ActivityResultHandler?) {
-        Log.d(TAG, "Launching French Book Reader")
-        val intent = Intent(context, FrenchBookReaderActivity::class.java)
-        resultHandler?.launchActivity(intent) ?: (context as? Activity)?.startActivity(intent)
-    }
-
-    /**
      * Launch Book Reader (book from assets/books, TTS, questions).
      * task.url should be like "file=fr_boit_mysterieux.json".
      */
@@ -281,8 +268,9 @@ class TaskLauncher(
 
     /**
      * Launch TappableTextActivity (book-style JSON from assets/tappableText/).
-     * task.url empty or "rotate" / "list" → rotate through all `*_tappable.json` (per-kid game_indices key [TappableTextActivity.GAME_KEY_TAPPABLE_BOOK_ROTATION]).
-     * Otherwise url is a single book, e.g. "file=milo-sandwich-geant-g4_tappable.json" or the filename.
+     * - Empty url, or `rotate` / `list` → rotate through all `*_tappable.json` (per-kid game_indices key [TappableTextActivity.GAME_KEY_TAPPABLE_BOOK_ROTATION]).
+     * - `lang=fr` or `language=en` (optionally with `?` / `&`) → rotate only books whose JSON root `language` matches (game key becomes `tappableTextBooks_fr`, etc.).
+     * - Otherwise url is a single book, e.g. `file=milo-sandwich-geant-g4_tappable.json` or the bare filename.
      */
     private fun launchTappableText(
         task: Task,

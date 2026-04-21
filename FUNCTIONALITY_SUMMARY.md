@@ -320,17 +320,7 @@ BaerenEd is an educational Android app featuring interactive games, tasks, and a
 
 ---
 
-### 13. FrenchBookReaderActivity
-**Purpose**: French book reading interface
-
-**Features**:
-- Book reading interface
-- Page navigation
-- (Implementation details not fully examined)
-
----
-
-### 14. PokemonActivity
+### 13. PokemonActivity
 **Purpose**: Pokemon selection/management interface
 
 **Features**:
@@ -343,7 +333,7 @@ BaerenEd is an educational Android app featuring interactive games, tasks, and a
 
 ---
 
-### 15. TimeTracker
+### 14. TimeTracker
 **Purpose**: Tracks time spent in activities
 
 **Features**:
@@ -356,7 +346,7 @@ BaerenEd is an educational Android app featuring interactive games, tasks, and a
 
 ---
 
-### 16. ReportGenerator
+### 15. ReportGenerator
 **Purpose**: Generates progress reports (HTML/text)
 
 **Features**:
@@ -371,7 +361,7 @@ BaerenEd is an educational Android app featuring interactive games, tasks, and a
 
 ---
 
-### 17. RewardSelectionActivity
+### 16. RewardSelectionActivity
 **Purpose**: Allows selection of reward apps after earning reward time
 
 **Features**:
@@ -380,7 +370,7 @@ BaerenEd is an educational Android app featuring interactive games, tasks, and a
 
 ---
 
-### 18. BootReceiver
+### 17. BootReceiver
 **Purpose**: Handles boot events (for daily reset or other boot-time operations)
 
 ---
