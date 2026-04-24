@@ -137,10 +137,21 @@ open class TrainingMapActivity : AppCompatActivity() {
             val result = runCatching {
                 DbProfileSessionLoader(this@TrainingMapActivity).runGithubTaskConfigRpcsThenRefetch(profile)
             }.getOrElse { Result.failure(it) }
-            if (result.isFailure) {
-                android.util.Log.w("TrainingMapActivity", "Config-from-GitHub RPCs/refetch failed (using current data)", result.exceptionOrNull())
+            withContext(Dispatchers.Main) {
+                if (result.isSuccess) {
+                    finishLoadingTrainingMap()
+                } else {
+                    val error = result.exceptionOrNull()
+                    android.util.Log.e("TrainingMapActivity", "Config-from-GitHub RPCs/refetch failed; refusing to use stale DB data", error)
+                    AlertDialog.Builder(this@TrainingMapActivity)
+                        .setTitle("Could not refresh tasks")
+                        .setMessage(error?.message ?: "Failed to refresh tasks from GitHub Pages.")
+                        .setPositiveButton("Retry") { _, _ -> runSyncAndFinishLoadingTrainingMap(profile) }
+                        .setNegativeButton(android.R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                        .setCancelable(false)
+                        .show()
+                }
             }
-            withContext(Dispatchers.Main) { finishLoadingTrainingMap() }
         }
     }
 
@@ -1198,18 +1209,11 @@ open class TrainingMapActivity : AppCompatActivity() {
         // This prevents onResume from overwriting data that was just saved
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             val profile = SettingsManager.readProfile(this) ?: "AM"
-            lifecycleScope.launch(Dispatchers.IO) {
-                val result = runCatching { DbProfileSessionLoader(this@TrainingMapActivity).loadAfterDailyResetRpcThenApply(profile) }.getOrElse { Result.failure(it) }
-                withContext(Dispatchers.Main) {
-                    if (result.isSuccess) {
-                        createMapView()
-                        checkGoogleReadAlongCompletion()
-                        checkBoukiliCompletion()
-                    } else {
-                        android.widget.Toast.makeText(this@TrainingMapActivity, "Could not load progress. Check connection.", android.widget.Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
+            // Keep resume behavior aligned with initial load:
+            // 1) fetch/apply profile data, 2) refresh task config from GitHub Pages into DB, 3) render map.
+            runSyncAndFinishLoadingTrainingMap(profile)
+            checkGoogleReadAlongCompletion()
+            checkBoukiliCompletion()
         }, 1000) // 1 second delay to allow task completion syncs to finish
     }
     

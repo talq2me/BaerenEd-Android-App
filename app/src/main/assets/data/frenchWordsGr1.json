@@ -1,12 +1,12 @@
 [
-  {"word":"du","sentence":"Je bois du lait."},
-  {"word":"de","sentence":"J'ai besoin de mon cahier."},
-  {"word":"des","sentence":"Il y a des fleurs sur la table."},
-  {"word":"de la","sentence":"Je veux de la confiture."},
-  {"word":"robe","sentence":"Elle porte une robe bleue."},
-  {"word":"table","sentence":"Le livre est sur la table."},
-  {"word":"j'aime","sentence":"J'aime lire des histoires."},
-  {"word":"il aime","sentence":"Il aime jouer au ballon."},
-  {"word":"elle aime","sentence":"Elle aime dessiner."},
-  {"word":"et","sentence":"J'ai un crayon et une gomme."}
+  {"word":"son","sentence":"Son chat dort sur le canapé."},
+  {"word":"sa","sentence":"Sa trousse est dans son sac."},
+  {"word":"ses","sentence":"Ses crayons sont bien rangés."},
+  {"word":"ton","sentence":"Ton livre est sur la table."},
+  {"word":"ta","sentence":"Ta gomme est sous la chaise."},
+  {"word":"tes","sentence":"Tes cahiers sont dans ton sac."},
+  {"word":"bonbon","sentence":"Le bonbon est rouge."},
+  {"word":"bon","sentence":"Ce gâteau est bon."},
+  {"word":"bonne","sentence":"Cette soupe est bonne."},
+  {"word":"on","sentence":"On joue dans la cour."}
 ]

@@ -29,7 +29,7 @@
           "url": "https://classroom.google.com/c/Nzk1NzkwMDE0Mzk3",
           "stars": 3,
           "chromePage": true,
-          "disable": "Jan 2, 2026",
+          "disable": "Jan 2, 2027",
           "displayDays": "tue,fri"
         },
 
@@ -263,7 +263,6 @@
       "description": "Mark each one when done",
       "items": [
         { "label": "French Reading", "stars": 0, "done": false, "id": "bm_french_reading", "displayDays": "thu,fri,sat,sun,mon,tue", "disable": "Mar 25, 2026"},
-        { "label": "French Presentation", "stars": 0, "done": false, "id": "bm_french_presentation"},
         { "label": "Math Club", "stars": 0, "done": false, "id": "bm_math_club"},
         
         { "label": "Laundry", "stars": 0, "done": false, "id": "bm_laundry" },

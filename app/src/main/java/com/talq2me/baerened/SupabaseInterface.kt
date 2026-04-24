@@ -171,21 +171,67 @@ open class SupabaseInterface {
     private suspend fun invokeRpcProfileOnly(rpcName: String, profile: String): Result<Unit> =
         invokeRpc(rpcName, """{"p_profile":"$profile"}""")
 
+    /**
+     * Fetches profile config JSON from GitHub Pages (source of truth).
+     * Returns parsed JsonObject to pass directly into DB RPCs as p_config_json.
+     */
+    private suspend fun fetchProfileConfigFromGitHubPages(profile: String): Result<JsonObject> = withContext(Dispatchers.IO) {
+        if (profile.isBlank()) {
+            return@withContext Result.failure(Exception("Profile is blank"))
+        }
+        try {
+            val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/${profile}_config.json?nocache=${System.currentTimeMillis()}"
+            val request = Request.Builder()
+                .url(url)
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    return@withContext Result.failure(
+                        Exception("GitHub Pages config fetch failed for $profile: ${response.code}")
+                    )
+                }
+                val parsed = JsonParser.parseString(raw)
+                if (!parsed.isJsonObject) {
+                    return@withContext Result.failure(Exception("GitHub Pages config is not a JSON object for $profile"))
+                }
+                Result.success(parsed.asJsonObject)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Calls config-update RPC with explicit GitHub Pages JSON payload.
+     * This avoids server-side silent no-op when DB http_get returns warnings.
+     */
+    private suspend fun invokeRpcProfileWithConfigJson(rpcName: String, profile: String): Result<Unit> {
+        val config = fetchProfileConfigFromGitHubPages(profile).getOrElse { err ->
+            return Result.failure(Exception("Could not fetch GitHub Pages config for $profile: ${err.message}"))
+        }
+        val body = JsonObject().apply {
+            addProperty("p_profile", profile)
+            add("p_config_json", config)
+        }
+        return invokeRpc(rpcName, gson.toJson(body))
+    }
+
     /** Canonical dbMaster RPC names (see sql/af_update_*_from_config.sql on Supabase). */
     suspend fun invokeAfUpdateRequiredTasksFromConfig(profile: String): Result<Unit> =
-        invokeRpcProfileOnly("af_update_tasks_from_config_required", profile)
+        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_required", profile)
 
     suspend fun invokeAfUpdatePracticeTasksFromConfig(profile: String): Result<Unit> =
-        invokeRpcProfileOnly("af_update_tasks_from_config_practice", profile)
+        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_practice", profile)
 
     suspend fun invokeAfUpdateBonusTasksFromConfig(profile: String): Result<Unit> =
-        invokeRpcProfileOnly("af_update_tasks_from_config_bonus", profile)
+        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_bonus", profile)
 
     suspend fun invokeAfUpdateChecklistItemsFromConfig(profile: String): Result<Unit> =
-        invokeRpcProfileOnly("af_update_tasks_from_config_checklist_items", profile)
+        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_checklist_items", profile)
 
     suspend fun invokeAfUpdateChoresFromGitHub(profile: String): Result<Unit> =
-        invokeRpcProfileOnly("af_update_tasks_from_config_chores", profile)
+        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_chores", profile)
 
     /** @deprecated Prefer [invokeAfUpdateRequiredTasksFromConfig]; delegates to the same RPC. */
     suspend fun invokeAfRequiredTasksFromConfig(profile: String): Result<Unit> =

@@ -63,14 +63,22 @@ class DbProfileSessionLoader(private val context: Context) {
             return@withContext Result.failure(Exception("Supabase not configured"))
         }
         Log.d(TAG, "runGithubTaskConfigRpcsThenRefetch(profile=$profile): af_update_*_from_config ×5, then fetchUserData")
-        listOf(
-            syncService::invokeAfUpdateRequiredTasksFromConfig,
-            syncService::invokeAfUpdatePracticeTasksFromConfig,
-            syncService::invokeAfUpdateBonusTasksFromConfig,
-            syncService::invokeAfUpdateChecklistItemsFromConfig,
-            syncService::invokeAfUpdateChoresFromGitHub
-        ).forEach { invoke ->
-            invoke(profile).onFailure { Log.w(TAG, "Config RPC failed (continuing): ${it.message}") }
+        val steps = listOf(
+            "required_tasks" to syncService::invokeAfUpdateRequiredTasksFromConfig,
+            "practice_tasks" to syncService::invokeAfUpdatePracticeTasksFromConfig,
+            "bonus_tasks" to syncService::invokeAfUpdateBonusTasksFromConfig,
+            "checklist_items" to syncService::invokeAfUpdateChecklistItemsFromConfig,
+            "chores" to syncService::invokeAfUpdateChoresFromGitHub
+        )
+        for ((name, invoke) in steps) {
+            val result = invoke(profile)
+            if (result.isFailure) {
+                val error = result.exceptionOrNull()
+                Log.e(TAG, "Config RPC failed for $name: ${error?.message}", error)
+                return@withContext Result.failure(
+                    Exception("Failed to refresh $name from GitHub Pages: ${error?.message ?: "unknown error"}")
+                )
+            }
         }
         loadAfterDailyResetRpcThenApply(profile)
     }
