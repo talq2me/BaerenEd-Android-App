@@ -691,10 +691,8 @@ open class TrainingMapActivity : AppCompatActivity() {
                 android.util.Log.d("TrainingMapActivity", "Added totalQuestions=${task.totalQuestions} to URL: $finalGameUrl")
             }
             
-            // IMPORTANT: Always use GitHub Pages URL first - never convert to local assets
-            // GitHub is the source of truth. WebView will naturally fall back to local cache if needed.
-            // Only local assets are used if GitHub URL is not available (offline/no network).
-            android.util.Log.d("TrainingMapActivity", "Using GitHub Pages URL (will load from GitHub first): $finalGameUrl")
+            // GitHub Pages is the only source of truth for web-game content.
+            android.util.Log.d("TrainingMapActivity", "Using GitHub Pages URL: $finalGameUrl")
             
             // For diagramLabeler, make taskId unique if diagram parameter exists
             // Use the final URL (after mode processing) to extract diagram parameter
@@ -1403,7 +1401,7 @@ open class TrainingMapActivity : AppCompatActivity() {
                 lifecycleScope.launch(Dispatchers.IO) {
                     var videoJson: String? = null
                     try {
-                        // Load the video JSON file (fetch from GitHub first, then cache, then assets)
+                        // Load video JSON from GitHub Pages only.
                         val contentUpdateService = GitHubGameContentService()
                         videoJson = contentUpdateService.fetchVideoContent(this@TrainingMapActivity, videoFile)
                         android.util.Log.d("TrainingMapActivity", "Fetched video content for $videoFile: ${if (videoJson != null) "success" else "null"}")
@@ -1411,20 +1409,9 @@ open class TrainingMapActivity : AppCompatActivity() {
                         android.util.Log.e("TrainingMapActivity", "Error fetching video content for $videoFile", e)
                     }
 
-                    // If fetchVideoContent failed, try loading directly from assets as fallback
-                    if (videoJson == null) {
-                        try {
-                            android.util.Log.d("TrainingMapActivity", "Trying to load video content directly from assets")
-                            videoJson = assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
-                            android.util.Log.d("TrainingMapActivity", "Successfully loaded video content from assets")
-                        } catch (e: Exception) {
-                            android.util.Log.e("TrainingMapActivity", "Error loading video content from assets for $videoFile", e)
-                        }
-                    }
-
                     if (videoJson == null) {
                         withContext(Dispatchers.Main) {
-                            android.widget.Toast.makeText(this@TrainingMapActivity, "Error loading video content", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(this@TrainingMapActivity, "Error loading video content from GitHub Pages", android.widget.Toast.LENGTH_SHORT).show()
                         }
                         return@launch
                     }

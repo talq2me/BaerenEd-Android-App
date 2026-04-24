@@ -514,18 +514,9 @@ class TaskLauncher(
                         Log.e(TAG, "Error fetching video content for $videoFile", e)
                     }
 
-                    // Fallback to assets
-                    if (videoJson == null) {
-                        try {
-                            videoJson = context.assets.open("videos/$videoFile.json").bufferedReader().use { it.readText() }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error loading video content from assets", e)
-                        }
-                    }
-
                     if (videoJson == null) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Error loading video content", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Error loading video content from GitHub Pages", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
                     }

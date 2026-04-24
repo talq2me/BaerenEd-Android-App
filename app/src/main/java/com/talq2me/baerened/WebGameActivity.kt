@@ -327,9 +327,7 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun loadJsonFile(fileName: String): String {
-            val cacheFile = File(this@WebGameActivity.cacheDir, fileName)
-
-            // 1. GitHub first — spelling/game JSON must match repo main, not stale APK assets.
+            // GitHub Pages is the only source of truth for game/spelling JSON.
             try {
                 val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data/$fileName?nocache=${System.currentTimeMillis()}"
                 val request = Request.Builder()
@@ -341,44 +339,16 @@ class WebGameActivity : AppCompatActivity() {
                         val body = response.body?.string()
                         if (body != null) {
                             android.util.Log.d("WebGameActivity", "Fetched JSON from GitHub: $fileName")
-                            try {
-                                FileOutputStream(cacheFile).use { it.write(body.toByteArray()) }
-                            } catch (e: IOException) {
-                                android.util.Log.e("WebGameActivity", "Error writing JSON to cache", e)
-                            }
                             return body
                         }
                     }
-                    android.util.Log.w("WebGameActivity", "GitHub fetch failed with code: ${response.code}.")
+                    android.util.Log.e("WebGameActivity", "GitHub fetch failed with code: ${response.code}. No fallback allowed.")
                 }
             } catch (e: IOException) {
-                android.util.Log.w("WebGameActivity", "Network error fetching JSON: ${e.message}")
+                android.util.Log.e("WebGameActivity", "Network error fetching JSON: ${e.message}. No fallback allowed.")
             }
 
-            // 2. Cache (previous successful GitHub fetch)
-            if (cacheFile.exists()) {
-                try {
-                    val cachedContent = cacheFile.readText()
-                    android.util.Log.d("WebGameActivity", "Loaded JSON from cache: $fileName")
-                    return cachedContent
-                } catch (e: Exception) {
-                    android.util.Log.e("WebGameActivity", "Error reading JSON from cache.", e)
-                }
-            }
-
-            // 3. Bundled assets — last resort offline / first install before any fetch
-            try {
-                val inputStream: InputStream = assets.open("data/$fileName")
-                inputStream.use { ins ->
-                    val content = ins.bufferedReader(Charset.forName("UTF-8")).readText()
-                    android.util.Log.d("WebGameActivity", "Loaded JSON from bundled asset (fallback): $fileName")
-                    return content
-                }
-            } catch (e: IOException) {
-                android.util.Log.d("WebGameActivity", "No bundled asset for $fileName.", e)
-            }
-
-            android.util.Log.e("WebGameActivity", "Could not load JSON: $fileName")
+            android.util.Log.e("WebGameActivity", "Could not load JSON from GitHub Pages: $fileName")
             return "[]"
         }
 
