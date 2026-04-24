@@ -217,6 +217,31 @@ open class SupabaseInterface {
         return invokeRpc(rpcName, gson.toJson(body))
     }
 
+    /**
+     * Fetches chores JSON array from GitHub Pages.
+     */
+    private suspend fun fetchChoresJsonFromGitHubPages(): Result<com.google.gson.JsonElement> = withContext(Dispatchers.IO) {
+        try {
+            val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/chores.json?nocache=${System.currentTimeMillis()}"
+            val request = Request.Builder()
+                .url(url)
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    return@withContext Result.failure(Exception("GitHub Pages chores fetch failed: ${response.code}"))
+                }
+                val parsed = JsonParser.parseString(raw)
+                if (!parsed.isJsonArray) {
+                    return@withContext Result.failure(Exception("GitHub Pages chores payload is not a JSON array"))
+                }
+                Result.success(parsed)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     /** Canonical dbMaster RPC names (see sql/af_update_*_from_config.sql on Supabase). */
     suspend fun invokeAfUpdateRequiredTasksFromConfig(profile: String): Result<Unit> =
         invokeRpcProfileWithConfigJson("af_update_tasks_from_config_required", profile)
@@ -230,8 +255,16 @@ open class SupabaseInterface {
     suspend fun invokeAfUpdateChecklistItemsFromConfig(profile: String): Result<Unit> =
         invokeRpcProfileWithConfigJson("af_update_tasks_from_config_checklist_items", profile)
 
-    suspend fun invokeAfUpdateChoresFromGitHub(profile: String): Result<Unit> =
-        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_chores", profile)
+    suspend fun invokeAfUpdateChoresFromGitHub(profile: String): Result<Unit> {
+        val choresJson = fetchChoresJsonFromGitHubPages().getOrElse { err ->
+            return Result.failure(Exception("Could not fetch GitHub Pages chores.json: ${err.message}"))
+        }
+        val body = JsonObject().apply {
+            addProperty("p_profile", profile)
+            add("p_chores_json", choresJson)
+        }
+        return invokeRpc("af_update_tasks_from_config_chores", gson.toJson(body))
+    }
 
     /** @deprecated Prefer [invokeAfUpdateRequiredTasksFromConfig]; delegates to the same RPC. */
     suspend fun invokeAfRequiredTasksFromConfig(profile: String): Result<Unit> =
