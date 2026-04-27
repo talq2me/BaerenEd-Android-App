@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
+import java.text.Normalizer
 import java.util.Locale
 
 /**
@@ -51,9 +52,11 @@ class TappableTextActivity : AppCompatActivity() {
         const val EXTRA_TASK_TITLE = "task_title"
 
         /**
-         * When true: English tap hints ([buildEasyTapPrompt]); after 3 wrong taps, correct tokens are
-         * highlighted in green; correct tap speaks FR then "means …" (US) when the prompt has a gloss;
-         * while not answering a tap question, any word tap is read aloud in the book language.
+         * When true: English tap hints ([buildEasyTapPrompt]); after 3 wrong taps, the answer is
+         * highlighted in green; a correct tap speaks the French word, then a US phrase like
+         * "chat means cat" when the prompt has an English gloss; wrong taps speak the tapped word
+         * in the book language. While the tap question is still locked (prompt TTS), any word tap
+         * is read aloud in the book language.
          */
         const val EXTRA_EASY_MODE = "easy_mode"
 
@@ -83,7 +86,8 @@ class TappableTextActivity : AppCompatActivity() {
     private lateinit var btnNext: Button
 
     private val ttsHighlightColor = 0x40FFEB3B.toInt()
-    private val tapRevealHighlightColor = 0x5500C853.toInt()
+    /** Stronger green so reveal-after-3-wrongs is obvious on all screens. */
+    private val tapRevealHighlightColor = 0xCC00C853.toInt()
 
     private val wordTapWrongMessage = "Try again!"
     private val wordTapCorrectMessage = "Correct!"
@@ -133,11 +137,32 @@ class TappableTextActivity : AppCompatActivity() {
     private val utteranceTapSuccessDone = "tt_tap_success_done"
     private val utteranceTapSuccessFr = "tt_tap_success_fr"
 
+    /** After French surface word finishes, speak this English gloss (easy mode). */
+    private var pendingTapSuccessEnglishGloss: String? = null
+
+    /** French surface for the "… means …" US follow-up after [utteranceTapSuccessFr]. */
+    private var pendingTapSuccessFrenchSurface: String? = null
+    private var resolveErrorMessage: String? = null
+
+    private val firstPageNarrationDelayMs = 4000L
+    private val pageTurnNarrationDelayMs = 2000L
+    private val narrationWordStepMinMs = 180L
+    private val narrationWordStepMaxMs = 650L
+    private val narrationWordMsPerChar = 42L
+    private val narrationWordBaseMs = 150L
+    private val narrationHighlightColor = 0x66FFD54F.toInt()
+    private var narrationWordRunnable: Runnable? = null
+    private var narrationWordCursor: Int = 0
+    private var narrationHighlightSpan: BackgroundColorSpan? = null
+    private val questionUnlockFallbackMs = 9000L
+    private var questionUnlockRunnable: Runnable? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tappable_text)
 
         easyMode = intent.getBooleanExtra(EXTRA_EASY_MODE, false)
+        Log.d(TAG, "onCreate: easyMode=$easyMode")
 
         val rawUrl = intent.getStringExtra(EXTRA_TAPPABLE_TEXT_FILE)?.trim().orEmpty()
         val taskId = intent.getStringExtra(EXTRA_TASK_ID)
@@ -153,51 +178,52 @@ class TappableTextActivity : AppCompatActivity() {
         }
         timeTracker.startActivity(uniqueTaskId, "tappableText", taskTitle)
 
-        val resolvedFileName = resolveTappableJsonFileName(rawUrl)
-        if (resolvedFileName == null) {
-            Toast.makeText(
-                this,
-                "No tappable books found in assets (check language filter if you used lang=).",
-                Toast.LENGTH_LONG
-            ).show()
-            timeTracker.endActivity("tappableText")
-            finish()
-            return
-        }
-
-        Log.d(
-            TAG,
-            if (useBookRotation) {
-                "Book rotation: playing $resolvedFileName (index $rotationBookIndex / $rotationBookCount, key=$rotationGameKey)"
-            } else {
-                "Single book: $resolvedFileName"
+        lifecycleScope.launch {
+            val resolvedFileName = withContext(Dispatchers.IO) { resolveTappableJsonFileName(rawUrl) }
+            if (resolvedFileName == null) {
+                Toast.makeText(
+                    this@TappableTextActivity,
+                    resolveErrorMessage ?: "No tappable books found in assets (check language filter if you used lang=).",
+                    Toast.LENGTH_LONG
+                ).show()
+                timeTracker.endActivity("tappableText")
+                finish()
+                return@launch
             }
-        )
 
-        game = loadGame(resolvedFileName)
-        if (game == null) {
-            Toast.makeText(this, "Could not load tappableText game", Toast.LENGTH_LONG).show()
-            timeTracker.endActivity("tappableText")
-            finish()
-            return
+            Log.d(
+                TAG,
+                if (useBookRotation) {
+                    "Book rotation: playing $resolvedFileName (index $rotationBookIndex / $rotationBookCount, key=$rotationGameKey)"
+                } else {
+                    "Single book: $resolvedFileName"
+                }
+            )
+
+            val loadedGame = withContext(Dispatchers.IO) { loadGame(resolvedFileName) }
+            game = loadedGame
+            if (loadedGame == null) {
+                Toast.makeText(this@TappableTextActivity, "Could not load tappableText game", Toast.LENGTH_LONG).show()
+                timeTracker.endActivity("tappableText")
+                finish()
+                return@launch
+            }
+
+            bindViews()
+            setupTtsListener()
+
+            btnPrev.isEnabled = false
+            btnNext.isEnabled = false
+
+            // Hide book title/end; we only show page text + questions.
+            titleText.visibility = View.GONE
+            btnNext.visibility = View.GONE
+            btnPrev.visibility = View.GONE
+
+            game = loadedGame.copy(pages = loadedGame.pages.sortedBy { it.pageNumber })
+            currentPageIndex = 0
+            startPage(currentPageIndex)
         }
-
-        bindViews()
-        setupTtsListener()
-
-        btnPrev.isEnabled = false
-        btnNext.isEnabled = false
-
-        // Hide book title/end; we only show page text + questions.
-        titleText.visibility = View.GONE
-        btnNext.visibility = View.GONE
-        btnPrev.visibility = View.GONE
-
-        val sortedPages = game!!.pages.sortedBy { it.pageNumber }
-        game = game!!.copy(pages = sortedPages)
-
-        currentPageIndex = 0
-        startPage(currentPageIndex)
     }
 
     private fun bindViews() {
@@ -226,7 +252,8 @@ class TappableTextActivity : AppCompatActivity() {
      * - Bare filename, e.g. `milo-sandwich-geant-g4_tappable` or `file=milo-sandwich-geant-g4_tappable.json`
      * - May combine `file=...&lang=fr` (language is ignored for loading; file wins)
      */
-    private fun resolveTappableJsonFileName(rawUrl: String): String? {
+    private suspend fun resolveTappableJsonFileName(rawUrl: String): String? {
+        resolveErrorMessage = null
         rotationGameKey = GAME_KEY_TAPPABLE_BOOK_ROTATION
         val spec = parseTappableUrlSpec(rawUrl.trim())
         val langFilter = spec.languageFilter?.takeIf { it.length >= 2 }
@@ -245,8 +272,16 @@ class TappableTextActivity : AppCompatActivity() {
         rotationBookCount = files.size
         val dpm = DailyProgressManager(this)
         val profile = dpm.getCurrentKid()
-        val cached = dpm.getGameIndexFromCache(profile, rotationGameKey)
-        rotationBookIndex = cached.mod(rotationBookCount)
+        val refreshed = dpm.refetchSessionFromDb(profile)
+        if (refreshed.isFailure) {
+            val msg = refreshed.exceptionOrNull()?.message ?: "Unknown DB error"
+            Log.e(TAG, "Book rotation refused: DB refetch failed for profile=$profile key=$rotationGameKey: $msg")
+            resolveErrorMessage = "Could not load tappable book index from DB. Please try again."
+            return null
+        }
+        val dbIndex = dpm.getGameIndexFromCache(profile, rotationGameKey)
+        rotationBookIndex = dbIndex.mod(rotationBookCount)
+        Log.d(TAG, "Book rotation index from DB key=$rotationGameKey raw=$dbIndex size=$rotationBookCount")
         return files[rotationBookIndex]
     }
 
@@ -373,12 +408,37 @@ class TappableTextActivity : AppCompatActivity() {
                 runOnUiThread {
                     when (utteranceId) {
                         ttsPageDoneUtteranceId -> {
+                            stopNarrationWordHighlight()
                             ttsPageDoneUtteranceId = null
                             beginPageQuestions()
                         }
                         ttsQuestionDoneUtteranceId -> {
+                            cancelQuestionUnlockFallback()
                             ttsQuestionDoneUtteranceId = null
                             enableCurrentQuestionInteraction()
+                        }
+                        utteranceTapSuccessFr -> {
+                            val surface = pendingTapSuccessFrenchSurface?.trim().orEmpty()
+                            pendingTapSuccessFrenchSurface = null
+                            val gloss = pendingTapSuccessEnglishGloss?.trim().orEmpty()
+                            pendingTapSuccessEnglishGloss = null
+                            if (gloss.isNotEmpty() && surface.isNotEmpty()) {
+                                TtsManager.speak(
+                                    "$surface means $gloss",
+                                    Locale.US,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    utteranceTapSuccessDone
+                                )
+                            } else if (gloss.isNotEmpty()) {
+                                TtsManager.speak(
+                                    "means $gloss",
+                                    Locale.US,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    utteranceTapSuccessDone
+                                )
+                            } else {
+                                onTapSuccessTtsFinished()
+                            }
                         }
                         utteranceTapSuccessDone -> onTapSuccessTtsFinished()
                     }
@@ -390,12 +450,19 @@ class TappableTextActivity : AppCompatActivity() {
                 runOnUiThread {
                     when (utteranceId) {
                         ttsPageDoneUtteranceId -> {
+                            stopNarrationWordHighlight()
                             ttsPageDoneUtteranceId = null
                             beginPageQuestions()
                         }
                         ttsQuestionDoneUtteranceId -> {
+                            cancelQuestionUnlockFallback()
                             ttsQuestionDoneUtteranceId = null
                             enableCurrentQuestionInteraction()
+                        }
+                        utteranceTapSuccessFr -> {
+                            pendingTapSuccessEnglishGloss = null
+                            pendingTapSuccessFrenchSurface = null
+                            onTapSuccessTtsFinished()
                         }
                         utteranceTapSuccessDone -> onTapSuccessTtsFinished()
                     }
@@ -415,6 +482,19 @@ class TappableTextActivity : AppCompatActivity() {
             "fr" -> Locale.FRENCH
             else -> Locale.US
         }
+        if (!TtsManager.isReady()) {
+            Log.w(TAG, "TTS not ready for prompt; continuing without speech (uid=$doneUtteranceId)")
+            runOnUiThread {
+                if (doneUtteranceId == ttsQuestionDoneUtteranceId) {
+                    ttsQuestionDoneUtteranceId = null
+                    enableCurrentQuestionInteraction()
+                } else if (doneUtteranceId == ttsPageDoneUtteranceId) {
+                    ttsPageDoneUtteranceId = null
+                    beginPageQuestions()
+                }
+            }
+            return
+        }
         TtsManager.whenReady(Runnable {
             TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, doneUtteranceId)
         })
@@ -426,9 +506,13 @@ class TappableTextActivity : AppCompatActivity() {
      */
     private fun extractEnglishGlossFromPrompt(prompt: String): String? {
         val normalized = prompt.replace('’', '\'').replace('«', '"').replace('»', '"')
-        Regex("veut dire\\s+['\"]([^'\"]+)['\"]", RegexOption.IGNORE_CASE)
+        // Quoted: veut dire 'cat' / dire "dog"
+        Regex("(?:veut|veux)\\s+dire\\s+['\"]([^'\"]+)['\"]", RegexOption.IGNORE_CASE)
             .find(normalized)?.groupValues?.getOrNull(1)?.trim()?.let { if (it.isNotEmpty()) return it }
         Regex("dire\\s+['\"]([^'\"]+)['\"]", RegexOption.IGNORE_CASE)
+            .find(normalized)?.groupValues?.getOrNull(1)?.trim()?.let { if (it.isNotEmpty()) return it }
+        // Unquoted trailing English word: "… qui veut dire cat" / "… veux dire cat"
+        Regex("(?:veut|veux)\\s+dire\\s+([A-Za-z][A-Za-z'-]*)\\s*[.!?…]*\\s*$", RegexOption.IGNORE_CASE)
             .find(normalized)?.groupValues?.getOrNull(1)?.trim()?.let { if (it.isNotEmpty()) return it }
         return null
     }
@@ -440,12 +524,10 @@ class TappableTextActivity : AppCompatActivity() {
         val fr = question.correctWord.trim()
         val gloss = extractEnglishGlossFromPrompt(question.prompt)
         if (gloss.isNullOrEmpty()) {
-            return "Tap the word $fr on the page."
+            return "Find and tap the French word: $fr."
         }
-        val sentenceStart = gloss.replaceFirstChar { c ->
-            if (c.isLowerCase()) c.titlecase(Locale.ENGLISH) else c.toString()
-        }
-        return "$sentenceStart in French is $fr. Tap the word $fr on the page."
+        // Full English instruction; entire prompt is read with US TTS (see [showQuestion]).
+        return "Find the French word that means $gloss. Then tap that word on the page."
     }
 
     private fun speakTextByChunks(language: String?, fullText: String, doneUtteranceId: String) {
@@ -453,9 +535,21 @@ class TappableTextActivity : AppCompatActivity() {
             "fr" -> Locale.FRENCH
             else -> Locale.US
         }
+        if (!TtsManager.isReady()) {
+            Log.w(TAG, "TTS not ready for page narration; continuing without speech (uid=$doneUtteranceId)")
+            runOnUiThread {
+                if (doneUtteranceId == ttsPageDoneUtteranceId) {
+                    ttsPageDoneUtteranceId = null
+                }
+                beginPageQuestions()
+            }
+            return
+        }
+        startNarrationWordHighlight(fullText)
         TtsManager.whenReady(Runnable {
             val chunks = fullText.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
             if (chunks.isEmpty()) {
+                stopNarrationWordHighlight()
                 // Nothing to speak; move on so the user isn't stuck.
                 runOnUiThread {
                     if (doneUtteranceId == ttsPageDoneUtteranceId) {
@@ -477,6 +571,7 @@ class TappableTextActivity : AppCompatActivity() {
         val g = game ?: return
         if (pageIndex !in g.pages.indices) return
 
+        stopNarrationWordHighlight()
         interactionEnabled = false
         activeTapCorrectNormalizedToken = null
         optionsContainer.removeAllViews()
@@ -497,13 +592,16 @@ class TappableTextActivity : AppCompatActivity() {
         currentQuestions = buildQuestionsForPage(page)
         currentQuestionIndex = 0
 
-        // Speak the page.
+        // Speak the page after a small delay so image/text settle before narration starts.
         val utteranceId = "tt_page_${pageIndex}_done"
         ttsPageDoneUtteranceId = utteranceId
         ttsQuestionDoneUtteranceId = null
-
-        // Speak even if there are no questions (still reads the story).
-        speakTextByChunks(g.language, fullText, utteranceId)
+        val narrationDelayMs = if (pageIndex == 0) firstPageNarrationDelayMs else pageTurnNarrationDelayMs
+        Log.d(TAG, "Delaying page narration by ${narrationDelayMs}ms for page=$pageIndex")
+        tapDebounceHandler.postDelayed(
+            { speakTextByChunks(g.language, fullText, utteranceId) },
+            narrationDelayMs
+        )
 
         tapDebounceRunnable = null
     }
@@ -548,6 +646,7 @@ class TappableTextActivity : AppCompatActivity() {
             is PageQuestion.TapWord -> {
                 if (easyMode) {
                     prompt = buildEasyTapPrompt(q.question)
+                    // Entire easy prompt is English so one US TTS read is correct.
                     tapPromptLocale = Locale.US
                 } else {
                     prompt = q.question.prompt
@@ -567,6 +666,7 @@ class TappableTextActivity : AppCompatActivity() {
         val utteranceId = "tt_page_${currentPageIndex}_q_${questionIndex}_done"
         ttsQuestionDoneUtteranceId = utteranceId
         ttsPageDoneUtteranceId = null
+        scheduleQuestionUnlockFallback(utteranceId)
         speakSingleLine(g.language, prompt, utteranceId, tapPromptLocale)
 
         when (q) {
@@ -583,6 +683,7 @@ class TappableTextActivity : AppCompatActivity() {
         if (currentQuestions.isEmpty()) return
         if (currentQuestionIndex !in currentQuestions.indices) return
 
+        cancelQuestionUnlockFallback()
         val q = currentQuestions[currentQuestionIndex]
         interactionEnabled = true
 
@@ -689,10 +790,17 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        cancelQuestionUnlockFallback()
+        stopNarrationWordHighlight()
         TtsManager.stop()
         TimeTracker(this).endActivity("tappableText")
         setResult(RESULT_CANCELED)
         super.onBackPressed()
+    }
+
+    private fun stripDiacritics(s: String): String {
+        val n = Normalizer.normalize(s, Normalizer.Form.NFD)
+        return n.replace("\\p{M}+".toRegex(), "")
     }
 
     private fun normalizeWord(raw: String): String {
@@ -700,11 +808,12 @@ class TappableTextActivity : AppCompatActivity() {
         // - Lowercase
         // - Replace curly apostrophes with ASCII
         // - Strip leading/trailing non-letter characters (keep internal apostrophes)
+        // - Strip combining marks so story text vs JSON accents still match
         val s = raw.trim().lowercase(Locale.getDefault())
             .replace('’', '\'')
             .replace('‑', '-')
         val stripped = s.replace(Regex("^[^\\p{L}']+|[^\\p{L}']+$"), "")
-        return stripped
+        return stripDiacritics(stripped)
     }
 
     /**
@@ -720,12 +829,79 @@ class TappableTextActivity : AppCompatActivity() {
         return false
     }
 
+    /** Case-insensitive index of [needle] in [haystack], or -1. */
+    private fun findIgnoreCaseIndex(haystack: String, needle: String): Int {
+        if (needle.isEmpty()) return -1
+        return haystack.indexOf(needle, ignoreCase = true)
+    }
+
     private fun clearPageTextHighlightSpans() {
+        stopNarrationWordHighlight()
         val spannable = currentPageSpannable ?: return
         spannable.getSpans(0, spannable.length, BackgroundColorSpan::class.java).forEach {
             spannable.removeSpan(it)
         }
         pageText.text = spannable
+    }
+
+    private fun stopNarrationWordHighlight() {
+        narrationWordRunnable?.let { tapDebounceHandler.removeCallbacks(it) }
+        narrationWordRunnable = null
+        narrationWordCursor = 0
+        val spannable = currentPageSpannable ?: return
+        narrationHighlightSpan?.let { spannable.removeSpan(it) }
+        narrationHighlightSpan = null
+        pageText.text = spannable
+    }
+
+    private fun cancelQuestionUnlockFallback() {
+        questionUnlockRunnable?.let { tapDebounceHandler.removeCallbacks(it) }
+        questionUnlockRunnable = null
+    }
+
+    private fun scheduleQuestionUnlockFallback(expectedUtteranceId: String) {
+        cancelQuestionUnlockFallback()
+        val r = Runnable {
+            if (ttsQuestionDoneUtteranceId == expectedUtteranceId && !interactionEnabled) {
+                Log.w(TAG, "Question unlock fallback fired for utterance=$expectedUtteranceId")
+                ttsQuestionDoneUtteranceId = null
+                enableCurrentQuestionInteraction()
+            }
+        }
+        questionUnlockRunnable = r
+        tapDebounceHandler.postDelayed(r, questionUnlockFallbackMs)
+    }
+
+    private fun startNarrationWordHighlight(fullText: String) {
+        stopNarrationWordHighlight()
+        if (currentWordSpans.isEmpty()) return
+        narrationWordCursor = 0
+        val words = currentWordSpans
+
+        fun scheduleNext() {
+            if (narrationWordCursor >= words.size) return
+            val word = words[narrationWordCursor++]
+            val spanBuilder = currentPageSpannable ?: return
+            narrationHighlightSpan?.let { spanBuilder.removeSpan(it) }
+            val span = BackgroundColorSpan(narrationHighlightColor)
+            narrationHighlightSpan = span
+            spanBuilder.setSpan(
+                span,
+                word.start,
+                word.end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            pageText.text = spanBuilder
+
+            val surface = fullText.substring(word.start, word.end)
+            val estMs = (narrationWordBaseMs + narrationWordMsPerChar * surface.length)
+                .coerceIn(narrationWordStepMinMs, narrationWordStepMaxMs)
+            val next = Runnable { scheduleNext() }
+            narrationWordRunnable = next
+            tapDebounceHandler.postDelayed(next, estMs)
+        }
+
+        scheduleNext()
     }
 
     private fun onTapSuccessTtsFinished() {
@@ -738,9 +914,11 @@ class TappableTextActivity : AppCompatActivity() {
             "fr" -> Locale.FRENCH
             else -> Locale.US
         }
-        TtsManager.whenReady(Runnable {
-            TtsManager.speak(surfaceWord, loc, TextToSpeech.QUEUE_FLUSH, null)
-        })
+        runOnUiThread {
+            TtsManager.whenReady(Runnable {
+                TtsManager.speak(surfaceWord.trim(), loc, TextToSpeech.QUEUE_FLUSH, "tt_explore_word")
+            })
+        }
     }
 
     private fun speakTapSuccessThenAdvance(surfaceWord: String, question: TappableWordQuestion) {
@@ -753,14 +931,19 @@ class TappableTextActivity : AppCompatActivity() {
         TtsManager.whenReady(Runnable {
             when {
                 isFrench && gloss != null -> {
-                    TtsManager.speak(surfaceWord, Locale.FRENCH, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessFr)
-                    TtsManager.speak("means $gloss", Locale.US, TextToSpeech.QUEUE_ADD, utteranceTapSuccessDone)
+                    pendingTapSuccessFrenchSurface = surfaceWord.trim()
+                    pendingTapSuccessEnglishGloss = gloss
+                    TtsManager.speak(surfaceWord.trim(), Locale.FRENCH, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessFr)
                 }
                 isFrench -> {
-                    TtsManager.speak(surfaceWord, Locale.FRENCH, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessDone)
+                    pendingTapSuccessFrenchSurface = null
+                    pendingTapSuccessEnglishGloss = null
+                    TtsManager.speak(surfaceWord.trim(), Locale.FRENCH, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessDone)
                 }
                 else -> {
-                    TtsManager.speak(surfaceWord, Locale.US, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessDone)
+                    pendingTapSuccessFrenchSurface = null
+                    pendingTapSuccessEnglishGloss = null
+                    TtsManager.speak(surfaceWord.trim(), Locale.US, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessDone)
                 }
             }
         })
@@ -769,6 +952,7 @@ class TappableTextActivity : AppCompatActivity() {
     private fun revealTapAnswerHighlights(correctNormalizedToken: String) {
         val spannable = currentPageSpannable ?: return
         clearPageTextHighlightSpans()
+        var highlightedAny = false
         currentWordSpans.forEach { w ->
             if (tokensMatchForTapAnswer(w.normalizedToken, correctNormalizedToken)) {
                 spannable.setSpan(
@@ -777,10 +961,34 @@ class TappableTextActivity : AppCompatActivity() {
                     w.end,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
+                highlightedAny = true
+            }
+        }
+        if (!highlightedAny) {
+            val q = currentQuestions.getOrNull(currentQuestionIndex) as? PageQuestion.TapWord
+            val surface = q?.question?.correctWord?.trim().orEmpty()
+            if (surface.isNotEmpty()) {
+                val haystack = spannable.toString()
+                val idx = findIgnoreCaseIndex(haystack, surface)
+                if (idx >= 0) {
+                    val end = (idx + surface.length).coerceAtMost(haystack.length)
+                    spannable.setSpan(
+                        BackgroundColorSpan(tapRevealHighlightColor),
+                        idx,
+                        end,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    highlightedAny = true
+                }
             }
         }
         pageText.text = spannable
-        Toast.makeText(this, tapRevealToastMessage, Toast.LENGTH_LONG).show()
+        if (highlightedAny) {
+            Toast.makeText(this, tapRevealToastMessage, Toast.LENGTH_LONG).show()
+        } else {
+            Log.w(TAG, "revealTapAnswerHighlights: no span matched correct=$correctNormalizedToken")
+            Toast.makeText(this, "Could not highlight the answer on this page.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun setClickableWordsForPage(fullText: String) {
@@ -810,6 +1018,7 @@ class TappableTextActivity : AppCompatActivity() {
                         val tv = widget
                         val rawSurface = tv.text.subSequence(start, end).toString()
 
+                        // Easy mode: hear any word while waiting for the tap question to unlock (TTS still playing).
                         if (easyMode && (activeTapCorrectNormalizedToken == null || !interactionEnabled)) {
                             speakExploreWord(rawSurface)
                             return
@@ -832,6 +1041,9 @@ class TappableTextActivity : AppCompatActivity() {
                                 onQuestionAnsweredCorrect()
                             }
                         } else {
+                            if (easyMode) {
+                                speakExploreWord(rawSurface)
+                            }
                             if (easyMode && !tapAnswerRevealed) {
                                 tapWordWrongGuesses++
                                 if (tapWordWrongGuesses >= 3) {

@@ -36,6 +36,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var progressManager: DailyProgressManager
     private lateinit var timeTracker: TimeTracker
     private lateinit var gameProgress: GameProgress
+    private var totalQuestionsRequired: Int = 0
 
     // Game configuration
     private lateinit var gameType: String
@@ -60,6 +61,7 @@ class GameActivity : AppCompatActivity() {
         gameType = intent.getStringExtra("GAME_TYPE") ?: "unknown"
         gameTitle = intent.getStringExtra("GAME_TITLE") ?: "Game"
         val totalQuestions = intent.getIntExtra("TOTAL_QUESTIONS", 5) // Default to 5 if not provided
+        totalQuestionsRequired = totalQuestions
         gameStars = intent.getIntExtra("GAME_STARS", 1) // Default to 1 star if not provided
         isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
         sectionId = intent.getStringExtra("SECTION_ID")
@@ -167,6 +169,7 @@ class GameActivity : AppCompatActivity() {
 
         setupReplayButton()
         setupPullToRefresh()
+        updateQuestionProgressDisplay()
     }
 
     private fun setupClickListeners() {
@@ -184,6 +187,8 @@ class GameActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.submitButton).setOnClickListener {
             val correct = gameEngine.submitAnswer(userAnswers)
+            updateQuestionProgressDisplay()
+            val shouldEndGame = gameEngine.shouldEndGame()
 
             // Update answer counts in time tracker
             timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
@@ -197,7 +202,7 @@ class GameActivity : AppCompatActivity() {
             if (correct) {
                 // Show feedback for correct answer
                 showMessageAndClear("✅ Correct!", 2000)
-                if (gameEngine.shouldEndGame()) {
+                if (shouldEndGame) {
                     android.util.Log.d("GameActivity", "CRITICAL: Game should end - shouldEndGame() returned true")
                     try {
                         // Extract original gameId if this came from battle hub or gym map
@@ -296,26 +301,95 @@ class GameActivity : AppCompatActivity() {
                     }, 2500) // 2.5 seconds total
                 }
             } else {
-                // Show "Try again" message - choice buttons already re-enabled above
-                showMessageAndClear("❌ Try again!", 2000)
+                // Show feedback for incorrect answer; this attempt still counts toward total.
+                showMessageAndClear("❌ Incorrect", 2000)
+                if (shouldEndGame) {
+                    android.os.Handler().postDelayed({
+                        val currentBattleHubTaskId = battleHubTaskId
+                        val actualGameType = when {
+                            currentBattleHubTaskId != null && currentBattleHubTaskId.startsWith("battleHub_") -> {
+                                currentBattleHubTaskId.substringAfter("battleHub_")
+                            }
+                            currentBattleHubTaskId != null && currentBattleHubTaskId.startsWith("gymMap_") -> {
+                                currentBattleHubTaskId.substringAfter("gymMap_")
+                            }
+                            else -> {
+                                gameType
+                            }
+                        }
 
-                // Schedule clearing user answers and resetting UI after message clears (with small buffer)
-                android.os.Handler().postDelayed({
-                    userAnswers.clear()
-                    selectedChoices.clear()
-                    // Choice buttons are already re-enabled above
+                        val config: MainContent? = null
+                        val correctCount = gameEngine.getCorrectCount()
+                        val incorrectCount = gameEngine.getIncorrectCount()
+                        val questionsAnswered = correctCount + incorrectCount
+                        val finalGameIndex = gameEngine.getCurrentIndex()
+                        val currentProfile = SettingsManager.readProfile(this@GameActivity) ?: "AM"
+                        val gameIndexFirst = listOf(
+                            DailyProgressManager.SingleItemUpdate.GameIndex(currentProfile, actualGameType, finalGameIndex)
+                        )
 
-                    // Reset audio clips played flag for retry
-                    audioClipsPlayedForCurrentQuestion = false
+                        val completionResult = runBlocking(Dispatchers.IO) {
+                            progressManager.markTaskCompletedWithName(
+                                actualGameType,
+                                gameTitle,
+                                gameStars,
+                                sectionId,
+                                correctAnswers = correctCount,
+                                incorrectAnswers = incorrectCount,
+                                questionsAnswered = questionsAnswered,
+                                preRpcUpdates = gameIndexFirst
+                            )
+                        }
 
-                    // Replay the question content (TTS and audio) for retry
-                    currentQuestion?.let { question ->
-                        speakSequentially(question)
-                        // Audio clips will be played after TTS completes (handled by UtteranceProgressListener)
-                    }
-                }, 2100) // Clear after 2.1 seconds (after message clears + buffer)
+                        if (completionResult.isFailure) {
+                            android.util.Log.e("GameActivity", "Task completion DB sync failed", completionResult.exceptionOrNull())
+                            android.os.Handler().postDelayed({
+                                android.app.AlertDialog.Builder(this@GameActivity)
+                                    .setTitle("Could not save progress")
+                                    .setMessage(completionResult.exceptionOrNull()?.message ?: "Server sync failed. Nothing was saved.")
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .setCancelable(false)
+                                    .show()
+                            }, 300)
+                        } else {
+                            val earnedStars = completionResult.getOrNull() ?: 0
+                            if (earnedStars > 0) {
+                                timeTracker.updateStarsEarned("game", earnedStars)
+                            }
+
+                            timeTracker.updateAnswerCounts("game", correctCount, incorrectCount)
+                            timeTracker.endActivity("game")
+
+                            val resultIntent = android.content.Intent().apply {
+                                putExtra("GAME_TYPE", actualGameType)
+                                putExtra("GAME_TITLE", gameTitle)
+                                putExtra("GAME_STARS", earnedStars)
+                                putExtra("REWARDS_APPLIED", true)
+                                putExtra("GAME_CORRECT", correctCount)
+                                putExtra("GAME_INCORRECT", incorrectCount)
+                                putExtra("GAME_QUESTIONS_ANSWERED", questionsAnswered)
+                                currentBattleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+                                sectionId?.let { putExtra("SECTION_ID", it) }
+                            }
+                            setResult(RESULT_OK, resultIntent)
+                            android.os.Handler().postDelayed({ finish() }, 2500)
+                        }
+                    }, 2500)
+                } else {
+                    android.os.Handler().postDelayed({
+                        userAnswers.clear()
+                        showNextQuestion()
+                    }, 2500)
+                }
             }
         }
+    }
+
+    private fun updateQuestionProgressDisplay() {
+        val answeredCount = gameEngine.getCorrectCount() + gameEngine.getIncorrectCount()
+        val displayedAnsweredCount = answeredCount.coerceAtMost(totalQuestionsRequired)
+        findViewById<TextView>(R.id.questionProgressText).text =
+            "$displayedAnsweredCount/$totalQuestionsRequired"
     }
 
     private fun setupReplayButton() {

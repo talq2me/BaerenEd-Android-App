@@ -198,17 +198,37 @@
                         android:padding="5dp"
                         android:background="#ffeaa7" />
 
-                    <!-- Battle Button -->
-                    <Button
-                        android:id="@+id/battleButton"
-                        android:layout_width="wrap_content"
+                    <!-- Battle + Daily Spin Buttons -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="⚔️ Battle ⚔️"
-                        android:layout_gravity="center"
+                        android:orientation="horizontal"
+                        android:gravity="center"
                         android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"
-                        android:enabled="false"
-                        android:background="@drawable/button_rounded" />
+                        android:layout_marginBottom="10dp">
+
+                        <Button
+                            android:id="@+id/battleButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minWidth="0dp"
+                            android:text="⚔️ Battle ⚔️"
+                            android:enabled="false"
+                            android:background="@drawable/button_rounded" />
+
+                        <Button
+                            android:id="@+id/dailySpinButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minWidth="0dp"
+                            android:text="🎡 Daily Spin"
+                            android:layout_marginStart="10dp"
+                            android:visibility="gone"
+                            android:enabled="false"
+                            android:background="@drawable/button_rounded" />
+                    </LinearLayout>
 
                     <!-- Battle Field -->
                     <LinearLayout
@@ -451,6 +471,17 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="🍍 Earn Berries 🍍"
+                            android:layout_marginEnd="3dp"
+                            android:textSize="12sp"
+                            android:background="@drawable/button_rounded" />
+
+                        <Button
+                            android:id="@+id/checklistButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="✅ Checklist ✅"
+                            android:layout_marginStart="3dp"
                             android:layout_marginEnd="3dp"
                             android:textSize="12sp"
                             android:background="@drawable/button_rounded" />

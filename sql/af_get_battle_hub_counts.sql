@@ -22,7 +22,8 @@ AS $$
         'coins_earned', COALESCE(ud.coins_earned, 0),
         'pokemon_unlocked', COALESCE(ud.pokemon_unlocked, 0),
         'kid_bank_balance', COALESCE(ud.kid_bank_balance, 0),
-        'reward_time_expiry', ud.reward_time_expiry
+        'reward_time_expiry', ud.reward_time_expiry,
+        'prize_unlocked', ud.prize_unlocked
       )
       FROM user_data ud
       WHERE ud.profile = p_profile

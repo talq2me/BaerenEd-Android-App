@@ -212,6 +212,7 @@ open class TrainingMapActivity : AppCompatActivity() {
             text = when (mapType) {
                 "optional" -> "🗺️ Extra Practice Map 🗺️"
                 "bonus" -> "🎮 Bonus Training Map 🎮"
+                "checklist" -> "✅ Checklist Map ✅"
                 else -> "🗺️ Training Map 🗺️"
             }
             textSize = 24f
@@ -788,6 +789,11 @@ open class TrainingMapActivity : AppCompatActivity() {
         // Empty url, rotate/list, or lang= / language= → rotate; see TappableTextActivity.parseTappableUrlSpec.
         if (task.launch == "tappableText") {
             val ttFile = task.url ?: ""
+            val easyModeEnabled = task.easy == true
+            Log.d(
+                "TrainingMapActivity",
+                "Launching tappableText with easy=$easyModeEnabled, launch=${task.launch}, url=$ttFile"
+            )
             lastLaunchedGameSectionId = sectionId
             val intent = Intent(this, TappableTextActivity::class.java).apply {
                 putExtra(TappableTextActivity.EXTRA_TAPPABLE_TEXT_FILE, ttFile)
@@ -795,7 +801,7 @@ open class TrainingMapActivity : AppCompatActivity() {
                 putExtra(TappableTextActivity.EXTRA_SECTION_ID, sectionId)
                 putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
                 putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
-                putExtra(TappableTextActivity.EXTRA_EASY_MODE, task.easy == true)
+                putExtra(TappableTextActivity.EXTRA_EASY_MODE, easyModeEnabled)
             }
             startActivityForResult(intent, 1008)
             return

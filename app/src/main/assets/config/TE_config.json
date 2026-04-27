@@ -330,6 +330,19 @@
           "launch": "canadianMoneyEasy",
           "stars": 1,
           "totalQuestions": 1
+        },
+        {
+          "title": "UFLI Passage: Jo and Russ",
+          "launch": "tappableText",
+          "url": "file=eng/jo-friend-russ-g1_tappable.json",
+          "easy": true,
+          "stars": 1
+        },
+        {
+          "title": "UFLI Word Chains",
+          "launch": "ufli-open-closed-chain-g1",
+          "stars": 1,
+          "totalQuestions": 5
         }
       ]
     },

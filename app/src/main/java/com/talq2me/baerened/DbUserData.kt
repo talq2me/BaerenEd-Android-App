@@ -53,6 +53,7 @@ data class DbUserData(
     @SerializedName("white_listed_apps") val whiteListedApps: String? = null, // JSON array string
 
     // Metadata
+    @SerializedName("prize_unlocked") val prizeUnlocked: String? = null,
     @SerializedName("last_updated") val lastUpdated: String? = null,
 )
 

@@ -113,6 +113,11 @@
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
+            android:name=".RewardSpinnerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <activity
             android:name=".PrintingGameActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"

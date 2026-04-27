@@ -1,0 +1,80 @@
+{
+  "id": "jo-friend-russ-g1",
+  "title": "Jo's Friend Russ",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Jo has a best friend named Russ.",
+        "Russ and Jo go on bike rides in the fall.",
+        "In the spring, they swim in the lake.",
+        "At the lake, Jo brings snacks and Russ brings drinks."
+      ],
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tap the word that names what Jo and Russ ride in the fall.",
+          "correct_word": "bike"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tap the action word that tells what they do in the lake.",
+          "correct_word": "swim"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "What does Russ bring to the lake? Tap that word.",
+          "correct_word": "drinks"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Where do Jo and Russ swim?",
+        "options": [
+          "In the park",
+          "In the lake",
+          "At school",
+          "In the yard"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "They also love acting, singing, and telling jokes.",
+        "Russ likes spending time with Jo and Jo likes spending time with Russ.",
+        "Russ and Jo will be friends for a long time."
+      ],
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tap one word that names something they love to do with their voices.",
+          "correct_word": "singing"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tap the word that tells what they like telling.",
+          "correct_word": "jokes"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tap the word that tells what Jo and Russ are to each other.",
+          "correct_word": "friends"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "How do Jo and Russ feel about each other?",
+        "options": [
+          "They are upset",
+          "They are best friends",
+          "They are strangers",
+          "They are rivals"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

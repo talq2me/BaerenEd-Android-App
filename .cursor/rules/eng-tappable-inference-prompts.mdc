@@ -1,0 +1,22 @@
+---
+description: Use inference-style tap prompts for English tappable text JSONs
+globs: app/src/main/assets/tappableText/eng/*_tappable.json
+alwaysApply: false
+---
+
+# English Tappable Prompt Style
+
+When creating or editing English tappable text JSON files:
+
+- Write `tappable_word_questions[].prompt` so it does not directly repeat the `correct_word`.
+- Use clue-style language that requires meaning-based lookup in the passage.
+- Keep prompts kid-friendly and concise (about one sentence).
+- Ensure each prompt still resolves to a single clear `correct_word` in the page text.
+
+Examples:
+
+- Avoid: `Tap the word lake.`
+- Prefer: `Tap the word that tells where they swim.`
+
+- Avoid: `Tap the word snacks.`
+- Prefer: `What does Jo bring? Tap that word.`

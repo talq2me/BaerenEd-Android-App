@@ -52,7 +52,7 @@
                     android:id="@+id/book_page_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="26sp"
+                    android:textSize="34sp"
                     android:lineSpacingMultiplier="1.35"
                     android:textColor="#333333"
                     android:padding="12dp" />

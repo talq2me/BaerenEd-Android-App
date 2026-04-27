@@ -19,22 +19,31 @@ class GitHubGameContentService {
 
     suspend fun fetchGameContent(context: Context, gameType: String): String? {
         val gameFileName = "${gameType}.json"
+        val candidatePaths = listOf(
+            "data/$gameFileName",
+            "ufliWordChains/$gameFileName"
+        )
+
+        candidatePaths.forEach { assetPath ->
+            fetchFromGitHub(assetPath)?.let {
+                Log.d(TAG, "Fetched game content from GitHub path: $assetPath")
+                return it
+            }
+        }
+
+        Log.w(TAG, "fetchGameContent failed for all candidate paths: $gameType")
+        return null
+    }
+
+    private fun fetchFromGitHub(assetPath: String): String? {
         return try {
-            val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data/$gameFileName?nocache=${System.currentTimeMillis()}"
+            val url = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/$assetPath?nocache=${System.currentTimeMillis()}"
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val body = response.body?.string()
-                    if (body != null) {
-                        Log.d(TAG, "Fetched game content from GitHub: $gameType")
-                        return body
-                    }
-                }
-                Log.w(TAG, "fetchGameContent failed or empty: $gameType")
-                null
+                if (!response.isSuccessful) return null
+                response.body?.string()
             }
-        } catch (e: IOException) {
-            Log.w(TAG, "fetchGameContent network error: ${e.message}")
+        } catch (_: IOException) {
             null
         }
     }

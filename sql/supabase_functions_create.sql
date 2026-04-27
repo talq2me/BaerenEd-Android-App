@@ -18,7 +18,9 @@ DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 DROP FUNCTION IF EXISTS af_get_device_row(text);
 DROP FUNCTION IF EXISTS af_get_image_upload_id(text, text);
+DROP FUNCTION IF EXISTS af_get_or_unlock_daily_prize(text);
 DROP FUNCTION IF EXISTS af_get_reward_time_state(text);
+DROP FUNCTION IF EXISTS af_get_reward_spinner();
 DROP FUNCTION IF EXISTS af_get_settings_last_updated();
 DROP FUNCTION IF EXISTS af_get_settings_row();
 DROP FUNCTION IF EXISTS af_get_stars_to_minutes(int);
@@ -247,6 +249,7 @@ BEGIN
           'blockOutlines', t->'blockOutlines',
           'rewardId', t->'rewardId',
           'totalQuestions', t->'totalQuestions',
+          'easy', t->'easy',
           'easydays', t->'easydays',
           'harddays', t->'harddays',
           'extremedays', t->'extremedays',
@@ -325,6 +328,7 @@ BEGIN
           'blockOutlines', t->'blockOutlines',
           'rewardId', t->'rewardId',
           'totalQuestions', t->'totalQuestions',
+          'easy', t->'easy',
           'easydays', t->'easydays',
           'harddays', t->'harddays',
           'extremedays', t->'extremedays',
@@ -413,6 +417,7 @@ BEGIN
           'blockOutlines', t->'blockOutlines',
           'rewardId', t->'rewardId',
           'totalQuestions', t->'totalQuestions',
+          'easy', t->'easy',
           'easydays', t->'easydays',
           'harddays', t->'harddays',
           'extremedays', t->'extremedays',
@@ -529,6 +534,7 @@ BEGIN
     berries_earned = 0,
     banked_mins = 0,
     reward_time_expiry = NULL,
+    prize_unlocked = NULL,
     chores = '[]'::jsonb
   WHERE profile = p_profile
     AND (last_reset IS NULL OR last_reset::date IS DISTINCT FROM today_est);
@@ -687,6 +693,7 @@ RETURNS TABLE (
   playlist_id text,
   total_questions int,
   reward_id text,
+  easy boolean,
   easydays text,
   harddays text,
   extremedays text,
@@ -720,6 +727,7 @@ AS $$
       (e.value->>'playlistId')::text AS playlist_id,
       (e.value->>'totalQuestions')::int AS total_questions,
       (e.value->>'rewardId')::text AS reward_id,
+      COALESCE((e.value->>'easy')::boolean, false) AS easy,
       (e.value->>'easydays')::text AS easydays,
       (e.value->>'harddays')::text AS harddays,
       (e.value->>'extremedays')::text AS extremedays,
@@ -769,6 +777,7 @@ AS $$
       NULL::text AS playlist_id,
       NULL::int AS total_questions,
       NULL::text AS reward_id,
+      false AS easy,
       NULL::text AS easydays,
       NULL::text AS harddays,
       NULL::text AS extremedays,
@@ -797,6 +806,7 @@ AS $$
     v.playlist_id,
     v.total_questions,
     v.reward_id,
+    v.easy,
     v.easydays,
     v.harddays,
     v.extremedays,
@@ -839,6 +849,7 @@ RETURNS TABLE (
   playlist_id text,
   total_questions int,
   reward_id text,
+  easy boolean,
   easydays text,
   harddays text,
   extremedays text,
@@ -871,6 +882,7 @@ AS $$
       (e.value->>'playlistId')::text AS playlist_id,
       (e.value->>'totalQuestions')::int AS total_questions,
       (e.value->>'rewardId')::text AS reward_id,
+      COALESCE((e.value->>'easy')::boolean, false) AS easy,
       (e.value->>'easydays')::text AS easydays,
       (e.value->>'harddays')::text AS harddays,
       (e.value->>'extremedays')::text AS extremedays,
@@ -920,6 +932,7 @@ AS $$
     v.playlist_id,
     v.total_questions,
     v.reward_id,
+    v.easy,
     v.easydays,
     v.harddays,
     v.extremedays,
@@ -958,6 +971,7 @@ RETURNS TABLE (
   playlist_id text,
   total_questions int,
   reward_id text,
+  easy boolean,
   easydays text,
   harddays text,
   extremedays text,
@@ -990,6 +1004,7 @@ AS $$
       (e.value->>'playlistId')::text AS playlist_id,
       (e.value->>'totalQuestions')::int AS total_questions,
       (e.value->>'rewardId')::text AS reward_id,
+      COALESCE((e.value->>'easy')::boolean, false) AS easy,
       (e.value->>'easydays')::text AS easydays,
       (e.value->>'harddays')::text AS harddays,
       (e.value->>'extremedays')::text AS extremedays,
@@ -1039,6 +1054,7 @@ AS $$
     v.playlist_id,
     v.total_questions,
     v.reward_id,
+    v.easy,
     v.easydays,
     v.harddays,
     v.extremedays,
@@ -1049,6 +1065,143 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION af_get_tasks_bonus(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_get_reward_spinner.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd Android, this repo):
+--   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  getRewardSpinnerItems.
+--   app/src/main/java/com/talq2me/baerened/RewardSpinnerActivity.kt  -  loadRewards.
+--
+-- BaerenEd: Reward wheel configuration rows.
+-- POST /rest/v1/rpc/af_get_reward_spinner {}
+
+CREATE OR REPLACE FUNCTION af_get_reward_spinner()
+RETURNS TABLE (
+  id bigint,
+  name text,
+  percent int
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    rs.id,
+    rs.name,
+    rs.percent::int AS percent
+  FROM reward_spinner rs
+  ORDER BY rs.id;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_get_reward_spinner() TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_get_or_unlock_daily_prize.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd Android, this repo):
+--   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfGetOrUnlockDailyPrize.
+--   app/src/main/java/com/talq2me/baerened/RewardSpinnerActivity.kt  -  resolve/open daily prize.
+--
+-- If prize_unlocked already exists for the profile, return it.
+-- Otherwise, if required/checklist work is complete for the day (berries_earned >= possible_stars),
+-- pick a weighted random reward from reward_spinner, persist user_data.prize_unlocked, and return it.
+CREATE OR REPLACE FUNCTION af_get_or_unlock_daily_prize(p_profile text)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_possible_stars int := 0;
+  v_berries_earned int := 0;
+  v_prize_unlocked text := NULL;
+  v_reward_name text := NULL;
+BEGIN
+  SELECT
+    COALESCE(ud.possible_stars, 0),
+    COALESCE(ud.berries_earned, 0),
+    NULLIF(trim(ud.prize_unlocked), '')
+  INTO v_possible_stars, v_berries_earned, v_prize_unlocked
+  FROM user_data ud
+  WHERE ud.profile = p_profile
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', NULL,
+      'newly_unlocked', false,
+      'eligible', false
+    );
+  END IF;
+
+  IF v_prize_unlocked IS NOT NULL THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', v_prize_unlocked,
+      'newly_unlocked', false,
+      'eligible', true
+    );
+  END IF;
+
+  IF v_possible_stars <= 0 OR v_berries_earned < v_possible_stars THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', NULL,
+      'newly_unlocked', false,
+      'eligible', false
+    );
+  END IF;
+
+  WITH weighted AS (
+    SELECT
+      rs.id,
+      rs.name,
+      rs.percent,
+      SUM(rs.percent) OVER (ORDER BY rs.id) AS cumulative_weight
+    FROM reward_spinner rs
+    WHERE rs.percent > 0
+  ),
+  total AS (
+    SELECT MAX(cumulative_weight) AS total_weight
+    FROM weighted
+  ),
+  roll AS (
+    SELECT (FLOOR(random() * total_weight) + 1)::int AS ticket
+    FROM total
+  )
+  SELECT w.name
+  INTO v_reward_name
+  FROM weighted w, roll r
+  WHERE w.cumulative_weight >= r.ticket
+  ORDER BY w.cumulative_weight
+  LIMIT 1;
+
+  IF v_reward_name IS NULL THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', NULL,
+      'newly_unlocked', false,
+      'eligible', false,
+      'error', 'No reward spinner rows with positive percent.'
+    );
+  END IF;
+
+  UPDATE user_data
+  SET
+    prize_unlocked = v_reward_name,
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
+  WHERE profile = p_profile;
+
+  RETURN jsonb_build_object(
+    'prize_unlocked', v_reward_name,
+    'newly_unlocked', true,
+    'eligible', true
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_get_or_unlock_daily_prize(text) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------
@@ -1078,7 +1231,8 @@ AS $$
         'coins_earned', COALESCE(ud.coins_earned, 0),
         'pokemon_unlocked', COALESCE(ud.pokemon_unlocked, 0),
         'kid_bank_balance', COALESCE(ud.kid_bank_balance, 0),
-        'reward_time_expiry', ud.reward_time_expiry
+        'reward_time_expiry', ud.reward_time_expiry,
+        'prize_unlocked', ud.prize_unlocked
       )
       FROM user_data ud
       WHERE ud.profile = p_profile
@@ -1784,6 +1938,7 @@ BEGIN
             'blockOutlines', t->'blockOutlines',
             'rewardId', t->'rewardId',
             'totalQuestions', t->'totalQuestions',
+            'easy', t->'easy',
             'easydays', t->'easydays',
             'harddays', t->'harddays',
             'extremedays', t->'extremedays',

@@ -1,0 +1,110 @@
+[
+  {
+    "prompt": {
+      "text": "Say the word: no. If we add t at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "no -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "n" },
+      { "text": "o" },
+      { "text": "t" }
+    ],
+    "extraChoices": [
+      { "text": "d" },
+      { "text": "h" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: so. If we add d at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "so -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "s" },
+      { "text": "o" },
+      { "text": "d" }
+    ],
+    "extraChoices": [
+      { "text": "t" },
+      { "text": "h" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: be. If we add d at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "be -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "b" },
+      { "text": "e" },
+      { "text": "d" }
+    ],
+    "extraChoices": [
+      { "text": "t" },
+      { "text": "h" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: hi. If we add t at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "hi -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "h" },
+      { "text": "i" },
+      { "text": "t" }
+    ],
+    "extraChoices": [
+      { "text": "d" },
+      { "text": "b" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: friend.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "friend",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "f" },
+      { "text": "r" },
+      { "text": "i" },
+      { "text": "e" },
+      { "text": "n" },
+      { "text": "d" }
+    ],
+    "extraChoices": [
+      { "text": "t" },
+      { "text": "o" }
+    ]
+  }
+]

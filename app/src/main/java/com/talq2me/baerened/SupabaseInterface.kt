@@ -20,6 +20,18 @@ import java.util.*
  */
 open class SupabaseInterface {
 
+    data class RewardSpinnerItem(
+        val id: Int,
+        val name: String,
+        val percent: Int
+    )
+
+    data class DailyPrizeResult(
+        val prizeUnlocked: String?,
+        val newlyUnlocked: Boolean,
+        val eligible: Boolean
+    )
+
     companion object {
         private const val TAG = "SupabaseInterface"
     }
@@ -284,7 +296,8 @@ open class SupabaseInterface {
 
     /**
      * Battle Hub summary from DB only (see sql/af_get_battle_hub_counts.sql).
-     * Keys: possible_stars, berries_earned, banked_mins, coins_earned, pokemon_unlocked, kid_bank_balance, reward_time_expiry (nullable).
+     * Keys: possible_stars, berries_earned, banked_mins, coins_earned, pokemon_unlocked,
+     * kid_bank_balance, reward_time_expiry (nullable), prize_unlocked (nullable).
      */
     suspend fun invokeAfGetBattleHubCounts(profile: String): Result<JsonObject> = withContext(Dispatchers.IO) {
         val raw = invokeRpcPostReadBody("af_get_battle_hub_counts", """{"p_profile":"$profile"}""")
@@ -305,6 +318,53 @@ open class SupabaseInterface {
     /** Stable bonus rows (current impl routed in SQL). */
     suspend fun invokeAfGetBonusTasksRows(profile: String): Result<JsonArray> =
         invokeRpcProfileReturningJsonArray("af_get_tasks_bonus", profile)
+
+    /** Reads reward spinner rows from `reward_spinner` table. */
+    suspend fun getRewardSpinnerItems(): Result<List<RewardSpinnerItem>> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        return@withContext try {
+            val raw = invokeRpcPostReadBody("af_get_reward_spinner", "{}")
+                .getOrElse { return@withContext Result.failure(it) }
+            val parsed = JsonParser.parseString(raw)
+            if (!parsed.isJsonArray) {
+                return@withContext Result.failure(Exception("af_get_reward_spinner: expected JSON array"))
+            }
+            val arr = parsed.asJsonArray
+            val items = arr.mapNotNull { el ->
+                if (!el.isJsonObject) return@mapNotNull null
+                val o = el.asJsonObject
+                val id = o.get("id")?.takeUnless { it.isJsonNull }?.asInt ?: return@mapNotNull null
+                val name = o.get("name")?.takeUnless { it.isJsonNull }?.asString ?: return@mapNotNull null
+                val percent = o.get("percent")?.takeUnless { it.isJsonNull }?.asInt ?: return@mapNotNull null
+                RewardSpinnerItem(id = id, name = name, percent = percent)
+            }
+            Result.success(items)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Returns today's prize if already unlocked, otherwise unlocks one when profile is eligible. */
+    suspend fun invokeAfGetOrUnlockDailyPrize(profile: String): Result<DailyPrizeResult> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        return@withContext try {
+            val raw = invokeRpcPostReadBody(
+                "af_get_or_unlock_daily_prize",
+                """{"p_profile":"${profile.escapeJson()}"}"""
+            ).getOrElse { return@withContext Result.failure(it) }
+            val parsed = JsonParser.parseString(raw.trim())
+            if (!parsed.isJsonObject) {
+                return@withContext Result.failure(Exception("af_get_or_unlock_daily_prize: expected JSON object"))
+            }
+            val obj = parsed.asJsonObject
+            val prize = obj.get("prize_unlocked")?.takeUnless { it.isJsonNull }?.asString
+            val newly = obj.get("newly_unlocked")?.takeUnless { it.isJsonNull }?.asBoolean ?: false
+            val eligible = obj.get("eligible")?.takeUnless { it.isJsonNull }?.asBoolean ?: false
+            Result.success(DailyPrizeResult(prizeUnlocked = prize, newlyUnlocked = newly, eligible = eligible))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     private suspend fun invokeRpcProfileReturningJsonArray(rpcName: String, profile: String): Result<JsonArray> =
         withContext(Dispatchers.IO) {

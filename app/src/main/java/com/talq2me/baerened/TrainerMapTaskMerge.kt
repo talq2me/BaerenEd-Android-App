@@ -30,6 +30,7 @@ object TrainerMapTaskMerge {
         val easydays: String?,
         val harddays: String?,
         val extremedays: String?,
+        val easy: Boolean,
         val blockOutlines: Boolean,
         val isChecklist: Boolean
     )
@@ -60,6 +61,7 @@ object TrainerMapTaskMerge {
                     easydays = o.stringOrNull("easydays"),
                     harddays = o.stringOrNull("harddays"),
                     extremedays = o.stringOrNull("extremedays"),
+                    easy = o.boolOrDefault("easy", false),
                     blockOutlines = o.boolOrDefault("block_outlines", false),
                     isChecklist = o.boolOrDefault("is_checklist", false)
                 )
@@ -86,7 +88,18 @@ object TrainerMapTaskMerge {
             rewardId = row.rewardId,
             easydays = row.easydays,
             harddays = row.harddays,
-            extremedays = row.extremedays
+            extremedays = row.extremedays,
+            easy = row.easy
+        )
+    }
+
+    /** Maps a checklist RPC row to [Task] for checklist map UI. */
+    private fun checklistTaskFromDbRow(row: DbRow): Task {
+        val checklistId = row.launch?.trim().takeUnless { it.isNullOrEmpty() } ?: row.taskName
+        return Task(
+            title = row.taskName,
+            launch = "checklist_$checklistId",
+            stars = row.berryValue
         )
     }
 
@@ -185,7 +198,7 @@ object TrainerMapTaskMerge {
             )
         }
         val rowsResult = when (mapType) {
-            "required" -> supabase.invokeAfGetRequiredTasksRows(profile)
+            "required", "checklist" -> supabase.invokeAfGetRequiredTasksRows(profile)
             "optional" -> supabase.invokeAfGetPracticeTasksRows(profile)
             "bonus" -> supabase.invokeAfGetBonusTasksRows(profile)
             else -> Result.failure(IllegalArgumentException("Unknown mapType: $mapType"))
@@ -195,11 +208,20 @@ object TrainerMapTaskMerge {
             Log.e(TAG, "Trainer map RPC failed", ex)
             return@withContext PrepareTrainerMapResult.Failed(ex)
         }
-        val parsed = parseRows(rowsResult.getOrNull()!!)
+        val parsed = parseRows(rowsResult.getOrNull()!!).let { rows ->
+            when (mapType) {
+                "required" -> rows.filter { !it.isChecklist }
+                "checklist" -> rows.filter { it.isChecklist }
+                else -> rows
+            }
+        }
         if (parsed.isEmpty()) {
             return@withContext PrepareTrainerMapResult.NoTasks("No ${mapType} tasks available")
         }
-        val tasks = parsed.mapNotNull { taskFromDbRow(it) }
+        val tasks = when (mapType) {
+            "checklist" -> parsed.map { checklistTaskFromDbRow(it) }
+            else -> parsed.mapNotNull { taskFromDbRow(it) }
+        }
         if (tasks.isEmpty()) {
             return@withContext PrepareTrainerMapResult.Failed(
                 IllegalStateException(
@@ -208,7 +230,9 @@ object TrainerMapTaskMerge {
             )
         }
         val dbCompletion = parsed.associate { row ->
-            row.taskName to (row.completionStatus == "complete")
+            val isDone = row.completionStatus.equals("complete", ignoreCase = true) ||
+                row.completionStatus.equals("done", ignoreCase = true)
+            row.taskName to isDone
         }.filterKeys { it.isNotEmpty() }
         PrepareTrainerMapResult.Ready(tasks, sessionCompletionMap, dbCompletion)
     }
@@ -221,7 +245,7 @@ object TrainerMapTaskMerge {
                 task.launch != null &&
                 TaskVisibilityChecker.isTaskVisible(task)
         } ?: emptyList()
-        if (mapType != "required") return baseTasks
+        if (mapType != "required" && mapType != "checklist") return baseTasks
         val checklistSection = content.sections?.find { it.id == "checklist" }
         val checklistTasks = checklistSection?.items
             ?.filter { item ->
@@ -237,7 +261,7 @@ object TrainerMapTaskMerge {
                     displayDays = item.displayDays
                 )
             } ?: emptyList()
-        return baseTasks + checklistTasks
+        return if (mapType == "checklist") checklistTasks else baseTasks
     }
 
     /**

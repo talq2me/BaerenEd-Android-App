@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#2c3e50">
+
+    <Button
+        android:id="@+id/rewardSpinnerBackButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← Back to Battle Hub"
+        android:background="@drawable/button_rounded" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🎡 Daily Spin 🎡"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp" />
+
+    <com.talq2me.baerened.RewardWheelView
+        android:id="@+id/rewardWheelView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/rewardResultText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Loading rewards..."
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="10dp" />
+
+    <Button
+        android:id="@+id/spinRewardButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Spin"
+        android:textSize="18sp"
+        android:enabled="false"
+        android:background="@drawable/button_rounded" />
+
+</LinearLayout>

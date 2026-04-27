@@ -32,6 +32,7 @@ BEGIN
     berries_earned = 0,
     banked_mins = 0,
     reward_time_expiry = NULL,
+    prize_unlocked = NULL,
     chores = '[]'::jsonb
   WHERE profile = p_profile
     AND (last_reset IS NULL OR last_reset::date IS DISTINCT FROM today_est);

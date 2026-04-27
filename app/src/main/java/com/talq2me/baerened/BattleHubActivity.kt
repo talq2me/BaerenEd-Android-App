@@ -57,6 +57,7 @@ class BattleHubActivity : AppCompatActivity() {
     private lateinit var berryFill: LinearLayout
     private lateinit var berryCount: TextView
     private lateinit var battleButton: Button
+    private lateinit var dailySpinButton: Button
     private lateinit var victoryOverlay: FrameLayout
     private lateinit var victoryPokemonSprite: ImageView
     private lateinit var victoryPokemonName: TextView
@@ -67,6 +68,8 @@ class BattleHubActivity : AppCompatActivity() {
     private var unlockedPokemonCount = 0
     private var earnedStars = 0
     private var totalStars = 0
+    private var battleReadyForToday = false
+    private var dailyPrizeUnlocked: String? = null
     
     private var mainContentJson: String? = null
     
@@ -244,6 +247,7 @@ class BattleHubActivity : AppCompatActivity() {
     private lateinit var headerButtonsLeft: LinearLayout
     private lateinit var headerButtonsRight: LinearLayout
     private lateinit var earnBerriesButton: Button
+    private lateinit var checklistButton: Button
     private lateinit var earnExtraBerriesButton: Button
     private lateinit var bonusTrainingButton: Button
     private lateinit var choresButton: Button
@@ -271,7 +275,9 @@ class BattleHubActivity : AppCompatActivity() {
         berryFill = findViewById(R.id.berryFill)
         berryCount = findViewById(R.id.berryCount)
         battleButton = findViewById(R.id.battleButton)
+        dailySpinButton = findViewById(R.id.dailySpinButton)
         earnBerriesButton = findViewById(R.id.earnBerriesButton)
+        checklistButton = findViewById(R.id.checklistButton)
         earnExtraBerriesButton = findViewById(R.id.earnExtraBerriesButton)
         bonusTrainingButton = findViewById(R.id.bonusTrainingButton)
         choresButton = findViewById(R.id.choresButton)
@@ -286,6 +292,8 @@ class BattleHubActivity : AppCompatActivity() {
         // Earn Extra button: hidden/disabled until updateEarnButtonsState() confirms all required tasks are complete
         earnExtraBerriesButton.visibility = View.GONE
         earnExtraBerriesButton.isEnabled = false
+        dailySpinButton.visibility = View.VISIBLE
+        dailySpinButton.isEnabled = false
         
         // Ensure sprites are visible
         playerPokemonSprite.visibility = View.VISIBLE
@@ -771,6 +779,10 @@ class BattleHubActivity : AppCompatActivity() {
         battleButton.setOnClickListener {
             startBattle()
         }
+
+        dailySpinButton.setOnClickListener {
+            startActivity(Intent(this, RewardSpinnerActivity::class.java))
+        }
         
         // Victory overlay close
         findViewById<Button>(R.id.victoryCloseButton).setOnClickListener {
@@ -783,6 +795,13 @@ class BattleHubActivity : AppCompatActivity() {
                 putExtra("mapType", "required")
             }
             startActivityForResult(intent, 2001) // Use request code 2001 for training map
+        }
+
+        checklistButton.setOnClickListener {
+            val intent = Intent(this, TrainingMapActivity::class.java).apply {
+                putExtra("mapType", "checklist")
+            }
+            startActivityForResult(intent, 2004) // Use request code 2004 for checklist map
         }
         
         earnExtraBerriesButton.setOnClickListener {
@@ -837,14 +856,15 @@ class BattleHubActivity : AppCompatActivity() {
         val progressManager = DailyProgressManager(this)
         progressManager.invalidateCompletedTasksMapCache()
 
-        // DB is source of truth: required_tasks + checklist_items from last fetch (session).
+        // DB is source of truth: required_tasks from last fetch (session).
         val profile = SettingsManager.readProfile(this) ?: "AM"
         if (progressManager.getCurrentSessionData(profile) != null) {
             val allDone = progressManager.areAllVisibleRequiredAndChecklistCompleteFromDb()
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState (DB): allRequiredCompleted=$allDone")
+            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState (DB): allRequiredAndChecklistCompleted=$allDone")
             earnExtraBerriesButton.visibility = if (allDone) android.view.View.VISIBLE else android.view.View.GONE
             earnExtraBerriesButton.isEnabled = allDone
             earnExtraBerriesButton.alpha = if (allDone) 1f else 0.5f
+            updateDailySpinButtonState()
             return
         }
 
@@ -852,6 +872,21 @@ class BattleHubActivity : AppCompatActivity() {
         earnExtraBerriesButton.visibility = View.GONE
         earnExtraBerriesButton.isEnabled = false
         earnExtraBerriesButton.alpha = 0.5f
+        updateDailySpinButtonState()
+    }
+
+    private fun updateDailySpinButtonState() {
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        val progressManager = DailyProgressManager(this)
+        val progress = progressManager.getCurrentSessionData(profile)
+        dailyPrizeUnlocked = progress?.prizeUnlocked?.trim()?.takeIf { it.isNotEmpty() }
+        val allRequiredAndChecklistDone = progressManager.areAllVisibleRequiredAndChecklistCompleteFromDb()
+
+        val canOpenSpin = battleReadyForToday || allRequiredAndChecklistDone || dailyPrizeUnlocked != null
+        dailySpinButton.visibility = if (battleButton.visibility == View.VISIBLE) View.VISIBLE else View.GONE
+        dailySpinButton.isEnabled = canOpenSpin
+        dailySpinButton.alpha = if (canOpenSpin) 1f else 0.5f
+        dailySpinButton.text = if (dailyPrizeUnlocked != null) "🎁 Today's Prize" else "🎡 Daily Spin"
     }
     
     // Removed isTaskVisible() - now using TaskVisibilityChecker for consistency with Layout.kt
@@ -1334,7 +1369,9 @@ class BattleHubActivity : AppCompatActivity() {
         updatePlayerHPColor(100) // Player starts at 100%
         
         // Enable battle button if berries are full (need a positive cap from DB)
-        battleButton.isEnabled = totalStars > 0 && percentage >= 100
+        battleReadyForToday = totalStars > 0 && percentage >= 100
+        battleButton.isEnabled = battleReadyForToday
+        updateDailySpinButtonState()
     }
     
     private fun startBattle() {
@@ -2130,7 +2167,7 @@ class BattleHubActivity : AppCompatActivity() {
 
         // When returning from TrainingMapActivity, sync from cloud first, then refresh displays
         // Tasks may have been completed even if the activity was canceled
-        if (requestCode == 2001 || requestCode == 2002 || requestCode == 2003) {
+        if (requestCode == 2001 || requestCode == 2002 || requestCode == 2003 || requestCode == 2004) {
             mainContentJson = null
 
             // Run daily reset check and load from DB to get latest progress, then refresh UI

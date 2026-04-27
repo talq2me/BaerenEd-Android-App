@@ -57,6 +57,7 @@ BEGIN
           'blockOutlines', t->'blockOutlines',
           'rewardId', t->'rewardId',
           'totalQuestions', t->'totalQuestions',
+          'easy', t->'easy',
           'easydays', t->'easydays',
           'harddays', t->'harddays',
           'extremedays', t->'extremedays',

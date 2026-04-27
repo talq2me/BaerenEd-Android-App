@@ -104,6 +104,9 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Reward time expiry: when reward minutes must be used by (America/Toronto). Null = no expiry. Set by BaerenLock when granting time.
     reward_time_expiry TIMESTAMP(3) NULL,
 
+    -- Daily reward spinner outcome (null until spun for the day; reset by af_daily_reset).
+    prize_unlocked TEXT NULL,
+
     reward_apps TEXT, -- JSON array of package names as string
     blacklisted_apps TEXT, -- JSON array of package names as string
     white_listed_apps TEXT, -- JSON array of package names as string
@@ -289,5 +292,30 @@ CREATE POLICY "Allow all operations on image_uploads" ON image_uploads
     FOR ALL
     USING (true)
     WITH CHECK (true);
+
+-- Daily Spin rewards table
+CREATE TABLE IF NOT EXISTS reward_spinner (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name TEXT NOT NULL,
+    percent SMALLINT NOT NULL CHECK (percent >= 0 AND percent <= 100)
+);
+
+CREATE INDEX IF NOT EXISTS idx_reward_spinner_id ON reward_spinner(id);
+
+ALTER TABLE reward_spinner ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all operations on reward_spinner" ON reward_spinner;
+CREATE POLICY "Allow all operations on reward_spinner" ON reward_spinner
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
+INSERT INTO reward_spinner (name, percent) VALUES
+    ('Pick a small treat', 20),
+    ('Extra 10 minutes screen time', 20),
+    ('Quick card/board game with parent', 15),
+    ('Pokemon Card', 20),
+    ('Trip to the park', 5),
+    ('Choose tomorrow night''s dinner', 20)
+ON CONFLICT DO NOTHING;
 
 CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;
