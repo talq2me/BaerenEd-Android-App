@@ -39,7 +39,8 @@
           "launch": "tappableText",
           "url": "",
           "easy": true,
-          "stars": 3
+          "stars": 3,
+          "disable": "Jan 15, 2027"
         },
         {
           "title": "Boukili",
@@ -60,9 +61,8 @@
           "title": "Math",
           "launch": "jkmath",
           "stars": 3,
-          "totalQuestions": 1,
-          "displayDays": "mon,wed,fri",
-          "disable": "Jan 15, 2027"
+          "totalQuestions": 3,
+          "displayDays": "mon,wed,fri"
         },
         {
           "title": "Eng Spelling",
