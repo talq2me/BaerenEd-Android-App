@@ -3,8 +3,7 @@
 --   app/src/main/java/com/talq2me/baerened/RewardSpinnerActivity.kt  -  resolve/open daily prize.
 
 -- If prize_unlocked already exists for the profile, return it.
--- Otherwise, if required/checklist work is complete for the day (berries_earned >= possible_stars),
--- pick a weighted random reward from reward_spinner, persist user_data.prize_unlocked, and return it.
+-- Otherwise, unlock only when all visible required/checklist tasks are complete for today.
 CREATE OR REPLACE FUNCTION af_get_or_unlock_daily_prize(p_profile text)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -12,16 +11,14 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_possible_stars int := 0;
-  v_berries_earned int := 0;
   v_prize_unlocked text := NULL;
   v_reward_name text := NULL;
+  v_total_tasks int := 0;
+  v_incomplete_tasks int := 0;
 BEGIN
   SELECT
-    COALESCE(ud.possible_stars, 0),
-    COALESCE(ud.berries_earned, 0),
     NULLIF(trim(ud.prize_unlocked), '')
-  INTO v_possible_stars, v_berries_earned, v_prize_unlocked
+  INTO v_prize_unlocked
   FROM user_data ud
   WHERE ud.profile = p_profile
   FOR UPDATE;
@@ -42,7 +39,13 @@ BEGIN
     );
   END IF;
 
-  IF v_possible_stars <= 0 OR v_berries_earned < v_possible_stars THEN
+  SELECT
+    COUNT(*),
+    COUNT(*) FILTER (WHERE lower(coalesce(t.completion_status, 'incomplete')) <> 'complete')
+  INTO v_total_tasks, v_incomplete_tasks
+  FROM af_get_current_required_tasks(p_profile) t;
+
+  IF v_total_tasks = 0 OR v_incomplete_tasks > 0 THEN
     RETURN jsonb_build_object(
       'prize_unlocked', NULL,
       'newly_unlocked', false,

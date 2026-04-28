@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -21,6 +22,10 @@ import kotlinx.coroutines.withContext
 
 class RewardSpinnerActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "RewardSpinnerActivity"
+    }
+
     private lateinit var wheelView: RewardWheelView
     private lateinit var spinButton: Button
     private lateinit var resultText: TextView
@@ -28,8 +33,8 @@ class RewardSpinnerActivity : AppCompatActivity() {
     private var rewards: List<SupabaseInterface.RewardSpinnerItem> = emptyList()
     private var rewardsLoaded = false
     private var dailyPrizeResult: SupabaseInterface.DailyPrizeResult? = null
-    private var pendingPrizeIndex: Int? = null
     private var prizeRevealed = false
+    private var resolvingPrize = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,36 +46,30 @@ class RewardSpinnerActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.rewardSpinnerBackButton).setOnClickListener { finish() }
         spinButton.setOnClickListener {
-            val selectedIndex = pendingPrizeIndex
-            if (spinning || prizeRevealed) {
-                Toast.makeText(this, "No spin available right now.", Toast.LENGTH_SHORT).show()
+            if (spinning) {
+                Toast.makeText(this, "Already spinning...", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (selectedIndex == null) {
-                resultText.text = "Checking today's prize..."
-                resolveDailyPrize()
+            if (hasUnlockedPrize()) {
+                showUnlockedPrize()
                 return@setOnClickListener
             }
-            if (selectedIndex == -1) {
-                prizeRevealed = true
-                spinButton.isEnabled = false
-                spinButton.text = "Prize Revealed"
-                resultText.text = "Today's unlocked prize: ${dailyPrizeResult?.prizeUnlocked ?: "Unknown"}"
+            if (resolvingPrize) {
+                Toast.makeText(this, "Already checking…", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            spinToIndex(selectedIndex) {
-                prizeRevealed = true
-                spinButton.isEnabled = false
-                spinButton.text = "Prize Revealed"
-                resultText.text = "Today's unlocked prize: ${rewards[selectedIndex].name}"
-            }
+            resultText.text = "Checking today's prize..."
+            resolveDailyPrize(fromUserTap = true)
         }
-        spinButton.isEnabled = true
+        spinButton.isEnabled = false
         spinButton.text = "Spin"
 
         loadRewards()
-        resolveDailyPrize()
+        resolveDailyPrize(fromUserTap = false)
     }
+
+    private fun hasUnlockedPrize(): Boolean =
+        !dailyPrizeResult?.prizeUnlocked.isNullOrBlank()
 
     private fun loadRewards() {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -100,68 +99,104 @@ class RewardSpinnerActivity : AppCompatActivity() {
         }
     }
 
-    private fun resolveDailyPrize() {
-        lifecycleScope.launch(Dispatchers.IO) {
+    private fun resolveDailyPrize(fromUserTap: Boolean) {
+        resolvingPrize = true
+        if (fromUserTap) {
+            spinButton.isEnabled = false
+        }
+        lifecycleScope.launch {
             val rawProfile = SettingsManager.readProfile(this@RewardSpinnerActivity) ?: "AM"
             val profile = when (rawProfile) {
                 "A" -> "AM"
                 "B" -> "BM"
                 else -> rawProfile
             }
-            val result = SupabaseInterface().invokeAfGetOrUnlockDailyPrize(profile)
-            withContext(Dispatchers.Main) {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    SupabaseInterface().invokeAfGetOrUnlockDailyPrize(profile)
+                }
                 result.fold(
-                    onSuccess = {
-                        dailyPrizeResult = it
+                    onSuccess = { r ->
+                        Log.d(
+                            TAG,
+                            "af_get_or_unlock_daily_prize ok: profile=$profile eligible=${r.eligible} newly=${r.newlyUnlocked} prize=${r.prizeUnlocked} err=${r.serverError}"
+                        )
+                        dailyPrizeResult = r
                         maybeRenderDailyPrizeResult()
                     },
                     onFailure = { e ->
-                        pendingPrizeIndex = null
+                        Log.e(TAG, "af_get_or_unlock_daily_prize failed", e)
                         prizeRevealed = false
-                        spinButton.isEnabled = true
+                        spinButton.isEnabled = !hasUnlockedPrize()
                         spinButton.text = "Spin"
-                        resultText.text = "Could not resolve today's prize."
+                        resultText.text = "Could not reach server for today's prize."
                         Toast.makeText(this@RewardSpinnerActivity, e.message ?: "Daily prize failed", Toast.LENGTH_LONG).show()
                     }
                 )
+            } finally {
+                resolvingPrize = false
             }
         }
     }
 
     private fun maybeRenderDailyPrizeResult() {
-        if (!rewardsLoaded) return
         val prizeResult = dailyPrizeResult ?: return
 
         val prize = prizeResult.prizeUnlocked?.trim().orEmpty()
         if (prize.isEmpty()) {
-            pendingPrizeIndex = null
-            spinButton.isEnabled = false
-            spinButton.text = "Spin"
             prizeRevealed = false
-            resultText.text = "Complete all required tasks and checklist items to unlock your daily spin."
+            spinButton.isEnabled = true
+            spinButton.text = "Spin"
+            resultText.text = messageForNoPrizeYet(prizeResult)
+            return
+        }
+
+        // Server returned a concrete prize; keep button enabled to re-show the same unlocked prize.
+        spinButton.isEnabled = true
+        spinButton.text = "Show Prize"
+        resolvingPrize = false
+
+        if (!rewardsLoaded) {
+            resultText.text = "Today's prize: $prize (loading wheel…)"
             return
         }
 
         val selectedIndex = rewards.indexOfFirst { it.name.equals(prize, ignoreCase = true) }
         if (selectedIndex < 0) {
-            pendingPrizeIndex = -1
-            spinButton.isEnabled = true
-            spinButton.text = "Spin"
-            prizeRevealed = false
-            resultText.text = "Tap Spin to reveal today's prize."
+            wheelView.rotationDegrees = 0f
+            prizeRevealed = true
+            resultText.text = "Today's prize: $prize"
             return
         }
 
-        pendingPrizeIndex = selectedIndex
-        prizeRevealed = false
-        wheelView.rotationDegrees = 0f
-        spinButton.text = "Spin"
-        spinButton.isEnabled = true
-        if (prizeResult.newlyUnlocked) {
-            resultText.text = "Great job! Tap Spin to reveal today's prize."
-        } else {
-            resultText.text = "Tap Spin to view today's prize."
+        wheelView.rotationDegrees = wheelView.computeLandingRotation(selectedIndex)
+        prizeRevealed = true
+        resultText.text = "Today's prize: ${rewards[selectedIndex].name}"
+    }
+
+    private fun showUnlockedPrize() {
+        val prize = dailyPrizeResult?.prizeUnlocked?.trim().orEmpty()
+        if (prize.isEmpty()) return
+        if (!rewardsLoaded) {
+            resultText.text = "Today's prize: $prize"
+            return
         }
+        val selectedIndex = rewards.indexOfFirst { it.name.equals(prize, ignoreCase = true) }
+        if (selectedIndex >= 0) {
+            wheelView.rotationDegrees = wheelView.computeLandingRotation(selectedIndex)
+            resultText.text = "Today's prize: ${rewards[selectedIndex].name}"
+        } else {
+            resultText.text = "Today's prize: $prize"
+        }
+    }
+
+    private fun messageForNoPrizeYet(r: SupabaseInterface.DailyPrizeResult): String {
+        val err = r.serverError?.trim().orEmpty()
+        if (err.isNotEmpty()) return "Server checked — $err Tap Spin to try again."
+        if (!r.eligible) {
+            return "Server checked — you're not eligible yet. Complete today's required tasks and checklist items, then tap Spin again."
+        }
+        return "Server checked — no prize yet. Tap Spin to try again."
     }
 
     private fun spinToIndex(selectedIndex: Int, onDone: () -> Unit) {

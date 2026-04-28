@@ -882,7 +882,7 @@ class BattleHubActivity : AppCompatActivity() {
         dailyPrizeUnlocked = progress?.prizeUnlocked?.trim()?.takeIf { it.isNotEmpty() }
         val allRequiredAndChecklistDone = progressManager.areAllVisibleRequiredAndChecklistCompleteFromDb()
 
-        val canOpenSpin = battleReadyForToday || allRequiredAndChecklistDone || dailyPrizeUnlocked != null
+        val canOpenSpin = allRequiredAndChecklistDone || dailyPrizeUnlocked != null
         dailySpinButton.visibility = if (battleButton.visibility == View.VISIBLE) View.VISIBLE else View.GONE
         dailySpinButton.isEnabled = canOpenSpin
         dailySpinButton.alpha = if (canOpenSpin) 1f else 0.5f

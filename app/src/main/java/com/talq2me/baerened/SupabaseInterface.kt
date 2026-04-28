@@ -29,7 +29,9 @@ open class SupabaseInterface {
     data class DailyPrizeResult(
         val prizeUnlocked: String?,
         val newlyUnlocked: Boolean,
-        val eligible: Boolean
+        val eligible: Boolean,
+        /** Present when SQL returns an `error` field (e.g. no reward rows). */
+        val serverError: String? = null
     )
 
     companion object {
@@ -360,7 +362,15 @@ open class SupabaseInterface {
             val prize = obj.get("prize_unlocked")?.takeUnless { it.isJsonNull }?.asString
             val newly = obj.get("newly_unlocked")?.takeUnless { it.isJsonNull }?.asBoolean ?: false
             val eligible = obj.get("eligible")?.takeUnless { it.isJsonNull }?.asBoolean ?: false
-            Result.success(DailyPrizeResult(prizeUnlocked = prize, newlyUnlocked = newly, eligible = eligible))
+            val serverError = obj.get("error")?.takeUnless { it.isJsonNull }?.asString
+            Result.success(
+                DailyPrizeResult(
+                    prizeUnlocked = prize,
+                    newlyUnlocked = newly,
+                    eligible = eligible,
+                    serverError = serverError
+                )
+            )
         } catch (e: Exception) {
             Result.failure(e)
         }
