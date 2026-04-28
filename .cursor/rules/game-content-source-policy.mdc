@@ -1,0 +1,22 @@
+---
+description: Enforce remote source for all game content JSON
+alwaysApply: true
+---
+
+# Game Content Source Policy
+
+For this project, all game content JSON must come from remote sources only:
+
+- Primary sources: DB-backed config/data and GitHub Pages content.
+- Never implement or keep behavior that reads game content JSON from bundled app assets as the source of truth.
+
+Required behavior:
+
+- When adding or updating game content loading logic, use DB/GitHub Pages paths.
+- If a fallback source is needed, ask the user first before adding any local asset fallback.
+- If there is uncertainty about which source to use, ask the user before making changes.
+
+Disallowed by default:
+
+- Loading game content JSON from `app/src/main/assets/...` for runtime content updates.
+- Silent local fallback that can override or mask remote content issues.

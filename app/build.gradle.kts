@@ -21,8 +21,9 @@ android {
     compileSdk = 36
 
     // Workaround for compressDebugAssets failing on Windows (long paths / binary assets)
+    // Removed json, html, and png to reduce APK size and help with installation space issues
     aaptOptions {
-        noCompress += setOf("wav", "ogg", "json", "html", "png", "binarypb", "fb", "tflite", "bincfg")
+        noCompress += setOf("wav", "ogg", "binarypb", "fb", "tflite", "bincfg")
     }
 
     defaultConfig {

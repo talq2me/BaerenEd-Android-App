@@ -11,7 +11,6 @@ import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.text.style.ClickableSpan
 import android.text.method.LinkMovementMethod
-import android.util.JsonReader
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -26,8 +25,8 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.text.Normalizer
 import java.util.Locale
 
@@ -156,6 +155,9 @@ class TappableTextActivity : AppCompatActivity() {
     private var narrationHighlightSpan: BackgroundColorSpan? = null
     private val questionUnlockFallbackMs = 9000L
     private var questionUnlockRunnable: Runnable? = null
+    private val httpClient = OkHttpClient.Builder().build()
+    private val githubAssetsBase = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets"
+    private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/main?recursive=1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -183,7 +185,7 @@ class TappableTextActivity : AppCompatActivity() {
             if (resolvedFileName == null) {
                 Toast.makeText(
                     this@TappableTextActivity,
-                    resolveErrorMessage ?: "No tappable books found in assets (check language filter if you used lang=).",
+                    resolveErrorMessage ?: "No tappable books found from GitHub Pages (check language filter if you used lang=).",
                     Toast.LENGTH_LONG
                 ).show()
                 timeTracker.endActivity("tappableText")
@@ -332,50 +334,11 @@ class TappableTextActivity : AppCompatActivity() {
         return token.take(2)
     }
 
-    /**
-     * Reads root `"language"` from a tappable JSON without fully parsing the document.
-     */
-    private fun readRootLanguageFromTappableAsset(fileName: String): String? {
-        val path = "tappableText/$fileName"
-        return try {
-            assets.open(path).use { input ->
-                JsonReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { reader ->
-                    reader.beginObject()
-                    var found: String? = null
-                    while (reader.hasNext()) {
-                        when (reader.nextName()) {
-                            "language" -> {
-                                val v = reader.nextString()?.trim()?.lowercase(Locale.US)?.take(2)
-                                if (!v.isNullOrEmpty()) found = v
-                            }
-                            else -> reader.skipValue()
-                        }
-                    }
-                    reader.endObject()
-                    found
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "readRootLanguageFromTappableAsset: $fileName", e)
-            null
-        }
-    }
-
     private fun discoverTappableBookFiles(languageFilter: String?): List<String> {
-        val all = try {
-            assets.list("tappableText")
-                ?.filter { it.endsWith("_tappable.json", ignoreCase = true) }
-                ?.sorted()
-                ?: emptyList()
-        } catch (e: Exception) {
-            Log.e(TAG, "discoverTappableBookFiles", e)
-            emptyList()
-        }
+        val all = fetchTappableBookFilesFromGithub()
         val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
             ?: return all
-        return all.filter { fileName ->
-            readRootLanguageFromTappableAsset(fileName) == filt
-        }
+        return all.filter { fileName -> readRootLanguageFromTappableRemote(fileName) == filt }
     }
 
     private fun normalizeTappableJsonFileName(raw: String): String {
@@ -388,11 +351,74 @@ class TappableTextActivity : AppCompatActivity() {
 
         return try {
             val path = "tappableText/$fileName"
-            assets.open(path).bufferedReader().use { json ->
-                Gson().fromJson(json, TappableTextRoot::class.java)
+            val body = fetchGithubText(path)
+            if (body.isNullOrBlank()) {
+                Log.e(TAG, "Error loading tappableText from GitHub path=$path: empty response")
+                return null
             }
+            Gson().fromJson(body, TappableTextRoot::class.java)
         } catch (e: Exception) {
             Log.e(TAG, "Error loading tappableText from $fileName", e)
+            null
+        }
+    }
+
+    private fun fetchGithubText(assetPath: String): String? {
+        return try {
+            val url = "$githubAssetsBase/$assetPath?nocache=${System.currentTimeMillis()}"
+            val request = Request.Builder().url(url).build()
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Log.w(TAG, "fetchGithubText failed [$assetPath]: HTTP ${response.code}")
+                    return null
+                }
+                response.body?.string()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchGithubText exception [$assetPath]", e)
+            null
+        }
+    }
+
+    private fun fetchTappableBookFilesFromGithub(): List<String> {
+        return try {
+            val request = Request.Builder().url(githubTreeApi).build()
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Log.w(TAG, "fetchTappableBookFilesFromGithub failed: HTTP ${response.code}")
+                    return emptyList()
+                }
+                val body = response.body?.string().orEmpty()
+                if (body.isBlank()) return emptyList()
+                val root = com.google.gson.JsonParser.parseString(body).asJsonObject
+                val tree = root.getAsJsonArray("tree") ?: return emptyList()
+                val prefix = "app/src/main/assets/tappableText/"
+                val files = mutableListOf<String>()
+                tree.forEach { node ->
+                    val obj = node.asJsonObject
+                    val type = obj.get("type")?.asString ?: return@forEach
+                    if (type != "blob") return@forEach
+                    val fullPath = obj.get("path")?.asString ?: return@forEach
+                    if (!fullPath.startsWith(prefix)) return@forEach
+                    if (!fullPath.endsWith("_tappable.json", ignoreCase = true)) return@forEach
+                    files.add(fullPath.removePrefix(prefix))
+                }
+                files.sorted()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchTappableBookFilesFromGithub exception", e)
+            emptyList()
+        }
+    }
+
+    private fun readRootLanguageFromTappableRemote(fileName: String): String? {
+        return try {
+            val body = fetchGithubText("tappableText/$fileName") ?: return null
+            val obj = com.google.gson.JsonParser.parseString(body).asJsonObject
+            val lang = obj.get("language")?.asString?.trim()?.lowercase(Locale.US) ?: return null
+            lang.take(2)
+        } catch (e: Exception) {
+            Log.w(TAG, "readRootLanguageFromTappableRemote: $fileName", e)
             null
         }
     }
