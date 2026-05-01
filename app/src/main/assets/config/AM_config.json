@@ -1,5 +1,5 @@
 {
-  "version": "2025-10-04",
+  "version": "2026-05-01",
   "header": {
     "buttons": [
       {"label": "My Pokedex", "action": "openPokedex"},
@@ -147,6 +147,13 @@
           "title": "Printing Practice",
           "launch": "printing",
           "stars": 3
+        },
+        {
+          "title": "Pie Fractions",
+          "launch": "fractionsPie",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/fractionsPieGame.html",
+          "stars": 3,
+          "webGame": true
         },
         {
           "title": "Sentence Builder",

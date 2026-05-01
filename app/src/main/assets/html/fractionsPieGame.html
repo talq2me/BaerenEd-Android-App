@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pie Fractions Fun</title>
+    <style>
+        :root {
+            --bg: #fff8e7;
+            --card: #ffffff;
+            --text: #2d2a26;
+            --accent: #ff8a00;
+            --accent-2: #7b61ff;
+            --good: #1f9d55;
+            --bad: #cc2f3f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #fff3cc 0%, var(--bg) 55%);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-card {
+            width: min(900px, 100%);
+            background: var(--card);
+            border-radius: 22px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            text-align: center;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+        }
+
+        .subtitle {
+            margin: 0 0 16px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: #f0edff;
+            color: #2f2356;
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button.voice {
+            background: #e9f5ff;
+            color: #154e78;
+        }
+
+        .layout {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 760px) {
+            .layout {
+                grid-template-columns: 340px 1fr;
+                align-items: start;
+            }
+        }
+
+        .left-panel, .right-panel {
+            background: #fffdf6;
+            border: 2px solid #ffe7b8;
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .scene {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0 12px;
+        }
+
+        canvas {
+            width: 260px;
+            height: 260px;
+            max-width: 100%;
+            background: #fff;
+            border-radius: 50%;
+            border: 3px solid #f1d9a4;
+        }
+
+        .question {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .answer-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 85px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #d8d2c5;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .fraction-stack {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-right: 6px;
+        }
+
+        .fraction-stack input {
+            width: 76px;
+            padding: 8px;
+        }
+
+        .fraction-line {
+            width: 62px;
+            height: 3px;
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(150px, 1fr));
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .choice-btn {
+            border-radius: 10px;
+            border: 2px solid #d8d2c5;
+            background: #ffffff;
+            color: #2d2a26;
+            padding: 9px 10px;
+            font-weight: 700;
+        }
+
+        .choice-btn.selected {
+            border-color: var(--accent-2);
+            background: #f0edff;
+        }
+
+        .one-blank-scaffold {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fffefb 0%, #f8f3ff 100%);
+            border: 2px solid #eadcff;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .one-blank-scaffold .word-one {
+            color: var(--accent-2);
+            letter-spacing: 0.02em;
+        }
+
+        .one-blank-scaffold .blank-slot {
+            min-width: 5.5rem;
+            text-align: center;
+            padding: 4px 6px;
+            border-bottom: 4px dashed #b89fd4;
+            color: #8a7699;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .status {
+            min-height: 24px;
+            font-weight: 700;
+        }
+
+        .status.good {
+            color: var(--good);
+        }
+
+        .status.bad {
+            color: var(--bad);
+        }
+
+        .score {
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+
+        .tips {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f8f3ff;
+            font-size: 0.92rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-card">
+        <h1>Pie Fractions Fun</h1>
+        <p class="subtitle">Learn: one whole, one half, one third, one fourth, and fractions up to 1/10.</p>
+
+        <div class="top-bar">
+            <button id="modePictureFraction" class="primary">Picture to Fraction</button>
+            <button id="modeShare">Share the Pie</button>
+            <button id="modeWordToFraction">Word to Fraction</button>
+            <button id="modePicturePickWord">Picture to Word (Pick)</button>
+            <button id="modePictureTypeWord">Picture to Word (Type)</button>
+            <button id="speakBtn" class="voice">Read Question</button>
+            <button id="nextBtn">Next Question</button>
+        </div>
+
+        <div class="layout">
+            <div class="left-panel">
+                <div class="scene">
+                    <canvas id="pieCanvas" width="260" height="260"></canvas>
+                </div>
+                <div id="characters" aria-live="polite"></div>
+            </div>
+
+            <div class="right-panel">
+                <div id="question" class="question"></div>
+
+                <div id="fractionAnswerRow" class="answer-row">
+                    <div class="fraction-stack" aria-label="fraction answer">
+                        <input id="numInput" type="number" min="0" max="10" placeholder="top">
+                        <div class="fraction-line"></div>
+                        <input id="denInput" type="number" min="1" max="10" placeholder="bottom">
+                    </div>
+                    <button id="checkBtn" class="primary">Check</button>
+                </div>
+
+                <div id="pickWordPrompt" class="one-blank-scaffold hidden" role="presentation">
+                    <span class="word-one">one</span>
+                    <span class="blank-slot" aria-hidden="true">______</span>
+                </div>
+                <div id="pickWordRow" class="choice-grid hidden"></div>
+                <div id="pickWordCheckRow" class="answer-row hidden">
+                    <button id="pickWordCheckBtn" class="primary">Check</button>
+                </div>
+
+                <div id="typeWordRow" class="answer-row hidden">
+                    <span><strong>one</strong></span>
+                    <input id="wordInput" type="text" placeholder="type: third">
+                    <button id="checkWordBtn" class="primary">Check</button>
+                </div>
+
+                <div id="status" class="status"></div>
+                <div id="score" class="score"></div>
+                <div class="tips">
+                    Hint: denominator = how many equal parts the pie has. Numerator = how many parts are colored.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pieCanvas = document.getElementById("pieCanvas");
+        const ctx = pieCanvas.getContext("2d");
+        const questionEl = document.getElementById("question");
+        const statusEl = document.getElementById("status");
+        const scoreEl = document.getElementById("score");
+        const charactersEl = document.getElementById("characters");
+        const numInput = document.getElementById("numInput");
+        const denInput = document.getElementById("denInput");
+        const wordInput = document.getElementById("wordInput");
+        const pickWordRow = document.getElementById("pickWordRow");
+        const pickWordPrompt = document.getElementById("pickWordPrompt");
+        const pickWordCheckRow = document.getElementById("pickWordCheckRow");
+        const fractionAnswerRow = document.getElementById("fractionAnswerRow");
+        const typeWordRow = document.getElementById("typeWordRow");
+
+        const modeButtons = {
+            pictureFraction: document.getElementById("modePictureFraction"),
+            share: document.getElementById("modeShare"),
+            wordToFraction: document.getElementById("modeWordToFraction"),
+            picturePickWord: document.getElementById("modePicturePickWord"),
+            pictureTypeWord: document.getElementById("modePictureTypeWord")
+        };
+
+        const words = {
+            1: "one whole",
+            2: "one half",
+            3: "one third",
+            4: "one fourth",
+            5: "one fifth",
+            6: "one sixth",
+            7: "one seventh",
+            8: "one eighth",
+            9: "one ninth",
+            10: "one tenth"
+        };
+        const unitWords = {
+            1: "whole",
+            2: "half",
+            3: "third",
+            4: "fourth",
+            5: "fifth",
+            6: "sixth",
+            7: "seventh",
+            8: "eighth",
+            9: "ninth",
+            10: "tenth"
+        };
+
+        const friendEmojis = ["🐻", "🦊", "🐰", "🐼", "🐵", "🐸", "🐶", "🐱", "🦁", "🐨"];
+
+        let state = {
+            mode: "pictureFraction",
+            denominator: 2,
+            numerator: 1,
+            score: 0,
+            total: 0,
+            phrase: "",
+            correctWord: "",
+            selectedWord: ""
+        };
+
+        function setMode(mode) {
+            state.mode = mode;
+            for (const [key, btn] of Object.entries(modeButtons)) {
+                btn.classList.toggle("primary", key === mode);
+            }
+            nextQuestion();
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function setAnswerVisibility() {
+            const usesFractionInput = state.mode === "pictureFraction" || state.mode === "share" || state.mode === "wordToFraction";
+            const usesPickWords = state.mode === "picturePickWord";
+            const usesTypeWord = state.mode === "pictureTypeWord";
+            fractionAnswerRow.classList.toggle("hidden", !usesFractionInput);
+            pickWordPrompt.classList.toggle("hidden", !usesPickWords);
+            pickWordRow.classList.toggle("hidden", !usesPickWords);
+            pickWordCheckRow.classList.toggle("hidden", !usesPickWords);
+            typeWordRow.classList.toggle("hidden", !usesTypeWord);
+        }
+
+        function drawPie(numerator, denominator) {
+            const cx = pieCanvas.width / 2;
+            const cy = pieCanvas.height / 2;
+            const r = 100;
+
+            ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
+
+            for (let i = 0; i < denominator; i++) {
+                const start = -Math.PI / 2 + (i * 2 * Math.PI) / denominator;
+                const end = -Math.PI / 2 + ((i + 1) * 2 * Math.PI) / denominator;
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, start, end);
+                ctx.closePath();
+                ctx.fillStyle = i < numerator ? "#ff9f1c" : "#ffe6bf";
+                ctx.fill();
+                ctx.strokeStyle = "#8b6b2f";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r + 2, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#7a5f2a";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function speak(text) {
+            if (!("speechSynthesis" in window)) {
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.rate = 0.92;
+            utter.pitch = 1.1;
+            window.speechSynthesis.speak(utter);
+        }
+
+        function buildShareRow(count) {
+            const chars = friendEmojis.slice(0, count).join(" ");
+            charactersEl.textContent = `Friends: ${chars}`;
+        }
+
+        function buildWordChoices() {
+            const pool = Object.values(unitWords);
+            const options = [unitWords[state.denominator]];
+            while (options.length < 4) {
+                const candidate = pool[randomInt(0, pool.length - 1)];
+                if (!options.includes(candidate)) {
+                    options.push(candidate);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+            state.correctWord = unitWords[state.denominator];
+            state.selectedWord = "";
+
+            pickWordRow.innerHTML = "";
+            for (const option of options) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "choice-btn";
+                btn.textContent = option;
+                btn.addEventListener("click", () => {
+                    state.selectedWord = option;
+                    for (const child of pickWordRow.children) {
+                        child.classList.remove("selected");
+                    }
+                    btn.classList.add("selected");
+                });
+                pickWordRow.appendChild(btn);
+            }
+        }
+
+        function normalizeFractionWords(text) {
+            let value = text.trim().toLowerCase();
+            value = value.replace(/[-_]+/g, " ");
+            value = value.replace(/\s+/g, " ");
+            value = value.replace(/\ba\b/g, "one");
+            value = value.replace(/\bone\s+/g, "");
+            value = value.replace(/\bquarter\b/g, "fourth");
+            return value;
+        }
+
+        function nextQuestion() {
+            statusEl.textContent = "";
+            statusEl.className = "status";
+            numInput.value = "";
+            denInput.value = "";
+            wordInput.value = "";
+            setAnswerVisibility();
+
+            if (state.mode === "pictureFraction") {
+                state.denominator = randomInt(1, 10);
+                state.numerator = 1;
+                drawPie(state.numerator, state.denominator);
+                charactersEl.textContent = "🍰 Color shows one equal slice.";
+                state.phrase = `Look at the pie. Write the fraction for one colored slice.`;
+            } else if (state.mode === "share") {
+                state.denominator = randomInt(2, 10);
+                state.numerator = 1;
+                drawPie(state.numerator, state.denominator);
+                buildShareRow(state.denominator);
+                state.phrase = `If we split this pie among ${state.denominator} friends, what fraction does each friend get?`;
+            } else if (state.mode === "wordToFraction") {
+                state.denominator = randomInt(1, 10);
+                state.numerator = 1;
+                drawPie(state.numerator, state.denominator);
+                charactersEl.textContent = "📝 Match the words to numbers.";
+                state.phrase = `Write ${words[state.denominator]} as a fraction.`;
+            } else if (state.mode === "picturePickWord") {
+                state.denominator = randomInt(1, 10);
+                state.numerator = 1;
+                drawPie(state.numerator, state.denominator);
+                charactersEl.textContent = "👀 Pick the missing word after one.";
+                state.phrase = "Look at the pie slice and pick the missing word after one.";
+                buildWordChoices();
+            } else {
+                state.denominator = randomInt(1, 10);
+                state.numerator = 1;
+                drawPie(state.numerator, state.denominator);
+                charactersEl.textContent = "✍️ Type the missing word after one.";
+                state.correctWord = unitWords[state.denominator];
+                state.phrase = "Look at the pie slice and type the missing word after one.";
+            }
+
+            questionEl.textContent = state.phrase;
+            renderScore();
+        }
+
+        function renderScore() {
+            scoreEl.textContent = `Score: ${state.score} / ${state.total}`;
+        }
+
+        function checkAnswer() {
+            if (!(state.mode === "pictureFraction" || state.mode === "share" || state.mode === "wordToFraction")) {
+                return;
+            }
+
+            const n = Number(numInput.value);
+            const d = Number(denInput.value);
+
+            if (!Number.isInteger(n) || !Number.isInteger(d)) {
+                statusEl.textContent = "Please type both numbers.";
+                statusEl.className = "status bad";
+                return;
+            }
+
+            state.total += 1;
+
+            if (n === state.numerator && d === state.denominator) {
+                state.score += 1;
+                statusEl.textContent = `Great job! ${state.numerator}/${state.denominator} is correct.`;
+                statusEl.className = "status good";
+                speak("Great job!");
+            } else {
+                statusEl.textContent = `Nice try. Correct answer: ${state.numerator}/${state.denominator}.`;
+                statusEl.className = "status bad";
+                speak(`Nice try. The answer is ${state.numerator} over ${state.denominator}.`);
+            }
+
+            renderScore();
+        }
+
+        function checkPickedWord() {
+            if (state.mode !== "picturePickWord") {
+                return;
+            }
+            if (!state.selectedWord) {
+                statusEl.textContent = "Pick one option first.";
+                statusEl.className = "status bad";
+                return;
+            }
+            state.total += 1;
+            if (state.selectedWord === state.correctWord) {
+                state.score += 1;
+                statusEl.textContent = `Great job! ${state.correctWord} is correct.`;
+                statusEl.className = "status good";
+                speak("Great job!");
+            } else {
+                statusEl.textContent = `Nice try. Correct answer: ${state.correctWord}.`;
+                statusEl.className = "status bad";
+                speak(`Nice try. The answer is ${state.correctWord}.`);
+            }
+            renderScore();
+        }
+
+        function checkTypedWord() {
+            if (state.mode !== "pictureTypeWord") {
+                return;
+            }
+            const typed = normalizeFractionWords(wordInput.value);
+            const expected = normalizeFractionWords(state.correctWord);
+            if (!typed) {
+                statusEl.textContent = "Please type the words first.";
+                statusEl.className = "status bad";
+                return;
+            }
+            state.total += 1;
+            if (typed === expected) {
+                state.score += 1;
+                statusEl.textContent = `Great job! ${state.correctWord} is correct.`;
+                statusEl.className = "status good";
+                speak("Great job!");
+            } else {
+                statusEl.textContent = `Nice try. Correct answer: ${state.correctWord}.`;
+                statusEl.className = "status bad";
+                speak(`Nice try. The answer is ${state.correctWord}.`);
+            }
+            renderScore();
+        }
+
+        document.getElementById("modePictureFraction").addEventListener("click", () => setMode("pictureFraction"));
+        document.getElementById("modeShare").addEventListener("click", () => setMode("share"));
+        document.getElementById("modeWordToFraction").addEventListener("click", () => setMode("wordToFraction"));
+        document.getElementById("modePicturePickWord").addEventListener("click", () => setMode("picturePickWord"));
+        document.getElementById("modePictureTypeWord").addEventListener("click", () => setMode("pictureTypeWord"));
+        document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+        document.getElementById("checkWordBtn").addEventListener("click", checkTypedWord);
+        document.getElementById("pickWordCheckBtn").addEventListener("click", checkPickedWord);
+        document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+        document.getElementById("speakBtn").addEventListener("click", () => speak(state.phrase));
+
+        numInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                checkAnswer();
+            }
+        });
+        denInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                checkAnswer();
+            }
+        });
+        wordInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                checkTypedWord();
+            }
+        });
+
+        nextQuestion();
+    </script>
+</body>
+</html>
