@@ -248,13 +248,7 @@
         <p class="subtitle">Learn: one whole, one half, one third, one fourth, and fractions up to 1/10.</p>
 
         <div class="top-bar">
-            <button id="modePictureFraction" class="primary">Picture to Fraction</button>
-            <button id="modeShare">Share the Pie</button>
-            <button id="modeWordToFraction">Word to Fraction</button>
-            <button id="modePicturePickWord">Picture to Word (Pick)</button>
-            <button id="modePictureTypeWord">Picture to Word (Type)</button>
             <button id="speakBtn" class="voice">Read Question</button>
-            <button id="nextBtn">Next Question</button>
         </div>
 
         <div class="layout">
@@ -286,12 +280,6 @@
                     <button id="pickWordCheckBtn" class="primary">Check</button>
                 </div>
 
-                <div id="typeWordRow" class="answer-row hidden">
-                    <span><strong>one</strong></span>
-                    <input id="wordInput" type="text" placeholder="type: third">
-                    <button id="checkWordBtn" class="primary">Check</button>
-                </div>
-
                 <div id="status" class="status"></div>
                 <div id="score" class="score"></div>
                 <div class="tips">
@@ -310,20 +298,10 @@
         const charactersEl = document.getElementById("characters");
         const numInput = document.getElementById("numInput");
         const denInput = document.getElementById("denInput");
-        const wordInput = document.getElementById("wordInput");
         const pickWordRow = document.getElementById("pickWordRow");
         const pickWordPrompt = document.getElementById("pickWordPrompt");
         const pickWordCheckRow = document.getElementById("pickWordCheckRow");
         const fractionAnswerRow = document.getElementById("fractionAnswerRow");
-        const typeWordRow = document.getElementById("typeWordRow");
-
-        const modeButtons = {
-            pictureFraction: document.getElementById("modePictureFraction"),
-            share: document.getElementById("modeShare"),
-            wordToFraction: document.getElementById("modeWordToFraction"),
-            picturePickWord: document.getElementById("modePicturePickWord"),
-            pictureTypeWord: document.getElementById("modePictureTypeWord")
-        };
 
         const words = {
             1: "one whole",
@@ -358,32 +336,45 @@
             numerator: 1,
             score: 0,
             total: 0,
+            totalQuestions: 10,
+            questionIndex: 0,
+            modePlan: [],
             phrase: "",
             correctWord: "",
-            selectedWord: ""
+            selectedWord: "",
+            isComplete: false
         };
-
-        function setMode(mode) {
-            state.mode = mode;
-            for (const [key, btn] of Object.entries(modeButtons)) {
-                btn.classList.toggle("primary", key === mode);
-            }
-            nextQuestion();
-        }
 
         function randomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        function shuffle(array) {
+            const copy = [...array];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function buildModePlan() {
+            const plan = [
+                "pictureFraction", "pictureFraction", "pictureFraction",
+                "share", "share",
+                "wordToFraction", "wordToFraction",
+                "picturePickWord", "picturePickWord", "picturePickWord"
+            ];
+            return shuffle(plan);
+        }
+
         function setAnswerVisibility() {
             const usesFractionInput = state.mode === "pictureFraction" || state.mode === "share" || state.mode === "wordToFraction";
             const usesPickWords = state.mode === "picturePickWord";
-            const usesTypeWord = state.mode === "pictureTypeWord";
             fractionAnswerRow.classList.toggle("hidden", !usesFractionInput);
             pickWordPrompt.classList.toggle("hidden", !usesPickWords);
             pickWordRow.classList.toggle("hidden", !usesPickWords);
             pickWordCheckRow.classList.toggle("hidden", !usesPickWords);
-            typeWordRow.classList.toggle("hidden", !usesTypeWord);
         }
 
         function drawPie(numerator, denominator) {
@@ -461,22 +452,20 @@
             }
         }
 
-        function normalizeFractionWords(text) {
-            let value = text.trim().toLowerCase();
-            value = value.replace(/[-_]+/g, " ");
-            value = value.replace(/\s+/g, " ");
-            value = value.replace(/\ba\b/g, "one");
-            value = value.replace(/\bone\s+/g, "");
-            value = value.replace(/\bquarter\b/g, "fourth");
-            return value;
-        }
-
         function nextQuestion() {
+            if (state.isComplete) {
+                return;
+            }
+            if (state.questionIndex >= state.totalQuestions) {
+                finishGame();
+                return;
+            }
+
+            state.mode = state.modePlan[state.questionIndex];
             statusEl.textContent = "";
             statusEl.className = "status";
             numInput.value = "";
             denInput.value = "";
-            wordInput.value = "";
             setAnswerVisibility();
 
             if (state.mode === "pictureFraction") {
@@ -504,21 +493,58 @@
                 charactersEl.textContent = "👀 Pick the missing word after one.";
                 state.phrase = "Look at the pie slice and pick the missing word after one.";
                 buildWordChoices();
-            } else {
-                state.denominator = randomInt(1, 10);
-                state.numerator = 1;
-                drawPie(state.numerator, state.denominator);
-                charactersEl.textContent = "✍️ Type the missing word after one.";
-                state.correctWord = unitWords[state.denominator];
-                state.phrase = "Look at the pie slice and type the missing word after one.";
             }
 
             questionEl.textContent = state.phrase;
             renderScore();
+            speak(state.phrase);
         }
 
         function renderScore() {
-            scoreEl.textContent = `Score: ${state.score} / ${state.total}`;
+            const current = Math.min(state.questionIndex + 1, state.totalQuestions);
+            scoreEl.textContent = `Question ${current}/${state.totalQuestions} • Score: ${state.score}/${state.total}`;
+        }
+
+        function submitAnswer(isCorrect, correctMessage, incorrectMessage) {
+            if (state.isComplete) {
+                return;
+            }
+            state.total += 1;
+            state.questionIndex += 1;
+
+            if (isCorrect) {
+                state.score += 1;
+                statusEl.textContent = correctMessage;
+                statusEl.className = "status good";
+                speak("Great job!");
+            } else {
+                statusEl.textContent = incorrectMessage;
+                statusEl.className = "status bad";
+                speak(incorrectMessage);
+            }
+
+            renderScore();
+
+            if (state.questionIndex >= state.totalQuestions) {
+                setTimeout(finishGame, 1200);
+            } else {
+                setTimeout(nextQuestion, 1200);
+            }
+        }
+
+        function finishGame() {
+            if (state.isComplete) {
+                return;
+            }
+            state.isComplete = true;
+            statusEl.textContent = `Game complete! Final score: ${state.score}/${state.totalQuestions}.`;
+            statusEl.className = "status good";
+            questionEl.textContent = "Awesome work! You finished all 10 questions.";
+            speak(`Great work! You got ${state.score} out of ${state.totalQuestions}.`);
+
+            if (window.Android && typeof window.Android.gameCompleted === "function") {
+                window.Android.gameCompleted(state.score, state.totalQuestions - state.score);
+            }
         }
 
         function checkAnswer() {
@@ -535,20 +561,19 @@
                 return;
             }
 
-            state.total += 1;
-
             if (n === state.numerator && d === state.denominator) {
-                state.score += 1;
-                statusEl.textContent = `Great job! ${state.numerator}/${state.denominator} is correct.`;
-                statusEl.className = "status good";
-                speak("Great job!");
+                submitAnswer(
+                    true,
+                    `Great job! ${state.numerator}/${state.denominator} is correct.`,
+                    ""
+                );
             } else {
-                statusEl.textContent = `Nice try. Correct answer: ${state.numerator}/${state.denominator}.`;
-                statusEl.className = "status bad";
-                speak(`Nice try. The answer is ${state.numerator} over ${state.denominator}.`);
+                submitAnswer(
+                    false,
+                    "",
+                    `Nice try. Correct answer: ${state.numerator}/${state.denominator}.`
+                );
             }
-
-            renderScore();
         }
 
         function checkPickedWord() {
@@ -560,54 +585,23 @@
                 statusEl.className = "status bad";
                 return;
             }
-            state.total += 1;
             if (state.selectedWord === state.correctWord) {
-                state.score += 1;
-                statusEl.textContent = `Great job! ${state.correctWord} is correct.`;
-                statusEl.className = "status good";
-                speak("Great job!");
+                submitAnswer(
+                    true,
+                    `Great job! ${state.correctWord} is correct.`,
+                    ""
+                );
             } else {
-                statusEl.textContent = `Nice try. Correct answer: ${state.correctWord}.`;
-                statusEl.className = "status bad";
-                speak(`Nice try. The answer is ${state.correctWord}.`);
+                submitAnswer(
+                    false,
+                    "",
+                    `Nice try. Correct answer: ${state.correctWord}.`
+                );
             }
-            renderScore();
         }
 
-        function checkTypedWord() {
-            if (state.mode !== "pictureTypeWord") {
-                return;
-            }
-            const typed = normalizeFractionWords(wordInput.value);
-            const expected = normalizeFractionWords(state.correctWord);
-            if (!typed) {
-                statusEl.textContent = "Please type the words first.";
-                statusEl.className = "status bad";
-                return;
-            }
-            state.total += 1;
-            if (typed === expected) {
-                state.score += 1;
-                statusEl.textContent = `Great job! ${state.correctWord} is correct.`;
-                statusEl.className = "status good";
-                speak("Great job!");
-            } else {
-                statusEl.textContent = `Nice try. Correct answer: ${state.correctWord}.`;
-                statusEl.className = "status bad";
-                speak(`Nice try. The answer is ${state.correctWord}.`);
-            }
-            renderScore();
-        }
-
-        document.getElementById("modePictureFraction").addEventListener("click", () => setMode("pictureFraction"));
-        document.getElementById("modeShare").addEventListener("click", () => setMode("share"));
-        document.getElementById("modeWordToFraction").addEventListener("click", () => setMode("wordToFraction"));
-        document.getElementById("modePicturePickWord").addEventListener("click", () => setMode("picturePickWord"));
-        document.getElementById("modePictureTypeWord").addEventListener("click", () => setMode("pictureTypeWord"));
         document.getElementById("checkBtn").addEventListener("click", checkAnswer);
-        document.getElementById("checkWordBtn").addEventListener("click", checkTypedWord);
         document.getElementById("pickWordCheckBtn").addEventListener("click", checkPickedWord);
-        document.getElementById("nextBtn").addEventListener("click", nextQuestion);
         document.getElementById("speakBtn").addEventListener("click", () => speak(state.phrase));
 
         numInput.addEventListener("keydown", (e) => {
@@ -620,12 +614,8 @@
                 checkAnswer();
             }
         });
-        wordInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                checkTypedWord();
-            }
-        });
 
+        state.modePlan = buildModePlan();
         nextQuestion();
     </script>
 </body>
