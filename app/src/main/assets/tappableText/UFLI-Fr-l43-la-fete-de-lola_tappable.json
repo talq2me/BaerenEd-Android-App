@@ -1,0 +1,45 @@
+{
+  "id": "ufli-fr-la-fete-de-lola-l43",
+  "title": "La fête de Lola (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est la fête de Lola.",
+        "Max est là pour sa fête.",
+        "Il porte une tuque sur sa tête."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'party'.", "correct_word": "fête" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'wears'.", "correct_word": "porte" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'hat'.", "correct_word": "tuque" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'est-ce que Max porte sur la tête ?",
+        "options": ["Un manteau", "Une tuque", "Une crêpe", "Des lunettes"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Max prépare les cinq crêpes pour Lola.",
+        "Elle aime les crêpes.",
+        "Lola dit : « Merci Max! »."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'prepares'.", "correct_word": "prépare" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'five'.", "correct_word": "cinq" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'thin pancakes (crêpes)'.", "correct_word": "crêpes" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Combien de crêpes Max prépare-t-il pour Lola ?",
+        "options": ["Trois", "Quatre", "Cinq", "Six"],
+        "correct_index": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "ufli-fr-phil-le-photographe-l58",
+  "title": "Phil le photographe (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Phil est un photographe phénoménal.",
+        "Il voit des nénuphars dans la mare.",
+        "Il a pris une photo d'un nénuphar rose, d'un nénuphar jaune et d'un nénuphar rouge.",
+        "Phil aime ses photos de nénuphars."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'phenomenal'.", "correct_word": "phénoménal" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'water lilies'.", "correct_word": "nénuphars" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'pond'.", "correct_word": "mare" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Combien de couleurs différentes de nénuphars Phil prend-il en photo dans la mare ?",
+        "options": ["Une couleur", "Deux couleurs", "Trois couleurs", "Dix couleurs"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Phil voit aussi un phare.",
+        "Il a pris une photo du phare et la partage sur un téléphone.",
+        "L'amie de Phil aime la photo du phare et remercie Phil pour celle-ci."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'lighthouse'.", "correct_word": "phare" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'shares'.", "correct_word": "partage" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'thanks'.", "correct_word": "remercie" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Où Phil partage-t-il la photo du phare ?",
+        "options": ["Dans une lettre papier", "Sur un téléphone", "À la télé", "À la piscine"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

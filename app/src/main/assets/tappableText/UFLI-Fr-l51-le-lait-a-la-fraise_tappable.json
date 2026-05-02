@@ -1,0 +1,45 @@
+{
+  "id": "ufli-fr-le-lait-a-la-fraise-l51",
+  "title": "Le lait à la fraise (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Céline a du lait.",
+        "Le lait est frais.",
+        "Le lait est à la fraise.",
+        "Céline n'a jamais bu du lait à la fraise."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'fresh'.", "correct_word": "frais" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'strawberry flavor'.", "correct_word": "fraise" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'never'.", "correct_word": "jamais" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "De quel goût est le lait dans l'histoire ?",
+        "options": ["Au chocolat", "À la fraise", "À la vanille", "Au café"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Elle a bu un peu de lait.",
+        "Céline aime le lait frais à la fraise!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'drank'.", "correct_word": "bu" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'a little'.", "correct_word": "peu" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'loves'.", "correct_word": "aime" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Comment Céline trouve-t-elle le lait à la fin ?",
+        "options": ["Elle n'aime pas le lait", "Elle aime le lait frais à la fraise", "Elle préfère l'eau", "Elle n'a pas bu de lait"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

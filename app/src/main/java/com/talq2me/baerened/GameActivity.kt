@@ -27,6 +27,13 @@ import java.util.Locale
 
 // GameActivity.kt
 class GameActivity : AppCompatActivity() {
+
+    companion object {
+        /** When set together with bucket + slot, advances `game_indices[key]` after a completed chain run (see TaskLauncher ufli rotation). */
+        const val EXTRA_UFLI_ROTATION_KEY = "game_extra_ufli_rotation_key"
+        const val EXTRA_UFLI_ROTATION_BUCKET = "game_extra_ufli_rotation_bucket"
+        const val EXTRA_UFLI_ROTATION_SLOT = "game_extra_ufli_rotation_slot"
+    }
     private lateinit var gameEngine: GameEngine
     private val userAnswers = mutableListOf<String>()
     private var ttsReady = false
@@ -46,6 +53,9 @@ class GameActivity : AppCompatActivity() {
     private var sectionId: String? = null
     private var blockOutlines: Boolean = false
     private var battleHubTaskId: String? = null
+    private var ufliRotationPersistKey: String? = null
+    private var ufliRotationBucketSize: Int = 0
+    private var ufliRotationSlotAtLaunch: Int = 0
     private val selectedChoices = mutableSetOf<String>()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
@@ -67,6 +77,9 @@ class GameActivity : AppCompatActivity() {
         sectionId = intent.getStringExtra("SECTION_ID")
         blockOutlines = intent.getBooleanExtra("BLOCK_OUTLINES", false)
         battleHubTaskId = intent.getStringExtra("BATTLE_HUB_TASK_ID")
+        ufliRotationPersistKey = intent.getStringExtra(EXTRA_UFLI_ROTATION_KEY)?.trim()?.takeIf { it.isNotEmpty() }
+        ufliRotationBucketSize = intent.getIntExtra(EXTRA_UFLI_ROTATION_BUCKET, 0).coerceAtLeast(0)
+        ufliRotationSlotAtLaunch = intent.getIntExtra(EXTRA_UFLI_ROTATION_SLOT, 0).coerceAtLeast(0)
         val taskId = battleHubTaskId // Local val for smart cast in when
 
         // Use canonical game id for game_progress so indices sync to cloud under same key (sightWords, skSpelling, etc.)
@@ -200,6 +213,8 @@ class GameActivity : AppCompatActivity() {
             reEnableAllChoiceButtons() // Re-enable choice buttons immediately
 
             if (correct) {
+                val assembledWord = userAnswers.joinToString("")
+                speakChainAnswerWord(currentQuestion, assembledWord)
                 // Show feedback for correct answer
                 showMessageAndClear("✅ Correct!", 2000)
                 if (shouldEndGame) {
@@ -230,9 +245,7 @@ class GameActivity : AppCompatActivity() {
                         val questionsAnswered = correctCount + incorrectCount
                         val finalGameIndex = gameEngine.getCurrentIndex()
                         val currentProfile = SettingsManager.readProfile(this@GameActivity) ?: "AM"
-                        val gameIndexFirst = listOf(
-                            DailyProgressManager.SingleItemUpdate.GameIndex(currentProfile, actualGameType, finalGameIndex)
-                        )
+                        val gameIndexFirst = buildPreRpcGameIndices(actualGameType, currentProfile, finalGameIndex)
 
                         android.util.Log.d("GameActivity", "CRITICAL: About to mark task as complete - gameType: '$actualGameType', gameTitle: '$gameTitle', isRequiredGame: $isRequiredGame, sectionId: $sectionId, config loaded: ${config != null}")
                         android.util.Log.d("GameActivity", "CRITICAL: Game stats - correct: $correctCount, incorrect: $incorrectCount, questions: $questionsAnswered, finalIndex: $finalGameIndex")
@@ -324,9 +337,7 @@ class GameActivity : AppCompatActivity() {
                         val questionsAnswered = correctCount + incorrectCount
                         val finalGameIndex = gameEngine.getCurrentIndex()
                         val currentProfile = SettingsManager.readProfile(this@GameActivity) ?: "AM"
-                        val gameIndexFirst = listOf(
-                            DailyProgressManager.SingleItemUpdate.GameIndex(currentProfile, actualGameType, finalGameIndex)
-                        )
+                        val gameIndexFirst = buildPreRpcGameIndices(actualGameType, currentProfile, finalGameIndex)
 
                         val completionResult = runBlocking(Dispatchers.IO) {
                             progressManager.markTaskCompletedWithName(
@@ -392,6 +403,22 @@ class GameActivity : AppCompatActivity() {
             "$displayedAnsweredCount/$totalQuestionsRequired"
     }
 
+    private fun buildPreRpcGameIndices(
+        storageGameType: String,
+        profile: String,
+        finalGameEngineIndex: Int
+    ): List<DailyProgressManager.SingleItemUpdate.GameIndex> {
+        val updates = mutableListOf(
+            DailyProgressManager.SingleItemUpdate.GameIndex(profile, storageGameType, finalGameEngineIndex)
+        )
+        val rotKey = ufliRotationPersistKey
+        if (!rotKey.isNullOrEmpty() && ufliRotationBucketSize > 0) {
+            val nextSlot = (ufliRotationSlotAtLaunch + 1).mod(ufliRotationBucketSize)
+            updates.add(DailyProgressManager.SingleItemUpdate.GameIndex(profile, rotKey, nextSlot))
+        }
+        return updates
+    }
+
     private fun setupReplayButton() {
         findViewById<Button>(R.id.replayButton).setOnClickListener {
             // Replay the TTS content for current question and audio clips
@@ -452,11 +479,41 @@ class GameActivity : AppCompatActivity() {
                 TtsManager.speak(promptText, locale, TextToSpeech.QUEUE_FLUSH, "${questionId}-prompt")
             }
         }
-        question.question?.text?.let { questionText ->
-            if (questionText.isNotEmpty() && !questionLang.isNullOrEmpty()) {
-                TtsManager.speak(questionText, locale, TextToSpeech.QUEUE_ADD, "${questionId}-question")
+        // Open/closed chain: speak instructional prompt only; "no -> ?" mis-reads letter-by-letter (e.g. "so to").
+        if (!isUfliWordChainSpeechStyle()) {
+            question.question?.text?.let { questionText ->
+                if (questionText.isNotEmpty() && !questionLang.isNullOrEmpty()) {
+                    TtsManager.speak(questionText, locale, TextToSpeech.QUEUE_ADD, "${questionId}-question")
+                }
             }
         }
+    }
+
+    /** JSON from `ufliWordChains/` (GameData array); question line is for display — TTS uses prompt then answer on success. */
+    private fun isUfliWordChainSpeechStyle(): Boolean =
+        gameType.startsWith("ufli-")
+
+    private fun localeForGameBlock(question: GameData): Locale {
+        val lang = question.prompt?.lang ?: question.question?.lang
+        return when (lang?.lowercase()) {
+            "eng", "en" -> Locale.US
+            "fr", "fra" -> Locale.FRENCH
+            "es", "spa" -> Locale("es", "ES")
+            "de", "ger" -> Locale.GERMAN
+            else -> Locale.US
+        }
+    }
+
+    /** After a correct letter chain, pronounce the spelled word as a word (e.g. "sod"). */
+    private fun speakChainAnswerWord(question: GameData?, assembledLetters: String) {
+        val word = assembledLetters.trim().lowercase(Locale.US)
+        if (!isUfliWordChainSpeechStyle() || word.isEmpty() || question == null) return
+        if (!ttsReady) return
+        val locale = localeForGameBlock(question)
+        val utterId = "ufli_word_${System.currentTimeMillis()}"
+        TtsManager.whenReady(Runnable {
+            TtsManager.speak(word, locale, TextToSpeech.QUEUE_FLUSH, utterId)
+        })
     }
 
     private fun playQuestionAudioClips(question: GameData) {

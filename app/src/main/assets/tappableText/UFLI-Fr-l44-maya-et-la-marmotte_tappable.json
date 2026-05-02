@@ -1,0 +1,44 @@
+{
+  "id": "ufli-fr-maya-et-la-marmotte-l44",
+  "title": "Maya et la marmotte (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Maya va dans une hutte.",
+        "Maya a vu une marmotte dans la hutte.",
+        "Dans la hutte, il y a six pommes et huit carottes."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'hut'.", "correct_word": "hutte" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'groundhog'.", "correct_word": "marmotte" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'apples'.", "correct_word": "pommes" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Où Maya voit-elle la marmotte ?",
+        "options": ["Dans une voiture", "Dans une hutte", "Au zoo", "À l'école"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "La marmotte offre une pomme et cinq carottes à Maya.",
+        "Maya dit : « Merci » à la marmotte."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'offers'.", "correct_word": "offre" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'carrots'.", "correct_word": "carottes" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'thanks'.", "correct_word": "Merci" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Que la marmotte donne-t-elle à Maya ?",
+        "options": ["Une carotte et six pommes", "Une pomme et cinq carottes", "Huit pommes", "Une hutte"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

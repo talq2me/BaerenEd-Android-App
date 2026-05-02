@@ -1,0 +1,48 @@
+{
+  "id": "ufli-en-the-rocket-contest-l67b",
+  "title": "The Rocket Contest",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Denzel and Edwin dash to the rocket contest.",
+        "The man at the gate says \"Get your tickets, get your tickets! You do not want to miss the big rocket contest. Which rocket will be the fastest and win the prize basket?\""
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the hurried verb pair uses reaching the gates.", "correct_word": "dash" },
+        { "id": "p1_tw2", "prompt": "Tap slips sold before liftoff cheers.", "correct_word": "tickets" },
+        { "id": "p1_tw3", "prompt": "Tap the bundle reward for blasting ahead.", "correct_word": "prize" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What shout does the man repeat at the gate?",
+        "options": ["Sand Dunes", "Get your tickets", "Bath time", "Fish flick"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Denzel and Edwin get to the contest just in time.",
+        "They grab their blankets and look for a nice spot to sit.",
+        "They are all set to see the rockets go!",
+        "They see the blue rocket take off, then red, then pink, then white.",
+        "They go up, up, up, so fast.",
+        "Which is the fastest?",
+        "The blue rocket wins!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap coverings they stretch on turf.", "correct_word": "blankets" },
+        { "id": "p2_tw2", "prompt": "Tap the question word about rockets racing quickest.", "correct_word": "fastest" },
+        { "id": "p2_tw3", "prompt": "Tap which color flyer beats the bunch.", "correct_word": "blue" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Which rocket finishes first?",
+        "options": ["Pink", "White", "The blue rocket", "Snack boxes"],
+        "correct_index": 2
+      }
+    }
+  ]
+}

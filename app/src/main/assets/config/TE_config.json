@@ -28,14 +28,7 @@
           "disable": "Jan 15, 2027"
         },
         {
-          "title": "Léo et la Boîte Mystérieuse",
-          "launch": "bookReader",
-          "url": "file=fr_boit_mysterieux.json",
-          "stars": 3,
-          "disable": "Jan 15, 2027"
-        },
-        {
-          "title": "Tappable Text Milo",
+          "title": "Tappable Text fr",
           "launch": "tappableText",
           "url": "",
           "easy": true,
@@ -332,16 +325,23 @@
           "totalQuestions": 1
         },
         {
-          "title": "UFLI Passage: Jo and Russ",
+          "title": "UFLI passages (English rotation)",
           "launch": "tappableText",
-          "url": "file=eng/jo-friend-russ-g1_tappable.json",
+          "url": "lang=en",
           "easy": true,
-          "stars": 1
+          "stars": 3
         },
         {
-          "title": "UFLI Word Chains",
-          "launch": "ufli-open-closed-chain-g1",
-          "stars": 1,
+          "title": "French tappable texts (rotation)",
+          "launch": "tappableText",
+          "url": "lang=fr",
+          "easy": true,
+          "stars": 3
+        },
+        {
+          "title": "UFLI Word Chains (rotate all on GitHub)",
+          "launch": "ufliWordChains",
+          "stars": 3,
           "totalQuestions": 5
         }
       ]

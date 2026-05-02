@@ -1,0 +1,56 @@
+{
+  "id": "ufli-fr-un-beau-jour-l49",
+  "title": "Un beau jour (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est mardi.",
+        "Aujourd'hui, à l'école, toute la classe bouge partout.",
+        "Lou fait un tour avec vingt blocs rouges, vingt blocs verts et huit blocs jaunes."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'Tuesday'.", "correct_word": "mardi" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'class'.", "correct_word": "classe" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'twenty'.", "correct_word": "vingt" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Quel jour est-ce dans l'histoire ?",
+        "options": ["Lundi", "Mardi", "Jeudi", "Dimanche"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Il le construit avec un groupe de sept amis.",
+        "Skyler dessine un petit ours et un hibou gris pour sa mère."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'builds'.", "correct_word": "construit" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'seven'.", "correct_word": "sept" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'bear'.", "correct_word": "ours" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Tina a commencé une activité dans le gymnase hier qu'elle va finir aujourd'hui.",
+        "C'est un beau jour à l'école!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'gym'.", "correct_word": "gymnase" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'yesterday'.", "correct_word": "hier" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'finish'.", "correct_word": "finir" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Qu'est-ce que Skyler dessine pour sa mère ?",
+        "options": ["Un zèbre et un tigre", "Un petit ours et un hibou gris", "Un canard", "Un bateau"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

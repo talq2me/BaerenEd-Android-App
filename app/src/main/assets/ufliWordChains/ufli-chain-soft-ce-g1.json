@@ -1,0 +1,86 @@
+[
+  {
+    "prompt": { "text": "Make the word face.", "lang": "eng", "displayText": true },
+    "question": { "text": "face", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "a" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "p" }, { "text": "l" }]
+  },
+  {
+    "prompt": { "text": "Say face. Change the f to p for pace. Build pace.", "lang": "eng", "displayText": true },
+    "question": { "text": "pace", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "a" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "f" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Say pace. Change pace to lace. Build lace.", "lang": "eng", "displayText": true },
+    "question": { "text": "lace", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "p" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Say lace. Change l to r for race. Build race.", "lang": "eng", "displayText": true },
+    "question": { "text": "race", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "r" }, { "text": "a" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "l" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Make the word ice. (Sentence: Can you get one ice cube?)", "lang": "eng", "displayText": true },
+    "question": { "text": "ice", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "i" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "m" }, { "text": "l" }]
+  },
+  {
+    "prompt": { "text": "Say ice. Spell mice.", "lang": "eng", "displayText": true },
+    "question": { "text": "mice", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "i" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "l" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Say mice. Spell nice.", "lang": "eng", "displayText": true },
+    "question": { "text": "nice", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "n" }, { "text": "i" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "m" }, { "text": "l" }]
+  },
+  {
+    "prompt": { "text": "Say nice. Spell lice.", "lang": "eng", "displayText": true },
+    "question": { "text": "lice", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "l" }, { "text": "i" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "n" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Build the word space. (Sentence: I think there will be space in the trunk.)", "lang": "eng", "displayText": true },
+    "question": { "text": "space", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "p" }, { "text": "a" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "k" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: who.", "lang": "eng", "displayText": true },
+    "question": { "text": "who", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "o" }],
+    "extraChoices": [{ "text": "e" }, { "text": "i" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: by.", "lang": "eng", "displayText": true },
+    "question": { "text": "by", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "y" }],
+    "extraChoices": [{ "text": "i" }, { "text": "e" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: my.", "lang": "eng", "displayText": true },
+    "question": { "text": "my", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "y" }],
+    "extraChoices": [{ "text": "e" }, { "text": "i" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: one.", "lang": "eng", "displayText": true },
+    "question": { "text": "one", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "e" }],
+    "extraChoices": [{ "text": "a" }, { "text": "i" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: once.", "lang": "eng", "displayText": true },
+    "question": { "text": "once", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "c" }, { "text": "e" }],
+    "extraChoices": [{ "text": "s" }, { "text": "i" }]
+  }
+]

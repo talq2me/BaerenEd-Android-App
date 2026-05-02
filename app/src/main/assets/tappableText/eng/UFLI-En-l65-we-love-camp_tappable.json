@@ -1,0 +1,48 @@
+{
+  "id": "ufli-en-we-love-camp-l65",
+  "title": "We Love Camp",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Going to camp is so much fun.",
+        "We all get to spend time doing things we love.",
+        "Chance is fishing at the pond.",
+        "Ming and Beth are boxing in the ring.",
+        "Sage is resting in the tent."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap Chance's quiet sport by still water.", "correct_word": "fishing" },
+        { "id": "p1_tw2", "prompt": "Tap what Ming and Beth practice inside the ring.", "correct_word": "boxing" },
+        { "id": "p1_tw3", "prompt": "Tap how Sage relaxes inside fabric shelter.", "correct_word": "resting" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Where is Sage while others play harder sports?",
+        "options": ["On the dock", "Resting in the tent", "Calling 911", "Twisting maze locks"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Jace and Tess are acting on the stage.",
+        "Len is looking for bugs in the grass.",
+        "We will be sad when camp ends.",
+        "We love spending time at camp!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the pretend play Jace and Tess perform under lights.", "correct_word": "acting" },
+        { "id": "p2_tw2", "prompt": "Tap Len's careful search among blades outside.", "correct_word": "looking" },
+        { "id": "p2_tw3", "prompt": "Tap the loving verb about camp hours we stretch out.", "correct_word": "spending" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "How do narrators feel when camp must end?",
+        "options": ["Excited to race mice", "Sad", "Angry at Grandmom", "Frozen on stage"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

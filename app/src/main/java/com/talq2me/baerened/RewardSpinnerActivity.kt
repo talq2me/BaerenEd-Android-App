@@ -65,7 +65,6 @@ class RewardSpinnerActivity : AppCompatActivity() {
         spinButton.text = "Spin"
 
         loadRewards()
-        resolveDailyPrize(fromUserTap = false)
     }
 
     private fun hasUnlockedPrize(): Boolean =
@@ -87,7 +86,7 @@ class RewardSpinnerActivity : AppCompatActivity() {
                         rewards = filtered
                         wheelView.setRewards(filtered)
                         rewardsLoaded = true
-                        maybeRenderDailyPrizeResult()
+                        renderInitialSpinnerState()
                     },
                     onFailure = { e ->
                         spinButton.isEnabled = false
@@ -122,7 +121,9 @@ class RewardSpinnerActivity : AppCompatActivity() {
                             "af_get_or_unlock_daily_prize ok: profile=$profile eligible=${r.eligible} newly=${r.newlyUnlocked} prize=${r.prizeUnlocked} err=${r.serverError}"
                         )
                         dailyPrizeResult = r
-                        maybeRenderDailyPrizeResult()
+                        maybeRenderDailyPrizeResult(
+                            animateLanding = fromUserTap && r.newlyUnlocked
+                        )
                     },
                     onFailure = { e ->
                         Log.e(TAG, "af_get_or_unlock_daily_prize failed", e)
@@ -139,8 +140,25 @@ class RewardSpinnerActivity : AppCompatActivity() {
         }
     }
 
-    private fun maybeRenderDailyPrizeResult() {
-        val prizeResult = dailyPrizeResult ?: return
+    /**
+     * Initial UI before the user taps Spin (no server call — avoids unlocking the prize on screen open).
+     */
+    private fun renderInitialSpinnerState() {
+        if (dailyPrizeResult != null) {
+            maybeRenderDailyPrizeResult(animateLanding = false)
+            return
+        }
+        spinButton.text = "Spin"
+        spinButton.isEnabled = rewardsLoaded
+        resultText.text = if (rewardsLoaded) "Tap Spin for today's prize!"
+        else "Loading rewards..."
+    }
+
+    private fun maybeRenderDailyPrizeResult(animateLanding: Boolean = false) {
+        val prizeResult = dailyPrizeResult ?: run {
+            renderInitialSpinnerState()
+            return
+        }
 
         val prize = prizeResult.prizeUnlocked?.trim().orEmpty()
         if (prize.isEmpty()) {
@@ -151,27 +169,41 @@ class RewardSpinnerActivity : AppCompatActivity() {
             return
         }
 
-        // Server returned a concrete prize; keep button enabled to re-show the same unlocked prize.
-        spinButton.isEnabled = true
         spinButton.text = "Show Prize"
-        resolvingPrize = false
 
         if (!rewardsLoaded) {
+            spinButton.isEnabled = false
             resultText.text = "Today's prize: $prize (loading wheel…)"
             return
         }
 
         val selectedIndex = rewards.indexOfFirst { it.name.equals(prize, ignoreCase = true) }
-        if (selectedIndex < 0) {
-            wheelView.rotationDegrees = 0f
-            prizeRevealed = true
-            resultText.text = "Today's prize: $prize"
+
+        fun applyPrizeLandInstant() {
+            if (selectedIndex < 0) {
+                wheelView.rotationDegrees = 0f
+                prizeRevealed = true
+                resultText.text = "Today's prize: $prize"
+            } else {
+                wheelView.rotationDegrees = wheelView.computeLandingRotation(selectedIndex)
+                prizeRevealed = true
+                resultText.text = "Today's prize: ${rewards[selectedIndex].name}"
+            }
+        }
+
+        // First reveal after unlocking: animate wheel; later "Show Prize" taps skip animation.
+        if (animateLanding && selectedIndex >= 0) {
+            spinButton.isEnabled = false
+            spinToIndex(selectedIndex) {
+                spinButton.isEnabled = true
+                prizeRevealed = true
+                resultText.text = "Today's prize: ${rewards[selectedIndex].name}"
+            }
             return
         }
 
-        wheelView.rotationDegrees = wheelView.computeLandingRotation(selectedIndex)
-        prizeRevealed = true
-        resultText.text = "Today's prize: ${rewards[selectedIndex].name}"
+        spinButton.isEnabled = true
+        applyPrizeLandInstant()
     }
 
     private fun showUnlockedPrize() {

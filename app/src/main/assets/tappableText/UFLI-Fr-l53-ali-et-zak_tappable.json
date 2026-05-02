@@ -1,0 +1,57 @@
+{
+  "id": "ufli-fr-ali-et-zak-l53",
+  "title": "Ali et Zak (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est mercredi et il fait beau!",
+        "Ali va jouer avec Zak au parc après le souper.",
+        "Le parc se trouve près de l'école."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'Wednesday'.", "correct_word": "mercredi" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'nice weather'.", "correct_word": "beau" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'supper'.", "correct_word": "souper" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Où le parc se trouve-t-il ?",
+        "options": ["Loin du lac", "Près de l'école", "Dans l'autobus", "À la fraise"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Qu'est-ce qu'Ali aime faire?",
+        "Ali aime sauter très haut et très vite avec sa corde à sauter."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'jump'.", "correct_word": "sauter" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'high'.", "correct_word": "haut" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'rope for jumping'.", "correct_word": "corde" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Qu'est-ce que Zak aime faire?",
+        "Zak aime faire rouler une balle et la mettre dans un seau.",
+        "C'est une journée superbe!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'roll'.", "correct_word": "rouler" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'ball'.", "correct_word": "balle" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'bucket'.", "correct_word": "seau" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Comment Ali trouve-t-il la journée à la fin ?",
+        "options": ["Terrible", "Triste", "Superbe", "Froide"],
+        "correct_index": 2
+      }
+    }
+  ]
+}

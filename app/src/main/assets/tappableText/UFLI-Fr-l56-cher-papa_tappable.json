@@ -1,0 +1,60 @@
+{
+  "id": "ufli-fr-cher-papa-l56",
+  "title": "Cher Papa (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Cher papa,",
+        "J'aime visiter la ferme de Charlotte.",
+        "Il y a un cheval noir.",
+        "Hier, j'ai essayé de donner du chou-fleur au cheval.",
+        "Il n'aime pas le chou-fleur."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'Dear'.", "correct_word": "Cher" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'farm'.", "correct_word": "ferme" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'horse'.", "correct_word": "cheval" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'aime faire l'enfant chez Charlotte ?",
+        "options": ["Voir un parc pour Ali", "Visiter la ferme de Charlotte", "Conduire l'autobus", "Voir un phare"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Il y a aussi un petit chat gris à la ferme.",
+        "Aujourd'hui, je veux jouer à cache-cache avec le chat.",
+        "Je veux aussi donner du lait au chat.",
+        "J'aime beaucoup la ferme de Charlotte!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'gray'.", "correct_word": "gris" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'hide-and-seek'.", "correct_word": "cache-cache" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'milk'.", "correct_word": "lait" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Je t'aime,",
+        "Charles"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'I love'.", "correct_word": "aime" },
+        { "id": "p3_tw2", "prompt": "Tape le nom du signataire.", "correct_word": "Charles" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'I'.", "correct_word": "Je" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Le cheval aime-t-il le chou-fleur ?",
+        "options": ["Oui", "Non", "Un peu", "Seulement le lundi"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

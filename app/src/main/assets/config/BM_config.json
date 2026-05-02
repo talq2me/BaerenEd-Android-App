@@ -1,5 +1,5 @@
 {
-  "version": "2025-10-04",
+  "version": "2026-05-02",
   "header": {
     "buttons": [
       {"label": "⚡ Battle Hub", "action": "openBattleHub"},
@@ -164,17 +164,19 @@
        
 
 
-         {
-          "title": "Google Read Along",
-          "launch": "googleReadAlong",
-          "disable": "Jan 2, 2026",
-          "stars": 1
+        {
+          "title": "English reading (tappable book)",
+          "launch": "tappableText",
+          "url": "lang=en",
+          "stars": 3,
+          "easy": true
         },
         {
           "title": "French reading (tappable book)",
           "launch": "tappableText",
           "url": "lang=fr",
-          "stars": 1
+          "stars": 3,
+          "easy": true
         },
         {
           "title": "Boukili",

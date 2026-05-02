@@ -1,0 +1,49 @@
+{
+  "id": "ufli-en-petes-pet-snake-l61",
+  "title": "Pete's Pet Snake",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Pete got a pet snake.",
+        "Pete gave the snake a name.",
+        "\"You are Steve,\" Pete said to the snake.",
+        "Steve has a huge glass cage.",
+        "Pete has to lock the cage, so Steve is safe."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the large home made of glass around Steve.", "correct_word": "huge" },
+        { "id": "p1_tw2", "prompt": "Tap what Pete must do to keep Steve safe inside.", "correct_word": "lock" },
+        { "id": "p1_tw3", "prompt": "Tap the name Pete calls the snake.", "correct_word": "Steve" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What is the snake's name?",
+        "options": ["June", "Steve", "Will", "Mike"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Steve likes his cage.",
+        "He can hide next to the rocks.",
+        "He can rest in the sunshine or the shade.",
+        "At his age, Steve's skin sheds and his scales change.",
+        "This looks a bit strange, but Pete likes Steve all the same."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap hot bright light Steve can bake under.", "correct_word": "sunshine" },
+        { "id": "p2_tw2", "prompt": "Tap what falls off Steve as he grows.", "correct_word": "sheds" },
+        { "id": "p2_tw3", "prompt": "Tap the puzzling tone Pete admits about Steve's shedding.", "correct_word": "strange" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Where can Steve chill inside his cage?",
+        "options": ["Only underwater", "In sunshine or shade by the rocks", "On Grandmom's tile", "In the maze gate"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

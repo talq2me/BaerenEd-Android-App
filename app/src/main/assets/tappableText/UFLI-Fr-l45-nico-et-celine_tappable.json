@@ -1,0 +1,56 @@
+{
+  "id": "ufli-fr-nico-et-celine-l45",
+  "title": "Nico et Céline (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Nico a une amie dans sa classe.",
+        "Elle s'appelle Céline.",
+        "Il dessine avec Céline."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'friend'.", "correct_word": "amie" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'class'.", "correct_word": "classe" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'draws'.", "correct_word": "dessine" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Comment s'appelle l'amie de Nico dans sa classe ?",
+        "options": ["Sara", "Lola", "Céline", "Maya"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Céline dessine un zèbre.",
+        "Nico dit : « J'aime le zèbre »."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'zebra'.", "correct_word": "zèbre" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'loves'.", "correct_word": "aime" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'says'.", "correct_word": "dit" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Nico dessine un tigre.",
+        "Céline dit : « J'adore le tigre. C'est super! »"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'tiger'.", "correct_word": "tigre" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'adores'.", "correct_word": "adore" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'great'.", "correct_word": "super" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Que dessine Nico à la fin ?",
+        "options": ["Un zèbre", "Un tigre", "Une marmotte", "Une crème glacée"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

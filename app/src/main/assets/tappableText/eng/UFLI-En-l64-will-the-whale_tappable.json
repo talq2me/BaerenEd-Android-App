@@ -1,0 +1,63 @@
+{
+  "id": "ufli-en-will-the-whale-l64",
+  "title": "Will the Whale",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Once upon a time there was a whale named Will.",
+        "Will lived with many whales in a pod.",
+        "Will loved his pod.",
+        "The pod splashed and jumped in the waves.",
+        "The pod drifted from place to place."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the group name for Will's whale family.", "correct_word": "pod" },
+        { "id": "p1_tw2", "prompt": "Tap the past action showing ocean play with water flying.", "correct_word": "splashed" },
+        { "id": "p1_tw3", "prompt": "Tap how the clan floated between locations.", "correct_word": "drifted" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Who is Will?",
+        "options": ["A fox walker", "A whale who loves his pod", "Rocket gate guard", "Bath-hating turtle"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "One time, Will and his pod of whales ended up in a cove.",
+        "The cove was filled with fish and shrimp.",
+        "The fish swam in the waves.",
+        "The shrimp drifted with the tide.",
+        "Will and his pod of whales flicked their fins to splash the fish.",
+        "The fish flicked their fins back at the whales."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the calm hideaway inlet they discover.", "correct_word": "cove" },
+        { "id": "p2_tw2", "prompt": "Tap the tiny swimmer drifting with tides.", "correct_word": "shrimp" },
+        { "id": "p2_tw3", "prompt": "Tap the flipping tail move whales mimic toward fish.", "correct_word": "flicked" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "The whales and the fish did not splash any of the shrimp.",
+        "And the shrimp did not splash any of the whales or the fish.",
+        "The whales and the fish had fun while the shrimp just drifted."
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tap the gentle sea animals left dry from splashing.", "correct_word": "shrimp" },
+        { "id": "p3_tw2", "prompt": "Tap what whales and fish enjoy together.", "correct_word": "fun" },
+        { "id": "p3_tw3", "prompt": "Tap what shrimp keep doing peacefully.", "correct_word": "drifted" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Who never gets splashed in the story?",
+        "options": ["The fish only", "The shrimp", "Will only", "The pod never"], 
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "ufli-fr-la-fourmi-l59",
+  "title": "La fourmi (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "La fourmi vit dans une colonie.",
+        "Elle a six pattes et un corps formé de trois parties : la tête, le thorax et l'abdomen."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'ant'.", "correct_word": "fourmi" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'colony'.", "correct_word": "colonie" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'head'.", "correct_word": "tête" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Combien de pattes une fourmi a-t-elle dans ce texte ?",
+        "options": ["Quatre", "Cinq", "Six", "Huit"],
+        "correct_index": 2
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "La fourmi préfère la chaleur et l'humidité.",
+        "Elle peut être noire, brune ou rouge."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'heat'.", "correct_word": "chaleur" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'humidity'.", "correct_word": "humidité" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'brown'.", "correct_word": "brune" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "La fourmi aide à aérer le sol et à éliminer les mauvaises herbes.",
+        "La fourmi est magnifique!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'soil'.", "correct_word": "sol" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'weeds'.", "correct_word": "herbes" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'magnificent'.", "correct_word": "magnifique" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Qu'est-ce que la fourmi aide à faire avec le sol ?",
+        "options": ["Le couvrir entièrement", "L'aérer", "Le jeter dans le lac", "Le faire disparaître"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "ufli-en-the-mice-can-race-l60",
+  "title": "The Mice Can Race",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "\"What is the price for the box of white mice?\" Grace asks.",
+        "The man at the pet shop tells Grace they cost five bucks.",
+        "\"I have five bucks! I would like to take these mice,\" says Grace.",
+        "The man hands the box of mice to Grace."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap where Grace buys the rodents.", "correct_word": "shop" },
+        { "id": "p1_tw2", "prompt": "Tap how many dollars Grace pays.", "correct_word": "five" },
+        { "id": "p1_tw3", "prompt": "Tap the color word on the rodents she chose.", "correct_word": "white" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "How much must Grace pay?",
+        "options": ["Nine dimes only", "Five bucks", "Thirteen bolts", "A grand hike"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Grace takes the mice home.",
+        "Grace makes a track for the white mice.",
+        "She wants them to race.",
+        "Grace will place the mice on the track.",
+        "When Grace says \"GO!\" the mice race.",
+        "They run the track twice.",
+        "\"These mice are so fast!\" says Grace."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the path mice speed along.", "correct_word": "track" },
+        { "id": "p2_tw2", "prompt": "Tap the shout word Grace uses to start runners.", "correct_word": "GO" },
+        { "id": "p2_tw3", "prompt": "Tap how many laps they sprint.", "correct_word": "twice" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What does Grace notice about racing mice?",
+        "options": ["They are slow painters", "They are so fast", "They dislike boxes", "They love snake caves"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

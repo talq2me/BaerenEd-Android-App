@@ -1,0 +1,48 @@
+{
+  "id": "ufli-en-two-foxes-l63",
+  "title": "Two Foxes",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Alex lives in a home close to the lake.",
+        "Two foxes live in a den next to him.",
+        "Alex likes to see the foxes in the bushes by their den.",
+        "Alex is nice to the foxes.",
+        "When Alex goes for walks, he brings boxes of snacks for the foxes."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap how many wild pups share Alex's hillside home.", "correct_word": "Two" },
+        { "id": "p1_tw2", "prompt": "Tap the shelter word where fox pups sleep beside Alex.", "correct_word": "den" },
+        { "id": "p1_tw3", "prompt": "Tap the containers Alex carries treats inside.", "correct_word": "boxes" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What does Alex bring when he walks for the foxes?",
+        "options": ["Kites and twine", "Boxes of snacks", "A rocket ticket", "A bathtub"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Alex loves when the foxes munch on the snacks.",
+        "The foxes like Alex so much, they give him kisses.",
+        "Alex wishes he could see the foxes all the time.",
+        "But they like to spend lots of time in their den."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the munching syllable foxes chew treats with.", "correct_word": "munch" },
+        { "id": "p2_tw2", "prompt": "Tap the sweet thank-you pups press on Alex.", "correct_word": "kisses" },
+        { "id": "p2_tw3", "prompt": "Tap what Alex desires about visiting foxes hourly.", "correct_word": "wishes" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "How do the foxes show they like Alex?",
+        "options": ["They hiss", "They give him kisses", "They smash boxes", "They hide tickets"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

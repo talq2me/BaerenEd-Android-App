@@ -1,0 +1,44 @@
+{
+  "id": "ufli-fr-chez-la-veterinaire-l60",
+  "title": "Chez la vétérinaire (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "La vétérinaire a vu beaucoup d'animaux aujourd'hui.",
+        "Elle a vu deux petits chats, sept souris grises et cinq oiseaux jaunes."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'vet'.", "correct_word": "vétérinaire" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'mice'.", "correct_word": "souris" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'birds'.", "correct_word": "oiseaux" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Combien d'oiseaux jaunes la vétérinaire a-t-elle vus ?",
+        "options": ["Deux", "Cinq", "Sept", "Treize"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Elle souhaite donner à chaque animal de la nourriture dans un bol.",
+        "Elle a treize bols.",
+        "A-t-elle assez de bols?"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'food'.", "correct_word": "nourriture" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'bowl'.", "correct_word": "bol" },
+        { "id": "p2_tw3", "prompt": "Tape le nombre de bols qu'elle a.", "correct_word": "treize" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "La vétérinaire a trois groupes : 2 chats, 7 souris et 5 oiseaux. Elle veut un bol pour chaque animal mais elle n'a que 13 bols. A-t-elle assez de bols pour tous ?",
+        "options": ["Oui pour tous les animaux et il en reste", "Exactement aucun bol en trop ou en moins", "Non, il manque un bol", "Oui mais seulement pour les chats"],
+        "correct_index": 2
+      }
+    }
+  ]
+}

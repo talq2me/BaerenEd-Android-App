@@ -1,0 +1,56 @@
+{
+  "id": "ufli-fr-hamza-et-le-cygne-l57",
+  "title": "Hamza et le cygne (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Hamza se baigne dans le lac.",
+        "Il voit une petite araignée qui dort dans sa toile, pleine de lignes diagonales, accrochée à un arbre."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'spider'.", "correct_word": "araignée" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'web'.", "correct_word": "toile" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'tree'.", "correct_word": "arbre" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que voit Hamza dans sa toile avant le cygne ?",
+        "options": ["Un hibou", "Une petite araignée qui dort", "Un phare", "Une baleine"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Il voit aussi un cygne qui nage dans l'eau.",
+        "Il a peur du cygne.",
+        "Hamza grogne au cygne : « Je ne veux plus nager ici! »"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'swan'.", "correct_word": "cygne" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'swims'.", "correct_word": "nage" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'afraid'.", "correct_word": "peur" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Hamza sort du lac et court vers le café.",
+        "Il est ravi d'y trouver un beigne."
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'leaves'.", "correct_word": "sort" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'runs'.", "correct_word": "court" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'café donut'.", "correct_word": "beigne" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Pourquoi Hamza arrête-t-il de nager dans le lac ?",
+        "options": ["Il a froid", "Il a peur du cygne", "Le lac est sec", "Il veut faire du ski"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

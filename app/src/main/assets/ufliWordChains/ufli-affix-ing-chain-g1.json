@@ -1,0 +1,146 @@
+[
+  {
+    "prompt": {
+      "text": "Say the word: act. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "act -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "a" }, { "text": "c" }, { "text": "t" }, { "text": "i" }, { "text": "n" }, { "text": "g" }],
+    "extraChoices": [{ "text": "k" }, { "text": "p" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: help. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "help -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "e" }, { "text": "l" }, { "text": "p" }, { "text": "i" }, { "text": "n" }, { "text": "g" }],
+    "extraChoices": [{ "text": "r" }, { "text": "s" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: sink. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "sink -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "i" }, { "text": "n" }, { "text": "k" }, { "text": "i" }, { "text": "n" }, { "text": "g" }],
+    "extraChoices": [{ "text": "d" }, { "text": "t" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: stand. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "stand -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "t" }, { "text": "a" }, { "text": "n" }, { "text": "d" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "b" }, { "text": "r" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: ask. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "ask -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "a" }, { "text": "s" }, { "text": "k" }, { "text": "i" }, { "text": "n" }, { "text": "g" }],
+    "extraChoices": [{ "text": "e" }, { "text": "t" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: send. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "send -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "e" }, { "text": "n" }, { "text": "d" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "p" }, { "text": "l" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: rest. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "rest -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "r" }, { "text": "e" }, { "text": "s" }, { "text": "t" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "d" }, { "text": "k" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: fish. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "fish -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "f" }, { "text": "i" }, { "text": "s" }, { "text": "h" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "z" }, { "text": "p" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: think. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "think -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "t" }, { "text": "h" }, { "text": "i" }, { "text": "n" }, { "text": "k" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "z" }, { "text": "r" }]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: sing. If we add ing at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "sing -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "i" }, { "text": "n" }, { "text": "g" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "d" }, { "text": "k" }]
+  },
+  {
+    "prompt": {
+      "text": "Say lifting. Build the word lifting. (He is lifting the box into the trunk.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "lifting", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "l" }, { "text": "i" }, { "text": "f" }, { "text": "t" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "z" }, { "text": "p" }]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: been. (Sentence: Have you been camping?)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "been", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "e" }, { "text": "e" }, { "text": "n" }],
+    "extraChoices": [{ "text": "i" }, { "text": "t" }]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: into. (He is lifting the box into the trunk.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "into", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "i" }, { "text": "n" }, { "text": "t" }, { "text": "o" }],
+    "extraChoices": [{ "text": "u" }, { "text": "e" }]
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "id": "ufli-fr-lautobus-l47",
+  "title": "L'autobus (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Ally va à l'école dans l'autobus.",
+        "L'autobus est jaune.",
+        "Ally aime l'autobus."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'school'.", "correct_word": "école" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'yellow'.", "correct_word": "jaune" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'bus'.", "correct_word": "autobus" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Comment Ally va-t-elle à l'école ?",
+        "options": ["En vélo", "Dans l'autobus", "À pied seule", "En bateau"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Ally a vu Laura.",
+        "Laura va dans l'autobus aussi.",
+        "Laura aime l'autobus aussi."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'saw'.", "correct_word": "vu" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'also'.", "correct_word": "aussi" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'loves'.", "correct_word": "aime" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Qui Ally voit-elle dans l'autobus ?",
+        "options": ["Bernard", "Laura", "Le renard", "La marmotte"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

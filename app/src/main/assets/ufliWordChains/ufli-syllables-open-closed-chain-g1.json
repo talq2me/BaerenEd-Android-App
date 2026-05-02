@@ -1,0 +1,80 @@
+[
+  {
+    "prompt": {
+      "text": "Say taken. Build ta plus ken smashed together.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "ta + ken -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "a" }, { "text": "k" }, { "text": "e" }, { "text": "n" }],
+    "extraChoices": [{ "text": "i" }, { "text": "p" }]
+  },
+  {
+    "prompt": {
+      "text": "Say donut. Build do plus nut.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "do + nut -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "d" }, { "text": "o" }, { "text": "n" }, { "text": "u" }, { "text": "t" }],
+    "extraChoices": [{ "text": "g" }, { "text": "k" }]
+  },
+  {
+    "prompt": {
+      "text": "Say silent. Build si plus lent.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "si + lent -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "i" }, { "text": "l" }, { "text": "e" }, { "text": "n" }, { "text": "t" }
+    ],
+    "extraChoices": [{ "text": "d" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build the vocabulary word: open.", "lang": "eng", "displayText": true },
+    "question": { "text": "open", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "o" }, { "text": "p" }, { "text": "e" }, { "text": "n" }],
+    "extraChoices": [{ "text": "i" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build the vocabulary word: item.", "lang": "eng", "displayText": true },
+    "question": { "text": "item", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "i" }, { "text": "t" }, { "text": "e" }, { "text": "m" }],
+    "extraChoices": [{ "text": "a" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Build the vocabulary word: music.", "lang": "eng", "displayText": true },
+    "question": { "text": "music", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "u" }, { "text": "s" }, { "text": "i" }, { "text": "c" }],
+    "extraChoices": [{ "text": "p" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Build the vocabulary word: secret.", "lang": "eng", "displayText": true },
+    "question": { "text": "secret", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "e" }, { "text": "c" }, { "text": "r" }, { "text": "e" }, { "text": "t" }],
+    "extraChoices": [{ "text": "l" }, { "text": "n" }]
+  },
+  {
+    "prompt": {
+      "text": "Build the vocabulary word: frozen.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "frozen", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "f" }, { "text": "r" }, { "text": "o" }, { "text": "z" }, { "text": "e" }, { "text": "n" }
+    ],
+    "extraChoices": [{ "text": "g" }, { "text": "p" }]
+  },
+  {
+    "prompt": {
+      "text": "Build token. (Sentence: My friend has two tokens.) Change one letter from taken if you compare them.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "token", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "o" }, { "text": "k" }, { "text": "e" }, { "text": "n" }],
+    "extraChoices": [{ "text": "a" }, { "text": "i" }]
+  }
+]

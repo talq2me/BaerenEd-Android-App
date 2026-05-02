@@ -1,0 +1,57 @@
+{
+  "id": "ufli-fr-sabina-et-la-neige-l52",
+  "title": "Sabina et la neige (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est l'hiver et Sabina adore la neige.",
+        "Sabina joue dans la neige.",
+        "Le cher père de Sabina joue dans la neige aussi."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'winter'.", "correct_word": "hiver" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'snow'.", "correct_word": "neige" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'plays'.", "correct_word": "joue" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qui joue dans la neige avec Sabina au début ?",
+        "options": ["Sa mère", "Le cher père de Sabina", "Un ami", "Un ours"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Sabina dessine une grosse baleine dans la neige.",
+        "Après cela, elle dessine une reine avec une couronne dans la neige."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'big'.", "correct_word": "grosse" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'whale'.", "correct_word": "baleine" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'queen'.", "correct_word": "reine" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Le père de Sabina devine ce qu'elle dessine.",
+        "Sabina aime le jeu!",
+        "Le père de Sabina aime aussi le jeu!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'guesses'.", "correct_word": "devine" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'game'.", "correct_word": "jeu" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'draws'.", "correct_word": "dessine" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Que fait le père avec les dessins de Sabina dans la neige ?",
+        "options": ["Il les efface", "Il devine ce qu'elle dessine", "Il ne regarde pas", "Il dort"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

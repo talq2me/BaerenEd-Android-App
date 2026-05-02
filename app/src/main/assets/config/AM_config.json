@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-01",
+  "version": "2026-05-02",
   "header": {
     "buttons": [
       {"label": "My Pokedex", "action": "openPokedex"},
@@ -22,9 +22,11 @@
       "description": "Complete all of these first!",
       "tasks": [
         {
-          "title": "Google Read Along",
-          "launch": "googleReadAlong",
-          "stars": 3
+          "title": "English reading (tappable book)",
+          "launch": "tappableText",
+          "url": "lang=en",
+          "stars": 3,
+          "easy": true
         },
         {
           "title": "French reading (tappable book)",
@@ -56,6 +58,12 @@
           "chromePage": true,
           "displayDays": "tue,sat",
           "disable": "Jan 1, 2027"
+        },
+        {
+          "title": "UFLI Word Chain",
+          "launch": "ufliWordChains",
+          "stars": 3,
+          "totalQuestions": 5
         },
 
 
@@ -138,7 +146,8 @@
           "webGame": true,
           "easydays": "mon",
           "harddays": "tue,wed",
-          "displayDays": "mon,tue,wed"
+          "displayDays": "mon,tue,wed",
+          "disable": "Jan 1, 2030"
         },
         
         

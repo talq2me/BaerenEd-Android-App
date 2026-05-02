@@ -1,0 +1,94 @@
+[
+  {
+    "prompt": {
+      "text": "Say sunset. Build this compound word. First part sounds like sun, second part sounds like set.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "sun + set -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "u" }, { "text": "n" }, { "text": "s" }, { "text": "e" }, { "text": "t" }
+    ],
+    "extraChoices": [{ "text": "y" }, { "text": "p" }]
+  },
+  {
+    "prompt": {
+      "text": "Say hotdog. Build this compound word. Hot plus dog smashed together.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "hot + dog -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "o" }, { "text": "t" }, { "text": "d" }, { "text": "o" }, { "text": "g" }],
+    "extraChoices": [{ "text": "b" }, { "text": "r" }]
+  },
+  {
+    "prompt": {
+      "text": "Say kickball. Build this compound word. Kick plus ball.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "kick + ball -> ?", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "k" }, { "text": "i" }, { "text": "c" }, { "text": "k" }, { "text": "b" }, { "text": "a" }, { "text": "l" }, { "text": "l" }
+    ],
+    "extraChoices": [{ "text": "p" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Build the compound word: uphill.", "lang": "eng", "displayText": true },
+    "question": { "text": "uphill", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "u" }, { "text": "p" }, { "text": "h" }, { "text": "i" }, { "text": "l" }, { "text": "l" }],
+    "extraChoices": [{ "text": "o" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Build the compound word: himself.", "lang": "eng", "displayText": true },
+    "question": { "text": "himself", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "h" }, { "text": "i" }, { "text": "m" }, { "text": "s" }, { "text": "e" }, { "text": "l" }, { "text": "f" }
+    ],
+    "extraChoices": [{ "text": "d" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Build the compound word: bathtub.", "lang": "eng", "displayText": true },
+    "question": { "text": "bathtub", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "b" }, { "text": "a" }, { "text": "t" }, { "text": "h" }, { "text": "t" }, { "text": "u" }, { "text": "b" }
+    ],
+    "extraChoices": [{ "text": "g" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build the compound word: stepdad.", "lang": "eng", "displayText": true },
+    "question": { "text": "stepdad", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "t" }, { "text": "e" }, { "text": "p" }, { "text": "d" }, { "text": "a" }, { "text": "d" }
+    ],
+    "extraChoices": [{ "text": "b" }, { "text": "n" }]
+  },
+  {
+    "prompt": {
+      "text": "Build the compound word: sandbox. (I did a handstand by the sandbox.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": { "text": "sandbox", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "a" }, { "text": "n" }, { "text": "d" }, { "text": "b" }, { "text": "o" }, { "text": "x" }
+    ],
+    "extraChoices": [{ "text": "k" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build the compound word: something.", "lang": "eng", "displayText": true },
+    "question": { "text": "something", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "s" }, { "text": "o" }, { "text": "m" }, { "text": "e" }, { "text": "t" }, { "text": "h" }, { "text": "i" }, { "text": "n" }, { "text": "g" }
+    ],
+    "extraChoices": [{ "text": "p" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: because.", "lang": "eng", "displayText": true },
+    "question": { "text": "because", "lang": "eng", "displayText": true },
+    "correctChoices": [
+      { "text": "b" }, { "text": "e" }, { "text": "c" }, { "text": "a" }, { "text": "u" }, { "text": "s" }, { "text": "e" }
+    ],
+    "extraChoices": [{ "text": "z" }, { "text": "n" }]
+  }
+]

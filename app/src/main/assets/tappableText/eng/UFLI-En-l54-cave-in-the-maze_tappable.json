@@ -1,0 +1,65 @@
+{
+  "id": "ufli-en-cave-in-the-maze-l54",
+  "title": "Cave in the Maze",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Dale and Jade went into a maze to win a game.",
+        "The maze was long and full of snakes.",
+        "Dale said to Jade, \"I can not go on.\"",
+        "\"Yes, you can. You are brave!\" said Jade.",
+        "Dale and Jade walk and walk."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the word that names the place that is long and full of snakes.", "correct_word": "maze" },
+        { "id": "p1_tw2", "prompt": "Tap the word that describes Dale when Jade cheers him on.", "correct_word": "brave" },
+        { "id": "p1_tw3", "prompt": "Tap the word that tells what Dale and Jade do after Dale feels stuck.", "correct_word": "walk" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Why does Dale say he cannot go on at first?",
+        "options": ["He is hungry", "The maze is scary with snakes and feels too hard", "He lost his kite", "He wants to swim"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "At last, they made a left and got to the end of the maze.",
+        "Then they see six small caves.",
+        "\"Let's go into the last cave,\" said Jade.",
+        "In the back of the cave, they see a gate!",
+        "The gate is shut. How will they pass?"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap how many small caves they see.", "correct_word": "six" },
+        { "id": "p2_tw2", "prompt": "Tap the word for the openings in rock they explore.", "correct_word": "caves" },
+        { "id": "p2_tw3", "prompt": "Tap the word names the thing blocking their way.", "correct_word": "gate" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Dale shakes the gate. Jade kicks the gate.",
+        "The gate is still shut.",
+        "\"Look! The gate has a lock,\" yells Jade.",
+        "Dale twists the lock.",
+        "Pop!",
+        "The gate swings in. Dale and Jade win the game!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tap what Dale does first to move the barrier.", "correct_word": "shakes" },
+        { "id": "p3_tw2", "prompt": "Tap the word Dale turns to open the latch.", "correct_word": "twists" },
+        { "id": "p3_tw3", "prompt": "Tap the sound word when the gate finally opens.", "correct_word": "Pop" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "How do Dale and Jade get past the gate at the end?",
+        "options": ["They dig under it", "Dale twists the lock until it pops open", "They call the fire trucks", "They climb a kite string"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

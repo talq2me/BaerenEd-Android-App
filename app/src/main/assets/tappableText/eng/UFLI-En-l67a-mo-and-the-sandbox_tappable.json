@@ -1,0 +1,60 @@
+{
+  "id": "ufli-en-mo-and-the-sandbox-l67a",
+  "title": "Mo and the Sandbox",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Mo was at home with his grandmom.",
+        "Mo sat in his sandbox while grandmom swept the tile.",
+        "When grandmom was done with the tile she yelled to Mo, \"bath time!\"",
+        "Mo did not want to take a bath.",
+        "He still wanted to sit in his sandbox."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the outdoor play pit full of grit Mo loves.", "correct_word": "sandbox" },
+        { "id": "p1_tw2", "prompt": "Tap the floor squares grandmom cleans near Mo.", "correct_word": "tile" },
+        { "id": "p1_tw3", "prompt": "Tap the caretaker name cleaning while Mo plays.", "correct_word": "grandmom" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What does grandmom shout when cleaning is done?",
+        "options": ["Rocket tickets", "Bath time", "Kites for sale", "Five miles"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "\"Mo, you must get in the bathtub because you are full of sand,\" said grandmom.",
+        "\"OK, fine,\" said Mo.",
+        "He picked up his stuff from the sandbox and got in the bathtub."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap where Mo must rinse grit after playing.", "correct_word": "bathtub" },
+        { "id": "p2_tw2", "prompt": "Tap the gritty stuff stuck to Mo that requires washing.", "correct_word": "sand" },
+        { "id": "p2_tw3", "prompt": "Tap Mo's mild agreement ending the fight.", "correct_word": "fine" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "When Mo was done with his bath he sat with grandmom.",
+        "\"Can I tell you something, grandmom? The bath was not so bad. It got rid of all the sand just like you said.\"",
+        "Grandmom gave Mo a big hug and a kiss."
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tap the cozy squeeze Mo gets after admitting bath helped.", "correct_word": "hug" },
+        { "id": "p3_tw2", "prompt": "Tap the friendly peck pairing with hugs.", "correct_word": "kiss" },
+        { "id": "p3_tw3", "prompt": "Tap the capital name giving love at the end.", "correct_word": "Grandmom" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "What surprises Mo after the bath?",
+        "options": ["He still hates rinsing forever", "The bath washed away sand like grandmom promised", "Snakes block tile", "Rockets stole towels"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

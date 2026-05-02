@@ -1,0 +1,49 @@
+{
+  "id": "ufli-en-junes-flute-l58",
+  "title": "June's Flute",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "June has a flute.",
+        "June likes to use the flute to make tunes.",
+        "There is one tune June likes best.",
+        "She likes the song Sand Dunes.",
+        "June has a pal, Luke.",
+        "Luke has no flute, but Luke likes to sing."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the instrument June plays.", "correct_word": "flute" },
+        { "id": "p1_tw2", "prompt": "Tap the word June makes with notes she likes.", "correct_word": "tunes" },
+        { "id": "p1_tw3", "prompt": "Tap what Luke prefers to do instead of blowing an instrument.", "correct_word": "sing" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What song title does June like best?",
+        "options": ["Sand Dunes", "Kites for Sale", "Rocket Contest", "The Mice Can Race"],
+        "correct_index": 0
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Once, June and Luke made tunes at lunch for their pals.",
+        "The last song they did was Sand Dunes.",
+        "June was on the flute and Luke sang.",
+        "They did a fine job!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap where they treated their friends to songs.", "correct_word": "lunch" },
+        { "id": "p2_tw2", "prompt": "Tap the word describing how strong their teamwork was.", "correct_word": "fine" },
+        { "id": "p2_tw3", "prompt": "Tap Luke's verb for voices while June played.", "correct_word": "sang" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Who plays the flute during Sand Dunes at lunch?",
+        "options": ["Luke alone", "June while Luke sings", "Dad calling 911", "The mice"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+[
+  {
+    "prompt": {
+      "text": "Say the word: sash. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "sash -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "s" }, { "text": "a" }, { "text": "s" }, { "text": "h" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "t" }, { "text": "k" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: tax. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "tax -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "t" }, { "text": "a" }, { "text": "x" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "m" }, { "text": "n" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: dress. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "dress -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "d" }, { "text": "r" }, { "text": "e" }, { "text": "s" }, { "text": "s" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "p" }, { "text": "i" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: bench. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "bench -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "b" }, { "text": "e" }, { "text": "n" }, { "text": "c" }, { "text": "h" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "w" }, { "text": "k" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: glass. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "glass -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "g" }, { "text": "l" }, { "text": "a" }, { "text": "s" }, { "text": "s" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "y" }, { "text": "p" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: dish. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "dish -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "d" }, { "text": "i" }, { "text": "s" }, { "text": "h" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "p" }, { "text": "r" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: lash. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "lash -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "l" }, { "text": "a" }, { "text": "s" }, { "text": "h" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "z" }, { "text": "n" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: box. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "box -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "b" }, { "text": "o" }, { "text": "x" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "t" }, { "text": "v" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: lunch. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "lunch -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "l" }, { "text": "u" }, { "text": "n" }, { "text": "c" }, { "text": "h" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "p" }, { "text": "r" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: brush. If we add es at the end, what new word do we make?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "brush -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "b" }, { "text": "r" }, { "text": "u" }, { "text": "s" }, { "text": "h" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "w" }, { "text": "z" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Say the word: class. If we add es at the end, what new word do we make? (Sentence: There are two classes in line.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "class -> ?",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "c" }, { "text": "l" }, { "text": "a" }, { "text": "s" }, { "text": "s" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "i" }, { "text": "y" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: two.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "two",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "t" }, { "text": "w" }, { "text": "o" }
+    ],
+    "extraChoices": [
+      { "text": "h" }, { "text": "u" }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: does.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "does",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      { "text": "d" }, { "text": "o" }, { "text": "e" }, { "text": "s" }
+    ],
+    "extraChoices": [
+      { "text": "t" }, { "text": "i" }
+    ]
+  }
+]

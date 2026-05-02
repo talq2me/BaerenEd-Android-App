@@ -1,0 +1,44 @@
+{
+  "id": "ufli-fr-le-canard-et-le-renard-l46",
+  "title": "Le canard et le renard (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Bernard a vu un gros canard.",
+        "Le canard est vert et gris.",
+        "Le canard nage sur le lac."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'big'.", "correct_word": "gros" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'duck'.", "correct_word": "canard" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'swims'.", "correct_word": "nage" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Sur quoi le canard nage-t-il ?",
+        "options": ["Sur la rue", "Sur le lac", "Sur la hutte", "Sur la table"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Après, Bernard a vu un petit renard.",
+        "Le renard est calme et dort dans sa grotte."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'fox'.", "correct_word": "renard" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'calm'.", "correct_word": "calme" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'cave'.", "correct_word": "grotte" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Où dort le renard ?",
+        "options": ["Dans le lac", "Dans sa grotte", "Dans l'autobus", "À l'école"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "id": "ufli-en-the-drive-home-l56",
+  "title": "The Drive Home",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Hope and Dad went to the lake for a swim.",
+        "They swam and swam.",
+        "\"It's time to go home, Hope,\" Dad yelled.",
+        "As Dad drove home, Hope could see smoke!",
+        "\"Dad there is smoke!\" yells Hope.",
+        "\"It is next to the phone shop.\""
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap where Hope and Dad were before the drive.", "correct_word": "lake" },
+        { "id": "p1_tw2", "prompt": "Tap what Hope notices in the air while Dad drives.", "correct_word": "smoke" },
+        { "id": "p1_tw3", "prompt": "Tap the kind of store beside the smoke.", "correct_word": "phone" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What does Hope spot on the ride home?",
+        "options": ["Kites for sale", "Smoke near the phone shop", "Nine foxes", "A flute tune"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "They drove fast to the phone shop.",
+        "When they got to the front of the shop they froze.",
+        "The shop was on fire!",
+        "Dad calls 911.",
+        "\"Yes, send the fire trucks!\" Dad tells the man on the line.",
+        "While Dad is on the phone, Hope sees a man run out of the shop.",
+        "He is safe.",
+        "The fire trucks came just in time to get rid of the flames.",
+        "Hope and Dad save the shop!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the emergency number Dad dials.", "correct_word": "911" },
+        { "id": "p2_tw2", "prompt": "Tap the vehicles Dad asks to send.", "correct_word": "trucks" },
+        { "id": "p2_tw3", "prompt": "Tap the bright dangerous things trucks put out.", "correct_word": "flames" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What was wrong when they reached the shop?",
+        "options": ["It was closed forever", "The shop was on fire", "Ice covered the maze", "The mice escaped"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

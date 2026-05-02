@@ -1,0 +1,49 @@
+{
+  "id": "ufli-en-a-cake-for-tess-l59",
+  "title": "A Cake for Tess",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Niles and Blake want to bake a cake for Tess.",
+        "Tess is their big sis.",
+        "She will be a bride, so they want to bake a white cake.",
+        "Niles and Blake mix the cake while Dad gets one pan.",
+        "The mix goes, Drip! Drip! into the pan."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the celebration role Tess will soon have.", "correct_word": "bride" },
+        { "id": "p1_tw2", "prompt": "Tap the color cake the brothers bake for her.", "correct_word": "white" },
+        { "id": "p1_tw3", "prompt": "Tap the metal dish Dad sets out for the batter.", "correct_word": "pan" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Who is Tess to Niles and Blake?",
+        "options": ["Their teacher", "Their big sis who will be a bride", "A fox from the lake", "A whale in the pod"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "They ask Dad for help with the stove.",
+        "The cake bakes for a long time.",
+        "Next the cake goes on a glass plate.",
+        "\"The cake looks so cute. I want to take a bite!\" says Niles.",
+        "\"We can not take a bite. This cake is for Tess!\" says Blake."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the kitchen cooker they need help using.", "correct_word": "stove" },
+        { "id": "p2_tw2", "prompt": "Tap what Niles wishes to carve out of frosting with teeth.", "correct_word": "bite" },
+        { "id": "p2_tw3", "prompt": "Tap the sister Blake reminds them to save sweets for.", "correct_word": "Tess" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Why does Blake stop Niles from tasting the cake?",
+        "options": ["It smells bad", "The cake is for Tess", "Dad needs it for snakes", "The stove is locked"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

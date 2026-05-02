@@ -1,0 +1,59 @@
+{
+  "id": "ufli-fr-le-fort-de-suzie-l50b",
+  "title": "Le fort de Suzie (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est jeudi et il pleut dehors.",
+        "Suzie décide de jouer un jeu.",
+        "Elle fait un fort avec des couvertures et des blocs."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'Thursday'.", "correct_word": "jeudi" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'rains'.", "correct_word": "pleut" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'blankets'.", "correct_word": "couvertures" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Quel temps fait-il au début de l'histoire ?",
+        "options": ["Il neige", "Il pleut", "Il fait très chaud", "Il géle"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Elle imagine qu'il y a un ours courageux dans le fort.",
+        "Elle imagine qu'il y a deux petits canards aussi.",
+        "L'ours aime les deux canards et les aide avec un défi."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'bear'.", "correct_word": "ours" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'brave'.", "correct_word": "courageux" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'challenge'.", "correct_word": "défi" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "L'ours n'a pas peur.",
+        "C'est une aventure pour eux!",
+        "L'ours est heureux qu'il a aidé ses amis.",
+        "Suzie est heureuse et s'est beaucoup amusée!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'afraid'.", "correct_word": "peur" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'adventure'.", "correct_word": "aventure" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'friends'.", "correct_word": "amis" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Avec quoi Suzie fait-elle un fort pour jouer ?",
+        "options": ["Avec du sable et de l'eau", "Avec des couvertures et des blocs", "Avec des crêpes", "Avec un autobus"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

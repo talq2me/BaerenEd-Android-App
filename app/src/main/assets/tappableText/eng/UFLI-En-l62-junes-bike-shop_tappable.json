@@ -1,0 +1,57 @@
+{
+  "id": "ufli-en-junes-bike-shop-l62",
+  "title": "June's Bike Shop",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "June sells bikes.",
+        "She will give you such a nice price you will not think twice.",
+        "Steve and Grace come to June's shop to get bikes."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap what June sells in her store.", "correct_word": "bikes" },
+        { "id": "p1_tw2", "prompt": "Tap the word repeating about money so well you hesitate less.", "correct_word": "twice" },
+        { "id": "p1_tw3", "prompt": "Tap one buyer name next to Steve in June's shop.", "correct_word": "Grace" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Why might buyers not rethink their deal with June?",
+        "options": ["She hides bikes", "She offers a nice price", "Her shop maze is dark", "She only sells snakes"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "\"I love this red one, it looks fast,\" said Steve.",
+        "\"I love this blue one, it looks fun,\" said Grace."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap Steve's bike color tied to racing speed.", "correct_word": "red" },
+        { "id": "p2_tw2", "prompt": "Tap Grace's bike hue she calls fun.", "correct_word": "blue" },
+        { "id": "p2_tw3", "prompt": "Tap the word Grace uses to describe ride joy.", "correct_word": "fun" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "\"Can you give us a good price,\" asks Grace.",
+        "\"Done and done,\" said June.",
+        "Steve and Grace smile and ride off with their bikes."
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tap the shopkeeper name answering Done and done.", "correct_word": "June" },
+        { "id": "p3_tw2", "prompt": "Tap what Steve and Grace do after the deal closes.", "correct_word": "smile" },
+        { "id": "p3_tw3", "prompt": "Tap how they depart with new wheels.", "correct_word": "ride" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "What happens after Grace asks for a good price?",
+        "options": ["They flee the maze", "June says Done and done and they ride away smiling", "Dad hangs up mid-call", "The snake sheds"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

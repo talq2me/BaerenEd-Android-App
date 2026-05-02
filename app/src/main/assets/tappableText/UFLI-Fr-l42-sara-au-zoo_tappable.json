@@ -1,0 +1,47 @@
+{
+  "id": "ufli-fr-sara-au-zoo-l42",
+  "title": "Sara au zoo (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Sara va au zoo avec sa mère et Max.",
+        "Max est le frère de Sara.",
+        "Sara a vu un zèbre.",
+        "Elle aime le zèbre."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'brother'.", "correct_word": "frère" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'zebra'.", "correct_word": "zèbre" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'loves'.", "correct_word": "aime" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'est-ce que Sara a vu au zoo ?",
+        "options": ["Un lion", "Un zèbre", "Un tigre", "Un éléphant"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Max a vu de la crème glacée.",
+        "Il aime la crème glacée.",
+        "Après Max, Sara a pris de la crème glacée.",
+        "Elle adore la crème glacée avec Max et sa mère!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'ice cream'.", "correct_word": "crème" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'took'.", "correct_word": "pris" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'mother'.", "correct_word": "mère" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Qu'a pris Sara après Max ?",
+        "options": ["Un zèbre", "De la crème glacée", "Un tigre", "Un ballon"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": "ufli-en-five-mile-hike-l57",
+  "title": "Five Mile Hike",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Chan rides his bike to the lake.",
+        "When Chan gets to the lake, he looks for his pal Eve.",
+        "He sees Eve on the black dock.",
+        "\"Want to hike?\" asks Eve.",
+        "\"Yep!\" Chan says.",
+        "\"OK. Grab these snacks for us to have on the hike,\" says Eve."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap what Chan rides before the hike.", "correct_word": "bike" },
+        { "id": "p1_tw2", "prompt": "Tap the color word for the dock where Eve waits.", "correct_word": "black" },
+        { "id": "p1_tw3", "prompt": "Tap the word Eve says for the outdoor walk.", "correct_word": "hike" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Who does Chan meet at the lake?",
+        "options": ["Grace with mice", "His pal Eve", "Will the whale", "The blue rocket"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Eve and Chan hike for a long time.",
+        "\"This is a long hike!\" says Chan.",
+        "\"Yes. It is five miles\" says Eve.",
+        "Eve and Chan talk as they walk.",
+        "Eve tells Chan when they are close to the top.",
+        "\"Here we are! The top of the hill!\" Eve yells.",
+        "Eve and Chan can see for miles.",
+        "\"Thank you for this grand hike,\" says Chan with a wide smile."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap how long the hike is.", "correct_word": "five" },
+        { "id": "p2_tw2", "prompt": "Tap the unit word Eve uses after five.", "correct_word": "miles" },
+        { "id": "p2_tw3", "prompt": "Tap the word Chan uses to say the hike is wonderful.", "correct_word": "grand" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Where do they end the hike?",
+        "options": ["Back in the sauna", "The top of the hill", "Under the blue rocket", "Inside the pet snake cage"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

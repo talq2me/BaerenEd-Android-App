@@ -27,6 +27,12 @@ class TaskLauncher(
 ) {
     companion object {
         private const val TAG = "TaskLauncher"
+
+        /**
+         * Config `task.launch` value: rotates through all `.json` files in GitHub path `ufliWordChains/` (alphabetical).
+         * Progress key in `game_indices`: same constant (advance after a completed run).
+         */
+        const val LAUNCH_UFLI_WORD_CHAIN_ROTATION = "ufliWordChains"
     }
 
     /**
@@ -382,6 +388,24 @@ class TaskLauncher(
      */
     private fun launchGameTask(task: Task, sectionId: String, sourceTaskId: String?, resultHandler: ActivityResultHandler?) {
         val requestedGameType = task.launch ?: "unknown"
+        if (requestedGameType.equals(LAUNCH_UFLI_WORD_CHAIN_ROTATION, ignoreCase = true)) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    launchRotatingUfliWordChains(task, sectionId, sourceTaskId, resultHandler)
+                } catch (e: Exception) {
+                    Log.e(TAG, "UFLI word-chain rotation failed", e)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            "${LAUNCH_UFLI_WORD_CHAIN_ROTATION} failed: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+            return
+        }
+
         val gameType = resolveWeeklyGameVariant(requestedGameType)
         val gameTitle = task.title ?: "Task"
 
@@ -428,6 +452,74 @@ class TaskLauncher(
         }
     }
 
+    /** Picks stems from GitHub `ufliWordChains/`, rotates by DB `game_indices[ufliWordChains]`. */
+    private suspend fun launchRotatingUfliWordChains(
+        task: Task,
+        sectionId: String,
+        sourceTaskId: String?,
+        resultHandler: ActivityResultHandler?
+    ) {
+        val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted()
+        if (stems.isEmpty()) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    "No UFLI word-chain JSON files found on GitHub (ufliWordChains/).",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            return
+        }
+
+        val dpm = DailyProgressManager(context)
+        val profile = dpm.getCurrentKid()
+        if (dpm.refetchSessionFromDb(profile).isFailure) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Could not load profile for rotation. Try again.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+
+        val rawIndex = dpm.getGameIndexFromCache(profile, LAUNCH_UFLI_WORD_CHAIN_ROTATION)
+        val slot = rawIndex.mod(stems.size)
+        val stem = stems[slot]
+
+        val gameContent = contentUpdateService.fetchGameContent(context, stem)
+            ?: kotlin.run {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "$stem content could not be loaded.", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+
+        val gameTitle = task.title ?: "UFLI word chains"
+        val game = Game(
+            id = stem,
+            title = gameTitle,
+            description = "Educational activity",
+            type = stem,
+            iconUrl = "",
+            requiresRewardTime = false,
+            difficulty = "Easy",
+            estimatedTime = task.stars ?: 1,
+            totalQuestions = task.totalQuestions,
+            blockOutlines = task.blockOutlines ?: false
+        )
+
+        withContext(Dispatchers.Main) {
+            launchGameActivity(
+                game,
+                gameContent,
+                sectionId,
+                sourceTaskId,
+                resultHandler,
+                ufliRotationKey = LAUNCH_UFLI_WORD_CHAIN_ROTATION,
+                ufliRotationBucketSize = stems.size,
+                ufliRotationSlot = slot
+            )
+        }
+    }
+
     /**
      * Rotates specific game content by calendar week while keeping the same launch id/task tracking.
      * Week cycle: A, B, C, then repeats.
@@ -453,7 +545,10 @@ class TaskLauncher(
         gameContent: String?,
         sectionId: String,
         sourceTaskId: String?,
-        resultHandler: ActivityResultHandler?
+        resultHandler: ActivityResultHandler?,
+        ufliRotationKey: String? = null,
+        ufliRotationBucketSize: Int = 0,
+        ufliRotationSlot: Int = 0
     ) {
         if (gameContent == null) {
             Toast.makeText(context, "${game.type} content not available", Toast.LENGTH_SHORT).show()
@@ -481,6 +576,11 @@ class TaskLauncher(
                 putExtra("BLOCK_OUTLINES", game.blockOutlines)
                 putExtra("SECTION_ID", sectionId)
                 sourceTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+                if (!ufliRotationKey.isNullOrBlank() && ufliRotationBucketSize > 0) {
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_KEY, ufliRotationKey)
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_BUCKET, ufliRotationBucketSize)
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_SLOT, ufliRotationSlot)
+                }
             }
 
             resultHandler?.launchActivity(intent, 1004) ?: (context as? Activity)?.startActivityForResult(intent, 1004)

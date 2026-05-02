@@ -1,0 +1,81 @@
+[
+  {
+    "prompt": { "text": "Make the word side.", "lang": "eng", "displayText": true },
+    "question": { "text": "side", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "i" }, { "text": "d" }, { "text": "e" }],
+    "extraChoices": [{ "text": "h" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Say side. Change s to h for hide. Build hide.", "lang": "eng", "displayText": true },
+    "question": { "text": "hide", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "i" }, { "text": "d" }, { "text": "e" }],
+    "extraChoices": [{ "text": "s" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Say hide. Change h to t for tide. Build tide.", "lang": "eng", "displayText": true },
+    "question": { "text": "tide", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "i" }, { "text": "d" }, { "text": "e" }],
+    "extraChoices": [{ "text": "h" }, { "text": "s" }]
+  },
+  {
+    "prompt": { "text": "Say tide. Change t to w for wide. Build wide.", "lang": "eng", "displayText": true },
+    "question": { "text": "wide", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "i" }, { "text": "d" }, { "text": "e" }],
+    "extraChoices": [{ "text": "t" }, { "text": "h" }]
+  },
+  {
+    "prompt": { "text": "Make the word like.", "lang": "eng", "displayText": true },
+    "question": { "text": "like", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "l" }, { "text": "i" }, { "text": "k" }, { "text": "e" }],
+    "extraChoices": [{ "text": "b" }, { "text": "h" }]
+  },
+  {
+    "prompt": { "text": "Say like. Change l to b for bike. Build bike.", "lang": "eng", "displayText": true },
+    "question": { "text": "bike", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "i" }, { "text": "k" }, { "text": "e" }],
+    "extraChoices": [{ "text": "l" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Say bike. Change b to h for hike. Build hike.", "lang": "eng", "displayText": true },
+    "question": { "text": "hike", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "i" }, { "text": "k" }, { "text": "e" }],
+    "extraChoices": [{ "text": "b" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Say hike. Change h to p for pike. Build pike.", "lang": "eng", "displayText": true },
+    "question": { "text": "pike", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "i" }, { "text": "k" }, { "text": "e" }],
+    "extraChoices": [{ "text": "h" }, { "text": "l" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: five. (We will be there by five.)", "lang": "eng", "displayText": true },
+    "question": { "text": "five", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "i" }, { "text": "v" }, { "text": "e" }],
+    "extraChoices": [{ "text": "o" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: kite. (Sample i_e.)", "lang": "eng", "displayText": true },
+    "question": { "text": "kite", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "k" }, { "text": "i" }, { "text": "t" }, { "text": "e" }],
+    "extraChoices": [{ "text": "u" }, { "text": "o" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: by.", "lang": "eng", "displayText": true },
+    "question": { "text": "by", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "y" }],
+    "extraChoices": [{ "text": "i" }, { "text": "e" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: my.", "lang": "eng", "displayText": true },
+    "question": { "text": "my", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "y" }],
+    "extraChoices": [{ "text": "e" }, { "text": "i" }]
+  },
+  {
+    "prompt": { "text": "Build rack. (The white rack can fit nine bikes.)", "lang": "eng", "displayText": true },
+    "question": { "text": "rack", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "r" }, { "text": "a" }, { "text": "c" }, { "text": "k" }],
+    "extraChoices": [{ "text": "p" }, { "text": "n" }]
+  }
+]
+

@@ -1,0 +1,56 @@
+{
+  "id": "ufli-fr-la-fleur-l50",
+  "title": "La fleur (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "La mère d'Ella aime les fleurs.",
+        "Ella a trouvé une belle fleur rouge.",
+        "Ella a mis la fleur dans le petit vase."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'flowers'.", "correct_word": "fleurs" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'found'.", "correct_word": "trouvé" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'red'.", "correct_word": "rouge" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "De quelle couleur est la fleur qu'Ella trouve ?",
+        "options": ["Jaune", "Rouge", "Grise", "Verte"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Le vase est sur le meuble dans la salle.",
+        "Elle donne la fleur à sa mère avec beaucoup d'amour."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'vase'.", "correct_word": "vase" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'furniture'.", "correct_word": "meuble" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'love'.", "correct_word": "amour" }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "La mère d'Ella a vu la fleur et elle a souri.",
+        "Elle adore la fleur!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'smiled'.", "correct_word": "souri" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'adores'.", "correct_word": "adore" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'flower'.", "correct_word": "fleur" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Qu'est-ce qu'Ella donne à sa mère ?",
+        "options": ["Un tigre", "Une fleur rouge", "Un bateau", "Une tuque"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

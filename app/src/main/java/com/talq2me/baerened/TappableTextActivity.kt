@@ -610,6 +610,7 @@ class TappableTextActivity : AppCompatActivity() {
         loadPageImage(page)
 
         val fullText = page.text.joinToString(" ")
+        textContainer.visibility = if (fullText.isNotBlank()) View.VISIBLE else View.GONE
         pageText.text = ""
         setClickableWordsForPage(fullText)
         pageText.text = currentPageSpannable
@@ -670,9 +671,13 @@ class TappableTextActivity : AppCompatActivity() {
         val tapPromptLocale: Locale?
         when (q) {
             is PageQuestion.TapWord -> {
-                if (easyMode) {
+                val bookLang = g.language?.lowercase(Locale.US)?.take(2).orEmpty()
+                if (easyMode && bookLang == "fr") {
                     prompt = buildEasyTapPrompt(q.question)
-                    // Entire easy prompt is English so one US TTS read is correct.
+                    tapPromptLocale = Locale.US
+                } else if (easyMode) {
+                    // English (or non-French) books: prompts are already in the book language.
+                    prompt = q.question.prompt
                     tapPromptLocale = Locale.US
                 } else {
                     prompt = q.question.prompt
@@ -1115,7 +1120,13 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     private fun loadPageImage(page: TappableTextPage) {
-        val imageId = page.image?.imageId ?: return
+        val imageId = page.image?.imageId?.trim()?.takeIf { it.isNotEmpty() }
+        if (imageId == null) {
+            imageView.setImageDrawable(null)
+            imageView.visibility = View.GONE
+            return
+        }
+        imageView.visibility = View.VISIBLE
         // Default: books/images/<id>.webp|.png — Boukili captures: full path e.g. boukili/singe/p1
         val tryPaths = if (imageId.contains('/')) {
             listOf("$imageId.webp", "$imageId.png")
@@ -1139,9 +1150,6 @@ class TappableTextActivity : AppCompatActivity() {
             Log.w(TAG, "Could not load image for image_id=$imageId (tried $tryPaths)")
             imageView.setImageDrawable(null)
         }
-
-        imageView.visibility = View.VISIBLE
-        textContainer.visibility = View.VISIBLE
     }
 }
 

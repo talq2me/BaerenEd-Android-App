@@ -1,0 +1,50 @@
+{
+  "id": "ufli-en-kites-for-sale-l55",
+  "title": "Kites for Sale",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Mike can ride his bike quite well.",
+        "Mike likes to ride his bike to sell kites.",
+        "Mike takes nine kites and a bit of twine.",
+        "He strings the kites to his bike with the twine.",
+        "As he rides, the kites go up, up, up.",
+        "You can see the kites for miles."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap how many toys for the sky Mike brings along.", "correct_word": "nine" },
+        { "id": "p1_tw2", "prompt": "Tap the thin string Mike uses on his bike.", "correct_word": "twine" },
+        { "id": "p1_tw3", "prompt": "Tap the word names what Mike climbs on wheels.", "correct_word": "bike" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What does Mike attach to his bike?",
+        "options": ["Snack boxes only", "Kites tied with twine", "A flute", "A lock"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Mike stops by a red gate and lets the kites wave.",
+        "\"Kites for sale!\" he yells.",
+        "Kids run to his bike.",
+        "Mike sells his kites for a dime.",
+        "\"Thank you, Mike!\" yell the kids as they take their kites."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the color word on the gate where Mike stops.", "correct_word": "red" },
+        { "id": "p2_tw2", "prompt": "Tap the small coin price for each kite.", "correct_word": "dime" },
+        { "id": "p2_tw3", "prompt": "Tap who runs to Mike when he yells.", "correct_word": "Kids" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What do the kids shout after they buy kites?",
+        "options": ["Goodbye!", "Thank you, Mike!", "Help us maze!", "Bath time!"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "ufli-en-music-class-l68",
+  "title": "Music Class",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Music class is the best because we get to sing.",
+        "It is no secret that I love to sing.",
+        "If you sing well, you get to have a solo."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the subject sounding better than silence here.", "correct_word": "Music" },
+        { "id": "p1_tw2", "prompt": "Tap the hidden gossip everyone already knows singers share.", "correct_word": "secret" },
+        { "id": "p1_tw3", "prompt": "Tap the solo chance reward for booming voices.", "correct_word": "solo" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What special chance comes if someone sings extremely well?",
+        "options": ["They skip whales", "They earn a solo", "They mop tile", "They lock snake cages"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "When I have a solo in music class, I pretend I am on a huge stage.",
+        "It is silent for a moment, then I begin.",
+        "I sing and sing like time is frozen.",
+        "At the end, my friends clap for me.",
+        "That is a nice bonus."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the dream setting bigger than rehearsal risers.", "correct_word": "stage" },
+        { "id": "p2_tw2", "prompt": "Tap the stillness before applause breaks.", "correct_word": "silent" },
+        { "id": "p2_tw3", "prompt": "Tap pals show praise with palms together.", "correct_word": "clap" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What metaphor captures singing without rushing clocks?",
+        "options": ["Riding bikes uphill", "Time is frozen during the solo stretch", "Fish flick fins", "Rockets dribble twine"],
+        "correct_index": 1
+      }
+    }
+  ]
+}
