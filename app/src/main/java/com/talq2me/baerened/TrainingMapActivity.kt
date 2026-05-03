@@ -812,7 +812,7 @@ open class TrainingMapActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val contentUpdateService = GitHubGameContentService()
-                    val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted()
+                    val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted(this@TrainingMapActivity)
                     if (stems.isEmpty()) {
                         withContext(Dispatchers.Main) {
                             android.widget.Toast.makeText(this@TrainingMapActivity, "No UFLI word chains found on GitHub", android.widget.Toast.LENGTH_SHORT).show()
@@ -848,7 +848,7 @@ open class TrainingMapActivity : AppCompatActivity() {
                             )
                             launchGameActivity(game, gameContent, sectionId, rotationKey, stems.size, slot)
                         } else {
-                            android.widget.Toast.makeText(this@TrainingMapActivity, "$stem content not available", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(this@TrainingMapActivity, "$stem content not available (rot)", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {
@@ -921,7 +921,7 @@ open class TrainingMapActivity : AppCompatActivity() {
                     if (gameContent != null) {
                         launchGameActivity(game, gameContent, sectionId)
                     } else {
-                        android.widget.Toast.makeText(this@TrainingMapActivity, "$gameType content not available", android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(this@TrainingMapActivity, "$gameType content not available (reg)", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {

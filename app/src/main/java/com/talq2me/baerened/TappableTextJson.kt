@@ -28,7 +28,12 @@ data class TappableTextPageImage(
 data class TappableWordQuestion(
     val id: String? = null,
     val prompt: String = "",
-    @SerializedName("correct_word") val correctWord: String = ""
+    @SerializedName("correct_word") val correctWord: String = "",
+    /**
+     * Optional override: if non-empty, only these strings (after [normalizeWord]) count as correct taps.
+     * Otherwise multi-word [correctWord] values are split automatically (spaces, NBSP, commas, etc.).
+     */
+    @SerializedName("correct_words") val correctWords: List<String> = emptyList()
 )
 
 data class TappableTextComprehensionQuestion(

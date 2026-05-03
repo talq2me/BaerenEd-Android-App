@@ -1759,7 +1759,7 @@ open class Layout(protected val activity: MainActivity) {
         else if (gameType == "ufliWordChains") {
             kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 try {
-                    val stems = activity.contentUpdateService.fetchUfliWordChainStemNamesSorted()
+                    val stems = activity.contentUpdateService.fetchUfliWordChainStemNamesSorted(activity)
                     if (stems.isEmpty()) {
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             android.widget.Toast.makeText(activity, "No UFLI word chains found", android.widget.Toast.LENGTH_SHORT).show()
@@ -1794,7 +1794,7 @@ open class Layout(protected val activity: MainActivity) {
                             )
                             activity.startGame(game, gameContent, sectionId, sourceTaskId, rotationKey, stems.size, slot)
                         } else {
-                            android.widget.Toast.makeText(activity, "$stem content not available", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(activity, "$stem content not available (rot)", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {

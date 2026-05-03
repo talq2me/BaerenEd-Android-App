@@ -56,7 +56,10 @@ class GameActivity : AppCompatActivity() {
     private var ufliRotationPersistKey: String? = null
     private var ufliRotationBucketSize: Int = 0
     private var ufliRotationSlotAtLaunch: Int = 0
-    private val selectedChoices = mutableSetOf<String>()
+    /** Grid slot indices (0..n-1) already used this question — duplicate letters need separate slots. */
+    private val usedChoiceSlots = mutableSetOf<Int>()
+    /** Parallel to [userAnswers]: which slot each picked letter came from (for delete / re-enable). */
+    private val answerSlotStack = mutableListOf<Int>()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
@@ -188,12 +191,10 @@ class GameActivity : AppCompatActivity() {
     private fun setupClickListeners() {
         findViewById<Button>(R.id.deleteButton).setOnClickListener {
             if (userAnswers.isNotEmpty()) {
-                val removedChoice = userAnswers.removeAt(userAnswers.lastIndex)
-                selectedChoices.remove(removedChoice)
-
-                // Re-enable the choice button that was just removed
-                reEnableChoiceButton(removedChoice)
-
+                userAnswers.removeAt(userAnswers.lastIndex)
+                val slot = answerSlotStack.removeAt(answerSlotStack.lastIndex)
+                usedChoiceSlots.remove(slot)
+                reEnableChoiceButtonBySlot(slot)
                 updateMessage() // Update message area with remaining text
             }
         }
@@ -438,7 +439,8 @@ class GameActivity : AppCompatActivity() {
 
     private fun resetForRefresh() {
         userAnswers.clear()
-        selectedChoices.clear()
+        usedChoiceSlots.clear()
+        answerSlotStack.clear()
         reEnableAllChoiceButtons()
         findViewById<TextView>(R.id.messageArea).text = ""
         val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
@@ -569,7 +571,8 @@ class GameActivity : AppCompatActivity() {
         currentQuestion = gameEngine.getCurrentQuestion()
         val q = currentQuestion!!
         userAnswers.clear()
-        selectedChoices.clear() // Clear selected choices for new question
+        usedChoiceSlots.clear()
+        answerSlotStack.clear()
         reEnableAllChoiceButtons() // Re-enable all choice buttons for new question
         audioClipsPlayedForCurrentQuestion = false // Reset flag for new question
 
@@ -768,8 +771,9 @@ class GameActivity : AppCompatActivity() {
         grid.columnCount = columnCount
         android.util.Log.d("GameActivity", "Dynamic grid: screenWidth=$screenWidth, availableWidth=$availableWidth, maxTextWidth=$maxTextWidth, requiredButtonWidth=$requiredButtonWidth, calculatedColumns=$calculatedColumns, columnCount=$columnCount, finalButtonWidth=$finalButtonWidth")
 
-        for (choice in allChoices) {
+        for ((slotIndex, choice) in allChoices.withIndex()) {
             val btn = Button(this)
+            btn.tag = slotIndex
             btn.text = choice.text
             btn.textSize = 24f // Larger text for kids
             // Ensure text displays exactly as in JSON (no auto-capitalization)
@@ -797,9 +801,10 @@ class GameActivity : AppCompatActivity() {
             btn.minHeight = (60 * density).toInt() // Minimum height for finger tapping
 
             btn.setOnClickListener {
-                if (!selectedChoices.contains(choice.text)) {
+                if (!usedChoiceSlots.contains(slotIndex)) {
                     userAnswers.add(choice.text)
-                    selectedChoices.add(choice.text)
+                    usedChoiceSlots.add(slotIndex)
+                    answerSlotStack.add(slotIndex)
                     // Mark button as used by greying it out
                     btn.alpha = 0.5f
                     updateMessage()
@@ -875,11 +880,11 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun reEnableChoiceButton(choiceText: String) {
+    private fun reEnableChoiceButtonBySlot(slotIndex: Int) {
         val choicesGrid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
         for (i in 0 until choicesGrid.childCount) {
             val child = choicesGrid.getChildAt(i)
-            if (child is Button && child.text == choiceText) {
+            if (child is Button && (child.tag as? Number)?.toInt() == slotIndex) {
                 child.isEnabled = true
                 child.alpha = 1.0f // Restore normal appearance
                 break

@@ -52,10 +52,10 @@ class TappableTextActivity : AppCompatActivity() {
 
         /**
          * When true: English tap hints ([buildEasyTapPrompt]); after 3 wrong taps, the answer is
-         * highlighted in green; a correct tap speaks the French word, then a US phrase like
-         * "chat means cat" when the prompt has an English gloss; wrong taps speak the tapped word
-         * in the book language. While the tap question is still locked (prompt TTS), any word tap
-         * is read aloud in the book language.
+         * highlighted in green; a correct tap speaks the French word, then a short US phrase
+         * ("Good job") so we do not read French with an English voice; wrong taps speak the tapped
+         * word in the book language. While the tap question is still locked (prompt TTS), any word
+         * tap is read aloud in the book language.
          */
         const val EXTRA_EASY_MODE = "easy_mode"
 
@@ -107,7 +107,8 @@ class TappableTextActivity : AppCompatActivity() {
     private var currentQuestionIndex: Int = 0
 
     private var interactionEnabled: Boolean = false
-    private var activeTapCorrectNormalizedToken: String? = null
+    /** Normalized acceptable tap targets for the current TapWord question (any match counts). */
+    private var activeTapAcceptableNormalizedTokens: List<String>? = null
 
     private var currentWordSpans: List<WordSpan> = emptyList()
     private var currentPageSpannable: SpannableStringBuilder? = null
@@ -136,19 +137,17 @@ class TappableTextActivity : AppCompatActivity() {
     private val utteranceTapSuccessDone = "tt_tap_success_done"
     private val utteranceTapSuccessFr = "tt_tap_success_fr"
 
-    /** After French surface word finishes, speak this English gloss (easy mode). */
-    private var pendingTapSuccessEnglishGloss: String? = null
-
-    /** French surface for the "… means …" US follow-up after [utteranceTapSuccessFr]. */
-    private var pendingTapSuccessFrenchSurface: String? = null
+    /** After French surface word in easy mode (with gloss prompt), spoken in US TTS. */
+    private val tapSuccessEnglishFollowup = "Good job"
     private var resolveErrorMessage: String? = null
 
     private val firstPageNarrationDelayMs = 4000L
     private val pageTurnNarrationDelayMs = 2000L
-    private val narrationWordStepMinMs = 180L
-    private val narrationWordStepMaxMs = 650L
-    private val narrationWordMsPerChar = 42L
-    private val narrationWordBaseMs = 150L
+    // Per-word highlight dwell during auto-narration (slightly slower reads better with TTS).
+    private val narrationWordStepMinMs = 240L
+    private val narrationWordStepMaxMs = 850L
+    private val narrationWordMsPerChar = 55L
+    private val narrationWordBaseMs = 200L
     private val narrationHighlightColor = 0x66FFD54F.toInt()
     private var narrationWordRunnable: Runnable? = null
     private var narrationWordCursor: Int = 0
@@ -157,7 +156,7 @@ class TappableTextActivity : AppCompatActivity() {
     private var questionUnlockRunnable: Runnable? = null
     private val httpClient = OkHttpClient.Builder().build()
     private val githubAssetsBase = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets"
-    private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/main?recursive=1"
+    private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/V3?recursive=1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -487,27 +486,13 @@ class TappableTextActivity : AppCompatActivity() {
                             enableCurrentQuestionInteraction()
                         }
                         utteranceTapSuccessFr -> {
-                            val surface = pendingTapSuccessFrenchSurface?.trim().orEmpty()
-                            pendingTapSuccessFrenchSurface = null
-                            val gloss = pendingTapSuccessEnglishGloss?.trim().orEmpty()
-                            pendingTapSuccessEnglishGloss = null
-                            if (gloss.isNotEmpty() && surface.isNotEmpty()) {
-                                TtsManager.speak(
-                                    "$surface means $gloss",
-                                    Locale.US,
-                                    TextToSpeech.QUEUE_FLUSH,
-                                    utteranceTapSuccessDone
-                                )
-                            } else if (gloss.isNotEmpty()) {
-                                TtsManager.speak(
-                                    "means $gloss",
-                                    Locale.US,
-                                    TextToSpeech.QUEUE_FLUSH,
-                                    utteranceTapSuccessDone
-                                )
-                            } else {
-                                onTapSuccessTtsFinished()
-                            }
+                            // Avoid "French means English" in US voice (mispronounces the French surface).
+                            TtsManager.speak(
+                                tapSuccessEnglishFollowup,
+                                Locale.US,
+                                TextToSpeech.QUEUE_FLUSH,
+                                utteranceTapSuccessDone
+                            )
                         }
                         utteranceTapSuccessDone -> onTapSuccessTtsFinished()
                     }
@@ -528,11 +513,7 @@ class TappableTextActivity : AppCompatActivity() {
                             ttsQuestionDoneUtteranceId = null
                             enableCurrentQuestionInteraction()
                         }
-                        utteranceTapSuccessFr -> {
-                            pendingTapSuccessEnglishGloss = null
-                            pendingTapSuccessFrenchSurface = null
-                            onTapSuccessTtsFinished()
-                        }
+                        utteranceTapSuccessFr -> onTapSuccessTtsFinished()
                         utteranceTapSuccessDone -> onTapSuccessTtsFinished()
                     }
                 }
@@ -642,7 +623,7 @@ class TappableTextActivity : AppCompatActivity() {
 
         stopNarrationWordHighlight()
         interactionEnabled = false
-        activeTapCorrectNormalizedToken = null
+        activeTapAcceptableNormalizedTokens = null
         optionsContainer.removeAllViews()
         questionContainer.visibility = View.GONE
 
@@ -703,7 +684,7 @@ class TappableTextActivity : AppCompatActivity() {
         questionContainer.visibility = View.VISIBLE
         optionsContainer.removeAllViews()
         interactionEnabled = false
-        activeTapCorrectNormalizedToken = null
+        activeTapAcceptableNormalizedTokens = null
         clearPageTextHighlightSpans()
         if (q is PageQuestion.TapWord) {
             tapWordWrongGuesses = 0
@@ -763,11 +744,11 @@ class TappableTextActivity : AppCompatActivity() {
 
         when (q) {
             is PageQuestion.TapWord -> {
-                activeTapCorrectNormalizedToken = normalizeWord(q.question.correctWord)
+                activeTapAcceptableNormalizedTokens = buildAcceptableNormalizedTokens(q.question)
                 optionsContainer.visibility = View.GONE
             }
             is PageQuestion.Comprehension -> {
-                activeTapCorrectNormalizedToken = null
+                activeTapAcceptableNormalizedTokens = null
                 optionsContainer.visibility = View.VISIBLE
                 populateComprehensionOptions(q.question)
             }
@@ -877,17 +858,49 @@ class TappableTextActivity : AppCompatActivity() {
         return n.replace("\\p{M}+".toRegex(), "")
     }
 
+    /** Collapse NBSP and other Unicode separators to a normal space so multi-word answers split reliably. */
+    private fun normalizeUnicodeSpaces(s: String): String =
+        s.replace(Regex("\\p{Z}+"), " ").trim()
+
     private fun normalizeWord(raw: String): String {
         // Normalize for taps:
+        // - Unicode whitespace → ASCII space (NBSP in JSON vs page text)
         // - Lowercase
         // - Replace curly apostrophes with ASCII
         // - Strip leading/trailing non-letter characters (keep internal apostrophes)
         // - Strip combining marks so story text vs JSON accents still match
-        val s = raw.trim().lowercase(Locale.getDefault())
+        val s = normalizeUnicodeSpaces(raw).lowercase(Locale.getDefault())
             .replace('’', '\'')
             .replace('‑', '-')
         val stripped = s.replace(Regex("^[^\\p{L}']+|[^\\p{L}']+$"), "")
         return stripDiacritics(stripped)
+    }
+
+    /**
+     * Acceptable normalized tap targets:
+     * - If [TappableWordQuestion.correctWords] is non-empty in JSON, those entries only (explicit override).
+     * - Else split [correctWord] on Unicode separators, commas, or semicolons, normalize each segment,
+     *   and accept any one segment (so `"crème glacée"` works without a separate `correct_words` array).
+     */
+    private fun buildAcceptableNormalizedTokens(q: TappableWordQuestion): List<String> {
+        val explicit = q.correctWords.map { normalizeWord(it) }.filter { it.isNotEmpty() }.distinct()
+        if (explicit.isNotEmpty()) return explicit
+
+        val raw = normalizeUnicodeSpaces(q.correctWord.trim())
+        if (raw.isEmpty()) return emptyList()
+        val segments = raw.split(Regex("[\\p{Z},;]+")).map { it.trim() }.filter { it.isNotEmpty() }
+        val norms = segments.map { normalizeWord(it) }.filter { it.isNotEmpty() }.distinct()
+        if (norms.isEmpty()) return emptyList()
+        return if (norms.size > 1) norms else listOf(norms.first())
+    }
+
+    private fun revealSurfacesForTapFallback(q: TappableWordQuestion?): List<String> {
+        if (q == null) return emptyList()
+        val surfaces = linkedSetOf<String>()
+        val cw = q.correctWord.trim()
+        if (cw.isNotEmpty()) surfaces.add(cw)
+        q.correctWords.forEach { t -> if (t.isNotBlank()) surfaces.add(t.trim()) }
+        return surfaces.sortedByDescending { it.length }
     }
 
     /**
@@ -1016,30 +1029,24 @@ class TappableTextActivity : AppCompatActivity() {
         TtsManager.whenReady(Runnable {
             when {
                 isFrench && gloss != null -> {
-                    pendingTapSuccessFrenchSurface = surfaceWord.trim()
-                    pendingTapSuccessEnglishGloss = gloss
                     TtsManager.speak(surfaceWord.trim(), Locale.FRENCH, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessFr)
                 }
                 isFrench -> {
-                    pendingTapSuccessFrenchSurface = null
-                    pendingTapSuccessEnglishGloss = null
                     TtsManager.speak(surfaceWord.trim(), Locale.FRENCH, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessDone)
                 }
                 else -> {
-                    pendingTapSuccessFrenchSurface = null
-                    pendingTapSuccessEnglishGloss = null
                     TtsManager.speak(surfaceWord.trim(), Locale.US, TextToSpeech.QUEUE_FLUSH, utteranceTapSuccessDone)
                 }
             }
         })
     }
 
-    private fun revealTapAnswerHighlights(correctNormalizedToken: String) {
+    private fun revealTapAnswerHighlights(acceptable: List<String>) {
         val spannable = currentPageSpannable ?: return
         clearPageTextHighlightSpans()
         var highlightedAny = false
         currentWordSpans.forEach { w ->
-            if (tapMatchesCorrectWord(w.normalizedToken, correctNormalizedToken)) {
+            if (acceptable.any { tapMatchesCorrectWord(w.normalizedToken, it) }) {
                 spannable.setSpan(
                     BackgroundColorSpan(tapRevealHighlightColor),
                     w.start,
@@ -1051,9 +1058,8 @@ class TappableTextActivity : AppCompatActivity() {
         }
         if (!highlightedAny) {
             val q = currentQuestions.getOrNull(currentQuestionIndex) as? PageQuestion.TapWord
-            val surface = q?.question?.correctWord?.trim().orEmpty()
-            if (surface.isNotEmpty()) {
-                val haystack = spannable.toString()
+            val haystack = spannable.toString()
+            for (surface in revealSurfacesForTapFallback(q?.question)) {
                 val idx = findIgnoreCaseIndex(haystack, surface)
                 if (idx >= 0) {
                     val end = (idx + surface.length).coerceAtMost(haystack.length)
@@ -1064,6 +1070,7 @@ class TappableTextActivity : AppCompatActivity() {
                         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
                     highlightedAny = true
+                    break
                 }
             }
         }
@@ -1071,13 +1078,14 @@ class TappableTextActivity : AppCompatActivity() {
         if (highlightedAny) {
             Toast.makeText(this, tapRevealToastMessage, Toast.LENGTH_LONG).show()
         } else {
-            Log.w(TAG, "revealTapAnswerHighlights: no span matched correct=$correctNormalizedToken")
+            Log.w(TAG, "revealTapAnswerHighlights: no span matched acceptable=$acceptable")
             Toast.makeText(this, "Could not highlight the answer on this page.", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun setClickableWordsForPage(fullText: String) {
-        val tokens = fullText.split(Regex("\\s+")).filter { it.isNotEmpty() }
+        // Split on any Unicode separator (NBSP, thin space, etc.), not ASCII \s only.
+        val tokens = fullText.split(Regex("\\p{Z}+")).filter { it.isNotEmpty() }
         if (tokens.isEmpty()) {
             currentWordSpans = emptyList()
             currentPageSpannable = SpannableStringBuilder(fullText)
@@ -1089,7 +1097,11 @@ class TappableTextActivity : AppCompatActivity() {
 
         var searchStart = 0
         tokens.forEach { token ->
-            val start = fullText.indexOf(token, searchStart).coerceAtLeast(0)
+            val start = fullText.indexOf(token, searchStart)
+            if (start < 0) {
+                Log.w(TAG, "setClickableWordsForPage: token not found (searchStart=$searchStart): '$token'")
+                return@forEach
+            }
             val end = (start + token.length).coerceAtMost(fullText.length)
             if (end <= start) return@forEach
 
@@ -1104,20 +1116,21 @@ class TappableTextActivity : AppCompatActivity() {
                         val rawSurface = tv.text.subSequence(start, end).toString()
 
                         // Easy mode: hear any word while waiting for the tap question to unlock (TTS still playing).
-                        if (easyMode && (activeTapCorrectNormalizedToken == null || !interactionEnabled)) {
+                        if (easyMode && (activeTapAcceptableNormalizedTokens.isNullOrEmpty() || !interactionEnabled)) {
                             speakExploreWord(rawSurface)
                             return
                         }
                         if (!interactionEnabled) return
 
-                        val correct = activeTapCorrectNormalizedToken ?: return
+                        val acceptable = activeTapAcceptableNormalizedTokens ?: return
+                        if (acceptable.isEmpty()) return
                         val qNow = currentQuestions.getOrNull(currentQuestionIndex)
                         if (qNow !is PageQuestion.TapWord) return
 
                         val clickedNormalizedToken = normalized
-                        if (tapMatchesCorrectWord(clickedNormalizedToken, correct)) {
+                        if (acceptable.any { tapMatchesCorrectWord(clickedNormalizedToken, it) }) {
                             interactionEnabled = false
-                            highlightCorrectWord(correct)
+                            highlightCorrectWord(acceptable)
                             if (easyMode) {
                                 Toast.makeText(this@TappableTextActivity, wordTapCorrectMessage, Toast.LENGTH_SHORT).show()
                                 speakTapSuccessThenAdvance(rawSurface, qNow.question)
@@ -1133,7 +1146,7 @@ class TappableTextActivity : AppCompatActivity() {
                                 tapWordWrongGuesses++
                                 if (tapWordWrongGuesses >= 3) {
                                     tapAnswerRevealed = true
-                                    revealTapAnswerHighlights(correct)
+                                    revealTapAnswerHighlights(acceptable)
                                 }
                             }
                             Toast.makeText(this@TappableTextActivity, wordTapWrongMessage, Toast.LENGTH_SHORT).show()
@@ -1157,11 +1170,11 @@ class TappableTextActivity : AppCompatActivity() {
         currentPageSpannable = spannable
     }
 
-    private fun highlightCorrectWord(correctNormalizedToken: String) {
+    private fun highlightCorrectWord(acceptable: List<String>) {
         val spannable = currentPageSpannable ?: return
         clearPageTextHighlightSpans()
         currentWordSpans.forEach { w ->
-            if (tapMatchesCorrectWord(w.normalizedToken, correctNormalizedToken)) {
+            if (acceptable.any { tapMatchesCorrectWord(w.normalizedToken, it) }) {
                 spannable.setSpan(
                     BackgroundColorSpan(ttsHighlightColor),
                     w.start,

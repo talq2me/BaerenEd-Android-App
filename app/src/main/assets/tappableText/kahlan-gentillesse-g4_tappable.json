@@ -94,7 +94,7 @@
       ],
       "image": { "image_id": "kahlan_page5" },
       "tappable_word_questions": [
-        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'old lady'.", "correct_word": "dame" },
+        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'water'.", "correct_word": "eau" },
         { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'street'.", "correct_word": "rue" },
         { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'special'.", "correct_word": "spécial" }
       ]
@@ -151,7 +151,7 @@
       ],
       "image": { "image_id": "kahlan_page8" },
       "tappable_word_questions": [
-        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'starry sky'.", "correct_word": "étoilé" },
+        { "id": "p8_tw1", "prompt": "Tape le mot qui veut dire 'watches' / 'looks at'.", "correct_word": "regarde" },
         { "id": "p8_tw2", "prompt": "Tape le mot qui veut dire 'hugs'.", "correct_word": "serre" },
         { "id": "p8_tw3", "prompt": "Tape le mot qui veut dire 'world'.", "correct_word": "monde" }
       ]

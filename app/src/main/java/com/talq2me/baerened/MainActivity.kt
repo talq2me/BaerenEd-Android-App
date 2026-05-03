@@ -1376,7 +1376,7 @@ class MainActivity : AppCompatActivity() {
         
         // GitHub upload configuration
         // GitHub token is encrypted using AES-256-CBC and stored in BuildConfig
-        // Repository: BaerenCloud (dedicated repository for reports and artifacts)
+        // Repository: BaerenEd-Android-App (dedicated repository for reports and artifacts)
         // Reports path: BaerenEd_Reports/
         // 
         // How encryption works:
@@ -1389,7 +1389,7 @@ class MainActivity : AppCompatActivity() {
         // - The encrypted token is just random Base64 data, so GitHub won't detect it
         // - The key being in source code is fine - you need BOTH key + encrypted token to decrypt
         private const val GITHUB_OWNER = "talq2me"
-        private const val GITHUB_REPO = "BaerenCloud"
+        private const val GITHUB_REPO = "BaerenEd-Android-App"
         private const val GITHUB_REPORTS_PATH = "BaerenEd_Reports"  // Directory in repo for reports
     }
 
@@ -1423,7 +1423,7 @@ class MainActivity : AppCompatActivity() {
                 if (gameContent != null) {
                     launchGameActivity(game, gameContent, sectionId, battleHubTaskId, ufliRotationKey, ufliRotationBucketSize, ufliRotationSlot)
                 } else {
-                    Toast.makeText(this, "${game.type} content not available", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "${game.type} content not available (id=${game.id})", Toast.LENGTH_SHORT).show()
                 }
             }
         }

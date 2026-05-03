@@ -460,7 +460,7 @@ class TaskLauncher(
         sourceTaskId: String?,
         resultHandler: ActivityResultHandler?
     ) {
-        val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted()
+        val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted(context)
         if (stems.isEmpty()) {
             withContext(Dispatchers.Main) {
                 Toast.makeText(

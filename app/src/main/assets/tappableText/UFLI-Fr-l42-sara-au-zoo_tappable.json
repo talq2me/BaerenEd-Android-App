@@ -32,7 +32,7 @@
         "Elle adore la crème glacée avec Max et sa mère!"
       ],
       "tappable_word_questions": [
-        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'ice cream'.", "correct_word": "crème" },
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'after'.", "correct_word": "Après" },
         { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'took'.", "correct_word": "pris" },
         { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'mother'.", "correct_word": "mère" }
       ],

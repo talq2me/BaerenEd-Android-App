@@ -1,0 +1,15 @@
+---
+description: Tappable text JSON must use single-word tap targets only (no multi-word correct_word).
+globs: "**/tappableText/**/*.json"
+alwaysApply: false
+---
+
+# Tappable text JSON — single-word answers only
+
+When authoring or editing `tappable_word_questions` in any file under `app/src/main/assets/tappableText/` (or the same JSON deployed to GitHub Pages):
+
+- **`correct_word` must be exactly one French (or English) word** — no spaces, no comma-separated pairs, no multi-word phrases. Hyphenated compounds that appear as **one** token in the story (e.g. `cache-cache`, `cerf-volant`) are allowed because they are still one tap span.
+- **Do not** rely on `correct_words` arrays or app logic to split phrases for “tap any part of the answer.” If the gloss matches a phrase in the text, **change the prompt** to target a different single word on that page (or rewrite the line) instead of using two words in `correct_word`.
+- **Easy-mode English prompts** should name that same single surface word (or describe it unambiguously without requiring two taps).
+
+Rationale: multi-word targets are fragile with tokenization, TTS, and UX; this project standardizes on one word per tap question.
