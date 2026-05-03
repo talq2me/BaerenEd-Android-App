@@ -806,6 +806,60 @@ open class TrainingMapActivity : AppCompatActivity() {
             startActivityForResult(intent, 1008)
             return
         }
+
+        // Check for UFLI word chain rotation
+        if (gameType == "ufliWordChains") {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val contentUpdateService = GitHubGameContentService()
+                    val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted()
+                    if (stems.isEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            android.widget.Toast.makeText(this@TrainingMapActivity, "No UFLI word chains found on GitHub", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
+
+                    val dpm = DailyProgressManager(this@TrainingMapActivity)
+                    val profile = dpm.getCurrentKid()
+                    // Re-fetch to ensure we have latest indices from cloud
+                    dpm.refetchSessionFromDb(profile)
+                    
+                    val rotationKey = "ufliWordChains"
+                    val rawIndex = dpm.getGameIndexFromCache(profile, rotationKey)
+                    val slot = rawIndex.mod(stems.size)
+                    val stem = stems[slot]
+                    
+                    val gameContent = contentUpdateService.fetchGameContent(this@TrainingMapActivity, stem)
+                    
+                    withContext(Dispatchers.Main) {
+                        if (gameContent != null) {
+                            val game = Game(
+                                id = stem,
+                                title = gameTitle,
+                                description = "Educational activity",
+                                type = stem,
+                                iconUrl = "",
+                                requiresRewardTime = false,
+                                difficulty = "Easy",
+                                estimatedTime = task.stars ?: 1,
+                                totalQuestions = task.totalQuestions,
+                                blockOutlines = task.blockOutlines ?: false
+                            )
+                            launchGameActivity(game, gameContent, sectionId, rotationKey, stems.size, slot)
+                        } else {
+                            android.widget.Toast.makeText(this@TrainingMapActivity, "$stem content not available", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("TrainingMapActivity", "Error launching UFLI word chains", e)
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(this@TrainingMapActivity, "Error loading UFLI rotation", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            return
+        }
         
         // Check for Printing Game (doesn't need JSON)
         if (gameType == "printing") {
@@ -942,7 +996,14 @@ open class TrainingMapActivity : AppCompatActivity() {
         startActivityForResult(intent, 1006) // Use 1006 for SpellingOCRActivity
     }
     
-    private fun launchGameActivity(game: Game, gameContent: String, sectionId: String) {
+    private fun launchGameActivity(
+        game: Game,
+        gameContent: String,
+        sectionId: String,
+        ufliRotationKey: String? = null,
+        ufliRotationBucketSize: Int = 0,
+        ufliRotationSlot: Int = 0
+    ) {
         try {
             val gson = Gson()
             val questions = gson.fromJson(gameContent, Array<GameData>::class.java)
@@ -978,6 +1039,11 @@ open class TrainingMapActivity : AppCompatActivity() {
                 putExtra("IS_REQUIRED_GAME", isRequired)
                 putExtra("BLOCK_OUTLINES", game.blockOutlines)
                 putExtra("SECTION_ID", sectionId)
+                if (ufliRotationKey != null && ufliRotationBucketSize > 0) {
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_KEY, ufliRotationKey)
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_BUCKET, ufliRotationBucketSize)
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_SLOT, ufliRotationSlot)
+                }
             }
             
             startActivityForResult(intent, 1004) // Use 1004 for GameActivity

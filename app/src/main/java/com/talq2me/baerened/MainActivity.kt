@@ -1393,7 +1393,15 @@ class MainActivity : AppCompatActivity() {
         private const val GITHUB_REPORTS_PATH = "BaerenEd_Reports"  // Directory in repo for reports
     }
 
-    fun startGame(game: Game, gameContent: String? = null, sectionId: String? = null, battleHubTaskId: String? = null) {
+    fun startGame(
+        game: Game,
+        gameContent: String? = null,
+        sectionId: String? = null,
+        battleHubTaskId: String? = null,
+        ufliRotationKey: String? = null,
+        ufliRotationBucketSize: Int = 0,
+        ufliRotationSlot: Int = 0
+    ) {
         Log.d(TAG, "Starting game: ${game.title}")
 
         when (game.type) {
@@ -1413,7 +1421,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (gameContent != null) {
-                    launchGameActivity(game, gameContent, sectionId, battleHubTaskId)
+                    launchGameActivity(game, gameContent, sectionId, battleHubTaskId, ufliRotationKey, ufliRotationBucketSize, ufliRotationSlot)
                 } else {
                     Toast.makeText(this, "${game.type} content not available", Toast.LENGTH_SHORT).show()
                 }
@@ -1488,7 +1496,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun launchGameActivity(game: Game, gameContent: String, sectionId: String? = null, battleHubTaskId: String? = null) {
+    private fun launchGameActivity(
+        game: Game,
+        gameContent: String,
+        sectionId: String? = null,
+        battleHubTaskId: String? = null,
+        ufliRotationKey: String? = null,
+        ufliRotationBucketSize: Int = 0,
+        ufliRotationSlot: Int = 0
+    ) {
         try {
             val gson = Gson()
             val questions = gson.fromJson(gameContent, Array<GameData>::class.java)
@@ -1528,6 +1544,11 @@ class MainActivity : AppCompatActivity() {
                 sectionId?.let { putExtra("SECTION_ID", it) }
                 // Pass battleHubTaskId if this game was launched from battle hub
                 battleHubTaskId?.let { putExtra("BATTLE_HUB_TASK_ID", it) }
+                if (ufliRotationKey != null && ufliRotationBucketSize > 0) {
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_KEY, ufliRotationKey)
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_BUCKET, ufliRotationBucketSize)
+                    putExtra(GameActivity.EXTRA_UFLI_ROTATION_SLOT, ufliRotationSlot)
+                }
             }
             
             // If launched from battle hub, use launcher to get result; otherwise just start activity

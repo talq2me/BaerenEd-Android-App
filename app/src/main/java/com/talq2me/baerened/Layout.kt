@@ -1756,6 +1756,52 @@ open class Layout(protected val activity: MainActivity) {
             }
             activity.startActivity(intent)
         }
+        else if (gameType == "ufliWordChains") {
+            kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val stems = activity.contentUpdateService.fetchUfliWordChainStemNamesSorted()
+                    if (stems.isEmpty()) {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            android.widget.Toast.makeText(activity, "No UFLI word chains found", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
+
+                    val dpm = DailyProgressManager(activity)
+                    val profile = dpm.getCurrentKid()
+                    dpm.refetchSessionFromDb(profile)
+                    
+                    val rotationKey = "ufliWordChains"
+                    val rawIndex = dpm.getGameIndexFromCache(profile, rotationKey)
+                    val slot = rawIndex.mod(stems.size)
+                    val stem = stems[slot]
+                    
+                    val gameContent = activity.contentUpdateService.fetchGameContent(activity, stem)
+                    
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        if (gameContent != null) {
+                            val game = Game(
+                                id = stem,
+                                title = gameTitle,
+                                description = "Educational activity",
+                                type = stem,
+                                iconUrl = "",
+                                requiresRewardTime = false,
+                                difficulty = "Easy",
+                                estimatedTime = task.stars ?: 1,
+                                totalQuestions = task.totalQuestions,
+                                blockOutlines = task.blockOutlines ?: false
+                            )
+                            activity.startGame(game, gameContent, sectionId, sourceTaskId, rotationKey, stems.size, slot)
+                        } else {
+                            android.widget.Toast.makeText(activity, "$stem content not available", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("Layout", "Error launching UFLI word chains", e)
+                }
+            }
+        }
         else {
             // Handle regular game content - use exact same logic as main page
             kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
