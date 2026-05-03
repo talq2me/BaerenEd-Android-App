@@ -273,9 +273,10 @@ class TaskLauncher(
     }
 
     /**
-     * Launch TappableTextActivity (book-style JSON from assets/tappableText/).
+     * Launch TappableTextActivity (book-style JSON from GitHub `tappableText/`).
      * - Empty url, or `rotate` / `list` → rotate through all `*_tappable.json` (per-kid game_indices key [TappableTextActivity.GAME_KEY_TAPPABLE_BOOK_ROTATION]).
-     * - `lang=fr` or `language=en` (optionally with `?` / `&`) → rotate only books whose JSON root `language` matches (game key becomes `tappableTextBooks_fr`, etc.).
+     * - `lang=fr` or `language=en` (optional `?` / `&`) → rotate only books whose JSON root `language` matches (key `tappableTextBooks_fr`, etc.).
+     * - Optional `ufli=only` (basename starts with `ufli`) or `ufli=no` / `ufli=exclude` (exclude those); rotation key gains `_ufli` or `_noufli`.
      * - Otherwise url is a single book, e.g. `file=milo-sandwich-geant-g4_tappable.json` or the bare filename.
      */
     private fun launchTappableText(

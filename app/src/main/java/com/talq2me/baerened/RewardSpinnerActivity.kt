@@ -121,8 +121,11 @@ class RewardSpinnerActivity : AppCompatActivity() {
                             "af_get_or_unlock_daily_prize ok: profile=$profile eligible=${r.eligible} newly=${r.newlyUnlocked} prize=${r.prizeUnlocked} err=${r.serverError}"
                         )
                         dailyPrizeResult = r
+                        // Animate on any user-initiated unlock/reveal with a prize (not only when SQL sets
+                        // newly_unlocked — PostgREST/Gson can omit or mishandle that flag).
+                        val prizeNow = r.prizeUnlocked?.trim().orEmpty()
                         maybeRenderDailyPrizeResult(
-                            animateLanding = fromUserTap && r.newlyUnlocked
+                            animateLanding = fromUserTap && prizeNow.isNotEmpty()
                         )
                     },
                     onFailure = { e ->
@@ -191,7 +194,7 @@ class RewardSpinnerActivity : AppCompatActivity() {
             }
         }
 
-        // First reveal after unlocking: animate wheel; later "Show Prize" taps skip animation.
+        // User tapped Spin and server returned a prize: spin the wheel (Show Prize re-tap uses showUnlockedPrize).
         if (animateLanding && selectedIndex >= 0) {
             spinButton.isEnabled = false
             spinToIndex(selectedIndex) {

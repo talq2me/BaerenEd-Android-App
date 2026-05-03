@@ -99,6 +99,12 @@
       return 10;
     }
 
+    /** Coach mode: teach the path without stating the final numeric answer (use URL hideFinalAnswer=1). */
+    function isHideFinalAnswer() {
+      const v = new URLSearchParams(window.location.search).get("hideFinalAnswer");
+      return v === "1" || v === "true" || v === "yes";
+    }
+
     function parsePrompt(prompt) {
       const m = prompt.match(/^\s*(\d+)\s*([+-])\s*(\d+)\s*=\s*\?\s*$/);
       if (!m) return null;
@@ -199,11 +205,15 @@
       return [...new Set(helpful)];
     }
 
-    function breakdownForStrategy(problem, strategy) {
+    function breakdownForStrategy(problem, strategy, opts = {}) {
+      const hide = opts.hideFinalAnswer === true;
       if (!problem) return "Let's break the numbers into easier parts.";
       const { a, b, op } = problem;
 
       if (op === "+" && strategy === "Doubles") {
+        if (hide) {
+          return `${a} plus ${b}. They are the same, so this is a double. Think: what is two times ${a}?`;
+        }
         return `${a} plus ${b}. They are the same, so this is a double. Double ${a} is ${a + b}.`;
       }
 
@@ -211,6 +221,9 @@
         const low = Math.min(a, b);
         const high = Math.max(a, b);
         const diff = high - low;
+        if (hide) {
+          return `${a} plus ${b}. Start with double ${low}, which is ${low * 2}. Then add ${diff} more. What number do you get?`;
+        }
         return `${a} plus ${b}. Start with double ${low}, which is ${low * 2}. Then add ${diff} more to get ${a + b}.`;
       }
 
@@ -220,7 +233,13 @@
         const need = Math.max(0, 10 - big);
         const left = small - need;
         if (need > 0 && left >= 0) {
+          if (hide) {
+            return `${a} plus ${b}. Take ${need} from ${small} to make ${big} into 10. Now do 10 plus ${left}. What is the total?`;
+          }
           return `${a} plus ${b}. Take ${need} from ${small} to make ${big} into 10. Now do 10 plus ${left}, which is ${a + b}.`;
+        }
+        if (hide) {
+          return `${a} plus ${b}. Group friendly numbers first, then add the rest. What do you get?`;
         }
         return `${a} plus ${b}. Group friendly numbers first, then add the rest to get ${a + b}.`;
       }
@@ -229,17 +248,22 @@
         const first = Math.min(5, b);
         const second = b - first;
         const mid = a - first;
+        if (hide) {
+          return `${a} minus ${b}. Break ${b} into ${first} and ${second}. First do ${a} minus ${first} to get ${mid}. Then ${mid} minus ${second}. What is left?`;
+        }
         return `${a} minus ${b}. Break ${b} into ${first} and ${second}. First do ${a} minus ${first} = ${mid}. Then ${mid} minus ${second} = ${a - b}.`;
       }
 
       return strategyHint(problem, strategy);
     }
 
-    function visualBreakdown(problem, strategy) {
+    function visualBreakdown(problem, strategy, opts = {}) {
+      const hide = opts.hideFinalAnswer === true;
       if (!problem) return "";
       const { a, b, op } = problem;
 
       if (op === "+" && strategy === "Doubles") {
+        if (hide) return `${a} + ${b} → double ${a} → ?`;
         return `${a} + ${b} -> double ${a} -> ${a + b}`;
       }
 
@@ -247,6 +271,7 @@
         const low = Math.min(a, b);
         const high = Math.max(a, b);
         const diff = high - low;
+        if (hide) return `${a} + ${b} → ${low} + ${low} + ${diff} → ${low * 2} + ${diff} → ?`;
         return `${a} + ${b} -> ${low} + ${low} + ${diff} -> ${low * 2} + ${diff} -> ${a + b}`;
       }
 
@@ -256,8 +281,10 @@
         const need = Math.max(0, 10 - big);
         const left = small - need;
         if (need > 0 && left >= 0) {
+          if (hide) return `${a} + ${b} → ${big} + ${need} + ${left} → 10 + ${left} → ?`;
           return `${a} + ${b} -> ${big} + ${need} + ${left} -> 10 + ${left} -> ${a + b}`;
         }
+        if (hide) return `${a} + ${b} → group friendly parts → ?`;
         return `${a} + ${b} -> group friendly parts -> ${a + b}`;
       }
 
@@ -265,9 +292,11 @@
         const first = Math.min(5, b);
         const second = b - first;
         const mid = a - first;
+        if (hide) return `${a} - ${b} → ${a} - ${first} - ${second} → ${mid} - ${second} → ?`;
         return `${a} - ${b} -> ${a} - ${first} - ${second} -> ${mid} - ${second} -> ${a - b}`;
       }
 
+      if (hide) return `${a} ${op} ${b} → ?`;
       return `${a} ${op} ${b} -> ${a + (op === "+" ? b : -b)}`;
     }
 
@@ -419,10 +448,11 @@
           score += 1;
           setText("score", `Score: ${score}`);
 
+          const hideAns = isHideFinalAnswer();
           updateStrategyButtonStates(helpfulStrategies, s);
-          explain.textContent = guidance.breakdowns[s] || breakdownForStrategy(problem, s);
+          explain.textContent = (hideAns ? null : guidance.breakdowns[s]) || breakdownForStrategy(problem, s, { hideFinalAnswer: hideAns });
           explain.classList.remove("hidden");
-          mathPath.textContent = guidance.visuals[s] || visualBreakdown(problem, s);
+          mathPath.textContent = (hideAns ? null : guidance.visuals[s]) || visualBreakdown(problem, s, { hideFinalAnswer: hideAns });
           mathPath.classList.remove("hidden");
           document.getElementById("answerSection").classList.remove("hidden");
           renderAnswers(q);
@@ -450,7 +480,9 @@
           const good = c === correct;
           const fb = document.getElementById("answerFeedback");
           fb.className = `feedback ${good ? "ok" : "bad"}`;
-          fb.textContent = good ? "Correct!" : `Not quite. The answer is ${correct}.`;
+          fb.textContent = good
+            ? "Correct!"
+            : (isHideFinalAnswer() ? "Not quite. Try the steps again or pick another answer." : `Not quite. The answer is ${correct}.`);
           if (good) {
             score += 2;
             correctCount += 1;

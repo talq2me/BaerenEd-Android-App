@@ -249,6 +249,7 @@ class TappableTextActivity : AppCompatActivity() {
      * **Rotation** (per-kid index in [DailyProgressManager], key [rotationGameKey]):
      * - Empty url, `rotate`, or `list`
      * - Query-only url, e.g. `lang=fr` or `language=en` (optional `&` / `?` separators)
+     * - Optional `ufli=only` (basename starts with `ufli`, case-insensitive) or `ufli=no` / `ufli=exclude` (exclude those).
      *
      * **Single book** (no rotation index update):
      * - Bare filename, e.g. `milo-sandwich-geant-g4_tappable` or `file=milo-sandwich-geant-g4_tappable.json`
@@ -266,9 +267,8 @@ class TappableTextActivity : AppCompatActivity() {
         }
 
         useBookRotation = true
-        rotationGameKey = langFilter?.let { "${GAME_KEY_TAPPABLE_BOOK_ROTATION}_$it" }
-            ?: GAME_KEY_TAPPABLE_BOOK_ROTATION
-        val files = discoverTappableBookFiles(langFilter)
+        rotationGameKey = buildTappableRotationGameKey(langFilter, spec.ufliFilenameMode)
+        val files = discoverTappableBookFiles(langFilter, spec.ufliFilenameMode)
         if (files.isEmpty()) return null
 
         rotationBookCount = files.size
@@ -290,23 +290,39 @@ class TappableTextActivity : AppCompatActivity() {
     /**
      * Parsed [Intent] extra [EXTRA_TAPPABLE_TEXT_FILE] / task.url for tappableText.
      */
+    private enum class UfliFilenameMode {
+        ANY,
+        ONLY_UFLI_PREFIX,
+        EXCLUDE_UFLI_PREFIX
+    }
+
     private data class TappableUrlSpec(
         val useRotation: Boolean,
         val explicitFile: String?,
-        val languageFilter: String?
+        val languageFilter: String?,
+        val ufliFilenameMode: UfliFilenameMode = UfliFilenameMode.ANY
     )
+
+    private fun parseUfliFilenameMode(value: String): UfliFilenameMode {
+        val v = value.trim().lowercase(Locale.US)
+        if (v.isEmpty()) return UfliFilenameMode.ANY
+        if (v == "only" || v == "yes" || v == "1" || v == "true") return UfliFilenameMode.ONLY_UFLI_PREFIX
+        if (v == "no" || v == "exclude" || v == "0" || v == "false") return UfliFilenameMode.EXCLUDE_UFLI_PREFIX
+        return UfliFilenameMode.ANY
+    }
 
     private fun parseTappableUrlSpec(rawUrl: String): TappableUrlSpec {
         val t = rawUrl.trim()
         if (t.isEmpty() || t.equals("rotate", ignoreCase = true) || t.equals("list", ignoreCase = true)) {
-            return TappableUrlSpec(true, null, null)
+            return TappableUrlSpec(true, null, null, UfliFilenameMode.ANY)
         }
         val segments = t.split('?', '&').map { it.trim() }.filter { it.isNotEmpty() }
         if (segments.size == 1 && !segments[0].contains('=')) {
-            return TappableUrlSpec(false, segments[0], null)
+            return TappableUrlSpec(false, segments[0], null, UfliFilenameMode.ANY)
         }
         var filePart: String? = null
         var langPart: String? = null
+        var ufliMode = UfliFilenameMode.ANY
         for (seg in segments) {
             val eqIdx = seg.indexOf('=')
             if (eqIdx < 0) continue
@@ -316,12 +332,46 @@ class TappableTextActivity : AppCompatActivity() {
             when (key) {
                 "file" -> filePart = value
                 "lang", "language" -> langPart = normalizeLangFilter(value)
+                "ufli" -> ufliMode = parseUfliFilenameMode(value)
             }
         }
         return if (!filePart.isNullOrBlank()) {
-            TappableUrlSpec(false, filePart, langPart?.takeIf { it.length >= 2 })
+            TappableUrlSpec(false, filePart, langPart?.takeIf { it.length >= 2 }, ufliMode)
         } else {
-            TappableUrlSpec(true, null, langPart?.takeIf { it.length >= 2 })
+            TappableUrlSpec(true, null, langPart?.takeIf { it.length >= 2 }, ufliMode)
+        }
+    }
+
+    private fun buildTappableRotationGameKey(langFilter: String?, ufliMode: UfliFilenameMode): String {
+        val base = GAME_KEY_TAPPABLE_BOOK_ROTATION
+        val lang = langFilter?.takeIf { it.length >= 2 }
+        val mid = if (lang != null) "${base}_$lang" else base
+        return when (ufliMode) {
+            UfliFilenameMode.ONLY_UFLI_PREFIX -> "${mid}_ufli"
+            UfliFilenameMode.EXCLUDE_UFLI_PREFIX -> "${mid}_noufli"
+            UfliFilenameMode.ANY -> mid
+        }
+    }
+
+    private fun basenameForTappableFilter(path: String): String {
+        val name = path.substringAfterLast('/').trim()
+        return name.removeSuffix(".json").removeSuffix(".JSON").lowercase(Locale.US)
+    }
+
+    private fun basenameStartsWithUfli(path: String): Boolean =
+        basenameForTappableFilter(path).startsWith("ufli")
+
+    private fun discoverTappableBookFiles(languageFilter: String?, ufliMode: UfliFilenameMode): List<String> {
+        val all = fetchTappableBookFilesFromGithub()
+        val byLang = run {
+            val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
+                ?: return@run all
+            all.filter { fileName -> readRootLanguageFromTappableRemote(fileName) == filt }
+        }
+        return when (ufliMode) {
+            UfliFilenameMode.ANY -> byLang
+            UfliFilenameMode.ONLY_UFLI_PREFIX -> byLang.filter { basenameStartsWithUfli(it) }
+            UfliFilenameMode.EXCLUDE_UFLI_PREFIX -> byLang.filter { !basenameStartsWithUfli(it) }
         }
     }
 
@@ -332,13 +382,6 @@ class TappableTextActivity : AppCompatActivity() {
             .firstOrNull { it.isNotBlank() }
             ?: return ""
         return token.take(2)
-    }
-
-    private fun discoverTappableBookFiles(languageFilter: String?): List<String> {
-        val all = fetchTappableBookFilesFromGithub()
-        val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
-            ?: return all
-        return all.filter { fileName -> readRootLanguageFromTappableRemote(fileName) == filt }
     }
 
     private fun normalizeTappableJsonFileName(raw: String): String {
@@ -860,6 +903,17 @@ class TappableTextActivity : AppCompatActivity() {
         return false
     }
 
+    /**
+     * True if the tapped word is the full answer or any single word of a multi-word [correctNorm]
+     * (e.g. correct "old lady" accepts a tap on "old" or "lady").
+     */
+    private fun tapMatchesCorrectWord(clickedNorm: String, correctNorm: String): Boolean {
+        if (tokensMatchForTapAnswer(clickedNorm, correctNorm)) return true
+        val parts = correctNorm.split(Regex("\\s+")).map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.size <= 1) return false
+        return parts.any { part -> tokensMatchForTapAnswer(clickedNorm, part) }
+    }
+
     /** Case-insensitive index of [needle] in [haystack], or -1. */
     private fun findIgnoreCaseIndex(haystack: String, needle: String): Int {
         if (needle.isEmpty()) return -1
@@ -985,7 +1039,7 @@ class TappableTextActivity : AppCompatActivity() {
         clearPageTextHighlightSpans()
         var highlightedAny = false
         currentWordSpans.forEach { w ->
-            if (tokensMatchForTapAnswer(w.normalizedToken, correctNormalizedToken)) {
+            if (tapMatchesCorrectWord(w.normalizedToken, correctNormalizedToken)) {
                 spannable.setSpan(
                     BackgroundColorSpan(tapRevealHighlightColor),
                     w.start,
@@ -1061,7 +1115,7 @@ class TappableTextActivity : AppCompatActivity() {
                         if (qNow !is PageQuestion.TapWord) return
 
                         val clickedNormalizedToken = normalized
-                        if (tokensMatchForTapAnswer(clickedNormalizedToken, correct)) {
+                        if (tapMatchesCorrectWord(clickedNormalizedToken, correct)) {
                             interactionEnabled = false
                             highlightCorrectWord(correct)
                             if (easyMode) {
@@ -1107,7 +1161,7 @@ class TappableTextActivity : AppCompatActivity() {
         val spannable = currentPageSpannable ?: return
         clearPageTextHighlightSpans()
         currentWordSpans.forEach { w ->
-            if (tokensMatchForTapAnswer(w.normalizedToken, correctNormalizedToken)) {
+            if (tapMatchesCorrectWord(w.normalizedToken, correctNormalizedToken)) {
                 spannable.setSpan(
                     BackgroundColorSpan(ttsHighlightColor),
                     w.start,

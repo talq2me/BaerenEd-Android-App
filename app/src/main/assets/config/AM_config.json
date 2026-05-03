@@ -24,14 +24,14 @@
         {
           "title": "English reading (tappable book)",
           "launch": "tappableText",
-          "url": "lang=en",
+          "url": "lang=en&ufli=only",
           "stars": 3,
           "easy": true
         },
         {
           "title": "French reading (tappable book)",
           "launch": "tappableText",
-          "url": "lang=fr",
+          "url": "lang=fr&ufli=only",
           "stars": 3,
           "easy": true
         },
@@ -129,15 +129,6 @@
           "disable": "Jan 2, 2027",
           "displayDays": "thu,fri"
         },
-        
-        {
-          "title": "Word Fishing Eng",
-          "launch": "wordFishing",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsGr1.json",
-          "stars": 3,
-          "webGame": true,
-          "displayDays": "thu,fri,sat,sun"
-        },
         {
           "title": "Eng Spelling",
           "launch": "engSpelling",
@@ -225,7 +216,7 @@
         {
           "title": "Math Strategies Coach",
           "launch": "gr1MathStrategiesHtml",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies&hideFinalAnswer=1",
           "stars": 3,
           "webGame": true,
           "totalQuestions": 10,

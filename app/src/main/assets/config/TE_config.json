@@ -206,7 +206,7 @@
         {
           "title": "Math Strategies Coach",
           "launch": "gr1MathStrategiesHtml",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies&hideFinalAnswer=1",
           "stars": 3,
           "webGame": true,
           "totalQuestions": 10,
