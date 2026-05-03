@@ -1,6 +1,5 @@
--- Call sites (BaerenEd Android, this repo):
---   (no references under app/ in this repo.)
--- Other: 000Requirements.md (BaerenLock / reward pause behaviour); wire in lock app when applicable.
+-- Call sites: BaerenLock SupabaseInterface.pauseRewardTime -> af_reward_time_pause.
+-- Other: 000Requirements.md (reward pause behaviour).
 
 -- Pauses active reward time: remaining minutes go to banked_mins; clears reward_time_expiry.
 
@@ -22,6 +21,14 @@ BEGIN
     END IF;
 
     v_remaining := GREATEST(0, CEIL(EXTRACT(EPOCH FROM (v_expiry - (NOW() AT TIME ZONE 'America/Toronto'))) / 60.0));
+
+    INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
+    VALUES (
+        p_profile,
+        'Pause Reward Session',
+        v_remaining,
+        NOW() AT TIME ZONE 'America/Toronto'
+    );
 
     UPDATE user_data
     SET banked_mins = v_remaining,

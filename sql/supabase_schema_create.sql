@@ -139,6 +139,27 @@ CREATE POLICY "Allow all operations" ON user_data
     USING (true)
     WITH CHECK (true);
 
+-- Audit log: reward session start / pause / expiry (written by af_reward_time_* RPCs).
+CREATE TABLE IF NOT EXISTS reward_time_log (
+    id BIGSERIAL PRIMARY KEY,
+    profile TEXT NOT NULL,
+    event TEXT NOT NULL,
+    reward_mins_remaining INTEGER NOT NULL,
+    logged_at TIMESTAMP(3) NOT NULL DEFAULT (NOW() AT TIME ZONE 'America/Toronto')
+);
+
+CREATE INDEX IF NOT EXISTS idx_reward_time_log_profile_logged_at
+    ON reward_time_log (profile, logged_at DESC);
+
+ALTER TABLE reward_time_log ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow all operations" ON reward_time_log;
+
+CREATE POLICY "Allow all operations" ON reward_time_log
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
 -- DISABLED: Trigger that automatically updates last_updated timestamp
 -- This trigger was causing sync issues because it overwrites client-provided timestamps.
 -- The client code explicitly manages timestamps, so this trigger should not be active.

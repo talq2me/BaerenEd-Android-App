@@ -18,9 +18,7 @@ DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 DROP FUNCTION IF EXISTS af_get_device_row(text);
 DROP FUNCTION IF EXISTS af_get_image_upload_id(text, text);
-DROP FUNCTION IF EXISTS af_get_or_unlock_daily_prize(text);
 DROP FUNCTION IF EXISTS af_get_reward_time_state(text);
-DROP FUNCTION IF EXISTS af_get_reward_spinner();
 DROP FUNCTION IF EXISTS af_get_settings_last_updated();
 DROP FUNCTION IF EXISTS af_get_settings_row();
 DROP FUNCTION IF EXISTS af_get_stars_to_minutes(int);
@@ -1068,146 +1066,6 @@ GRANT EXECUTE ON FUNCTION af_get_tasks_bonus(text) TO anon, authenticated, servi
 
 
 -- -----------------------------------------------------------------------------
--- FILE: af_get_reward_spinner.sql
--- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  getRewardSpinnerItems.
---   app/src/main/java/com/talq2me/baerened/RewardSpinnerActivity.kt  -  loadRewards.
---
--- BaerenEd: Reward wheel configuration rows.
--- POST /rest/v1/rpc/af_get_reward_spinner {}
-
-CREATE OR REPLACE FUNCTION af_get_reward_spinner()
-RETURNS TABLE (
-  id bigint,
-  name text,
-  percent int
-)
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT
-    rs.id,
-    rs.name,
-    rs.percent::int AS percent
-  FROM reward_spinner rs
-  ORDER BY rs.id;
-$$;
-
-GRANT EXECUTE ON FUNCTION af_get_reward_spinner() TO anon, authenticated, service_role;
-
-
--- -----------------------------------------------------------------------------
--- FILE: af_get_or_unlock_daily_prize.sql
--- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfGetOrUnlockDailyPrize.
---   app/src/main/java/com/talq2me/baerened/RewardSpinnerActivity.kt  -  resolve/open daily prize.
---
--- If prize_unlocked already exists for the profile, return it.
--- Otherwise, unlock only when all visible required/checklist tasks are complete for today.
-CREATE OR REPLACE FUNCTION af_get_or_unlock_daily_prize(p_profile text)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_prize_unlocked text := NULL;
-  v_reward_name text := NULL;
-  v_total_tasks int := 0;
-  v_incomplete_tasks int := 0;
-BEGIN
-  SELECT
-    NULLIF(trim(ud.prize_unlocked), '')
-  INTO v_prize_unlocked
-  FROM user_data ud
-  WHERE ud.profile = p_profile
-  FOR UPDATE;
-
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object(
-      'prize_unlocked', NULL,
-      'newly_unlocked', false,
-      'eligible', false
-    );
-  END IF;
-
-  IF v_prize_unlocked IS NOT NULL THEN
-    RETURN jsonb_build_object(
-      'prize_unlocked', v_prize_unlocked,
-      'newly_unlocked', false,
-      'eligible', true
-    );
-  END IF;
-
-  SELECT
-    COUNT(*),
-    COUNT(*) FILTER (WHERE lower(coalesce(t.completion_status, 'incomplete')) <> 'complete')
-  INTO v_total_tasks, v_incomplete_tasks
-  FROM af_get_current_required_tasks(p_profile) t;
-
-  IF v_total_tasks = 0 OR v_incomplete_tasks > 0 THEN
-    RETURN jsonb_build_object(
-      'prize_unlocked', NULL,
-      'newly_unlocked', false,
-      'eligible', false
-    );
-  END IF;
-
-  WITH weighted AS (
-    SELECT
-      rs.id,
-      rs.name,
-      rs.percent,
-      SUM(rs.percent) OVER (ORDER BY rs.id) AS cumulative_weight
-    FROM reward_spinner rs
-    WHERE rs.percent > 0
-  ),
-  total AS (
-    SELECT MAX(cumulative_weight) AS total_weight
-    FROM weighted
-  ),
-  roll AS (
-    SELECT (FLOOR(random() * total_weight) + 1)::int AS ticket
-    FROM total
-  )
-  SELECT w.name
-  INTO v_reward_name
-  FROM weighted w, roll r
-  WHERE w.cumulative_weight >= r.ticket
-  ORDER BY w.cumulative_weight
-  LIMIT 1;
-
-  IF v_reward_name IS NULL THEN
-    RETURN jsonb_build_object(
-      'prize_unlocked', NULL,
-      'newly_unlocked', false,
-      'eligible', false,
-      'error', 'No reward spinner rows with positive percent.'
-    );
-  END IF;
-
-  UPDATE user_data
-  SET
-    prize_unlocked = v_reward_name,
-    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
-  WHERE profile = p_profile;
-
-  RETURN jsonb_build_object(
-    'prize_unlocked', v_reward_name,
-    'newly_unlocked', true,
-    'eligible', true
-  );
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION af_get_or_unlock_daily_prize(text) TO anon, authenticated, service_role;
-
-
--- -----------------------------------------------------------------------------
 -- FILE: af_get_battle_hub_counts.sql
 -- -----------------------------------------------------------------------------
 -- Call sites (BaerenEd Android, this repo):
@@ -1941,7 +1799,6 @@ BEGIN
             'blockOutlines', t->'blockOutlines',
             'rewardId', t->'rewardId',
             'totalQuestions', t->'totalQuestions',
-            'easy', t->'easy',
             'easydays', t->'easydays',
             'harddays', t->'harddays',
             'extremedays', t->'extremedays',
@@ -2419,6 +2276,14 @@ BEGIN
         RETURN;
     END IF;
 
+    INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
+    VALUES (
+        p_profile,
+        'Start Reward Time Session',
+        v_banked,
+        NOW() AT TIME ZONE 'America/Toronto'
+    );
+
     UPDATE user_data
     SET reward_time_expiry = (NOW() AT TIME ZONE 'America/Toronto') + (v_banked * INTERVAL '1 minute'),
         banked_mins = 0,
@@ -2433,9 +2298,8 @@ GRANT EXECUTE ON FUNCTION af_reward_time_use(TEXT) TO anon, authenticated, servi
 -- -----------------------------------------------------------------------------
 -- FILE: af_reward_time_pause.sql
 -- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   (no references under app/ in this repo.)
--- Other: 000Requirements.md (BaerenLock / reward pause behaviour); wire in lock app when applicable.
+-- Call sites: BaerenLock SupabaseInterface.pauseRewardTime -> af_reward_time_pause.
+-- Other: 000Requirements.md (reward pause behaviour).
 
 -- Pauses active reward time: remaining minutes go to banked_mins; clears reward_time_expiry.
 
@@ -2458,6 +2322,14 @@ BEGIN
 
     v_remaining := GREATEST(0, CEIL(EXTRACT(EPOCH FROM (v_expiry - (NOW() AT TIME ZONE 'America/Toronto'))) / 60.0));
 
+    INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
+    VALUES (
+        p_profile,
+        'Pause Reward Session',
+        v_remaining,
+        NOW() AT TIME ZONE 'America/Toronto'
+    );
+
     UPDATE user_data
     SET banked_mins = v_remaining,
         reward_time_expiry = NULL,
@@ -2472,9 +2344,8 @@ GRANT EXECUTE ON FUNCTION af_reward_time_pause(TEXT) TO anon, authenticated, ser
 -- -----------------------------------------------------------------------------
 -- FILE: af_reward_time_expire.sql
 -- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   (no references under app/ in this repo.)
--- Other: 000Requirements.md (BaerenLock on expiry); reports/banked_time.html  -  fetch RPC af_reward_time_expire.
+-- Call sites: BaerenLock SupabaseInterface.expireRewards -> af_reward_time_expire.
+-- Other: 000Requirements.md (BaerenLock on expiry); reports/banked_time.html.
 
 -- Clears reward_time_expiry when session has expired (Toronto now).
 
@@ -2482,6 +2353,8 @@ CREATE OR REPLACE FUNCTION af_reward_time_expire(p_profile TEXT)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_updated INTEGER := 0;
 BEGIN
     UPDATE user_data
     SET reward_time_expiry = NULL,
@@ -2489,6 +2362,18 @@ BEGIN
     WHERE profile = p_profile
       AND reward_time_expiry IS NOT NULL
       AND reward_time_expiry <= (NOW() AT TIME ZONE 'America/Toronto');
+
+    GET DIAGNOSTICS v_updated = ROW_COUNT;
+
+    IF v_updated > 0 THEN
+        INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
+        VALUES (
+            p_profile,
+            'Reward Session Expiry',
+            0,
+            NOW() AT TIME ZONE 'America/Toronto'
+        );
+    END IF;
 END;
 $$;
 

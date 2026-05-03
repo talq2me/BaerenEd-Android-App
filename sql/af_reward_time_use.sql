@@ -19,6 +19,14 @@ BEGIN
         RETURN;
     END IF;
 
+    INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
+    VALUES (
+        p_profile,
+        'Start Reward Time Session',
+        v_banked,
+        NOW() AT TIME ZONE 'America/Toronto'
+    );
+
     UPDATE user_data
     SET reward_time_expiry = (NOW() AT TIME ZONE 'America/Toronto') + (v_banked * INTERVAL '1 minute'),
         banked_mins = 0,
