@@ -11,14 +11,31 @@
         "Ally aime l'autobus."
       ],
       "tappable_word_questions": [
-        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'school'.", "correct_word": "école" },
-        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'yellow'.", "correct_word": "jaune" },
-        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'bus'.", "correct_word": "autobus" }
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'school'.",
+          "correct_word": "l'école"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'yellow'.",
+          "correct_word": "jaune"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'bus'.",
+          "correct_word": "l'autobus"
+        }
       ],
       "comprehension_question": {
         "id": "p1_c1",
         "prompt": "Comment Ally va-t-elle à l'école ?",
-        "options": ["En vélo", "Dans l'autobus", "À pied seule", "En bateau"],
+        "options": [
+          "En vélo",
+          "Dans l'autobus",
+          "À pied seule",
+          "En bateau"
+        ],
         "correct_index": 1
       }
     },
@@ -30,14 +47,31 @@
         "Laura aime l'autobus aussi."
       ],
       "tappable_word_questions": [
-        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'saw'.", "correct_word": "vu" },
-        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'also'.", "correct_word": "aussi" },
-        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'loves'.", "correct_word": "aime" }
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'saw'.",
+          "correct_word": "vu"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'also'.",
+          "correct_word": "aussi"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'loves'.",
+          "correct_word": "aime"
+        }
       ],
       "comprehension_question": {
         "id": "p2_c1",
         "prompt": "Qui Ally voit-elle dans l'autobus ?",
-        "options": ["Bernard", "Laura", "Le renard", "La marmotte"],
+        "options": [
+          "Bernard",
+          "Laura",
+          "Le renard",
+          "La marmotte"
+        ],
         "correct_index": 1
       }
     }

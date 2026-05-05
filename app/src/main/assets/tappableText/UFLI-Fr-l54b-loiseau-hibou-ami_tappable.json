@@ -11,9 +11,21 @@
         "L'oiseau dit : « Salut! Veux-tu un ami? »"
       ],
       "tappable_word_questions": [
-        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'owl'.", "correct_word": "hibou" },
-        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'tree'.", "correct_word": "arbre" },
-        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'hi / hello'.", "correct_word": "Salut" }
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'owl'.",
+          "correct_word": "hibou"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'tree'.",
+          "correct_word": "l'arbre"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'hi / hello'.",
+          "correct_word": "Salut"
+        }
       ]
     },
     {
@@ -24,14 +36,31 @@
         "Il a trouvé un nouvel ami."
       ],
       "tappable_word_questions": [
-        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'calls out'.", "correct_word": "s'exclame" },
-        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'delighted'.", "correct_word": "ravi" },
-        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'friend'.", "correct_word": "ami" }
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'calls out'.",
+          "correct_word": "s'exclame"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'delighted'.",
+          "correct_word": "ravi"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'friend'.",
+          "correct_word": "ami"
+        }
       ],
       "comprehension_question": {
         "id": "p2_c1",
         "prompt": "Qu'est-ce que l'oiseau et le hibou deviennent à la fin ?",
-        "options": ["Ennemis", "Amis", "Frères de Céline", "Neige pour Sabina"],
+        "options": [
+          "Ennemis",
+          "Amis",
+          "Frères de Céline",
+          "Neige pour Sabina"
+        ],
         "correct_index": 1
       }
     }

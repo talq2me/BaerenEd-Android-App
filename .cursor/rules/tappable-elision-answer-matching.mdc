@@ -1,0 +1,20 @@
+---
+description: Ensure tappable answers handle French elisions and visible surface forms
+globs: app/src/main/assets/tappableText/**/*_tappable.json
+alwaysApply: false
+---
+
+# Tappable Text Answer Matching
+
+When creating or updating tappable text JSON:
+
+- Ensure each `tappable_word_questions[].correct_word` is tappable from the exact page text.
+- If the visible token is elided (for example `l'école`, `d'eau`, `j'adore`, `t'aime`), do not use only the bare root (like `école`, `eau`, `adore`, `aime`) unless that bare form also appears as a standalone token on the page.
+- Prefer the visible surface form from the passage text when in doubt.
+- For multi-word or alternate acceptable forms, use `correct_words` to include all valid taps.
+- Before finalizing, verify every `correct_word`/`correct_words` entry exists in tappable form in that page text.
+
+Examples:
+
+- Page text: `tout est à l'envers` -> use `l'envers` (or include both in `correct_words` if both appear).
+- Page text: `J'aime lire` -> use `J'aime`, not only `aime`.

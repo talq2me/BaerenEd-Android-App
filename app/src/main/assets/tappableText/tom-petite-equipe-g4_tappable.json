@@ -10,16 +10,35 @@
         "Son équipe perd souvent.",
         "Les enfants sont découragés."
       ],
-      "image": { "image_id": "tom_page1" },
+      "image": {
+        "image_id": "tom_page1"
+      },
       "tappable_word_questions": [
-        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'soccer'.", "correct_word": "soccer" },
-        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'team'.", "correct_word": "équipe" },
-        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'discouraged'.", "correct_word": "découragés" }
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'soccer'.",
+          "correct_word": "soccer"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'team'.",
+          "correct_word": "équipe"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'discouraged'.",
+          "correct_word": "découragés"
+        }
       ],
       "comprehension_question": {
         "id": "p1_c1",
         "prompt": "Pourquoi l'équipe de Tom est-elle découragée ?",
-        "options": ["Elle perd souvent", "Il pleut", "Ils n'ont pas de ballon", "Tom est absent"],
+        "options": [
+          "Elle perd souvent",
+          "Il pleut",
+          "Ils n'ont pas de ballon",
+          "Tom est absent"
+        ],
         "correct_index": 0
       }
     },
@@ -29,11 +48,25 @@
         "Tom dit : « Nous devons travailler ensemble. »",
         "Les autres enfants écoutent."
       ],
-      "image": { "image_id": "tom_page2" },
+      "image": {
+        "image_id": "tom_page2"
+      },
       "tappable_word_questions": [
-        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'work'.", "correct_word": "travailler" },
-        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'together'.", "correct_word": "ensemble" },
-        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'listen'.", "correct_word": "écoutent" }
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'work'.",
+          "correct_word": "travailler"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'together'.",
+          "correct_word": "ensemble"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'listen'.",
+          "correct_word": "écoutent"
+        }
       ]
     },
     {
@@ -43,16 +76,35 @@
         "Ils apprennent à communiquer.",
         "Ils commencent à jouer mieux."
       ],
-      "image": { "image_id": "tom_page3" },
+      "image": {
+        "image_id": "tom_page3"
+      },
       "tappable_word_questions": [
-        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'practice'.", "correct_word": "entraînent" },
-        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'passes'.", "correct_word": "passes" },
-        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'communicate'.", "correct_word": "communiquer" }
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'practice'.",
+          "correct_word": "s'entraînent"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'passes'.",
+          "correct_word": "passes"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'communicate'.",
+          "correct_word": "communiquer"
+        }
       ],
       "comprehension_question": {
         "id": "p3_c1",
         "prompt": "Qu'apprennent les enfants ?",
-        "options": ["À courir vite", "À jouer seuls", "À communiquer", "À arrêter de jouer"],
+        "options": [
+          "À courir vite",
+          "À jouer seuls",
+          "À communiquer",
+          "À arrêter de jouer"
+        ],
         "correct_index": 2
       }
     },
@@ -62,11 +114,25 @@
         "Lors du prochain match, ils jouent en équipe.",
         "Ils marquent un but ensemble."
       ],
-      "image": { "image_id": "tom_page4" },
+      "image": {
+        "image_id": "tom_page4"
+      },
       "tappable_word_questions": [
-        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'game'.", "correct_word": "match" },
-        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'score'.", "correct_word": "marquent" },
-        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'goal'.", "correct_word": "but" }
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'game'.",
+          "correct_word": "match"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'score'.",
+          "correct_word": "marquent"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'goal'.",
+          "correct_word": "but"
+        }
       ]
     },
     {
@@ -75,11 +141,25 @@
         "Ils ne gagnent pas le match, mais ils sont fiers.",
         "Ils savent que travailler ensemble est important."
       ],
-      "image": { "image_id": "tom_page5" },
+      "image": {
+        "image_id": "tom_page5"
+      },
       "tappable_word_questions": [
-        { "id": "p5_tw1", "prompt": "Tape le mot qui veut dire 'win'.", "correct_word": "gagnent" },
-        { "id": "p5_tw2", "prompt": "Tape le mot qui veut dire 'proud'.", "correct_word": "fiers" },
-        { "id": "p5_tw3", "prompt": "Tape le mot qui veut dire 'important'.", "correct_word": "important" }
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'win'.",
+          "correct_word": "gagnent"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'proud'.",
+          "correct_word": "fiers"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'important'.",
+          "correct_word": "important"
+        }
       ]
     }
   ]
