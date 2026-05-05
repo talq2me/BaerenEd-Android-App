@@ -12,7 +12,7 @@
       ],
       "image": { "image_id": "clara_page1" },
       "tappable_word_questions": [
-        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'upside down'.", "correct_word": "envers" },
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'upside down'.", "correct_word": "l'envers" },
         { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'cat'.", "correct_word": "chat" },
         { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'alarm clock'.", "correct_word": "réveil" }
       ],

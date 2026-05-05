@@ -12,9 +12,21 @@
         "Fermez la porte. »"
       ],
       "tappable_word_questions": [
-        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'rules'.", "correct_word": "règles" },
-        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'educator / teacher'.", "correct_word": "éducateur" },
-        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'close'.", "correct_word": "Fermez" }
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'rules'.",
+          "correct_word": "règles"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'educator / teacher'.",
+          "correct_word": "l'éducateur"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'close'.",
+          "correct_word": "Fermez"
+        }
       ]
     },
     {
@@ -26,14 +38,31 @@
         "Prenez un crayon. »"
       ],
       "tappable_word_questions": [
-        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'books'.", "correct_word": "livres" },
-        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'read'.", "correct_word": "Lisez" },
-        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'take'.", "correct_word": "Prenez" }
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'books'.",
+          "correct_word": "livres"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'read'.",
+          "correct_word": "Lisez"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'take'.",
+          "correct_word": "Prenez"
+        }
       ],
       "comprehension_question": {
         "id": "p2_c1",
         "prompt": "À quelle page l'éducateur demande-t-il d'ouvrir les livres ?",
-        "options": ["Page cinq", "Page dix", "Page trois", "Page vingt"],
+        "options": [
+          "Page cinq",
+          "Page dix",
+          "Page trois",
+          "Page vingt"
+        ],
         "correct_index": 1
       }
     },
@@ -47,9 +76,21 @@
         "Ne parlez pas trop fort. »"
       ],
       "tappable_word_questions": [
-        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'draw'.", "correct_word": "Dessinez" },
-        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'write'.", "correct_word": "Écrivez" },
-        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'circle'.", "correct_word": "cercle" }
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'draw'.",
+          "correct_word": "Dessinez"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'write'.",
+          "correct_word": "Écrivez"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'circle'.",
+          "correct_word": "cercle"
+        }
       ]
     },
     {
@@ -58,14 +99,31 @@
         "Toute la classe est polie et respecte les règles."
       ],
       "tappable_word_questions": [
-        { "id": "p4_tw1", "prompt": "Tape le mot qui veut dire 'class'.", "correct_word": "classe" },
-        { "id": "p4_tw2", "prompt": "Tape le mot qui veut dire 'polite'.", "correct_word": "polie" },
-        { "id": "p4_tw3", "prompt": "Tape le mot qui veut dire 'follows'.", "correct_word": "respecte" }
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'class'.",
+          "correct_word": "classe"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'polite'.",
+          "correct_word": "polie"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'follows'.",
+          "correct_word": "respecte"
+        }
       ],
       "comprehension_question": {
         "id": "p4_c1",
         "prompt": "À la fin, comment est la classe ?",
-        "options": ["Bruyante et impolie", "Polie et elle respecte les règles", "Absent", "En vacances"],
+        "options": [
+          "Bruyante et impolie",
+          "Polie et elle respecte les règles",
+          "Absent",
+          "En vacances"
+        ],
         "correct_index": 1
       }
     }

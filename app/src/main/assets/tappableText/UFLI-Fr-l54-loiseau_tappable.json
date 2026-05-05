@@ -10,14 +10,31 @@
         "Il est le roi de la forêt et il aime voler parmi les arbres."
       ],
       "tappable_word_questions": [
-        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'forest'.", "correct_word": "forêt" },
-        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'king'.", "correct_word": "roi" },
-        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'fly'.", "correct_word": "voler" }
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'forest'.",
+          "correct_word": "forêt"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'king'.",
+          "correct_word": "roi"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'fly'.",
+          "correct_word": "voler"
+        }
       ],
       "comprehension_question": {
         "id": "p1_c1",
         "prompt": "Pourquoi l'oiseau aime-t-il la forêt ?",
-        "options": ["Pour dormir tout le temps", "Pour voler parmi les arbres", "Pour manger du lait", "Pour prendre le bus"],
+        "options": [
+          "Pour dormir tout le temps",
+          "Pour voler parmi les arbres",
+          "Pour manger du lait",
+          "Pour prendre le bus"
+        ],
         "correct_index": 1
       }
     },
@@ -29,9 +46,21 @@
         "L'eau du lac est froide comme la neige."
       ],
       "tappable_word_questions": [
-        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'thirsty'.", "correct_word": "soif" },
-        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'discovers'.", "correct_word": "découvre" },
-        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'geese'.", "correct_word": "oies" }
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'thirsty'.",
+          "correct_word": "soif"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'discovers'.",
+          "correct_word": "découvre"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'geese'.",
+          "correct_word": "d'oies"
+        }
       ]
     },
     {
@@ -42,14 +71,31 @@
         "Après cela, il décide de se reposer dans un arbre pour se relaxer."
       ],
       "tappable_word_questions": [
-        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'shares'.", "correct_word": "partage" },
-        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'drinks'.", "correct_word": "boit" },
-        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'rest'.", "correct_word": "reposer" }
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'shares'.",
+          "correct_word": "partage"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'drinks'.",
+          "correct_word": "boit"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'rest'.",
+          "correct_word": "reposer"
+        }
       ],
       "comprehension_question": {
         "id": "p3_c1",
         "prompt": "Après avoir bu, que décide l'oiseau de faire ?",
-        "options": ["Partir très loin", "Se reposer dans un arbre", "Nager toute la nuit", "Dessiner dans la neige"],
+        "options": [
+          "Partir très loin",
+          "Se reposer dans un arbre",
+          "Nager toute la nuit",
+          "Dessiner dans la neige"
+        ],
         "correct_index": 1
       }
     }
