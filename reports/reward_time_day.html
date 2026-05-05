@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward Time Today</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.55;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #7C4DFF 0%, #536DFE 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 { font-size: 2em; margin-bottom: 8px; }
+        .header p { opacity: 0.95; max-width: 720px; margin: 0 auto; font-size: 0.95em; }
+        .back-button {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        .back-button:hover { background: rgba(255, 255, 255, 0.3); }
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+        .section h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.25em;
+            border-bottom: 2px solid #7C4DFF;
+            padding-bottom: 8px;
+        }
+        .chart-wrap { position: relative; height: 420px; margin-top: 12px; }
+        @media (max-width: 600px) { .chart-wrap { height: 320px; } }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 16px;
+            color: #c62828;
+            margin: 16px 0;
+        }
+        .legend-note { font-size: 0.88em; color: #555; margin-top: 12px; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .pill {
+            background: #f3f0ff;
+            border-radius: 8px;
+            padding: 12px 14px;
+            border-left: 4px solid #7C4DFF;
+        }
+        .pill strong { display: block; color: #4527a0; margin-bottom: 4px; }
+        .pill span { color: #444; font-size: 0.9em; }
+        .toolbar { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .toolbar button {
+            background: #536DFE;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .toolbar button:hover { background: #455ede; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reward time today</h1>
+            <p>
+                Lines use reward_time_log for today (America/Toronto): session starts, pauses, and expiries.
+                Y is minutes on the active countdown while a session is running, and banked minutes when paused (not draining).
+                If a child has an active session now, the line continues to the wall-clock reward_time_expiry—even if that moment is still in the future.
+            </p>
+            <a href="index.html" class="back-button">← Back to Reports</a>
+        </div>
+
+        <div id="loading" class="loading">Loading reward time data…</div>
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;">
+            <div class="section">
+                <h3 id="chartTitle">Minutes vs time of day</h3>
+                <div class="toolbar">
+                    <button type="button" onclick="loadAll()">Refresh</button>
+                    <span id="torontoDate" style="color:#555;font-size:0.9em;"></span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="chart"></canvas>
+                </div>
+                <p class="legend-note">
+                    Earning extra minutes from tasks still goes to banked_mins and does not add rows to this log—only start, pause, and expiry do.
+                    Projection uses the same wall-clock expiry the apps use; it does not model usage-stats-based burn on the device.
+                </p>
+            </div>
+            <div class="section">
+                <h3>Current snapshot</h3>
+                <div class="summary" id="summary"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PROFILES = ['AM', 'BM', 'TE'];
+        const COLORS = { AM: '#E91E63', BM: '#2196F3', TE: '#4CAF50' };
+
+        const supabaseUrl = () => localStorage.getItem('supabaseUrl');
+        const supabaseKey = () => localStorage.getItem('supabaseKey');
+
+        function torontoYmd(d = new Date()) {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(d);
+        }
+
+        function parseLoggedAt(s) {
+            if (!s) return NaN;
+            const t = String(s).trim().replace(' ', 'T');
+            const ms = Date.parse(t);
+            if (!isNaN(ms)) return ms;
+            return Date.parse(t.replace(/\.\d{3}$/, ''));
+        }
+
+        function isSameTorontoDay(loggedAtStr, ymd) {
+            const ms = parseLoggedAt(loggedAtStr);
+            if (isNaN(ms)) return false;
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date(ms)) === ymd;
+        }
+
+        function isStart(ev) { return (ev || '').includes('Start Reward'); }
+        function isPause(ev) { return (ev || '').includes('Pause Reward'); }
+        function isExpiry(ev) { return (ev || '').includes('Expiry'); }
+
+        /**
+         * Build {x,y}[] for one profile: event vertices + live tail (now → expiry when active).
+         */
+        function buildSeries(profile, allLogsToday, userRow, nowMs) {
+            const events = allLogsToday
+                .filter((r) => r.profile === profile)
+                .sort((a, b) => parseLoggedAt(a.logged_at) - parseLoggedAt(b.logged_at));
+
+            const pts = [];
+            const pushPt = (ms, y) => {
+                const x = new Date(ms);
+                const last = pts[pts.length - 1];
+                if (last && last.x.getTime() === x.getTime() && last.y === y) return;
+                pts.push({ x, y });
+            };
+
+            for (let i = 0; i < events.length; i++) {
+                const e = events[i];
+                const t = parseLoggedAt(e.logged_at);
+                if (isNaN(t)) continue;
+                const m = Number(e.reward_mins_remaining);
+                const y = Number.isFinite(m) ? m : 0;
+
+                if (isStart(e.event)) {
+                    const last = pts[pts.length - 1];
+                    if (last && last.y !== y) {
+                        pushPt(t - 1, last.y);
+                    }
+                    pushPt(t, y);
+                } else if (isPause(e.event) || isExpiry(e.event)) {
+                    pushPt(t, y);
+                } else {
+                    pushPt(t, y);
+                }
+            }
+
+            const expiryRaw = userRow && userRow.reward_time_expiry;
+            const expiryMs = expiryRaw ? parseLoggedAt(expiryRaw) : NaN;
+            const activeNow = !isNaN(expiryMs) && expiryMs > nowMs;
+            const banked = userRow && Number.isFinite(Number(userRow.banked_mins)) ? Number(userRow.banked_mins) : 0;
+
+            let remNow = 0;
+            if (activeNow) {
+                remNow = Math.max(0, Math.ceil((expiryMs - nowMs) / 60000));
+            } else {
+                remNow = banked;
+            }
+
+            const last = pts[pts.length - 1];
+            if (!last) {
+                pushPt(nowMs - 120000, remNow);
+                pushPt(nowMs, remNow);
+                if (activeNow) {
+                    pushPt(expiryMs, 0);
+                }
+                return pts;
+            }
+
+            pushPt(nowMs, remNow);
+
+            if (activeNow && expiryMs > nowMs) {
+                const end = pts[pts.length - 1];
+                if (end.x.getTime() < expiryMs && end.y > 0) {
+                    pushPt(expiryMs, 0);
+                }
+            }
+
+            pts.sort((a, b) => a.x.getTime() - b.x.getTime());
+            return pts;
+        }
+
+        function formatClock(ms) {
+            return new Date(ms).toLocaleString('en-US', {
+                timeZone: 'America/Toronto',
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZoneName: 'short'
+            });
+        }
+
+        function renderSummary(userRows, nowMs) {
+            const el = document.getElementById('summary');
+            el.innerHTML = '';
+            const byProfile = {};
+            userRows.forEach((r) => { byProfile[r.profile] = r; });
+
+            PROFILES.forEach((p) => {
+                const row = byProfile[p] || {};
+                const expiryRaw = row.reward_time_expiry;
+                const expiryMs = expiryRaw ? parseLoggedAt(expiryRaw) : NaN;
+                const active = !isNaN(expiryMs) && expiryMs > nowMs;
+                const banked = Number(row.banked_mins) || 0;
+                const rem = active ? Math.max(0, Math.ceil((expiryMs - nowMs) / 60000)) : banked;
+
+                const div = document.createElement('div');
+                div.className = 'pill';
+                div.style.borderLeftColor = COLORS[p] || '#7C4DFF';
+
+                if (active) {
+                    div.innerHTML = `<strong>${p}</strong><span>Active session: about <b>${rem}</b> min left (runs out near <b>${formatClock(expiryMs)}</b>).</span>`;
+                } else {
+                    div.innerHTML = `<strong>${p}</strong><span>No active session. Banked: <b>${banked}</b> min.</span>`;
+                }
+                el.appendChild(div);
+            });
+        }
+
+        let chart;
+
+        async function fetchLogs(url, key) {
+            const since = new Date(Date.now() - 3 * 86400000).toISOString();
+            const q = `${url}/rest/v1/reward_time_log?select=profile,event,reward_mins_remaining,logged_at&logged_at=gte.${encodeURIComponent(since)}&order=logged_at.asc`;
+            const res = await fetch(q, {
+                headers: { apikey: key, Authorization: `Bearer ${key}` }
+            });
+            if (!res.ok) throw new Error(`reward_time_log: ${res.status} ${await res.text()}`);
+            return res.json();
+        }
+
+        async function fetchUserData(url, key) {
+            const list = PROFILES.join(',');
+            const q = `${url}/rest/v1/user_data?profile=in.(${list})&select=profile,reward_time_expiry,banked_mins`;
+            const res = await fetch(q, {
+                headers: { apikey: key, Authorization: `Bearer ${key}` }
+            });
+            if (!res.ok) throw new Error(`user_data: ${res.status} ${await res.text()}`);
+            return res.json();
+        }
+
+        async function loadAll() {
+            const url = supabaseUrl();
+            const key = supabaseKey();
+            const loading = document.getElementById('loading');
+            const err = document.getElementById('error');
+            const content = document.getElementById('content');
+
+            err.style.display = 'none';
+            if (!url || !key) {
+                loading.style.display = 'none';
+                err.style.display = 'block';
+                err.innerHTML = '<strong>Configuration required.</strong> Open the home page and save your Supabase URL and API key.';
+                content.style.display = 'none';
+                return;
+            }
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            try {
+                const ymd = torontoYmd();
+                document.getElementById('torontoDate').textContent = `Toronto calendar day: ${ymd}`;
+
+                const [logs, userRows] = await Promise.all([fetchLogs(url, key), fetchUserData(url, key)]);
+                const logsToday = (logs || []).filter((r) => isSameTorontoDay(r.logged_at, ymd));
+
+                const nowMs = Date.now();
+                renderSummary(userRows || [], nowMs);
+
+                const datasets = PROFILES.map((p) => {
+                    const row = (userRows || []).find((u) => u.profile === p) || {};
+                    const data = buildSeries(p, logsToday, row, nowMs);
+                    return {
+                        label: p,
+                        data,
+                        borderColor: COLORS[p],
+                        backgroundColor: COLORS[p] + '22',
+                        borderWidth: 2,
+                        tension: 0,
+                        spanGaps: false,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    };
+                });
+
+                const allTimes = datasets.flatMap((d) => d.data.map((p) => p.x.getTime()));
+                let minT = allTimes.length ? Math.min(...allTimes, nowMs) : nowMs - 3600000;
+                let maxT = allTimes.length ? Math.max(...allTimes, nowMs) : nowMs + 3600000;
+                (userRows || []).forEach((row) => {
+                    const ex = row.reward_time_expiry && parseLoggedAt(row.reward_time_expiry);
+                    if (!isNaN(ex) && ex > nowMs) {
+                        maxT = Math.max(maxT, ex);
+                    }
+                });
+                const pad = 120000;
+                minT -= pad;
+                maxT += pad;
+
+                const ctx = document.getElementById('chart').getContext('2d');
+                if (chart) chart.destroy();
+
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label(ctx) {
+                                        const y = ctx.parsed.y;
+                                        const t = ctx.parsed.x;
+                                        return `${ctx.dataset.label}: ${y} min @ ${formatClock(t)}`;
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Solid line includes projected countdown to expiry when a session is active'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                min: minT,
+                                max: maxT,
+                                adapters: {
+                                    date: {
+                                        zone: 'America/Toronto'
+                                    }
+                                },
+                                time: {
+                                    unit: 'hour',
+                                    displayFormats: { hour: 'HH:mm' }
+                                },
+                                title: { display: true, text: 'Time of day (America/Toronto)' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Minutes (session remaining or banked)' },
+                                ticks: { precision: 0 }
+                            }
+                        }
+                    }
+                });
+
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            } catch (e) {
+                console.error(e);
+                loading.style.display = 'none';
+                err.style.display = 'block';
+                err.innerHTML = `<strong>Error:</strong> ${e.message || e}`;
+            }
+        }
+
+        loadAll();
+        setInterval(loadAll, 60000);
+    </script>
+</body>
+</html>
