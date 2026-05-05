@@ -8,7 +8,7 @@
         body { font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif; background-color: #fffcf9; text-align: center; }
         .game-container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; box-sizing: border-box; }
         #starCount { font-size: 24px; color: #ffcc00; margin-bottom: 20px; }
-        .word-display { font-size: 28px; margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+        .word-display { font-size: 28px; margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .letter-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0; min-height: 80px; padding: 15px; background: #f5f5f5; border-radius: 10px; }
         .letter {
             background: #4CAF50; color: white; border-radius: 50%; cursor: grab; user-select: none; font-size: 24px; font-weight: bold;
@@ -54,13 +54,13 @@
         <div id="starCount">⭐ 0 / 10</div>
         <div class="word-display" id="wordDisplay">
             <button class="button" id="playButton" onclick="playInstruction()">&#9654; Play</button>
+            <button id="deleteBtn" class="button" onclick="handleDelete()">⌫ Delete</button>
         </div>
         <div class="spelled-word" id="spelledWord"></div>
         <div id="messageContainer"></div>
         <div class="letter-bank" id="letterBank"></div>
         <div id="keyboardContainer" class="keyboard-container hidden"></div>
         <div class="button-container">
-            <button id="deleteBtn" class="button" onclick="handleDelete()">⌫ Delete</button>
             <button id="submitBtn" class="button green-button" onclick="handleSubmit()">Submit</button>
         </div>
         <div id="practiceContainer" class="practice-container hidden">
