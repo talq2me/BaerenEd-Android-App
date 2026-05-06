@@ -1084,9 +1084,14 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     private fun setClickableWordsForPage(fullText: String) {
-        // Split on any Unicode separator (NBSP, thin space, etc.), not ASCII \s only.
-        val tokens = fullText.split(Regex("\\p{Z}+")).filter { it.isNotEmpty() }
-        if (tokens.isEmpty()) {
+        // Walk left-to-right with explicit [start,end) for each word run. Do NOT use split + indexOf:
+        // duplicate words (e.g. "walk ... walk") and skipped/failed tokens can misalign searchStart,
+        // wrong spans, or taps that never fire.
+        // Hyphen is NOT included: compounds like "walk-like" become separate tappable "walk" and "like".
+        // Apostrophe stays inside (don't, l'envers). Do not split M letters from marks (\p{M}).
+        val wordRun = Regex("[\\p{L}\\p{M}'’]+")
+        val matches = wordRun.findAll(fullText).toList()
+        if (matches.isEmpty()) {
             currentWordSpans = emptyList()
             currentPageSpannable = SpannableStringBuilder(fullText)
             return
@@ -1095,16 +1100,11 @@ class TappableTextActivity : AppCompatActivity() {
         val spans = mutableListOf<WordSpan>()
         val spannable = SpannableStringBuilder(fullText)
 
-        var searchStart = 0
-        tokens.forEach { token ->
-            val start = fullText.indexOf(token, searchStart)
-            if (start < 0) {
-                Log.w(TAG, "setClickableWordsForPage: token not found (searchStart=$searchStart): '$token'")
-                return@forEach
-            }
-            val end = (start + token.length).coerceAtMost(fullText.length)
+        matches.forEach { match ->
+            val start = match.range.first
+            val end = match.range.last + 1
             if (end <= start) return@forEach
-
+            val token = match.value
             val normalized = normalizeWord(token)
             spans.add(WordSpan(start, end, normalized))
 
@@ -1162,8 +1162,6 @@ class TappableTextActivity : AppCompatActivity() {
                 end,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-
-            searchStart = end
         }
 
         currentWordSpans = spans
