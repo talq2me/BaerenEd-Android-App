@@ -14,7 +14,16 @@ When creating or updating tappable text JSON:
 - For multi-word or alternate acceptable forms, use `correct_words` to include all valid taps.
 - Before finalizing, verify every `correct_word`/`correct_words` entry exists in tappable form in that page text.
 
+## Tokenization rules the runtime applies (so author intent matches gameplay)
+
+- Page text is tokenized into tappable words by `[\p{L}\p{M}\p{N}'’]+`. Letters, marks, apostrophes, and digits are part of a word; hyphens, periods, commas, and whitespace are not.
+- Hyphenated visible compounds like `cerf-volant`, `pique-nique`, `cache-cache`, `walk-like` are tokenized into separate tappable parts (`cerf` and `volant`, etc.). The hyphen itself is not tappable.
+- A `correct_word` containing a hyphen or whitespace is split on those characters when matching, so a tap on either side counts. `correct_word: "cerf-volant"` accepts `cerf` or `volant`. `correct_word: "old lady"` accepts `old` or `lady`.
+- Numeric `correct_word`s (e.g., `911`, `2024`) are tappable directly.
+
 Examples:
 
 - Page text: `tout est à l'envers` -> use `l'envers` (or include both in `correct_words` if both appear).
 - Page text: `J'aime lire` -> use `J'aime`, not only `aime`.
+- Page text: `son cerf-volant est coincé` -> `correct_word: "cerf-volant"` is fine; runtime accepts a tap on `cerf` or `volant`.
+- Page text: `Dad calls 911.` -> `correct_word: "911"` is fine.

@@ -20,6 +20,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.doOnNextLayout
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -141,8 +142,13 @@ class TappableTextActivity : AppCompatActivity() {
     private val tapSuccessEnglishFollowup = "Good job"
     private var resolveErrorMessage: String? = null
 
-    private val firstPageNarrationDelayMs = 4000L
-    private val pageTurnNarrationDelayMs = 2000L
+    /**
+     * Short post-layout delays after the page text has actually finished laying out.
+     * Replaces older fixed 4000/2000 ms values which produced "10 s of dead air" or, on slow
+     * image decode, started TTS before text painted. Layout is awaited via [pageText.doOnNextLayout].
+     */
+    private val firstPageNarrationDelayMs = 500L
+    private val pageTurnNarrationDelayMs = 200L
     // Per-word highlight dwell during auto-narration (slightly slower reads better with TTS).
     private val narrationWordStepMinMs = 240L
     private val narrationWordStepMaxMs = 850L
@@ -154,6 +160,29 @@ class TappableTextActivity : AppCompatActivity() {
     private var narrationHighlightSpan: BackgroundColorSpan? = null
     private val questionUnlockFallbackMs = 9000L
     private var questionUnlockRunnable: Runnable? = null
+
+    /**
+     * Watchdog for page narration. Android TTS sometimes silently drops the last queued chunk
+     * (engine busy, locale switching mid-stream, brief activity pause), so [onDone] for
+     * [ttsPageDoneUtteranceId] never fires and the page is stuck with no question.
+     * If still not unlocked after estimated reading time + slack, force [beginPageQuestions].
+     */
+    private var pageNarrationWatchdogRunnable: Runnable? = null
+    /** Per-word ms used to estimate page narration time (TTS rate ≈ 0.85, plus engine pauses). */
+    private val pageNarrationMsPerWord: Long = 700L
+    private val pageNarrationWatchdogSlackMs: Long = 5000L
+    private val pageNarrationWatchdogMinMs: Long = 8000L
+
+    /**
+     * Per-span tap debounce: ignore repeated taps on the *same* word within this window.
+     * Cross-span debounce was removed — a kid tapping word A then word B should always get
+     * feedback on both. We still need same-span protection so a true rapid double-tap on a
+     * correct word does not race against [interactionEnabled] flipping false.
+     */
+    private val sameSpanTapDebounceMs: Long = 150L
+    private var lastTappedSpanStart: Int = Int.MIN_VALUE
+    private var lastTappedSpanNanos: Long = 0L
+
     private val httpClient = OkHttpClient.Builder().build()
     private val githubAssetsBase = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets"
     private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/V3?recursive=1"
@@ -476,6 +505,7 @@ class TappableTextActivity : AppCompatActivity() {
                 runOnUiThread {
                     when (utteranceId) {
                         ttsPageDoneUtteranceId -> {
+                            cancelPageNarrationWatchdog()
                             stopNarrationWordHighlight()
                             ttsPageDoneUtteranceId = null
                             beginPageQuestions()
@@ -504,6 +534,7 @@ class TappableTextActivity : AppCompatActivity() {
                 runOnUiThread {
                     when (utteranceId) {
                         ttsPageDoneUtteranceId -> {
+                            cancelPageNarrationWatchdog()
                             stopNarrationWordHighlight()
                             ttsPageDoneUtteranceId = null
                             beginPageQuestions()
@@ -621,9 +652,12 @@ class TappableTextActivity : AppCompatActivity() {
         val g = game ?: return
         if (pageIndex !in g.pages.indices) return
 
+        cancelPageNarrationWatchdog()
         stopNarrationWordHighlight()
         interactionEnabled = false
         activeTapAcceptableNormalizedTokens = null
+        lastTappedSpanStart = Int.MIN_VALUE
+        lastTappedSpanNanos = 0L
         optionsContainer.removeAllViews()
         questionContainer.visibility = View.GONE
 
@@ -643,16 +677,29 @@ class TappableTextActivity : AppCompatActivity() {
         currentQuestions = buildQuestionsForPage(page)
         currentQuestionIndex = 0
 
-        // Speak the page after a small delay so image/text settle before narration starts.
+        // Wait for the page text to actually finish laying out before starting TTS. Combined
+        // with async image decode in [loadPageImage], this prevents "TTS speaks before text
+        // appears" on slow devices, while keeping startup fast on fast ones.
+        // A safety fallback also fires the narration if [doOnNextLayout] doesn't trigger
+        // (e.g. text didn't change measured size) so we never hang here.
         val utteranceId = "tt_page_${pageIndex}_done"
         ttsPageDoneUtteranceId = utteranceId
         ttsQuestionDoneUtteranceId = null
         val narrationDelayMs = if (pageIndex == 0) firstPageNarrationDelayMs else pageTurnNarrationDelayMs
-        Log.d(TAG, "Delaying page narration by ${narrationDelayMs}ms for page=$pageIndex")
-        tapDebounceHandler.postDelayed(
-            { speakTextByChunks(g.language, fullText, utteranceId) },
-            narrationDelayMs
-        )
+        Log.d(TAG, "Awaiting page text layout, then delaying TTS by ${narrationDelayMs}ms for page=$pageIndex")
+        val narrationStarted = java.util.concurrent.atomic.AtomicBoolean(false)
+        val startNarration = Runnable {
+            if (!narrationStarted.compareAndSet(false, true)) return@Runnable
+            if (ttsPageDoneUtteranceId != utteranceId) return@Runnable
+            speakTextByChunks(g.language, fullText, utteranceId)
+            schedulePageNarrationWatchdog(fullText, utteranceId)
+        }
+        pageText.doOnNextLayout {
+            if (ttsPageDoneUtteranceId != utteranceId) return@doOnNextLayout
+            tapDebounceHandler.postDelayed(startNarration, narrationDelayMs)
+        }
+        // Hard fallback in case the layout listener never fires.
+        tapDebounceHandler.postDelayed(startNarration, narrationDelayMs + 1500L)
 
         tapDebounceRunnable = null
     }
@@ -685,6 +732,8 @@ class TappableTextActivity : AppCompatActivity() {
         optionsContainer.removeAllViews()
         interactionEnabled = false
         activeTapAcceptableNormalizedTokens = null
+        lastTappedSpanStart = Int.MIN_VALUE
+        lastTappedSpanNanos = 0L
         clearPageTextHighlightSpans()
         if (q is PageQuestion.TapWord) {
             tapWordWrongGuesses = 0
@@ -745,10 +794,18 @@ class TappableTextActivity : AppCompatActivity() {
         when (q) {
             is PageQuestion.TapWord -> {
                 activeTapAcceptableNormalizedTokens = buildAcceptableNormalizedTokens(q.question)
+                Log.d(
+                    TAG,
+                    "enableCurrentQuestionInteraction: TapWord question idx=$currentQuestionIndex " +
+                        "correctWord='${q.question.correctWord}' " +
+                        "correctWords=${q.question.correctWords} " +
+                        "acceptable=$activeTapAcceptableNormalizedTokens"
+                )
                 optionsContainer.visibility = View.GONE
             }
             is PageQuestion.Comprehension -> {
                 activeTapAcceptableNormalizedTokens = null
+                Log.d(TAG, "enableCurrentQuestionInteraction: Comprehension question idx=$currentQuestionIndex")
                 optionsContainer.visibility = View.VISIBLE
                 populateComprehensionOptions(q.question)
             }
@@ -846,6 +903,7 @@ class TappableTextActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         cancelQuestionUnlockFallback()
+        cancelPageNarrationWatchdog()
         stopNarrationWordHighlight()
         TtsManager.stop()
         TimeTracker(this).endActivity("tappableText")
@@ -867,20 +925,23 @@ class TappableTextActivity : AppCompatActivity() {
         // - Unicode whitespace → ASCII space (NBSP in JSON vs page text)
         // - Lowercase
         // - Replace curly apostrophes with ASCII
-        // - Strip leading/trailing non-letter characters (keep internal apostrophes)
+        // - Strip leading/trailing non-word characters (keep internal apostrophes; also keep digits)
         // - Strip combining marks so story text vs JSON accents still match
         val s = normalizeUnicodeSpaces(raw).lowercase(Locale.getDefault())
             .replace('’', '\'')
             .replace('‑', '-')
-        val stripped = s.replace(Regex("^[^\\p{L}']+|[^\\p{L}']+$"), "")
+        // Allow letters, marks, apostrophes, AND digits as word-internal characters.
+        val stripped = s.replace(Regex("^[^\\p{L}\\p{N}']+|[^\\p{L}\\p{N}']+$"), "")
         return stripDiacritics(stripped)
     }
 
     /**
      * Acceptable normalized tap targets:
      * - If [TappableWordQuestion.correctWords] is non-empty in JSON, those entries only (explicit override).
-     * - Else split [correctWord] on Unicode separators, commas, or semicolons, normalize each segment,
-     *   and accept any one segment (so `"crème glacée"` works without a separate `correct_words` array).
+     * - Else split [correctWord] on Unicode separators, commas, semicolons, OR hyphens, normalize each
+     *   segment, and accept any one segment. This lets `"crème glacée"` accept either word, AND lets
+     *   hyphenated answers like `"cerf-volant"`, `"pique-nique"`, `"cache-cache"` accept either side
+     *   (the page tokenizer splits on hyphens, so the hyphenated whole never appears as a tap target).
      */
     private fun buildAcceptableNormalizedTokens(q: TappableWordQuestion): List<String> {
         val explicit = q.correctWords.map { normalizeWord(it) }.filter { it.isNotEmpty() }.distinct()
@@ -888,7 +949,8 @@ class TappableTextActivity : AppCompatActivity() {
 
         val raw = normalizeUnicodeSpaces(q.correctWord.trim())
         if (raw.isEmpty()) return emptyList()
-        val segments = raw.split(Regex("[\\p{Z},;]+")).map { it.trim() }.filter { it.isNotEmpty() }
+        // Split on whitespace, comma, semicolon, OR hyphen (ASCII '-' or non-breaking '‑').
+        val segments = raw.split(Regex("[\\p{Z},;\\-‑]+")).map { it.trim() }.filter { it.isNotEmpty() }
         val norms = segments.map { normalizeWord(it) }.filter { it.isNotEmpty() }.distinct()
         if (norms.isEmpty()) return emptyList()
         return if (norms.size > 1) norms else listOf(norms.first())
@@ -917,12 +979,15 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     /**
-     * True if the tapped word is the full answer or any single word of a multi-word [correctNorm]
-     * (e.g. correct "old lady" accepts a tap on "old" or "lady").
+     * True if the tapped word is the full answer or any single word of a multi-word/hyphenated
+     * [correctNorm]. Examples:
+     * - "old lady" accepts a tap on "old" or "lady".
+     * - "cerf-volant" accepts a tap on "cerf" or "volant" (page tokenizer splits hyphens).
      */
     private fun tapMatchesCorrectWord(clickedNorm: String, correctNorm: String): Boolean {
         if (tokensMatchForTapAnswer(clickedNorm, correctNorm)) return true
-        val parts = correctNorm.split(Regex("\\s+")).map { it.trim() }.filter { it.isNotEmpty() }
+        // Split on whitespace OR hyphen so hyphenated correct_words match either side.
+        val parts = correctNorm.split(Regex("[\\s\\-]+")).map { it.trim() }.filter { it.isNotEmpty() }
         if (parts.size <= 1) return false
         return parts.any { part -> tokensMatchForTapAnswer(clickedNorm, part) }
     }
@@ -955,6 +1020,30 @@ class TappableTextActivity : AppCompatActivity() {
     private fun cancelQuestionUnlockFallback() {
         questionUnlockRunnable?.let { tapDebounceHandler.removeCallbacks(it) }
         questionUnlockRunnable = null
+    }
+
+    private fun cancelPageNarrationWatchdog() {
+        pageNarrationWatchdogRunnable?.let { tapDebounceHandler.removeCallbacks(it) }
+        pageNarrationWatchdogRunnable = null
+    }
+
+    private fun schedulePageNarrationWatchdog(fullText: String, expectedUtteranceId: String) {
+        cancelPageNarrationWatchdog()
+        val wordCount = fullText.split(Regex("\\s+")).count { it.isNotBlank() }
+        val estimatedMs = (wordCount.coerceAtLeast(1).toLong() * pageNarrationMsPerWord) +
+            pageNarrationWatchdogSlackMs
+        val delay = estimatedMs.coerceAtLeast(pageNarrationWatchdogMinMs)
+        Log.d(TAG, "Scheduling page narration watchdog: words=$wordCount delay=${delay}ms uid=$expectedUtteranceId")
+        val r = Runnable {
+            if (ttsPageDoneUtteranceId == expectedUtteranceId) {
+                Log.w(TAG, "Page narration watchdog fired (TTS callback never arrived) uid=$expectedUtteranceId")
+                stopNarrationWordHighlight()
+                ttsPageDoneUtteranceId = null
+                beginPageQuestions()
+            }
+        }
+        pageNarrationWatchdogRunnable = r
+        tapDebounceHandler.postDelayed(r, delay)
     }
 
     private fun scheduleQuestionUnlockFallback(expectedUtteranceId: String) {
@@ -1089,7 +1178,8 @@ class TappableTextActivity : AppCompatActivity() {
         // wrong spans, or taps that never fire.
         // Hyphen is NOT included: compounds like "walk-like" become separate tappable "walk" and "like".
         // Apostrophe stays inside (don't, l'envers). Do not split M letters from marks (\p{M}).
-        val wordRun = Regex("[\\p{L}\\p{M}'’]+")
+        // Digits ARE included so numeric answers like "911" or "2024" become tappable.
+        val wordRun = Regex("[\\p{L}\\p{M}\\p{N}'’]+")
         val matches = wordRun.findAll(fullText).toList()
         if (matches.isEmpty()) {
             currentWordSpans = emptyList()
@@ -1100,49 +1190,102 @@ class TappableTextActivity : AppCompatActivity() {
         val spans = mutableListOf<WordSpan>()
         val spannable = SpannableStringBuilder(fullText)
 
-        matches.forEach { match ->
-            val start = match.range.first
-            val end = match.range.last + 1
-            if (end <= start) return@forEach
+        // Forgiving tap targets: split each non-word gap between two adjacent matches so that each
+        // word claims half. Tapping on the comma/period right after a word still hits the word.
+        // Visual highlighting (WordSpan) keeps the actual word range, so green/yellow only marks
+        // the letters themselves.
+        matches.forEachIndexed { idx, match ->
+            val baseStart = match.range.first
+            val baseEnd = match.range.last + 1
+            if (baseEnd <= baseStart) return@forEachIndexed
+            val prevEnd = if (idx > 0) matches[idx - 1].range.last + 1 else 0
+            val nextStart = if (idx + 1 < matches.size) matches[idx + 1].range.first else fullText.length
+
+            // Claim the leading half of the gap to this word, the trailing half to the next.
+            val leadingGap = baseStart - prevEnd
+            val trailingGap = nextStart - baseEnd
+            val tapStart = (baseStart - leadingGap / 2).coerceAtLeast(prevEnd)
+            val tapEnd = (baseEnd + (trailingGap + 1) / 2).coerceAtMost(nextStart)
+
             val token = match.value
             val normalized = normalizeWord(token)
-            spans.add(WordSpan(start, end, normalized))
+            spans.add(WordSpan(baseStart, baseEnd, normalized))
 
             spannable.setSpan(
                 object : ClickableSpan() {
                     override fun onClick(widget: View) {
                         if (widget !is TextView) return
                         val tv = widget
-                        val rawSurface = tv.text.subSequence(start, end).toString()
+                        val rawSurface = tv.text.subSequence(baseStart, baseEnd).toString()
 
-                        // Easy mode: hear any word while waiting for the tap question to unlock (TTS still playing).
-                        if (easyMode && (activeTapAcceptableNormalizedTokens.isNullOrEmpty() || !interactionEnabled)) {
+                        // Same-span debounce only: ignore repeated taps on this exact word within
+                        // [sameSpanTapDebounceMs]. Cross-span taps are NOT debounced so a kid
+                        // tapping word A then word B always gets feedback on both.
+                        val nowNanos = System.nanoTime()
+                        if (lastTappedSpanStart == baseStart &&
+                            (nowNanos - lastTappedSpanNanos) / 1_000_000L < sameSpanTapDebounceMs
+                        ) {
+                            Log.d(TAG, "Tap debounced (same span within ${sameSpanTapDebounceMs}ms): '$rawSurface'")
+                            return
+                        }
+                        lastTappedSpanStart = baseStart
+                        lastTappedSpanNanos = nowNanos
+
+                        val acceptableSnapshot = activeTapAcceptableNormalizedTokens
+                        val qSnapshot = currentQuestions.getOrNull(currentQuestionIndex)
+                        Log.d(
+                            TAG,
+                            "Tap: surface='$rawSurface' normalized='$normalized' " +
+                                "baseStart=$baseStart baseEnd=$baseEnd " +
+                                "interactionEnabled=$interactionEnabled " +
+                                "acceptable=${acceptableSnapshot} " +
+                                "currentQuestionIndex=$currentQuestionIndex " +
+                                "qType=${qSnapshot?.javaClass?.simpleName} " +
+                                "wrongGuesses=$tapWordWrongGuesses revealed=$tapAnswerRevealed"
+                        )
+
+                        // Tap-to-read: any tap should speak the word, in any mode, even before the
+                        // question's prompt TTS has finished. This satisfies "tap any word and it
+                        // reads the word" universally.
+                        val ambientMode = acceptableSnapshot.isNullOrEmpty() || !interactionEnabled
+                        if (ambientMode) {
+                            Log.d(TAG, "Tap → ambient mode (no active acceptable list or interaction disabled)")
                             speakExploreWord(rawSurface)
                             return
                         }
-                        if (!interactionEnabled) return
 
-                        val acceptable = activeTapAcceptableNormalizedTokens ?: return
+                        val acceptable = acceptableSnapshot ?: return
                         if (acceptable.isEmpty()) return
-                        val qNow = currentQuestions.getOrNull(currentQuestionIndex)
-                        if (qNow !is PageQuestion.TapWord) return
+                        if (qSnapshot !is PageQuestion.TapWord) {
+                            Log.d(TAG, "Tap → ignored (current question is not TapWord: $qSnapshot)")
+                            return
+                        }
 
                         val clickedNormalizedToken = normalized
-                        if (acceptable.any { tapMatchesCorrectWord(clickedNormalizedToken, it) }) {
+                        val matchedCorrect = acceptable.any { tapMatchesCorrectWord(clickedNormalizedToken, it) }
+                        Log.d(
+                            TAG,
+                            "Tap match check: clicked='$clickedNormalizedToken' " +
+                                "vs acceptable=$acceptable → matched=$matchedCorrect " +
+                                "(per-token: ${acceptable.map { it to tapMatchesCorrectWord(clickedNormalizedToken, it) }})"
+                        )
+                        if (matchedCorrect) {
                             interactionEnabled = false
                             highlightCorrectWord(acceptable)
+                            Toast.makeText(this@TappableTextActivity, wordTapCorrectMessage, Toast.LENGTH_SHORT).show()
                             if (easyMode) {
-                                Toast.makeText(this@TappableTextActivity, wordTapCorrectMessage, Toast.LENGTH_SHORT).show()
-                                speakTapSuccessThenAdvance(rawSurface, qNow.question)
+                                speakTapSuccessThenAdvance(rawSurface, qSnapshot.question)
                             } else {
-                                Toast.makeText(this@TappableTextActivity, wordTapCorrectMessage, Toast.LENGTH_SHORT).show()
+                                // Read the correct word back so the kid hears confirmation,
+                                // then advance immediately. (Non-easy paths previously skipped TTS.)
+                                speakExploreWord(rawSurface)
                                 onQuestionAnsweredCorrect()
                             }
                         } else {
-                            if (easyMode) {
-                                speakExploreWord(rawSurface)
-                            }
-                            if (easyMode && !tapAnswerRevealed) {
+                            // Always read the wrong tap aloud so kids learn the word, in any mode.
+                            speakExploreWord(rawSurface)
+                            // Always count wrong taps and reveal after 3 — this used to be easyMode-only.
+                            if (!tapAnswerRevealed) {
                                 tapWordWrongGuesses++
                                 if (tapWordWrongGuesses >= 3) {
                                     tapAnswerRevealed = true
@@ -1158,8 +1301,8 @@ class TappableTextActivity : AppCompatActivity() {
                         ds.isUnderlineText = false
                     }
                 },
-                start,
-                end,
+                tapStart,
+                tapEnd,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
@@ -1192,28 +1335,38 @@ class TappableTextActivity : AppCompatActivity() {
             return
         }
         imageView.visibility = View.VISIBLE
+        imageView.setImageDrawable(null)
         // Default: books/images/<id>.webp|.png — Boukili captures: full path e.g. boukili/singe/p1
         val tryPaths = if (imageId.contains('/')) {
             listOf("$imageId.webp", "$imageId.png")
         } else {
             listOf("books/images/$imageId.webp", "books/images/$imageId.png")
         }
-        var loaded = false
-        for (path in tryPaths) {
-            try {
-                assets.open(path).use { stream ->
-                    val bitmap = BitmapFactory.decodeStream(stream)
-                    imageView.setImageBitmap(bitmap)
-                    loaded = true
+        // Decode off the UI thread so a large bitmap can't block layout (which would let TTS
+        // race ahead of the text). The ImageView is updated on the main thread once decoded.
+        val targetPageIndex = currentPageIndex
+        lifecycleScope.launch(Dispatchers.IO) {
+            var bitmap: android.graphics.Bitmap? = null
+            for (path in tryPaths) {
+                try {
+                    assets.open(path).use { stream ->
+                        bitmap = BitmapFactory.decodeStream(stream)
+                    }
+                    if (bitmap != null) break
+                } catch (_: Exception) {
+                    continue
                 }
-            } catch (_: Exception) {
-                continue
             }
-            if (loaded) break
-        }
-        if (!loaded) {
-            Log.w(TAG, "Could not load image for image_id=$imageId (tried $tryPaths)")
-            imageView.setImageDrawable(null)
+            withContext(Dispatchers.Main) {
+                // Drop the result if the user already turned the page.
+                if (currentPageIndex != targetPageIndex) return@withContext
+                if (bitmap != null) {
+                    imageView.setImageBitmap(bitmap)
+                } else {
+                    Log.w(TAG, "Could not load image for image_id=$imageId (tried $tryPaths)")
+                    imageView.setImageDrawable(null)
+                }
+            }
         }
     }
 }
