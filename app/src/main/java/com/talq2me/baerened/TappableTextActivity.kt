@@ -174,6 +174,20 @@ class TappableTextActivity : AppCompatActivity() {
     private val pageNarrationWatchdogMinMs: Long = 8000L
 
     /**
+     * Watchdog for the tap-success TTS chain in easy mode. After a correct tap we either:
+     * - speak French word → onDone fires utteranceTapSuccessFr → speak "Good job" in US →
+     *   onDone fires utteranceTapSuccessDone → [onTapSuccessTtsFinished] advances; OR
+     * - speak the word with utteranceTapSuccessDone directly (non-FR or no gloss) → advance.
+     * If Android TTS silently drops any of those callbacks (same misbehavior as page narration),
+     * [onTapSuccessTtsFinished] never runs and the page is stuck even though the kid tapped
+     * correctly. This watchdog forces the chain to complete after a generous delay.
+     */
+    private var tapSuccessWatchdogRunnable: Runnable? = null
+    private var tapSuccessChainPending: Boolean = false
+    /** Estimated max time for word + "Good job" with TTS rate 0.85, plus engine slack. */
+    private val tapSuccessWatchdogMs: Long = 6000L
+
+    /**
      * Per-span tap debounce: ignore repeated taps on the *same* word within this window.
      * Cross-span debounce was removed — a kid tapping word A then word B should always get
      * feedback on both. We still need same-span protection so a true rapid double-tap on a
@@ -653,6 +667,8 @@ class TappableTextActivity : AppCompatActivity() {
         if (pageIndex !in g.pages.indices) return
 
         cancelPageNarrationWatchdog()
+        cancelTapSuccessWatchdog()
+        tapSuccessChainPending = false
         stopNarrationWordHighlight()
         interactionEnabled = false
         activeTapAcceptableNormalizedTokens = null
@@ -904,6 +920,8 @@ class TappableTextActivity : AppCompatActivity() {
     override fun onBackPressed() {
         cancelQuestionUnlockFallback()
         cancelPageNarrationWatchdog()
+        cancelTapSuccessWatchdog()
+        tapSuccessChainPending = false
         stopNarrationWordHighlight()
         TtsManager.stop()
         TimeTracker(this).endActivity("tappableText")
@@ -1027,6 +1045,24 @@ class TappableTextActivity : AppCompatActivity() {
         pageNarrationWatchdogRunnable = null
     }
 
+    private fun cancelTapSuccessWatchdog() {
+        tapSuccessWatchdogRunnable?.let { tapDebounceHandler.removeCallbacks(it) }
+        tapSuccessWatchdogRunnable = null
+    }
+
+    private fun scheduleTapSuccessWatchdog() {
+        cancelTapSuccessWatchdog()
+        tapSuccessChainPending = true
+        val r = Runnable {
+            if (!tapSuccessChainPending) return@Runnable
+            Log.w(TAG, "Tap-success TTS watchdog fired (TTS callback never arrived) — forcing advance")
+            // onTapSuccessTtsFinished clears the pending flag and cancels the watchdog itself.
+            onTapSuccessTtsFinished()
+        }
+        tapSuccessWatchdogRunnable = r
+        tapDebounceHandler.postDelayed(r, tapSuccessWatchdogMs)
+    }
+
     private fun schedulePageNarrationWatchdog(fullText: String, expectedUtteranceId: String) {
         cancelPageNarrationWatchdog()
         val wordCount = fullText.split(Regex("\\s+")).count { it.isNotBlank() }
@@ -1092,6 +1128,10 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     private fun onTapSuccessTtsFinished() {
+        // Idempotent: handle the case where both a real TTS callback AND the watchdog fire.
+        if (!tapSuccessChainPending) return
+        tapSuccessChainPending = false
+        cancelTapSuccessWatchdog()
         onQuestionAnsweredCorrect()
     }
 
@@ -1115,6 +1155,10 @@ class TappableTextActivity : AppCompatActivity() {
         }
         val isFrench = g.language?.lowercase()?.take(2) == "fr"
         val gloss = extractEnglishGlossFromPrompt(question.prompt)
+        // Schedule the watchdog BEFORE queueing TTS, so even if TtsManager.whenReady never fires
+        // (engine disabled / not ready) or the engine silently drops the utterance callback, the
+        // chain still completes and the kid is not stuck.
+        scheduleTapSuccessWatchdog()
         TtsManager.whenReady(Runnable {
             when {
                 isFrench && gloss != null -> {
