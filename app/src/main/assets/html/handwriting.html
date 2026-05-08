@@ -167,6 +167,9 @@
         </div>
     </div>
 
+    <!-- Rasterize lined paper → PNG for upload (matches spelling photo flow via Android.uploadImageToSupabase). -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
     <script>
         const sentenceText = document.getElementById('sentenceText');
         const doneButton = document.getElementById('doneButton');
@@ -277,12 +280,48 @@
             return formattedSentence;
         }
 
-        function endGame() {
-            doneButton.disabled = true;
-            doneButton.textContent = "Completed!";
+        /** Sentence list index for today (same formula as getDailySentence). */
+        function getDailySentenceIndex() {
+            const today = new Date();
+            const dayStart = new Date(today.getFullYear(), 0, 0);
+            const dayOfYear = Math.floor((today - dayStart) / (1000 * 60 * 60 * 24));
+            return dayOfYear % sentences.length;
+        }
 
-            // Call the Android interface to signal game completion and grant rewards
-            // Handwriting doesn't have correct/incorrect answers, so pass 0 for both
+        /** One row per profile + calendar day + sentence variant (UPSERT replaces same-day retries). Parent filter: HandwritingPractice% */
+        function buildHandwritingTaskKey() {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const d = String(today.getDate()).padStart(2, '0');
+            const si = getDailySentenceIndex();
+            return `HandwritingPractice-${y}${m}${d}-sent${si}`;
+        }
+
+        /** Global names required by WebGameActivity.uploadImageToSupabase callback resolution. */
+        window.hwPracticeUploadOk = function () {
+            if (window._hwPracticeUploadSafetyTimer) {
+                clearTimeout(window._hwPracticeUploadSafetyTimer);
+                window._hwPracticeUploadSafetyTimer = null;
+            }
+            finishAfterHandwritingAttempt();
+        };
+        window.hwPracticeUploadErr = function (_msg) {
+            if (_msg) console.warn('Handwriting image upload:', _msg);
+            if (window._hwPracticeUploadSafetyTimer) {
+                clearTimeout(window._hwPracticeUploadSafetyTimer);
+                window._hwPracticeUploadSafetyTimer = null;
+            }
+            finishAfterHandwritingAttempt();
+        };
+
+        let handwritingFinishOnce = false;
+        function finishAfterHandwritingAttempt() {
+            if (handwritingFinishOnce) return;
+            handwritingFinishOnce = true;
+
+            doneButton.textContent = 'Completed!';
+
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(0, 0);
             } else if (window.parent && window.parent !== window) {
@@ -295,9 +334,83 @@
                     }
                 }, 500);
             } else {
-                console.log("Not in Android app, navigating back.");
+                console.log('Not in Android WebView parent; navigating back.');
                 setTimeout(() => history.back(), 500);
             }
+        }
+
+        function captureHandwritingPng(cb) {
+            const node = document.querySelector('.lined-paper');
+            if (!node || typeof html2canvas !== 'function') {
+                cb(null);
+                return;
+            }
+            html2canvas(node, {
+                scale: window.devicePixelRatio > 1 ? Math.min(window.devicePixelRatio, 2) : 1.75,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            }).then((canvas) => {
+                try {
+                    cb(canvas.toDataURL('image/png'));
+                } catch (e) {
+                    console.warn('handwriting PNG export failed:', e);
+                    cb(null);
+                }
+            }).catch((e) => {
+                console.warn('html2canvas failed:', e);
+                cb(null);
+            });
+        }
+
+        let handwritingEndBusy = false;
+        function endGame() {
+            if (handwritingEndBusy) return;
+            handwritingEndBusy = true;
+
+            doneButton.disabled = true;
+            doneButton.textContent = 'Saving picture…';
+
+            const runUploadThenFinish = () => {
+                captureHandwritingPng((dataUrl) => {
+                    try {
+                        if (
+                            window.Android &&
+                            typeof window.Android.uploadImageToSupabase === 'function' &&
+                            dataUrl
+                        ) {
+                            let profile = 'AM';
+                            if (typeof window.Android.getCurrentProfile === 'function') {
+                                profile = window.Android.getCurrentProfile() || 'AM';
+                            }
+                            const payload = JSON.stringify({
+                                profile: profile,
+                                task: buildHandwritingTaskKey(),
+                                image: dataUrl,
+                                capture_date_time: new Date().toISOString()
+                            });
+                            window._hwPracticeUploadSafetyTimer = setTimeout(() => {
+                                window._hwPracticeUploadSafetyTimer = null;
+                                console.warn('Handwriting upload: safety timeout — closing game.');
+                                finishAfterHandwritingAttempt();
+                            }, 20000);
+                            window.Android.uploadImageToSupabase(
+                                payload,
+                                'hwPracticeUploadOk',
+                                'hwPracticeUploadErr'
+                            );
+                            return;
+                        }
+                    } catch (e) {
+                        console.warn('Handwriting upload path error:', e);
+                    }
+                    finishAfterHandwritingAttempt();
+                });
+            };
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(runUploadThenFinish);
+            });
         }
 
         document.addEventListener('DOMContentLoaded', initializeGame);
