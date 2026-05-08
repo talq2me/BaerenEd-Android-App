@@ -386,6 +386,10 @@
         let currentWordIndex = 0;
         let currentWord = {};
         let plantedLetters = [];
+        /** Per-plot DOM node from the letter bank used for planting (fixes duplicate-letter words + precise undo). */
+        let plantedBankItems = [];
+        /** Pending setTimeout ids for shovel→seed animation, so we can cancel if user taps plot or deletes. */
+        let plotPlantTimeouts = {};
         let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
         let isFirstAttempt = true;
 
@@ -477,7 +481,6 @@
             }
             
             currentWord = words[currentWordIndex];
-            plantedLetters = [];
             isFirstAttempt = true;
             document.getElementById('wordDisplay').innerHTML = 
                 `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
@@ -504,11 +507,36 @@
             readText(textToRead, ttsLanguage, 0.8);
         }
 
+        function cancelPlotPlantAnimation(plotIndex) {
+            const tid = plotPlantTimeouts[plotIndex];
+            if (tid != null) {
+                clearTimeout(tid);
+                delete plotPlantTimeouts[plotIndex];
+            }
+            const plot = document.querySelector(`.garden-plot[data-index="${plotIndex}"]`);
+            if (plot) {
+                plot.querySelectorAll('.shovel-animation, .dirt-particles').forEach((el) => el.remove());
+            }
+            const item = plantedBankItems[plotIndex];
+            if (item) {
+                item.classList.remove('used');
+                item.style.opacity = '1';
+                item.style.cursor = 'grab';
+                item.draggable = true;
+                item.classList.remove('dragging');
+            }
+            plantedLetters[plotIndex] = null;
+            plantedBankItems[plotIndex] = null;
+        }
+
         function createGarden() {
             const gardenContainer = document.getElementById('gardenContainer');
             gardenContainer.innerHTML = '';
             
             const wordLength = currentWord.word.length;
+            plantedLetters = new Array(wordLength).fill(null);
+            plantedBankItems = new Array(wordLength).fill(null);
+            plotPlantTimeouts = {};
             
             for (let i = 0; i < wordLength; i++) {
                 const plot = document.createElement('div');
@@ -571,20 +599,32 @@
                     return false;
                 });
                 
-                // Click to remove
+                // Click to remove (or cancel digging animation mid-flight — same symptom as “stuck pot”)
                 plot.addEventListener('click', () => {
-                    if (plantedLetters[i]) {
-                        // Remove letter from plot
-                        const seed = plot.querySelector('.letter-seed');
-                        if (seed) {
-                            const letter = seed.textContent.toLowerCase();
-                            seed.remove();
-                            plantedLetters[i] = null;
-                            plot.classList.remove('filled');
-                            plot.style.background = '';
-                            // Return letter to bank
-                            returnLetterToBank(letter);
-                        }
+                    if (!plantedLetters[i]) return;
+                    const seed = plot.querySelector('.letter-seed');
+                    if (!seed) {
+                        cancelPlotPlantAnimation(i);
+                        plot.classList.remove('filled');
+                        plot.style.background = '';
+                        window.draggedLetterItem = null;
+                        return;
+                    }
+                    const letterCh = seed.textContent.toLowerCase();
+                    const bankItem = plantedBankItems[i];
+                    seed.remove();
+                    plantedLetters[i] = null;
+                    plantedBankItems[i] = null;
+                    plot.classList.remove('filled');
+                    plot.style.background = '';
+                    if (bankItem) {
+                        bankItem.classList.remove('used');
+                        bankItem.style.opacity = '1';
+                        bankItem.style.cursor = 'grab';
+                        bankItem.draggable = true;
+                        bankItem.classList.remove('dragging');
+                    } else {
+                        returnLetterToBank(letterCh);
                     }
                 });
                 
@@ -685,8 +725,22 @@
                 return false;
             }
             
-            // Reserve this plot immediately so a second drag to the same plot is rejected
+            const existingTid = plotPlantTimeouts[plotIndex];
+            if (existingTid != null) {
+                clearTimeout(existingTid);
+                delete plotPlantTimeouts[plotIndex];
+                plot.querySelectorAll('.shovel-animation, .dirt-particles').forEach((el) => el.remove());
+            }
+
+            // Reserve plot + bank tile immediately (before shovel animation completes) so one tile cannot
+            // be dragged to two pots, and duplicate drops on one pot stay blocked.
             plantedLetters[plotIndex] = letter;
+            plantedBankItems[plotIndex] = letterItem;
+            letterItem.classList.add('used');
+            letterItem.style.opacity = '0.3';
+            letterItem.style.cursor = 'not-allowed';
+            letterItem.draggable = false;
+            letterItem.classList.remove('dragging');
             
             // Get plot center position
             const plotRect = plot.getBoundingClientRect();
@@ -717,61 +771,67 @@
             }
             
             // After digging animation, plant the seed
-            setTimeout(() => {
+            const finishTid = setTimeout(() => {
+                delete plotPlantTimeouts[plotIndex];
+                if (!plantedLetters[plotIndex] || plantedBankItems[plotIndex] !== letterItem) {
+                    shovel.remove();
+                    dirtContainer.remove();
+                    return;
+                }
                 shovel.remove();
                 dirtContainer.remove();
-                
-                // Create seed (letter visible in plot)
+
                 const seed = document.createElement('div');
                 seed.className = 'letter-seed planted';
                 seed.textContent = letter.toUpperCase();
                 plot.appendChild(seed);
-                
-                plantedLetters[plotIndex] = letter;
-                letterItem.classList.add('used');
-                letterItem.style.opacity = '0.3';
-                letterItem.style.cursor = 'not-allowed';
-                letterItem.draggable = false;
-                letterItem.classList.remove('dragging');
-                
-                // Add water animation
+
                 const water = document.createElement('div');
                 water.className = 'water-animation';
                 plot.appendChild(water);
                 setTimeout(() => water.remove(), 500);
-                
-                // Update plot appearance
+
                 plot.classList.add('filled');
                 plot.style.background = '#5d4037';
             }, 1200);
-            
+            plotPlantTimeouts[plotIndex] = finishTid;
+
             return true;
         }
 
         function deleteLastLetter() {
-            // Find the last filled plot
             for (let i = plantedLetters.length - 1; i >= 0; i--) {
-                if (plantedLetters[i]) {
-                    const plot = document.querySelector(`.garden-plot[data-index="${i}"]`);
-                    if (plot) {
-                        const seed = plot.querySelector('.letter-seed');
-                        if (seed) {
-                            const letter = seed.textContent.toLowerCase();
-                            seed.remove();
-                            plantedLetters[i] = null;
-                            plot.classList.remove('filled');
-                            plot.style.background = '';
-                            // Return letter to bank
-                            returnLetterToBank(letter);
-                            break;
-                        }
-                    }
+                if (!plantedLetters[i]) continue;
+                const plot = document.querySelector(`.garden-plot[data-index="${i}"]`);
+                if (!plot) continue;
+                const seed = plot.querySelector('.letter-seed');
+                if (!seed) {
+                    cancelPlotPlantAnimation(i);
+                    plot.classList.remove('filled');
+                    plot.style.background = '';
+                    break;
                 }
+                const letterCh = seed.textContent.toLowerCase();
+                const bankItem = plantedBankItems[i];
+                seed.remove();
+                plantedLetters[i] = null;
+                plantedBankItems[i] = null;
+                plot.classList.remove('filled');
+                plot.style.background = '';
+                if (bankItem) {
+                    bankItem.classList.remove('used');
+                    bankItem.style.opacity = '1';
+                    bankItem.style.cursor = 'grab';
+                    bankItem.draggable = true;
+                    bankItem.classList.remove('dragging');
+                } else {
+                    returnLetterToBank(letterCh);
+                }
+                break;
             }
         }
 
         function returnLetterToBank(letter) {
-            // Find a used letter item with this letter and return it
             const letterItems = document.querySelectorAll(`.letter-item[data-letter="${letter}"]`);
             for (let item of letterItems) {
                 if (item.classList.contains('used')) {
@@ -779,6 +839,7 @@
                     item.style.opacity = '1';
                     item.style.cursor = 'grab';
                     item.draggable = true;
+                    item.classList.remove('dragging');
                     break;
                 }
             }
@@ -831,14 +892,30 @@
                     document.getElementById('feedbackContainer').innerHTML = '';
                     // Clear all planted letters
                     plantedLetters.forEach((letter, index) => {
-                        if (letter) {
-                            const plot = document.querySelector(`.garden-plot[data-index="${index}"]`);
-                            const seed = plot.querySelector('.letter-seed');
-                            if (seed) {
-                                returnLetterToBank(letter);
-                                seed.remove();
-                                plantedLetters[index] = null;
-                            }
+                        if (!letter) return;
+                        const plot = document.querySelector(`.garden-plot[data-index="${index}"]`);
+                        if (!plot) return;
+                        const seed = plot.querySelector('.letter-seed');
+                        if (!seed) {
+                            cancelPlotPlantAnimation(index);
+                            plot.classList.remove('filled');
+                            plot.style.background = '';
+                            return;
+                        }
+                        const bankItem = plantedBankItems[index];
+                        seed.remove();
+                        plantedLetters[index] = null;
+                        plantedBankItems[index] = null;
+                        plot.classList.remove('filled');
+                        plot.style.background = '';
+                        if (bankItem) {
+                            bankItem.classList.remove('used');
+                            bankItem.style.opacity = '1';
+                            bankItem.style.cursor = 'grab';
+                            bankItem.draggable = true;
+                            bankItem.classList.remove('dragging');
+                        } else {
+                            returnLetterToBank(letter);
                         }
                     });
                 }, 2000);

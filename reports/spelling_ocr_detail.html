@@ -341,36 +341,118 @@
             }
         }
         
+        /**
+         * Parse task strings like "EngSpellingOCR-01-uncooked-X" / "EngSpellingOCR-01-forty-two-✓".
+         * Words may contain "-" (hyphenated); the final segment is always the status marker.
+         */
+        function parseSpellingOcrTask(task) {
+            if (!task || typeof task !== 'string') return null;
+            const trimmed = task.trim();
+            const parts = trimmed.split('-');
+            if (parts.length < 4) return null;
+            const gamePrefix = parts[0];
+            const gp = gamePrefix.toLowerCase();
+            if (gp !== 'engspellingocr' && gp !== 'frspellingocr') return null;
+            const questionNumber = parseInt(parts[1], 10);
+            if (!Number.isFinite(questionNumber) || questionNumber < 1) return null;
+            const status = parts[parts.length - 1];
+            const word = parts.slice(2, -1).join('-');
+            if (!word) return null;
+            const isCorrect = status === '✓' || status === 'checkmark' || status.toLowerCase() === 'correct';
+            return { gamePrefix, questionNumber, word, isCorrect };
+        }
+
+        function formatTorontoLongDateFromMs(ms) {
+            const d = new Date(ms);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-US', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatTorontoDateTime(isoStr) {
+            const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleString('en-US', {
+                timeZone: 'America/Toronto',
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        }
+
         function displayEntries(data) {
-            // Show last updated (most recent capture_date_time)
             const lastUpdatedEl = document.getElementById('lastUpdated');
-            if (data && data.length > 0) {
-                const dates = data.map(e => e.capture_date_time).filter(Boolean);
-                if (dates.length > 0) {
-                    const latest = new Date(Math.max(...dates.map(d => new Date(d).getTime())));
-                    lastUpdatedEl.textContent = 'Last submission: ' + latest.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
-                    lastUpdatedEl.style.display = 'block';
-                } else {
-                    lastUpdatedEl.style.display = 'none';
-                }
-            } else {
+            if (!data || data.length === 0) {
                 lastUpdatedEl.style.display = 'none';
+                return;
             }
 
-            // Parse and display entries
+            const dates = data.map(e => e.capture_date_time).filter(Boolean);
+            if (dates.length === 0) {
+                lastUpdatedEl.style.display = 'none';
+            } else {
+                const times = dates.map(d => new Date(d).getTime());
+                const validIdx = times.map((t, i) => (!isNaN(t) ? i : -1)).filter((i) => i >= 0);
+                if (validIdx.length === 0) {
+                    lastUpdatedEl.style.display = 'none';
+                } else {
+                    const validTimes = validIdx.map((i) => times[i]);
+                    const latestIdx = validIdx[validTimes.reduce((best, t, j, arr) => (t >= arr[best] ? j : best), 0)];
+                    const latestMs = times[latestIdx];
+                    const earliestMs = Math.min(...validTimes);
+                    const latestIso = dates[latestIdx];
+
+                    const torontoDayFmt = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'America/Toronto',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    });
+                    const dayKeys = [...new Set(validTimes.map((ms) => torontoDayFmt.format(new Date(ms))))].sort();
+
+                    let dayLine = '';
+                    if (dayKeys.length === 1) {
+                        dayLine = `Results for day: ${formatTorontoLongDateFromMs(latestMs)} (America/Toronto)`;
+                    } else if (dayKeys.length > 1) {
+                        const firstLabel = formatTorontoLongDateFromMs(earliestMs);
+                        const lastLabel = formatTorontoLongDateFromMs(latestMs);
+                        dayLine = `Results span ${dayKeys.length} calendar days (${firstLabel} – ${lastLabel}, America/Toronto)`;
+                    }
+
+                    const lastUpdatedLine = `last_updated (latest capture): ${formatTorontoDateTime(latestIso)} (America/Toronto)`;
+                    lastUpdatedEl.innerHTML = [dayLine, lastUpdatedLine].filter(Boolean).join('<br>');
+                    lastUpdatedEl.style.display = 'block';
+                }
+            }
+
+            const parsedRows = [];
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const p = parseSpellingOcrTask(entry.task);
+                if (!p) {
+                    console.warn('Skipping unparsable OCR task:', entry.task);
+                    continue;
+                }
+                parsedRows.push({ entry, parsed: p });
+            }
+
+            parsedRows.sort((a, b) => a.parsed.questionNumber - b.parsed.questionNumber);
+
             const container = document.getElementById('entriesContainer');
+            const noDataEl = document.getElementById('noData');
             container.innerHTML = '';
 
-            data.forEach(entry => {
-                    // Parse task: "EngSpellingOCR-01-uncooked-X" or "EngSpellingOCR-01-uncooked-✓"
-                    const taskParts = entry.task.split('-');
-                    if (taskParts.length < 4) return;
+            if (parsedRows.length > 0) {
+                noDataEl.style.display = 'none';
+            }
 
-                    const questionNumber = taskParts[1];
-                    const word = taskParts[2];
-                    const status = taskParts[3];
-
-                    const isCorrect = status === '✓' || status === 'checkmark' || status.toLowerCase() === 'correct';
+            parsedRows.forEach(({ entry, parsed }) => {
+                    const questionNumber = parsed.questionNumber;
+                    const word = parsed.word;
+                    const isCorrect = parsed.isCorrect;
 
                     const entryDiv = document.createElement('div');
                     entryDiv.className = 'entry-container';
@@ -415,8 +497,7 @@
                             }
                         }
                     });
-                    
-                    // Prevent header click from triggering when clicking on image
+
                     img.addEventListener('click', function(e) {
                         e.stopPropagation();
                     });
@@ -425,6 +506,11 @@
                     entryDiv.appendChild(contentDiv);
                     container.appendChild(entryDiv);
             });
+
+            if (parsedRows.length === 0 && data.length > 0) {
+                noDataEl.style.display = 'block';
+                noDataEl.textContent = 'Rows were returned but no spelling OCR tasks could be parsed. Check browser console.';
+            }
         }
 
         // Modal functionality
