@@ -162,6 +162,25 @@ class TappableTextActivity : AppCompatActivity() {
     private var questionUnlockRunnable: Runnable? = null
 
     /**
+     * Text of the active question prompt. After [onStart] fires for the prompt utterance, we use
+     * this to compute a tight unlock fallback (estimated TTS duration + small slack) so the kid
+     * can interact almost as soon as audio ends, even on tablets where [onDone] is delayed by
+     * several seconds. The 9 s outer fallback above stays as the absolute safety net.
+     */
+    private var currentQuestionPromptText: String? = null
+    /**
+     * Tracks the utterance id of the FIRST chunk of the current page narration. We start the
+     * per-word highlight in [onStart] for this id (not when we queue TTS), so the highlight
+     * stays in sync with the audio on slow tablets. If [onStart] never fires, a fallback
+     * forces the highlight to begin so the kid is not left looking at static text.
+     */
+    private var ttsPageFirstChunkUid: String? = null
+    private var ttsPageFullTextForHighlight: String? = null
+    private var narrationStartFallbackRunnable: Runnable? = null
+    /** Max time we wait for the TTS engine to call [onStart] before starting the highlight anyway. */
+    private val narrationStartFallbackMs = 3500L
+
+    /**
      * Watchdog for page narration. Android TTS sometimes silently drops the last queued chunk
      * (engine busy, locale switching mid-stream, brief activity pause), so [onDone] for
      * [ttsPageDoneUtteranceId] never fires and the page is stuck with no question.
@@ -511,7 +530,41 @@ class TappableTextActivity : AppCompatActivity() {
     private fun setupTtsListener() {
         val listener = object : android.speech.tts.UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
-                // No-op: we don't do time-based word highlighting in this game.
+                if (utteranceId == null) return
+                runOnUiThread {
+                    // Page narration: start per-word highlight only when audio actually begins,
+                    // so the highlight stays in sync with TTS on slow tablets (where there can
+                    // be a multi-second gap between TtsManager.speak() and audio output).
+                    if (utteranceId == ttsPageFirstChunkUid) {
+                        val text = ttsPageFullTextForHighlight
+                        ttsPageFirstChunkUid = null
+                        cancelNarrationStartFallback()
+                        if (!text.isNullOrEmpty()) {
+                            Log.d(TAG, "Page TTS onStart fired for first chunk → starting highlight in sync with audio")
+                            startNarrationWordHighlight(text)
+                        }
+                    }
+                    // Question prompt: now that we know audio actually started, replace the
+                    // generous 9 s outer fallback with a tight one based on the prompt length.
+                    // This means after the prompt audio ends the kid can interact within a few
+                    // hundred ms, even if [onDone] is silently dropped by the TTS engine.
+                    if (utteranceId == ttsQuestionDoneUtteranceId && !interactionEnabled) {
+                        val prompt = currentQuestionPromptText
+                        if (!prompt.isNullOrEmpty()) {
+                            // Estimate audio end + slack (so we don't unlock while the prompt is
+                            // still playing). Cap at the outer 9 s fallback so very long prompts
+                            // never end up delaying the kid more than the original safety net.
+                            val tightDelay = (estimateTtsSpeakDurationMs(prompt) + 1200L)
+                                .coerceAtMost(questionUnlockFallbackMs)
+                            Log.d(
+                                TAG,
+                                "Question prompt onStart fired (uid=$utteranceId) → " +
+                                    "rescheduling unlock fallback to ${tightDelay}ms based on prompt length=${prompt.length}"
+                            )
+                            scheduleQuestionUnlockFallbackWithDelay(utteranceId, tightDelay)
+                        }
+                    }
+                }
             }
 
             override fun onDone(utteranceId: String?) {
@@ -520,6 +573,9 @@ class TappableTextActivity : AppCompatActivity() {
                     when (utteranceId) {
                         ttsPageDoneUtteranceId -> {
                             cancelPageNarrationWatchdog()
+                            cancelNarrationStartFallback()
+                            ttsPageFirstChunkUid = null
+                            ttsPageFullTextForHighlight = null
                             stopNarrationWordHighlight()
                             ttsPageDoneUtteranceId = null
                             beginPageQuestions()
@@ -549,6 +605,9 @@ class TappableTextActivity : AppCompatActivity() {
                     when (utteranceId) {
                         ttsPageDoneUtteranceId -> {
                             cancelPageNarrationWatchdog()
+                            cancelNarrationStartFallback()
+                            ttsPageFirstChunkUid = null
+                            ttsPageFullTextForHighlight = null
                             stopNarrationWordHighlight()
                             ttsPageDoneUtteranceId = null
                             beginPageQuestions()
@@ -640,20 +699,38 @@ class TappableTextActivity : AppCompatActivity() {
             }
             return
         }
-        startNarrationWordHighlight(fullText)
-        TtsManager.whenReady(Runnable {
-            val chunks = fullText.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
-            if (chunks.isEmpty()) {
-                stopNarrationWordHighlight()
-                // Nothing to speak; move on so the user isn't stuck.
-                runOnUiThread {
-                    if (doneUtteranceId == ttsPageDoneUtteranceId) {
-                        ttsPageDoneUtteranceId = null
-                    }
-                    beginPageQuestions()
+        // Determine the chunks NOW (not inside whenReady) so we can know the first chunk's uid
+        // and gate the highlight on TTS [onStart] for that uid. Highlighting used to start the
+        // moment we queued TTS, which on slow tablets ran ahead of the audio by several seconds.
+        val chunks = fullText.split(Regex("(?<=[.!?])\\s+")).filter { it.isNotBlank() }
+        if (chunks.isEmpty()) {
+            // Nothing to speak; move on so the user isn't stuck.
+            runOnUiThread {
+                if (doneUtteranceId == ttsPageDoneUtteranceId) {
+                    ttsPageDoneUtteranceId = null
                 }
-                return@Runnable
+                beginPageQuestions()
             }
+            return
+        }
+        val firstChunkUid = if (chunks.size == 1) doneUtteranceId else "tt_page_chunk_0"
+        ttsPageFirstChunkUid = firstChunkUid
+        ttsPageFullTextForHighlight = fullText
+        // Safety fallback: if [onStart] never fires (some engines/devices skip the callback),
+        // start the highlight after a generous delay so the kid still sees feedback. The page
+        // narration watchdog (much longer) handles the case where audio also never completes.
+        cancelNarrationStartFallback()
+        val startFallback = Runnable {
+            if (ttsPageFirstChunkUid != firstChunkUid) return@Runnable
+            val text = ttsPageFullTextForHighlight ?: return@Runnable
+            ttsPageFirstChunkUid = null
+            Log.w(TAG, "Page TTS onStart never fired within ${narrationStartFallbackMs}ms — starting highlight anyway (uid=$firstChunkUid)")
+            startNarrationWordHighlight(text)
+        }
+        narrationStartFallbackRunnable = startFallback
+        tapDebounceHandler.postDelayed(startFallback, narrationStartFallbackMs)
+
+        TtsManager.whenReady(Runnable {
             chunks.forEachIndexed { i, chunk ->
                 val uid = if (i == chunks.lastIndex) doneUtteranceId else "tt_page_chunk_$i"
                 val mode = if (i == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
@@ -667,8 +744,12 @@ class TappableTextActivity : AppCompatActivity() {
         if (pageIndex !in g.pages.indices) return
 
         cancelPageNarrationWatchdog()
+        cancelNarrationStartFallback()
         cancelTapSuccessWatchdog()
         tapSuccessChainPending = false
+        ttsPageFirstChunkUid = null
+        ttsPageFullTextForHighlight = null
+        currentQuestionPromptText = null
         stopNarrationWordHighlight()
         interactionEnabled = false
         activeTapAcceptableNormalizedTokens = null
@@ -747,7 +828,17 @@ class TappableTextActivity : AppCompatActivity() {
         questionContainer.visibility = View.VISIBLE
         optionsContainer.removeAllViews()
         interactionEnabled = false
-        activeTapAcceptableNormalizedTokens = null
+        // Build the acceptable list NOW (for TapWord) so a kid who already knows the answer can
+        // tap correctly while the prompt is still being read OR before the TTS [onDone] callback
+        // arrives on slow tablets. Wrong taps are still suppressed (no toast, no wrong-counter)
+        // until [interactionEnabled] flips true via [enableCurrentQuestionInteraction]. This
+        // eliminates the "tap correct word once, no feedback; tap again, finally accepted" bug
+        // observed on slow Android TTS engines that delay onDone by several seconds.
+        activeTapAcceptableNormalizedTokens = if (q is PageQuestion.TapWord) {
+            buildAcceptableNormalizedTokens(q.question)
+        } else {
+            null
+        }
         lastTappedSpanStart = Int.MIN_VALUE
         lastTappedSpanNanos = 0L
         clearPageTextHighlightSpans()
@@ -786,6 +877,9 @@ class TappableTextActivity : AppCompatActivity() {
         val utteranceId = "tt_page_${currentPageIndex}_q_${questionIndex}_done"
         ttsQuestionDoneUtteranceId = utteranceId
         ttsPageDoneUtteranceId = null
+        currentQuestionPromptText = prompt
+        // Schedule the generous outer fallback first; the TTS onStart listener will replace it
+        // with a tight one based on prompt length once we know audio actually started.
         scheduleQuestionUnlockFallback(utteranceId)
         speakSingleLine(g.language, prompt, utteranceId, tapPromptLocale)
 
@@ -804,11 +898,15 @@ class TappableTextActivity : AppCompatActivity() {
         if (currentQuestionIndex !in currentQuestions.indices) return
 
         cancelQuestionUnlockFallback()
+        currentQuestionPromptText = null
         val q = currentQuestions[currentQuestionIndex]
         interactionEnabled = true
 
         when (q) {
             is PageQuestion.TapWord -> {
+                // Acceptable list was already built in [showQuestion] so the kid can tap the
+                // correct word even before the prompt's TTS onDone arrives. Re-affirm here in
+                // case the question changed underfoot.
                 activeTapAcceptableNormalizedTokens = buildAcceptableNormalizedTokens(q.question)
                 Log.d(
                     TAG,
@@ -920,8 +1018,12 @@ class TappableTextActivity : AppCompatActivity() {
     override fun onBackPressed() {
         cancelQuestionUnlockFallback()
         cancelPageNarrationWatchdog()
+        cancelNarrationStartFallback()
         cancelTapSuccessWatchdog()
         tapSuccessChainPending = false
+        ttsPageFirstChunkUid = null
+        ttsPageFullTextForHighlight = null
+        currentQuestionPromptText = null
         stopNarrationWordHighlight()
         TtsManager.stop()
         TimeTracker(this).endActivity("tappableText")
@@ -1050,6 +1152,21 @@ class TappableTextActivity : AppCompatActivity() {
         tapSuccessWatchdogRunnable = null
     }
 
+    private fun cancelNarrationStartFallback() {
+        narrationStartFallbackRunnable?.let { tapDebounceHandler.removeCallbacks(it) }
+        narrationStartFallbackRunnable = null
+    }
+
+    /**
+     * Estimate how long Android TTS will take to speak [text] at the configured rate (0.85).
+     * At rate 1.0 typical TTS speaks ~14 chars/sec → ~71 ms/char. At 0.85 it's ~84 ms/char.
+     * We use 90 ms/char to account for sentence-boundary pauses and add a small initial slack.
+     */
+    private fun estimateTtsSpeakDurationMs(text: String): Long {
+        val chars = text.trim().length.coerceAtLeast(1)
+        return (chars * 90L) + 400L
+    }
+
     private fun scheduleTapSuccessWatchdog() {
         cancelTapSuccessWatchdog()
         tapSuccessChainPending = true
@@ -1073,6 +1190,9 @@ class TappableTextActivity : AppCompatActivity() {
         val r = Runnable {
             if (ttsPageDoneUtteranceId == expectedUtteranceId) {
                 Log.w(TAG, "Page narration watchdog fired (TTS callback never arrived) uid=$expectedUtteranceId")
+                cancelNarrationStartFallback()
+                ttsPageFirstChunkUid = null
+                ttsPageFullTextForHighlight = null
                 stopNarrationWordHighlight()
                 ttsPageDoneUtteranceId = null
                 beginPageQuestions()
@@ -1083,16 +1203,20 @@ class TappableTextActivity : AppCompatActivity() {
     }
 
     private fun scheduleQuestionUnlockFallback(expectedUtteranceId: String) {
+        scheduleQuestionUnlockFallbackWithDelay(expectedUtteranceId, questionUnlockFallbackMs)
+    }
+
+    private fun scheduleQuestionUnlockFallbackWithDelay(expectedUtteranceId: String, delayMs: Long) {
         cancelQuestionUnlockFallback()
         val r = Runnable {
             if (ttsQuestionDoneUtteranceId == expectedUtteranceId && !interactionEnabled) {
-                Log.w(TAG, "Question unlock fallback fired for utterance=$expectedUtteranceId")
+                Log.w(TAG, "Question unlock fallback fired for utterance=$expectedUtteranceId (delay=${delayMs}ms)")
                 ttsQuestionDoneUtteranceId = null
                 enableCurrentQuestionInteraction()
             }
         }
         questionUnlockRunnable = r
-        tapDebounceHandler.postDelayed(r, questionUnlockFallbackMs)
+        tapDebounceHandler.postDelayed(r, delayMs)
     }
 
     private fun startNarrationWordHighlight(fullText: String) {
@@ -1288,33 +1412,36 @@ class TappableTextActivity : AppCompatActivity() {
                                 "wrongGuesses=$tapWordWrongGuesses revealed=$tapAnswerRevealed"
                         )
 
-                        // Tap-to-read: any tap should speak the word, in any mode, even before the
-                        // question's prompt TTS has finished. This satisfies "tap any word and it
-                        // reads the word" universally.
-                        val ambientMode = acceptableSnapshot.isNullOrEmpty() || !interactionEnabled
-                        if (ambientMode) {
-                            Log.d(TAG, "Tap → ambient mode (no active acceptable list or interaction disabled)")
+                        // Pure ambient (no TapWord question pending): just speak the tapped word.
+                        if (acceptableSnapshot.isNullOrEmpty() || qSnapshot !is PageQuestion.TapWord) {
+                            Log.d(TAG, "Tap → ambient mode (no active acceptable list or non-TapWord question)")
                             speakExploreWord(rawSurface)
                             return
                         }
 
-                        val acceptable = acceptableSnapshot ?: return
-                        if (acceptable.isEmpty()) return
-                        if (qSnapshot !is PageQuestion.TapWord) {
-                            Log.d(TAG, "Tap → ignored (current question is not TapWord: $qSnapshot)")
-                            return
-                        }
-
+                        val acceptable = acceptableSnapshot
                         val clickedNormalizedToken = normalized
                         val matchedCorrect = acceptable.any { tapMatchesCorrectWord(clickedNormalizedToken, it) }
                         Log.d(
                             TAG,
                             "Tap match check: clicked='$clickedNormalizedToken' " +
                                 "vs acceptable=$acceptable → matched=$matchedCorrect " +
-                                "(per-token: ${acceptable.map { it to tapMatchesCorrectWord(clickedNormalizedToken, it) }})"
+                                "(per-token: ${acceptable.map { it to tapMatchesCorrectWord(clickedNormalizedToken, it) }}) " +
+                                "interactionEnabled=$interactionEnabled"
                         )
                         if (matchedCorrect) {
+                            // Always accept a correct tap, even if the prompt's onDone hasn't
+                            // arrived yet (Android TTS sometimes delays/drops onDone on slow
+                            // tablets). Force-clean the unlock state so we don't try to "unlock"
+                            // a question that has already been answered.
+                            cancelQuestionUnlockFallback()
+                            ttsQuestionDoneUtteranceId = null
+                            currentQuestionPromptText = null
                             interactionEnabled = false
+                            // Clear the acceptable list so a second tap on the same correct word
+                            // (during the success TTS window before showQuestion runs again) is
+                            // treated as ambient and does not re-trigger the success chain.
+                            activeTapAcceptableNormalizedTokens = null
                             highlightCorrectWord(acceptable)
                             Toast.makeText(this@TappableTextActivity, wordTapCorrectMessage, Toast.LENGTH_SHORT).show()
                             if (easyMode) {
@@ -1328,15 +1455,22 @@ class TappableTextActivity : AppCompatActivity() {
                         } else {
                             // Always read the wrong tap aloud so kids learn the word, in any mode.
                             speakExploreWord(rawSurface)
-                            // Always count wrong taps and reveal after 3 — this used to be easyMode-only.
-                            if (!tapAnswerRevealed) {
-                                tapWordWrongGuesses++
-                                if (tapWordWrongGuesses >= 3) {
-                                    tapAnswerRevealed = true
-                                    revealTapAnswerHighlights(acceptable)
+                            // Only count this as a "wrong attempt" once interaction has been
+                            // formally unlocked (prompt audio finished). Otherwise the kid is
+                            // still hearing the question and should be free to explore words
+                            // without burning the 3-strike reveal counter.
+                            if (interactionEnabled) {
+                                if (!tapAnswerRevealed) {
+                                    tapWordWrongGuesses++
+                                    if (tapWordWrongGuesses >= 3) {
+                                        tapAnswerRevealed = true
+                                        revealTapAnswerHighlights(acceptable)
+                                    }
                                 }
+                                Toast.makeText(this@TappableTextActivity, wordTapWrongMessage, Toast.LENGTH_SHORT).show()
+                            } else {
+                                Log.d(TAG, "Wrong tap before interaction unlocked → suppressing wrong-counter and toast")
                             }
-                            Toast.makeText(this@TappableTextActivity, wordTapWrongMessage, Toast.LENGTH_SHORT).show()
                         }
                     }
 
