@@ -245,6 +245,13 @@
             });
         }
 
+        function formatMinutesAsTimeLabel(minutesValue) {
+            const totalMins = Math.max(0, Math.round(Number(minutesValue) || 0));
+            const hours = Math.floor(totalMins / 60);
+            const mins = totalMins % 60;
+            return `${hours}:${String(mins).padStart(2, '0')}`;
+        }
+
         function renderSummary(userRows, nowMs) {
             const el = document.getElementById('summary');
             el.innerHTML = '';
@@ -396,8 +403,13 @@
                             },
                             y: {
                                 beginAtZero: true,
-                                title: { display: true, text: 'Minutes (session remaining or banked)' },
-                                ticks: { precision: 0 }
+                                title: { display: true, text: 'Time remaining/banked (h:mm)' },
+                                ticks: {
+                                    precision: 0,
+                                    callback(value) {
+                                        return formatMinutesAsTimeLabel(value);
+                                    }
+                                }
                             }
                         }
                     }
