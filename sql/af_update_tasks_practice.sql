@@ -1,10 +1,17 @@
+-- Deploy to Supabase from this repo only; the Android app invokes PostgREST RPCs on Supabase.
 -- Call sites (BaerenEd Android, this repo):
 --   SupabaseInterface.invokeAfUpdatePracticeTask; DailyProgressManager (SingleItemUpdate.PracticeTask).
-
--- BaerenEd: Update a single practice task by title. Only non-null parameters are applied.
--- When p_times_completed increases and p_stars is provided, adds (delta * p_stars) to berries_earned and (delta * stars_to_minutes) to banked_mins.
--- After updating, if all practice (optional) tasks are complete, resets all practice tasks to incomplete (times_completed 0, etc.)
--- so the app can show them as doable again without any app-side state. Requires http extension for config fetch.
+--   af_update_task_completion (optional section) delegates here.
+--
+-- On each practice task completion: increment times_completed, aggregate correct/incorrect/questions_answered,
+-- set this task's "completed" to true, award berries/minutes when applicable.
+--
+-- Lifetime counters (times_completed, correct, incorrect, questions_answered) are never cleared here;
+-- only daily reset clears user_data as a whole.
+--
+-- Repeatable Extra Practice map: when every task object in practice_tasks has "completed": true,
+-- set "completed" to false on all of them so the set can be run again. Counters are unchanged.
+--
 -- Call: POST /rest/v1/rpc/af_update_tasks_practice with body e.g.
 --   {"p_profile": "TE", "p_task_title": "Time Telling", "p_times_completed": 2, "p_stars": 3, "p_correct": 10, "p_incorrect": 0, "p_questions_answered": 10}
 
@@ -20,7 +27,7 @@ CREATE OR REPLACE FUNCTION af_update_tasks_practice(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, extensions
+SET search_path = public
 AS $$
 DECLARE
   cur jsonb;
@@ -32,13 +39,7 @@ DECLARE
   add_berries int := 0;
   add_mins int := 0;
   updated_practice jsonb;
-  config_json jsonb;
-  http_status int;
-  github_url text;
-  optional_titles text[];
-  all_complete boolean;
   reset_practice jsonb;
-  tit text;
 BEGIN
   SELECT COALESCE(practice_tasks, '{}'::jsonb) INTO cur FROM user_data WHERE profile = p_profile;
   existing := cur->p_task_title;
@@ -49,12 +50,14 @@ BEGIN
   new_task := COALESCE(existing, '{}'::jsonb)
     || jsonb_build_object(
       'times_completed', to_jsonb(new_tc),
+      'completed', to_jsonb(true),
       -- DB-owned accumulation for completion event metrics.
       'correct', CASE WHEN p_correct IS NOT NULL THEN to_jsonb(COALESCE((existing->>'correct')::int, 0) + p_correct) ELSE existing->'correct' END,
       'incorrect', CASE WHEN p_incorrect IS NOT NULL THEN to_jsonb(COALESCE((existing->>'incorrect')::int, 0) + p_incorrect) ELSE existing->'incorrect' END,
       'questions_answered', CASE WHEN p_questions_answered IS NOT NULL THEN to_jsonb(COALESCE((existing->>'questions_answered')::int, 0) + p_questions_answered) ELSE existing->'questions_answered' END
     );
-  new_task := new_task || (COALESCE(existing, '{}'::jsonb) - 'times_completed' - 'correct' - 'incorrect' - 'questions_answered');
+  new_task := new_task
+    || (COALESCE(existing, '{}'::jsonb) - 'times_completed' - 'correct' - 'incorrect' - 'questions_answered' - 'completed');
 
   updated_practice := jsonb_set(cur, ARRAY[p_task_title], new_task, true);
 
@@ -64,61 +67,22 @@ BEGIN
     add_mins := delta * af_get_stars_to_minutes(p_stars);
   END IF;
 
-  -- If all visible practice (optional) tasks are complete, reset all to incomplete so app shows them doable again
-  github_url := 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/' || p_profile || '_config.json';
-  SELECT r.status, r.content::jsonb INTO http_status, config_json FROM http_get(github_url) r LIMIT 1;
-  IF http_status = 200 AND config_json IS NOT NULL THEN
-    SELECT array_agg(t->>'title')
-      INTO optional_titles
-      FROM jsonb_array_elements(config_json->'sections') AS sec,
-           jsonb_array_elements(COALESCE(sec->'tasks', '[]'::jsonb)) AS t
-      WHERE sec->>'id' = 'optional'
-        AND t->>'title' IS NOT NULL AND t->>'title' != '';
-    IF optional_titles IS NOT NULL AND array_length(optional_titles, 1) > 0 THEN
-      all_complete := true;
-      FOREACH tit IN ARRAY optional_titles
-      LOOP
-        IF COALESCE((updated_practice->tit->>'times_completed')::int, 0) <= 0 THEN
-          all_complete := false;
-          EXIT;
-        END IF;
-      END LOOP;
-      IF all_complete THEN
-        SELECT jsonb_object_agg(
-          t->>'title',
-          jsonb_build_object(
-            'times_completed', 0,
-            'correct', 0,
-            'incorrect', 0,
-            'questions_answered', 0,
-            'stars', t->'stars',
-            'launch', t->'launch',
-            'url', t->'url',
-            'webGame', t->'webGame',
-            'chromePage', t->'chromePage',
-            'videoSequence', t->'videoSequence',
-            'video', t->'video',
-            'playlistId', t->'playlistId',
-            'blockOutlines', t->'blockOutlines',
-            'rewardId', t->'rewardId',
-            'totalQuestions', t->'totalQuestions',
-            'easydays', t->'easydays',
-            'harddays', t->'harddays',
-            'extremedays', t->'extremedays',
-            'showdays', t->'showdays',
-            'hidedays', t->'hidedays',
-            'displayDays', t->'displayDays',
-            'disable', t->'disable'
-          )
-        )
-        INTO reset_practice
-        FROM jsonb_array_elements(config_json->'sections') AS sec,
-             jsonb_array_elements(COALESCE(sec->'tasks', '[]'::jsonb)) AS t
-        WHERE sec->>'id' = 'optional' AND t->>'title' IS NOT NULL AND t->>'title' != '';
-        IF reset_practice IS NOT NULL THEN
-          updated_practice := reset_practice;
-        END IF;
-      END IF;
+  -- All tasks in the map have completed=true → clear completed only (next pass).
+  IF jsonb_object_length(updated_practice) > 0
+     AND NOT EXISTS (
+       SELECT 1
+       FROM jsonb_each(updated_practice) AS e
+       WHERE NOT COALESCE((e.value->>'completed')::boolean, false)
+     )
+  THEN
+    SELECT jsonb_object_agg(
+      e.key,
+      e.value || jsonb_build_object('completed', false)
+    )
+    INTO reset_practice
+    FROM jsonb_each(updated_practice) AS e;
+    IF reset_practice IS NOT NULL THEN
+      updated_practice := reset_practice;
     END IF;
   END IF;
 

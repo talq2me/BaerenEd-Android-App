@@ -2,8 +2,9 @@
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdateTaskCompletion.
 --   app/src/main/java/com/talq2me/baerened/DailyProgressManager.kt  -  markTaskCompletedWithName.
 --
--- BaerenEd: Unified completion RPC for dumb UI.
--- Routes to required/practice/bonus update RPCs and returns earned stars from DB rules.
+-- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
+-- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
+-- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).
 CREATE OR REPLACE FUNCTION af_update_task_completion(
   p_profile text,
   p_task_title text,
@@ -80,8 +81,10 @@ BEGIN
     END;
     earned_stars := GREATEST(COALESCE(p_stars, 0), 0);
   ELSE
+    -- Prefer af_update_tasks_practice: it resets all optional tasks when the full set is complete.
+    -- If both RPCs exist, calling af_update_practice_task first would skip that reset forever.
     BEGIN
-      PERFORM af_update_practice_task(
+      PERFORM af_update_tasks_practice(
         p_profile,
         p_task_title,
         NULL,
@@ -91,7 +94,7 @@ BEGIN
         p_questions_answered
       );
     EXCEPTION WHEN undefined_function THEN
-      PERFORM af_update_tasks_practice(
+      PERFORM af_update_practice_task(
         p_profile,
         p_task_title,
         NULL,

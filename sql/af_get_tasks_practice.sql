@@ -3,6 +3,8 @@
 --   app/src/main/java/com/talq2me/baerened/TrainerMapTaskMerge.kt  -  prepareFromDbStrict.
 
 -- BaerenEd: Practice (optional map) task rows from user_data JSON.
+-- completion_status: uses practice_tasks.<title>.completed when that key exists (matches af_update_tasks_practice);
+--   otherwise legacy rule times_completed > 0.
 -- POST /rest/v1/rpc/af_get_tasks_practice {"p_profile":"AM"}
 
 DROP FUNCTION IF EXISTS af_get_tasks_practice_v2(text);
@@ -44,7 +46,12 @@ AS $$
   visible AS (
     SELECT
       e.key::text AS task_name,
-      CASE WHEN COALESCE((e.value->>'times_completed')::int, 0) > 0 THEN 'complete' ELSE 'incomplete' END AS completion_status,
+      CASE
+        WHEN (e.value ? 'completed') THEN
+          CASE WHEN COALESCE((e.value->>'completed')::boolean, false) THEN 'complete' ELSE 'incomplete' END
+        ELSE
+          CASE WHEN COALESCE((e.value->>'times_completed')::int, 0) > 0 THEN 'complete' ELSE 'incomplete' END
+      END AS completion_status,
       COALESCE((e.value->>'stars')::int, 0) AS berry_value,
       (e.value->>'launch')::text AS launch,
       (e.value->>'url')::text AS url,

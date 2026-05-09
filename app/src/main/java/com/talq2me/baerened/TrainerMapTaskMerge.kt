@@ -11,6 +11,9 @@ import kotlinx.coroutines.withContext
 /**
  * Trainer maps: legacy path uses [MainContent] only; DB-first path uses stable `af_get_*_tasks` RPCs
  * (see [prepareFromDbStrict]) so tasks, completion, and launch metadata come from Postgres.
+ *
+ * Optional / practice map: completion is **only** [DbRow.completionStatus] from `af_get_tasks_practice`
+ * (see [isCompletedOnMap] for `mapType == "optional"`). Do not seed client completion maps for optional.
  */
 object TrainerMapTaskMerge {
 
@@ -265,8 +268,8 @@ object TrainerMapTaskMerge {
     }
 
     /**
-     * @param dbCompletionByTitle when non-null, completion for tasks whose title appears in the map comes from the DB row;
-     *   otherwise uses [completedTasksMap] (session/prefs) including diagramLabeler key rules.
+     * @param dbCompletionByTitle from `af_get_*_tasks` RPCs ([prepareFromDbStrict]). For **optional** maps this is the
+     *   only source of truth for complete/incomplete (matches Postgres). [completedTasksMap] is not used for optional.
      */
     fun isCompletedOnMap(
         task: Task,
@@ -277,6 +280,10 @@ object TrainerMapTaskMerge {
         if (mapType == "bonus") return false
         val taskTitle = task.title ?: ""
         val baseTaskId = task.launch ?: ""
+        // Extra practice map: af_get_tasks_practice completion_status only (no session/prefs logic).
+        if (mapType == "optional") {
+            return taskTitle.isNotEmpty() && dbCompletionByTitle?.get(taskTitle) == true
+        }
         if (dbCompletionByTitle != null && taskTitle.isNotEmpty() && dbCompletionByTitle.containsKey(taskTitle)) {
             return dbCompletionByTitle[taskTitle] == true
         }

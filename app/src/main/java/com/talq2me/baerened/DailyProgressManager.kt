@@ -22,7 +22,6 @@ open class DailyProgressManager(private val context: Context) {
         private const val PREF_NAME = "daily_progress_prefs"
         // Note: These keys are now profile-prefixed at runtime (e.g., "${profile}_required_tasks")
         private const val KEY_REQUIRED_TASKS = "required_tasks" // NEW: Uses cloud format (task names → TaskProgress)
-        private const val KEY_PRACTICE_TASKS = "practice_tasks" // Practice tasks stored separately (task names → TaskProgress)
         private const val KEY_COMPLETED_TASKS = "completed_tasks" // OLD: Deprecated, kept for migration
         private const val KEY_COMPLETED_TASK_NAMES = "completed_task_names" // OLD: Deprecated, kept for migration
         private const val KEY_LAST_RESET_DATE = "last_reset_date"
@@ -325,9 +324,10 @@ open class DailyProgressManager(private val context: Context) {
     }
 
     /**
-     * Gets the completion status map for today (public method for batch reads).
-     * Required, practice (optional), and bonus maps are separate; there is no combined case.
-     * Keys: task TITLE for required/optional/bonus; checklist items by label. UI lookups use task.title (not task.launch).
+     * Gets the completion status map for today (batch reads from synced session/user_data snapshot).
+     * Optional / practice: **not populated here** — use `af_get_tasks_practice` via [TrainerMapTaskMerge.prepareFromDbStrict].
+     * Required + checklist merge into one map here; bonus always false for “playable” UX.
+     * Keys: task TITLE for required; checklist by label.
      *
      * @param mapType "required", "optional", or "bonus". Other values return empty map.
      */
@@ -350,12 +350,7 @@ open class DailyProgressManager(private val context: Context) {
                     if (progress.done) allTasks[name] = true
                 }
             }
-            "optional" -> {
-                val practiceTasks = getPracticeTasks(progressData)
-                practiceTasks.forEach { (name, progress) ->
-                    allTasks[name] = progress.status == "complete"
-                }
-            }
+            "optional" -> { /* Practice completion: af_get_tasks_practice only — see TrainerMapTaskMerge */ }
             "bonus" -> {
                 // Bonus tasks never show completion status; always show as playable (never green)
                 val bonusTasks = getBonusTasks(progressData)
@@ -382,11 +377,14 @@ open class DailyProgressManager(private val context: Context) {
         return getRequiredTasks()
     }
     
-    /** Practice tasks (optional section) from session data. Display-incomplete set can override status. */
+    /**
+     * Practice tasks from synced user_data (not used for trainer map completion; optional map uses `af_get_tasks_practice` only).
+     * Still used for home layout optional section / [getCompletedTasksMap]("optional") until that UI is DB-driven.
+     */
     private fun getPracticeTasks(progressData: DbUserData? = null): MutableMap<String, TaskProgress> {
         val practice = dataForProfile(getCurrentKid(), progressData)?.practiceTasks ?: return mutableMapOf()
         return practice.mapValues { (_, p) ->
-            val showComplete = p.timesCompleted > 0
+            val showComplete = p.completed ?: (p.timesCompleted > 0)
             TaskProgress(
                 status = if (showComplete) "complete" else "incomplete",
                 correct = p.correct,
@@ -419,21 +417,9 @@ open class DailyProgressManager(private val context: Context) {
             )
         }.toMutableMap()
     }
-    
-    /**
-     * Gets the practice tasks map in new format (task names → TaskProgress)
-     */
-    fun getPracticeTasksMap(): Map<String, TaskProgress> {
-        return getPracticeTasks()
-    }
 
     /** No-op: progress is in session data only; task completion uses merge + onSyncSingleItemToDb (RPC). */
     private fun saveRequiredTasks(requiredTasks: Map<String, TaskProgress>, progressData: DbUserData? = null) {
-        invalidateCompletedTasksMapCache()
-    }
-
-    /** No-op: progress is in session data only; task completion uses merge + onSyncSingleItemToDb (RPC). */
-    private fun savePracticeTasks(practiceTasks: Map<String, TaskProgress>, taskNameJustCompleted: String? = null) {
         invalidateCompletedTasksMapCache()
     }
 

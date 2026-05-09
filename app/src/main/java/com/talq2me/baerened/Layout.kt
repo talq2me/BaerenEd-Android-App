@@ -2563,7 +2563,11 @@ open class Layout(protected val activity: MainActivity) {
         val currentContent = activity.getCurrentMainContent() ?: return
         progressInfo.text = "Loading tasks..."
         activity.lifecycleScope.launch {
-            val sessionCompletionMap = progressManager.getCompletedTasksMap(mapType).toMutableMap()
+            val sessionCompletionMap = if (mapType == "optional") {
+                mutableMapOf()
+            } else {
+                progressManager.getCompletedTasksMap(mapType).toMutableMap()
+            }
             when (val prep = prepareEmbeddedTrainerMap(currentContent, mapType, sessionCompletionMap)) {
                 is TrainerMapTaskMerge.PrepareTrainerMapResult.NoTasks -> {
                     progressInfo.text = prep.message
@@ -2580,17 +2584,6 @@ open class Layout(protected val activity: MainActivity) {
                     val completedTasksMap = prep.sessionCompletionMap
                     val dbCompletionByTitle = prep.dbCompletionByTitle
                     mapContainer.removeAllViews()
-                    if (mapType == "optional" && dbCompletionByTitle == null) {
-                        val allCompleted = tasks.all { task ->
-                            val taskTitle = task.title ?: ""
-                            val keyForOptional = if (taskTitle.isNotEmpty()) taskTitle else "${mapType}_${task.launch ?: ""}"
-                            completedTasksMap[keyForOptional] == true
-                        }
-                        if (allCompleted && tasks.isNotEmpty()) {
-                            completedTasksMap.clear()
-                            completedTasksMap.putAll(progressManager.getCompletedTasksMap("optional"))
-                        }
-                    }
                     val completedCount = tasks.count { task ->
                         TrainerMapTaskMerge.isCompletedOnMap(task, mapType, completedTasksMap, dbCompletionByTitle)
                     }

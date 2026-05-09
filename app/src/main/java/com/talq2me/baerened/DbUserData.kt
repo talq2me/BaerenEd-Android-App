@@ -79,6 +79,8 @@ data class TaskProgress(
  */
 data class PracticeProgress(
     @SerializedName("times_completed") val timesCompleted: Int = 0,
+    /** DB-written practice pass flag (see af_update_tasks_practice). When absent, UI falls back to [timesCompleted]. */
+    @SerializedName("completed") val completed: Boolean? = null,
     @SerializedName("correct") val correct: Int? = null,
     @SerializedName("incorrect") val incorrect: Int? = null,
     @SerializedName("questions_answered") val questionsAnswered: Int? = null,

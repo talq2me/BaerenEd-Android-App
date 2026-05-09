@@ -333,7 +333,12 @@ open class TrainingMapActivity : AppCompatActivity() {
     }
 
     protected suspend fun runPrepareTrainerMapFlow() {
-        val sessionCompletionMap = progressManager.getCompletedTasksMap(mapType).toMutableMap()
+        // Optional / practice map: completion comes only from af_get_tasks_practice (prepareTrainerTasks); no client map.
+        val sessionCompletionMap = if (mapType == "optional") {
+            mutableMapOf()
+        } else {
+            progressManager.getCompletedTasksMap(mapType).toMutableMap()
+        }
         when (val prep = prepareTrainerTasks(sessionCompletionMap)) {
             is TrainerMapTaskMerge.PrepareTrainerMapResult.NoTasks -> {
                 withContext(Dispatchers.Main) {
