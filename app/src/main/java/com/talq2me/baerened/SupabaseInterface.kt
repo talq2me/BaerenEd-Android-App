@@ -79,6 +79,38 @@ open class SupabaseInterface {
 
     private fun rpcCandidates(rpcName: String): List<String> = listOf(rpcName)
 
+    /** True when PostgREST/Supabase rejected the RPC as missing / no matching overload (not business logic errors). */
+    private fun Throwable.isRpcFunctionNotAvailable(): Boolean {
+        val msg = message ?: return false
+        return msg.contains("404") ||
+            msg.contains("PGRST202", ignoreCase = true) ||
+            msg.contains("No function matches", ignoreCase = true) ||
+            msg.contains("Could not find the function", ignoreCase = true)
+    }
+
+    /**
+     * Direct practice write (optional map). Matches [af_update_tasks_practice]; omits `p_times_completed` so DB
+     * increments by 1 ([sql/af_update_tasks_practice.sql]).
+     */
+    private suspend fun invokeAfUpdateTasksPracticeCompletion(
+        profile: String,
+        taskTitle: String,
+        stars: Int?,
+        correct: Int?,
+        incorrect: Int?,
+        questionsAnswered: Int?
+    ): Result<Unit> {
+        val obj = JsonObject().apply {
+            addProperty("p_profile", profile)
+            addProperty("p_task_title", taskTitle)
+            if (stars != null) addProperty("p_stars", stars)
+            if (correct != null) addProperty("p_correct", correct)
+            if (incorrect != null) addProperty("p_incorrect", incorrect)
+            if (questionsAnswered != null) addProperty("p_questions_answered", questionsAnswered)
+        }
+        return invokeRpc("af_update_tasks_practice", gson.toJson(obj))
+    }
+
     /** POST RPC and return response body (for jsonb/scalar results). */
     private suspend fun invokeRpcPostReadBody(rpcName: String, jsonBody: String): Result<String> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
@@ -456,7 +488,12 @@ open class SupabaseInterface {
         Result.failure(lastError ?: Exception("$rpcName failed"))
     }
 
-    /** Unified completion RPC; DB routes required/practice/bonus and returns earned stars. */
+    /**
+     * Unified completion RPC (`af_update_task_completion`). Prefer that on Supabase when deployed.
+     * If PostgREST returns 404 / no matching function **and** the section is optional practice, falls back to
+     * [`af_update_tasks_practice`] (same persistence the wrapper invokes) so completions work even when only the
+     * practice updater exists.
+     */
     suspend fun invokeAfUpdateTaskCompletion(
         profile: String,
         taskTitle: String,
@@ -466,11 +503,8 @@ open class SupabaseInterface {
         incorrect: Int? = null,
         questionsAnswered: Int? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
-        // PostgREST forwards JSON null / missing middle args as Postgres NULL without a type ("unknown").
-        // That fails to match `(text,text,text,int,int,int,int)` and shows `(text,text,unknown,...)` in errors.
-        // Always send `p_section_id` as a real JSON string; omit only optional ints when absent (those infer as int).
         val normalizedSection =
-            sectionId?.trim()?.takeIf { it.isNotEmpty() } ?: "optional"
+            sectionId?.trim()?.takeIf { it.isNotEmpty() }?.lowercase() ?: "optional"
         val obj = JsonObject().apply {
             addProperty("p_profile", profile)
             addProperty("p_task_title", taskTitle)
@@ -480,14 +514,52 @@ open class SupabaseInterface {
             if (incorrect != null) addProperty("p_incorrect", incorrect)
             if (questionsAnswered != null) addProperty("p_questions_answered", questionsAnswered)
         }
-        val raw = invokeRpcPostReadBody("af_update_task_completion", gson.toJson(obj))
-            .getOrElse { return@withContext Result.failure(it) }
-        return@withContext try {
-            val parsed = JsonParser.parseString(raw.trim())
-            if (parsed.isJsonNull) Result.success(0) else Result.success(parsed.asInt)
+        fun parseEarnedStarsBody(rawBody: String): Result<Int> = try {
+            val t = rawBody.trim()
+            if (t.isEmpty() || t == "null") Result.success(0)
+            else {
+                val parsed = JsonParser.parseString(t)
+                if (parsed.isJsonNull) Result.success(0)
+                else Result.success(parsed.asInt)
+            }
         } catch (e: Exception) {
             Result.failure(Exception("af_update_task_completion: invalid return payload: ${e.message}"))
         }
+
+        invokeRpcPostReadBody("af_update_task_completion", gson.toJson(obj)).fold(
+            onSuccess = { raw -> parseEarnedStarsBody(raw) },
+            onFailure = { err ->
+                val practiceOnly = normalizedSection == "optional" || normalizedSection == "practice"
+                if (practiceOnly && err.isRpcFunctionNotAvailable()) {
+                    Log.w(
+                        TAG,
+                        "af_update_task_completion missing or not exposed; invoking af_update_tasks_practice directly"
+                    )
+                    invokeAfUpdateTasksPracticeCompletion(
+                        profile,
+                        taskTitle,
+                        stars,
+                        correct,
+                        incorrect,
+                        questionsAnswered
+                    ).fold(
+                        onSuccess = {
+                            Result.success((stars ?: 0).coerceAtLeast(0))
+                        },
+                        onFailure = { e2 ->
+                            Result.failure(
+                                Exception(
+                                    "af_update_task_completion failed (${err.message}); af_update_tasks_practice fallback failed (${e2.message})",
+                                    e2
+                                )
+                            )
+                        }
+                    )
+                } else {
+                    Result.failure(err)
+                }
+            }
+        )
     }
 
     /** Calls af_update_tasks_checklist_items; DB updates item and berries_earned/banked_mins. */

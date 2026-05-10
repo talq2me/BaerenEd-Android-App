@@ -30,8 +30,8 @@ android {
         applicationId = "com.talq2me.baerened"
         minSdk = 23
         targetSdk = 35
-        versionCode = 153
-        versionName = "153"
+        versionCode = 154
+        versionName = "154"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

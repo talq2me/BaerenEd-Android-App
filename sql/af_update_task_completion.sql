@@ -10,7 +10,22 @@
 -- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
 -- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).
 --
-DROP FUNCTION IF EXISTS af_update_task_completion(text, text, int, int, int, int); -- legacy 6-arg; drop so only 7-arg remains
+-- PostgREST: if more than ONE overload exists, resolution often fails → 404 or "could not choose best candidate".
+-- CREATE OR REPLACE only replaces ONE signature at a time, so orphans must be dropped explicitly.
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN (
+    SELECT p.oid
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'af_update_task_completion'
+  ) LOOP
+    EXECUTE format('DROP FUNCTION IF EXISTS %s CASCADE', r.oid::regprocedure);
+  END LOOP;
+END $$;
 
 CREATE OR REPLACE FUNCTION af_update_task_completion(
   p_profile text,

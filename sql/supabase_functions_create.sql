@@ -38,8 +38,7 @@ DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
 DROP FUNCTION IF EXISTS af_update_berries_banked(text, int, int);
 DROP FUNCTION IF EXISTS af_update_game_index(text, text, int);
 DROP FUNCTION IF EXISTS af_update_pokemon_unlocked(text, int);
-DROP FUNCTION IF EXISTS af_update_task_completion(text, text, int, int, int, int); -- legacy 6-arg overload
-DROP FUNCTION IF EXISTS af_update_task_completion(text, text, text, int, int, int, int);
+-- af_update_task_completion: all overloads removed in-place before recreate (DO block ahead of CREATE in that section).
 DROP FUNCTION IF EXISTS af_update_tasks_bonus(text, text, int, int, int, int, int);
 DROP FUNCTION IF EXISTS af_update_tasks_checklist_items(text, text, boolean);
 DROP FUNCTION IF EXISTS af_update_tasks_chores(text, int, boolean);
@@ -1883,11 +1882,26 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_bonus(text, text, int, int, int, int, 
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdateTaskCompletion.
 --   app/src/main/java/com/talq2me/baerened/DailyProgressManager.kt  -  markTaskCompletedWithName.
 --
--- Deploy drops legacy six-argument overload. Clients send `p_section_id` as a JSON **string**, not null.
+-- Drops every public overload of af_update_task_completion, then creates the single canonical 7-arg API.
 --
 -- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
 -- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
 -- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN (
+    SELECT p.oid
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'af_update_task_completion'
+  ) LOOP
+    EXECUTE format('DROP FUNCTION IF EXISTS %s CASCADE', r.oid::regprocedure);
+  END LOOP;
+END $$;
+
 CREATE OR REPLACE FUNCTION af_update_task_completion(
   p_profile text,
   p_task_title text,
