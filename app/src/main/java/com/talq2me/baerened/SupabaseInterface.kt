@@ -79,38 +79,6 @@ open class SupabaseInterface {
 
     private fun rpcCandidates(rpcName: String): List<String> = listOf(rpcName)
 
-    /** True when PostgREST/Supabase rejected the RPC as missing / no matching overload (not business logic errors). */
-    private fun Throwable.isRpcFunctionNotAvailable(): Boolean {
-        val msg = message ?: return false
-        return msg.contains("404") ||
-            msg.contains("PGRST202", ignoreCase = true) ||
-            msg.contains("No function matches", ignoreCase = true) ||
-            msg.contains("Could not find the function", ignoreCase = true)
-    }
-
-    /**
-     * Direct practice write (optional map). Matches [af_update_tasks_practice]; omits `p_times_completed` so DB
-     * increments by 1 ([sql/af_update_tasks_practice.sql]).
-     */
-    private suspend fun invokeAfUpdateTasksPracticeCompletion(
-        profile: String,
-        taskTitle: String,
-        stars: Int?,
-        correct: Int?,
-        incorrect: Int?,
-        questionsAnswered: Int?
-    ): Result<Unit> {
-        val obj = JsonObject().apply {
-            addProperty("p_profile", profile)
-            addProperty("p_task_title", taskTitle)
-            if (stars != null) addProperty("p_stars", stars)
-            if (correct != null) addProperty("p_correct", correct)
-            if (incorrect != null) addProperty("p_incorrect", incorrect)
-            if (questionsAnswered != null) addProperty("p_questions_answered", questionsAnswered)
-        }
-        return invokeRpc("af_update_tasks_practice", gson.toJson(obj))
-    }
-
     /** POST RPC and return response body (for jsonb/scalar results). */
     private suspend fun invokeRpcPostReadBody(rpcName: String, jsonBody: String): Result<String> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
@@ -489,10 +457,9 @@ open class SupabaseInterface {
     }
 
     /**
-     * Unified completion RPC (`af_update_task_completion`). Prefer that on Supabase when deployed.
-     * If PostgREST returns 404 / no matching function **and** the section is optional practice, falls back to
-     * [`af_update_tasks_practice`] (same persistence the wrapper invokes) so completions work even when only the
-     * practice updater exists.
+     * Unified completion RPC (`af_update_task_completion`). Routes to required / practice / bonus updaters in SQL
+     * and returns earned stars. No client-side fallbacks: if the RPC fails, the failure propagates so the bug is
+     * visible.
      */
     suspend fun invokeAfUpdateTaskCompletion(
         profile: String,
@@ -528,37 +495,7 @@ open class SupabaseInterface {
 
         invokeRpcPostReadBody("af_update_task_completion", gson.toJson(obj)).fold(
             onSuccess = { raw -> parseEarnedStarsBody(raw) },
-            onFailure = { err ->
-                val practiceOnly = normalizedSection == "optional" || normalizedSection == "practice"
-                if (practiceOnly && err.isRpcFunctionNotAvailable()) {
-                    Log.w(
-                        TAG,
-                        "af_update_task_completion missing or not exposed; invoking af_update_tasks_practice directly"
-                    )
-                    invokeAfUpdateTasksPracticeCompletion(
-                        profile,
-                        taskTitle,
-                        stars,
-                        correct,
-                        incorrect,
-                        questionsAnswered
-                    ).fold(
-                        onSuccess = {
-                            Result.success((stars ?: 0).coerceAtLeast(0))
-                        },
-                        onFailure = { e2 ->
-                            Result.failure(
-                                Exception(
-                                    "af_update_task_completion failed (${err.message}); af_update_tasks_practice fallback failed (${e2.message})",
-                                    e2
-                                )
-                            )
-                        }
-                    )
-                } else {
-                    Result.failure(err)
-                }
-            }
+            onFailure = { err -> Result.failure(err) }
         )
     }
 

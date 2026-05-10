@@ -68,7 +68,8 @@ BEGIN
   END IF;
 
   -- All tasks in the map have completed=true → clear completed only (next pass).
-  IF jsonb_object_length(updated_practice) > 0
+  -- NOTE: PostgreSQL has no jsonb_object_length(); use EXISTS over jsonb_each instead.
+  IF EXISTS (SELECT 1 FROM jsonb_each(updated_practice))
      AND NOT EXISTS (
        SELECT 1
        FROM jsonb_each(updated_practice) AS e

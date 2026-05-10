@@ -1775,7 +1775,8 @@ BEGIN
   END IF;
 
   -- All tasks in the map have completed=true → clear completed only (next pass).
-  IF jsonb_object_length(updated_practice) > 0
+  -- NOTE: PostgreSQL has no jsonb_object_length(); use EXISTS over jsonb_each instead.
+  IF EXISTS (SELECT 1 FROM jsonb_each(updated_practice))
      AND NOT EXISTS (
        SELECT 1
        FROM jsonb_each(updated_practice) AS e
@@ -1885,7 +1886,8 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_bonus(text, text, int, int, int, int, 
 -- Drops every public overload of af_update_task_completion, then creates the single canonical 7-arg API.
 --
 -- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
--- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
+-- Routes to required / practice / bonus updaters and returns earned stars from DB rules. NO FALLBACKS:
+-- this RPC calls the canonical functions only; if one is missing the call fails so the bug is visible.
 -- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).
 DO $$
 DECLARE
@@ -1931,76 +1933,39 @@ BEGIN
       FROM user_data
       WHERE profile = p_profile;
 
-    BEGIN
-      PERFORM af_update_required_task(
-        p_profile,
-        p_task_title,
-        'complete',
-        p_correct,
-        p_incorrect,
-        p_questions_answered
-      );
-    EXCEPTION WHEN undefined_function THEN
-      PERFORM af_update_tasks_required(
-        p_profile,
-        p_task_title,
-        'complete',
-        p_correct,
-        p_incorrect,
-        p_questions_answered
-      );
-    END;
+    PERFORM af_update_tasks_required(
+      p_profile,
+      p_task_title,
+      'complete',
+      p_correct,
+      p_incorrect,
+      p_questions_answered
+    );
 
     IF COALESCE(required_old_status, 'incomplete') <> 'complete' THEN
       earned_stars := COALESCE(p_stars, required_db_stars, 0);
     END IF;
   ELSIF normalized_section = 'bonus' THEN
-    BEGIN
-      PERFORM af_update_bonus_task(
-        p_profile,
-        p_task_title,
-        NULL,
-        p_stars,
-        p_correct,
-        p_incorrect,
-        p_questions_answered
-      );
-    EXCEPTION WHEN undefined_function THEN
-      PERFORM af_update_tasks_bonus(
-        p_profile,
-        p_task_title,
-        NULL,
-        p_stars,
-        p_correct,
-        p_incorrect,
-        p_questions_answered
-      );
-    END;
+    PERFORM af_update_tasks_bonus(
+      p_profile,
+      p_task_title,
+      NULL,
+      p_stars,
+      p_correct,
+      p_incorrect,
+      p_questions_answered
+    );
     earned_stars := GREATEST(COALESCE(p_stars, 0), 0);
   ELSE
-    -- Prefer af_update_tasks_practice: it resets all optional tasks when the full set is complete.
-    -- If both RPCs exist, calling af_update_practice_task first would skip that reset forever.
-    BEGIN
-      PERFORM af_update_tasks_practice(
-        p_profile,
-        p_task_title,
-        NULL,
-        p_stars,
-        p_correct,
-        p_incorrect,
-        p_questions_answered
-      );
-    EXCEPTION WHEN undefined_function THEN
-      PERFORM af_update_practice_task(
-        p_profile,
-        p_task_title,
-        NULL,
-        p_stars,
-        p_correct,
-        p_incorrect,
-        p_questions_answered
-      );
-    END;
+    PERFORM af_update_tasks_practice(
+      p_profile,
+      p_task_title,
+      NULL,
+      p_stars,
+      p_correct,
+      p_incorrect,
+      p_questions_answered
+    );
     earned_stars := GREATEST(COALESCE(p_stars, 0), 0);
   END IF;
 
