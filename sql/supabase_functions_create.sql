@@ -235,6 +235,7 @@ BEGIN
         t->>'title',
         jsonb_build_object(
           'times_completed', COALESCE((existing_practice->(t->>'title'))->>'times_completed', '0')::int,
+          'completed', COALESCE(existing_practice->(t->>'title')->'completed', to_jsonb(false)),
           'correct', existing_practice->(t->>'title')->'correct',
           'incorrect', existing_practice->(t->>'title')->'incorrect',
           'questions_answered', existing_practice->(t->>'title')->'questions_answered',
