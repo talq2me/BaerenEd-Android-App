@@ -321,6 +321,45 @@ open class SupabaseInterface {
     suspend fun invokeAfGetBonusTasksRows(profile: String): Result<JsonArray> =
         invokeRpcProfileReturningJsonArray("af_get_tasks_bonus", profile)
 
+    /**
+     * Today's required-task progress. `allDone` is true iff every visible-today required task AND every visible-today
+     * checklist item with stars>0 is complete/done (matches legacy [DailyProgressManager.areAllVisibleRequiredAndChecklistCompleteFromDb]).
+     * `earnedBerries` is the sum of `berry_value` for those visible rows that are currently complete/done.
+     * Source of truth: `af_get_required_progress_today` SQL — no Android logic.
+     */
+    data class RequiredProgressToday(val allDone: Boolean, val earnedBerries: Int)
+
+    suspend fun invokeAfGetRequiredProgressToday(profile: String): Result<RequiredProgressToday> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        val body = """{"p_profile":"${profile.escapeJson()}"}"""
+        val raw = invokeRpcPostReadBody("af_get_required_progress_today", body)
+            .getOrElse { return@withContext Result.failure(it) }
+        val parsed = JsonParser.parseString(raw.trim())
+        if (!parsed.isJsonObject) {
+            return@withContext Result.failure(Exception("af_get_required_progress_today: expected JSON object"))
+        }
+        val obj = parsed.asJsonObject
+        val allDone = obj.get("all_done")?.takeUnless { it.isJsonNull }?.asBoolean ?: false
+        val earnedBerries = obj.get("earned_berries")?.takeUnless { it.isJsonNull }?.asInt ?: 0
+        Result.success(RequiredProgressToday(allDone = allDone, earnedBerries = earnedBerries))
+    }
+
+    /**
+     * Whether the Extra Practice (optional) map is unlocked right now (all visible required tasks complete).
+     * Source of truth: `af_can_show_optional_map` SQL — no Android logic.
+     */
+    suspend fun invokeAfCanShowOptionalMap(profile: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        val body = """{"p_profile":"${profile.escapeJson()}"}"""
+        val raw = invokeRpcPostReadBody("af_can_show_optional_map", body)
+            .getOrElse { return@withContext Result.failure(it) }
+        val parsed = JsonParser.parseString(raw.trim())
+        return@withContext when {
+            parsed.isJsonPrimitive -> Result.success(parsed.asJsonPrimitive.asBoolean)
+            else -> Result.failure(Exception("af_can_show_optional_map: expected boolean"))
+        }
+    }
+
     /** Reads reward spinner rows from `reward_spinner` table. */
     suspend fun getRewardSpinnerItems(): Result<List<RewardSpinnerItem>> = withContext(Dispatchers.IO) {
         if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))

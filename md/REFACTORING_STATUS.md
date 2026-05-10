@@ -2,12 +2,6 @@
 
 ## Completed Refactoring Tasks
 
-### ✅ TaskVisibilityChecker (Priority 6)
-- **Status**: Complete
-- **File**: `TaskVisibilityChecker.kt`
-- **Purpose**: Centralizes task visibility logic (showdays, hidedays, displayDays, disable)
-- **Impact**: Removes duplication across Layout and DailyProgressManager
-
 ### ✅ TaskCompletionHandler (Priority 2)
 - **Status**: Complete
 - **File**: `TaskCompletionHandler.kt`

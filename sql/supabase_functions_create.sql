@@ -15,6 +15,8 @@ DROP FUNCTION IF EXISTS af_daily_reset(text);
 DROP FUNCTION IF EXISTS af_delete_image_upload_by_id(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_uploads_ilike(text, text);
 DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
+DROP FUNCTION IF EXISTS af_can_show_optional_map(text);
+DROP FUNCTION IF EXISTS af_get_required_progress_today(text);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 DROP FUNCTION IF EXISTS af_get_device_row(text);
 DROP FUNCTION IF EXISTS af_get_image_upload_id(text, text);
@@ -997,9 +999,10 @@ AS $$
     LEFT JOIN user_data ud ON ud.profile = p_profile
   ),
   visible AS (
+    -- Bonus tasks are always playable: they never show as complete/disabled, regardless of times_completed.
     SELECT
       e.key::text AS task_name,
-      CASE WHEN COALESCE((e.value->>'times_completed')::int, 0) > 0 THEN 'complete' ELSE 'incomplete' END AS completion_status,
+      'incomplete'::text AS completion_status,
       COALESCE((e.value->>'stars')::int, 0) AS berry_value,
       (e.value->>'launch')::text AS launch,
       (e.value->>'url')::text AS url,
@@ -2388,5 +2391,90 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_reward_time_add(TEXT, INTEGER) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_can_show_optional_map.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd Android, this repo):
+--   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfCanShowOptionalMap.
+--   app/src/main/java/com/talq2me/baerened/MainActivity.kt  -  optional training map gate.
+--
+-- BaerenEd: gate for showing the Extra Practice (optional) map. Returns true iff every visible required task
+-- (per af_get_tasks_required, excluding checklist rows) is currently 'complete' / 'done'. With no visible required
+-- tasks, returns false (no implicit unlock).
+
+CREATE OR REPLACE FUNCTION af_can_show_optional_map(p_profile text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH rows AS (
+    SELECT lower(t.completion_status) AS s
+    FROM af_get_tasks_required(p_profile) AS t
+    WHERE NOT t.is_checklist
+  )
+  SELECT
+    EXISTS (SELECT 1 FROM rows)
+    AND NOT EXISTS (
+      SELECT 1 FROM rows
+      WHERE s NOT IN ('complete', 'done')
+    );
+$$;
+
+GRANT EXECUTE ON FUNCTION af_can_show_optional_map(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_get_required_progress_today.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd Android, this repo):
+--   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfGetRequiredProgressToday.
+--   app/src/main/java/com/talq2me/baerened/BattleHubActivity.kt  -  Earn Extra Berries / Daily Spin gate; battle-end snapshot.
+--
+-- BaerenEd: combined "today's required progress" needed by Battle Hub.
+--   all_done       : true iff every visible-today required task AND every visible-today checklist item with stars>0 is complete/done.
+--                    Special case (matches legacy DailyProgressManager): if nothing is visible today, returns true only when both
+--                    required_tasks and checklist_items are literally empty in user_data (kid has nothing to do at all).
+--   earned_berries : sum of berry_value for the visible rows that are currently complete/done. Used to snapshot/compare across battles.
+
+CREATE OR REPLACE FUNCTION af_get_required_progress_today(p_profile text)
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH
+    raw AS (
+      SELECT
+        COALESCE(required_tasks, '{}'::jsonb)   AS rt,
+        COALESCE(checklist_items, '{}'::jsonb)  AS ci
+      FROM user_data
+      WHERE profile = p_profile
+    ),
+    rows AS (
+      SELECT
+        lower(t.completion_status) AS s,
+        COALESCE(t.berry_value, 0) AS b
+      FROM af_get_tasks_required(p_profile) AS t
+      WHERE NOT t.is_checklist OR COALESCE(t.berry_value, 0) > 0
+    )
+  SELECT jsonb_build_object(
+    'all_done',
+    CASE
+      WHEN EXISTS (SELECT 1 FROM rows) THEN
+        NOT EXISTS (SELECT 1 FROM rows WHERE s NOT IN ('complete', 'done'))
+      ELSE
+        COALESCE((SELECT (rt = '{}'::jsonb AND ci = '{}'::jsonb) FROM raw), false)
+    END,
+    'earned_berries',
+    COALESCE((SELECT SUM(b) FROM rows WHERE s IN ('complete', 'done')), 0)::int
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION af_get_required_progress_today(text) TO anon, authenticated, service_role;
 
 

@@ -5,25 +5,19 @@ This document summarizes all refactoring work completed to improve code isolatio
 
 ## ✅ Completed Refactoring Tasks
 
-### 1. TaskVisibilityChecker ✅
-- **File**: `TaskVisibilityChecker.kt`
-- **Purpose**: Centralizes task visibility logic
-- **Impact**: Removed duplication from Layout, CloudStorageManager, TrainingMapActivity, DailyProgressManager
-- **Status**: Fully integrated and in use
-
-### 2. TaskCompletionHandler ✅
+### 1. TaskCompletionHandler ✅
 - **File**: `TaskCompletionHandler.kt`
 - **Purpose**: Centralizes task completion logic
 - **Impact**: Separates completion handling from UI code
 - **Status**: Created and ready for use
 
-### 3. TaskLauncher ✅
+### 2. TaskLauncher ✅
 - **File**: `TaskLauncher.kt`
 - **Purpose**: Centralizes task launching logic
 - **Impact**: Removes complex launch logic from activities
 - **Status**: Created and ready for integration
 
-### 4. ProgressRepository Interface ✅
+### 3. ProgressRepository Interface ✅
 - **File**: `ProgressRepository.kt`
 - **Purpose**: Interface for progress data storage
 - **Impact**: Enables dependency injection and testing
@@ -39,7 +33,7 @@ This document summarizes all refactoring work completed to improve code isolatio
 - **Impact**: Improved testability and flexibility
 - **Status**: All interfaces created
 
-### 6. CloudStorageManager Split ✅ MAJOR PROGRESS
+### 5. CloudStorageManager Split ✅ MAJOR PROGRESS
 - **Original Size**: ~1880 lines
 - **Current Size**: ~1548 lines (reduced by ~330 lines, ~18%)
 
@@ -54,12 +48,11 @@ This document summarizes all refactoring work completed to improve code isolatio
 - Reduced file size significantly
 - Improved maintainability
 
-### 7. Layout Class Improvements ✅ IN PROGRESS
+### 6. Layout Class Improvements ✅ IN PROGRESS
 - **Original Size**: ~3044 lines
 - **Current Size**: ~2949 lines (reduced by ~95 lines, ~3%)
 
 #### Completed:
-- ✅ Updated to use TaskVisibilityChecker (removed ~70 lines)
 - ✅ Extracted IconConfigLoader (removed ~25 lines)
 - ✅ Created `IconConfigLoader.kt` - Reusable icon config loading
 
@@ -70,24 +63,23 @@ This document summarizes all refactoring work completed to improve code isolatio
 ## New Classes Created
 
 ### Core Functionality
-1. `TaskVisibilityChecker.kt` - Task visibility logic
-2. `TaskCompletionHandler.kt` - Task completion handling
-3. `TaskLauncher.kt` - Task launching
-4. `IconConfigLoader.kt` - Icon configuration loading
+1. `TaskCompletionHandler.kt` - Task completion handling
+2. `TaskLauncher.kt` - Task launching
+3. `IconConfigLoader.kt` - Icon configuration loading
 
 ### Data & Storage
-5. `CloudData.kt` - Cloud data classes
-6. `ProgressDataCollector.kt` - Data collection
-7. `CloudSyncService.kt` - HTTP sync operations
+4. `CloudData.kt` - Cloud data classes
+5. `ProgressDataCollector.kt` - Data collection
+6. `CloudSyncService.kt` - HTTP sync operations
 
 ### Interfaces
-8. `ProgressRepository.kt` - Progress storage interface
-9. `IProgressManager.kt` - Progress management interface
-10. `ICloudStorageManager.kt` - Cloud storage interface
-11. `ISettingsManager.kt` - Settings interface
-12. `ContentRepository.kt` - Content loading interface
+7. `ProgressRepository.kt` - Progress storage interface
+8. `IProgressManager.kt` - Progress management interface
+9. `ICloudStorageManager.kt` - Cloud storage interface
+10. `ISettingsManager.kt` - Settings interface
+11. `ContentRepository.kt` - Content loading interface
 
-**Total**: 12 new classes/interfaces created
+**Total**: 11 new classes/interfaces created
 
 ## Code Reduction Summary
 
@@ -152,7 +144,7 @@ This document summarizes all refactoring work completed to improve code isolatio
 
 ## Key Achievements
 1. ✅ **Major refactoring completed** - CloudStorageManager successfully split
-2. ✅ **Duplication reduced** - Centralized visibility, completion, and launch logic
+2. ✅ **Duplication reduced** - Centralized completion and launch logic; task visibility for maps is DB/RPC-driven
 3. ✅ **Code quality improved** - Better organization and separation of concerns
 4. ✅ **Build verified** - All changes compile successfully
 5. ✅ **Incremental progress** - Layout class improvements started

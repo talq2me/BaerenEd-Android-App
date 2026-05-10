@@ -9,8 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Trainer maps: legacy path uses [MainContent] only; DB-first path uses stable `af_get_*_tasks` RPCs
- * (see [prepareFromDbStrict]) so tasks, completion, and launch metadata come from Postgres.
+ * Trainer maps: DB-first path uses stable `af_get_*_tasks` RPCs (see [prepareFromDbStrict]) so tasks,
+ * completion, and launch metadata come from Postgres.
  *
  * Optional / practice map: completion is **only** [DbRow.completionStatus] from `af_get_tasks_practice`
  * (see [isCompletedOnMap] for `mapType == "optional"`). Do not seed client completion maps for optional.
@@ -172,19 +172,6 @@ object TrainerMapTaskMerge {
         data class Failed(val error: Throwable) : PrepareTrainerMapResult()
     }
 
-    /** Legacy: visible tasks from local/cached config only; completion from session/prefs ([sessionCompletionMap]). */
-    fun prepareFromConfigLegacy(
-        content: MainContent,
-        mapType: String,
-        sessionCompletionMap: MutableMap<String, Boolean>
-    ): PrepareTrainerMapResult {
-        val tasks = legacyTasksFromConfig(content, mapType)
-        if (tasks.isEmpty()) {
-            return PrepareTrainerMapResult.NoTasks("No ${mapType} tasks available")
-        }
-        return PrepareTrainerMapResult.Ready(tasks, sessionCompletionMap, null)
-    }
-
     /**
      * DB-first (dumb UI): task list order and completion come from Postgres row RPCs.
      * Launch metadata and completion come from DB RPC rows only. No fallback to config-derived task lists.
@@ -240,33 +227,6 @@ object TrainerMapTaskMerge {
         PrepareTrainerMapResult.Ready(tasks, sessionCompletionMap, dbCompletion)
     }
 
-    /** Same task ordering/filtering as legacy maps, but without a network call (config-only). */
-    fun legacyTasksFromConfig(content: MainContent, mapType: String): List<Task> {
-        val section = content.sections?.find { it.id == mapType } ?: return emptyList()
-        val baseTasks = section.tasks?.filter { task ->
-            task.title != null &&
-                task.launch != null &&
-                TaskVisibilityChecker.isTaskVisible(task)
-        } ?: emptyList()
-        if (mapType != "required" && mapType != "checklist") return baseTasks
-        val checklistSection = content.sections?.find { it.id == "checklist" }
-        val checklistTasks = checklistSection?.items
-            ?.filter { item ->
-                item.label != null && TaskVisibilityChecker.isItemVisible(item)
-            }
-            ?.map { item ->
-                Task(
-                    title = item.label,
-                    launch = "checklist_${item.id ?: item.label}",
-                    stars = item.stars ?: 0,
-                    showdays = item.showdays,
-                    hidedays = item.hidedays,
-                    displayDays = item.displayDays
-                )
-            } ?: emptyList()
-        return if (mapType == "checklist") checklistTasks else baseTasks
-    }
-
     /**
      * @param dbCompletionByTitle from `af_get_*_tasks` RPCs ([prepareFromDbStrict]). For **optional** maps this is the
      *   only source of truth for complete/incomplete (matches Postgres). [completedTasksMap] is not used for optional.
@@ -277,9 +237,10 @@ object TrainerMapTaskMerge {
         completedTasksMap: Map<String, Boolean>,
         dbCompletionByTitle: Map<String, Boolean>?
     ): Boolean {
-        if (mapType == "bonus") return false
         val taskTitle = task.title ?: ""
         val baseTaskId = task.launch ?: ""
+        // Bonus tasks: af_get_tasks_bonus pins completion_status='incomplete' on the server, so the generic
+        // DB lookup below always returns false. No client-side bonus override needed.
         // Extra practice map: af_get_tasks_practice completion_status only (no session/prefs logic).
         if (mapType == "optional") {
             return taskTitle.isNotEmpty() && dbCompletionByTitle?.get(taskTitle) == true

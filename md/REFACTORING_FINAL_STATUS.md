@@ -6,7 +6,6 @@ Significant refactoring completed to improve code isolation, reduce duplication,
 ## ✅ Completed Refactoring
 
 ### 1. Core Helper Classes Created ✅
-- **TaskVisibilityChecker.kt** - Centralizes task visibility logic
 - **TaskCompletionHandler.kt** - Centralizes task completion logic
 - **TaskLauncher.kt** - Centralizes task launching logic
 - **IconConfigLoader.kt** - Reusable icon configuration loading
@@ -33,9 +32,8 @@ Significant refactoring completed to improve code isolation, reduce duplication,
 - **Reduction**: ~95 lines (3% reduction)
 
 **Completed**:
-- ✅ Updated to use TaskVisibilityChecker (removed ~70 lines)
 - ✅ Extracted IconConfigLoader (removed ~25 lines)
-- ✅ All visibility checks now use centralized checker
+- ✅ Task list / visibility for trainer maps and main sections: PostgreSQL `af_get_tasks_*` RPCs (no Android visibility helper)
 
 **Remaining**: 
 - ⏳ Still large but making incremental progress
@@ -51,19 +49,18 @@ Significant refactoring completed to improve code isolation, reduce duplication,
 ## Statistics
 
 ### New Classes Created
-**Total: 12 new classes/interfaces**
-1. TaskVisibilityChecker
-2. TaskCompletionHandler
-3. TaskLauncher
-4. IconConfigLoader
-5. CloudData (data classes)
-6. ProgressDataCollector
-7. CloudSyncService
-8. ProgressRepository (interface)
-9. IProgressManager (interface)
-10. ICloudStorageManager (interface)
-11. ISettingsManager (interface)
-12. ContentRepository (interface)
+**Total: 11 new classes/interfaces**
+1. TaskCompletionHandler
+2. TaskLauncher
+3. IconConfigLoader
+4. CloudData (data classes)
+5. ProgressDataCollector
+6. CloudSyncService
+7. ProgressRepository (interface)
+8. IProgressManager (interface)
+9. ICloudStorageManager (interface)
+10. ISettingsManager (interface)
+11. ContentRepository (interface)
 
 ### Code Reduction
 | Class | Original | Current | Reduction |
@@ -114,7 +111,7 @@ Created comprehensive documentation:
 2. Run integration tests: `./gradlew connectedAndroidTest`
 3. Manual testing of all functionality
 4. Verify cloud sync still works
-5. Verify task visibility logic
+5. Verify task lists match Supabase `af_get_tasks_*` RPC results
 6. Verify task completion flows
 
 ### For Continued Refactoring
@@ -129,7 +126,6 @@ Created comprehensive documentation:
    - Use TaskCompletionHandler where possible
 
 3. **Testing**: Add unit tests for new classes
-   - TaskVisibilityChecker
    - TaskCompletionHandler
    - TaskLauncher
    - IconConfigLoader

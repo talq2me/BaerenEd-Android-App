@@ -70,6 +70,9 @@ class BattleHubActivity : AppCompatActivity() {
     private var totalStars = 0
     private var battleReadyForToday = false
     private var dailyPrizeUnlocked: String? = null
+    // Cached `af_get_required_progress_today.all_done`. Refreshed by [refreshRequiredProgressFromDb].
+    // Read by [updateEarnButtonsState] / [updateDailySpinButtonState]; never computed locally.
+    private var allRequiredAndChecklistDone: Boolean = false
     
     private var mainContentJson: String? = null
     
@@ -853,43 +856,62 @@ class BattleHubActivity : AppCompatActivity() {
     
     
     private fun updateEarnButtonsState() {
-        val progressManager = DailyProgressManager(this)
-        progressManager.invalidateCompletedTasksMapCache()
-
-        // DB is source of truth: required_tasks from last fetch (session).
-        val profile = SettingsManager.readProfile(this) ?: "AM"
-        if (progressManager.getCurrentSessionData(profile) != null) {
-            val allDone = progressManager.areAllVisibleRequiredAndChecklistCompleteFromDb()
-            android.util.Log.d("BattleHubActivity", "updateEarnButtonsState (DB): allRequiredAndChecklistCompleted=$allDone")
-            earnExtraBerriesButton.visibility = if (allDone) android.view.View.VISIBLE else android.view.View.GONE
-            earnExtraBerriesButton.isEnabled = allDone
-            earnExtraBerriesButton.alpha = if (allDone) 1f else 0.5f
-            updateDailySpinButtonState()
-            return
-        }
-
-        android.util.Log.w("BattleHubActivity", "updateEarnButtonsState: no session data yet (fetch user_data first); hiding Earn Extra")
-        earnExtraBerriesButton.visibility = View.GONE
-        earnExtraBerriesButton.isEnabled = false
-        earnExtraBerriesButton.alpha = 0.5f
-        updateDailySpinButtonState()
+        // Sync UI render from the cached RPC value, then trigger a fresh RPC fetch in the background.
+        // Source of truth: af_get_required_progress_today (no Android-side completion logic).
+        renderEarnAndSpinButtons()
+        refreshRequiredProgressFromDb()
     }
 
     private fun updateDailySpinButtonState() {
+        // Re-renders both buttons from the latest cached RPC value. Spin can also unlock from `prizeUnlocked`.
         val profile = SettingsManager.readProfile(this) ?: "AM"
-        val progressManager = DailyProgressManager(this)
-        val progress = progressManager.getCurrentSessionData(profile)
+        val progress = DailyProgressManager(this).getCurrentSessionData(profile)
         dailyPrizeUnlocked = progress?.prizeUnlocked?.trim()?.takeIf { it.isNotEmpty() }
-        val allRequiredAndChecklistDone = progressManager.areAllVisibleRequiredAndChecklistCompleteFromDb()
+        renderEarnAndSpinButtons()
+    }
 
-        val canOpenSpin = allRequiredAndChecklistDone || dailyPrizeUnlocked != null
+    /** Pure UI render from cached state; no DB / no logic. */
+    private fun renderEarnAndSpinButtons() {
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        val hasSession = DailyProgressManager(this).getCurrentSessionData(profile) != null
+
+        val allDone = hasSession && allRequiredAndChecklistDone
+        if (hasSession) {
+            earnExtraBerriesButton.visibility = if (allDone) View.VISIBLE else View.GONE
+        } else {
+            earnExtraBerriesButton.visibility = View.GONE
+        }
+        earnExtraBerriesButton.isEnabled = allDone
+        earnExtraBerriesButton.alpha = if (allDone) 1f else 0.5f
+
+        val canOpenSpin = allDone || dailyPrizeUnlocked != null
         dailySpinButton.visibility = if (battleButton.visibility == View.VISIBLE) View.VISIBLE else View.GONE
         dailySpinButton.isEnabled = canOpenSpin
         dailySpinButton.alpha = if (canOpenSpin) 1f else 0.5f
         dailySpinButton.text = if (dailyPrizeUnlocked != null) "🎁 Today's Prize" else "🎡 Daily Spin"
     }
+
+    /** Fetches `af_get_required_progress_today` and refreshes the buttons when it returns. */
+    private fun refreshRequiredProgressFromDb() {
+        val profile = SettingsManager.readProfile(this) ?: "AM"
+        lifecycleScope.launch {
+            val sync = SupabaseInterface()
+            if (!sync.isConfigured()) return@launch
+            val result = withContext(Dispatchers.IO) { sync.invokeAfGetRequiredProgressToday(profile) }
+            result.onSuccess { progress ->
+                allRequiredAndChecklistDone = progress.allDone
+                android.util.Log.d(
+                    "BattleHubActivity",
+                    "refreshRequiredProgressFromDb: allDone=${progress.allDone} earnedBerries=${progress.earnedBerries}"
+                )
+                renderEarnAndSpinButtons()
+            }.onFailure { e ->
+                android.util.Log.e("BattleHubActivity", "af_get_required_progress_today failed", e)
+            }
+        }
+    }
     
-    // Removed isTaskVisible() - now using TaskVisibilityChecker for consistency with Layout.kt
+    // Removed local isTaskVisible(); required progress comes from af_get_required_progress_today.
     
     private fun togglePokedex(toggleView: TextView) {
         isPokedexExpanded = !isPokedexExpanded
@@ -1420,7 +1442,12 @@ class BattleHubActivity : AppCompatActivity() {
             // Header row (berryCountDisplay) uses updateCountsDisplay; meter uses updateBerryMeter only.
             updateCountsDisplay()
 
-            progressManager.setEarnedStarsAtBattleEnd(progressManager.getEarnedRequiredStarsFromSession())
+            // Snapshot the current sum of berry_value for visible-today complete required+checklist tasks.
+            // Server-computed by af_get_required_progress_today; used onResume to detect new completions after the battle.
+            val battleEndSnapshot = withContext(Dispatchers.IO) {
+                sync.invokeAfGetRequiredProgressToday(profile).getOrNull()?.earnedBerries ?: 0
+            }
+            progressManager.setEarnedStarsAtBattleEnd(battleEndSnapshot)
 
             isBattling = true
             battleButton.text = "⚔️ Battling... ⚔️"
@@ -2110,17 +2137,22 @@ class BattleHubActivity : AppCompatActivity() {
             }
         }
 
-        // Handle berry reset logic when returning to this activity
-        // Check if new required tasks were completed since battle ended (when earned berries were reset to 0)
+        // Handle berry reset logic when returning to this activity.
+        // Check (via RPC) if new required+checklist work was completed since the last battle.
         val progressManager = DailyProgressManager(this)
         val earnedBerries = progressManager.getEarnedBerries()
-        
+
         // Only check if earned berries is 0 (meaning battle happened and reset occurred)
         if (earnedBerries == 0) {
-            val currentEarnedStars = progressManager.getEarnedRequiredStarsFromSession()
-            val earnedStarsAtBattleEnd = progressManager.getEarnedStarsAtBattleEnd()
-            if (currentEarnedStars > earnedStarsAtBattleEnd) {
-                progressManager.resetBattleEndTracking()
+            val profile = SettingsManager.readProfile(this) ?: "AM"
+            lifecycleScope.launch {
+                val currentEarnedStars = withContext(Dispatchers.IO) {
+                    SupabaseInterface().invokeAfGetRequiredProgressToday(profile).getOrNull()?.earnedBerries ?: 0
+                }
+                val earnedStarsAtBattleEnd = progressManager.getEarnedStarsAtBattleEnd()
+                if (currentEarnedStars > earnedStarsAtBattleEnd) {
+                    progressManager.resetBattleEndTracking()
+                }
             }
         }
         mainContentJson = null

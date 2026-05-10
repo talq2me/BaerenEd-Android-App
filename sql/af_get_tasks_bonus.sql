@@ -42,9 +42,10 @@ AS $$
     LEFT JOIN user_data ud ON ud.profile = p_profile
   ),
   visible AS (
+    -- Bonus tasks are always playable: they never show as complete/disabled, regardless of times_completed.
     SELECT
       e.key::text AS task_name,
-      CASE WHEN COALESCE((e.value->>'times_completed')::int, 0) > 0 THEN 'complete' ELSE 'incomplete' END AS completion_status,
+      'incomplete'::text AS completion_status,
       COALESCE((e.value->>'stars')::int, 0) AS berry_value,
       (e.value->>'launch')::text AS launch,
       (e.value->>'url')::text AS url,

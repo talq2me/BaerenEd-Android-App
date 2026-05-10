@@ -931,29 +931,24 @@ class MainActivity : AppCompatActivity() {
             layout.showTrainingMap()
         } else if (showOptionalTrainingMap) {
             battleHubPrefs.edit().remove("showOptionalTrainingMap").apply()
-            if (canShowOptionalTrainingMapNow()) {
-                Log.d(TAG, "Showing optional training map from battle hub")
-                layout.showOptionalTrainingMap()
-            } else {
-                Log.d(TAG, "Blocking optional training map: required tasks are not all complete for current day")
-                layout.showTrainingMap()
+            // Gate is decided by RPC `af_can_show_optional_map`. No Android-side rule.
+            lifecycleScope.launch {
+                val profile = SettingsManager.readProfile(this@MainActivity) ?: "AM"
+                val canShow = withContext(Dispatchers.IO) {
+                    SupabaseInterface().invokeAfCanShowOptionalMap(profile).getOrDefault(false)
+                }
+                if (canShow) {
+                    Log.d(TAG, "Showing optional training map from battle hub (gated by af_can_show_optional_map)")
+                    layout.showOptionalTrainingMap()
+                } else {
+                    Log.d(TAG, "Blocking optional training map: af_can_show_optional_map returned false")
+                    layout.showTrainingMap()
+                }
             }
         } else if (showBonusTrainingMap) {
             battleHubPrefs.edit().remove("showBonusTrainingMap").apply()
             Log.d(TAG, "Showing bonus training map from battle hub")
             layout.showBonusTrainingMap()
-        }
-    }
-
-    /**
-     * Optional (extra practice) map should only be shown once required tasks are completed.
-     * This blocks stale persisted flags from reopening optional practice after an overnight restart.
-     */
-    private fun canShowOptionalTrainingMapNow(): Boolean {
-        val requiredTasks = DailyProgressManager(this).getRequiredTasksMap()
-        if (requiredTasks.isEmpty()) return false
-        return requiredTasks.values.all { progress ->
-            progress.status.equals("complete", ignoreCase = true)
         }
     }
 

@@ -1,24 +1,8 @@
 # Refactoring Progress Update
 
-## Latest Changes - Layout Class Improvements
+## Latest Changes - Layout / trainer maps
 
-### ✅ Updated Layout to Use TaskVisibilityChecker
-- **Changed**: Replaced duplicate `isTaskVisible()` method calls with `TaskVisibilityChecker.isTaskVisible()`
-- **Updated 5 locations**:
-  1. Task filtering in `createSectionView()`
-  2. Checklist item filtering in `createSectionView()`
-  3. Task filtering in gym map creation
-  4. Task filtering in training map creation  
-  5. Task filtering in optional tasks dialog
-- **Removed**: Duplicate `isTaskVisible()` method (~50 lines)
-- **Removed**: Duplicate `parseDisableDate()` method (~20 lines)
-- **Total reduction**: ~70 lines removed from Layout.kt
-
-### Benefits
-- ✅ Removes duplication - single source of truth for visibility logic
-- ✅ Consistent behavior across all components
-- ✅ Easier to maintain and test
-- ✅ Layout class slightly smaller and cleaner
+Task visibility for required/optional/bonus/checklist sections and trainer maps is determined by PostgreSQL RPCs (`af_get_tasks_required`, `af_get_tasks_practice`, `af_get_tasks_bonus`), not Android-side helpers.
 
 ## Current Status
 
@@ -29,13 +13,11 @@
 - **Next Steps**: See LAYOUT_REFACTORING_PLAN.md for full refactoring plan
 
 ### Overall Refactoring Status
-- ✅ TaskVisibilityChecker created and integrated
 - ✅ TaskCompletionHandler created
 - ✅ TaskLauncher created
 - ✅ ProgressRepository interface created
 - ✅ Manager interfaces created
 - ✅ CloudStorageManager split (1880 → 1548 lines)
-- ✅ Layout updated to use TaskVisibilityChecker (~70 lines reduced)
 - ⏳ Layout class split (incremental approach recommended)
 
 ## Build Status

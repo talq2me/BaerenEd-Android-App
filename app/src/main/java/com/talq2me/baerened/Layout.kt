@@ -720,7 +720,7 @@ open class Layout(protected val activity: MainActivity) {
         return builder.build().toString()
     }
 
-    // Removed duplicate isTaskVisible and parseDisableDate methods - now using TaskVisibilityChecker
+    // Removed duplicate isTaskVisible / parseDisableDate — visibility for known sections comes from RPCs.
 
     private fun handleVideoSequenceTask(task: Task, sectionId: String?) {
         val videoSequence = task.videoSequence ?: return
@@ -1098,16 +1098,76 @@ open class Layout(protected val activity: MainActivity) {
             return
         }
 
-        // Create one section per frame to avoid blocking. Get completion map for this section only.
+        // Create one section per frame to avoid blocking. All known section types render from RPC rows;
+        // task list, completion, and visibility all come from Postgres. Unknown ids fall back to config.
         sectionsContainer.post {
             val section = sections[index]
-            val completedTasksMap = progressManager.getCompletedTasksMap(section.id)
             android.util.Log.d("Layout", "Creating section ${index + 1}/${sections.size}: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
-            val sectionView = createSectionView(section, completedTasksMap)
-            sectionsContainer.addView(sectionView)
-            
-            // Continue with next section on next frame
-            createSectionsIncrementally(sections, index + 1)
+            when (section.id) {
+                "required", "optional", "bonus", "checklist" -> {
+                    renderSectionFromDb(section, section.id ?: "") {
+                        createSectionsIncrementally(sections, index + 1)
+                    }
+                }
+                else -> {
+                    val completedTasksMap = progressManager.getCompletedTasksMap(section.id)
+                    val sectionView = createSectionView(section, completedTasksMap)
+                    sectionsContainer.addView(sectionView)
+                    createSectionsIncrementally(sections, index + 1)
+                }
+            }
+        }
+    }
+
+    /**
+     * Dashboard section render, DB-driven for known section ids.
+     *
+     * - "required" / "optional" / "bonus" — list + completion from `af_get_tasks_*`.
+     * - "checklist" — visibility/completion from `af_get_tasks_required` (`is_checklist` rows).
+     *
+     * No `DailyProgressManager` for these sections: Postgres already filters by today.
+     */
+    private fun renderSectionFromDb(section: Section, mapType: String, onComplete: () -> Unit) {
+        activity.lifecycleScope.launch {
+            val profile = SettingsManager.readProfile(activity) ?: "AM"
+            val prep = TrainerMapTaskMerge.prepareFromDbStrict(
+                mapType, profile, mutableMapOf(), SupabaseInterface()
+            )
+            when (prep) {
+                is TrainerMapTaskMerge.PrepareTrainerMapResult.Ready -> {
+                    val dbCompletion = prep.dbCompletionByTitle ?: emptyMap()
+                    val sectionView = if (mapType == "checklist") {
+                        // Items still come from config (they carry id/displayDays for the existing checkbox view),
+                        // but **which items** are visible and **completion** are dictated by RPC rows.
+                        createSectionView(
+                            section,
+                            completedTasksMap = dbCompletion,
+                            overrideTasks = null,
+                            dbVisibleChecklistLabels = dbCompletion.keys
+                        )
+                    } else {
+                        createSectionView(
+                            section,
+                            completedTasksMap = dbCompletion,
+                            overrideTasks = prep.tasks
+                        )
+                    }
+                    sectionsContainer.addView(sectionView)
+                }
+                is TrainerMapTaskMerge.PrepareTrainerMapResult.NoTasks -> {
+                    val sectionView = createSectionView(
+                        section,
+                        completedTasksMap = emptyMap(),
+                        overrideTasks = if (mapType == "checklist") null else emptyList(),
+                        dbVisibleChecklistLabels = if (mapType == "checklist") emptySet() else null
+                    )
+                    sectionsContainer.addView(sectionView)
+                }
+                is TrainerMapTaskMerge.PrepareTrainerMapResult.Failed -> {
+                    android.util.Log.e(TAG, "Section RPC failed: $mapType", prep.error)
+                }
+            }
+            onComplete()
         }
     }
 
@@ -1195,7 +1255,17 @@ open class Layout(protected val activity: MainActivity) {
         }
     }
 
-    private fun createSectionView(section: Section, completedTasksMap: Map<String, Boolean>): View {
+    /**
+     * @param overrideTasks when non-null, render this list instead of [Section.tasks] (e.g. from a DB RPC).
+     * @param dbVisibleChecklistLabels when non-null, only [Section.items] whose label is in this set are rendered
+     *   (RPC decides visibility). When null, every item with a non-null label is shown (unknown section ids only).
+     */
+    private fun createSectionView(
+        section: Section,
+        completedTasksMap: Map<String, Boolean>,
+        overrideTasks: List<Task>? = null,
+        dbVisibleChecklistLabels: Set<String>? = null
+    ): View {
         val sectionLayout = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, 12, 0, 12) // Reduced for compact layout
@@ -1221,7 +1291,7 @@ open class Layout(protected val activity: MainActivity) {
         sectionLayout.addView(descriptionView)
 
             // Add tasks or checklist items in a flexbox-like layout
-            section.tasks?.let { tasks ->
+            (overrideTasks ?: section.tasks)?.let { tasks ->
                 if (tasks.isEmpty()) return@let
 
                 android.util.Log.d("Layout", "Processing ${tasks.size} tasks for section ${section.title}")
@@ -1257,11 +1327,10 @@ open class Layout(protected val activity: MainActivity) {
                     setPadding(0, 0, 0, 0)
                 }
 
-                    // Filter visible tasks and defer to next frame to avoid blocking
+                    // Defer to next frame to avoid blocking. Task list is whatever the caller supplied
+                    // (RPC rows via [overrideTasks], or raw config for unknown section ids — no client-side day filter).
                     sectionLayout.post {
-                        val visibleTasks = tasks.filter { task -> 
-                            TaskVisibilityChecker.isTaskVisible(task)
-                        }
+                        val visibleTasks = tasks
                     
                     // Always create incrementally, one row per frame
                     createTaskRowsIncrementally(
@@ -1280,8 +1349,13 @@ open class Layout(protected val activity: MainActivity) {
 
         section.items?.let { items ->
             items.forEach { item ->
-                // Only add checklist item view if it's visible today
-                if (TaskVisibilityChecker.isItemVisible(item)) {
+                val visible = if (dbVisibleChecklistLabels != null) {
+                    val label = item.label ?: return@forEach
+                    label in dbVisibleChecklistLabels
+                } else {
+                    item.label != null
+                }
+                if (visible) {
                     val itemView = createChecklistItemView(item, completedTasksMap)
                     sectionLayout.addView(itemView)
                 }
@@ -1296,24 +1370,11 @@ open class Layout(protected val activity: MainActivity) {
         // Use 70dp height to match nav buttons for compact layout
         val tileHeight = (70 * density).toInt()
 
-        // Check if this task is completed today (using pre-loaded map to avoid SharedPreferences read)
-        // Use unique task ID that includes section for optional/bonus tasks
-        val taskLaunchId = task.launch ?: "unknown_task"
-        val taskIdForCheck = if (sectionId != "required") {
-            // For optional/bonus sections, use section-prefixed ID to track separately
-            "${sectionId}_$taskLaunchId"
-        } else {
-            // For required tasks, use just the launch ID
-            taskLaunchId
-        }
-        // Completed map is keyed by task title for required (e.g. book title "Léo et la Boîte Mystérieuse"), not by launch id
-        val keyForCompletedCheck = if (sectionId == "required") (task.title ?: taskIdForCheck) else taskIdForCheck
-        // For optional/bonus tasks, don't grey them out - they can be played multiple times
-        val isCompleted = if (sectionId != "required") {
-            false  // Optional/bonus tasks are never "completed" in UI sense - always available
-        } else {
-            completedTasksMap[keyForCompletedCheck] == true
-        }
+        // Completion is read from the section's completedTasksMap, which is keyed by task TITLE.
+        // Required: from DailyProgressManager (synced session mirrors af_get_tasks_required).
+        // Optional: from af_get_tasks_practice rows (DB completion_status). Bonus: empty map → always playable.
+        val keyForCompletedCheck = task.title ?: task.launch ?: "unknown_task"
+        val isCompleted = completedTasksMap[keyForCompletedCheck] == true
 
         // Use a RelativeLayout for more precise positioning of children
         return RelativeLayout(activity).apply {
@@ -2740,43 +2801,42 @@ open class Layout(protected val activity: MainActivity) {
             mapContainer.addView(button)
         }
         
-        // If all required tasks are completed and we're showing required, check for optional
+        // If we're showing required and all required are done, ask the DB whether to surface the
+        // "Show Optional Training" button: gated by RPCs only.
         if (mapType == "required" && completedCount == tasks.size) {
-            val optionalSection = currentContent.sections?.find { it.id == "optional" }
-            val optionalTasks = optionalSection?.tasks?.filter { task ->
-                task.title != null && 
-                task.launch != null && 
-                TaskVisibilityChecker.isTaskVisible(task)
-            } ?: emptyList()
-            
-            if (optionalTasks.isNotEmpty()) {
-                // Find the container and add button after map
-                val parent = mapContainer.parent as? LinearLayout
-                parent?.let {
-                    val mapIndex = it.indexOfChild(mapContainer)
-                    if (it.findViewWithTag<View>("showOptionalButton") == null) {
-                        val showOptionalButton = android.widget.Button(activity).apply {
-                            text = "🎯 Show Optional Training"
-                            textSize = 18f
-                            setTextColor(android.graphics.Color.WHITE)
-                            background = activity.getDrawable(R.drawable.button_rounded)
-                            setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
-                            layoutParams = LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                            ).apply {
-                                setMargins(0, (16 * density).toInt(), 0, 0)
-                            }
-                            tag = "showOptionalButton"
-                            setOnClickListener {
-                                currentMapType = "optional"
-                                loadTasksIntoMap(mapContainer, progressInfo, "optional")
-                                (this.parent as? android.view.ViewGroup)?.removeView(this)
-                            }
-                        }
-                        it.addView(showOptionalButton, mapIndex + 1)
+            activity.lifecycleScope.launch {
+                val profile = SettingsManager.readProfile(activity) ?: "AM"
+                val canShow = SupabaseInterface().invokeAfCanShowOptionalMap(profile).getOrDefault(false)
+                val hasOptionalTasks = if (canShow) {
+                    val opt = TrainerMapTaskMerge.prepareFromDbStrict(
+                        "optional", profile, mutableMapOf(), SupabaseInterface()
+                    )
+                    opt is TrainerMapTaskMerge.PrepareTrainerMapResult.Ready && opt.tasks.isNotEmpty()
+                } else false
+                if (!hasOptionalTasks) return@launch
+                val parent = mapContainer.parent as? LinearLayout ?: return@launch
+                val mapIndex = parent.indexOfChild(mapContainer)
+                if (parent.findViewWithTag<View>("showOptionalButton") != null) return@launch
+                val showOptionalButton = android.widget.Button(activity).apply {
+                    text = "🎯 Show Optional Training"
+                    textSize = 18f
+                    setTextColor(android.graphics.Color.WHITE)
+                    background = activity.getDrawable(R.drawable.button_rounded)
+                    setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(0, (16 * density).toInt(), 0, 0)
+                    }
+                    tag = "showOptionalButton"
+                    setOnClickListener {
+                        currentMapType = "optional"
+                        loadTasksIntoMap(mapContainer, progressInfo, "optional")
+                        (this.parent as? android.view.ViewGroup)?.removeView(this)
                     }
                 }
+                parent.addView(showOptionalButton, mapIndex + 1)
             }
         }
                 }

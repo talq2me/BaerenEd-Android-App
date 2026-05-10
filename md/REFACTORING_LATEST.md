@@ -20,9 +20,8 @@
 ## Layout Class Progress
 
 ### Cumulative Improvements
-1. ✅ Use TaskVisibilityChecker (removed ~70 lines)
-2. ✅ Use IconConfigLoader (removed ~25 lines)
-3. **Total reduction**: ~95 lines removed so far
+1. ✅ Use IconConfigLoader (removed ~25 lines)
+2. **Total reduction** (historical): additional Layout reductions from subsequent refactors vary; see Layout.kt directly
 
 ### Current Status
 - **Original**: ~3044 lines

@@ -22,22 +22,18 @@
 ### Key Dependencies:
 - MainActivity (for UI elements, launchers, methods)
 - DailyProgressManager
-- TaskVisibilityChecker (should use this, currently has duplicate `isTaskVisible`)
+- Supabase RPCs (`af_get_tasks_required`, etc.) for which tasks appear today on maps/sections
 - TaskLauncher (should use this, currently has duplicate launch logic)
 - ContentUpdateService
 - SettingsManager
 
 ## Recommended Refactoring Approach
 
-### Phase 1: Use Existing Helper Classes ✅ (Quick Win)
+### Phase 1: Use Existing Helper Classes (Quick Win)
 1. **Update Layout to use TaskLauncher**
    - Replace inline task launch logic with TaskLauncher
    - Requires passing ActivityResultLaunchers from MainActivity
    - Reduces ~200+ lines of duplicate code
-
-2. **Update Layout to use TaskVisibilityChecker**
-   - Replace `isTaskVisible()` method with TaskVisibilityChecker
-   - Reduces ~100 lines of duplicate code
 
 ### Phase 2: Extract View Factories (Incremental)
 Extract in order of complexity:
@@ -100,7 +96,7 @@ Extract in order of complexity:
 ## Recommended Next Steps
 
 ### Option 1: Incremental (Recommended)
-1. Start with Phase 1 (use TaskLauncher and TaskVisibilityChecker) - reduces duplication immediately
+1. Start with Phase 1 (TaskLauncher) — reduces duplication immediately
 2. Extract IconConfigLoader (simple, quick win)
 3. Extract ProgressViewFactory (self-contained)
 4. Continue incrementally with testing at each step
@@ -122,14 +118,13 @@ After full refactoring:
 ## Current Status
 
 - ✅ TaskLauncher exists and can be used
-- ✅ TaskVisibilityChecker exists and can be used  
-- ⏳ Layout class still uses duplicate code
+- ⏳ Layout class still has duplicate launch-related code in places
 - ⏳ View factories not yet created
 
 ## Recommendation
 
 Given the complexity and tight coupling, recommend:
-1. **First**: Update Layout to use TaskLauncher and TaskVisibilityChecker (Phase 1)
+1. **First**: Update Layout to use TaskLauncher where it still duplicates launch flows (Phase 1)
 2. **Then**: Extract factories incrementally with testing at each step
 3. **Or**: Leave Layout as-is for now and focus on other improvements
 

@@ -645,31 +645,7 @@ class DailyProgressManager(private val repository: ProgressRepository) {
 
 ---
 
-### Priority 6: Extract Task Visibility Logic
-
-**Problem**: Task visibility logic (showdays/hidedays/disable) is scattered across Layout and DailyProgressManager.
-
-**Solution**: Create `TaskVisibilityChecker` class
-```kotlin
-class TaskVisibilityChecker {
-    fun isTaskVisible(
-        task: Task,
-        currentDate: Calendar = Calendar.getInstance()
-    ): Boolean {
-        // Centralized visibility logic
-    }
-}
-```
-
-**Benefits**:
-- Single source of truth for visibility logic
-- Easier to test
-- Consistent behavior
-- Can be reused everywhere
-
----
-
-### Priority 7: Create Manager Interfaces
+### Priority 6: Create Manager Interfaces
 
 **Problem**: Activities directly instantiate managers, making testing difficult.
 
@@ -700,7 +676,7 @@ class GameActivity(
 
 ---
 
-### Priority 8: Refactor SettingsManager
+### Priority 7: Refactor SettingsManager
 
 **Problem**: SettingsManager is an object singleton, making testing difficult. Also makes direct Supabase calls instead of using CloudStorageManager.
 
@@ -731,7 +707,7 @@ class SettingsManager(
 
 ---
 
-### Priority 9: Extract Content Loading Logic
+### Priority 8: Extract Content Loading Logic
 
 **Problem**: ContentUpdateService is misnamed (not a Service) and MainActivity has content loading logic.
 
@@ -758,7 +734,7 @@ class GitHubContentRepository(
 
 ---
 
-### Priority 10: Create Dependency Injection Setup
+### Priority 9: Create Dependency Injection Setup
 
 **Problem**: Classes directly instantiate dependencies, making testing and modification difficult.
 
@@ -790,10 +766,9 @@ class GameActivity : AppCompatActivity() {
 ## Implementation Strategy
 
 ### Phase 1: Extract and Isolate (Low Risk)
-1. Create TaskVisibilityChecker
-2. Extract TaskLaunch logic to TaskLauncher
-3. Extract TaskCompletionHandler
-4. Create ProgressRepository interface
+1. Extract TaskLaunch logic to TaskLauncher
+2. Extract TaskCompletionHandler
+3. Create ProgressRepository interface
 
 ### Phase 2: Split Large Classes (Medium Risk)
 1. Split CloudStorageManager

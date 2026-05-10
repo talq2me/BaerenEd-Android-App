@@ -377,28 +377,6 @@ open class DailyProgressManager(private val context: Context) {
         return getRequiredTasks()
     }
     
-    /**
-     * Practice tasks from synced user_data (not used for trainer map completion; optional map uses `af_get_tasks_practice` only).
-     * Still used for home layout optional section / [getCompletedTasksMap]("optional") until that UI is DB-driven.
-     */
-    private fun getPracticeTasks(progressData: DbUserData? = null): MutableMap<String, TaskProgress> {
-        val practice = dataForProfile(getCurrentKid(), progressData)?.practiceTasks ?: return mutableMapOf()
-        return practice.mapValues { (_, p) ->
-            val showComplete = p.completed ?: (p.timesCompleted > 0)
-            TaskProgress(
-                status = if (showComplete) "complete" else "incomplete",
-                correct = p.correct,
-                incorrect = p.incorrect,
-                questions = p.questionsAnswered,
-                stars = null,
-                showdays = p.showdays,
-                hidedays = p.hidedays,
-                displayDays = p.displayDays,
-                disable = p.disable
-            )
-        }.toMutableMap()
-    }
-
     /** Bonus tasks (bonus section) from session data. No display-incomplete reset (bonus do not reset to do-again). */
     private fun getBonusTasks(progressData: DbUserData? = null): MutableMap<String, TaskProgress> {
         val bonus = dataForProfile(getCurrentKid(), progressData)?.bonusTasks ?: return mutableMapOf()
@@ -554,52 +532,9 @@ open class DailyProgressManager(private val context: Context) {
         return dataForProfile(getCurrentKid(), null)?.possibleStars ?: 0
     }
 
-    /**
-     * True when every **visible today** required task and every **visible** checklist item (with stars) is done.
-     * Uses `required_tasks` / `checklist_items` from the last DB fetch only — no GitHub config.
-     */
-    fun areAllVisibleRequiredAndChecklistCompleteFromDb(): Boolean {
-        val data = dataForProfile(getCurrentKid(), null) ?: return false
-        var anyVisible = false
-
-        data.requiredTasks.forEach { (_, tp) ->
-            if (!TaskVisibilityChecker.isTaskVisible(tp.showdays, tp.hidedays, tp.displayDays, tp.disable)) return@forEach
-            anyVisible = true
-            if (tp.status != "complete") return false
-        }
-
-        data.checklistItems.forEach { (_, cp) ->
-            if (cp.stars <= 0) return@forEach
-            if (!TaskVisibilityChecker.isTaskVisible(null, null, cp.displayDays, null)) return@forEach
-            anyVisible = true
-            if (!cp.done) return false
-        }
-
-        // Nothing visible today: only treat as "all done" if there is literally nothing in DB.
-        if (!anyVisible) {
-            return data.requiredTasks.isEmpty() && data.checklistItems.isEmpty()
-        }
-        return true
-    }
-
-    /**
-     * Sum of star values for visible required tasks + visible checklist items that are complete/done.
-     * Uses only [DbUserData] from the last DB fetch (same visibility rules as [areAllVisibleRequiredAndChecklistCompleteFromDb]).
-     */
-    fun getEarnedRequiredStarsFromSession(): Int {
-        val data = dataForProfile(getCurrentKid(), null) ?: return 0
-        var sum = 0
-        data.requiredTasks.forEach { (_, tp) ->
-            if (!TaskVisibilityChecker.isTaskVisible(tp.showdays, tp.hidedays, tp.displayDays, tp.disable)) return@forEach
-            if (tp.status == "complete") sum += (tp.stars ?: 0)
-        }
-        data.checklistItems.forEach { (_, cp) ->
-            if (cp.stars <= 0) return@forEach
-            if (!TaskVisibilityChecker.isTaskVisible(null, null, cp.displayDays, null)) return@forEach
-            if (cp.done) sum += cp.stars
-        }
-        return sum
-    }
+    // Removed: areAllVisibleRequiredAndChecklistCompleteFromDb() and getEarnedRequiredStarsFromSession().
+    // Battle Hub now reads both values from `af_get_required_progress_today` (SupabaseInterface.invokeAfGetRequiredProgressToday).
+    // No client-side visibility / completion logic for Battle Hub (RPC-only).
 
     /** Updates session data with earned berries (display only). DB berries are updated only by task/checklist RPCs when status=complete or done=true. */
     fun setEarnedBerries(amount: Int) {

@@ -5,15 +5,7 @@ This document summarizes the refactoring work completed to improve code isolatio
 
 ## ✅ Completed Refactoring Tasks
 
-### 1. TaskVisibilityChecker (Priority 6) ✅
-**File**: `TaskVisibilityChecker.kt`  
-**Purpose**: Centralizes task visibility logic (showdays, hidedays, displayDays, disable)  
-**Benefits**:
-- Single source of truth for visibility logic
-- Removed duplication across Layout and DailyProgressManager
-- Easier to test and maintain
-
-### 2. TaskCompletionHandler (Priority 2) ✅
+### 1. TaskCompletionHandler (Priority 2) ✅
 **File**: `TaskCompletionHandler.kt`  
 **Purpose**: Centralizes task completion logic  
 **Benefits**:
@@ -21,7 +13,7 @@ This document summarizes the refactoring work completed to improve code isolatio
 - Consistent completion behavior across the app
 - Easier to test completion logic
 
-### 3. TaskLauncher (Priority 1) ✅
+### 2. TaskLauncher (Priority 1) ✅
 **File**: `TaskLauncher.kt`  
 **Purpose**: Centralizes task launching logic  
 **Benefits**:
@@ -37,7 +29,7 @@ This document summarizes the refactoring work completed to improve code isolatio
 - Makes progress storage testable
 - Allows swapping storage implementations
 
-### 5. Manager Interfaces (Priority 7) ✅
+### 4. Manager Interfaces (Priority 7) ✅
 **Files**: 
 - `IProgressManager.kt`
 - `ICloudStorageManager.kt`
@@ -50,13 +42,13 @@ This document summarizes the refactoring work completed to improve code isolatio
 - Better flexibility (can swap implementations)
 - Clearer contracts between components
 
-### 6. SettingsManager Refactoring (Priority 8) ✅
+### 5. SettingsManager Refactoring (Priority 8) ✅
 **File**: `ISettingsManager.kt` interface created  
 **Benefits**:
 - Enables dependency injection for settings
 - Makes settings operations testable
 
-### 7. ContentRepository (Priority 9) ✅
+### 6. ContentRepository (Priority 9) ✅
 **File**: `ContentRepository.kt` interface created  
 **Purpose**: Interface for content loading operations  
 **Benefits**:
@@ -104,7 +96,6 @@ This document summarizes the refactoring work completed to improve code isolatio
 
 ## File Count Changes
 - **New Files Created**: 10+
-  - TaskVisibilityChecker.kt
   - TaskCompletionHandler.kt
   - TaskLauncher.kt
   - ProgressRepository.kt (interface)
@@ -130,7 +121,6 @@ This document summarizes the refactoring work completed to improve code isolatio
 
 ### Update Existing Code to Use New Classes
 - Update all activities to use TaskLauncher instead of inline launch logic
-- Update all code to use TaskVisibilityChecker
 - Update all code to use TaskCompletionHandler
 
 ## Impact Summary

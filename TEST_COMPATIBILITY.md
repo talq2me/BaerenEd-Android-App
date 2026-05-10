@@ -34,14 +34,12 @@ The following classes are directly tested and were NOT refactored:
    - Public API unchanged (implements ICloudStorageManager interface)
    - Tests should still work since interface matches old API
 
-2. **DailyProgressManager** 
-   - Not directly refactored
-   - Uses TaskVisibilityChecker internally (but tests use mocked instances or don't test visibility)
-   - Public API unchanged
+2. **DailyProgressManager**
+   - Not directly refactored for most tests
+   - Public API unchanged for unit tests under `app/src/test`
 
 ### New Classes Created (Not Yet Tested)
 These new classes were created but don't have tests yet:
-- TaskVisibilityChecker
 - TaskCompletionHandler  
 - TaskLauncher
 - ProgressDataCollector
