@@ -2,6 +2,10 @@
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdateTaskCompletion.
 --   app/src/main/java/com/talq2me/baerened/DailyProgressManager.kt  -  markTaskCompletedWithName.
 --
+-- PostgREST clients: do not send JSON literal `null` for optional parameters (e.g. p_section_id). That is
+-- inferred as type UNKNOWN in Postgres and may produce "function ... (text, text, unknown, integer, ...) does
+-- not exist". Omit the key and let DEFAULT NULL apply, or send a string (e.g. "optional").
+--
 -- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
 -- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
 -- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).

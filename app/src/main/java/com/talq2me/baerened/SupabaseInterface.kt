@@ -466,14 +466,17 @@ open class SupabaseInterface {
         incorrect: Int? = null,
         questionsAnswered: Int? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
+        // PostgREST: JSON keys with literal `null` are typed as UNKNOWN in Postgres and break overload
+        // resolution (e.g. "does not exist (text, text, unknown, int, ...)"). Omit optional keys so DB
+        // DEFAULT NULL applies with correct parameter types.
         val obj = JsonObject().apply {
             addProperty("p_profile", profile)
             addProperty("p_task_title", taskTitle)
-            if (!sectionId.isNullOrBlank()) addProperty("p_section_id", sectionId) else add("p_section_id", JsonNull.INSTANCE)
-            if (stars != null) addProperty("p_stars", stars) else add("p_stars", JsonNull.INSTANCE)
-            if (correct != null) addProperty("p_correct", correct) else add("p_correct", JsonNull.INSTANCE)
-            if (incorrect != null) addProperty("p_incorrect", incorrect) else add("p_incorrect", JsonNull.INSTANCE)
-            if (questionsAnswered != null) addProperty("p_questions_answered", questionsAnswered) else add("p_questions_answered", JsonNull.INSTANCE)
+            sectionId?.trim()?.takeIf { it.isNotEmpty() }?.let { addProperty("p_section_id", it) }
+            if (stars != null) addProperty("p_stars", stars)
+            if (correct != null) addProperty("p_correct", correct)
+            if (incorrect != null) addProperty("p_incorrect", incorrect)
+            if (questionsAnswered != null) addProperty("p_questions_answered", questionsAnswered)
         }
         val raw = invokeRpcPostReadBody("af_update_task_completion", gson.toJson(obj))
             .getOrElse { return@withContext Result.failure(it) }
