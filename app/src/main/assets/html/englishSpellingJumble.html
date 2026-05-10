@@ -161,6 +161,25 @@
             return { file, jsonData }; // Return both file and jsonData
         }
 
+        /**
+         * Normalize before compare: word JSON often uses U+2019 (') while the keyboard uses U+0027 (').
+         * Same idea for hyphen/dash variants in compounds.
+         */
+        function normalizeSpellingAnswer(s) {
+            if (typeof s !== 'string') return '';
+            return s
+                .trim()
+                .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                .replace(/[\u2018\u2019\u201A\u2032\u02BC\uFF07\u0060\u00B4]/g, "'")
+                .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+                .replace(/\s+/g, ' ')
+                .toLowerCase();
+        }
+
+        function spellingAnswersMatch(typed, expected) {
+            return normalizeSpellingAnswer(typed) === normalizeSpellingAnswer(expected);
+        }
+
         function loadWords(config) {
             const defaultWords = ["cat", "dog", "hat", "run", "big", "red", "sun", "map", "cup", "box"].map(w => ({ word: w, sentence: "" }));
             const isAndroid = window.Android !== undefined;
@@ -340,7 +359,7 @@
         function handleSubmit() {
             if (isInPracticeMode) return handlePracticeSubmit();
             const spelledWord = selectedLetters.join('');
-            if (spelledWord.toLowerCase() === currentWord.word.toLowerCase()) {
+            if (spellingAnswersMatch(spelledWord, currentWord.word)) {
                 document.getElementById('messageContainer').innerHTML = `<span style="color: #4CAF50; font-weight: bold;">✓ Correct!</span>`;
                 if (isFirstAttempt) {
                     correctCount++;
@@ -390,7 +409,7 @@
 
         function handlePracticeSubmit() {
             const practiceInput = practiceSelectedLetters.join('');
-            const isCorrect = practiceInput.toLowerCase() === currentWord.word.toLowerCase();
+            const isCorrect = spellingAnswersMatch(practiceInput, currentWord.word);
             const attemptsContainer = document.getElementById('practiceAttempts');
             const attemptDiv = document.createElement('div');
             attemptDiv.className = `practice-attempt ${isCorrect ? 'correct' : 'incorrect'}`;
