@@ -466,13 +466,15 @@ open class SupabaseInterface {
         incorrect: Int? = null,
         questionsAnswered: Int? = null
     ): Result<Int> = withContext(Dispatchers.IO) {
-        // PostgREST: JSON keys with literal `null` are typed as UNKNOWN in Postgres and break overload
-        // resolution (e.g. "does not exist (text, text, unknown, int, ...)"). Omit optional keys so DB
-        // DEFAULT NULL applies with correct parameter types.
+        // PostgREST forwards JSON null / missing middle args as Postgres NULL without a type ("unknown").
+        // That fails to match `(text,text,text,int,int,int,int)` and shows `(text,text,unknown,...)` in errors.
+        // Always send `p_section_id` as a real JSON string; omit only optional ints when absent (those infer as int).
+        val normalizedSection =
+            sectionId?.trim()?.takeIf { it.isNotEmpty() } ?: "optional"
         val obj = JsonObject().apply {
             addProperty("p_profile", profile)
             addProperty("p_task_title", taskTitle)
-            sectionId?.trim()?.takeIf { it.isNotEmpty() }?.let { addProperty("p_section_id", it) }
+            addProperty("p_section_id", normalizedSection)
             if (stars != null) addProperty("p_stars", stars)
             if (correct != null) addProperty("p_correct", correct)
             if (incorrect != null) addProperty("p_incorrect", incorrect)

@@ -2,13 +2,16 @@
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdateTaskCompletion.
 --   app/src/main/java/com/talq2me/baerened/DailyProgressManager.kt  -  markTaskCompletedWithName.
 --
--- PostgREST clients: do not send JSON literal `null` for optional parameters (e.g. p_section_id). That is
--- inferred as type UNKNOWN in Postgres and may produce "function ... (text, text, unknown, integer, ...) does
--- not exist". Omit the key and let DEFAULT NULL apply, or send a string (e.g. "optional").
+-- Deploy: DROP legacy `af_update_task_completion(text,text,int,int,int,int)` below if it still exists (PostgREST
+-- mismatch / unknown-arg errors). Clients should send `p_section_id` as a JSON **string** (e.g. "optional"), never
+-- JSON null, so Postgres binds it as text.
 --
 -- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
 -- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
 -- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).
+--
+DROP FUNCTION IF EXISTS af_update_task_completion(text, text, int, int, int, int); -- legacy 6-arg; drop so only 7-arg remains
+
 CREATE OR REPLACE FUNCTION af_update_task_completion(
   p_profile text,
   p_task_title text,

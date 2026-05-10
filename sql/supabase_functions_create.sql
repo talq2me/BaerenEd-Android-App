@@ -38,6 +38,7 @@ DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
 DROP FUNCTION IF EXISTS af_update_berries_banked(text, int, int);
 DROP FUNCTION IF EXISTS af_update_game_index(text, text, int);
 DROP FUNCTION IF EXISTS af_update_pokemon_unlocked(text, int);
+DROP FUNCTION IF EXISTS af_update_task_completion(text, text, int, int, int, int); -- legacy 6-arg overload
 DROP FUNCTION IF EXISTS af_update_task_completion(text, text, text, int, int, int, int);
 DROP FUNCTION IF EXISTS af_update_tasks_bonus(text, text, int, int, int, int, int);
 DROP FUNCTION IF EXISTS af_update_tasks_checklist_items(text, text, boolean);
@@ -1882,9 +1883,7 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_bonus(text, text, int, int, int, int, 
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdateTaskCompletion.
 --   app/src/main/java/com/talq2me/baerened/DailyProgressManager.kt  -  markTaskCompletedWithName.
 --
--- PostgREST clients: do not send JSON literal `null` for optional parameters (e.g. p_section_id). That is
--- inferred as type UNKNOWN in Postgres and may produce "function ... (text, text, unknown, integer, ...) does
--- not exist". Omit the key and let DEFAULT NULL apply, or send a string (e.g. "optional").
+-- Deploy drops legacy six-argument overload. Clients send `p_section_id` as a JSON **string**, not null.
 --
 -- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
 -- Routes to required / practice / bonus updaters and returns earned stars from DB rules.
