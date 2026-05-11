@@ -1,0 +1,8102 @@
+[
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "J’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elles ______ dans le parc."
+    },
+    "correctChoices": [
+      {
+        "text": "ont marché"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "marcher"
+      },
+      {
+        "text": "marchent"
+      },
+      {
+        "text": "ai marché"
+      },
+      {
+        "text": "as marché"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "J’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "J’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous ______ le bus."
+    },
+    "correctChoices": [
+      {
+        "text": "avons attendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "attendre"
+      },
+      {
+        "text": "attendons"
+      },
+      {
+        "text": "ai attendu"
+      },
+      {
+        "text": "as attendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "J’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "J’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Il ______ ses devoirs chaque soir."
+    },
+    "correctChoices": [
+      {
+        "text": "a fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "fait"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ le bus."
+    },
+    "correctChoices": [
+      {
+        "text": "avons attendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "attendre"
+      },
+      {
+        "text": "attendons"
+      },
+      {
+        "text": "ai attendu"
+      },
+      {
+        "text": "as attendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ le bus."
+    },
+    "correctChoices": [
+      {
+        "text": "avons attendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "attendre"
+      },
+      {
+        "text": "attendons"
+      },
+      {
+        "text": "ai attendu"
+      },
+      {
+        "text": "as attendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ le bus."
+    },
+    "correctChoices": [
+      {
+        "text": "avons attendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "attendre"
+      },
+      {
+        "text": "attendons"
+      },
+      {
+        "text": "ai attendu"
+      },
+      {
+        "text": "as attendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ le bus."
+    },
+    "correctChoices": [
+      {
+        "text": "avons attendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "attendre"
+      },
+      {
+        "text": "attendons"
+      },
+      {
+        "text": "ai attendu"
+      },
+      {
+        "text": "as attendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elles ______ dans le parc."
+    },
+    "correctChoices": [
+      {
+        "text": "ont marché"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "marcher"
+      },
+      {
+        "text": "marchent"
+      },
+      {
+        "text": "ai marché"
+      },
+      {
+        "text": "as marché"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ ses devoirs chaque soir."
+    },
+    "correctChoices": [
+      {
+        "text": "a fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "fait"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ ses devoirs chaque soir."
+    },
+    "correctChoices": [
+      {
+        "text": "a fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "fait"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ ses devoirs chaque soir."
+    },
+    "correctChoices": [
+      {
+        "text": "a fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "fait"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elles ______ dans le parc."
+    },
+    "correctChoices": [
+      {
+        "text": "ont marché"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "marcher"
+      },
+      {
+        "text": "marchent"
+      },
+      {
+        "text": "ai marché"
+      },
+      {
+        "text": "as marché"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ ses devoirs chaque soir."
+    },
+    "correctChoices": [
+      {
+        "text": "a fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "fait"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elle-même, elle ______ toujours les tests."
+    },
+    "correctChoices": [
+      {
+        "text": "a réussi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "réussir"
+      },
+      {
+        "text": "réussit"
+      },
+      {
+        "text": "ai réussi"
+      },
+      {
+        "text": "as réussi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elles ______ dans le parc."
+    },
+    "correctChoices": [
+      {
+        "text": "ont marché"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "marcher"
+      },
+      {
+        "text": "marchent"
+      },
+      {
+        "text": "ai marché"
+      },
+      {
+        "text": "as marché"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ à la question."
+    },
+    "correctChoices": [
+      {
+        "text": "ai répondu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "répondre"
+      },
+      {
+        "text": "réponds"
+      },
+      {
+        "text": "as répondu"
+      },
+      {
+        "text": "a répondu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Elles ______ dans le parc."
+    },
+    "correctChoices": [
+      {
+        "text": "ont marché"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "marcher"
+      },
+      {
+        "text": "marchent"
+      },
+      {
+        "text": "ai marché"
+      },
+      {
+        "text": "as marché"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, je ______ à l’école à pied."
+    },
+    "correctChoices": [
+      {
+        "text": "suis allé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "vais"
+      },
+      {
+        "text": "es allé"
+      },
+      {
+        "text": "est allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ la musique forte."
+    },
+    "correctChoices": [
+      {
+        "text": "avez écouté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "écouter"
+      },
+      {
+        "text": "écoutez"
+      },
+      {
+        "text": "ai écouté"
+      },
+      {
+        "text": "as écouté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ une chanson joyeuse."
+    },
+    "correctChoices": [
+      {
+        "text": "avons chanté"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "chanter"
+      },
+      {
+        "text": "chantons"
+      },
+      {
+        "text": "ai chanté"
+      },
+      {
+        "text": "as chanté"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ un bruit étrange."
+    },
+    "correctChoices": [
+      {
+        "text": "ont entendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "entendre"
+      },
+      {
+        "text": "entendent"
+      },
+      {
+        "text": "ai entendu"
+      },
+      {
+        "text": "as entendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ français en classe."
+    },
+    "correctChoices": [
+      {
+        "text": "avons parlé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "parler"
+      },
+      {
+        "text": "parlons"
+      },
+      {
+        "text": "ai parlé"
+      },
+      {
+        "text": "as parlé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ ses devoirs chaque soir."
+    },
+    "correctChoices": [
+      {
+        "text": "a fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "fait"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ mon verre d’eau."
+    },
+    "correctChoices": [
+      {
+        "text": "ai rempli"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "remplir"
+      },
+      {
+        "text": "remplis"
+      },
+      {
+        "text": "as rempli"
+      },
+      {
+        "text": "a rempli"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Vous-mêmes, vous ______ au cinéma ce soir."
+    },
+    "correctChoices": [
+      {
+        "text": "êtes allés"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aller"
+      },
+      {
+        "text": "allez"
+      },
+      {
+        "text": "suis allé"
+      },
+      {
+        "text": "es allé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ un dessin animé."
+    },
+    "correctChoices": [
+      {
+        "text": "ai regardé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "regarder"
+      },
+      {
+        "text": "regarde"
+      },
+      {
+        "text": "as regardé"
+      },
+      {
+        "text": "a regardé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ souvent tes clés."
+    },
+    "correctChoices": [
+      {
+        "text": "as perdu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "perdre"
+      },
+      {
+        "text": "perds"
+      },
+      {
+        "text": "ai perdu"
+      },
+      {
+        "text": "a perdu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ un cadeau à son ami."
+    },
+    "correctChoices": [
+      {
+        "text": "a donné"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "donner"
+      },
+      {
+        "text": "donne"
+      },
+      {
+        "text": "ai donné"
+      },
+      {
+        "text": "as donné"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ content aujourd’hui."
+    },
+    "correctChoices": [
+      {
+        "text": "ai été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "suis"
+      },
+      {
+        "text": "as été"
+      },
+      {
+        "text": "a été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Eux, ils ______ trois chiens."
+    },
+    "correctChoices": [
+      {
+        "text": "ont eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "ont"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "as eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Moi, j’______ la porte."
+    },
+    "correctChoices": [
+      {
+        "text": "ai fermé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "fermer"
+      },
+      {
+        "text": "ferme"
+      },
+      {
+        "text": "as fermé"
+      },
+      {
+        "text": "a fermé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ un livre intéressant."
+    },
+    "correctChoices": [
+      {
+        "text": "as choisi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "choisir"
+      },
+      {
+        "text": "choisis"
+      },
+      {
+        "text": "ai choisi"
+      },
+      {
+        "text": "a choisi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ les animaux."
+    },
+    "correctChoices": [
+      {
+        "text": "as aimé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "aimer"
+      },
+      {
+        "text": "aimes"
+      },
+      {
+        "text": "ai aimé"
+      },
+      {
+        "text": "a aimé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ au ballon."
+    },
+    "correctChoices": [
+      {
+        "text": "a joué"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "jouer"
+      },
+      {
+        "text": "joue"
+      },
+      {
+        "text": "ai joué"
+      },
+      {
+        "text": "as joué"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Les enfants ______ vite."
+    },
+    "correctChoices": [
+      {
+        "text": "ont grandi"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "grandir"
+      },
+      {
+        "text": "grandissent"
+      },
+      {
+        "text": "ai grandi"
+      },
+      {
+        "text": "as grandi"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Lui, il ______ des fruits au marché."
+    },
+    "correctChoices": [
+      {
+        "text": "a vendu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "vendre"
+      },
+      {
+        "text": "vend"
+      },
+      {
+        "text": "ai vendu"
+      },
+      {
+        "text": "as vendu"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ bien à l’école."
+    },
+    "correctChoices": [
+      {
+        "text": "as travaillé"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "travailler"
+      },
+      {
+        "text": "travailles"
+      },
+      {
+        "text": "ai travaillé"
+      },
+      {
+        "text": "a travaillé"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ nos devoirs."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fini"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "finir"
+      },
+      {
+        "text": "finissons"
+      },
+      {
+        "text": "ai fini"
+      },
+      {
+        "text": "as fini"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ un gâteau."
+    },
+    "correctChoices": [
+      {
+        "text": "avons fait"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "faire"
+      },
+      {
+        "text": "faisons"
+      },
+      {
+        "text": "ai fait"
+      },
+      {
+        "text": "as fait"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Nous tous, nous ______ prêts pour partir."
+    },
+    "correctChoices": [
+      {
+        "text": "avons été"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "être"
+      },
+      {
+        "text": "sommes"
+      },
+      {
+        "text": "ai été"
+      },
+      {
+        "text": "as été"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Fill in the blank"
+    },
+    "question": {
+      "text": "Toi, tu ______ une belle bicyclette."
+    },
+    "correctChoices": [
+      {
+        "text": "as eu"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "avoir"
+      },
+      {
+        "text": "as"
+      },
+      {
+        "text": "ai eu"
+      },
+      {
+        "text": "a eu"
+      }
+    ]
+  }
+]

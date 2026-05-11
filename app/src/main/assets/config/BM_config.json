@@ -48,7 +48,7 @@
         },
         {
           "title": "Conjugation",
-          "launch": "conjugation",
+          "launch": "conjugation_limparfait",
           "stars": 3,
           "totalQuestions": 5
         },
