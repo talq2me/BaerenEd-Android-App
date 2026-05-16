@@ -9,8 +9,9 @@
 -- Lifetime counters (times_completed, correct, incorrect, questions_answered) are never cleared here;
 -- only daily reset clears user_data as a whole.
 --
--- Repeatable Extra Practice map: when every task object in practice_tasks has "completed": true,
--- set "completed" to false on all of them so the set can be run again. Counters are unchanged.
+-- Repeatable Extra Practice map: when every task **visible today** (same filters as af_get_tasks_practice)
+-- is complete (completed flag, else legacy times_completed > 0), set "completed" to false on all map
+-- entries so the set can be run again. Hidden / wrong-day rows must not block reset. Counters unchanged.
 --
 -- Call: POST /rest/v1/rpc/af_update_tasks_practice with body e.g.
 --   {"p_profile": "TE", "p_task_title": "Time Telling", "p_times_completed": 2, "p_stars": 3, "p_correct": 10, "p_incorrect": 0, "p_questions_answered": 10}
@@ -67,13 +68,56 @@ BEGIN
     add_mins := delta * af_get_stars_to_minutes(p_stars);
   END IF;
 
-  -- All tasks in the map have completed=true → clear completed only (next pass).
-  -- NOTE: PostgreSQL has no jsonb_object_length(); use EXISTS over jsonb_each instead.
+  -- All *visible today* tasks complete (matches af_get_tasks_practice) → clear completed only (next pass).
   IF EXISTS (SELECT 1 FROM jsonb_each(updated_practice))
-     AND NOT EXISTS (
-       SELECT 1
-       FROM jsonb_each(updated_practice) AS e
-       WHERE NOT COALESCE((e.value->>'completed')::boolean, false)
+     AND (
+       WITH p AS (
+         SELECT
+           updated_practice AS v_tasks,
+           (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date,
+           lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short
+       ),
+       vis AS (
+         SELECT
+           e.key,
+           e.value,
+           CASE
+             WHEN (e.value ? 'completed') THEN COALESCE((e.value->>'completed')::boolean, false)
+             ELSE COALESCE((e.value->>'times_completed')::int, 0) > 0
+           END AS is_done
+         FROM p
+         CROSS JOIN jsonb_each(p.v_tasks) AS e(key, value)
+         WHERE
+           NOT (
+             NULLIF(TRIM(COALESCE(e.value->>'disable', '')), '') IS NOT NULL
+             AND to_date(e.value->>'disable', 'Mon DD, YYYY') IS NOT NULL
+             AND p.v_today_date < to_date(e.value->>'disable', 'Mon DD, YYYY')
+           )
+           AND NOT EXISTS (
+             SELECT 1
+             FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'hidedays', ''), ' ', '')), ',')) AS d(day_token)
+             WHERE d.day_token = p.v_today_short
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'displayDays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NOT NULL
+             OR NULLIF(TRIM(COALESCE(e.value->>'showdays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+       )
+       SELECT (SELECT COUNT(*)::int FROM vis) > 0
+              AND NOT EXISTS (SELECT 1 FROM vis WHERE NOT vis.is_done)
      )
   THEN
     SELECT jsonb_object_agg(

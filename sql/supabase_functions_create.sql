@@ -33,6 +33,7 @@ DROP FUNCTION IF EXISTS af_get_user_last_updated(text);
 DROP FUNCTION IF EXISTS af_insert_user_data_profile(text);
 DROP FUNCTION IF EXISTS af_reward_time_add(TEXT, INTEGER);
 DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT);
+DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS af_reward_time_pause(TEXT);
 DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
 DROP FUNCTION IF EXISTS af_update_berries_banked(text, int, int);
@@ -203,6 +204,11 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_from_config_chores(text, jsonb) TO ano
 -- Call sites (BaerenEd Android, this repo):
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdatePracticeTasksFromConfig.
 --   app/src/main/java/com/talq2me/baerened/DbProfileSessionLoader.kt  -  chained after profile load / config refresh.
+--
+-- After merging GitHub optional tasks into practice_tasks: if every task **visible today** is already
+-- complete (same visibility + completion rules as af_get_tasks_practice), set completed=false on all
+-- merged keys so the round can repeat. Matches the post-completion reset in af_update_tasks_practice and
+-- fixes stuck maps when that RPC never ran (e.g. old DB function) — training map load always runs this merge.
 
 CREATE OR REPLACE FUNCTION af_update_tasks_from_config_practice(p_profile text, p_config_json jsonb DEFAULT NULL)
 RETURNS void
@@ -266,6 +272,66 @@ BEGIN
     ),
     '{}'::jsonb
   ) INTO merged_practice;
+
+  -- Visible-today round reset (aligned with af_get_tasks_practice + af_update_tasks_practice).
+  IF EXISTS (SELECT 1 FROM jsonb_each(merged_practice))
+     AND (
+       WITH p AS (
+         SELECT
+           merged_practice AS v_tasks,
+           (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date,
+           lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short
+       ),
+       vis AS (
+         SELECT
+           e.key,
+           e.value,
+           CASE
+             WHEN (e.value ? 'completed') THEN COALESCE((e.value->>'completed')::boolean, false)
+             ELSE COALESCE((e.value->>'times_completed')::int, 0) > 0
+           END AS is_done
+         FROM p
+         CROSS JOIN jsonb_each(p.v_tasks) AS e(key, value)
+         WHERE
+           NOT (
+             NULLIF(TRIM(COALESCE(e.value->>'disable', '')), '') IS NOT NULL
+             AND to_date(e.value->>'disable', 'Mon DD, YYYY') IS NOT NULL
+             AND p.v_today_date < to_date(e.value->>'disable', 'Mon DD, YYYY')
+           )
+           AND NOT EXISTS (
+             SELECT 1
+             FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'hidedays', ''), ' ', '')), ',')) AS d(day_token)
+             WHERE d.day_token = p.v_today_short
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'displayDays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NOT NULL
+             OR NULLIF(TRIM(COALESCE(e.value->>'showdays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+       )
+       SELECT (SELECT COUNT(*)::int FROM vis) > 0
+              AND NOT EXISTS (SELECT 1 FROM vis WHERE NOT vis.is_done)
+     )
+  THEN
+    SELECT jsonb_object_agg(
+      e.key,
+      e.value || jsonb_build_object('completed', false)
+    )
+    INTO merged_practice
+    FROM jsonb_each(merged_practice) AS e;
+  END IF;
 
   UPDATE user_data SET
     practice_tasks = merged_practice,
@@ -1717,8 +1783,9 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_required(text, text, text, int, int, i
 -- Lifetime counters (times_completed, correct, incorrect, questions_answered) are never cleared here;
 -- only daily reset clears user_data as a whole.
 --
--- Repeatable Extra Practice map: when every task object in practice_tasks has "completed": true,
--- set "completed" to false on all of them so the set can be run again. Counters are unchanged.
+-- Repeatable Extra Practice map: when every task **visible today** (same filters as af_get_tasks_practice)
+-- is complete (completed flag, else legacy times_completed > 0), set "completed" to false on all map
+-- entries so the set can be run again. Hidden / wrong-day rows must not block reset. Counters unchanged.
 --
 -- Call: POST /rest/v1/rpc/af_update_tasks_practice with body e.g.
 --   {"p_profile": "TE", "p_task_title": "Time Telling", "p_times_completed": 2, "p_stars": 3, "p_correct": 10, "p_incorrect": 0, "p_questions_answered": 10}
@@ -1775,13 +1842,56 @@ BEGIN
     add_mins := delta * af_get_stars_to_minutes(p_stars);
   END IF;
 
-  -- All tasks in the map have completed=true → clear completed only (next pass).
-  -- NOTE: PostgreSQL has no jsonb_object_length(); use EXISTS over jsonb_each instead.
+  -- All *visible today* tasks complete (matches af_get_tasks_practice) → clear completed only (next pass).
   IF EXISTS (SELECT 1 FROM jsonb_each(updated_practice))
-     AND NOT EXISTS (
-       SELECT 1
-       FROM jsonb_each(updated_practice) AS e
-       WHERE NOT COALESCE((e.value->>'completed')::boolean, false)
+     AND (
+       WITH p AS (
+         SELECT
+           updated_practice AS v_tasks,
+           (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date,
+           lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short
+       ),
+       vis AS (
+         SELECT
+           e.key,
+           e.value,
+           CASE
+             WHEN (e.value ? 'completed') THEN COALESCE((e.value->>'completed')::boolean, false)
+             ELSE COALESCE((e.value->>'times_completed')::int, 0) > 0
+           END AS is_done
+         FROM p
+         CROSS JOIN jsonb_each(p.v_tasks) AS e(key, value)
+         WHERE
+           NOT (
+             NULLIF(TRIM(COALESCE(e.value->>'disable', '')), '') IS NOT NULL
+             AND to_date(e.value->>'disable', 'Mon DD, YYYY') IS NOT NULL
+             AND p.v_today_date < to_date(e.value->>'disable', 'Mon DD, YYYY')
+           )
+           AND NOT EXISTS (
+             SELECT 1
+             FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'hidedays', ''), ' ', '')), ',')) AS d(day_token)
+             WHERE d.day_token = p.v_today_short
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'displayDays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NOT NULL
+             OR NULLIF(TRIM(COALESCE(e.value->>'showdays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+       )
+       SELECT (SELECT COUNT(*)::int FROM vis) > 0
+              AND NOT EXISTS (SELECT 1 FROM vis WHERE NOT vis.is_done)
      )
   THEN
     SELECT jsonb_object_agg(
@@ -2307,21 +2417,59 @@ GRANT EXECUTE ON FUNCTION af_reward_time_pause(TEXT) TO anon, authenticated, ser
 -- Call sites: BaerenLock SupabaseInterface.expireRewards -> af_reward_time_expire.
 -- Other: 000Requirements.md (BaerenLock on expiry); reports/banked_time.html.
 
--- Clears reward_time_expiry when session has expired (Toronto now).
+-- Natural expiry (BaerenLock timer): clears reward_time_expiry only when expiry <= now (Toronto).
+-- Parent force expiry (p_force true): ends any active session immediately.
 
-CREATE OR REPLACE FUNCTION af_reward_time_expire(p_profile TEXT)
+CREATE OR REPLACE FUNCTION af_reward_time_expire(p_profile TEXT, p_force BOOLEAN DEFAULT FALSE)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
 DECLARE
+    v_expiry TIMESTAMP(3);
+    v_remaining INTEGER := 0;
     v_updated INTEGER := 0;
+    v_now TIMESTAMP(3) := (NOW() AT TIME ZONE 'America/Toronto');
 BEGIN
+    SELECT reward_time_expiry INTO v_expiry
+    FROM user_data
+    WHERE profile = p_profile
+    FOR UPDATE;
+
+    IF v_expiry IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF p_force THEN
+        IF v_expiry > v_now THEN
+            v_remaining := GREATEST(0, CEIL(EXTRACT(EPOCH FROM (v_expiry - v_now)) / 60.0));
+        END IF;
+
+        UPDATE user_data
+        SET reward_time_expiry = NULL,
+            last_updated = v_now
+        WHERE profile = p_profile
+          AND reward_time_expiry IS NOT NULL;
+
+        GET DIAGNOSTICS v_updated = ROW_COUNT;
+
+        IF v_updated > 0 THEN
+            INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
+            VALUES (
+                p_profile,
+                'Parent Ended Reward Session',
+                v_remaining,
+                v_now
+            );
+        END IF;
+        RETURN;
+    END IF;
+
     UPDATE user_data
     SET reward_time_expiry = NULL,
-        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+        last_updated = v_now
     WHERE profile = p_profile
       AND reward_time_expiry IS NOT NULL
-      AND reward_time_expiry <= (NOW() AT TIME ZONE 'America/Toronto');
+      AND reward_time_expiry <= v_now;
 
     GET DIAGNOSTICS v_updated = ROW_COUNT;
 
@@ -2331,13 +2479,13 @@ BEGIN
             p_profile,
             'Reward Session Expiry',
             0,
-            NOW() AT TIME ZONE 'America/Toronto'
+            v_now
         );
     END IF;
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION af_reward_time_expire(TEXT) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION af_reward_time_expire(TEXT, BOOLEAN) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------
@@ -2346,29 +2494,54 @@ GRANT EXECUTE ON FUNCTION af_reward_time_expire(TEXT) TO anon, authenticated, se
 -- Call sites (BaerenEd Android, this repo):
 --   SupabaseInterface.invokeAddRewardTime; MainActivity.kt (grant minutes); BattleHubActivity.kt.
 
--- Parent path: add minutes to banked_mins or extend active reward session.
+-- Parent path: add/remove minutes on banked_mins or extend/shrink active reward_time_expiry.
 
 CREATE OR REPLACE FUNCTION af_reward_time_add(p_profile TEXT, p_minutes INTEGER)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_now TIMESTAMP(3) := (NOW() AT TIME ZONE 'America/Toronto');
+    v_sub INTEGER;
 BEGIN
-    IF p_minutes IS NULL OR p_minutes <= 0 THEN
+    IF p_minutes IS NULL OR p_minutes = 0 THEN
         RETURN;
     END IF;
 
+    IF p_minutes > 0 THEN
+        UPDATE user_data
+        SET reward_time_expiry = CASE
+                WHEN reward_time_expiry IS NOT NULL AND reward_time_expiry > v_now
+                    THEN reward_time_expiry + (p_minutes * INTERVAL '1 minute')
+                ELSE reward_time_expiry
+            END,
+            banked_mins = CASE
+                WHEN reward_time_expiry IS NULL OR reward_time_expiry <= v_now
+                    THEN COALESCE(banked_mins, 0) + p_minutes
+                ELSE banked_mins
+            END,
+            last_updated = v_now
+        WHERE profile = p_profile;
+        RETURN;
+    END IF;
+
+    v_sub := -p_minutes;
+
     UPDATE user_data
     SET reward_time_expiry = CASE
-            WHEN reward_time_expiry IS NOT NULL AND reward_time_expiry > (NOW() AT TIME ZONE 'America/Toronto')
-                THEN reward_time_expiry + (p_minutes * INTERVAL '1 minute')
+            WHEN reward_time_expiry IS NOT NULL AND reward_time_expiry > v_now THEN
+                CASE
+                    WHEN reward_time_expiry - (v_sub * INTERVAL '1 minute') <= v_now THEN NULL
+                    ELSE reward_time_expiry - (v_sub * INTERVAL '1 minute')
+                END
             ELSE reward_time_expiry
         END,
         banked_mins = CASE
-            WHEN reward_time_expiry IS NULL OR reward_time_expiry <= (NOW() AT TIME ZONE 'America/Toronto')
-                THEN COALESCE(banked_mins, 0) + p_minutes
+            WHEN reward_time_expiry IS NULL OR reward_time_expiry <= v_now
+                THEN GREATEST(0, COALESCE(banked_mins, 0) - v_sub)
             ELSE banked_mins
         END,
-        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+        last_updated = v_now
     WHERE profile = p_profile;
 END;
 $$;

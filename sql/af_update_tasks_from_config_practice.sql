@@ -1,6 +1,11 @@
 -- Call sites (BaerenEd Android, this repo):
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdatePracticeTasksFromConfig.
 --   app/src/main/java/com/talq2me/baerened/DbProfileSessionLoader.kt  -  chained after profile load / config refresh.
+--
+-- After merging GitHub optional tasks into practice_tasks: if every task **visible today** is already
+-- complete (same visibility + completion rules as af_get_tasks_practice), set completed=false on all
+-- merged keys so the round can repeat. Matches the post-completion reset in af_update_tasks_practice and
+-- fixes stuck maps when that RPC never ran (e.g. old DB function) — training map load always runs this merge.
 
 CREATE OR REPLACE FUNCTION af_update_tasks_from_config_practice(p_profile text, p_config_json jsonb DEFAULT NULL)
 RETURNS void
@@ -64,6 +69,66 @@ BEGIN
     ),
     '{}'::jsonb
   ) INTO merged_practice;
+
+  -- Visible-today round reset (aligned with af_get_tasks_practice + af_update_tasks_practice).
+  IF EXISTS (SELECT 1 FROM jsonb_each(merged_practice))
+     AND (
+       WITH p AS (
+         SELECT
+           merged_practice AS v_tasks,
+           (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date,
+           lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short
+       ),
+       vis AS (
+         SELECT
+           e.key,
+           e.value,
+           CASE
+             WHEN (e.value ? 'completed') THEN COALESCE((e.value->>'completed')::boolean, false)
+             ELSE COALESCE((e.value->>'times_completed')::int, 0) > 0
+           END AS is_done
+         FROM p
+         CROSS JOIN jsonb_each(p.v_tasks) AS e(key, value)
+         WHERE
+           NOT (
+             NULLIF(TRIM(COALESCE(e.value->>'disable', '')), '') IS NOT NULL
+             AND to_date(e.value->>'disable', 'Mon DD, YYYY') IS NOT NULL
+             AND p.v_today_date < to_date(e.value->>'disable', 'Mon DD, YYYY')
+           )
+           AND NOT EXISTS (
+             SELECT 1
+             FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'hidedays', ''), ' ', '')), ',')) AS d(day_token)
+             WHERE d.day_token = p.v_today_short
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'displayDays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+           AND (
+             NULLIF(TRIM(COALESCE(e.value->>'displayDays', '')), '') IS NOT NULL
+             OR NULLIF(TRIM(COALESCE(e.value->>'showdays', '')), '') IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
+               WHERE d.day_token = p.v_today_short
+             )
+           )
+       )
+       SELECT (SELECT COUNT(*)::int FROM vis) > 0
+              AND NOT EXISTS (SELECT 1 FROM vis WHERE NOT vis.is_done)
+     )
+  THEN
+    SELECT jsonb_object_agg(
+      e.key,
+      e.value || jsonb_build_object('completed', false)
+    )
+    INTO merged_practice
+    FROM jsonb_each(merged_practice) AS e;
+  END IF;
 
   UPDATE user_data SET
     practice_tasks = merged_practice,
