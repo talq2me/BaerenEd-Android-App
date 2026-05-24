@@ -275,6 +275,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -303,6 +304,26 @@
         let incorrectCount = 0;
         let maxQuestions = 5;
         let currentStory = null;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
         let draggedElement = null;
 
         // Sample stories for grade 1 level
@@ -417,19 +438,20 @@
 
         function startGame() {
             currentStoryIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             updateStarCount();
             loadStory();
         }
 
         function loadStory() {
-            if (currentStoryIndex >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
 
-            currentStory = stories[currentStoryIndex];
+            currentStory = stories[quiz.wrapIndex(stories.length)];
             document.getElementById('storyDisplay').innerHTML = `<p><strong>Read this story:</strong></p><p>${currentStory.story}</p>`;
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
@@ -677,25 +699,27 @@
                 }
             });
 
+            /* LEGACY (pre-quizProgress)
+            if (isCorrect) { correctCount++; } else { incorrectCount++; }
+            */
+            recordQuizAnswer(isCorrect);
+            updateStarCount();
+            document.getElementById('checkButton').disabled = true;
             if (isCorrect) {
                 showPopupMessage('✓ Correct! Great job! 🎉', 'correct');
-                correctCount++;
-                updateStarCount();
-                document.getElementById('checkButton').disabled = true;
-                document.getElementById('nextButton').classList.remove('hidden');
-                
-                // Mark all slots as correct
                 slots.forEach(slot => {
                     slot.style.border = '3px solid #4CAF50';
                     slot.style.background = '#c8e6c9';
                 });
-            } else {
-                showPopupMessage('✗ Not quite right. Try again!', 'incorrect');
-                incorrectCount++;
-                
-                // Reset for another try
                 setTimeout(() => {
-                    feedback.innerHTML = '';
+                    if (quizIsComplete()) endGame();
+                    else loadStory();
+                }, 2000);
+            } else {
+                showPopupMessage('✗ Not quite right.', 'incorrect');
+                setTimeout(() => {
+                    if (quizIsComplete()) endGame();
+                    else loadStory();
                 }, 2000);
             }
         }
@@ -717,7 +741,7 @@
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         function endGame() {
@@ -728,11 +752,14 @@
             document.getElementById('instructions').innerHTML = 'Great job sequencing stories!';
             document.querySelector('.button-container').innerHTML = '';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

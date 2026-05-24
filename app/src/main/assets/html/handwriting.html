@@ -288,12 +288,22 @@
             return dayOfYear % sentences.length;
         }
 
+        /** Today’s calendar date in America/Toronto (matches parent report day buttons). */
+        function torontoYmdNow() {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date());
+        }
+
         /** One row per profile + calendar day + sentence variant (UPSERT replaces same-day retries). Parent filter: HandwritingPractice% */
         function buildHandwritingTaskKey() {
-            const today = new Date();
-            const y = today.getFullYear();
-            const m = String(today.getMonth() + 1).padStart(2, '0');
-            const d = String(today.getDate()).padStart(2, '0');
+            const ymd = torontoYmdNow();
+            const y = ymd.slice(0, 4);
+            const m = ymd.slice(5, 7);
+            const d = ymd.slice(8, 10);
             const si = getDailySentenceIndex();
             return `HandwritingPractice-${y}${m}${d}-sent${si}`;
         }
@@ -352,9 +362,10 @@
                 useCORS: true
             }).then((canvas) => {
                 try {
-                    cb(canvas.toDataURL('image/png'));
+                    // JPEG keeps RPC payload smaller than PNG (fewer upload failures on large canvases).
+                    cb(canvas.toDataURL('image/jpeg', 0.82));
                 } catch (e) {
-                    console.warn('handwriting PNG export failed:', e);
+                    console.warn('handwriting JPEG export failed:', e);
                     cb(null);
                 }
             }).catch((e) => {
@@ -403,6 +414,10 @@
                         }
                     } catch (e) {
                         console.warn('Handwriting upload path error:', e);
+                    }
+                    if (!dataUrl) {
+                        console.error('Handwriting snapshot not saved: could not capture image (html2canvas missing or failed).');
+                        doneButton.textContent = 'Done (snapshot not saved)';
                     }
                     finishAfterHandwritingAttempt();
                 });

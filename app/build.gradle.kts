@@ -30,8 +30,8 @@ android {
         applicationId = "com.talq2me.baerened"
         minSdk = 23
         targetSdk = 35
-        versionCode = 155
-        versionName = "155"
+        versionCode = 156
+        versionName = "156"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -77,6 +77,19 @@ android {
 
     kotlinOptions {
         jvmTarget = "11"
+    }
+
+    // Content served from GitHub Pages; keep sources in repo for deploy, not in APK.
+    androidResources {
+        ignoreAssetsPattern += "html/**"
+        ignoreAssetsPattern += "audio/**"
+        ignoreAssetsPattern += "images/**"
+        ignoreAssetsPattern += "books/**"
+        ignoreAssetsPattern += "boukili/**"
+        ignoreAssetsPattern += "data/**"
+        ignoreAssetsPattern += "tappableText/**"
+        ignoreAssetsPattern += "videos/**"
+        ignoreAssetsPattern += "ufliWordChains/**"
     }
 
     packaging {

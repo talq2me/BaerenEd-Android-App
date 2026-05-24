@@ -86,10 +86,6 @@ class TaskLauncher(
             task.launch == "boukili" -> {
                 launchBoukili(task, sectionId)
             }
-            // Book Reader (assets/books JSON + TTS + questions)
-            task.launch == "bookReader" -> {
-                launchBookReader(task, sectionId, sourceTaskId, resultHandler)
-            }
             // Tappable Text (assets/tappableText JSON + TTS + tappable word questions)
             task.launch == "tappableText" -> {
                 launchTappableText(task, sectionId, sourceTaskId, resultHandler)
@@ -248,28 +244,6 @@ class TaskLauncher(
             Log.e(TAG, "Error launching Boukili", e)
             Toast.makeText(context, "Error launching Boukili: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    /**
-     * Launch Book Reader (book from assets/books, TTS, questions).
-     * task.url should be like "file=fr_boit_mysterieux.json".
-     */
-    private fun launchBookReader(task: Task, sectionId: String, sourceTaskId: String?, resultHandler: ActivityResultHandler?) {
-        val bookFile = task.url ?: ""
-        if (bookFile.isBlank()) {
-            Toast.makeText(context, "No book file specified for bookReader task", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val taskId = sourceTaskId ?: (task.launch ?: "bookReader")
-        Log.d(TAG, "Launching Book Reader: $bookFile")
-        val intent = Intent(context, BookReaderActivity::class.java).apply {
-            putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
-            putExtra(BookReaderActivity.EXTRA_TASK_ID, taskId)
-            putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
-            putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
-            putExtra(BookReaderActivity.EXTRA_TASK_TITLE, task.title ?: "Book")
-        }
-        resultHandler?.launchActivity(intent, 1007) ?: (context as? Activity)?.startActivityForResult(intent, 1007)
     }
 
     /**

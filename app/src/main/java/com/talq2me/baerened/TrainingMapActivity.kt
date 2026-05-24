@@ -252,22 +252,20 @@ open class TrainingMapActivity : AppCompatActivity() {
                 setMargins(0, (16 * density).toInt(), 0, (16 * density).toInt())
             }
             // Map background image (prefer .webp, fall back to .png)
-            try {
-                val path = try {
-                    assets.open("images/map1.webp").close()
-                    "images/map1.webp"
-                } catch (_: Exception) {
-                    "images/map1.png"
-                }
-                val bitmap = android.graphics.BitmapFactory.decodeStream(assets.open(path))
-                val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
-                background = drawable
-            } catch (e: Exception) {
-                // Fallback to brown if image not found
-                android.util.Log.e("TrainingMapActivity", "Could not load map1.webp or map1.png", e)
-                background = android.graphics.drawable.GradientDrawable().apply {
-                    setColor(android.graphics.Color.parseColor("#8b6914"))
-                    cornerRadius = (10 * density)
+            this@TrainingMapActivity.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                val bitmap = GitHubPagesAssets.fetchBitmapPreferWebp("images/map1")
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    val act = this@TrainingMapActivity
+                    if (act.isDestroyed || act.isFinishing) return@withContext
+                    if (bitmap != null) {
+                        background = android.graphics.drawable.BitmapDrawable(act.resources, bitmap)
+                    } else {
+                        android.util.Log.e("TrainingMapActivity", "Could not load map1 from GitHub Pages")
+                        background = android.graphics.drawable.GradientDrawable().apply {
+                            setColor(android.graphics.Color.parseColor("#8b6914"))
+                            cornerRadius = (10 * density)
+                        }
+                    }
                 }
             }
             minimumHeight = (400 * density).toInt()
@@ -771,25 +769,6 @@ open class TrainingMapActivity : AppCompatActivity() {
             return
         }
         
-        // Check for Book Reader (assets/books JSON, TTS, questions)
-        if (task.launch == "bookReader") {
-            val bookFile = task.url
-            if (bookFile.isNullOrBlank()) {
-                android.widget.Toast.makeText(this, "No book file specified for bookReader task", android.widget.Toast.LENGTH_SHORT).show()
-                return
-            }
-            lastLaunchedGameSectionId = sectionId
-            val intent = Intent(this, BookReaderActivity::class.java).apply {
-                putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
-                putExtra(BookReaderActivity.EXTRA_TASK_ID, gameType)
-                putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
-                putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
-                putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
-            }
-            startActivityForResult(intent, 1007)
-            return
-        }
-
         // Check for Tappable Text (assets/tappableText JSON + tappable word questions).
         // Empty url, rotate/list, or lang= / language= → rotate; see TappableTextActivity.parseTappableUrlSpec.
         if (task.launch == "tappableText") {
@@ -1142,27 +1121,6 @@ open class TrainingMapActivity : AppCompatActivity() {
             }
         }
         
-        // Handle BookReaderActivity result (requestCode 1007)
-        if (requestCode == 1007 && resultCode == RESULT_OK && data != null) {
-            val taskId = data.getStringExtra(BookReaderActivity.EXTRA_TASK_ID)
-            var taskTitle = data.getStringExtra(BookReaderActivity.EXTRA_TASK_TITLE)
-            val sectionId = data.getStringExtra(BookReaderActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
-            val stars = data.getIntExtra(BookReaderActivity.EXTRA_STARS, 0)
-            if (!taskId.isNullOrEmpty()) {
-                if (taskTitle.isNullOrEmpty()) {
-                    taskTitle = "Book"
-                }
-                completeTaskFromChildResult(
-                    sectionId,
-                    "Marked bookReader task as completed: taskId=$taskId, sectionId=$sectionId"
-                ) { pm ->
-                    pm.markTaskCompletedWithName(
-                        taskId, taskTitle ?: "Book", stars, sectionId
-                    )
-                }
-            }
-        }
-
         // Handle TappableTextActivity result (requestCode 1008)
         if (requestCode == 1008 && resultCode == RESULT_OK && data != null) {
             val taskId = data.getStringExtra(TappableTextActivity.EXTRA_TASK_ID)

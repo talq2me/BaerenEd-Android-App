@@ -58,15 +58,44 @@
     </div>
   </div>
 
+  <script src="quizProgress.js"></script>
   <script>
-    let questions = [];
-    let current = 0;
+    let questionBank = [];
+    let bankIndex = 0;
     let score = 0;
     let strategyAnswered = false;
     let answerAnswered = false;
     let correctCount = 0;
     let incorrectCount = 0;
     let maxQuestions = 10;
+
+    let quiz = null;
+    function initQuizProgress(defaultRequired) {
+      quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+      syncQuizVars();
+    }
+    function syncQuizVars() {
+      if (!quiz) return;
+      correctCount = quiz.getCorrectCount();
+      incorrectCount = quiz.getIncorrectCount();
+      if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+    }
+    function recordQuizAnswer(wasCorrect) {
+      const r = quiz.recordAnswer(wasCorrect);
+      syncQuizVars();
+      return r;
+    }
+    function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+    /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
+    function getMaxQuestions() {
+      const params = new URLSearchParams(window.location.search);
+      const raw = params.get("totalQuestions");
+      const parsed = Number(raw);
+      if (Number.isInteger(parsed) && parsed > 0) return parsed;
+      return 10;
+    }
+    */
 
     function getFileName() {
       const params = new URLSearchParams(window.location.search);
@@ -89,14 +118,6 @@
       if (mod === 0) return "A";
       if (mod === 1) return "B";
       return "C";
-    }
-
-    function getMaxQuestions() {
-      const params = new URLSearchParams(window.location.search);
-      const raw = params.get("totalQuestions");
-      const parsed = Number(raw);
-      if (Number.isInteger(parsed) && parsed > 0) return parsed;
-      return 10;
     }
 
     /** Coach mode: teach the path without stating the final numeric answer (use URL hideFinalAnswer=1). */
@@ -365,39 +386,40 @@
       try {
         if (window.Android && typeof window.Android.loadJsonFile === "function") {
           const json = window.Android.loadJsonFile(fileName);
-          questions = JSON.parse(json) || [];
+          questionBank = JSON.parse(json) || [];
         }
       } catch (e) {
         console.error("Android load failed:", e);
       }
 
-      if (!questions.length) {
+      if (!questionBank.length) {
         fetch(`../data/${fileName}`)
           .then(r => r.json())
           .then(data => {
             const loaded = Array.isArray(data) ? data : [];
-            questions = buildMixedQuestionSet(loaded, Math.min(maxQuestions, loaded.length));
+            questionBank = buildMixedQuestionSet(loaded, loaded.length);
             start();
           })
           .catch(() => {
-            questions = [];
+            questionBank = [];
             start();
           });
         return;
       }
-      questions = buildMixedQuestionSet(questions, Math.min(maxQuestions, questions.length));
+      questionBank = buildMixedQuestionSet(questionBank, questionBank.length);
       start();
     }
 
     function setText(id, text) { document.getElementById(id).textContent = text; }
 
     function renderQuestion() {
-      const q = questions[current];
-      if (!q) return endGame();
+      if (quizIsComplete()) return endGame();
+      if (!questionBank.length) return endGame();
+      const q = questionBank[bankIndex % questionBank.length];
       strategyAnswered = false;
       answerAnswered = false;
 
-      setText("progress", `Question ${current + 1} / ${questions.length}`);
+      setText("progress", quiz ? quiz.progressLabel() : "");
       setText("score", `Score: ${score}`);
       setText("problem", q.prompt.text);
       setText("strategyFeedback", "");
@@ -485,12 +507,18 @@
             : (isHideFinalAnswer() ? "Not quite. Try the steps again or pick another answer." : `Not quite. The answer is ${correct}.`);
           if (good) {
             score += 2;
-            correctCount += 1;
-          } else {
-            incorrectCount += 1;
           }
+          /* LEGACY (pre-quizProgress)
+          if (good) { correctCount += 1; } else { incorrectCount += 1; }
+          */
+          recordQuizAnswer(good);
           setText("score", `Score: ${score}`);
-          document.getElementById("nextBtn").classList.remove("hidden");
+          setText("progress", quiz.progressLabel());
+          if (quizIsComplete()) {
+            setTimeout(endGame, 1200);
+          } else {
+            document.getElementById("nextBtn").classList.remove("hidden");
+          }
         };
         wrap.appendChild(btn);
       });
@@ -499,33 +527,36 @@
     function endGame() {
       setText("problem", "Great work!");
       document.getElementById("strategySection").innerHTML =
-        `<h2>You finished ${questions.length} questions.</h2><div class="feedback ok">Final score: ${score}</div>`;
+        `<h2>You got ${correctCount} correct!</h2><div class="feedback ok">Final score: ${score}</div>`;
       document.getElementById("answerSection").classList.add("hidden");
       document.getElementById("nextBtn").classList.add("hidden");
 
+      /* LEGACY (pre-quizProgress)
       if (window.Android && typeof window.Android.gameCompleted === "function") {
         window.Android.gameCompleted(correctCount, incorrectCount);
         if (window.parent && window.parent !== window) {
           window.parent.postMessage({ type: "gameCompleted", correct: correctCount, incorrect: incorrectCount }, "*");
         }
       }
+      */
+      if (quiz) quiz.notifyAndroidComplete();
     }
 
     function start() {
-      if (!Array.isArray(questions) || questions.length === 0) {
+      initQuizProgress(10);
+      if (!Array.isArray(questionBank) || questionBank.length === 0) {
         setText("problem", "No questions found.");
         return;
       }
       document.getElementById("nextBtn").onclick = () => {
-        current += 1;
-        if (current >= questions.length) endGame();
-        else renderQuestion();
+        bankIndex += 1;
+        renderQuestion();
       };
       renderQuestion();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      maxQuestions = getMaxQuestions();
+      /* LEGACY (pre-quizProgress) maxQuestions = getMaxQuestions(); */
       loadQuestions(getFileName());
     });
   </script>

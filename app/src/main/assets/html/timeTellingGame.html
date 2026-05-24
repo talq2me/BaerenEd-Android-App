@@ -118,13 +118,34 @@
         <div id="messageContainer"></div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         let correctCount = 0;
         let incorrectCount = 0;
-        // Check for totalQuestions URL parameter first
+        let maxQuestions = 10;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
         const urlParams = new URLSearchParams(window.location.search);
         const totalQuestionsParam = urlParams.get('totalQuestions');
-        let maxQuestions = 10; // Default value
+        let maxQuestions = 10;
         if (totalQuestionsParam) {
             const parsed = parseInt(totalQuestionsParam, 10);
             if (!isNaN(parsed) && parsed > 0) {
@@ -132,6 +153,7 @@
                 console.log('Using totalQuestions from URL parameter:', maxQuestions);
             }
         }
+        */
         let gameMode = 'easy';
         let currentTime = { hours: 0, minutes: 0 };
         let timeInput = '';
@@ -243,7 +265,7 @@
         let isFirstAttempt = true;
 
         function createQuestion() {
-            if (correctCount >= maxQuestions) return endGame();
+            if (quizIsComplete()) return endGame();
             
             currentTime = generateTime();
             setClockTime(currentTime.hours, currentTime.minutes);
@@ -279,22 +301,26 @@
             const feedback = document.getElementById('messageContainer');
             document.getElementById('choices').style.pointerEvents = 'none';
 
+            /* LEGACY (pre-quizProgress)
+            if (isCorrect) { if (isFirstAttempt) { correctCount++; } }
+            else { if (isFirstAttempt) { incorrectCount++; isFirstAttempt = false; } }
+            */
+            recordQuizAnswer(isCorrect);
+            updateStarCount();
             if (isCorrect) {
                 if(btn) btn.classList.add('correct');
                 feedback.innerHTML = "⭐ Correct!";
-                if (isFirstAttempt) {
-                    correctCount++;
-                    updateStarCount();
-                }
-                setTimeout(createQuestion, 1200);
+                setTimeout(() => {
+                    if (quizIsComplete()) endGame();
+                    else createQuestion();
+                }, 1200);
             } else {
                 if(btn) btn.classList.add('incorrect');
                 feedback.innerHTML = `☹️ Incorrect! It was <b>${correctAnswer}</b>`;
-                if (isFirstAttempt) {
-                    incorrectCount++;
-                    isFirstAttempt = false; // Mark that we've had the first attempt
-                }
-                setTimeout(createQuestion, 2200);
+                setTimeout(() => {
+                    if (quizIsComplete()) endGame();
+                    else createQuestion();
+                }, 2200);
             }
         }
 
@@ -303,11 +329,14 @@
             document.getElementById('choices').innerHTML = '';
             document.getElementById('timeInput').style.display = 'none';
             document.getElementById('messageContainer').innerHTML = `Final Score: ${correctCount}/${maxQuestions} ⭐`;
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');
@@ -318,7 +347,7 @@
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -328,9 +357,7 @@
             
 
 
-            // Start the game
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(10);
             updateStarCount();
             createQuestion();
         });

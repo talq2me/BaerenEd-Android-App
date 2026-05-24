@@ -1,6 +1,5 @@
 package com.talq2me.baerened
 
-import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
@@ -61,6 +60,8 @@ class GameActivity : AppCompatActivity() {
     /** Parallel to [userAnswers]: which slot each picked letter came from (for delete / re-enable). */
     private val answerSlotStack = mutableListOf<Int>()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    /** True after Submit until the next question is shown — blocks answer mashing inflating counts. */
+    private var answerSubmittedForQuestion = false
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -190,6 +191,7 @@ class GameActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         findViewById<Button>(R.id.deleteButton).setOnClickListener {
+            if (answerSubmittedForQuestion) return@setOnClickListener
             if (userAnswers.isNotEmpty()) {
                 userAnswers.removeAt(userAnswers.lastIndex)
                 val slot = answerSlotStack.removeAt(answerSlotStack.lastIndex)
@@ -200,18 +202,24 @@ class GameActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.submitButton).setOnClickListener {
+            if (answerSubmittedForQuestion) return@setOnClickListener
+
             val correct = gameEngine.submitAnswer(userAnswers)
+            answerSubmittedForQuestion = true
             updateQuestionProgressDisplay()
             val shouldEndGame = gameEngine.shouldEndGame()
+            val snapshotCorrect = gameEngine.getCorrectCount()
+            val snapshotIncorrect = gameEngine.getIncorrectCount()
+            val snapshotQuestionsAnswered = gameEngine.getQuestionsAnswered()
 
             // Update answer counts in time tracker
-            timeTracker.updateAnswerCounts("game", gameEngine.getCorrectCount(), gameEngine.getIncorrectCount())
+            timeTracker.updateAnswerCounts("game", snapshotCorrect, snapshotIncorrect)
 
-            // Clear blocks and reset choice buttons immediately when answer is submitted
+            // Clear blocks and lock controls until next question or game end
             findViewById<TextView>(R.id.messageArea).text = ""
             val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
             blocksContainer.removeAllViews()
-            reEnableAllChoiceButtons() // Re-enable choice buttons immediately
+            setAnswerControlsEnabled(false)
 
             if (correct) {
                 val assembledWord = userAnswers.joinToString("")
@@ -241,9 +249,9 @@ class GameActivity : AppCompatActivity() {
                         // Use actualGameType (without battleHub_ prefix) for completion tracking
                         val config: MainContent? = null
                         
-                        val correctCount = gameEngine.getCorrectCount()
-                        val incorrectCount = gameEngine.getIncorrectCount()
-                        val questionsAnswered = correctCount + incorrectCount
+                        val correctCount = snapshotCorrect
+                        val incorrectCount = snapshotIncorrect
+                        val questionsAnswered = snapshotQuestionsAnswered
                         val finalGameIndex = gameEngine.getCurrentIndex()
                         val currentProfile = SettingsManager.readProfile(this@GameActivity) ?: "AM"
                         val gameIndexFirst = buildPreRpcGameIndices(actualGameType, currentProfile, finalGameIndex)
@@ -333,9 +341,9 @@ class GameActivity : AppCompatActivity() {
                         }
 
                         val config: MainContent? = null
-                        val correctCount = gameEngine.getCorrectCount()
-                        val incorrectCount = gameEngine.getIncorrectCount()
-                        val questionsAnswered = correctCount + incorrectCount
+                        val correctCount = snapshotCorrect
+                        val incorrectCount = snapshotIncorrect
+                        val questionsAnswered = snapshotQuestionsAnswered
                         val finalGameIndex = gameEngine.getCurrentIndex()
                         val currentProfile = SettingsManager.readProfile(this@GameActivity) ?: "AM"
                         val gameIndexFirst = buildPreRpcGameIndices(actualGameType, currentProfile, finalGameIndex)
@@ -398,10 +406,9 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun updateQuestionProgressDisplay() {
-        val answeredCount = gameEngine.getCorrectCount() + gameEngine.getIncorrectCount()
-        val displayedAnsweredCount = answeredCount.coerceAtMost(totalQuestionsRequired)
+        val correctCount = gameEngine.getCorrectCount()
         findViewById<TextView>(R.id.questionProgressText).text =
-            "$displayedAnsweredCount/$totalQuestionsRequired"
+            "$correctCount/$totalQuestionsRequired"
     }
 
     private fun buildPreRpcGameIndices(
@@ -441,7 +448,8 @@ class GameActivity : AppCompatActivity() {
         userAnswers.clear()
         usedChoiceSlots.clear()
         answerSlotStack.clear()
-        reEnableAllChoiceButtons()
+        answerSubmittedForQuestion = false
+        setAnswerControlsEnabled(true)
         findViewById<TextView>(R.id.messageArea).text = ""
         val blocksContainer = findViewById<LinearLayout>(R.id.blocksContainer)
         blocksContainer.removeAllViews()
@@ -518,25 +526,30 @@ class GameActivity : AppCompatActivity() {
         })
     }
 
+    private fun playAssetAudio(assetPath: String) {
+        try {
+            val mp = MediaPlayer()
+            mp.setDataSource(GitHubPagesAssets.assetUrl(assetPath))
+            mp.setOnCompletionListener { it.release() }
+            mp.setOnErrorListener { player, _, _ ->
+                player.release()
+                true
+            }
+            mp.prepareAsync()
+            mp.setOnPreparedListener { it.start() }
+        } catch (e: Exception) {
+            android.util.Log.w("GameActivity", "Failed to play audio: $assetPath", e)
+        }
+    }
+
     private fun playQuestionAudioClips(question: GameData) {
         // Check for audio clips in question (prompt doesn't have media property)
         val audioClips = question.question?.media?.audioclips
 
         audioClips?.forEachIndexed { index, audioClip ->
-            try {
-                android.os.Handler().postDelayed({
-                    val afd = assets.openFd(audioClip)
-                    val mp = MediaPlayer()
-                    mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                    mp.prepare()
-                    mp.start()
-                    mp.setOnCompletionListener {
-                        mp.release()
-                    }
-                }, index * 300L) // 300ms delay between each audio clip
-            } catch (e: Exception) {
-                android.util.Log.w("GameActivity", "Failed to play question audio clip: $audioClip", e)
-            }
+            android.os.Handler().postDelayed({
+                playAssetAudio(audioClip)
+            }, index * 300L)
         }
     }
 
@@ -573,7 +586,8 @@ class GameActivity : AppCompatActivity() {
         userAnswers.clear()
         usedChoiceSlots.clear()
         answerSlotStack.clear()
-        reEnableAllChoiceButtons() // Re-enable all choice buttons for new question
+        answerSubmittedForQuestion = false
+        setAnswerControlsEnabled(true)
         audioClipsPlayedForCurrentQuestion = false // Reset flag for new question
 
         // Cancel any existing message clear handlers and clear current message
@@ -648,21 +662,11 @@ class GameActivity : AppCompatActivity() {
                 // Load bitmap asynchronously (prefer .webp, fall back to .png)
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
-                        val path = if (it.endsWith(".png")) {
-                            val webpPath = it.replace(".png", ".webp")
-                            try {
-                                assets.open(webpPath).close()
-                                webpPath
-                            } catch (_: Exception) {
-                                it
-                            }
-                        } else {
-                            it
-                        }
-                        val afd = assets.openFd(path)
-                        val bmp = BitmapFactory.decodeStream(afd.createInputStream())
+                        val bmp = GitHubPagesAssets.fetchBitmapWithWebpFallback(it)
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                            img.setImageBitmap(bmp)
+                            if (bmp != null) {
+                                img.setImageBitmap(bmp)
+                            }
                         }
                     } catch (e: Exception) {
                         android.util.Log.w("GameActivity", "Failed to load image: $it", e)
@@ -809,11 +813,7 @@ class GameActivity : AppCompatActivity() {
                     btn.alpha = 0.5f
                     updateMessage()
                     choice.media?.audioclip?.let { clip ->
-                        val afd = assets.openFd(clip)
-                        val mp = MediaPlayer()
-                        mp.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                        mp.prepare()
-                        mp.start()
+                        playAssetAudio(clip)
                     }
                 }
             }
@@ -899,6 +899,19 @@ class GameActivity : AppCompatActivity() {
             if (child is Button) {
                 child.isEnabled = true
                 child.alpha = 1.0f // Restore normal appearance
+            }
+        }
+    }
+
+    private fun setAnswerControlsEnabled(enabled: Boolean) {
+        findViewById<Button>(R.id.submitButton).isEnabled = enabled
+        findViewById<Button>(R.id.deleteButton).isEnabled = enabled
+        val choicesGrid = findViewById<androidx.gridlayout.widget.GridLayout>(R.id.choicesGrid)
+        for (i in 0 until choicesGrid.childCount) {
+            val child = choicesGrid.getChildAt(i)
+            if (child is Button) {
+                child.isEnabled = enabled
+                child.alpha = if (enabled) 1.0f else 0.5f
             }
         }
     }

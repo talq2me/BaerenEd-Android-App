@@ -218,6 +218,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -247,6 +248,26 @@
         let maxQuestions = 5;
         let currentTask = null;
         let completedSteps = 0;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
 
         // Sample tasks for grade 1 level
         const defaultTasks = [
@@ -360,14 +381,15 @@
 
         function startGame() {
             currentTaskIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             updateStarCount();
             loadTask();
         }
 
         function loadTask() {
-            if (currentTaskIndex >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -432,7 +454,7 @@
                         stepItem.style.animation = '';
                     }, 1000);
                 }, 10);
-                incorrectCount++;
+                /* LEGACY (pre-quizProgress) incorrectCount++; */
                 return;
             }
 
@@ -457,7 +479,8 @@
 
             // Check if all steps completed
             if (completedSteps === currentTask.steps.length) {
-                correctCount++;
+                /* LEGACY (pre-quizProgress) correctCount++; */
+                recordQuizAnswer(true);
                 updateStarCount();
                 celebrate();
             }
@@ -473,16 +496,24 @@
         function celebrate() {
             const celebration = document.getElementById('celebrationContainer');
             celebration.innerHTML = '<div class="celebration">🎉 Great job! Task completed! 🎉</div>';
-            document.getElementById('nextButton').classList.remove('hidden');
+            if (quizIsComplete()) {
+                setTimeout(endGame, 2000);
+            } else {
+                document.getElementById('nextButton').classList.remove('hidden');
+            }
         }
 
         function nextTask() {
+            if (quizIsComplete()) {
+                endGame();
+                return;
+            }
             currentTaskIndex++;
             loadTask();
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         function endGame() {
@@ -493,11 +524,14 @@
             document.getElementById('progressFill').textContent = '100%';
             document.querySelector('.button-container').innerHTML = '';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

@@ -1232,7 +1232,21 @@ SET search_path = public
 AS $$
   SELECT jsonb_build_object(
     'banked_mins', COALESCE(ud.banked_mins, 0),
-    'reward_time_expiry', to_jsonb(ud.reward_time_expiry)
+    'reward_time_expiry', to_jsonb(to_char(ud.reward_time_expiry, 'YYYY-MM-DD HH24:MI:SS.MS')),
+    'reward_mins_remaining',
+      CASE
+        WHEN ud.reward_time_expiry IS NOT NULL
+          AND (ud.reward_time_expiry AT TIME ZONE 'America/Toronto') > CURRENT_TIMESTAMP
+        THEN GREATEST(0, CEIL(
+          EXTRACT(EPOCH FROM (
+            (ud.reward_time_expiry AT TIME ZONE 'America/Toronto') - CURRENT_TIMESTAMP
+          )) / 60.0
+        ))::integer
+        ELSE 0
+      END,
+    'reward_session_active',
+      (ud.reward_time_expiry IS NOT NULL
+        AND (ud.reward_time_expiry AT TIME ZONE 'America/Toronto') > CURRENT_TIMESTAMP)
   )
   FROM user_data ud
   WHERE ud.profile = p_profile
@@ -1424,13 +1438,19 @@ GRANT EXECUTE ON FUNCTION af_get_settings_last_updated() TO anon, authenticated,
 -- -----------------------------------------------------------------------------
 -- FILE: af_upsert_settings_row.sql
 -- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt - invokeAfUpsertSettingsRow.
---   app/src/main/java/com/talq2me/baerened/SettingsManager.kt - saveSettingsToCloud / related.
+-- Call sites (BaerenEd Android, BaerenLock):
+--   SupabaseInterface.kt - saveSettingsToCloud / af_upsert_settings_row RPC
+--   reports/banked_time.html - parent audio monitor settings
 
 -- BaerenEd: af_upsert_settings_row
 
-CREATE OR REPLACE FUNCTION af_upsert_settings_row(p_parent_email text, p_pin text, p_aggressive_cleanup boolean DEFAULT NULL)
+CREATE OR REPLACE FUNCTION af_upsert_settings_row(
+    p_parent_email text,
+    p_pin text,
+    p_aggressive_cleanup boolean DEFAULT NULL,
+    p_reward_audio_monitor_enabled boolean DEFAULT NULL,
+    p_reward_audio_loudness_threshold integer DEFAULT NULL
+)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1441,21 +1461,50 @@ BEGIN
     parent_email = COALESCE(p_parent_email, parent_email),
     pin = COALESCE(p_pin, pin),
     aggressive_cleanup = CASE WHEN p_aggressive_cleanup IS NULL THEN aggressive_cleanup ELSE p_aggressive_cleanup END,
+    reward_audio_monitor_enabled = CASE
+        WHEN p_reward_audio_monitor_enabled IS NULL THEN reward_audio_monitor_enabled
+        ELSE p_reward_audio_monitor_enabled
+    END,
+    reward_audio_loudness_threshold = CASE
+        WHEN p_reward_audio_loudness_threshold IS NULL THEN reward_audio_loudness_threshold
+        ELSE p_reward_audio_loudness_threshold
+    END,
     last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE id = 1;
 
   IF NOT FOUND THEN
-    INSERT INTO settings (id, parent_email, pin, aggressive_cleanup, last_updated)
-    VALUES (1, COALESCE(p_parent_email, ''), COALESCE(p_pin, ''), COALESCE(p_aggressive_cleanup, true), (NOW() AT TIME ZONE 'America/Toronto'))
+    INSERT INTO settings (
+        id,
+        parent_email,
+        pin,
+        aggressive_cleanup,
+        reward_audio_monitor_enabled,
+        reward_audio_loudness_threshold,
+        last_updated
+    )
+    VALUES (
+        1,
+        COALESCE(p_parent_email, ''),
+        COALESCE(p_pin, ''),
+        COALESCE(p_aggressive_cleanup, true),
+        COALESCE(p_reward_audio_monitor_enabled, true),
+        COALESCE(p_reward_audio_loudness_threshold, 75),
+        (NOW() AT TIME ZONE 'America/Toronto')
+    )
     ON CONFLICT (id) DO UPDATE SET
       parent_email = EXCLUDED.parent_email,
       pin = EXCLUDED.pin,
       aggressive_cleanup = EXCLUDED.aggressive_cleanup,
+      reward_audio_monitor_enabled = EXCLUDED.reward_audio_monitor_enabled,
+      reward_audio_loudness_threshold = EXCLUDED.reward_audio_loudness_threshold,
       last_updated = EXCLUDED.last_updated;
   END IF;
 END;
 $$;
-GRANT EXECUTE ON FUNCTION af_upsert_settings_row(text, text, boolean) TO anon, authenticated, service_role;
+
+DROP FUNCTION IF EXISTS af_upsert_settings_row(text, text, boolean);
+
+GRANT EXECUTE ON FUNCTION af_upsert_settings_row(text, text, boolean, boolean, integer) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------
@@ -2330,12 +2379,16 @@ GRANT EXECUTE ON FUNCTION af_update_berries_banked(text, int, int) TO anon, auth
 
 -- Activates banked reward time: moves banked_mins into reward_time_expiry (Toronto).
 
+DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
+
 CREATE OR REPLACE FUNCTION af_reward_time_use(p_profile TEXT)
-RETURNS VOID
+RETURNS jsonb
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_banked INTEGER;
+    v_expiry TIMESTAMP(3);
+    v_now_ts TIMESTAMP(3);
 BEGIN
     SELECT COALESCE(banked_mins, 0) INTO v_banked
     FROM user_data
@@ -2343,22 +2396,34 @@ BEGIN
     FOR UPDATE;
 
     IF v_banked <= 0 THEN
-        RETURN;
+        RETURN jsonb_build_object('banked_used', 0, 'reward_time_expiry', NULL, 'toronto_now', NULL);
     END IF;
+
+    v_now_ts := (CURRENT_TIMESTAMP AT TIME ZONE 'America/Toronto')::timestamp(3);
+    v_expiry := (
+        (CURRENT_TIMESTAMP + (v_banked * INTERVAL '1 minute'))
+        AT TIME ZONE 'America/Toronto'
+    )::timestamp(3);
 
     INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
     VALUES (
         p_profile,
         'Start Reward Time Session',
         v_banked,
-        NOW() AT TIME ZONE 'America/Toronto'
+        v_now_ts
     );
 
     UPDATE user_data
-    SET reward_time_expiry = (NOW() AT TIME ZONE 'America/Toronto') + (v_banked * INTERVAL '1 minute'),
+    SET reward_time_expiry = v_expiry,
         banked_mins = 0,
-        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+        last_updated = v_now_ts
     WHERE profile = p_profile;
+
+    RETURN jsonb_build_object(
+        'banked_used', v_banked,
+        'reward_time_expiry', to_char(v_expiry, 'YYYY-MM-DD HH24:MI:SS.MS'),
+        'toronto_now', to_char(v_now_ts, 'YYYY-MM-DD HH24:MI:SS.MS')
+    );
 END;
 $$;
 
@@ -2380,6 +2445,8 @@ AS $$
 DECLARE
     v_expiry TIMESTAMP(3);
     v_remaining INTEGER;
+    v_session_start INTEGER;
+    v_now_ts TIMESTAMP(3);
 BEGIN
     SELECT reward_time_expiry INTO v_expiry
     FROM user_data
@@ -2390,20 +2457,37 @@ BEGIN
         RETURN;
     END IF;
 
-    v_remaining := GREATEST(0, CEIL(EXTRACT(EPOCH FROM (v_expiry - (NOW() AT TIME ZONE 'America/Toronto'))) / 60.0));
+    v_now_ts := (CURRENT_TIMESTAMP AT TIME ZONE 'America/Toronto')::timestamp(3);
+
+    v_remaining := GREATEST(0, CEIL(
+        EXTRACT(EPOCH FROM (
+            (v_expiry AT TIME ZONE 'America/Toronto') - CURRENT_TIMESTAMP
+        )) / 60.0
+    ));
+
+    SELECT reward_mins_remaining INTO v_session_start
+    FROM reward_time_log
+    WHERE profile = p_profile
+      AND event = 'Start Reward Time Session'
+    ORDER BY logged_at DESC
+    LIMIT 1;
+
+    IF v_session_start IS NOT NULL THEN
+        v_remaining := LEAST(v_remaining, v_session_start);
+    END IF;
 
     INSERT INTO reward_time_log (profile, event, reward_mins_remaining, logged_at)
     VALUES (
         p_profile,
         'Pause Reward Session',
         v_remaining,
-        NOW() AT TIME ZONE 'America/Toronto'
+        v_now_ts
     );
 
     UPDATE user_data
     SET banked_mins = v_remaining,
         reward_time_expiry = NULL,
-        last_updated = NOW() AT TIME ZONE 'America/Toronto'
+        last_updated = v_now_ts
     WHERE profile = p_profile;
 END;
 $$;
@@ -2428,7 +2512,7 @@ DECLARE
     v_expiry TIMESTAMP(3);
     v_remaining INTEGER := 0;
     v_updated INTEGER := 0;
-    v_now TIMESTAMP(3) := (NOW() AT TIME ZONE 'America/Toronto');
+    v_now TIMESTAMP(3) := (CURRENT_TIMESTAMP AT TIME ZONE 'America/Toronto')::timestamp(3);
 BEGIN
     SELECT reward_time_expiry INTO v_expiry
     FROM user_data
@@ -2440,8 +2524,12 @@ BEGIN
     END IF;
 
     IF p_force THEN
-        IF v_expiry > v_now THEN
-            v_remaining := GREATEST(0, CEIL(EXTRACT(EPOCH FROM (v_expiry - v_now)) / 60.0));
+        IF (v_expiry AT TIME ZONE 'America/Toronto') > CURRENT_TIMESTAMP THEN
+            v_remaining := GREATEST(0, CEIL(
+                EXTRACT(EPOCH FROM (
+                    (v_expiry AT TIME ZONE 'America/Toronto') - CURRENT_TIMESTAMP
+                )) / 60.0
+            ));
         END IF;
 
         UPDATE user_data
@@ -2469,7 +2557,7 @@ BEGIN
         last_updated = v_now
     WHERE profile = p_profile
       AND reward_time_expiry IS NOT NULL
-      AND reward_time_expiry <= v_now;
+      AND (reward_time_expiry AT TIME ZONE 'America/Toronto') <= CURRENT_TIMESTAMP;
 
     GET DIAGNOSTICS v_updated = ROW_COUNT;
 

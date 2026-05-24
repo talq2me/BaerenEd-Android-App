@@ -1,0 +1,29 @@
+---
+description: Keep Supabase schema and function deploy scripts in sync with every SQL change
+alwaysApply: true
+---
+
+# Supabase SQL Source of Truth
+
+When changing the Supabase/Postgres database, always update the greenfield deploy scripts in the same change (same PR/commit as the migration or `af_*.sql` edit).
+
+## Schema (tables, columns, indexes, RLS, seed data)
+
+- **Canonical file:** `sql/supabase_schema_create.sql`
+- **Also add:** a one-off migration under `sql/migration_*.sql` when upgrading an existing DB
+- **Required:** mirror new columns/constraints in the relevant `CREATE TABLE` (or equivalent) in `supabase_schema_create.sql`, not only in the migration
+
+## Functions (RPCs, triggers implemented as functions)
+
+- **Canonical file:** `sql/supabase_functions_create.sql`
+- **Also add:** or update the matching `sql/af_*.sql` (or other function file) for the single-function deploy path
+- **Required:** copy the full updated `CREATE OR REPLACE FUNCTION` (and `DROP`/`GRANT` signature changes) into `supabase_functions_create.sql` so running that script deploys the latest functions
+
+## Checklist before finishing SQL work
+
+1. Migration file exists (if the change is not greenfield-only)
+2. `supabase_schema_create.sql` reflects the new schema
+3. `supabase_functions_create.sql` reflects any changed function bodies or signatures
+4. Old function signatures are dropped where signatures changed (see top-of-file `DROP FUNCTION` block in `supabase_functions_create.sql` when applicable)
+
+Do not treat migrations or individual `af_*.sql` files alone as sufficient for a fresh database or full function redeploy.

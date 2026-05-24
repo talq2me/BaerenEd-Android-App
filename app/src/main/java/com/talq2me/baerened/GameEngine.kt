@@ -47,7 +47,8 @@ class GameEngine(
         return isCorrect
     }
 
-    fun shouldEndGame(): Boolean = (correctCount + incorrectCount) >= config.requiredCorrectAnswers
+    fun shouldEndGame(): Boolean = correctCount >= config.requiredCorrectAnswers
+    fun getQuestionsAnswered(): Int = correctCount + incorrectCount
     fun getIncorrectCount(): Int = incorrectCount
     fun getCorrectCount(): Int = correctCount
     fun getCurrentIndex(): Int = currentIndex

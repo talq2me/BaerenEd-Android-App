@@ -289,6 +289,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         // Register callback for Android TTS completion
         window.onTTSFinished = function(utteranceId) {
@@ -343,6 +344,29 @@
         let incorrectCount = 0;
         let maxQuestions = 10;
         let questionsCompleted = 0;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
+        // maxQuestions from config / diagram parts count only
+        */
+
         let isWaitingForLabel = false;
         let placedLabels = new Map();
 
@@ -574,9 +598,14 @@
         function startGame() {
             currentDiagramIndex = 0;
             currentPartIndex = 0;
+            /* LEGACY (pre-quizProgress)
             correctCount = 0;
             incorrectCount = 0;
             questionsCompleted = 0;
+            */
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             placedLabels.clear();
             document.getElementById('maxQuestions').textContent = maxQuestions;
             loadDiagram();
@@ -584,7 +613,7 @@
 
         function loadDiagram() {
             if (currentDiagramIndex >= diagrams.length) {
-                if (questionsCompleted >= maxQuestions) {
+                if (quizIsComplete()) {
                     endGame();
                     return;
                 }
@@ -628,13 +657,8 @@
             // The image path in JSON is like "diagrams/circulatorySystem.png"
             const imagePath = currentDiagram.image || '';
             const isAndroid = window.Android !== undefined;
-            let imageSrc;
-            if (isAndroid) {
-                imageSrc = `file:///android_asset/images/${imagePath}`;
-            } else {
-                const githubBase = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
-                imageSrc = `${githubBase}/images/${imagePath}`;
-            }
+            const githubBase = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
+            const imageSrc = `${githubBase}/images/${imagePath}`;
             
             console.log('Loading diagram image:');
             console.log('  Original path from JSON:', imagePath);
@@ -659,33 +683,20 @@
                 console.error('✗ Failed to load image:', this.src);
                 console.error('  Original path from JSON:', imagePath);
                 fallbackAttempt++;
-                if (isAndroid) {
-                    let altPath;
-                    if (fallbackAttempt === 1) {
-                        const filename = imagePath.replace(/^.*\//, '');
-                        altPath = `file:///android_asset/images/diagrams/${filename}`;
-                        console.log('  Trying fallback 1:', altPath);
-                    } else if (fallbackAttempt === 2) {
-                        altPath = `file:///android_asset/${imagePath}`;
-                        console.log('  Trying fallback 2:', altPath);
-                    } else {
-                        alert('Failed to load diagram image: ' + imagePath + 
-                              '\n\nPlease verify the image file exists at:\n' +
-                              'assets/images/' + imagePath);
-                        return;
-                    }
+                if (fallbackAttempt === 1) {
+                    const filename = imagePath.replace(/^.*\//, '');
+                    const altPath = `${githubBase}/images/diagrams/${filename}`;
+                    console.log('  Trying fallback:', altPath);
                     this.onerror = img.onerror;
                     this.src = altPath;
+                } else if (fallbackAttempt === 2) {
+                    const relativePath = `../images/${imagePath}`;
+                    console.log('  Trying relative path:', relativePath);
+                    this.onerror = img.onerror;
+                    this.src = relativePath;
                 } else {
-                    if (fallbackAttempt === 1) {
-                        const relativePath = `../images/${imagePath}`;
-                        console.log('  Trying relative path:', relativePath);
-                        this.onerror = img.onerror;
-                        this.src = relativePath;
-                    } else {
-                        alert('Failed to load diagram image: ' + imagePath + 
-                              '\n\nPlease check the image URL or file path.');
-                    }
+                    alert('Failed to load diagram image: ' + imagePath +
+                          '\n\nPlease verify the image is published on GitHub Pages under assets/images/');
                 }
             };
             
@@ -884,10 +895,13 @@
                 cover.classList.add('hidden');
             }
             
+            /* LEGACY (pre-quizProgress)
             correctCount++;
             questionsCompleted++;
+            */
+            recordQuizAnswer(true);
             document.getElementById('score').textContent = correctCount;
-            document.getElementById('progress').textContent = questionsCompleted;
+            document.getElementById('progress').textContent = quiz ? quiz.progressLabel() : questionsCompleted;
             
             // Remove highlight
             const region = document.querySelector(`.clickable-region[data-part-id="${currentPartIndex}"]`);
@@ -915,7 +929,7 @@
         }
 
         function loadPart() {
-            if (questionsCompleted >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -1014,7 +1028,7 @@
         // placeLabel function not needed - labels are revealed by removing white boxes
 
         function nextPart() {
-            if (questionsCompleted >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -1039,11 +1053,14 @@
             document.getElementById('diagramContainer').style.display = 'none';
             document.getElementById('playButton').style.display = 'none';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {

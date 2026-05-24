@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
 import java.io.File
 import kotlin.math.max
 
@@ -146,7 +147,7 @@ class PokemonActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val unlockedCount = progressManager.getUnlockedPokemonCount()
-                val pokemon = loadPokemonFromAssets(unlockedCount)
+                val pokemon = loadPokemonFromGitHub(unlockedCount)
 
                 withContext(Dispatchers.Main) {
                     pokemonList = pokemon
@@ -171,16 +172,14 @@ class PokemonActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadPokemonFromAssets(maxUnlocked: Int): List<Pokemon> {
+    private fun loadPokemonFromGitHub(maxUnlocked: Int): List<Pokemon> {
         val pokemon = mutableListOf<Pokemon>()
         val assetsPath = "images/pokeSprites/sprites/pokemon"
 
         try {
-            val assetManager = assets
-            val files = assetManager.list(assetsPath) ?: return emptyList()
+            val files = GitHubPagesAssets.fetchPokemonManifestFilenames()
 
-            // Parse Pokemon files (format: "prefix-pokenum-variant.png")
-            val pokemonFiles = files.filter { it.endsWith(".png") }
+            val pokemonFiles = files.filter { it.endsWith(".png", ignoreCase = true) }
                 .mapNotNull { parsePokemonFilename(it) }
                 .filter { it.prefix <= maxUnlocked }
                 .sortedWith(compareBy({ it.pokenum }, { it.shiny }))
@@ -198,7 +197,7 @@ class PokemonActivity : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error loading Pokemon from assets", e)
+            Log.e(TAG, "Error loading Pokemon from GitHub Pages", e)
         }
 
         return pokemon
@@ -239,13 +238,12 @@ class PokemonActivity : AppCompatActivity() {
     }
 
     private fun getTotalAvailablePokemon(): Int {
-        // Count total Pokemon files in assets
         return try {
-            val files = assets.list("images/pokeSprites/sprites/pokemon") ?: emptyArray()
-            files.count { it.endsWith(".png") }
+            GitHubPagesAssets.fetchPokemonManifestFilenames()
+                .count { it.endsWith(".png", ignoreCase = true) }
         } catch (e: Exception) {
             Log.e(TAG, "Error counting Pokemon files", e)
-            1000 // Fallback estimate
+            1000
         }
     }
 
@@ -376,7 +374,7 @@ data class PokemonFile(
 
 // RecyclerView Adapter for Pokemon
 class PokemonAdapter(
-    private val context: Context,
+    private val activity: PokemonActivity,
     private var pokemon: List<Pokemon>,
     private val onPokemonClick: (Pokemon) -> Unit
 ) : RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
@@ -404,16 +402,19 @@ class PokemonAdapter(
 
         fun bind(pokemon: Pokemon) {
             pokemonName.text = pokemon.name
-
-            // Load image from assets
-            try {
-                val inputStream = context.assets.open(pokemon.imagePath)
-                val drawable = android.graphics.drawable.Drawable.createFromStream(inputStream, null)
-                pokemonImage.setImageDrawable(drawable)
-                inputStream.close()
-            } catch (e: Exception) {
-                android.util.Log.e("PokemonAdapter", "Error loading Pokemon image: ${pokemon.imagePath}", e)
-                pokemonImage.setImageResource(R.drawable.ic_launcher_foreground) // Fallback
+            pokemonImage.setImageDrawable(null)
+            val bindPosition = bindingAdapterPosition
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                val bitmap = GitHubPagesAssets.fetchBitmap(pokemon.imagePath)
+                withContext(Dispatchers.Main) {
+                    if (bindingAdapterPosition != bindPosition) return@withContext
+                    if (bitmap != null) {
+                        pokemonImage.setImageBitmap(bitmap)
+                    } else {
+                        android.util.Log.e("PokemonAdapter", "Error loading Pokemon image: ${pokemon.imagePath}")
+                        pokemonImage.setImageResource(R.drawable.ic_launcher_foreground)
+                    }
+                }
             }
 
             itemView.setOnClickListener { onPokemonClick(pokemon) }

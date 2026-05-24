@@ -140,6 +140,8 @@
         const supabaseUrl = () => localStorage.getItem('supabaseUrl');
         const supabaseKey = () => localStorage.getItem('supabaseKey');
 
+        const TASK_KEY_DATE_RE = /^HandwritingPractice-(\d{4})(\d{2})(\d{2})-/i;
+
         /** YYYY-MM-DD in America/Toronto for a UTC instant */
         function captureTorontoYmd(isoOrMs) {
             const d = typeof isoOrMs === 'number' ? new Date(isoOrMs) : new Date(isoOrMs);
@@ -150,6 +152,28 @@
                 month: '2-digit',
                 day: '2-digit'
             }).format(d);
+        }
+
+        /** Calendar day encoded in the upload task key (authoritative for “which day”). */
+        function torontoYmdFromTask(task) {
+            const m = TASK_KEY_DATE_RE.exec(task || '');
+            if (!m) return null;
+            return `${m[1]}-${m[2]}-${m[3]}`;
+        }
+
+        /**
+         * image_uploads.capture_date_time is Toronto civil time without TZ in the DB.
+         * Use the leading YYYY-MM-DD when present instead of browser-local Date parsing.
+         */
+        function torontoYmdFromCapture(value) {
+            if (!value) return null;
+            const prefix = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+            if (prefix) return prefix[1];
+            return captureTorontoYmd(value);
+        }
+
+        function rowTorontoYmd(row) {
+            return torontoYmdFromTask(row.task) || torontoYmdFromCapture(row.capture_date_time);
         }
 
         /**
@@ -199,25 +223,46 @@
 
         document.getElementById('headerSubtitle').textContent = `Profile ${profileParam}`;
 
+        const fetchHeaders = (key) => ({
+            apikey: key,
+            Authorization: `Bearer ${key}`
+        });
+
+        function isHandwritingRow(row) {
+            return row && row.task && row.task.toLowerCase().startsWith(TASK_PREFIX_ILIKE.toLowerCase());
+        }
+
         async function fetchHandwritingUploads(url, key) {
-            const since = new Date(Date.now() - 420 * 86400000).toISOString();
             const pattern = encodeURIComponent(TASK_PREFIX_ILIKE) + '%25';
-            const q = `${url}/rest/v1/image_uploads?profile=eq.${profileParam}&task=ilike.${pattern}&select=task,image,capture_date_time&capture_date_time=gte.${encodeURIComponent(since)}&order=capture_date_time.desc`;
-            const res = await fetch(q, {
-                headers: { apikey: key, Authorization: `Bearer ${key}` }
-            });
-            if (!res.ok) throw new Error(`image_uploads: ${res.status} ${await res.text()}`);
-            return res.json();
+            const primaryUrl = `${url}/rest/v1/image_uploads?profile=eq.${profileParam}&task=ilike.${pattern}&select=task,image,capture_date_time&order=capture_date_time.desc&limit=500`;
+            const res = await fetch(primaryUrl, { headers: fetchHeaders(key) });
+            if (res.ok) {
+                const rows = await res.json();
+                if (rows.length > 0) return rows;
+            } else {
+                const errText = await res.text();
+                console.warn('Handwriting ilike query failed:', res.status, errText);
+            }
+
+            // Fallback: fetch profile rows and filter client-side (same pattern as spelling OCR report).
+            const fallbackUrl = `${url}/rest/v1/image_uploads?profile=eq.${profileParam}&select=task,image,capture_date_time&order=capture_date_time.desc&limit=500`;
+            const alt = await fetch(fallbackUrl, { headers: fetchHeaders(key) });
+            if (!alt.ok) throw new Error(`image_uploads: ${alt.status} ${await alt.text()}`);
+            return (await alt.json()).filter(isHandwritingRow);
         }
 
         function pickBestForDay(rows, ymdToronto) {
             const hits = [];
             for (const r of rows || []) {
-                if (!r.capture_date_time || !r.image) continue;
-                if (captureTorontoYmd(r.capture_date_time) === ymdToronto) hits.push(r);
+                if (!r.image) continue;
+                if (rowTorontoYmd(r) === ymdToronto) hits.push(r);
             }
             if (hits.length === 0) return null;
-            hits.sort((a, b) => new Date(b.capture_date_time).getTime() - new Date(a.capture_date_time).getTime());
+            hits.sort((a, b) => {
+                const ta = Date.parse(a.capture_date_time || '') || 0;
+                const tb = Date.parse(b.capture_date_time || '') || 0;
+                return tb - ta;
+            });
             return hits[0];
         }
 
@@ -258,7 +303,10 @@
                     `task key: ${escapeHtml(winner.task)}`;
 
                 const imgEl = document.getElementById('snapshot');
-                const raw = winner.image.startsWith('data:') ? winner.image : `data:image/png;base64,${winner.image}`;
+                let raw = winner.image;
+                if (!raw.startsWith('data:')) {
+                    raw = `data:image/png;base64,${raw}`;
+                }
                 imgEl.src = raw;
                 document.getElementById('taskLine').textContent = winner.task || '';
                 document.getElementById('sheet').style.display = 'block';

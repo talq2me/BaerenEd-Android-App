@@ -203,6 +203,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -229,10 +230,33 @@
         let currentStoryIndex = 0;
         let correctCount = 0;
         let incorrectCount = 0;
-        // Check for totalQuestions URL parameter
+        let maxQuestions = 5;
+        let currentStory = null;
+        let selectedOption = null;
+        let isFirstAttempt = true;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
         const urlParams = new URLSearchParams(window.location.search);
         const totalQuestionsParam = urlParams.get('totalQuestions');
-        let maxQuestions = 5; // Default value
+        let maxQuestions = 5;
         if (totalQuestionsParam) {
             const parsed = parseInt(totalQuestionsParam, 10);
             if (!isNaN(parsed) && parsed > 0) {
@@ -240,9 +264,9 @@
                 console.log('Using totalQuestions from URL parameter:', maxQuestions);
             }
         }
-        let currentStory = null;
-        let selectedOption = null;
-        let isFirstAttempt = true;
+        */
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
 
         const defaultStories = [
             {
@@ -363,22 +387,22 @@
         }
 
         function startGame() {
-            // Shuffle stories array to ensure all questions are used, not just first 5
             stories = shuffleArray(stories);
             currentStoryIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             updateStarCount();
             loadStory();
         }
 
         function loadStory() {
-            if (currentStoryIndex >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
 
-            currentStory = stories[currentStoryIndex];
+            currentStory = stories[quiz.wrapIndex(stories.length)];
             selectedOption = null;
             isFirstAttempt = true;
             
@@ -446,27 +470,22 @@
                 }
             });
 
+            /* LEGACY (pre-quizProgress)
+            if (isCorrect) { if (isFirstAttempt) correctCount++; }
+            else { if (isFirstAttempt) { incorrectCount++; isFirstAttempt = false; } }
+            */
+            recordQuizAnswer(isCorrect);
+            updateStarCount();
+            document.getElementById('submitButton').disabled = true;
             if (isCorrect) {
                 showPopupMessage('✓ Great thinking! That makes sense! 🎉', 'correct');
-                if (isFirstAttempt) {
-                    correctCount++;
-                    updateStarCount();
-                }
-                document.getElementById('submitButton').disabled = true;
-                setTimeout(() => {
-                    document.getElementById('nextButton').classList.remove('hidden');
-                }, 2000);
             } else {
-                if (isFirstAttempt) {
-                    incorrectCount++;
-                    isFirstAttempt = false;
-                }
                 showPopupMessage('✗ Not quite. Think about what would make the most sense!', 'incorrect');
-                document.getElementById('submitButton').disabled = true;
-                setTimeout(() => {
-                    document.getElementById('nextButton').classList.remove('hidden');
-                }, 2000);
             }
+            setTimeout(() => {
+                if (quizIsComplete()) endGame();
+                else loadStory();
+            }, 2000);
         }
 
         function nextStory() {
@@ -486,7 +505,7 @@
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         function endGame() {
@@ -495,11 +514,14 @@
             document.getElementById('optionsContainer').innerHTML = '';
             document.querySelector('.button-container').innerHTML = '';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

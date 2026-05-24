@@ -289,6 +289,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         const pieCanvas = document.getElementById("pieCanvas");
         const ctx = pieCanvas.getContext("2d");
@@ -344,6 +345,33 @@
             selectedWord: "",
             isComplete: false
         };
+
+        let quiz = null;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let maxQuestions = 10;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            maxQuestions = quiz.getRequiredCorrect();
+            state.score = correctCount;
+            state.totalQuestions = maxQuestions;
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
+        // state.score / state.totalQuestions tracked completion directly
+        */
 
         function randomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -456,12 +484,12 @@
             if (state.isComplete) {
                 return;
             }
-            if (state.questionIndex >= state.totalQuestions) {
+            if (quizIsComplete()) {
                 finishGame();
                 return;
             }
 
-            state.mode = state.modePlan[state.questionIndex];
+            state.mode = state.modePlan[state.questionIndex % state.modePlan.length];
             statusEl.textContent = "";
             statusEl.className = "status";
             numInput.value = "";
@@ -501,19 +529,21 @@
         }
 
         function renderScore() {
-            const current = Math.min(state.questionIndex + 1, state.totalQuestions);
-            scoreEl.textContent = `Question ${current}/${state.totalQuestions} • Score: ${state.score}/${state.total}`;
+            scoreEl.textContent = quiz ? quiz.progressLabel() : "";
         }
 
         function submitAnswer(isCorrect, correctMessage, incorrectMessage) {
             if (state.isComplete) {
                 return;
             }
-            state.total += 1;
             state.questionIndex += 1;
+            /* LEGACY (pre-quizProgress)
+            state.total += 1;
+            if (isCorrect) { state.score += 1; }
+            */
+            recordQuizAnswer(isCorrect);
 
             if (isCorrect) {
-                state.score += 1;
                 statusEl.textContent = correctMessage;
                 statusEl.className = "status good";
                 speak("Great job!");
@@ -525,7 +555,7 @@
 
             renderScore();
 
-            if (state.questionIndex >= state.totalQuestions) {
+            if (quizIsComplete()) {
                 setTimeout(finishGame, 1200);
             } else {
                 setTimeout(nextQuestion, 1200);
@@ -537,14 +567,17 @@
                 return;
             }
             state.isComplete = true;
-            statusEl.textContent = `Game complete! Final score: ${state.score}/${state.totalQuestions}.`;
+            statusEl.textContent = `Game complete! Final score: ${correctCount}/${maxQuestions}.`;
             statusEl.className = "status good";
-            questionEl.textContent = "Awesome work! You finished all 10 questions.";
-            speak(`Great work! You got ${state.score} out of ${state.totalQuestions}.`);
+            questionEl.textContent = "Awesome work! You finished all questions.";
+            speak(`Great work! You got ${correctCount} out of ${maxQuestions}.`);
 
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === "function") {
                 window.Android.gameCompleted(state.score, state.totalQuestions - state.score);
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
         }
 
         function checkAnswer() {
@@ -615,6 +648,7 @@
             }
         });
 
+        initQuizProgress(10);
         state.modePlan = buildModePlan();
         nextQuestion();
     </script>

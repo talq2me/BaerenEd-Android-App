@@ -291,6 +291,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -321,6 +322,26 @@
         let currentStructure = null;
         let currentStepIndex = 0;
         let addedParts = [];
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
 
         const defaultStructures = [
             {
@@ -431,14 +452,15 @@
 
         function startGame() {
             currentStructureIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             updateStarCount();
             loadStructure();
         }
 
         function loadStructure() {
-            if (currentStructureIndex >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -527,7 +549,7 @@
             if (expectedStep.part !== partName) {
                 document.getElementById('feedbackContainer').innerHTML = 
                     '<div class="feedback" style="background: #f8d7da; color: #721c24;">✗ Wrong step! Follow the blueprint in order.</div>';
-                incorrectCount++;
+                /* LEGACY (pre-quizProgress) incorrectCount++; */
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';
                 }, 2000);
@@ -553,12 +575,14 @@
             
             // Check if complete
             if (currentStepIndex >= currentStructure.steps.length) {
-                correctCount++;
+                /* LEGACY (pre-quizProgress) correctCount++; */
+                recordQuizAnswer(true);
                 updateStarCount();
                 document.getElementById('feedbackContainer').innerHTML = 
                     '<div class="feedback correct">✓ Structure complete! Great building! 🏗️🎉</div>';
                 setTimeout(() => {
-                    document.getElementById('nextButton').classList.remove('hidden');
+                    if (quizIsComplete()) endGame();
+                    else document.getElementById('nextButton').classList.remove('hidden');
                 }, 2000);
             } else {
                 // Read next step
@@ -568,12 +592,16 @@
         }
 
         function nextStructure() {
+            if (quizIsComplete()) {
+                endGame();
+                return;
+            }
             currentStructureIndex++;
             loadStructure();
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         function endGame() {
@@ -584,11 +612,14 @@
             document.getElementById('stepsDisplay').innerHTML = '';
             document.querySelector('.button-container').innerHTML = '';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

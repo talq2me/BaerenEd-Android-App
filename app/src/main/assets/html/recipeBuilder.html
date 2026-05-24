@@ -266,6 +266,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -294,6 +295,26 @@
         let incorrectCount = 0;
         let maxQuestions = 5;
         let currentRecipe = null;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
         let draggedElement = null;
 
         const defaultRecipes = [
@@ -407,19 +428,20 @@
 
         function startGame() {
             currentRecipeIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             updateStarCount();
             loadRecipe();
         }
 
         function loadRecipe() {
-            if (currentRecipeIndex >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
 
-            currentRecipe = recipes[currentRecipeIndex];
+            currentRecipe = recipes[quiz.wrapIndex(recipes.length)];
             document.getElementById('recipeTitle').textContent = `Recipe: ${currentRecipe.title}`;
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
@@ -679,22 +701,30 @@
                 }
             });
 
+            document.getElementById('checkButton').disabled = true;
             if (isCorrect) {
+                /* LEGACY (pre-quizProgress) correctCount++; */
+                recordQuizAnswer(true);
                 showPopupMessage('✓ Perfect recipe! Great job! 🎉', 'correct');
-                correctCount++;
                 updateStarCount();
-                document.getElementById('checkButton').disabled = true;
-                document.getElementById('nextButton').classList.remove('hidden');
-                
                 slots.forEach(slot => {
                     slot.style.border = '3px solid #4CAF50';
                     slot.style.background = '#c8e6c9';
                 });
+                setTimeout(() => {
+                    if (quizIsComplete()) endGame();
+                    else loadRecipe();
+                }, 2000);
             } else {
-                showPopupMessage('✗ Not quite right. Try again!', 'incorrect');
-                incorrectCount++;
-                
-                // Clear ALL pieces and return them to bank (simpler approach)
+                /* LEGACY (pre-quizProgress) incorrectCount++; */
+                recordQuizAnswer(false);
+                showPopupMessage('✗ Not quite right.', 'incorrect');
+                updateStarCount();
+                setTimeout(() => {
+                    if (quizIsComplete()) endGame();
+                    else loadRecipe();
+                }, 2000);
+                /* LEGACY (pre-quizProgress) — retry loop below
                 slots.forEach((slot, index) => {
                     const slotContent = slot.querySelector('.slot-content');
                     const stepText = slotContent ? slotContent.textContent : '';
@@ -777,6 +807,7 @@
                         slot.dataset.isHint = 'true';
                     });
                 }, 500);
+                */
             }
         }
 
@@ -797,7 +828,7 @@
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         function endGame() {
@@ -807,11 +838,14 @@
             document.getElementById('stepsBank').innerHTML = '';
             document.querySelector('.button-container').innerHTML = '';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

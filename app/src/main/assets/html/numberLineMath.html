@@ -327,6 +327,7 @@
         <button class="next-button" id="nextButton">Next Question</button>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         let currentProblem = null;
         let currentAnswer = null;
@@ -338,10 +339,31 @@
         let currentProblemIndex = 0;
         let canAnswer = true;
         let currentBunnyPosition = 0;
-        // Check for totalQuestions URL parameter first
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
         const urlParams = new URLSearchParams(window.location.search);
         const totalQuestionsParam = urlParams.get('totalQuestions');
-        let maxQuestions = 10; // Default value
+        let maxQuestions = 10;
         if (totalQuestionsParam) {
             const parsed = parseInt(totalQuestionsParam, 10);
             if (!isNaN(parsed) && parsed > 0) {
@@ -349,7 +371,9 @@
                 console.log('Using totalQuestions from URL parameter:', maxQuestions);
             }
         }
-        let questionsCompleted = 0;
+        */
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
 
         function isAndroidWebView() {
             return typeof window.Android !== 'undefined';
@@ -410,6 +434,10 @@
                 problems = data.problems;
                 shuffleArray(problems);
                 maxQuestions = Math.min(problems.length, maxQuestions);
+                initQuizProgress(maxQuestions);
+                if (quiz) quiz.setRequiredCorrect(maxQuestions);
+                syncQuizVars();
+                document.getElementById('maxQuestions').textContent = maxQuestions;
                 loadNextProblem();
             } catch (error) {
                 console.error('Error loading problems:', error);
@@ -422,6 +450,10 @@
                     { question: "What is 9 take away 5?", start: 9, operation: "subtract", value: 5, answer: 4 }
                 ];
                 maxQuestions = Math.min(problems.length, maxQuestions);
+                initQuizProgress(maxQuestions);
+                if (quiz) quiz.setRequiredCorrect(maxQuestions);
+                syncQuizVars();
+                document.getElementById('maxQuestions').textContent = maxQuestions;
                 loadNextProblem();
             }
         }
@@ -460,8 +492,7 @@
         }
 
         function loadNextProblem() {
-            // Check if we've completed enough questions
-            if (questionsCompleted >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -569,38 +600,31 @@
             // Hop sequentially to the clicked number
             hopToNumber(number, () => {
                 if (number === currentAnswer) {
-                    // Correct answer!
                     bunny.classList.add('jump');
                     createConfetti();
+                    /* LEGACY (pre-quizProgress)
                     correctCount++;
-                    score++;
                     questionsCompleted++;
+                    */
+                    recordQuizAnswer(true);
+                    score++;
                     document.getElementById('score').textContent = score;
-                    document.getElementById('progress').textContent = questionsCompleted;
+                    document.getElementById('progress').textContent = quiz ? quiz.progressLabel() : questionsCompleted;
                     document.getElementById('nextButton').style.display = 'block';
-                    
-                    // Check if we've completed enough questions
-                    if (questionsCompleted >= maxQuestions) {
+                    if (quizIsComplete()) {
                         document.getElementById('nextButton').textContent = 'Finish Game';
                     }
                 } else {
-                    // Wrong answer
-                    incorrectCount++;
+                    /* LEGACY (pre-quizProgress) incorrectCount++; */
+                    recordQuizAnswer(false);
                     bunny.classList.add('sad');
-                    
                     setTimeout(() => {
-                        // Turn bunny around
-                        if (currentProblem.operation === 'subtract') {
-                            bunny.classList.add('facing-left');
-                        } else {
-                            bunny.classList.remove('facing-left');
+                        bunny.classList.remove('sad');
+                        document.getElementById('progress').textContent = quiz ? quiz.progressLabel() : questionsCompleted;
+                        document.getElementById('nextButton').style.display = 'block';
+                        if (quizIsComplete()) {
+                            document.getElementById('nextButton').textContent = 'Finish Game';
                         }
-                        
-                        // Hop back to start sequentially
-                        hopToNumber(startPosition, () => {
-                            bunny.classList.remove('sad');
-                            canAnswer = true;
-                        });
                     }, 1000);
                 }
             });
@@ -631,11 +655,14 @@
             document.getElementById('nextButton').style.display = 'none';
             
             // Call Android interface to complete the game
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
@@ -649,7 +676,6 @@
         // Initialize game
         window.addEventListener('load', () => {
             loadConfig();
-            document.getElementById('maxQuestions').textContent = maxQuestions;
             createNumberLine();
             loadProblems();
             
@@ -664,7 +690,7 @@
         });
 
         document.getElementById('nextButton').addEventListener('click', () => {
-            if (questionsCompleted >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
             } else {
                 loadNextProblem();

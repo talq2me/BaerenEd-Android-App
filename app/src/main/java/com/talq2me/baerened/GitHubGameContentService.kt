@@ -22,8 +22,7 @@ class GitHubGameContentService {
 
     /**
      * Stems (`*.json` without `.json`) under `assets/ufliWordChains/`, sorted.
-     * Prefers the small GitHub Contents API for that folder (reliable on device); falls back to the
-     * recursive tree API, then to filenames bundled under `assets/ufliWordChains/` in the APK.
+     * Prefers the small GitHub Contents API for that folder; falls back to the recursive tree API.
      */
     suspend fun fetchUfliWordChainStemNamesSorted(context: Context): List<String> = withContext(Dispatchers.IO) {
         fetchUfliStemsFromContentsApi()?.takeIf { it.isNotEmpty() }?.let {
@@ -34,13 +33,8 @@ class GitHubGameContentService {
             Log.d(TAG, "fetchUfliWordChainStemNamesSorted: ${it.size} stems via tree API")
             return@withContext it
         }
-        val bundled = stemsFromBundledUfliAssets(context)
-        if (bundled.isNotEmpty()) {
-            Log.w(TAG, "fetchUfliWordChainStemNamesSorted: using ${bundled.size} bundled stems (GitHub listing failed)")
-        } else {
-            Log.w(TAG, "fetchUfliWordChainStemNamesSorted: no stems from API or assets")
-        }
-        bundled
+        Log.w(TAG, "fetchUfliWordChainStemNamesSorted: no stems from GitHub APIs")
+        emptyList()
     }
 
     private fun fetchUfliStemsFromContentsApi(): List<String>? {
@@ -103,20 +97,6 @@ class GitHubGameContentService {
         } catch (e: Exception) {
             Log.e(TAG, "fetchUfliStemsFromTreeApi exception", e)
             null
-        }
-    }
-
-    private fun stemsFromBundledUfliAssets(context: Context): List<String> {
-        return try {
-            context.assets.list("ufliWordChains")
-                ?.filter { it.endsWith(".json", ignoreCase = true) }
-                ?.map { it.dropLast(5) }
-                ?.filter { it.isNotBlank() }
-                ?.sorted()
-                .orEmpty()
-        } catch (e: Exception) {
-            Log.w(TAG, "stemsFromBundledUfliAssets", e)
-            emptyList()
         }
     }
 
@@ -201,5 +181,9 @@ class GitHubGameContentService {
         internal const val GITHUB_UFLI_CHAINS_CONTENTS_API =
             "https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/app/src/main/assets/ufliWordChains?ref=V3"
         internal const val UFLI_PREFIX = "app/src/main/assets/ufliWordChains/"
+
+        /** GitHub Pages URL for a bundled-path HTML game (never file:///android_asset). */
+        fun githubHtmlUrl(fileName: String): String =
+            "$GITHUB_PAGES_ASSETS_ROOT/html/$fileName"
     }
 }

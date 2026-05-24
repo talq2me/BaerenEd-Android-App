@@ -863,22 +863,6 @@ open class Layout(protected val activity: MainActivity) {
                 android.util.Log.d("Layout", "Launching Boukili from battle hub")
                 activity.launchBoukili(task, sectionId)
             }
-            else if (task.launch == "bookReader") {
-                val bookFile = task.url
-                if (!bookFile.isNullOrBlank()) {
-                    android.util.Log.d("Layout", "Launching Book Reader from battle hub: $bookFile")
-                    val intent = android.content.Intent(activity, BookReaderActivity::class.java).apply {
-                        putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
-                        putExtra(BookReaderActivity.EXTRA_TASK_ID, gameType)
-                        putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
-                        putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
-                        putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
-                    }
-                    activity.startActivity(intent)
-                } else {
-                    android.widget.Toast.makeText(activity, "No book file specified", android.widget.Toast.LENGTH_SHORT).show()
-                }
-            }
             else if (task.launch == "tappableText") {
                 val ttFile = task.url ?: ""
                 android.util.Log.d(
@@ -1461,33 +1445,8 @@ open class Layout(protected val activity: MainActivity) {
                         android.util.Log.d("Layout", "Handling web game task: ${task.title}, URL: ${task.url}")
                         val taskLaunchId = task.launch ?: "unknown"
                         val intent = Intent(activity, WebGameActivity::class.java).apply {
-                            var gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
-                            // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
-                            if (gameUrl.contains("talq2me.github.io") && gameUrl.contains("/html/")) {
-                                val uri = android.net.Uri.parse(gameUrl)
-                                val fileName = gameUrl.substringAfterLast("/").substringBefore("?")
-                                
-                                // Check if file exists in assets first
-                                try {
-                                    val assetManager = activity.assets
-                                    val assetPath = "html/$fileName"
-                                    val inputStream = assetManager.open(assetPath)
-                                    inputStream.close()
-                                    
-                                    // File exists in assets, convert to local asset URL
-                                    val queryParams = uri.query
-                                    gameUrl = if (queryParams != null) {
-                                        "file:///android_asset/html/$fileName?$queryParams"
-                                    } else {
-                                        "file:///android_asset/html/$fileName"
-                                    }
-                                    android.util.Log.d("Layout", "Converted to local asset URL: $gameUrl (file exists)")
-                                } catch (e: java.io.IOException) {
-                                    // File doesn't exist in assets, keep GitHub Pages URL
-                                    android.util.Log.d("Layout", "File not in assets, using GitHub Pages URL: $gameUrl")
-                                    // Keep the original GitHub URL - don't convert it
-                                }
-                            }
+                            val gameUrl = getGameModeUrl(task.url, task.easydays, task.harddays, task.extremedays)
+                            android.util.Log.d("Layout", "Web game URL (GitHub Pages): $gameUrl")
                             putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
                             putExtra(WebGameActivity.EXTRA_TASK_ID, taskLaunchId)  // Use launch ID instead of rewardId
                             putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)  // Pass section ID
@@ -1508,8 +1467,6 @@ open class Layout(protected val activity: MainActivity) {
                     } else if (task.launch == "boukili") {
                         android.util.Log.d("Layout", "Launching Boukili with tracking")
                         activity.launchBoukili(task, sectionId)
-                    } else if (task.launch == "bookReader") {
-                        launchTask(task, sectionId, null)
                     } else {
                         // Handle regular game content - use shared launchTask function
                         launchTask(task, sectionId, null)
@@ -1734,34 +1691,8 @@ open class Layout(protected val activity: MainActivity) {
             }
             
             val intent = android.content.Intent(activity, WebGameActivity::class.java).apply {
-                var finalGameUrl = gameUrl
-                // Convert GitHub Pages URL to local asset URL for Android (only if file exists in assets)
-                if (finalGameUrl.contains("talq2me.github.io") && finalGameUrl.contains("/html/")) {
-                    val uri = android.net.Uri.parse(finalGameUrl)
-                    val fileName = finalGameUrl.substringAfterLast("/").substringBefore("?")
-                    
-                    // Check if file exists in assets first
-                    try {
-                        val assetManager = activity.assets
-                        val assetPath = "html/$fileName"
-                        val inputStream = assetManager.open(assetPath)
-                        inputStream.close()
-                        
-                        // File exists in assets, convert to local asset URL
-                        val queryParams = uri.query
-                        finalGameUrl = if (queryParams != null) {
-                            "file:///android_asset/html/$fileName?$queryParams"
-                        } else {
-                            "file:///android_asset/html/$fileName"
-                        }
-                        android.util.Log.d("Layout", "Converted to local asset URL: $finalGameUrl (file exists)")
-                    } catch (e: java.io.IOException) {
-                        // File doesn't exist in assets, keep GitHub Pages URL
-                        android.util.Log.d("Layout", "File not in assets, using GitHub Pages URL: $finalGameUrl")
-                        // Keep the original GitHub URL - don't convert it
-                    }
-                }
-                putExtra(WebGameActivity.EXTRA_GAME_URL, finalGameUrl)
+                android.util.Log.d("Layout", "Web game URL (GitHub Pages): $gameUrl")
+                putExtra(WebGameActivity.EXTRA_GAME_URL, gameUrl)
                 putExtra(WebGameActivity.EXTRA_TASK_ID, sourceTaskId ?: uniqueTaskId)
                 putExtra(WebGameActivity.EXTRA_SECTION_ID, sectionId)
                 putExtra(WebGameActivity.EXTRA_STARS, task.stars ?: 0)
@@ -1784,22 +1715,6 @@ open class Layout(protected val activity: MainActivity) {
         else if (task.launch == "boukili") {
             android.util.Log.d("Layout", "Launching Boukili")
             activity.launchBoukili(task, sectionId)
-        }
-        else if (task.launch == "bookReader") {
-            val bookFile = task.url
-            if (bookFile.isNullOrBlank()) {
-                android.widget.Toast.makeText(activity, "No book file specified for bookReader task", android.widget.Toast.LENGTH_SHORT).show()
-                return
-            }
-            android.util.Log.d("Layout", "Launching Book Reader: $bookFile")
-            val intent = android.content.Intent(activity, BookReaderActivity::class.java).apply {
-                putExtra(BookReaderActivity.EXTRA_BOOK_FILE, bookFile)
-                putExtra(BookReaderActivity.EXTRA_TASK_ID, gameType)
-                putExtra(BookReaderActivity.EXTRA_SECTION_ID, sectionId)
-                putExtra(BookReaderActivity.EXTRA_STARS, task.stars ?: 0)
-                putExtra(BookReaderActivity.EXTRA_TASK_TITLE, gameTitle)
-            }
-            activity.startActivity(intent)
         }
         else if (task.launch == "tappableText") {
             val ttFile = task.url ?: ""
@@ -1970,7 +1885,7 @@ open class Layout(protected val activity: MainActivity) {
         battleHubWebView = webView
         
         // Load the battle hub HTML
-        webView.loadUrl("file:///android_asset/html/pokemonBattleHub.html")
+        webView.loadUrl(GitHubGameContentService.githubHtmlUrl("pokemonBattleHub.html"))
         
         android.util.Log.d("Layout", "Battle hub WebView created and added to main screen")
     }
@@ -2028,7 +1943,7 @@ open class Layout(protected val activity: MainActivity) {
         gymMapWebView = webView
         
         // Load the gym map HTML
-        webView.loadUrl("file:///android_asset/html/gymMap.html")
+        webView.loadUrl(GitHubGameContentService.githubHtmlUrl("gymMap.html"))
         
         android.util.Log.d("Layout", "Gym map WebView created and added to main screen")
     }
@@ -2112,9 +2027,8 @@ open class Layout(protected val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun getPokemonFileList(): String {
             return try {
-                val fileList = activity.assets.list("images/pokeSprites/sprites/pokemon")
-                    ?.filter { it.endsWith(".png") }
-                    ?: emptyList()
+                val fileList = GitHubPagesAssets.fetchPokemonManifestFilenames()
+                    .filter { it.endsWith(".png", ignoreCase = true) }
                 com.google.gson.Gson().toJson(fileList)
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error getting Pokemon file list", e)
@@ -2175,11 +2089,7 @@ open class Layout(protected val activity: MainActivity) {
         @android.webkit.JavascriptInterface
         fun loadPokemonImage(filename: String): String {
             return try {
-                val inputStream = activity.assets.open("images/pokeSprites/sprites/pokemon/$filename")
-                val bytes = inputStream.readBytes()
-                inputStream.close()
-                val base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-                "data:image/png;base64,$base64"
+                GitHubPagesAssets.pokemonImageBase64DataUrl(filename)
             } catch (e: Exception) {
                 android.util.Log.e("Layout", "Error loading Pokemon image: $filename", e)
                 ""
@@ -2188,17 +2098,9 @@ open class Layout(protected val activity: MainActivity) {
         
         @android.webkit.JavascriptInterface
         fun loadPokemonManifest(): String {
-            return try {
-                val inputStream = activity.assets.open("images/pokeSprites/sprites/pokemon/pokedex_manifest.json")
-                val size = inputStream.available()
-                val buffer = ByteArray(size)
-                inputStream.read(buffer)
-                inputStream.close()
-                String(buffer)
-            } catch (e: Exception) {
-                android.util.Log.e("Layout", "Error loading Pokemon manifest", e)
-                "[]"
-            }
+            return GitHubPagesAssets.fetchText(
+                "images/pokeSprites/sprites/pokemon/pokedex_manifest.json"
+            ) ?: "[]"
         }
         
         @android.webkit.JavascriptInterface

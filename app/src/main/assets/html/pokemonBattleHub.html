@@ -923,14 +923,8 @@
             }
         }
 
-        // Get the base URL for images (GitHub for browser, Android asset for WebView)
         function getImageBaseUrl() {
-            if (isAndroidWebView()) {
-                return null; // Will use Android interface
-            } else {
-                // Use GitHub URL for browser testing
-                return 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/pokeSprites/sprites/pokemon/';
-            }
+            return 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/pokeSprites/sprites/pokemon/';
         }
 
         // Helper function to get sprite path
@@ -945,32 +939,26 @@
 
         // Load Pokemon image - works in both browser and Android WebView
         function loadPokemonImageAsync(filename, imgElement) {
-            if (isAndroidWebView() && typeof Android.loadPokemonImage === 'function') {
-                // Android WebView: use interface to load as base64
-                try {
-                    const base64Data = Android.loadPokemonImage(filename);
-                    if (base64Data) {
-                        imgElement.src = base64Data;
-                        imgElement.onerror = null; // Clear error handler
-                    } else {
-                        imgElement.style.display = 'none';
-                        imgElement.parentElement.innerHTML = '❓';
+            const baseUrl = getImageBaseUrl();
+            imgElement.src = baseUrl + filename;
+            imgElement.onerror = function() {
+                if (isAndroidWebView() && typeof Android.loadPokemonImage === 'function') {
+                    try {
+                        const base64Data = Android.loadPokemonImage(filename);
+                        if (base64Data) {
+                            imgElement.src = base64Data;
+                            imgElement.onerror = null;
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error loading Pokemon image via Android interface:', e);
                     }
-                } catch (e) {
-                    console.error('Error loading Pokemon image via Android interface:', e);
-                    // Fallback to GitHub URL even in Android
-                    imgElement.src = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/pokeSprites/sprites/pokemon/' + filename;
                 }
-            } else {
-                // Browser: use GitHub URL directly
-                const baseUrl = getImageBaseUrl();
-                if (baseUrl) {
-                    imgElement.src = baseUrl + filename;
-                } else {
-                    // Last resort fallback
-                    imgElement.src = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/pokeSprites/sprites/pokemon/' + filename;
+                imgElement.style.display = 'none';
+                if (imgElement.parentElement) {
+                    imgElement.parentElement.innerHTML = '❓';
                 }
-            }
+            };
         }
 
         // Load Pokemon data from Android or browser
@@ -1078,9 +1066,8 @@
             }
             
             // Browser: load from GitHub
-            const manifestPath = isAndroidWebView() 
-                ? 'file:///android_asset/images/pokeSprites/sprites/pokemon/pokedex_manifest.json'
-                : 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/pokeSprites/sprites/pokemon/pokedex_manifest.json';
+            const manifestPath =
+                'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/images/pokeSprites/sprites/pokemon/pokedex_manifest.json';
             
             fetch(manifestPath)
                 .then(response => {

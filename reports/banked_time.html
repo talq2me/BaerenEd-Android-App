@@ -307,6 +307,26 @@
         <div id="error" class="error" style="display: none;"></div>
 
         <div id="content" style="display: none;">
+            <div class="section" id="audioSettingsSection">
+                <h3>🔊 Reward Audio Monitor (BaerenLock)</h3>
+                <p style="color:#666;margin-bottom:16px;">
+                    During an active reward session, BaerenLock can pause reward time if sustained loud noise is detected.
+                </p>
+                <div class="info-row">
+                    <span class="info-label">Pause reward on loud noise</span>
+                    <label>
+                        <input type="checkbox" id="audioMonitorEnabled" checked />
+                        Enabled
+                    </label>
+                </div>
+                <div class="info-row" style="margin-top:16px;">
+                    <span class="info-label">Loudness threshold (0–100)</span>
+                    <input type="range" id="audioThresholdSlider" min="0" max="100" value="75" style="width:200px;vertical-align:middle;" />
+                    <span id="audioThresholdValue">75</span>
+                </div>
+                <button class="save-button" id="saveAudioSettingsBtn" style="margin-top:16px;">Save audio settings</button>
+                <span id="audioSettingsStatus" style="margin-left:12px;color:#666;"></span>
+            </div>
             <div class="section">
                 <h3>📊 Banked Time Status</h3>
                 <div class="kids-grid" id="kidsGrid"></div>
@@ -361,17 +381,65 @@
             }
         }
 
+        /** DB reward_time_expiry is America/Toronto wall clock unless ISO has Z/offset. */
+        function parseTorontoExpiryMs(rewardTimeExpiry) {
+            if (!rewardTimeExpiry) return NaN;
+            const s = String(rewardTimeExpiry).trim();
+            if (!s) return NaN;
+            if (/Z$/i.test(s)) return Date.parse(s);
+            const iso = s.includes('T') ? s : s.replace(' ', 'T');
+            if (/[+-]\d{2}:\d{2}$/.test(iso)) return Date.parse(iso);
+            if (typeof Temporal !== 'undefined') {
+                try {
+                    return Temporal.PlainDateTime.from(iso).toZonedDateTime('America/Toronto').epochMilliseconds;
+                } catch (e) { /* fall through */ }
+            }
+            return Date.parse(s);
+        }
+
+        async function fetchRewardTimeStateRpc(kid) {
+            const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_get_reward_time_state`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ p_profile: kid })
+            });
+            if (!response.ok) return null;
+            return response.json();
+        }
+
+        function isRewardSessionActiveFromState(state) {
+            if (!state) return false;
+            if (typeof state.reward_session_active === 'boolean') return state.reward_session_active;
+            return isRewardSessionActive(state.reward_time_expiry);
+        }
+
         function isRewardSessionActive(rewardTimeExpiry) {
             if (!rewardTimeExpiry) return false;
-            const expiryMs = new Date(rewardTimeExpiry).getTime();
+            const expiryMs = parseTorontoExpiryMs(rewardTimeExpiry);
             return !isNaN(expiryMs) && expiryMs > Date.now();
+        }
+
+        function formatRewardSessionStatusFromState(state) {
+            if (!isRewardSessionActiveFromState(state)) {
+                return '<span class="session-none">No active session</span>';
+            }
+            const minsLeft = typeof state.reward_mins_remaining === 'number'
+                ? state.reward_mins_remaining
+                : Math.max(0, Math.ceil((parseTorontoExpiryMs(state.reward_time_expiry) - Date.now()) / 60000));
+            const expiry = state.reward_time_expiry;
+            return `<span class="session-active">Active — ~${minsLeft} min left (until ${formatTimestamp(expiry)})</span>`;
         }
 
         function formatRewardSessionStatus(rewardTimeExpiry) {
             if (!isRewardSessionActive(rewardTimeExpiry)) {
                 return '<span class="session-none">No active session</span>';
             }
-            const minsLeft = Math.max(0, Math.ceil((new Date(rewardTimeExpiry).getTime() - Date.now()) / 60000));
+            const expiryMs = parseTorontoExpiryMs(rewardTimeExpiry);
+            const minsLeft = Math.max(0, Math.ceil((expiryMs - Date.now()) / 60000));
             return `<span class="session-active">Active — ~${minsLeft} min left (until ${formatTimestamp(rewardTimeExpiry)})</span>`;
         }
 
@@ -391,12 +459,14 @@
                 }
 
                 const data = await response.json();
+                const rewardState = await fetchRewardTimeStateRpc(kid);
                 
                 if (!data || data.length === 0) {
                     return { 
                         kid, 
                         bankedMins: 0,
                         rewardTimeExpiry: null,
+                        rewardTimeState: rewardState,
                         lastUpdated: null 
                     };
                 }
@@ -404,7 +474,8 @@
                 return {
                     kid,
                     bankedMins: data[0].banked_mins || 0,
-                    rewardTimeExpiry: data[0].reward_time_expiry || null,
+                    rewardTimeExpiry: rewardState?.reward_time_expiry ?? data[0].reward_time_expiry ?? null,
+                    rewardTimeState: rewardState,
                     lastUpdated: data[0].last_updated || null
                 };
             } catch (error) {
@@ -435,7 +506,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Reward Session:</span>
-                    <span id="reward-session-${kidData.kid}" class="info-value">${formatRewardSessionStatus(kidData.rewardTimeExpiry)}</span>
+                    <span id="reward-session-${kidData.kid}" class="info-value">${kidData.rewardTimeState ? formatRewardSessionStatusFromState(kidData.rewardTimeState) : formatRewardSessionStatus(kidData.rewardTimeExpiry)}</span>
                 </div>
                 <div class="info-row">
                     <button class="danger-button" onclick="expireRewardTime('${kidData.kid}')">Expire Reward Time</button>
@@ -488,7 +559,9 @@
             }
             const sessionEl = document.getElementById(`reward-session-${profile}`);
             if (sessionEl) {
-                sessionEl.innerHTML = formatRewardSessionStatus(refreshed.rewardTimeExpiry);
+                sessionEl.innerHTML = refreshed.rewardTimeState
+                    ? formatRewardSessionStatusFromState(refreshed.rewardTimeState)
+                    : formatRewardSessionStatus(refreshed.rewardTimeExpiry);
             }
             const lastUpdatedEl = document.getElementById(`last-updated-${profile}`);
             if (lastUpdatedEl) {
@@ -602,6 +675,75 @@
             }
         }
 
+        async function loadAudioSettings() {
+            const response = await fetch(
+                `${supabaseUrl}/rest/v1/settings?select=reward_audio_monitor_enabled,reward_audio_loudness_threshold&id=eq.1`,
+                {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            if (!response.ok) {
+                throw new Error(`Failed to load audio settings: ${response.status}`);
+            }
+            const rows = await response.json();
+            const row = rows && rows[0] ? rows[0] : {};
+            const enabled = row.reward_audio_monitor_enabled !== false;
+            const threshold = row.reward_audio_loudness_threshold != null
+                ? Number(row.reward_audio_loudness_threshold)
+                : 75;
+            document.getElementById('audioMonitorEnabled').checked = enabled;
+            const slider = document.getElementById('audioThresholdSlider');
+            slider.value = Math.min(100, Math.max(0, threshold));
+            document.getElementById('audioThresholdValue').textContent = slider.value;
+        }
+
+        async function saveAudioSettings() {
+            const enabled = document.getElementById('audioMonitorEnabled').checked;
+            const threshold = parseInt(document.getElementById('audioThresholdSlider').value, 10);
+            const statusEl = document.getElementById('audioSettingsStatus');
+            statusEl.textContent = 'Saving...';
+            const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_upsert_settings_row`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    p_parent_email: null,
+                    p_pin: null,
+                    p_aggressive_cleanup: null,
+                    p_reward_audio_monitor_enabled: enabled,
+                    p_reward_audio_loudness_threshold: threshold
+                })
+            });
+            if (!response.ok) {
+                const err = await response.text();
+                statusEl.textContent = '';
+                throw new Error(`Save failed: ${response.status} ${err}`);
+            }
+            statusEl.textContent = 'Saved';
+            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        }
+
+        function setupAudioSettingsUi() {
+            const slider = document.getElementById('audioThresholdSlider');
+            slider.addEventListener('input', () => {
+                document.getElementById('audioThresholdValue').textContent = slider.value;
+            });
+            document.getElementById('saveAudioSettingsBtn').addEventListener('click', async () => {
+                try {
+                    await saveAudioSettings();
+                } catch (e) {
+                    alert(e.message);
+                }
+            });
+        }
+
         // Load and display data
         async function loadData() {
             if (!supabaseUrl || !supabaseKey) {
@@ -634,6 +776,13 @@
                 kidsGrid.innerHTML = '';
                 kidsGrid.appendChild(createKidCard(amData));
                 kidsGrid.appendChild(createKidCard(bmData));
+
+                try {
+                    await loadAudioSettings();
+                    setupAudioSettingsUi();
+                } catch (audioErr) {
+                    console.warn('Audio settings load failed:', audioErr);
+                }
 
                 document.getElementById('content').style.display = 'block';
             } catch (error) {

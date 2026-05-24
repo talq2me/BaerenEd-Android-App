@@ -114,6 +114,7 @@
     <button id="playAgainButton" class="button">Play Sound Again</button>
 </div>
 
+<script src="quizProgress.js"></script>
 <script>
     // --- Minimal TTS Function ---
     window.currentTTSUtterance = null;
@@ -160,12 +161,36 @@
     let correctCount = 0;
     let incorrectCount = 0;
 
+    let quiz = null;
+    function initQuizProgress(defaultRequired) {
+        quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+        syncQuizVars();
+    }
+    function syncQuizVars() {
+        if (!quiz) return;
+        correctCount = quiz.getCorrectCount();
+        incorrectCount = quiz.getIncorrectCount();
+    }
+    function recordQuizAnswer(wasCorrect) {
+        const r = quiz.recordAnswer(wasCorrect);
+        syncQuizVars();
+        return r;
+    }
+    function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+    /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
+    let currentQuestionFirstAttempt = true;
+    */
+
     let currentQuestionFirstAttempt = true;
 
     function initializeGame() {
         solvedCardIds.clear();
+        /* LEGACY (pre-quizProgress)
         correctCount = 0;
         incorrectCount = 0;
+        */
+        initQuizProgress(9);
         generateVowelCards();
         renderGrid();
         setTimeout(playRandomVowelSound, 1000);
@@ -197,6 +222,17 @@
     }
 
     async function playRandomVowelSound() {
+        /* LEGACY (pre-quizProgress)
+        const unsolvedCards = currentVowelCards.filter((_, index) => !solvedCardIds.has(index));
+        if (unsolvedCards.length === 0) {
+            endGame();
+            return;
+        }
+        */
+        if (quizIsComplete()) {
+            endGame();
+            return;
+        }
         const unsolvedCards = currentVowelCards.filter((_, index) => !solvedCardIds.has(index));
         if (unsolvedCards.length === 0) {
             endGame();
@@ -220,17 +256,21 @@
             solvedCardIds.add(cardId);
             tile.classList.add('solved');
             if (currentQuestionFirstAttempt) {
-                correctCount++;
+                /* LEGACY (pre-quizProgress) correctCount++; */
+                recordQuizAnswer(true);
+                currentQuestionFirstAttempt = false;
             }
 
-            if (solvedCardIds.size === currentVowelCards.length) {
+            /* LEGACY (pre-quizProgress) if (solvedCardIds.size === currentVowelCards.length) */
+            if (quizIsComplete()) {
                 endGame();
             } else {
                 setTimeout(playRandomVowelSound, 1000);
             }
         } else {
             if (currentQuestionFirstAttempt) {
-                incorrectCount++;
+                /* LEGACY (pre-quizProgress) incorrectCount++; */
+                recordQuizAnswer(false);
                 currentQuestionFirstAttempt = false; // Mark that we've had the first attempt
             }
             tile.classList.add('correct'); // Temporarily show it was incorrect by using 'correct' style
@@ -238,6 +278,8 @@
             setTimeout(() => {
                 tile.classList.remove('correct');
                 tile.style.backgroundColor = ''; // Revert color
+                if (quizIsComplete()) endGame();
+                else playRandomVowelSound();
             }, 1000);
         }
     }
@@ -256,7 +298,7 @@
         gridContainer.innerHTML = `<div class="tile correct" style="grid-column: 1 / -1; font-size: 2rem; aspect-ratio: auto; height: 200px;">🎉 Bien joué! 🎉</div>`;
         readText("Félicitations!", "fr-FR", 0.6);
 
-        // Call the Android interface to signal video completion and grant rewards
+        /* LEGACY (pre-quizProgress)
         if (window.Android && typeof window.Android.gameCompleted === 'function') {
             window.Android.gameCompleted(correctCount, incorrectCount);
         } else if (window.parent && window.parent !== window) {
@@ -265,6 +307,15 @@
         } else {
             setTimeout(() => history.back(), 3000);
         }
+        */
+        if (quiz) quiz.notifyAndroidComplete();
+        setTimeout(() => {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'closeModal' }, '*');
+            } else {
+                history.back();
+            }
+        }, 3000);
     }
 
     document.addEventListener('DOMContentLoaded', initializeGame);

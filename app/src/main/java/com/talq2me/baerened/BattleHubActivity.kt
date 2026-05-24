@@ -164,20 +164,17 @@ class BattleHubActivity : AppCompatActivity() {
         // Set arena background image (prefer .webp, fall back to .png)
         window.setBackgroundDrawableResource(android.R.color.transparent)
         val root = window.decorView.rootView
-        try {
-            val path = try {
-                assets.open("images/arena.webp").close()
-                "images/arena.webp"
-            } catch (_: Exception) {
-                "images/arena.png"
+        lifecycleScope.launch(Dispatchers.IO) {
+            val bitmap = GitHubPagesAssets.fetchBitmapPreferWebp("images/arena")
+            withContext(Dispatchers.Main) {
+                if (isDestroyed || isFinishing) return@withContext
+                if (bitmap != null) {
+                    root.background = android.graphics.drawable.BitmapDrawable(resources, bitmap)
+                } else {
+                    android.util.Log.e("BattleHubActivity", "Could not load arena from GitHub Pages")
+                    root.setBackgroundColor(0xFF667EEA.toInt())
+                }
             }
-            val bitmap = android.graphics.BitmapFactory.decodeStream(assets.open(path))
-            val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
-            root.background = drawable
-        } catch (e: Exception) {
-            // Fallback to gradient if image not found
-            android.util.Log.e("BattleHubActivity", "Could not load arena.webp or arena.png", e)
-            root.setBackgroundColor(0xFF667EEA.toInt())
         }
         
         // Views are already initialized in onCreate(), just finish setup
@@ -984,8 +981,9 @@ class BattleHubActivity : AppCompatActivity() {
     private fun loadPokemonData() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val manifestJson = assets.open("images/pokeSprites/sprites/pokemon/pokedex_manifest.json")
-                    .bufferedReader().use { it.readText() }
+                val manifestJson = GitHubPagesAssets.fetchText(
+                    "images/pokeSprites/sprites/pokemon/pokedex_manifest.json"
+                ) ?: return@launch
                 val fileList = JSONArray(manifestJson) // This is an array of strings (filenames)
                 
                 val progressManager = DailyProgressManager(this@BattleHubActivity)
@@ -1118,11 +1116,7 @@ class BattleHubActivity : AppCompatActivity() {
     
     private fun loadPokemonSpriteAsBase64(filename: String): String? {
         return try {
-            val inputStream = assets.open("images/pokeSprites/sprites/pokemon/$filename")
-            val bytes = inputStream.readBytes()
-            inputStream.close()
-            val base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-            "data:image/png;base64,$base64"
+            GitHubPagesAssets.pokemonImageBase64DataUrl(filename).takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
             android.util.Log.e("BattleHubActivity", "Error loading Pokemon image: $filename", e)
             null

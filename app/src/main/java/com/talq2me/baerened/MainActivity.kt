@@ -1174,7 +1174,10 @@ class MainActivity : AppCompatActivity() {
     fun openBattleHub() {
         Log.d(TAG, "Opening Pokemon Battle Hub")
         val intent = Intent(this, WebGameActivity::class.java).apply {
-            putExtra(WebGameActivity.EXTRA_GAME_URL, "file:///android_asset/html/pokemonBattleHub.html")
+            putExtra(
+                WebGameActivity.EXTRA_GAME_URL,
+                GitHubGameContentService.githubHtmlUrl("pokemonBattleHub.html")
+            )
             putExtra(WebGameActivity.EXTRA_TASK_ID, "battleHub")
             putExtra(WebGameActivity.EXTRA_TASK_TITLE, "Pokemon Battle Hub")
         }

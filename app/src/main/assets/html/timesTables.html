@@ -137,6 +137,7 @@
     </div>
 </div>
 
+<script src="quizProgress.js"></script>
 <script>
     // --- Minimal TTS Function ---
     window.currentTTSUtterance = null;
@@ -189,6 +190,23 @@
     let correctCount = 0;
     let incorrectCount = 0;
 
+    let quiz = null;
+    function initQuizProgress(defaultRequired) {
+        quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+        syncQuizVars();
+    }
+    function syncQuizVars() {
+        if (!quiz) return;
+        correctCount = quiz.getCorrectCount();
+        incorrectCount = quiz.getIncorrectCount();
+    }
+    function recordQuizAnswer(wasCorrect) {
+        const r = quiz.recordAnswer(wasCorrect);
+        syncQuizVars();
+        return r;
+    }
+    function quizIsComplete() { return quiz && quiz.isComplete(); }
+
     function initializeGame() {
         setupSelectorModal();
         // Allow initialization even if locked (to generate questions and render grid)
@@ -225,8 +243,7 @@
         currentTimesTable = num;
         solvedCount = 0;
         activeTile = null;
-        correctCount = 0;
-        incorrectCount = 0;
+        initQuizProgress(10);
         generateQuestions();
         renderGrid();
         setTimeout(revealRandomTile, 800);
@@ -307,13 +324,15 @@
         solvedCount++;
         // Only count as correct if this is the first answer attempt for this question
         if (!question.firstAnswerCounted) {
-            correctCount++;
+            /* LEGACY (pre-quizProgress) correctCount++; */
+            recordQuizAnswer(true);
             question.firstAnswerCounted = true; // Mark that we've counted the first answer
         }
         tile.classList.add('correct');
         tile.querySelector('.tile-front').innerHTML = `${question.multiplicand} &times; ${question.multiplier} = ${question.answer}`;
         readText("Correct!", "en-US");
-        if (solvedCount === questions.length) {
+        /* LEGACY (pre-quizProgress) if (solvedCount === questions.length) */
+        if (quizIsComplete()) {
             endGame();
         } else {
             setTimeout(revealRandomTile, 1000);
@@ -323,7 +342,8 @@
     function handleIncorrectAnswer(tile, question) {
         // Only count as incorrect if this is the first answer attempt for this question
         if (!question.firstAnswerCounted) {
-            incorrectCount++;
+            /* LEGACY (pre-quizProgress) incorrectCount++; */
+            recordQuizAnswer(false);
             question.firstAnswerCounted = true; // Mark that we've counted the first answer
         }
         question.revealed = false;
@@ -357,11 +377,14 @@
     function endGame() {
         gridContainer.innerHTML = `<div class="tile correct" style="grid-column: 1 / -1; font-size: 2rem; aspect-ratio: auto; height: 200px;">🎉 Well Done! 🎉</div>`;
         readText("Great job! You're a multiplying master'!", "en-US");
+        /* LEGACY (pre-quizProgress)
         if (window.Android && typeof window.Android.gameCompleted === 'function') {
             window.Android.gameCompleted(correctCount, incorrectCount);
         } else if (window.parent && window.parent !== window) {
             window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
         }
+        */
+        if (quiz) quiz.notifyAndroidComplete();
         setTimeout(() => {
             if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'closeModal' }, '*');

@@ -198,6 +198,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -226,6 +227,26 @@
         let incorrectCount = 0;
         let maxQuestions = 3;
         let currentQuest = null;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
         let currentLocationIndex = 0;
         let selectedOption = null;
 
@@ -296,17 +317,17 @@
         }
 
         function startGame() {
-            // Shuffle quests array to ensure different quests are played each time
             quests = shuffleArray(quests);
             currentQuestIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             updateStarCount();
             loadQuest();
         }
 
         function loadQuest() {
-            if (currentQuestIndex >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -410,7 +431,8 @@
                 showProblem(location.problem);
             } else if (index === currentQuest.locations.length - 1) {
                 // Treasure reached!
-                correctCount++;
+                /* LEGACY (pre-quizProgress) correctCount++; */
+                recordQuizAnswer(true);
                 updateStarCount();
                 document.getElementById('problemDisplay').innerHTML = 
                     '<h2 style="text-align: center; color: #ffd700;">🎉 Treasure Found! 🎉</h2>';
@@ -477,6 +499,8 @@
                 }
             });
             
+            recordQuizAnswer(isCorrect);
+            updateStarCount();
             if (isCorrect) {
                 document.getElementById('feedbackContainer').innerHTML = 
                     '<div class="feedback correct">✓ Correct! You can continue!</div>';
@@ -485,11 +509,13 @@
                     showLocation(currentLocationIndex);
                 }, 2000);
             } else {
-                incorrectCount++;
+                /* LEGACY (pre-quizProgress) incorrectCount++; */
                 document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback" style="background: #f8d7da; color: #721c24;">✗ Try again!</div>';
+                    '<div class="feedback" style="background: #f8d7da; color: #721c24;">✗ Not quite. Moving on...</div>';
+                currentLocationIndex++;
                 setTimeout(() => {
-                    showProblem(problem);
+                    if (quizIsComplete()) endGame();
+                    else showLocation(currentLocationIndex);
                 }, 2000);
             }
         }
@@ -506,7 +532,7 @@
         }
 
         function updateStarCount() {
-            document.getElementById("starCount").innerText = `⭐ ${correctCount} / ${maxQuestions}`;
+            document.getElementById("starCount").innerText = quiz ? `⭐ ${quiz.progressLabel()}` : `⭐ ${correctCount} / ${maxQuestions}`;
         }
 
         function endGame() {
@@ -516,11 +542,14 @@
                 `<p style="text-align: center; font-size: 1.5em;">Final Score: ${correctCount}/${maxQuestions}⭐</p>`;
             document.querySelector('.button-container').innerHTML = '';
             
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');

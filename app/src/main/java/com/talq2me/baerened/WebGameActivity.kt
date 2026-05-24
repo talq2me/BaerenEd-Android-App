@@ -354,32 +354,18 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun loadPokemonManifest(): String {
-            return try {
-                val inputStream: InputStream = assets.open("images/pokeSprites/sprites/pokemon/pokedex_manifest.json")
-                val size = inputStream.available()
-                val buffer = ByteArray(size)
-                inputStream.read(buffer)
-                inputStream.close()
-                String(buffer, Charset.forName("UTF-8"))
-            } catch (e: IOException) {
-                android.util.Log.e("WebGameActivity", "Error loading Pokemon manifest", e)
-                "[]"
-            }
+            return GitHubPagesAssets.fetchText(
+                "images/pokeSprites/sprites/pokemon/pokedex_manifest.json"
+            ) ?: "[]"
         }
 
         @JavascriptInterface
         fun loadPokemonImage(filename: String): String {
             return try {
-                val inputStream: InputStream = assets.open("images/pokeSprites/sprites/pokemon/$filename")
-                val size = inputStream.available()
-                val buffer = ByteArray(size)
-                inputStream.read(buffer)
-                inputStream.close()
-                val base64 = android.util.Base64.encodeToString(buffer, android.util.Base64.NO_WRAP)
-                "data:image/png;base64,$base64"
+                GitHubPagesAssets.pokemonImageBase64DataUrl(filename)
             } catch (e: Exception) {
                 android.util.Log.e("WebGameActivity", "Error loading Pokemon image: $filename", e)
-                "" // Return empty string on error
+                ""
             }
         }
 
@@ -396,8 +382,8 @@ class WebGameActivity : AppCompatActivity() {
         @JavascriptInterface
         fun getPokemonFileList(): String {
             return try {
-                val files = assets.list("images/pokeSprites/sprites/pokemon") ?: emptyArray()
-                val pngFiles = files.filter { it.endsWith(".png") }
+                val pngFiles = GitHubPagesAssets.fetchPokemonManifestFilenames()
+                    .filter { it.endsWith(".png", ignoreCase = true) }
                 JSONArray(pngFiles).toString()
             } catch (e: Exception) {
                 android.util.Log.e("WebGameActivity", "Error getting Pokemon file list", e)

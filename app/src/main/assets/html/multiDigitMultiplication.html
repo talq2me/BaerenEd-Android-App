@@ -311,6 +311,7 @@
         </div>
     </div>
 
+    <script src="quizProgress.js"></script>
     <script>
         let currentProblem = null;
         let score = 0;
@@ -319,6 +320,28 @@
         let problems = [];
         let currentProblemIndex = 0;
         let canAnswer = true;
+        let maxQuestions = 10;
+        let questionsCompleted = 0;
+
+        let quiz = null;
+        function initQuizProgress(defaultRequired) {
+            quiz = QuizProgress.create({ defaultRequired: defaultRequired });
+            syncQuizVars();
+        }
+        function syncQuizVars() {
+            if (!quiz) return;
+            correctCount = quiz.getCorrectCount();
+            incorrectCount = quiz.getIncorrectCount();
+            if (typeof maxQuestions !== 'undefined') maxQuestions = quiz.getRequiredCorrect();
+        }
+        function recordQuizAnswer(wasCorrect) {
+            const r = quiz.recordAnswer(wasCorrect);
+            syncQuizVars();
+            return r;
+        }
+        function quizIsComplete() { return quiz && quiz.isComplete(); }
+
+        /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below
         const urlParams = new URLSearchParams(window.location.search);
         const totalQuestionsParam = urlParams.get('totalQuestions');
         let maxQuestions = 10;
@@ -328,8 +351,9 @@
                 maxQuestions = parsed;
             }
         }
-        
-        let questionsCompleted = 0;
+        */
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalQuestionsParam = urlParams.get('totalQuestions');
         let allInputs = [];  // All inputs in focus order (right to left: first digit first)
         let skipCursorMove = false;
         let additionCarryRowRef = null;  // Shown when kid starts the addition (answer) row
@@ -860,13 +884,16 @@
             });
             if (allFilled && allCorrect) {
                 createConfetti();
+                /* LEGACY (pre-quizProgress)
                 correctCount++;
-                score++;
                 questionsCompleted++;
+                */
+                recordQuizAnswer(true);
+                score++;
                 document.getElementById('score').textContent = score;
-                document.getElementById('progress').textContent = questionsCompleted;
+                document.getElementById('progress').textContent = quiz ? quiz.progressLabel() : questionsCompleted;
                 document.getElementById('nextButton').style.display = 'block';
-                if (questionsCompleted >= maxQuestions) {
+                if (quizIsComplete()) {
                     document.getElementById('nextButton').textContent = 'Finish Game';
                 }
                 allInputs.forEach(inp => { inp.disabled = true; });
@@ -882,7 +909,7 @@
         }
 
         function loadNextProblem() {
-            if (questionsCompleted >= maxQuestions) {
+            if (quizIsComplete()) {
                 endGame();
                 return;
             }
@@ -921,11 +948,14 @@
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('hintText').style.display = 'none';
             document.getElementById('nextButton').style.display = 'none';
+            /* LEGACY (pre-quizProgress)
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount);
             } else if (window.parent && window.parent !== window) {
                 window.parent.postMessage({ type: 'gameCompleted', correct: correctCount, incorrect: incorrectCount }, '*');
             }
+            */
+            if (quiz) quiz.notifyAndroidComplete();
             setTimeout(() => {
                 if (window.parent && window.parent !== window) {
                     window.parent.postMessage({ type: 'closeModal' }, '*');
@@ -986,15 +1016,18 @@
 
         window.addEventListener('load', () => {
             loadConfig();
+            generateProblems();
+            initQuizProgress(maxQuestions);
+            if (quiz) quiz.setRequiredCorrect(maxQuestions);
+            syncQuizVars();
             const maxEl = document.getElementById('maxQuestions');
             if (maxEl) maxEl.textContent = maxQuestions;
-            generateProblems();
             setupNumberPad();
             loadNextProblem();
         });
 
         document.getElementById('nextButton').addEventListener('click', () => {
-            if (questionsCompleted >= maxQuestions) endGame();
+            if (quizIsComplete()) endGame();
             else loadNextProblem();
         });
     </script>

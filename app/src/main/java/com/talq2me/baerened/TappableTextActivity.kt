@@ -1,6 +1,5 @@
 package com.talq2me.baerened
 
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -217,7 +216,7 @@ class TappableTextActivity : AppCompatActivity() {
     private var lastTappedSpanNanos: Long = 0L
 
     private val httpClient = OkHttpClient.Builder().build()
-    private val githubAssetsBase = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets"
+    private val githubAssetsBase get() = GitHubGameContentService.GITHUB_PAGES_ASSETS_ROOT
     private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/V3?recursive=1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -1526,14 +1525,9 @@ class TappableTextActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             var bitmap: android.graphics.Bitmap? = null
             for (path in tryPaths) {
-                try {
-                    assets.open(path).use { stream ->
-                        bitmap = BitmapFactory.decodeStream(stream)
-                    }
-                    if (bitmap != null) break
-                } catch (_: Exception) {
-                    continue
-                }
+                bitmap = GitHubPagesAssets.fetchBitmapWithWebpFallback(path)
+                    ?: GitHubPagesAssets.fetchBitmap(path)
+                if (bitmap != null) break
             }
             withContext(Dispatchers.Main) {
                 // Drop the result if the user already turned the page.

@@ -184,6 +184,9 @@ CREATE TABLE IF NOT EXISTS settings (
     parent_email VARCHAR(128),
     pin VARCHAR(8),
     aggressive_cleanup BOOLEAN DEFAULT true,
+    -- BaerenLock GuardianForegroundService: parent-configurable reward audio monitoring
+    reward_audio_monitor_enabled BOOLEAN DEFAULT true,
+    reward_audio_loudness_threshold INTEGER DEFAULT 75,
     last_updated TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto')
 );
 
