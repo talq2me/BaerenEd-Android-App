@@ -1,0 +1,86 @@
+[
+  {
+    "prompt": { "text": "Write the word sunny.", "lang": "eng", "displayText": true },
+    "question": { "text": "sunny", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "u" }, { "text": "n" }, { "text": "n" }, { "text": "y" }],
+    "extraChoices": [{ "text": "f" }, { "text": "b" }]
+  },
+  {
+    "prompt": { "text": "Say sunny. Change s to f. Build funny.", "lang": "eng", "displayText": true },
+    "question": { "text": "funny", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "u" }, { "text": "n" }, { "text": "n" }, { "text": "y" }],
+    "extraChoices": [{ "text": "s" }, { "text": "b" }]
+  },
+  {
+    "prompt": { "text": "Say funny. Change f to b. Build bunny.", "lang": "eng", "displayText": true },
+    "question": { "text": "bunny", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "u" }, { "text": "n" }, { "text": "n" }, { "text": "y" }],
+    "extraChoices": [{ "text": "f" }, { "text": "d" }]
+  },
+  {
+    "prompt": { "text": "Say bunny. Change nn to dd. Build buddy.", "lang": "eng", "displayText": true },
+    "question": { "text": "buddy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "u" }, { "text": "d" }, { "text": "d" }, { "text": "y" }],
+    "extraChoices": [{ "text": "n" }, { "text": "f" }]
+  },
+  {
+    "prompt": { "text": "Write the word happy.", "lang": "eng", "displayText": true },
+    "question": { "text": "happy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "a" }, { "text": "p" }, { "text": "p" }, { "text": "y" }],
+    "extraChoices": [{ "text": "o" }, { "text": "u" }]
+  },
+  {
+    "prompt": { "text": "Say happy. Change a to o. Build hoppy.", "lang": "eng", "displayText": true },
+    "question": { "text": "hoppy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "o" }, { "text": "p" }, { "text": "p" }, { "text": "y" }],
+    "extraChoices": [{ "text": "a" }, { "text": "u" }]
+  },
+  {
+    "prompt": { "text": "Say hoppy. Change h to p. Build poppy.", "lang": "eng", "displayText": true },
+    "question": { "text": "poppy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "o" }, { "text": "p" }, { "text": "p" }, { "text": "y" }],
+    "extraChoices": [{ "text": "h" }, { "text": "u" }]
+  },
+  {
+    "prompt": { "text": "Say poppy. Change o to u. Build puppy.", "lang": "eng", "displayText": true },
+    "question": { "text": "puppy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "u" }, { "text": "p" }, { "text": "p" }, { "text": "y" }],
+    "extraChoices": [{ "text": "o" }, { "text": "h" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: muddy.", "lang": "eng", "displayText": true },
+    "question": { "text": "muddy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "u" }, { "text": "d" }, { "text": "d" }, { "text": "y" }],
+    "extraChoices": [{ "text": "n" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: penny.", "lang": "eng", "displayText": true },
+    "question": { "text": "penny", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "e" }, { "text": "n" }, { "text": "n" }, { "text": "y" }],
+    "extraChoices": [{ "text": "d" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: lady.", "lang": "eng", "displayText": true },
+    "question": { "text": "lady", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "d" }, { "text": "y" }],
+    "extraChoices": [{ "text": "t" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: tiny.", "lang": "eng", "displayText": true },
+    "question": { "text": "tiny", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "i" }, { "text": "n" }, { "text": "y" }],
+    "extraChoices": [{ "text": "d" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: forty. (The woman is not forty.)", "lang": "eng", "displayText": true },
+    "question": { "text": "forty", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "o" }, { "text": "r" }, { "text": "t" }, { "text": "y" }],
+    "extraChoices": [{ "text": "u" }, { "text": "e" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: teddy. (I will bring a teddy for the baby.)", "lang": "eng", "displayText": true },
+    "question": { "text": "teddy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "e" }, { "text": "d" }, { "text": "d" }, { "text": "y" }],
+    "extraChoices": [{ "text": "n" }, { "text": "p" }]
+  }
+]

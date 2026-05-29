@@ -1,0 +1,77 @@
+{
+  "id": "ufli-fr-la-promenade-de-lea-l69",
+  "title": "La promenade de Léa (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Cet été, Léa est allée au lac Beaudet.",
+        "Près du lac, elle a fait une promenade.",
+        "Elle a apporté un sifflet, un filet et un seau.",
+        "Elle a trouvé des objets intéressants.",
+        "Elle a aussi vu des arbustes de bleuets.",
+        "Léa adore les bleuets. Elle en a ramassé et les a mis dans son seau.",
+        "Pendant sa promenade, elle a aussi trouvé un magnifique bouquet de fleurs sauvages.",
+        "Elle a pris le bouquet pour l'apporter au chalet."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'lake'.", "correct_word": "lac" },
+        { "id": "p1_tw2", "prompt": "Tape les petits fruits que Léa ramasse.", "correct_word": "bleuets" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'bouquet'.", "correct_word": "bouquet" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Où Léa met-elle les bleuets qu'elle ramasse ?",
+        "options": ["Dans son seau", "Sur le train", "Dans la tondeuse", "Dans les choux"],
+        "correct_index": 0
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "De retour au chalet, Léa a décidé de compter les bleuets qu'elle avait ramassés.",
+        "Un, deux, trois... il y en avait beaucoup!",
+        "Puis, elle a mis les bleuets dans un bol.",
+        "C'était le moment de les laver.",
+        "Elle a essayé d'ouvrir le robinet. Oh non! Elle avait du mal à l'ouvrir.",
+        "Sa maman l'a aidée à le faire.",
+        "Après avoir lavé les bleuets, Léa les a placés dans un filet pour les sécher."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'faucet'.", "correct_word": "robinet" },
+        { "id": "p2_tw2", "prompt": "Tape le verbe pour nettoyer les bleuets.", "correct_word": "laver" },
+        { "id": "p2_tw3", "prompt": "Tape l'objet où Léa met les bleuets pour sécher.", "correct_word": "filet" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Qui aide Léa à ouvrir le robinet ?",
+        "options": ["Son copain", "Sa maman", "Monsieur Garant", "Le conducteur du train"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Mmmm. Les bleuets étaient prêts à être mangés!",
+        "Le bouquet de fleurs a été posé sur la table du chalet pour la décorer.",
+        "Léa était contente de sa journée au lac Beaudet.",
+        "Elle avait trouvé des bleuets délicieux et un joli bouquet de fleurs sauvages.",
+        "Après avoir savouré ses bleuets, elle s'est sentie fière d'avoir passé un si beau moment en plein air.",
+        "Le chalet, décoré avec le bouquet de fleurs, devenait encore plus chaleureux.",
+        "C'était une journée parfaite, pleine de découvertes et de petites joies simples!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p3_tw1", "prompt": "Tape le mot qui veut dire 'proud'.", "correct_word": "fière" },
+        { "id": "p3_tw2", "prompt": "Tape le mot qui veut dire 'cozy'.", "correct_word": "chaleureux" },
+        { "id": "p3_tw3", "prompt": "Tape le mot qui veut dire 'perfect'.", "correct_word": "parfaite" }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Comment Léa se sent-elle après avoir savouré ses bleuets ?",
+        "options": ["En colère", "Fière", "Fatiguée de la neige", "Triste"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

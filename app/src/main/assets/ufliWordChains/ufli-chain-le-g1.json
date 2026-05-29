@@ -1,0 +1,92 @@
+[
+  {
+    "prompt": { "text": "Write the word jiggle.", "lang": "eng", "displayText": true },
+    "question": { "text": "jiggle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "j" }, { "text": "i" }, { "text": "g" }, { "text": "g" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "w" }, { "text": "o" }]
+  },
+  {
+    "prompt": { "text": "Say jiggle. Change j to w. Build wiggle.", "lang": "eng", "displayText": true },
+    "question": { "text": "wiggle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "i" }, { "text": "g" }, { "text": "g" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "j" }, { "text": "o" }]
+  },
+  {
+    "prompt": { "text": "Say wiggle. Change w to g. Build giggle.", "lang": "eng", "displayText": true },
+    "question": { "text": "giggle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "g" }, { "text": "i" }, { "text": "g" }, { "text": "g" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "w" }, { "text": "o" }]
+  },
+  {
+    "prompt": { "text": "Say giggle. Change i to o. Build goggle.", "lang": "eng", "displayText": true },
+    "question": { "text": "goggle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "g" }, { "text": "o" }, { "text": "g" }, { "text": "g" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "i" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Write the word muzzle.", "lang": "eng", "displayText": true },
+    "question": { "text": "muzzle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "u" }, { "text": "z" }, { "text": "z" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "p" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Say muzzle. Change m to p. Build puzzle.", "lang": "eng", "displayText": true },
+    "question": { "text": "puzzle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "u" }, { "text": "z" }, { "text": "z" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "m" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Say puzzle. Change p to n. Build nuzzle.", "lang": "eng", "displayText": true },
+    "question": { "text": "nuzzle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "n" }, { "text": "u" }, { "text": "z" }, { "text": "z" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "p" }, { "text": "o" }]
+  },
+  {
+    "prompt": { "text": "Say nuzzle. Change u to o. Build nozzle.", "lang": "eng", "displayText": true },
+    "question": { "text": "nozzle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "n" }, { "text": "o" }, { "text": "z" }, { "text": "z" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "u" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: table.", "lang": "eng", "displayText": true },
+    "question": { "text": "table", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "a" }, { "text": "b" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "p" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: saddle.", "lang": "eng", "displayText": true },
+    "question": { "text": "saddle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "a" }, { "text": "d" }, { "text": "d" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "t" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: settle.", "lang": "eng", "displayText": true },
+    "question": { "text": "settle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "e" }, { "text": "t" }, { "text": "t" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "d" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: meddle.", "lang": "eng", "displayText": true },
+    "question": { "text": "meddle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "e" }, { "text": "d" }, { "text": "d" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "s" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: simple.", "lang": "eng", "displayText": true },
+    "question": { "text": "simple", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "i" }, { "text": "m" }, { "text": "p" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "t" }, { "text": "d" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: people. (The people jump in the puddle.)", "lang": "eng", "displayText": true },
+    "question": { "text": "people", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "e" }, { "text": "o" }, { "text": "p" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "a" }, { "text": "u" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: shuttle. (They will take the next shuttle.)", "lang": "eng", "displayText": true },
+    "question": { "text": "shuttle", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "h" }, { "text": "u" }, { "text": "t" }, { "text": "t" }, { "text": "l" }, { "text": "e" }],
+    "extraChoices": [{ "text": "p" }, { "text": "d" }]
+  }
+]

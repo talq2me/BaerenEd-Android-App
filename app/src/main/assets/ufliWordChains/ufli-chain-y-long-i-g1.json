@@ -1,0 +1,74 @@
+[
+  {
+    "prompt": { "text": "Make the word cry.", "lang": "eng", "displayText": true },
+    "question": { "text": "cry", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "c" }, { "text": "r" }, { "text": "y" }],
+    "extraChoices": [{ "text": "t" }, { "text": "d" }]
+  },
+  {
+    "prompt": { "text": "Say cry. Change c to t. Build try.", "lang": "eng", "displayText": true },
+    "question": { "text": "try", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "t" }, { "text": "r" }, { "text": "y" }],
+    "extraChoices": [{ "text": "c" }, { "text": "d" }]
+  },
+  {
+    "prompt": { "text": "Say try. Change t to d. Build dry.", "lang": "eng", "displayText": true },
+    "question": { "text": "dry", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "d" }, { "text": "r" }, { "text": "y" }],
+    "extraChoices": [{ "text": "t" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Say dry. Change d to p. Build pry.", "lang": "eng", "displayText": true },
+    "question": { "text": "pry", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "r" }, { "text": "y" }],
+    "extraChoices": [{ "text": "d" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Make the word fry.", "lang": "eng", "displayText": true },
+    "question": { "text": "fry", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "r" }, { "text": "y" }],
+    "extraChoices": [{ "text": "l" }, { "text": "s" }]
+  },
+  {
+    "prompt": { "text": "Say fry. Change r to l. Build fly.", "lang": "eng", "displayText": true },
+    "question": { "text": "fly", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "l" }, { "text": "y" }],
+    "extraChoices": [{ "text": "r" }, { "text": "s" }]
+  },
+  {
+    "prompt": { "text": "Say fly. Change f to s. Build sly.", "lang": "eng", "displayText": true },
+    "question": { "text": "sly", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "l" }, { "text": "y" }],
+    "extraChoices": [{ "text": "f" }, { "text": "k" }]
+  },
+  {
+    "prompt": { "text": "Say sly. Change l to k. Build sky.", "lang": "eng", "displayText": true },
+    "question": { "text": "sky", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "k" }, { "text": "y" }],
+    "extraChoices": [{ "text": "l" }, { "text": "f" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: spy.", "lang": "eng", "displayText": true },
+    "question": { "text": "spy", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "p" }, { "text": "y" }],
+    "extraChoices": [{ "text": "r" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: why.", "lang": "eng", "displayText": true },
+    "question": { "text": "why", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "y" }],
+    "extraChoices": [{ "text": "s" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: four. (They will fry four fish.)", "lang": "eng", "displayText": true },
+    "question": { "text": "four", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "o" }, { "text": "u" }, { "text": "r" }],
+    "extraChoices": [{ "text": "a" }, { "text": "e" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: fourth. (Can you try the fourth switch?)", "lang": "eng", "displayText": true },
+    "question": { "text": "fourth", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "o" }, { "text": "u" }, { "text": "r" }, { "text": "t" }, { "text": "h" }],
+    "extraChoices": [{ "text": "e" }, { "text": "a" }]
+  }
+]

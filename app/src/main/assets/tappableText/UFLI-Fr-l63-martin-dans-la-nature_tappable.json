@@ -1,0 +1,55 @@
+{
+  "id": "ufli-fr-martin-dans-la-nature-l63",
+  "title": "Martin dans la nature (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Martin aime marcher dans la nature.",
+        "Il se promène souvent dans le jardin.",
+        "Ce matin, dans le jardin, il y a un petit lapin tout blanc.",
+        "Le lapin est très malin.",
+        "Le petit lapin malin se cache dans les choux.",
+        "Après, le lapin retrouve sa maman.",
+        "Martin observe que la maman donne un gros câlin au petit lapin."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'nature'.", "correct_word": "nature" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'clever'.", "correct_word": "malin" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'hug'.", "correct_word": "câlin" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Où le petit lapin se cache-t-il ?",
+        "options": ["Dans les choux", "Sur le train", "Dans le frigo", "Sur la tondeuse"],
+        "correct_index": 0
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Après cela, Martin décide d'aller marcher dans la forêt.",
+        "Il prend un court chemin qui mène à un grand sapin, le plus beau de la forêt.",
+        "Attends! Martin entend quelque chose. Qu'est-ce que c'est?",
+        "Il a un indice : ce qu'il entend sonne comme un instrument.",
+        "En regardant de plus près, Martin voit que c'est une cigale.",
+        "Il sait que le mâle de la cigale possède un organe adapté sur le corps.",
+        "C'est situé dans l'abdomen.",
+        "De retour de son promenade, Martin dessine le lapin et la cigale qu'il a rencontrés pendant ses aventures.",
+        "Quelle journée intéressante!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'forest'.", "correct_word": "forêt" },
+        { "id": "p2_tw2", "prompt": "Tape l'insecte que Martin entend.", "correct_word": "cigale" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'interesting'.", "correct_word": "intéressante" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Qu'est-ce que Martin dessine à la fin ?",
+        "options": ["Un cerf-volant", "Le lapin et la cigale", "Une tondeuse", "Un muffin"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

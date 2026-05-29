@@ -1,0 +1,46 @@
+{
+  "id": "ufli-en-the-gold-rush-l72",
+  "title": "The Gold Rush",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Long ago, bold men and women drove west to find gold.",
+        "They left their old lives behind in hopes of being rich.",
+        "These were wild times.",
+        "Mines exploded with gold that could be sold for lots of cash."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the brave word describing the travelers.", "correct_word": "bold" },
+        { "id": "p1_tw2", "prompt": "Tap the direction they drove seeking fortune.", "correct_word": "west" },
+        { "id": "p1_tw3", "prompt": "Tap where gold burst out of the ground.", "correct_word": "Mines" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Why did bold men and women drive west?",
+        "options": ["To see plane races", "To find gold and get rich", "To buy a puppy", "To sample fudge"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Some folks got rich, but most did not find any gold.",
+        "The men and women who did not find gold went back to their old homes.",
+        "There they told the tale of their tragic time in the Wild West gold rush."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the shiny metal most searchers never found.", "correct_word": "gold" },
+        { "id": "p2_tw2", "prompt": "Tap the sad word for their hard luck out west.", "correct_word": "tragic" },
+        { "id": "p2_tw3", "prompt": "Tap the story they shared after coming home.", "correct_word": "tale" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What did most people do after failing to find gold?",
+        "options": ["They stayed in mines forever", "They went back to their old homes", "They opened a candy shop", "They flew to Brazil"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

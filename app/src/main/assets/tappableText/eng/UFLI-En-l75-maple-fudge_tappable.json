@@ -1,0 +1,51 @@
+{
+  "id": "ufli-en-maple-fudge-l75",
+  "title": "Maple Fudge",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Uncle Billy wanted to take Able to the candy shop.",
+        "They drove to a lot and jumped on a shuttle to the shop.",
+        "When they walked into the candy shop, they smelled the fudge on the table.",
+        "Able wanted a sample of the maple fudge.",
+        "He hoped it would not be a hassle for the woman behind the table."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the ride they take from the parking lot.", "correct_word": "shuttle" },
+        { "id": "p1_tw2", "prompt": "Tap the sweet treat on the table they smell.", "correct_word": "fudge" },
+        { "id": "p1_tw3", "prompt": "Tap the flavor Able wants to taste.", "correct_word": "maple" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What flavor of fudge does Able want to sample?",
+        "options": ["Chocolate only", "Maple fudge", "Gold from mines", "Fish from the pond"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "\"Can I have a sample?\" asked Able.",
+        "\"Yes, you can! Which would you like to sample?\" said the woman.",
+        "Able, with a giggle, asked for the maple fudge.",
+        "\"You picked the best one to sample!\" said the woman.",
+        "Able nibbled on the fudge.",
+        "\"This is so yummy!\" he said while licking his lips.",
+        "Uncle Billy got a little bag of fudge for Able to take back home."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the small bites Able takes of the fudge.", "correct_word": "nibbled" },
+        { "id": "p2_tw2", "prompt": "Tap the word Able uses to say the fudge tastes great.", "correct_word": "yummy" },
+        { "id": "p2_tw3", "prompt": "Tap what Uncle Billy fills for Able to bring home.", "correct_word": "bag" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What does Uncle Billy get for Able to take home?",
+        "options": ["A puppy named Cody", "A little bag of fudge", "Plane tickets", "A gold mine"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

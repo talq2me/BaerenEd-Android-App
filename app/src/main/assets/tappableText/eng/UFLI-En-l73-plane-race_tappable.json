@@ -1,0 +1,48 @@
+{
+  "id": "ufli-en-plane-race-l73",
+  "title": "Plane Race",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Tyrell and Franklin love planes.",
+        "They love to see them fly in the sky.",
+        "Once, Tyrell and Franklin went to see four planes race.",
+        "There was a red plane, a white plane, a pink plane, and a black plane.",
+        "\"I bet the red plane will win!\" said Tyrell.",
+        "\"I think the white one will win!\" said Franklin."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap how many flyers competed that day.", "correct_word": "four" },
+        { "id": "p1_tw2", "prompt": "Tap the color plane Tyrell thinks will win.", "correct_word": "red" },
+        { "id": "p1_tw3", "prompt": "Tap the color plane Franklin favors.", "correct_word": "white" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Which plane does Tyrell think will win?",
+        "options": ["The black plane", "The red plane", "The pink plane only", "A shuttle"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Tyrell and Franklin spy the planes as they fly by in the sky.",
+        "In the end, the black plane made it to the finish line.",
+        "\"Oh well! The red and white planes can try to win next time,\" said Tyrell."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the verb for watching the planes zoom past.", "correct_word": "spy" },
+        { "id": "p2_tw2", "prompt": "Tap the color plane that actually wins.", "correct_word": "black" },
+        { "id": "p2_tw3", "prompt": "Tap the goal line the winner reaches.", "correct_word": "finish" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Which plane wins the race?",
+        "options": ["The red plane", "The white plane", "The black plane", "No plane finishes"],
+        "correct_index": 2
+      }
+    }
+  ]
+}

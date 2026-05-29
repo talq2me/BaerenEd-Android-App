@@ -1,0 +1,49 @@
+{
+  "id": "ufli-en-lilys-puppy-l74",
+  "title": "Lily's Puppy",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Lily had been wishing for a puppy for a long time.",
+        "She wanted a silly puppy to run and jump with.",
+        "But her mommy said Lily could not have one because she was only seven.",
+        "Lily begged her mommy and daddy.",
+        "She said, \"I am not a baby. It would make me so happy to have a puppy.\""
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap what Lily had been doing for a puppy a long time.", "correct_word": "wishing" },
+        { "id": "p1_tw2", "prompt": "Tap the goofy kind of puppy Lily imagines.", "correct_word": "silly" },
+        { "id": "p1_tw3", "prompt": "Tap Lily's age when mommy says no.", "correct_word": "seven" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Why does Lily's mommy first say she cannot have a puppy?",
+        "options": ["Lily is allergic", "Lily is only seven", "The pet shop is closed", "Cody already lives there"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Lily's mommy and daddy talked for a long time.",
+        "They said, \"We do think you will try your best.",
+        "We will let you have a puppy.\" Lily was so happy.",
+        "She went to the pet shop and picked a tiny puppy.",
+        "She named him Cody. Cody is the best puppy for this family."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the feeling Lily has when she may get a puppy.", "correct_word": "happy" },
+        { "id": "p2_tw2", "prompt": "Tap the store where Lily picks her puppy.", "correct_word": "shop" },
+        { "id": "p2_tw3", "prompt": "Tap the name Lily gives her new puppy.", "correct_word": "Cody" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What is the puppy's name?",
+        "options": ["Lily", "Cody", "Able", "Tyrell"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

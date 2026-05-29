@@ -1,0 +1,49 @@
+{
+  "id": "ufli-en-a-trip-to-the-jungle-l76",
+  "title": "A Trip to the Jungle",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Salma and Felix are going on a trip to the jungle.",
+        "They packed their duffle bags and got on a plane to Brazil.",
+        "Once in Brazil, they rode a shuttle to the jungle.",
+        "In the jungle, they saw an anaconda in the grass.",
+        "They also saw a sloth dangle from a vine."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the soft travel bags they packed.", "correct_word": "duffle" },
+        { "id": "p1_tw2", "prompt": "Tap the country their plane flies to.", "correct_word": "Brazil" },
+        { "id": "p1_tw3", "prompt": "Tap the slow animal hanging from a vine.", "correct_word": "sloth" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Where do Salma and Felix fly before taking a shuttle to the jungle?",
+        "options": ["The Wild West", "Brazil", "A candy shop", "Calvin's lodge"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "At the end of their trip, they even got to see a puma!",
+        "Pumas like to hide, so not many people get to see them in the wild.",
+        "Salma and Felix were thrilled.",
+        "\"I am so happy we got to see these animals,\" said Salma.",
+        "\"Me too!\" said Felix."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the big cat they were lucky to spot.", "correct_word": "puma" },
+        { "id": "p2_tw2", "prompt": "Tap what pumas do so few people see them.", "correct_word": "hide" },
+        { "id": "p2_tw3", "prompt": "Tap how Salma and Felix feel after the trip.", "correct_word": "thrilled" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Which rare animal do they see at the end of the trip?",
+        "options": ["A pet fish in a pond", "A puma in the wild", "A red racing plane", "Maple fudge"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

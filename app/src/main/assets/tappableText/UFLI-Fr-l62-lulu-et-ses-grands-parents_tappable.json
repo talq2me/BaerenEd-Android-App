@@ -1,0 +1,49 @@
+{
+  "id": "ufli-fr-lulu-et-ses-grands-parents-l62",
+  "title": "Lulu et ses grands-parents (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Pendant le mois d'août, Lulu passe ses vacances chez ses grands-parents.",
+        "Elle est heureuse de leur rendre visite, car elle ne les voit pas assez souvent.",
+        "Un bel après-midi, le vent souffle, et Lulu va au parc avec ses grands-parents et un cerf-volant.",
+        "Au parc, le vent fait voler le cerf-volant haut dans le ciel.",
+        "La grand-maman de Lulu prend une photo de Lulu avec le cerf-volant.",
+        "Le grand-papa de Lulu est rigolo. Il fait des grimaces derrière Lulu sur les photos."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mois des vacances de Lulu.", "correct_word": "août" },
+        { "id": "p1_tw2", "prompt": "Tape le jouet qui vole dans le ciel.", "correct_word": "cerf-volant" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'funny'.", "correct_word": "rigolo" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'est-ce que le grand-papa fait sur les photos ?",
+        "options": ["Il dort", "Il fait des grimaces", "Il mange un muffin", "Il tond le gazon"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Après cette belle journée, il est temps de retourner chez les grands-parents.",
+        "Lulu est fatiguée. Sa grand-mère lui lit une histoire avant qu'elle s'endorme.",
+        "En dormant, Lulu rêve de la joie qu'elle partagera avec ses grands-parents pendant le reste de sa visite.",
+        "Quand Lulu est avec ses grands-parents, c'est toujours amusant!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'tired'.", "correct_word": "fatiguée" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'falls asleep'.", "correct_word": "s'endorme" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'fun'.", "correct_word": "amusant" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Que fait la grand-mère avant que Lulu dorme ?",
+        "options": ["Elle lit une histoire", "Elle prend un bain", "Elle tond le gazon", "Elle conduit le train"],
+        "correct_index": 0
+      }
+    }
+  ]
+}

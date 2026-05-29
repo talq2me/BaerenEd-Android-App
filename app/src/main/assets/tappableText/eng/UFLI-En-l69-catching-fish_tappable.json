@@ -1,0 +1,50 @@
+{
+  "id": "ufli-en-catching-fish-l69",
+  "title": "Catching Fish",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Kate and Mitch wanted to do something fun.",
+        "Kate hatched a thrilling plan.",
+        "She snatched a bucket and some poles from the hutch.",
+        "\"Let's go!\" Kate yelled.",
+        "Kate and Mitch went to the lake beyond the ditch."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the verb for dreaming up a plan like eggs hatching.", "correct_word": "hatched" },
+        { "id": "p1_tw2", "prompt": "Tap where Kate grabbed the bucket and poles.", "correct_word": "hutch" },
+        { "id": "p1_tw3", "prompt": "Tap the watery gap they cross to reach the lake.", "correct_word": "ditch" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Where do Kate and Mitch go after Kate yells \"Let's go!\"?",
+        "options": ["To the candy shop", "To the lake beyond the ditch", "To a plane race", "To the jungle"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "\"Let's catch some fish,\" Kate calls out.",
+        "Mitch catches a fish!",
+        "They pitch it in the bucket.",
+        "\"Nice catch! Let's get this fish back home,\" said Kate.",
+        "At home, Kate and Mitch toss the fish into their pond.",
+        "\"This fish can be our pet!\" said Kate."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap what Mitch does when he hooks a fish.", "correct_word": "catches" },
+        { "id": "p2_tw2", "prompt": "Tap the verb for throwing the fish into the bucket.", "correct_word": "pitch" },
+        { "id": "p2_tw3", "prompt": "Tap the home water where the fish becomes a pet.", "correct_word": "pond" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "What does Kate want the fish to be at home?",
+        "options": ["Dinner only", "Their pet in the pond", "A shuttle ride", "Maple fudge"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

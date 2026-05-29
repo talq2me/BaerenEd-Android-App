@@ -1,0 +1,49 @@
+{
+  "id": "ufli-fr-alain-et-son-voyage-l67",
+  "title": "Alain et son voyage (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Alain adore voyager pour visiter son copain.",
+        "Maintenant, il est dans le train.",
+        "Il va adorer son voyage. C'est certain.",
+        "Il regarde par la fenêtre et il voit la rivière de l'Ain et la ville Saint-Albain.",
+        "C'est très beau!",
+        "Soudain, le train s'arrête et tout le monde arrive à la gare sain et sauf.",
+        "Alain serre la main du conducteur et dit « Merci »."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le moyen de transport d'Alain.", "correct_word": "train" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'river'.", "correct_word": "rivière" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'station'.", "correct_word": "gare" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que voit Alain par la fenêtre du train ?",
+        "options": ["Un essaim de moustiques", "La rivière de l'Ain et Saint-Albain", "Une tondeuse", "Des choux"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Ce soir, il va à son hôtel et prend un bain.",
+        "Demain matin, il va manger son petit déjeuner préféré – du pain doré et un muffin multigrain.",
+        "Le lendemain, il reprend le train pour aller voir son copain."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'hotel'.", "correct_word": "hôtel" },
+        { "id": "p2_tw2", "prompt": "Tape le gâteau du petit déjeuner.", "correct_word": "muffin" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'friend'.", "correct_word": "copain" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Pourquoi Alain reprend-il le train le lendemain ?",
+        "options": ["Pour acheter des gants", "Pour aller voir son copain", "Pour tondre le gazon", "Pour fuir un daim"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

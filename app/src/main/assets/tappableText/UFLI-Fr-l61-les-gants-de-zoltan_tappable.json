@@ -1,0 +1,47 @@
+{
+  "id": "ufli-fr-les-gants-de-zoltan-l61",
+  "title": "Les gants de Zoltan (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Il y a un élève dans la classe de Monsieur Garant qui n'aime pas mettre ses gants.",
+        "Cet élève s'appelle Zoltan.",
+        "Monsieur Garant dit : « Il faut porter tes gants, Zoltan, parce qu'il fait très froid aujourd'hui et il y a beaucoup de neige dehors. »"
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'gloves'.", "correct_word": "gants" },
+        { "id": "p1_tw2", "prompt": "Tape le nom de l'élève.", "correct_word": "Zoltan" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'snow'.", "correct_word": "neige" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Pourquoi Monsieur Garant veut-il que Zoltan porte ses gants ?",
+        "options": ["Il pleut", "Il fait très froid et il y a de la neige", "C'est l'été", "Le parc est fermé"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Zoltan explique : « Mais je n'aime pas mes gants, car il y a des trous partout. »",
+        "Monsieur Garant trouve une paire de gants sans trous pour Zoltan.",
+        "Il aime beaucoup ses nouveaux gants et est très heureux.",
+        "Il va dehors et fait de grandes boules de neige et des anges dans la neige avec ses amis.",
+        "Quelle journée fantastique pour Zoltan!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'holes'.", "correct_word": "trous" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'happy'.", "correct_word": "heureux" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'fantastic'.", "correct_word": "fantastique" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Pourquoi Zoltan n'aimait-il pas ses anciens gants ?",
+        "options": ["Ils étaient trop grands", "Il y avait des trous partout", "Ils étaient roses", "Il n'y avait pas de neige"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

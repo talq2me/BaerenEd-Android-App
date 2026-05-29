@@ -1,0 +1,51 @@
+{
+  "id": "ufli-fr-la-fille-et-la-chenille-l70",
+  "title": "La fille et la chenille (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Une petite fille joue dans son jardin sous le soleil brillant.",
+        "Soudain, elle remarque une chenille jaune et noire sur la grille.",
+        "La chenille avance de la grille et se pose sur une grande bille.",
+        "La fille se demande : « Pourquoi est-ce que la chenille veut être sur la bille? »"
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'caterpillar'.", "correct_word": "chenille" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'fence'.", "correct_word": "grille" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'marble'.", "correct_word": "bille" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Où la chenille se pose-t-elle après la grille ?",
+        "options": ["Sur un arbre", "Sur une grande bille", "Sur le train", "Dans le frigo"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "La fille court vers sa famille qui est en train de jouer au billard.",
+        "« Regardez! Il y a une chenille qui grimpe sur une bille! »",
+        "Une bille n'est pas une bonne place pour une chenille, car elle peut rouler sur la chenille.",
+        "Alors, la petite fille enlève soigneusement la chenille de la bille et la met sur un arbre à côté de la statue d'un gorille.",
+        "La famille voit la chenille et sourit.",
+        "La fille sourit aussi.",
+        "Elle est fière d'avoir sauvé la chenille.",
+        "Tous sont heureux que tout soit mieux!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le jeu que la famille joue.", "correct_word": "billard" },
+        { "id": "p2_tw2", "prompt": "Tape l'animal de la statue.", "correct_word": "gorille" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'happy'.", "correct_word": "heureux" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Où la fille met-elle la chenille pour la sauver ?",
+        "options": ["Sur la bille", "Sur un arbre", "Dans le billard", "Dans la cour de l'école"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

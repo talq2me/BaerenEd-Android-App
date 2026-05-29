@@ -1,0 +1,48 @@
+{
+  "id": "ufli-fr-un-lundi-desagreable-l65",
+  "title": "Un lundi désagréable! (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est lundi matin. Ma famille et moi nous préparons pour un lundi fantastique, mais ce lundi est peu commun.",
+        "D'habitude, je mange un fruit avec du yogourt, mon frère prend un grand bol de céréales, et ma mère boit un gros café.",
+        "Chaque jour, mon oncle prépare le petit-déjeuner, mais aujourd'hui, il est déjà parti.",
+        "Cependant, personne dans ma famille ne peut respecter la routine ce matin."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le jour de la semaine.", "correct_word": "lundi" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'yogurt'.", "correct_word": "yogourt" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'routine'.", "correct_word": "routine" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qui prépare d'habitude le petit-déjeuner ?",
+        "options": ["La mère", "Mon oncle", "Le frère", "Personne"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "J'aime manger un fruit, mais ce lundi, il n'y a aucun fruit dans le frigo.",
+        "Mon frère préfère manger des céréales, mais quelqu'un les a déjà toutes mangées.",
+        "Ma maman veut simplement boire un café, mais elle renverse sa tasse sur son pantalon blanc.",
+        "À présent, il est tout brun.",
+        "C'est un lundi frustrant! Nous espérons que le reste de notre journée sera plus agréable."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape l'endroit où il n'y a pas de fruit.", "correct_word": "frigo" },
+        { "id": "p2_tw2", "prompt": "Tape le verbe quand le café tombe.", "correct_word": "renverse" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'frustrating'.", "correct_word": "frustrant" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Qu'arrive-t-il au pantalon blanc de la maman ?",
+        "options": ["Il devient tout brun", "Il devient bleu", "Il disparaît", "Il reste blanc"],
+        "correct_index": 0
+      }
+    }
+  ]
+}

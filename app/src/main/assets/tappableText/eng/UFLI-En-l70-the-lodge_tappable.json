@@ -1,0 +1,49 @@
+{
+  "id": "ufli-en-the-lodge-l70",
+  "title": "The Lodge",
+  "language": "en",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Calvin has a lodge at the edge of the glen.",
+        "The lodge has a fridge and a TV.",
+        "To get to the lodge, you must go on a bridge then pass the ridge by the lake.",
+        "You can see many animals move from place to place by the lake."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tap the open valley Calvin's lodge sits beside.", "correct_word": "glen" },
+        { "id": "p1_tw2", "prompt": "Tap the path you cross before the ridge.", "correct_word": "bridge" },
+        { "id": "p1_tw3", "prompt": "Tap the rocky rise you pass by the lake.", "correct_word": "ridge" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "What must you cross and pass to reach Calvin's lodge?",
+        "options": ["A shuttle and a ditch", "A bridge and a ridge by the lake", "Only a pet shop", "A gold mine"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Calvin loves the lodge.",
+        "He pledges he will not move from it because his children come to visit him there.",
+        "Calvin and his children have lots of fun at the lodge.",
+        "They make music and sing songs by the fire.",
+        "Sometimes they even jump into the lake and swim with the animals.",
+        "The lodge is a hidden gem."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tap the promise Calvin makes about staying put.", "correct_word": "pledges" },
+        { "id": "p2_tw2", "prompt": "Tap the warm glow where they sing songs.", "correct_word": "fire" },
+        { "id": "p2_tw3", "prompt": "Tap the phrase calling the lodge a secret treasure.", "correct_word": "gem" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Why does Calvin refuse to move from the lodge?",
+        "options": ["He sells fudge there", "His children visit him there", "He races planes", "He hunts gold"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

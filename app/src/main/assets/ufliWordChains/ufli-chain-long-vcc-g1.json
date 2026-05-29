@@ -1,0 +1,86 @@
+[
+  {
+    "prompt": { "text": "Make the word cold.", "lang": "eng", "displayText": true },
+    "question": { "text": "cold", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "c" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "b" }, { "text": "g" }]
+  },
+  {
+    "prompt": { "text": "Say cold. Change c to b. Build bold.", "lang": "eng", "displayText": true },
+    "question": { "text": "bold", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "c" }, { "text": "g" }]
+  },
+  {
+    "prompt": { "text": "Say bold. Change b to m. Build mold.", "lang": "eng", "displayText": true },
+    "question": { "text": "mold", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "b" }, { "text": "g" }]
+  },
+  {
+    "prompt": { "text": "Say mold. Change m to g. Build gold.", "lang": "eng", "displayText": true },
+    "question": { "text": "gold", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "g" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "m" }, { "text": "c" }]
+  },
+  {
+    "prompt": { "text": "Make the word find.", "lang": "eng", "displayText": true },
+    "question": { "text": "find", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "f" }, { "text": "i" }, { "text": "n" }, { "text": "d" }],
+    "extraChoices": [{ "text": "b" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Say find. Change f to b. Build bind.", "lang": "eng", "displayText": true },
+    "question": { "text": "bind", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "i" }, { "text": "n" }, { "text": "d" }],
+    "extraChoices": [{ "text": "f" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Say bind. Change b to k. Build kind.", "lang": "eng", "displayText": true },
+    "question": { "text": "kind", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "k" }, { "text": "i" }, { "text": "n" }, { "text": "d" }],
+    "extraChoices": [{ "text": "b" }, { "text": "r" }]
+  },
+  {
+    "prompt": { "text": "Say kind. Change k to r. Build rind.", "lang": "eng", "displayText": true },
+    "question": { "text": "rind", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "r" }, { "text": "i" }, { "text": "n" }, { "text": "d" }],
+    "extraChoices": [{ "text": "k" }, { "text": "b" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: mild.", "lang": "eng", "displayText": true },
+    "question": { "text": "mild", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "i" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "w" }, { "text": "n" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: hold.", "lang": "eng", "displayText": true },
+    "question": { "text": "hold", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "b" }, { "text": "t" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: host.", "lang": "eng", "displayText": true },
+    "question": { "text": "host", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "o" }, { "text": "s" }, { "text": "t" }],
+    "extraChoices": [{ "text": "l" }, { "text": "d" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: bolt.", "lang": "eng", "displayText": true },
+    "question": { "text": "bolt", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "o" }, { "text": "l" }, { "text": "t" }],
+    "extraChoices": [{ "text": "d" }, { "text": "s" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: both. (They both helped me find sticks.)", "lang": "eng", "displayText": true },
+    "question": { "text": "both", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "o" }, { "text": "t" }, { "text": "h" }],
+    "extraChoices": [{ "text": "d" }, { "text": "l" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: sold. (She sold the old truck.)", "lang": "eng", "displayText": true },
+    "question": { "text": "sold", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
+    "extraChoices": [{ "text": "g" }, { "text": "t" }]
+  }
+]

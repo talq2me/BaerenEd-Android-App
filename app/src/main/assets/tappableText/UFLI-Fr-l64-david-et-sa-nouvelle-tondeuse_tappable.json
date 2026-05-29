@@ -1,0 +1,54 @@
+{
+  "id": "ufli-fr-david-et-sa-nouvelle-tondeuse-l64",
+  "title": "David et sa nouvelle tondeuse (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Dans son jardin, Léon aime jouer au ballon.",
+        "Il joue souvent avec son voisin sur son gazon.",
+        "Le père de Léon, David, adore tondre son gazon.",
+        "Son gazon est le plus soigné du voisinage.",
+        "La mère de Léon reste dans la maison pour se préparer pour une réunion.",
+        "Pendant que son père tond le gazon, Léon aide sa mère à couper l'oignon."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'lawn'.", "correct_word": "gazon" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'mow'.", "correct_word": "tondre" },
+        { "id": "p1_tw3", "prompt": "Tape le légume que Léon aide à couper.", "correct_word": "oignon" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que fait Léon pendant que David tond le gazon ?",
+        "options": ["Il dort", "Il aide sa mère à couper l'oignon", "Il va au magasin", "Il prend le train"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Cet été David a acheté une nouvelle tondeuse à gazon.",
+        "Quand il a essayé la tondeuse, elle n'a pas marché.",
+        "David était en colère.",
+        "Il est retourné au magasin pour ramener la tondeuse.",
+        "Au magasin, on a échangé sa tondeuse à gazon toute neuve.",
+        "Enfin, David a tondu le gazon avec sa nouvelle tondeuse.",
+        "Il a dit : « C'est bon, ça marche! Je l'aime! Je suis content! ».",
+        "David est content, et Léon et sa mère le sont aussi!",
+        "Léon peut finalement à retourner jouer au ballon sur le gazon avec son voisin."
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'lawn mower'.", "correct_word": "tondeuse" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'angry'.", "correct_word": "colère" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'happy'.", "correct_word": "content" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Pourquoi David retourne-t-il au magasin ?",
+        "options": ["Pour acheter un ballon", "Parce que la tondeuse ne marchait pas", "Pour voir un orignal", "Pour ramasser des bleuets"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

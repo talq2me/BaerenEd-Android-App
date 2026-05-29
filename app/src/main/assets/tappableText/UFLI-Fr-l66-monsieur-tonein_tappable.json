@@ -1,0 +1,52 @@
+{
+  "id": "ufli-fr-monsieur-tonein-l66",
+  "title": "Monsieur Tonein et sa voiture de sport (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Monsieur Tonein adore rouler dans sa voiture de sport.",
+        "Ce matin, il part en vacances.",
+        "Avant de partir, il fait le plein d'essence.",
+        "Avec un réservoir plein, il est serein : sa voiture ne tombera pas en panne.",
+        "Sur le chemin, il voit un orignal sur la route.",
+        "Monsieur Tonein pousse le frein.",
+        "L'orignal traverse doucement."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'gas'.", "correct_word": "essence" },
+        { "id": "p1_tw2", "prompt": "Tape le mot qui veut dire 'calm'.", "correct_word": "serein" },
+        { "id": "p1_tw3", "prompt": "Tape l'animal sur la route.", "correct_word": "orignal" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que fait Monsieur Tonein quand il voit l'orignal ?",
+        "options": ["Il accélère", "Il pousse le frein", "Il dort", "Il mange un muffin"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Un peu plus tard, il voit un bonhomme de neige près d'un sapin.",
+        "« Quel beau bonhomme de neige! » pense Monsieur Tonein.",
+        "Il s'arrête un instant pour admirer le bonhomme de neige.",
+        "Monsieur Tonein est content.",
+        "Il est plein d'énergie pour ses vacances.",
+        "Sa ceinture attachée, il roule vers les montagnes!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape le mot qui veut dire 'snowman'.", "correct_word": "bonhomme" },
+        { "id": "p2_tw2", "prompt": "Tape le mot qui veut dire 'energy'.", "correct_word": "énergie" },
+        { "id": "p2_tw3", "prompt": "Tape le mot qui veut dire 'mountains'.", "correct_word": "montagnes" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Vers où Monsieur Tonein roule-t-il à la fin ?",
+        "options": ["Vers la mer", "Vers les montagnes", "Vers le magasin", "Vers l'école"],
+        "correct_index": 1
+      }
+    }
+  ]
+}

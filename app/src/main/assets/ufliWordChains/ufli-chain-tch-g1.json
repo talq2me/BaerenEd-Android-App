@@ -1,0 +1,92 @@
+[
+  {
+    "prompt": { "text": "Make the word latch.", "lang": "eng", "displayText": true },
+    "question": { "text": "latch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "b" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Say latch. Change l to b. Build batch.", "lang": "eng", "displayText": true },
+    "question": { "text": "batch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "b" }, { "text": "a" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "l" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Say batch. Change b to h. Build hatch.", "lang": "eng", "displayText": true },
+    "question": { "text": "hatch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "h" }, { "text": "a" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "b" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Say hatch. Change the first h to p. Build patch.", "lang": "eng", "displayText": true },
+    "question": { "text": "patch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "a" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "h" }, { "text": "b" }]
+  },
+  {
+    "prompt": { "text": "Make the word itch.", "lang": "eng", "displayText": true },
+    "question": { "text": "itch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "i" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Say itch. Add p at the beginning. Build pitch.", "lang": "eng", "displayText": true },
+    "question": { "text": "pitch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "p" }, { "text": "i" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "d" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Say pitch. Change p to d. Build ditch.", "lang": "eng", "displayText": true },
+    "question": { "text": "ditch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "d" }, { "text": "i" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "w" }]
+  },
+  {
+    "prompt": { "text": "Say ditch. Change d to w. Build witch.", "lang": "eng", "displayText": true },
+    "question": { "text": "witch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "i" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "d" }, { "text": "p" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: match.", "lang": "eng", "displayText": true },
+    "question": { "text": "match", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "a" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "s" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: catch.", "lang": "eng", "displayText": true },
+    "question": { "text": "catch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "c" }, { "text": "a" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "m" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: switch.", "lang": "eng", "displayText": true },
+    "question": { "text": "switch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "w" }, { "text": "i" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "d" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: sketch.", "lang": "eng", "displayText": true },
+    "question": { "text": "sketch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "k" }, { "text": "e" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "m" }]
+  },
+  {
+    "prompt": { "text": "Build vocabulary: stretch.", "lang": "eng", "displayText": true },
+    "question": { "text": "stretch", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "s" }, { "text": "t" }, { "text": "r" }, { "text": "e" }, { "text": "t" }, { "text": "c" }, { "text": "h" }],
+    "extraChoices": [{ "text": "p" }, { "text": "m" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: woman. (Did the woman use a small patch?)", "lang": "eng", "displayText": true },
+    "question": { "text": "woman", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "o" }, { "text": "m" }, { "text": "a" }, { "text": "n" }],
+    "extraChoices": [{ "text": "e" }, { "text": "i" }]
+  },
+  {
+    "prompt": { "text": "Build the irregular word: women. (The women bake one batch.)", "lang": "eng", "displayText": true },
+    "question": { "text": "women", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "w" }, { "text": "o" }, { "text": "m" }, { "text": "e" }, { "text": "n" }],
+    "extraChoices": [{ "text": "a" }, { "text": "i" }]
+  }
+]

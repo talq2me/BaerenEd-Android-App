@@ -1,0 +1,49 @@
+{
+  "id": "ufli-fr-maxine-le-daim-et-lessaim-l68",
+  "title": "Maxine, le daim et l'essaim (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "C'est l'heure du dîner. Maxine a très faim.",
+        "Elle ouvre son sac et voit un dîner très délicieux. Elle mange son dîner.",
+        "Après cela, la cloche sonne. C'est maintenant la récré.",
+        "Maxine et ses amis vont dehors, dans la cour de l'école.",
+        "Soudain, un daim court très vite et passe près des enfants.",
+        "Pourquoi? Un grand essaim de moustiques chasse le daim!",
+        "Le daim retourne dans la forêt, près de l'école."
+      ],
+      "tappable_word_questions": [
+        { "id": "p1_tw1", "prompt": "Tape le mot qui veut dire 'hungry'.", "correct_word": "faim" },
+        { "id": "p1_tw2", "prompt": "Tape l'animal qui court vite.", "correct_word": "daim" },
+        { "id": "p1_tw3", "prompt": "Tape le mot qui veut dire 'swarm'.", "correct_word": "essaim" }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Pourquoi le daim court-il si vite ?",
+        "options": ["Il cherche son dîner", "Un essaim de moustiques le chasse", "La cloche sonne", "Il veut un muffin"],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "L'essaim de moustiques chasse maintenant Maxine et ses amis!",
+        "La cloche sonne et les élèves retournent à l'école.",
+        "Tout le monde est sain et sauf!"
+      ],
+      "tappable_word_questions": [
+        { "id": "p2_tw1", "prompt": "Tape l'insecte qui poursuit les enfants.", "correct_word": "moustiques" },
+        { "id": "p2_tw2", "prompt": "Tape le lieu où les élèves retournent.", "correct_word": "école" },
+        { "id": "p2_tw3", "prompt": "Tape le verbe quand les élèves vont à l'intérieur.", "correct_word": "retournent" }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Comment se termine l'histoire pour les élèves ?",
+        "options": ["Ils restent dehors", "Tout le monde est sain et sauf", "Le daim mange le dîner", "La cloche ne sonne pas"],
+        "correct_index": 1
+      }
+    }
+  ]
+}
