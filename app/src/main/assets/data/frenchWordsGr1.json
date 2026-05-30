@@ -1,12 +1,13 @@
 [
-  {"word":"son","sentence":"Son chat dort sur le canapé."},
-  {"word":"sa","sentence":"Sa trousse est dans son sac."},
-  {"word":"ses","sentence":"Ses crayons sont bien rangés."},
-  {"word":"ton","sentence":"Ton livre est sur la table."},
-  {"word":"ta","sentence":"Ta gomme est sous la chaise."},
-  {"word":"tes","sentence":"Tes cahiers sont dans ton sac."},
-  {"word":"bonbon","sentence":"Le bonbon est rouge."},
-  {"word":"bon","sentence":"Ce gâteau est bon."},
-  {"word":"bonne","sentence":"Cette soupe est bonne."},
-  {"word":"on","sentence":"On joue dans la cour."}
+  {"word":"lundi","sentence":"Lundi, on retourne à l'école."},
+  {"word":"mardi","sentence":"Le cours de musique est mardi matin."},
+  {"word":"mercredi","sentence":"Papa travaille à la maison mercredi."},
+  {"word":"jeudi","sentence":"Jeudi, nous allons à la bibliothèque."},
+  {"word":"vendredi","sentence":"Nous mangeons de la pizza vendredi soir."},
+  {"word":"samedi","sentence":"Je joue au parc samedi avec mes amis."},
+  {"word":"dimanche","sentence":"Dimanche, toute la famille se repose."},
+  {"word":"neige","sentence":"La neige tombe dehors aujourd'hui."},
+  {"word":"toupie","sentence":"Ma toupie tourne très vite."},
+  {"word":"ouvre","sentence":"Il ouvre la porte doucement."},
+  {"word":"lutin","sentence":"Le lutin est caché dans la forêt."}
 ]
