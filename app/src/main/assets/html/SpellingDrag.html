@@ -101,6 +101,19 @@
         .tile.wide { min-width: 64px; }
         .tile.used { opacity: 0.35; pointer-events: none; cursor: default; }
         .tile.dragging { opacity: 0.7; transform: scale(1.08); }
+        .tile-bank.locked,
+        .slots-row.locked {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .tile-bank.locked .tile:not(.used) {
+            cursor: not-allowed;
+            filter: grayscale(0.35);
+        }
+        .slots-row.locked .spell-slot:not(.filled) {
+            border-color: #b0bec5;
+            background: #f5f5f5;
+        }
         .toast {
             text-align: center;
             font-size: 1.15em;
@@ -242,6 +255,15 @@
 
         const filledSlots = [];
 
+        function setInteractionLocked(locked) {
+            interactionLocked = locked;
+            document.getElementById('tileBank').classList.toggle('locked', locked);
+            document.getElementById('slotsRow').classList.toggle('locked', locked);
+            document.querySelectorAll('#tileBank .tile:not(.used)').forEach((tile) => {
+                tile.draggable = !locked;
+            });
+        }
+
         function getConfig() {
             const p = new URLSearchParams(window.location.search);
             const file = p.get('file') || 'spellingDragFrGr1.json';
@@ -381,7 +403,7 @@
         }
 
         function onRoundComplete() {
-            interactionLocked = true;
+            setInteractionLocked(true);
             roundsCompleted++;
             updateStarDisplay(true);
             showToast(strings.nice, true);
@@ -457,7 +479,7 @@
                 tile.draggable = true;
 
                 tile.addEventListener('dragstart', (e) => {
-                    if (tile.classList.contains('used')) { e.preventDefault(); return; }
+                    if (interactionLocked || tile.classList.contains('used')) { e.preventDefault(); return; }
                     if (e.dataTransfer) {
                         e.dataTransfer.setData('text/plain', tile.dataset.chunk);
                         e.dataTransfer.effectAllowed = 'move';
@@ -470,7 +492,7 @@
                 });
 
                 tile.addEventListener('touchstart', (e) => {
-                    if (tile.classList.contains('used')) return;
+                    if (interactionLocked || tile.classList.contains('used')) return;
                     e.preventDefault();
                     tile.classList.add('dragging');
                     window.draggedTile = tile;
@@ -514,13 +536,13 @@
             }
 
             speakSteps(steps, () => {
-                interactionLocked = false;
+                setInteractionLocked(false);
                 if (done) done();
             });
         }
 
         function startRound() {
-            interactionLocked = true;
+            setInteractionLocked(true);
             hideToast();
 
             const model = document.getElementById('modelWord');
@@ -596,9 +618,9 @@
             }
             document.getElementById('gameTitle').textContent = strings.title;
             document.getElementById('replayBtn').onclick = () => {
-                if (currentEntry) {
-                    readText(currentEntry.word, ttsLang, TTS_SLOW, null);
-                }
+                if (!currentEntry) return;
+                setInteractionLocked(true);
+                readText(currentEntry.word, ttsLang, TTS_SLOW, () => setInteractionLocked(false));
             };
 
             startIndex = loadProgressIndex();
