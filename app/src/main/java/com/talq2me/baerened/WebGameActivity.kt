@@ -189,6 +189,7 @@ class WebGameActivity : AppCompatActivity() {
             override fun onStart(utteranceId: String?) {}
             override fun onDone(utteranceId: String?) {
                 runOnUiThread {
+                    TtsManager.restoreDefaultSpeechRate()
                     if (utteranceId != null && utteranceId.startsWith("tts_callback_")) {
                         webView?.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
                     }
@@ -196,6 +197,7 @@ class WebGameActivity : AppCompatActivity() {
             }
             override fun onError(utteranceId: String?) {
                 runOnUiThread {
+                    TtsManager.restoreDefaultSpeechRate()
                     if (utteranceId != null && utteranceId.startsWith("tts_callback_")) {
                         webView?.evaluateJavascript("if (window.onTTSFinished) window.onTTSFinished('$utteranceId');", null)
                     }
@@ -320,8 +322,16 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun readText(text: String, lang: String) {
+            readText(text, lang, "")
+        }
+
+        @JavascriptInterface
+        fun readText(text: String, lang: String, rate: String) {
             val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
             val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
+            rate.toFloatOrNull()
+                ?.takeIf { it in 0.2f..1.5f }
+                ?.let { TtsManager.setSpeechRate(it) }
             TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, utteranceId)
         }
 

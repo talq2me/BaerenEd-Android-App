@@ -14,6 +14,8 @@ import java.util.Locale
 object TtsManager {
     private const val TAG = "TtsManager"
 
+    const val DEFAULT_SPEECH_RATE = 0.85f
+
     @Volatile
     private var tts: TextToSpeech? = null
 
@@ -44,7 +46,7 @@ object TtsManager {
                 engine.setLanguage(Locale.ENGLISH)
             }
             // Slightly slower than default (1.0) so speech is easier to follow
-            engine.setSpeechRate(0.85f)
+            engine.setSpeechRate(DEFAULT_SPEECH_RATE)
             ready = true
             utteranceProgressListener?.let { engine.setOnUtteranceProgressListener(it) }
             Log.d(TAG, "TTS initialized (English pre-warmed)")
@@ -102,6 +104,14 @@ object TtsManager {
         } catch (e: Exception) {
             Log.e(TAG, "TTS speak error: ${e.message}", e)
         }
+    }
+
+    fun setSpeechRate(rate: Float) {
+        tts?.setSpeechRate(rate.coerceIn(0.2f, 2.0f))
+    }
+
+    fun restoreDefaultSpeechRate() {
+        setSpeechRate(DEFAULT_SPEECH_RATE)
     }
 
     /** Stop current and queued speech. Does not shutdown the engine. */

@@ -183,27 +183,36 @@
             }
         };
 
+        const TTS_NORMAL = 0.9;
+        const TTS_SLOW = 0.35;
+
         function readText(text, lang, rate, onEnd) {
             if (!text) { if (onEnd) onEnd(); return; }
+            const useRate = rate != null ? rate : TTS_NORMAL;
             if (window.Android && typeof window.Android.readText === 'function') {
                 window.pendingTTSCallback = onEnd || null;
-                window.Android.readText(text, lang);
+                if (useRate < 0.99) {
+                    window.Android.readText(text, lang, String(useRate));
+                } else {
+                    window.Android.readText(text, lang);
+                }
             } else if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
                 u.lang = lang;
-                u.rate = rate != null ? rate : 0.9;
+                u.rate = useRate;
                 u.onend = () => { if (onEnd) onEnd(); };
                 u.onerror = () => { if (onEnd) setTimeout(onEnd, 300); };
                 window.speechSynthesis.speak(u);
             } else if (onEnd) onEnd();
         }
 
-        function speakChain(parts, lang, rate, done) {
+        function speakSteps(steps, done) {
             let i = 0;
             function next() {
-                if (i >= parts.length) { if (done) done(); return; }
-                readText(parts[i++], lang, rate, next);
+                if (i >= steps.length) { if (done) done(); return; }
+                const step = steps[i++];
+                readText(step.text, ttsLang, step.rate, next);
             }
             next();
         }
@@ -490,37 +499,30 @@
             });
         }
 
-        function getSlowParts() {
-            const syl = currentEntry.syllables;
-            if (syl && syl.length) return syl.slice();
-            return currentEntry.word.split('');
-        }
-
         function speakRoundIntro(done) {
             const w = currentEntry.word;
-            const slow = getSlowParts();
-            const parts = [];
+            const steps = [];
 
             if (roundType === 'syllables') {
-                parts.push(strings.hereIsWord);
-                parts.push(w);
-                slow.forEach(s => parts.push(s));
-                parts.push(strings.spellPrompt);
-                slow.forEach(s => parts.push(s));
+                steps.push({ text: strings.hereIsWord, rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_SLOW });
+                steps.push({ text: strings.spellPrompt, rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_SLOW });
             } else if (roundType === 'letters') {
-                parts.push(strings.hereIsWord);
-                parts.push(w);
-                slow.forEach(s => parts.push(s));
-                parts.push(strings.spellPrompt);
-                slow.forEach(s => parts.push(s));
-                parts.push(strings.again(w));
-                slow.forEach(s => parts.push(s));
+                steps.push({ text: strings.hereIsWord, rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_SLOW });
+                steps.push({ text: strings.spellPrompt, rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_SLOW });
+                steps.push({ text: strings.again(w), rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_SLOW });
             } else {
-                parts.push(strings.lastTime(w));
-                slow.forEach(s => parts.push(s));
+                steps.push({ text: strings.lastTime(w), rate: TTS_NORMAL });
+                steps.push({ text: w, rate: TTS_SLOW });
             }
 
-            speakChain(parts, ttsLang, 0.85, () => {
+            speakSteps(steps, () => {
                 interactionLocked = false;
                 if (done) done();
             });
