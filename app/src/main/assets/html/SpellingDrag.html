@@ -184,7 +184,7 @@
         };
 
         const TTS_NORMAL = 0.9;
-        const TTS_SLOW = 0.35;
+        const TTS_SLOW = 0.10;
 
         function readText(text, lang, rate, onEnd) {
             if (!text) { if (onEnd) onEnd(); return; }
@@ -237,6 +237,8 @@
         let interactionLocked = true;
         let hasSyllableRound = true;
         let maxStars = 3;
+        /** Stars earned this word (0 until each round is completed correctly). */
+        let roundsCompleted = 0;
 
         const filledSlots = [];
 
@@ -306,21 +308,15 @@
             return currentEntry.word.split('');
         }
 
-        function updateStarDisplay() {
+        function updateStarDisplay(animateLatest) {
             const row = document.getElementById('starRow');
-            let filled = 0;
-            if (roundType === 'syllables') filled = 1;
-            else if (roundType === 'letters') filled = 2;
-            else if (roundType === 'blind') filled = 3;
-            if (!hasSyllableRound) {
-                if (roundType === 'letters') filled = 1;
-                else if (roundType === 'blind') filled = 2;
-            }
-            const cap = maxStars;
+            const filled = roundsCompleted;
             row.innerHTML = '';
-            for (let i = 0; i < cap; i++) {
+            for (let i = 0; i < maxStars; i++) {
                 const s = document.createElement('span');
-                s.className = 'star' + (i < filled ? ' filled pop' : '');
+                const isFilled = i < filled;
+                const isNew = animateLatest && isFilled && i === filled - 1;
+                s.className = 'star' + (isFilled ? ' filled' : '') + (isNew ? ' pop' : '');
                 s.textContent = '★';
                 row.appendChild(s);
             }
@@ -386,6 +382,8 @@
 
         function onRoundComplete() {
             interactionLocked = true;
+            roundsCompleted++;
+            updateStarDisplay(true);
             showToast(strings.nice, true);
             setTimeout(() => {
                 hideToast();
@@ -396,14 +394,12 @@
         function advanceAfterRound() {
             if (roundType === 'syllables') {
                 roundType = 'letters';
-                updateStarDisplay();
                 startRound();
                 return;
             }
             if (roundType === 'letters') {
                 roundType = 'blind';
                 round3FirstAttempt = true;
-                updateStarDisplay();
                 startRound();
                 return;
             }
@@ -542,7 +538,6 @@
             }
 
             buildBoard();
-            updateStarDisplay();
             speakRoundIntro();
         }
 
@@ -557,11 +552,13 @@
                 maxStars = 3;
                 roundType = 'syllables';
             }
+            roundsCompleted = 0;
             round3FirstAttempt = true;
 
             document.getElementById('sessionLabel').textContent =
                 strings.wordOf(sessionWordIndex + 1, sessionWords.length);
 
+            updateStarDisplay(false);
             startRound();
         }
 
