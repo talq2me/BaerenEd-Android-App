@@ -80,6 +80,14 @@
           "extremedays": "sat,sun"
         },
         {
+          "title": "UFLI Word Chain",
+          "launch": "ufliWordChains",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
+          "webGame": true,
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
           "title": "French Spelling OCR",
           "launch": "spellingOCR",
           "url": "file=frenchWordsTE.json",
@@ -359,14 +367,6 @@
           "url": "lang=fr",
           "easy": true,
           "stars": 3
-        },
-        {
-          "title": "UFLI Word Chains (rotate all on GitHub)",
-          "launch": "ufliWordChains",
-          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
-          "webGame": true,
-          "stars": 3,
-          "totalQuestions": 5
         },
         {
           "title": "UFLI Irregular Words (rotate all on GitHub)",
