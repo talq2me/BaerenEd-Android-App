@@ -506,11 +506,6 @@
                 steps.push({ text: strings.spellPrompt, rate: TTS_NORMAL });
                 steps.push({ text: w, rate: TTS_SLOW });
             } else if (roundType === 'letters') {
-                steps.push({ text: strings.hereIsWord, rate: TTS_NORMAL });
-                steps.push({ text: w, rate: TTS_NORMAL });
-                steps.push({ text: w, rate: TTS_SLOW });
-                steps.push({ text: strings.spellPrompt, rate: TTS_NORMAL });
-                steps.push({ text: w, rate: TTS_SLOW });
                 steps.push({ text: strings.again(w), rate: TTS_NORMAL });
                 steps.push({ text: w, rate: TTS_SLOW });
             } else {
