@@ -596,7 +596,9 @@
             }
             document.getElementById('gameTitle').textContent = strings.title;
             document.getElementById('replayBtn').onclick = () => {
-                if (currentEntry) speakRoundIntro();
+                if (currentEntry) {
+                    readText(currentEntry.word, ttsLang, TTS_SLOW, null);
+                }
             };
 
             startIndex = loadProgressIndex();
