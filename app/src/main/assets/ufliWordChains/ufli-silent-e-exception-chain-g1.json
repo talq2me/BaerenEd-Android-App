@@ -1,86 +1,68 @@
-[
-  {
-    "prompt": {
-      "text": "Make the word give. Build give letter by letter.",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "give", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "g" }, { "text": "i" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "l" }, { "text": "t" }]
-  },
-  {
-    "prompt": {
-      "text": "Say give. Change the g at the beginning to l. Build live.",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "live", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "i" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "g" }, { "text": "o" }]
-  },
-  {
-    "prompt": {
-      "text": "Say live. Change spelling to love. Spell love.",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "love", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "o" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Build the review word: some.", "lang": "eng", "displayText": true },
-    "question": { "text": "some", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "s" }, { "text": "o" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the word dove. (Silent e exceptions chain two.)", "lang": "eng", "displayText": true },
-    "question": { "text": "dove", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "d" }, { "text": "o" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "g" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the word none.", "lang": "eng", "displayText": true },
-    "question": { "text": "none", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "n" }, { "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "s" }]
-  },
-  {
-    "prompt": { "text": "Build the word done.", "lang": "eng", "displayText": true },
-    "question": { "text": "done", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "d" }, { "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: who.", "lang": "eng", "displayText": true },
-    "question": { "text": "who", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "o" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: by.", "lang": "eng", "displayText": true },
-    "question": { "text": "by", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "y" }],
-    "extraChoices": [{ "text": "i" }, { "text": "e" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: my.", "lang": "eng", "displayText": true },
-    "question": { "text": "my", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "y" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: one.", "lang": "eng", "displayText": true },
-    "question": { "text": "one", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "a" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: once.", "lang": "eng", "displayText": true },
-    "question": { "text": "once", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "c" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "i" }]
-  }
-]
+{
+  "id": "ufli-silent-e-exception-chain-g1",
+  "concept": "silent-e-exception",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "give",
+        "prompt": "Make the word give. Build give letter by letter.",
+        "correctChoices": [
+          {
+            "text": "g"
+          },
+          {
+            "text": "i"
+          },
+          {
+            "text": "v"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "l"
+          },
+          {
+            "text": "t"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "give",
+          "to": "live",
+          "prompt": "Say give. Change the g at the beginning to l. Build live."
+        },
+        {
+          "from": "live",
+          "to": "love",
+          "prompt": "Say live. Change spelling to love. Spell love."
+        },
+        {
+          "from": "love",
+          "to": "some",
+          "prompt": "Build the review word: some."
+        },
+        {
+          "from": "some",
+          "to": "dove",
+          "prompt": "Build the word dove. (Silent e exceptions chain two.)"
+        },
+        {
+          "from": "dove",
+          "to": "none",
+          "prompt": "Build the word none."
+        },
+        {
+          "from": "none",
+          "to": "done",
+          "prompt": "Build the word done."
+        }
+      ]
+    }
+  ]
+}

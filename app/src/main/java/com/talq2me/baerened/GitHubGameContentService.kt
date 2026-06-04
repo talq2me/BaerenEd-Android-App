@@ -2,7 +2,6 @@ package com.talq2me.baerened
 
 import android.content.Context
 import android.util.Log
-import com.google.gson.JsonParser
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
@@ -20,91 +19,12 @@ class GitHubGameContentService {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    /**
-     * Stems (`*.json` without `.json`) under `assets/ufliWordChains/`, sorted.
-     * Prefers the small GitHub Contents API for that folder; falls back to the recursive tree API.
-     */
-    suspend fun fetchUfliWordChainStemNamesSorted(context: Context): List<String> = withContext(Dispatchers.IO) {
-        fetchUfliStemsFromContentsApi()?.takeIf { it.isNotEmpty() }?.let {
-            Log.d(TAG, "fetchUfliWordChainStemNamesSorted: ${it.size} stems via Contents API")
-            return@withContext it
-        }
-        fetchUfliStemsFromTreeApi()?.takeIf { it.isNotEmpty() }?.let {
-            Log.d(TAG, "fetchUfliWordChainStemNamesSorted: ${it.size} stems via tree API")
-            return@withContext it
-        }
-        Log.w(TAG, "fetchUfliWordChainStemNamesSorted: no stems from GitHub APIs")
-        emptyList()
-    }
-
-    private fun fetchUfliStemsFromContentsApi(): List<String>? {
-        return try {
-            val request = Request.Builder()
-                .url(GITHUB_UFLI_CHAINS_CONTENTS_API)
-                .header("User-Agent", "BaerenEd-Android-App")
-                .header("Accept", "application/vnd.github+json")
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "fetchUfliStemsFromContentsApi: HTTP ${response.code}")
-                    return null
-                }
-                val body = response.body?.string().orEmpty()
-                if (body.isBlank()) return null
-                val arr = JsonParser.parseString(body).asJsonArray
-                val stems = mutableListOf<String>()
-                arr.forEach { el ->
-                    val obj = el.asJsonObject
-                    if (obj.get("type")?.asString != "file") return@forEach
-                    val name = obj.get("name")?.asString ?: return@forEach
-                    if (!name.endsWith(".json", ignoreCase = true)) return@forEach
-                    stems.add(name.dropLast(5))
-                }
-                stems.filter { it.isNotBlank() }.sorted()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "fetchUfliStemsFromContentsApi exception", e)
-            null
-        }
-    }
-
-    private fun fetchUfliStemsFromTreeApi(): List<String>? {
-        return try {
-            val request = Request.Builder()
-                .url(GITHUB_TREE_API)
-                .header("User-Agent", "BaerenEd-Android-App")
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "fetchUfliStemsFromTreeApi: HTTP ${response.code}")
-                    return null
-                }
-                val body = response.body?.string().orEmpty()
-                if (body.isBlank()) return null
-                val root = JsonParser.parseString(body).asJsonObject
-                val tree = root.getAsJsonArray("tree") ?: return null
-                val stems = mutableListOf<String>()
-                tree.forEach { node ->
-                    val obj = node.asJsonObject
-                    if (obj.get("type")?.asString != "blob") return@forEach
-                    val fullPath = obj.get("path")?.asString ?: return@forEach
-                    if (!fullPath.startsWith(UFLI_PREFIX)) return@forEach
-                    if (!fullPath.endsWith(".json", ignoreCase = true)) return@forEach
-                    stems.add(fullPath.removePrefix(UFLI_PREFIX).removeSuffix(".json"))
-                }
-                stems.filter { it.isNotBlank() }.sorted()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "fetchUfliStemsFromTreeApi exception", e)
-            null
-        }
-    }
-
     suspend fun fetchGameContent(context: Context, gameType: String): String? = withContext(Dispatchers.IO) {
         val gameFileName = "${gameType}.json"
         val candidatePaths = listOf(
             "data/$gameFileName",
-            "ufliWordChains/$gameFileName"
+            "ufliWordChains/$gameFileName",
+            "ufliIrregularWords/$gameFileName"
         )
 
         candidatePaths.forEach { assetPath ->
@@ -175,12 +95,6 @@ class GitHubGameContentService {
 
         internal const val GITHUB_PAGES_ASSETS_ROOT =
             "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets"
-        internal const val GITHUB_TREE_API =
-            "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/V3?recursive=1"
-        /** Directory listing for `ufliWordChains/` only (small JSON vs. ~1MB recursive tree). */
-        internal const val GITHUB_UFLI_CHAINS_CONTENTS_API =
-            "https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/app/src/main/assets/ufliWordChains?ref=V3"
-        internal const val UFLI_PREFIX = "app/src/main/assets/ufliWordChains/"
 
         /** GitHub Pages URL for a bundled-path HTML game (never file:///android_asset). */
         fun githubHtmlUrl(fileName: String): String =

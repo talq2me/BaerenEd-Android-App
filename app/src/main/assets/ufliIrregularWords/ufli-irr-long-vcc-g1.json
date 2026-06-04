@@ -1,0 +1,36 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: both. (They both helped me find sticks.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "both",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "b"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "h"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "d"
+      },
+      {
+        "text": "l"
+      }
+    ]
+  }
+]

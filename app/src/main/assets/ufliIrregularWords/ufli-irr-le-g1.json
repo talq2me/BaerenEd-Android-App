@@ -1,0 +1,42 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: people. (The people jump in the puddle.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "people",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "p"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "p"
+      },
+      {
+        "text": "l"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "u"
+      }
+    ]
+  }
+]

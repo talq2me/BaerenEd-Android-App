@@ -1,110 +1,56 @@
-[
-  {
-    "prompt": {
-      "text": "Say the word: no. If we add t at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
+{
+  "id": "ufli-open-closed-chain-g1",
+  "concept": "open-closed",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "spell-1",
+      "steps": [
+        {
+          "word": "no -> ?",
+          "prompt": "Say the word: no. If we add t at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "n"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "d"
+            },
+            {
+              "text": "h"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": {
-      "text": "no -> ?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "correctChoices": [
-      { "text": "n" },
-      { "text": "o" },
-      { "text": "t" }
-    ],
-    "extraChoices": [
-      { "text": "d" },
-      { "text": "h" }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: so. If we add d at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": {
-      "text": "so -> ?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "correctChoices": [
-      { "text": "s" },
-      { "text": "o" },
-      { "text": "d" }
-    ],
-    "extraChoices": [
-      { "text": "t" },
-      { "text": "h" }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: be. If we add d at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": {
-      "text": "be -> ?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "correctChoices": [
-      { "text": "b" },
-      { "text": "e" },
-      { "text": "d" }
-    ],
-    "extraChoices": [
-      { "text": "t" },
-      { "text": "h" }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: hi. If we add t at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": {
-      "text": "hi -> ?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "correctChoices": [
-      { "text": "h" },
-      { "text": "i" },
-      { "text": "t" }
-    ],
-    "extraChoices": [
-      { "text": "d" },
-      { "text": "b" }
-    ]
-  },
-  {
-    "prompt": {
-      "text": "Build the irregular word: friend.",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": {
-      "text": "friend",
-      "lang": "eng",
-      "displayText": true
-    },
-    "correctChoices": [
-      { "text": "f" },
-      { "text": "r" },
-      { "text": "i" },
-      { "text": "e" },
-      { "text": "n" },
-      { "text": "d" }
-    ],
-    "extraChoices": [
-      { "text": "t" },
-      { "text": "o" }
-    ]
-  }
-]
+    {
+      "id": "chain-2",
+      "steps": [
+        {
+          "from": "no",
+          "to": "so",
+          "prompt": "Say the word: so. If we add d at the end, what new word do we make?"
+        },
+        {
+          "from": "so",
+          "to": "be",
+          "prompt": "Say the word: be. If we add d at the end, what new word do we make?"
+        },
+        {
+          "from": "be",
+          "to": "hi",
+          "prompt": "Say the word: hi. If we add t at the end, what new word do we make?"
+        }
+      ]
+    }
+  ]
+}

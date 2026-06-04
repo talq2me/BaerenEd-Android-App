@@ -1,90 +1,96 @@
-[
-  {
-    "prompt": { "text": "Make the word cage.", "lang": "eng", "displayText": true },
-    "question": { "text": "cage", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "c" }, { "text": "a" }, { "text": "g" }, { "text": "e" }
-    ],
-    "extraChoices": [{ "text": "w" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Say cage. Change the c to w. Build wage.", "lang": "eng", "displayText": true },
-    "question": { "text": "wage", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "w" }, { "text": "a" }, { "text": "g" }, { "text": "e" }
-    ],
-    "extraChoices": [{ "text": "s" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Say wage. Change wage to sage. Build sage.", "lang": "eng", "displayText": true },
-    "question": { "text": "sage", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "s" }, { "text": "a" }, { "text": "g" }, { "text": "e" }
-    ],
-    "extraChoices": [{ "text": "w" }, { "text": "c" }]
-  },
-  {
-    "prompt": { "text": "Say sage. Add t between s and a. Build stage. (Sentence: That stage is huge!)", "lang": "eng", "displayText": true },
-    "question": { "text": "stage", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "s" }, { "text": "t" }, { "text": "a" }, { "text": "g" }, { "text": "e" }
-    ],
-    "extraChoices": [{ "text": "p" }, { "text": "d" }]
-  },
-  {
-    "prompt": { "text": "Make the word age.", "lang": "eng", "displayText": true },
-    "question": { "text": "age", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "a" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Say age. Add p at the beginning. Build page. (Sentence: She wants to look at the next page.)", "lang": "eng", "displayText": true },
-    "question": { "text": "page", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "p" }, { "text": "a" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "r" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Say page. Change p to r for rage. Build rage.", "lang": "eng", "displayText": true },
-    "question": { "text": "rage", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "a" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "p" }, { "text": "l" }]
-  },
-  {
-    "prompt": { "text": "Say rage. Spell range.", "lang": "eng", "displayText": true },
-    "question": { "text": "range", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "r" }, { "text": "a" }, { "text": "n" }, { "text": "g" }, { "text": "e" }
-    ],
-    "extraChoices": [{ "text": "d" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: who.", "lang": "eng", "displayText": true },
-    "question": { "text": "who", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "o" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: by.", "lang": "eng", "displayText": true },
-    "question": { "text": "by", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "y" }],
-    "extraChoices": [{ "text": "i" }, { "text": "e" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: my.", "lang": "eng", "displayText": true },
-    "question": { "text": "my", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "y" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: one.", "lang": "eng", "displayText": true },
-    "question": { "text": "one", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: once.", "lang": "eng", "displayText": true },
-    "question": { "text": "once", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "c" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "i" }]
-  }
-]
+{
+  "id": "ufli-chain-soft-ge-g1",
+  "concept": "soft-ge",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "cage",
+        "prompt": "Make the word cage.",
+        "correctChoices": [
+          {
+            "text": "c"
+          },
+          {
+            "text": "a"
+          },
+          {
+            "text": "g"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "w"
+          },
+          {
+            "text": "t"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "cage",
+          "to": "wage",
+          "prompt": "Say cage. Change the c to w. Build wage."
+        },
+        {
+          "from": "wage",
+          "to": "sage",
+          "prompt": "Say wage. Change wage to sage. Build sage."
+        },
+        {
+          "from": "sage",
+          "to": "stage",
+          "prompt": "Say sage. Add t between s and a. Build stage. (Sentence: That stage is huge!)"
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "age",
+        "prompt": "Make the word age.",
+        "correctChoices": [
+          {
+            "text": "a"
+          },
+          {
+            "text": "g"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "i"
+          },
+          {
+            "text": "o"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "age",
+          "to": "page",
+          "prompt": "Say age. Add p at the beginning. Build page. (Sentence: She wants to look at the next page.)"
+        },
+        {
+          "from": "page",
+          "to": "rage",
+          "prompt": "Say page. Change p to r for rage. Build rage."
+        },
+        {
+          "from": "rage",
+          "to": "range",
+          "prompt": "Say rage. Spell range."
+        }
+      ]
+    }
+  ]
+}

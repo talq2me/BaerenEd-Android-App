@@ -1,0 +1,67 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: any.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "any",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "u"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: many. (Sentence: She fixed many of the kites.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "many",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "m"
+      },
+      {
+        "text": "a"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "i"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  }
+]

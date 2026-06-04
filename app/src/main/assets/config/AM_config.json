@@ -62,6 +62,16 @@
         {
           "title": "UFLI Word Chain",
           "launch": "ufliWordChains",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
+          "webGame": true,
+          "stars": 3,
+          "totalQuestions": 5
+        },
+        {
+          "title": "UFLI Irregular Words",
+          "launch": "ufliIrregularWords",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell",
+          "webGame": true,
           "stars": 3,
           "totalQuestions": 5
         },
@@ -103,6 +113,15 @@
           "displayDays": "thu,fri,sat,sun,mon,tue,wed"
         },
         {
+          "title": "Fr Spelling Drag",
+          "launch": "frSpellingDrag",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5,
+          "displayDays": "thu,fri,sat,sun,mon,tue,wed"
+        },
+        {
           "title": "Word Garden FR",
           "launch": "wordGarden",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsGr1.json",
@@ -139,6 +158,15 @@
           "harddays": "tue,wed",
           "displayDays": "mon,tue,wed",
           "disable": "Jan 1, 2030"
+        },
+        {
+          "title": "Eng Spelling Drag",
+          "launch": "engSpellingDrag",
+          "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnGr1.json",
+          "stars": 3,
+          "webGame": true,
+          "totalQuestions": 5,
+          "displayDays": "mon,tue,wed"
         },
         
         

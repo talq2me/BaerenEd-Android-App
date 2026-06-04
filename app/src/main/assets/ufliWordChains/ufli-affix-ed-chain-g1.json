@@ -1,154 +1,275 @@
-[
-  {
-    "prompt": {
-      "text": "Say the word: fill. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
+{
+  "id": "ufli-affix-ed-chain-g1",
+  "concept": "affix-ed",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "spell-1",
+      "steps": [
+        {
+          "word": "fill -> ?",
+          "prompt": "Say the word: fill. If we add ed at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "f"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "s"
+            },
+            {
+              "text": "k"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "fill -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "f" }, { "text": "i" }, { "text": "l" }, { "text": "l" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "s" }, { "text": "k" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: block. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
+    {
+      "id": "spell-2",
+      "steps": [
+        {
+          "word": "block -> ?",
+          "prompt": "Say the word: block. If we add ed at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "b"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "c"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "n"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "block -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "b" }, { "text": "l" }, { "text": "o" }, { "text": "c" }, { "text": "k" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "p" }, { "text": "n" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: call. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
+    {
+      "id": "spell-3",
+      "steps": [
+        {
+          "word": "call -> ?",
+          "prompt": "Say the word: call. If we add ed at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "c"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "g"
+            },
+            {
+              "text": "u"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "call -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "c" }, { "text": "a" }, { "text": "l" }, { "text": "l" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "g" }, { "text": "u" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: wish. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "wish -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "w" }, { "text": "i" }, { "text": "s" }, { "text": "h" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "p" }, { "text": "r" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: yell. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "yell -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "y" }, { "text": "e" }, { "text": "l" }, { "text": "l" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "k" }, { "text": "w" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: pull. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "pull -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "p" }, { "text": "u" }, { "text": "l" }, { "text": "l" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "b" }, { "text": "o" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: fix. If we add ed at the end, what new word do we make? (She fixed many of the kites.)",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "fix -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "f" }, { "text": "i" }, { "text": "x" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "p" }, { "text": "z" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: pick. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "pick -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "p" }, { "text": "i" }, { "text": "c" }, { "text": "k" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "l" }, { "text": "r" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: end. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "end -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "e" }, { "text": "n" }, { "text": "d" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "i" }, { "text": "s" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: rest. If we add ed at the end, what new word do we make?",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "rest -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "r" }, { "text": "e" }, { "text": "s" }, { "text": "t" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "k" }, { "text": "p" }]
-  },
-  {
-    "prompt": {
-      "text": "Say the word: miss. If we add ed at the end, what new word do we make? (Have they missed any of the shots?)",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "miss -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "m" }, { "text": "i" }, { "text": "s" }, { "text": "s" }, { "text": "e" }, { "text": "d" }
-    ],
-    "extraChoices": [{ "text": "h" }, { "text": "u" }]
-  },
-  {
-    "prompt": {
-      "text": "Build the irregular word: any.",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "any", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "a" }, { "text": "n" }, { "text": "y" }],
-    "extraChoices": [{ "text": "u" }, { "text": "e" }]
-  },
-  {
-    "prompt": {
-      "text": "Build the irregular word: many. (Sentence: She fixed many of the kites.)",
-      "lang": "eng",
-      "displayText": true
-    },
-    "question": { "text": "many", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "a" }, { "text": "n" }, { "text": "y" }],
-    "extraChoices": [{ "text": "i" }, { "text": "e" }]
-  }
-]
+    {
+      "id": "chain-4",
+      "steps": [
+        {
+          "from": "call",
+          "to": "wish",
+          "prompt": "Say the word: wish. If we add ed at the end, what new word do we make?"
+        },
+        {
+          "from": "wish",
+          "to": "yell",
+          "prompt": "Say the word: yell. If we add ed at the end, what new word do we make?"
+        },
+        {
+          "from": "yell",
+          "to": "pull",
+          "prompt": "Say the word: pull. If we add ed at the end, what new word do we make?"
+        },
+        {
+          "word": "fix -> ?",
+          "prompt": "Say the word: fix. If we add ed at the end, what new word do we make? (She fixed many of the kites.)",
+          "correctChoices": [
+            {
+              "text": "f"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "x"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "z"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "pick -> ?",
+          "prompt": "Say the word: pick. If we add ed at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "c"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "l"
+            },
+            {
+              "text": "r"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "end -> ?",
+          "prompt": "Say the word: end. If we add ed at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "e"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "d"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "s"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "rest -> ?",
+          "prompt": "Say the word: rest. If we add ed at the end, what new word do we make?",
+          "correctChoices": [
+            {
+              "text": "r"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "s"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "k"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "rest",
+          "to": "miss",
+          "prompt": "Say the word: miss. If we add ed at the end, what new word do we make? (Have they missed any of the shots?)"
+        }
+      ]
+    }
+  ]
+}

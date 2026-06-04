@@ -1,0 +1,76 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: four. (They will fry four fish.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "four",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "u"
+      },
+      {
+        "text": "r"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: fourth. (Can you try the fourth switch?)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "fourth",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "u"
+      },
+      {
+        "text": "r"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "h"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "a"
+      }
+    ]
+  }
+]

@@ -1,0 +1,67 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: two.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "two",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "t"
+      },
+      {
+        "text": "w"
+      },
+      {
+        "text": "o"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "h"
+      },
+      {
+        "text": "u"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: does.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "does",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "d"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "s"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "t"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  }
+]

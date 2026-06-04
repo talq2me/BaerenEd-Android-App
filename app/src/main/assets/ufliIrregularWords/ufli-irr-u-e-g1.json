@@ -1,0 +1,67 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: one.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "one",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "o"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: once.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "once",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "o"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "c"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "s"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  }
+]

@@ -1,74 +1,194 @@
-[
-  {
-    "prompt": { "text": "Make the word rope.", "lang": "eng", "displayText": true },
-    "question": { "text": "rope", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "o" }, { "text": "p" }, { "text": "e" }],
-    "extraChoices": [{ "text": "m" }, { "text": "h" }]
-  },
-  {
-    "prompt": { "text": "Say rope. Change r to m for mope. Build mope.", "lang": "eng", "displayText": true },
-    "question": { "text": "mope", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "p" }, { "text": "e" }],
-    "extraChoices": [{ "text": "r" }, { "text": "c" }]
-  },
-  {
-    "prompt": { "text": "Say mope. Change m to c for cope. Build cope.", "lang": "eng", "displayText": true },
-    "question": { "text": "cope", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "o" }, { "text": "p" }, { "text": "e" }],
-    "extraChoices": [{ "text": "m" }, { "text": "h" }]
-  },
-  {
-    "prompt": { "text": "Say cope. Change c to h for hope. Build hope.", "lang": "eng", "displayText": true },
-    "question": { "text": "hope", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "h" }, { "text": "o" }, { "text": "p" }, { "text": "e" }],
-    "extraChoices": [{ "text": "c" }, { "text": "r" }]
-  },
-  {
-    "prompt": { "text": "Make the word woke.", "lang": "eng", "displayText": true },
-    "question": { "text": "woke", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "o" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "j" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Say woke. Change w to j for joke. Build joke.", "lang": "eng", "displayText": true },
-    "question": { "text": "joke", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "j" }, { "text": "o" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Say joke. Change j to p for poke. Build poke.", "lang": "eng", "displayText": true },
-    "question": { "text": "poke", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "p" }, { "text": "o" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "j" }, { "text": "w" }]
-  },
-  {
-    "prompt": { "text": "Say poke. Add s at the start for spoke. Build spoke.", "lang": "eng", "displayText": true },
-    "question": { "text": "spoke", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "s" }, { "text": "p" }, { "text": "o" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: vote. (Who did you vote for?)", "lang": "eng", "displayText": true },
-    "question": { "text": "vote", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "v" }, { "text": "o" }, { "text": "t" }, { "text": "e" }],
-    "extraChoices": [{ "text": "p" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: nine. (We drove home at nine.)", "lang": "eng", "displayText": true },
-    "question": { "text": "nine", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "n" }, { "text": "i" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "o" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: drove. (We drove home at nine.)", "lang": "eng", "displayText": true },
-    "question": { "text": "drove", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "d" }, { "text": "r" }, { "text": "o" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "p" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: note. (Sample o_e word.)", "lang": "eng", "displayText": true },
-    "question": { "text": "note", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "n" }, { "text": "o" }, { "text": "t" }, { "text": "e" }],
-    "extraChoices": [{ "text": "p" }, { "text": "i" }]
-  }
-]
+{
+  "id": "ufli-chain-o-e-g1",
+  "concept": "o-e",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "rope",
+        "prompt": "Make the word rope.",
+        "correctChoices": [
+          {
+            "text": "r"
+          },
+          {
+            "text": "o"
+          },
+          {
+            "text": "p"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "m"
+          },
+          {
+            "text": "h"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "rope",
+          "to": "mope",
+          "prompt": "Say rope. Change r to m for mope. Build mope."
+        },
+        {
+          "from": "mope",
+          "to": "cope",
+          "prompt": "Say mope. Change m to c for cope. Build cope."
+        },
+        {
+          "from": "cope",
+          "to": "hope",
+          "prompt": "Say cope. Change c to h for hope. Build hope."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "woke",
+        "prompt": "Make the word woke.",
+        "correctChoices": [
+          {
+            "text": "w"
+          },
+          {
+            "text": "o"
+          },
+          {
+            "text": "k"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "j"
+          },
+          {
+            "text": "p"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "woke",
+          "to": "joke",
+          "prompt": "Say woke. Change w to j for joke. Build joke."
+        },
+        {
+          "from": "joke",
+          "to": "poke",
+          "prompt": "Say joke. Change j to p for poke. Build poke."
+        },
+        {
+          "from": "poke",
+          "to": "spoke",
+          "prompt": "Say poke. Add s at the start for spoke. Build spoke."
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "spoke",
+      "steps": [
+        {
+          "word": "vote",
+          "prompt": "Build vocabulary: vote. (Who did you vote for?)",
+          "correctChoices": [
+            {
+              "text": "v"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "i"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "vote",
+          "to": "nine",
+          "prompt": "Build vocabulary: nine. (We drove home at nine.)"
+        },
+        {
+          "word": "drove",
+          "prompt": "Build vocabulary: drove. (We drove home at nine.)",
+          "correctChoices": [
+            {
+              "text": "d"
+            },
+            {
+              "text": "r"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "v"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "i"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "note",
+          "prompt": "Build vocabulary: note. (Sample o_e word.)",
+          "correctChoices": [
+            {
+              "text": "n"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "i"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    }
+  ]
+}

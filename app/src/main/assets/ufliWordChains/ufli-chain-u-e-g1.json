@@ -1,80 +1,164 @@
-[
-  {
-    "prompt": { "text": "Make the word mule.", "lang": "eng", "displayText": true },
-    "question": { "text": "mule", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "u" }, { "text": "l" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Say mule. Change the l to t for mute. Build mute.", "lang": "eng", "displayText": true },
-    "question": { "text": "mute", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "u" }, { "text": "t" }, { "text": "e" }],
-    "extraChoices": [{ "text": "l" }, { "text": "c" }]
-  },
-  {
-    "prompt": { "text": "Say mute. Change m to c for cute. Build cute.", "lang": "eng", "displayText": true },
-    "question": { "text": "cute", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "u" }, { "text": "t" }, { "text": "e" }],
-    "extraChoices": [{ "text": "m" }, { "text": "k" }]
-  },
-  {
-    "prompt": { "text": "Say cute. Change t to b for cube. Build cube.", "lang": "eng", "displayText": true },
-    "question": { "text": "cube", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "u" }, { "text": "b" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Make the word use.", "lang": "eng", "displayText": true },
-    "question": { "text": "use", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "u" }, { "text": "s" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Say use. Spell muse with m at the start.", "lang": "eng", "displayText": true },
-    "question": { "text": "muse", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "u" }, { "text": "s" }, { "text": "e" }],
-    "extraChoices": [{ "text": "f" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Say muse. Spell fuse with f at the start.", "lang": "eng", "displayText": true },
-    "question": { "text": "fuse", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "u" }, { "text": "s" }, { "text": "e" }],
-    "extraChoices": [{ "text": "m" }, { "text": "d" }]
-  },
-  {
-    "prompt": { "text": "Say fuse. Change s to m for fume. Build fume.", "lang": "eng", "displayText": true },
-    "question": { "text": "fume", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "u" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: tune.", "lang": "eng", "displayText": true },
-    "question": { "text": "tune", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "u" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "o" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the word flute. (They will tune the flute once.)", "lang": "eng", "displayText": true },
-    "question": { "text": "flute", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "l" }, { "text": "u" }, { "text": "t" }, { "text": "e" }],
-    "extraChoices": [{ "text": "p" }, { "text": "r" }]
-  },
-  {
-    "prompt": { "text": "Build tube. (Sentence: Should we get one tube?)", "lang": "eng", "displayText": true },
-    "question": { "text": "tube", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "u" }, { "text": "b" }, { "text": "e" }],
-    "extraChoices": [{ "text": "c" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: one.", "lang": "eng", "displayText": true },
-    "question": { "text": "one", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: once.", "lang": "eng", "displayText": true },
-    "question": { "text": "once", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "c" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "i" }]
-  }
-]
+{
+  "id": "ufli-chain-u-e-g1",
+  "concept": "u-e",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "mule",
+        "prompt": "Make the word mule.",
+        "correctChoices": [
+          {
+            "text": "m"
+          },
+          {
+            "text": "u"
+          },
+          {
+            "text": "l"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "t"
+          },
+          {
+            "text": "n"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "mule",
+          "to": "mute",
+          "prompt": "Say mule. Change the l to t for mute. Build mute."
+        },
+        {
+          "from": "mute",
+          "to": "cute",
+          "prompt": "Say mute. Change m to c for cute. Build cute."
+        },
+        {
+          "from": "cute",
+          "to": "cube",
+          "prompt": "Say cute. Change t to b for cube. Build cube."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "use",
+        "prompt": "Make the word use.",
+        "correctChoices": [
+          {
+            "text": "u"
+          },
+          {
+            "text": "s"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "i"
+          },
+          {
+            "text": "o"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "use",
+          "to": "muse",
+          "prompt": "Say use. Spell muse with m at the start."
+        },
+        {
+          "from": "muse",
+          "to": "fuse",
+          "prompt": "Say muse. Spell fuse with f at the start."
+        },
+        {
+          "from": "fuse",
+          "to": "fume",
+          "prompt": "Say fuse. Change s to m for fume. Build fume."
+        },
+        {
+          "word": "flute",
+          "prompt": "Build the word flute. (They will tune the flute once.)",
+          "correctChoices": [
+            {
+              "text": "f"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "u"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "r"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "tube",
+          "prompt": "Build tube. (Sentence: Should we get one tube?)",
+          "correctChoices": [
+            {
+              "text": "t"
+            },
+            {
+              "text": "u"
+            },
+            {
+              "text": "b"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "c"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "tube",
+      "steps": [
+        {
+          "from": "fume",
+          "to": "tune",
+          "prompt": "Build vocabulary: tune."
+        }
+      ]
+    }
+  ]
+}

@@ -1,76 +1,355 @@
-[
-  {
-    "prompt": {
-      "text": "Say magnet. Build this word: first chunk mag, second chunk net.",
-      "lang": "eng",
-      "displayText": true
+{
+  "id": "ufli-syllables-closed-closed-chain-g1",
+  "concept": "syllables-closed-closed",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "spell-1",
+      "steps": [
+        {
+          "word": "mag + net -> ?",
+          "prompt": "Say magnet. Build this word: first chunk mag, second chunk net.",
+          "correctChoices": [
+            {
+              "text": "m"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "g"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "r"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "mag + net -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "a" }, { "text": "g" }, { "text": "n" }, { "text": "e" }, { "text": "t" }],
-    "extraChoices": [{ "text": "p" }, { "text": "r" }]
-  },
-  {
-    "prompt": {
-      "text": "Say picnic. Build this word: pic plus nic smashed together.",
-      "lang": "eng",
-      "displayText": true
+    {
+      "id": "spell-2",
+      "steps": [
+        {
+          "word": "pic + nic -> ?",
+          "prompt": "Say picnic. Build this word: pic plus nic smashed together.",
+          "correctChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "c"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "c"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "k"
+            },
+            {
+              "text": "s"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "pic + nic -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "p" }, { "text": "i" }, { "text": "c" }, { "text": "n" }, { "text": "i" }, { "text": "c" }],
-    "extraChoices": [{ "text": "k" }, { "text": "s" }]
-  },
-  {
-    "prompt": {
-      "text": "Say context. Build con plus text.",
-      "lang": "eng",
-      "displayText": true
+    {
+      "id": "spell-3",
+      "steps": [
+        {
+          "word": "con + text -> ?",
+          "prompt": "Say context. Build con plus text.",
+          "correctChoices": [
+            {
+              "text": "c"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "x"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "g"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "con + text -> ?", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "c" }, { "text": "o" }, { "text": "n" }, { "text": "t" }, { "text": "e" }, { "text": "x" }, { "text": "t" }
-    ],
-    "extraChoices": [{ "text": "g" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Build the closed-closed word: rocket.", "lang": "eng", "displayText": true },
-    "question": { "text": "rocket", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "o" }, { "text": "c" }, { "text": "k" }, { "text": "e" }, { "text": "t" }],
-    "extraChoices": [{ "text": "l" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Build the closed-closed word: until.", "lang": "eng", "displayText": true },
-    "question": { "text": "until", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "u" }, { "text": "n" }, { "text": "t" }, { "text": "i" }, { "text": "l" }],
-    "extraChoices": [{ "text": "o" }, { "text": "k" }]
-  },
-  {
-    "prompt": { "text": "Build the closed-closed word: dentist. (Basket and safety lesson.)", "lang": "eng", "displayText": true },
-    "question": { "text": "dentist", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "d" }, { "text": "e" }, { "text": "n" }, { "text": "t" }, { "text": "i" }, { "text": "s" }, { "text": "t" }
-    ],
-    "extraChoices": [{ "text": "v" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Build the closed-closed word: napkin. (Sentence: Can you get a small basket?)", "lang": "eng", "displayText": true },
-    "question": { "text": "napkin", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "n" }, { "text": "a" }, { "text": "p" }, { "text": "k" }, { "text": "i" }, { "text": "n" }],
-    "extraChoices": [{ "text": "r" }, { "text": "s" }]
-  },
-  {
-    "prompt": { "text": "Build the closed-closed word: contest.", "lang": "eng", "displayText": true },
-    "question": { "text": "contest", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "o" }, { "text": "n" }, { "text": "t" }, { "text": "e" }, { "text": "s" }, { "text": "t" }],
-    "extraChoices": [{ "text": "g" }, { "text": "p" }]
-  },
-  {
-    "prompt": {
-      "text": "Build the closed-closed word: absent. (Ben rides with a helmet to be safe.)",
-      "lang": "eng",
-      "displayText": true
+    {
+      "id": "spell-4",
+      "steps": [
+        {
+          "word": "rocket",
+          "prompt": "Build the closed-closed word: rocket.",
+          "correctChoices": [
+            {
+              "text": "r"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "c"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "l"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
     },
-    "question": { "text": "absent", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "a" }, { "text": "b" }, { "text": "s" }, { "text": "e" }, { "text": "n" }, { "text": "t" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  }
-]
+    {
+      "id": "spell-5",
+      "steps": [
+        {
+          "word": "until",
+          "prompt": "Build the closed-closed word: until.",
+          "correctChoices": [
+            {
+              "text": "u"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "l"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "o"
+            },
+            {
+              "text": "k"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    },
+    {
+      "id": "spell-6",
+      "steps": [
+        {
+          "word": "dentist",
+          "prompt": "Build the closed-closed word: dentist. (Basket and safety lesson.)",
+          "correctChoices": [
+            {
+              "text": "d"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "s"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "v"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    },
+    {
+      "id": "spell-7",
+      "steps": [
+        {
+          "word": "napkin",
+          "prompt": "Build the closed-closed word: napkin. (Sentence: Can you get a small basket?)",
+          "correctChoices": [
+            {
+              "text": "n"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "p"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "n"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "r"
+            },
+            {
+              "text": "s"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    },
+    {
+      "id": "spell-8",
+      "steps": [
+        {
+          "word": "contest",
+          "prompt": "Build the closed-closed word: contest.",
+          "correctChoices": [
+            {
+              "text": "c"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "s"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "g"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    },
+    {
+      "id": "spell-9",
+      "steps": [
+        {
+          "word": "absent",
+          "prompt": "Build the closed-closed word: absent. (Ben rides with a helmet to be safe.)",
+          "correctChoices": [
+            {
+              "text": "a"
+            },
+            {
+              "text": "b"
+            },
+            {
+              "text": "s"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "n"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "o"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    }
+  ]
+}

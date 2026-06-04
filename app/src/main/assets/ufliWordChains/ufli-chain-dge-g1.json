@@ -1,80 +1,51 @@
-[
-  {
-    "prompt": { "text": "Write the word edge.", "lang": "eng", "displayText": true },
-    "question": { "text": "edge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "e" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "h" }]
-  },
-  {
-    "prompt": { "text": "Say edge. Add w at the beginning. Build wedge.", "lang": "eng", "displayText": true },
-    "question": { "text": "wedge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "e" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "h" }, { "text": "l" }]
-  },
-  {
-    "prompt": { "text": "Say wedge. Change w to l. Build ledge.", "lang": "eng", "displayText": true },
-    "question": { "text": "ledge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "e" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "h" }]
-  },
-  {
-    "prompt": { "text": "Say ledge. Change l to h. Build hedge.", "lang": "eng", "displayText": true },
-    "question": { "text": "hedge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "h" }, { "text": "e" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "l" }, { "text": "w" }]
-  },
-  {
-    "prompt": { "text": "Write the word fudge.", "lang": "eng", "displayText": true },
-    "question": { "text": "fudge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "n" }, { "text": "j" }]
-  },
-  {
-    "prompt": { "text": "Say fudge. Change f to n. Build nudge.", "lang": "eng", "displayText": true },
-    "question": { "text": "nudge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "n" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "f" }, { "text": "j" }]
-  },
-  {
-    "prompt": { "text": "Say nudge. Change n to j. Build judge.", "lang": "eng", "displayText": true },
-    "question": { "text": "judge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "j" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "n" }, { "text": "b" }]
-  },
-  {
-    "prompt": { "text": "Say judge. Change j to b. Build budge.", "lang": "eng", "displayText": true },
-    "question": { "text": "budge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "j" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: ridge.", "lang": "eng", "displayText": true },
-    "question": { "text": "ridge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "i" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "h" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: dodge.", "lang": "eng", "displayText": true },
-    "question": { "text": "dodge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "d" }, { "text": "o" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "r" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: badge.", "lang": "eng", "displayText": true },
-    "question": { "text": "badge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "a" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "r" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: move. (Should we move the fridge?)", "lang": "eng", "displayText": true },
-    "question": { "text": "move", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "u" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: smudge. (There is a smudge on the edge.)", "lang": "eng", "displayText": true },
-    "question": { "text": "smudge", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "s" }, { "text": "m" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
-    "extraChoices": [{ "text": "w" }, { "text": "h" }]
-  }
-]
+{
+  "id": "ufli-chain-dge-g1",
+  "concept": "dge",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "edge",
+        "prompt": "Write the word edge.",
+        "correctChoices": [{ "text": "e" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
+        "extraChoices": [{ "text": "w" }, { "text": "h" }]
+      },
+      "steps": [
+        { "from": "edge", "to": "wedge", "prompt": "Say edge. Add w at the beginning. Build wedge." },
+        { "from": "wedge", "to": "ledge", "prompt": "Say wedge. Change w to l. Build ledge." },
+        { "from": "ledge", "to": "hedge", "prompt": "Say ledge. Change l to h. Build hedge." }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "fudge",
+        "prompt": "Write the word fudge.",
+        "correctChoices": [{ "text": "f" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
+        "extraChoices": [{ "text": "n" }, { "text": "j" }]
+      },
+      "steps": [
+        { "from": "fudge", "to": "nudge", "prompt": "Say fudge. Change f to n. Build nudge." },
+        { "from": "nudge", "to": "judge", "prompt": "Say nudge. Change n to j. Build judge." },
+        { "from": "judge", "to": "budge", "prompt": "Say judge. Change j to b. Build budge." }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "budge",
+      "steps": [
+        { "from": "budge", "to": "ridge", "prompt": "Build vocabulary: ridge." },
+        { "from": "ridge", "to": "dodge", "prompt": "Build vocabulary: dodge." },
+        { "from": "dodge", "to": "badge", "prompt": "Build vocabulary: badge." },
+        {
+          "type": "seed",
+          "word": "smudge",
+          "prompt": "Build vocabulary: smudge. (There is a smudge on the edge.)",
+          "correctChoices": [{ "text": "s" }, { "text": "m" }, { "text": "u" }, { "text": "d" }, { "text": "g" }, { "text": "e" }],
+          "extraChoices": [{ "text": "w" }, { "text": "h" }]
+        }
+      ]
+    }
+  ]
+}

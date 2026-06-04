@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
@@ -788,60 +789,6 @@ open class TrainingMapActivity : AppCompatActivity() {
                 putExtra(TappableTextActivity.EXTRA_EASY_MODE, easyModeEnabled)
             }
             startActivityForResult(intent, 1008)
-            return
-        }
-
-        // Check for UFLI word chain rotation
-        if (gameType == "ufliWordChains") {
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    val contentUpdateService = GitHubGameContentService()
-                    val stems = contentUpdateService.fetchUfliWordChainStemNamesSorted(this@TrainingMapActivity)
-                    if (stems.isEmpty()) {
-                        withContext(Dispatchers.Main) {
-                            android.widget.Toast.makeText(this@TrainingMapActivity, "No UFLI word chains found on GitHub", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        return@launch
-                    }
-
-                    val dpm = DailyProgressManager(this@TrainingMapActivity)
-                    val profile = dpm.getCurrentKid()
-                    // Re-fetch to ensure we have latest indices from cloud
-                    dpm.refetchSessionFromDb(profile)
-                    
-                    val rotationKey = "ufliWordChains"
-                    val rawIndex = dpm.getGameIndexFromCache(profile, rotationKey)
-                    val slot = rawIndex.mod(stems.size)
-                    val stem = stems[slot]
-                    
-                    val gameContent = contentUpdateService.fetchGameContent(this@TrainingMapActivity, stem)
-                    
-                    withContext(Dispatchers.Main) {
-                        if (gameContent != null) {
-                            val game = Game(
-                                id = stem,
-                                title = gameTitle,
-                                description = "Educational activity",
-                                type = stem,
-                                iconUrl = "",
-                                requiresRewardTime = false,
-                                difficulty = "Easy",
-                                estimatedTime = task.stars ?: 1,
-                                totalQuestions = task.totalQuestions,
-                                blockOutlines = task.blockOutlines ?: false
-                            )
-                            launchGameActivity(game, gameContent, sectionId, rotationKey, stems.size, slot)
-                        } else {
-                            android.widget.Toast.makeText(this@TrainingMapActivity, "$stem content not available (rot)", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("TrainingMapActivity", "Error launching UFLI word chains", e)
-                    withContext(Dispatchers.Main) {
-                        android.widget.Toast.makeText(this@TrainingMapActivity, "Error loading UFLI rotation", android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
             return
         }
         

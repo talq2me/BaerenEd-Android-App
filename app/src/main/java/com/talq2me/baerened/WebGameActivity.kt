@@ -326,6 +326,30 @@ class WebGameActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
+        fun loadAssetJson(assetPath: String): String {
+            try {
+                val url = "${GitHubGameContentService.GITHUB_PAGES_ASSETS_ROOT}/$assetPath?nocache=${System.currentTimeMillis()}"
+                val request = Request.Builder()
+                    .url(url)
+                    .cacheControl(CacheControl.FORCE_NETWORK)
+                    .build()
+                httpClient.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            android.util.Log.d("WebGameActivity", "Fetched asset JSON from GitHub: $assetPath")
+                            return body
+                        }
+                    }
+                    android.util.Log.e("WebGameActivity", "GitHub fetch failed for $assetPath: HTTP ${response.code}")
+                }
+            } catch (e: IOException) {
+                android.util.Log.e("WebGameActivity", "Network error fetching asset JSON: ${e.message}")
+            }
+            return "{}"
+        }
+
+        @JavascriptInterface
         fun loadJsonFile(fileName: String): String {
             // GitHub Pages is the only source of truth for game/spelling JSON.
             try {

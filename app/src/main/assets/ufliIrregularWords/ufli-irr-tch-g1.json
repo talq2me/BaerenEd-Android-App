@@ -1,0 +1,76 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: woman. (Did the woman use a small patch?)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "woman",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "w"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "m"
+      },
+      {
+        "text": "a"
+      },
+      {
+        "text": "n"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: women. (The women bake one batch.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "women",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "w"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "m"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "n"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  }
+]

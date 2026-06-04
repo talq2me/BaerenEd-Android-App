@@ -1,0 +1,16 @@
+{
+  "lang": "fr",
+  "words": [
+    { "word": "lundi", "syllables": ["lun", "di"] },
+    { "word": "mardi", "syllables": ["mar", "di"] },
+    { "word": "mercredi", "syllables": ["mer", "cre", "di"] },
+    { "word": "jeudi", "syllables": ["jeu", "di"] },
+    { "word": "vendredi", "syllables": ["ven", "dre", "di"] },
+    { "word": "samedi", "syllables": ["sa", "me", "di"] },
+    { "word": "dimanche", "syllables": ["di", "man", "che"] },
+    { "word": "neige", "syllables": ["nei", "ge"] },
+    { "word": "toupie", "syllables": ["tou", "pie"] },
+    { "word": "ouvre", "syllables": ["ou", "vre"] },
+    { "word": "lutin", "syllables": ["lu", "tin"] }
+  ]
+}

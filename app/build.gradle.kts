@@ -90,6 +90,7 @@ android {
         ignoreAssetsPattern += "tappableText/**"
         ignoreAssetsPattern += "videos/**"
         ignoreAssetsPattern += "ufliWordChains/**"
+        ignoreAssetsPattern += "ufliIrregularWords/**"
     }
 
     packaging {

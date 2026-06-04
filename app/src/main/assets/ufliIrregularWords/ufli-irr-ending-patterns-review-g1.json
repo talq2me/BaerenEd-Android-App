@@ -1,0 +1,187 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: both. (It was cold at the lake by four.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "both",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "b"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "h"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "u"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: four.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "four",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "u"
+      },
+      {
+        "text": "r"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: fourth.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "fourth",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "u"
+      },
+      {
+        "text": "r"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "h"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "a"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: forty.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "forty",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "r"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "u"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: people.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "people",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "p"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "p"
+      },
+      {
+        "text": "l"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "u"
+      }
+    ]
+  }
+]

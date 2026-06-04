@@ -1,0 +1,42 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: friend.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "friend",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "r"
+      },
+      {
+        "text": "i"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "d"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "t"
+      },
+      {
+        "text": "o"
+      }
+    ]
+  }
+]

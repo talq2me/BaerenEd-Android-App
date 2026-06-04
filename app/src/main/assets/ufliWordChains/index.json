@@ -1,0 +1,28 @@
+{
+  "files": [
+    "ufli-affix-ed-chain-g1.json",
+    "ufli-affix-ing-chain-g1.json",
+    "ufli-chain-a-e-g1.json",
+    "ufli-chain-dge-g1.json",
+    "ufli-chain-e-e-g1.json",
+    "ufli-chain-ending-patterns-review-g1.json",
+    "ufli-chain-i-e-g1.json",
+    "ufli-chain-le-g1.json",
+    "ufli-chain-long-vcc-g1.json",
+    "ufli-chain-o-e-g1.json",
+    "ufli-chain-silent-e-review2-g1.json",
+    "ufli-chain-soft-ce-g1.json",
+    "ufli-chain-soft-ge-g1.json",
+    "ufli-chain-tch-g1.json",
+    "ufli-chain-u-e-g1.json",
+    "ufli-chain-y-long-e-g1.json",
+    "ufli-chain-y-long-i-g1.json",
+    "ufli-compound-words-chain-g1.json",
+    "ufli-open-closed-chain-g1.json",
+    "ufli-open-closed-pattern-words-chain-g1.json",
+    "ufli-plural-es-chain-g1.json",
+    "ufli-silent-e-exception-chain-g1.json",
+    "ufli-syllables-closed-closed-chain-g1.json",
+    "ufli-syllables-open-closed-chain-g1.json"
+  ]
+}

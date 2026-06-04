@@ -1,134 +1,313 @@
-[
-  {
-    "prompt": { "text": "Make the word child.", "lang": "eng", "displayText": true },
-    "question": { "text": "child", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "h" }, { "text": "i" }, { "text": "l" }, { "text": "d" }],
-    "extraChoices": [{ "text": "w" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Say child. Change ch to w. Build wild.", "lang": "eng", "displayText": true },
-    "question": { "text": "wild", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "i" }, { "text": "l" }, { "text": "d" }],
-    "extraChoices": [{ "text": "c" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Say wild. Change w to m. Build mild.", "lang": "eng", "displayText": true },
-    "question": { "text": "mild", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "i" }, { "text": "l" }, { "text": "d" }],
-    "extraChoices": [{ "text": "w" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Say mild. Change l to n. Build mind.", "lang": "eng", "displayText": true },
-    "question": { "text": "mind", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "i" }, { "text": "n" }, { "text": "d" }],
-    "extraChoices": [{ "text": "l" }, { "text": "w" }]
-  },
-  {
-    "prompt": { "text": "Make the word try.", "lang": "eng", "displayText": true },
-    "question": { "text": "try", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "r" }, { "text": "y" }],
-    "extraChoices": [{ "text": "c" }, { "text": "f" }]
-  },
-  {
-    "prompt": { "text": "Say try. Change t to c. Build cry.", "lang": "eng", "displayText": true },
-    "question": { "text": "cry", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "r" }, { "text": "y" }],
-    "extraChoices": [{ "text": "t" }, { "text": "f" }]
-  },
-  {
-    "prompt": { "text": "Say cry. Change c to p. Build pry.", "lang": "eng", "displayText": true },
-    "question": { "text": "pry", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "p" }, { "text": "r" }, { "text": "y" }],
-    "extraChoices": [{ "text": "c" }, { "text": "f" }]
-  },
-  {
-    "prompt": { "text": "Say pry. Change p to f. Build fry.", "lang": "eng", "displayText": true },
-    "question": { "text": "fry", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "r" }, { "text": "y" }],
-    "extraChoices": [{ "text": "p" }, { "text": "c" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: most.", "lang": "eng", "displayText": true },
-    "question": { "text": "most", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "s" }, { "text": "t" }],
-    "extraChoices": [{ "text": "d" }, { "text": "l" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: told.", "lang": "eng", "displayText": true },
-    "question": { "text": "told", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "o" }, { "text": "l" }, { "text": "d" }],
-    "extraChoices": [{ "text": "m" }, { "text": "s" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: why.", "lang": "eng", "displayText": true },
-    "question": { "text": "why", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "y" }],
-    "extraChoices": [{ "text": "s" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: sky.", "lang": "eng", "displayText": true },
-    "question": { "text": "sky", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "s" }, { "text": "k" }, { "text": "y" }],
-    "extraChoices": [{ "text": "w" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: baby.", "lang": "eng", "displayText": true },
-    "question": { "text": "baby", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "a" }, { "text": "b" }, { "text": "y" }],
-    "extraChoices": [{ "text": "l" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: lucky.", "lang": "eng", "displayText": true },
-    "question": { "text": "lucky", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "u" }, { "text": "c" }, { "text": "k" }, { "text": "y" }],
-    "extraChoices": [{ "text": "b" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: middle.", "lang": "eng", "displayText": true },
-    "question": { "text": "middle", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "i" }, { "text": "d" }, { "text": "d" }, { "text": "l" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "g" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: jungle.", "lang": "eng", "displayText": true },
-    "question": { "text": "jungle", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "j" }, { "text": "u" }, { "text": "n" }, { "text": "g" }, { "text": "l" }, { "text": "e" }],
-    "extraChoices": [{ "text": "m" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: both. (It was cold at the lake by four.)", "lang": "eng", "displayText": true },
-    "question": { "text": "both", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "o" }, { "text": "t" }, { "text": "h" }],
-    "extraChoices": [{ "text": "f" }, { "text": "u" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: four.", "lang": "eng", "displayText": true },
-    "question": { "text": "four", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "o" }, { "text": "u" }, { "text": "r" }],
-    "extraChoices": [{ "text": "a" }, { "text": "e" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: fourth.", "lang": "eng", "displayText": true },
-    "question": { "text": "fourth", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "o" }, { "text": "u" }, { "text": "r" }, { "text": "t" }, { "text": "h" }],
-    "extraChoices": [{ "text": "e" }, { "text": "a" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: forty.", "lang": "eng", "displayText": true },
-    "question": { "text": "forty", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "f" }, { "text": "o" }, { "text": "r" }, { "text": "t" }, { "text": "y" }],
-    "extraChoices": [{ "text": "u" }, { "text": "e" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: people.", "lang": "eng", "displayText": true },
-    "question": { "text": "people", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "p" }, { "text": "e" }, { "text": "o" }, { "text": "p" }, { "text": "l" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "u" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: puppy. (The puppy sits by the nice woman.)", "lang": "eng", "displayText": true },
-    "question": { "text": "puppy", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "p" }, { "text": "u" }, { "text": "p" }, { "text": "p" }, { "text": "y" }],
-    "extraChoices": [{ "text": "o" }, { "text": "h" }]
-  }
-]
+{
+  "id": "ufli-chain-ending-patterns-review-g1",
+  "concept": "ending-patterns-review",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "child",
+        "prompt": "Make the word child.",
+        "correctChoices": [
+          {
+            "text": "c"
+          },
+          {
+            "text": "h"
+          },
+          {
+            "text": "i"
+          },
+          {
+            "text": "l"
+          },
+          {
+            "text": "d"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "w"
+          },
+          {
+            "text": "n"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "word": "wild",
+          "prompt": "Say child. Change ch to w. Build wild.",
+          "correctChoices": [
+            {
+              "text": "w"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "d"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "c"
+            },
+            {
+              "text": "n"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "wild",
+          "to": "mild",
+          "prompt": "Say wild. Change w to m. Build mild."
+        },
+        {
+          "from": "mild",
+          "to": "mind",
+          "prompt": "Say mild. Change l to n. Build mind."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "try",
+        "prompt": "Make the word try.",
+        "correctChoices": [
+          {
+            "text": "t"
+          },
+          {
+            "text": "r"
+          },
+          {
+            "text": "y"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "c"
+          },
+          {
+            "text": "f"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "try",
+          "to": "cry",
+          "prompt": "Say try. Change t to c. Build cry."
+        },
+        {
+          "from": "cry",
+          "to": "pry",
+          "prompt": "Say cry. Change c to p. Build pry."
+        },
+        {
+          "from": "pry",
+          "to": "fry",
+          "prompt": "Say pry. Change p to f. Build fry."
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "fry",
+      "steps": [
+        {
+          "word": "most",
+          "prompt": "Build vocabulary: most.",
+          "correctChoices": [
+            {
+              "text": "m"
+            },
+            {
+              "text": "o"
+            },
+            {
+              "text": "s"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "d"
+            },
+            {
+              "text": "l"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "most",
+          "to": "told",
+          "prompt": "Build vocabulary: told."
+        },
+        {
+          "word": "why",
+          "prompt": "Build vocabulary: why.",
+          "correctChoices": [
+            {
+              "text": "w"
+            },
+            {
+              "text": "h"
+            },
+            {
+              "text": "y"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "s"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "why",
+          "to": "sky",
+          "prompt": "Build vocabulary: sky."
+        },
+        {
+          "word": "baby",
+          "prompt": "Build vocabulary: baby.",
+          "correctChoices": [
+            {
+              "text": "b"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "b"
+            },
+            {
+              "text": "y"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "l"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "lucky",
+          "prompt": "Build vocabulary: lucky.",
+          "correctChoices": [
+            {
+              "text": "l"
+            },
+            {
+              "text": "u"
+            },
+            {
+              "text": "c"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "y"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "b"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "middle",
+          "prompt": "Build vocabulary: middle.",
+          "correctChoices": [
+            {
+              "text": "m"
+            },
+            {
+              "text": "i"
+            },
+            {
+              "text": "d"
+            },
+            {
+              "text": "d"
+            },
+            {
+              "text": "l"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "t"
+            },
+            {
+              "text": "g"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "middle",
+          "to": "jungle",
+          "prompt": "Build vocabulary: jungle."
+        },
+        {
+          "word": "puppy",
+          "prompt": "Build vocabulary: puppy. (The puppy sits by the nice woman.)",
+          "correctChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "u"
+            },
+            {
+              "text": "p"
+            },
+            {
+              "text": "p"
+            },
+            {
+              "text": "y"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "o"
+            },
+            {
+              "text": "h"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    }
+  ]
+}

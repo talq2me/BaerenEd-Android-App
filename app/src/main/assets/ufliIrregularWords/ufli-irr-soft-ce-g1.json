@@ -1,0 +1,154 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: who.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "who",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "w"
+      },
+      {
+        "text": "h"
+      },
+      {
+        "text": "o"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: by.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "by",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "b"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "i"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: my.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "my",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "m"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: one.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "one",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "o"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "a"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: once.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "once",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "o"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "c"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "s"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  }
+]

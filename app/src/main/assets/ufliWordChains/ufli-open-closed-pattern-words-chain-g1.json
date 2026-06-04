@@ -1,62 +1,102 @@
-[
-  {
-    "prompt": { "text": "Spell this open syllable word: we.", "lang": "eng", "displayText": true },
-    "question": { "text": "we", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Spell this open syllable word: hi.", "lang": "eng", "displayText": true },
-    "question": { "text": "hi", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "h" }, { "text": "i" }],
-    "extraChoices": [{ "text": "y" }, { "text": "g" }]
-  },
-  {
-    "prompt": { "text": "Spell this open syllable word: go.", "lang": "eng", "displayText": true },
-    "question": { "text": "go", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "g" }, { "text": "o" }],
-    "extraChoices": [{ "text": "n" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Spell this open syllable word: me.", "lang": "eng", "displayText": true },
-    "question": { "text": "me", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "r" }]
-  },
-  {
-    "prompt": { "text": "Spell this open syllable word: re.", "lang": "eng", "displayText": true },
-    "question": { "text": "re", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "d" }]
-  },
-  {
-    "prompt": { "text": "Spell this closed syllable word: wet.", "lang": "eng", "displayText": true },
-    "question": { "text": "wet", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "e" }, { "text": "t" }],
-    "extraChoices": [{ "text": "i" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Spell this closed syllable word: him.", "lang": "eng", "displayText": true },
-    "question": { "text": "him", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "h" }, { "text": "i" }, { "text": "m" }],
-    "extraChoices": [{ "text": "a" }, { "text": "s" }]
-  },
-  {
-    "prompt": { "text": "Spell this closed syllable word: got.", "lang": "eng", "displayText": true },
-    "question": { "text": "got", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "g" }, { "text": "o" }, { "text": "t" }],
-    "extraChoices": [{ "text": "d" }, { "text": "p" }]
-  },
-  {
-    "prompt": { "text": "Spell this closed syllable word: met.", "lang": "eng", "displayText": true },
-    "question": { "text": "met", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "e" }, { "text": "t" }],
-    "extraChoices": [{ "text": "n" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Spell this closed syllable word: red.", "lang": "eng", "displayText": true },
-    "question": { "text": "red", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "e" }, { "text": "d" }],
-    "extraChoices": [{ "text": "b" }, { "text": "o" }]
-  }
-]
+{
+  "id": "ufli-open-closed-pattern-words-chain-g1",
+  "concept": "open-closed-pattern-words",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "spell-1",
+      "steps": [
+        {
+          "word": "we",
+          "prompt": "Spell this open syllable word: we.",
+          "correctChoices": [
+            {
+              "text": "w"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "steps": [
+        {
+          "from": "we",
+          "to": "hi",
+          "prompt": "Spell this open syllable word: hi."
+        },
+        {
+          "from": "hi",
+          "to": "go",
+          "prompt": "Spell this open syllable word: go."
+        },
+        {
+          "from": "go",
+          "to": "me",
+          "prompt": "Spell this open syllable word: me."
+        },
+        {
+          "from": "me",
+          "to": "re",
+          "prompt": "Spell this open syllable word: re."
+        },
+        {
+          "word": "wet",
+          "prompt": "Spell this closed syllable word: wet.",
+          "correctChoices": [
+            {
+              "text": "w"
+            },
+            {
+              "text": "e"
+            },
+            {
+              "text": "t"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "p"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "wet",
+          "to": "him",
+          "prompt": "Spell this closed syllable word: him."
+        },
+        {
+          "from": "him",
+          "to": "got",
+          "prompt": "Spell this closed syllable word: got."
+        },
+        {
+          "from": "got",
+          "to": "met",
+          "prompt": "Spell this closed syllable word: met."
+        },
+        {
+          "from": "met",
+          "to": "red",
+          "prompt": "Spell this closed syllable word: red."
+        }
+      ]
+    }
+  ]
+}

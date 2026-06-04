@@ -1,0 +1,8 @@
+[
+  {
+    "prompt": { "text": "Build the irregular word: move. (Should we move the fridge?)", "lang": "eng", "displayText": true },
+    "question": { "text": "move", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "v" }, { "text": "e" }],
+    "extraChoices": [{ "text": "a" }, { "text": "u" }]
+  }
+]

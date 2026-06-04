@@ -1,77 +1,161 @@
-[
-  {
-    "prompt": { "text": "Make the word make.", "lang": "eng", "displayText": true },
-    "question": { "text": "make", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "l" }, { "text": "c" }]
-  },
-  {
-    "prompt": { "text": "Say make. Change m to l for lake. Build lake.", "lang": "eng", "displayText": true },
-    "question": { "text": "lake", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "m" }, { "text": "b" }]
-  },
-  {
-    "prompt": { "text": "Say lake. Change l to c for cake. Build cake.", "lang": "eng", "displayText": true },
-    "question": { "text": "cake", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "l" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Say cake. Change c to b for bake. Build bake.", "lang": "eng", "displayText": true },
-    "question": { "text": "bake", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "c" }, { "text": "m" }]
-  },
-  {
-    "prompt": { "text": "Make the word name.", "lang": "eng", "displayText": true },
-    "question": { "text": "name", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "n" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "c" }]
-  },
-  {
-    "prompt": { "text": "Say name. Change n to s for same. Build same.", "lang": "eng", "displayText": true },
-    "question": { "text": "same", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "s" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "n" }, { "text": "g" }]
-  },
-  {
-    "prompt": { "text": "Say same. Change s to c for came. Build came.", "lang": "eng", "displayText": true },
-    "question": { "text": "came", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Say came. Change c to g for game. Build game. (Sentence: Blake was late to the game.)", "lang": "eng", "displayText": true },
-    "question": { "text": "game", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "g" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "c" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Build skate. (Sample a_e vocabulary.)", "lang": "eng", "displayText": true },
-    "question": { "text": "skate", "lang": "eng", "displayText": true },
-    "correctChoices": [
-      { "text": "s" }, { "text": "k" }, { "text": "a" }, { "text": "t" }, { "text": "e" }
-    ],
-    "extraChoices": [{ "text": "p" }, { "text": "r" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: who. (Who will be at the lake?)", "lang": "eng", "displayText": true },
-    "question": { "text": "who", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "o" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build lake. (Who will be at the lake?)", "lang": "eng", "displayText": true },
-    "question": { "text": "lake", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Build late. (Sentence: Blake was late to the game.)", "lang": "eng", "displayText": true },
-    "question": { "text": "late", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "t" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  }
-]
-
+{
+  "id": "ufli-chain-a-e-g1",
+  "concept": "a-e",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "make",
+        "prompt": "Make the word make.",
+        "correctChoices": [
+          {
+            "text": "m"
+          },
+          {
+            "text": "a"
+          },
+          {
+            "text": "k"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "l"
+          },
+          {
+            "text": "c"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "make",
+          "to": "lake",
+          "prompt": "Say make. Change m to l for lake. Build lake."
+        },
+        {
+          "from": "lake",
+          "to": "cake",
+          "prompt": "Say lake. Change l to c for cake. Build cake."
+        },
+        {
+          "from": "cake",
+          "to": "bake",
+          "prompt": "Say cake. Change c to b for bake. Build bake."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "name",
+        "prompt": "Make the word name.",
+        "correctChoices": [
+          {
+            "text": "n"
+          },
+          {
+            "text": "a"
+          },
+          {
+            "text": "m"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "s"
+          },
+          {
+            "text": "c"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "name",
+          "to": "same",
+          "prompt": "Say name. Change n to s for same. Build same."
+        },
+        {
+          "from": "same",
+          "to": "came",
+          "prompt": "Say same. Change s to c for came. Build came."
+        },
+        {
+          "from": "came",
+          "to": "game",
+          "prompt": "Say came. Change c to g for game. Build game. (Sentence: Blake was late to the game.)"
+        },
+        {
+          "word": "skate",
+          "prompt": "Build skate. (Sample a_e vocabulary.)",
+          "correctChoices": [
+            {
+              "text": "s"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "t"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "r"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "word": "lake",
+          "prompt": "Build lake. (Who will be at the lake?)",
+          "correctChoices": [
+            {
+              "text": "l"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "o"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "lake",
+          "to": "late",
+          "prompt": "Build late. (Sentence: Blake was late to the game.)"
+        }
+      ]
+    }
+  ]
+}

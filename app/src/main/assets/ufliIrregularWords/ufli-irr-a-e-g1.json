@@ -1,0 +1,33 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: who. (Who will be at the lake?)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "who",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "w"
+      },
+      {
+        "text": "h"
+      },
+      {
+        "text": "o"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  }
+]

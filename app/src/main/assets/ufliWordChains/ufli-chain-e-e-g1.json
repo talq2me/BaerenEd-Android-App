@@ -1,86 +1,161 @@
-[
-  {
-    "prompt": { "text": "Make the word ride.", "lang": "eng", "displayText": true },
-    "question": { "text": "ride", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "i" }, { "text": "d" }, { "text": "e" }],
-    "extraChoices": [{ "text": "o" }, { "text": "a" }]
-  },
-  {
-    "prompt": { "text": "Say ride. Change the i to o for rode. Build rode.", "lang": "eng", "displayText": true },
-    "question": { "text": "rode", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "r" }, { "text": "o" }, { "text": "d" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "m" }]
-  },
-  {
-    "prompt": { "text": "Say rode. Change r to m for mode. Build mode.", "lang": "eng", "displayText": true },
-    "question": { "text": "mode", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "d" }, { "text": "e" }],
-    "extraChoices": [{ "text": "r" }, { "text": "t" }]
-  },
-  {
-    "prompt": { "text": "Say mode. Change the o to a for made. Build made.", "lang": "eng", "displayText": true },
-    "question": { "text": "made", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "a" }, { "text": "d" }, { "text": "e" }],
-    "extraChoices": [{ "text": "o" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Make the word came.", "lang": "eng", "displayText": true },
-    "question": { "text": "came", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Say came. Change c to t for tame. Build tame.", "lang": "eng", "displayText": true },
-    "question": { "text": "tame", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "c" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Say tame. Change a to i for time. Build time.", "lang": "eng", "displayText": true },
-    "question": { "text": "time", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "i" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Say time. Change t to l for lime. Build lime.", "lang": "eng", "displayText": true },
-    "question": { "text": "lime", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "i" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "h" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: eve. (Sample word.)", "lang": "eng", "displayText": true },
-    "question": { "text": "eve", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "e" }, { "text": "v" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Build lake. (They should hike by the lake.)", "lang": "eng", "displayText": true },
-    "question": { "text": "lake", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "l" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Build cake. (I will bake a cake for my class.)", "lang": "eng", "displayText": true },
-    "question": { "text": "cake", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "a" }, { "text": "k" }, { "text": "e" }],
-    "extraChoices": [{ "text": "b" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: who.", "lang": "eng", "displayText": true },
-    "question": { "text": "who", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "o" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: by.", "lang": "eng", "displayText": true },
-    "question": { "text": "by", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "y" }],
-    "extraChoices": [{ "text": "i" }, { "text": "e" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: my.", "lang": "eng", "displayText": true },
-    "question": { "text": "my", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "y" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  }
-]
+{
+  "id": "ufli-chain-e-e-g1",
+  "concept": "e-e",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "ride",
+        "prompt": "Make the word ride.",
+        "correctChoices": [
+          {
+            "text": "r"
+          },
+          {
+            "text": "i"
+          },
+          {
+            "text": "d"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "o"
+          },
+          {
+            "text": "a"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "ride",
+          "to": "rode",
+          "prompt": "Say ride. Change the i to o for rode. Build rode."
+        },
+        {
+          "from": "rode",
+          "to": "mode",
+          "prompt": "Say rode. Change r to m for mode. Build mode."
+        },
+        {
+          "from": "mode",
+          "to": "made",
+          "prompt": "Say mode. Change the o to a for made. Build made."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "came",
+        "prompt": "Make the word came.",
+        "correctChoices": [
+          {
+            "text": "c"
+          },
+          {
+            "text": "a"
+          },
+          {
+            "text": "m"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "t"
+          },
+          {
+            "text": "i"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "came",
+          "to": "tame",
+          "prompt": "Say came. Change c to t for tame. Build tame."
+        },
+        {
+          "from": "tame",
+          "to": "time",
+          "prompt": "Say tame. Change a to i for time. Build time."
+        },
+        {
+          "from": "time",
+          "to": "lime",
+          "prompt": "Say time. Change t to l for lime. Build lime."
+        },
+        {
+          "word": "lake",
+          "prompt": "Build lake. (They should hike by the lake.)",
+          "correctChoices": [
+            {
+              "text": "l"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "k"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "o"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "lake",
+          "to": "cake",
+          "prompt": "Build cake. (I will bake a cake for my class.)"
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "cake",
+      "steps": [
+        {
+          "word": "eve",
+          "prompt": "Build vocabulary: eve. (Sample word.)",
+          "correctChoices": [
+            {
+              "text": "e"
+            },
+            {
+              "text": "v"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "i"
+            },
+            {
+              "text": "o"
+            }
+          ],
+          "type": "seed"
+        }
+      ]
+    }
+  ]
+}

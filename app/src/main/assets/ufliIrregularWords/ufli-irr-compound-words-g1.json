@@ -1,0 +1,45 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: because.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "because",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "b"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "c"
+      },
+      {
+        "text": "a"
+      },
+      {
+        "text": "u"
+      },
+      {
+        "text": "s"
+      },
+      {
+        "text": "e"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "z"
+      },
+      {
+        "text": "n"
+      }
+    ]
+  }
+]

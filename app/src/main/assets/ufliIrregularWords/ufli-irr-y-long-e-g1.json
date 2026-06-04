@@ -1,0 +1,39 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: forty. (The woman is not forty.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "forty",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "f"
+      },
+      {
+        "text": "o"
+      },
+      {
+        "text": "r"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "u"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  }
+]

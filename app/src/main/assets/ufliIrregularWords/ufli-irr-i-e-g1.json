@@ -1,0 +1,58 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: by.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "by",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "b"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "i"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: my.",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "my",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "m"
+      },
+      {
+        "text": "y"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "e"
+      },
+      {
+        "text": "i"
+      }
+    ]
+  }
+]

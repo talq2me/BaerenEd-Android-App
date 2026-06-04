@@ -1,92 +1,140 @@
-[
-  {
-    "prompt": { "text": "Make the word tune.", "lang": "eng", "displayText": true },
-    "question": { "text": "tune", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "u" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "o" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Say tune. Change the u to o for tone. Build tone.", "lang": "eng", "displayText": true },
-    "question": { "text": "tone", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "u" }, { "text": "a" }]
-  },
-  {
-    "prompt": { "text": "Say tone. Change tone to cone. Build cone.", "lang": "eng", "displayText": true },
-    "question": { "text": "cone", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "k" }]
-  },
-  {
-    "prompt": { "text": "Say cone. Change the o to a for cane. Build cane. (There are five cones at the gate.)", "lang": "eng", "displayText": true },
-    "question": { "text": "cane", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "c" }, { "text": "a" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "o" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Make the word tame.", "lang": "eng", "displayText": true },
-    "question": { "text": "tame", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "a" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Say tame. Change a to i for time. Build time.", "lang": "eng", "displayText": true },
-    "question": { "text": "time", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "i" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "o" }]
-  },
-  {
-    "prompt": { "text": "Say time. Change t to d for dime. Build dime.", "lang": "eng", "displayText": true },
-    "question": { "text": "dime", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "d" }, { "text": "i" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "t" }, { "text": "l" }]
-  },
-  {
-    "prompt": { "text": "Say dime. Change i to o for dome. Build dome.", "lang": "eng", "displayText": true },
-    "question": { "text": "dome", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "d" }, { "text": "o" }, { "text": "m" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "a" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: grade. (Sample word from this silent e lesson.)", "lang": "eng", "displayText": true },
-    "question": { "text": "grade", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "g" }, { "text": "r" }, { "text": "a" }, { "text": "d" }, { "text": "e" }],
-    "extraChoices": [{ "text": "p" }, { "text": "n" }]
-  },
-  {
-    "prompt": { "text": "Build vocabulary: these.", "lang": "eng", "displayText": true },
-    "question": { "text": "these", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "t" }, { "text": "h" }, { "text": "e" }, { "text": "s" }, { "text": "e" }],
-    "extraChoices": [{ "text": "i" }, { "text": "a" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: who.", "lang": "eng", "displayText": true },
-    "question": { "text": "who", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "w" }, { "text": "h" }, { "text": "o" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: by.", "lang": "eng", "displayText": true },
-    "question": { "text": "by", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "b" }, { "text": "y" }],
-    "extraChoices": [{ "text": "i" }, { "text": "e" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: my.", "lang": "eng", "displayText": true },
-    "question": { "text": "my", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "m" }, { "text": "y" }],
-    "extraChoices": [{ "text": "e" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: one.", "lang": "eng", "displayText": true },
-    "question": { "text": "one", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "e" }],
-    "extraChoices": [{ "text": "a" }, { "text": "i" }]
-  },
-  {
-    "prompt": { "text": "Build the irregular word: once.", "lang": "eng", "displayText": true },
-    "question": { "text": "once", "lang": "eng", "displayText": true },
-    "correctChoices": [{ "text": "o" }, { "text": "n" }, { "text": "c" }, { "text": "e" }],
-    "extraChoices": [{ "text": "s" }, { "text": "i" }]
-  }
-]
+{
+  "id": "ufli-chain-silent-e-review2-g1",
+  "concept": "silent-e-review2",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "tune",
+        "prompt": "Make the word tune.",
+        "correctChoices": [
+          {
+            "text": "t"
+          },
+          {
+            "text": "u"
+          },
+          {
+            "text": "n"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "o"
+          },
+          {
+            "text": "i"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "tune",
+          "to": "tone",
+          "prompt": "Say tune. Change the u to o for tone. Build tone."
+        },
+        {
+          "from": "tone",
+          "to": "cone",
+          "prompt": "Say tone. Change tone to cone. Build cone."
+        },
+        {
+          "from": "cone",
+          "to": "cane",
+          "prompt": "Say cone. Change the o to a for cane. Build cane. (There are five cones at the gate.)"
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "tame",
+        "prompt": "Make the word tame.",
+        "correctChoices": [
+          {
+            "text": "t"
+          },
+          {
+            "text": "a"
+          },
+          {
+            "text": "m"
+          },
+          {
+            "text": "e"
+          }
+        ],
+        "extraChoices": [
+          {
+            "text": "i"
+          },
+          {
+            "text": "o"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "from": "tame",
+          "to": "time",
+          "prompt": "Say tame. Change a to i for time. Build time."
+        },
+        {
+          "from": "time",
+          "to": "dime",
+          "prompt": "Say time. Change t to d for dime. Build dime."
+        },
+        {
+          "from": "dime",
+          "to": "dome",
+          "prompt": "Say dime. Change i to o for dome. Build dome."
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "dome",
+      "steps": [
+        {
+          "word": "grade",
+          "prompt": "Build vocabulary: grade. (Sample word from this silent e lesson.)",
+          "correctChoices": [
+            {
+              "text": "g"
+            },
+            {
+              "text": "r"
+            },
+            {
+              "text": "a"
+            },
+            {
+              "text": "d"
+            },
+            {
+              "text": "e"
+            }
+          ],
+          "extraChoices": [
+            {
+              "text": "p"
+            },
+            {
+              "text": "n"
+            }
+          ],
+          "type": "seed"
+        },
+        {
+          "from": "grade",
+          "to": "these",
+          "prompt": "Build vocabulary: these."
+        }
+      ]
+    }
+  ]
+}

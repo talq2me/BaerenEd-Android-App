@@ -1,0 +1,70 @@
+[
+  {
+    "prompt": {
+      "text": "Build the irregular word: been. (Sentence: Have you been camping?)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "been",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "b"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "e"
+      },
+      {
+        "text": "n"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "i"
+      },
+      {
+        "text": "t"
+      }
+    ]
+  },
+  {
+    "prompt": {
+      "text": "Build the irregular word: into. (He is lifting the box into the trunk.)",
+      "lang": "eng",
+      "displayText": true
+    },
+    "question": {
+      "text": "into",
+      "lang": "eng",
+      "displayText": true
+    },
+    "correctChoices": [
+      {
+        "text": "i"
+      },
+      {
+        "text": "n"
+      },
+      {
+        "text": "t"
+      },
+      {
+        "text": "o"
+      }
+    ],
+    "extraChoices": [
+      {
+        "text": "u"
+      },
+      {
+        "text": "e"
+      }
+    ]
+  }
+]
