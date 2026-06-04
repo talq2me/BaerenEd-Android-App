@@ -107,7 +107,7 @@ object TtsManager {
     }
 
     fun setSpeechRate(rate: Float) {
-        tts?.setSpeechRate(rate.coerceIn(0.2f, 2.0f))
+        tts?.setSpeechRate(rate.coerceIn(0.1f, 2.0f))
     }
 
     fun restoreDefaultSpeechRate() {

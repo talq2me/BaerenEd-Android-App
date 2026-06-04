@@ -330,7 +330,7 @@ class WebGameActivity : AppCompatActivity() {
             val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
             val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
             rate.toFloatOrNull()
-                ?.takeIf { it in 0.2f..1.5f }
+                ?.takeIf { it in 0.1f..2.0f }
                 ?.let { TtsManager.setSpeechRate(it) }
             TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, utteranceId)
         }
