@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS image_uploads (
     image TEXT NOT NULL, -- Base64 encoded image data
     capture_date_time TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto'), -- When the photo was taken/uploaded (Toronto time)
     
-    -- Ensure one image per profile/task combination (new uploads overwrite previous ones)
+    -- Unique task key per row; apps use distinct keys per word/day (retries overwrite same key only)
     UNIQUE(profile, task)
 );
 

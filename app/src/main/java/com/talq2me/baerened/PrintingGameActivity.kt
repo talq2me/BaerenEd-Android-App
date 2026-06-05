@@ -1,6 +1,9 @@
 package com.talq2me.baerened
 
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Base64
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -10,8 +13,16 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class PrintingGameActivity : AppCompatActivity() {
+    private companion object {
+        private const val TAG = "PrintingGameActivity"
+    }
     private lateinit var drawingCanvas: DrawingCanvasView
     private lateinit var wordTextView: TextView
     private lateinit var sentenceTextView: TextView
@@ -48,6 +59,8 @@ class PrintingGameActivity : AppCompatActivity() {
         isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
         sectionId = intent.getStringExtra("SECTION_ID")
         battleHubTaskId = intent.getStringExtra("BATTLE_HUB_TASK_ID")
+
+        clearPrintingUploadsOnLaunch()
         
         // Initialize views
         drawingCanvas = findViewById(R.id.drawingCanvas)
@@ -147,6 +160,7 @@ class PrintingGameActivity : AppCompatActivity() {
         
         // Proceed if 2+ stars, or if 1 star and they've already had their one retry
         if (stars >= 2 || retryUsedForCurrentWord) {
+            uploadWordSnapshot(drawing, currentWordIndex, word)
             currentWordIndex++
             android.os.Handler().postDelayed({
                 showNextWord()
@@ -166,6 +180,65 @@ class PrintingGameActivity : AppCompatActivity() {
         starsTextView.text = "Stars: $totalStars | Words: $completedWords/${sentence.size}"
     }
     
+    /** Wipe prior printing-practice snapshots for this profile so each session starts fresh. */
+    private fun clearPrintingUploadsOnLaunch() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val sync = SupabaseInterface()
+                if (!sync.isConfigured()) {
+                    Log.d(TAG, "Supabase not configured; skipping clear of printing uploads")
+                    return@launch
+                }
+                val profile = SettingsManager.readProfile(this@PrintingGameActivity) ?: "AM"
+                val n = sync.invokeAfDeleteImageUploadsIlike(profile, "HandwritingPractice%-printing-%").getOrElse {
+                    Log.e(TAG, "clear printing uploads RPC failed: ${it.message}")
+                    return@launch
+                }
+                Log.d(TAG, "Cleared printing uploads (profile=$profile): deleted $n rows")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing printing uploads", e)
+            }
+        }
+    }
+
+    private fun torontoYmd(): String {
+        val fmt = SimpleDateFormat("yyyyMMdd", Locale.US)
+        fmt.timeZone = TimeZone.getTimeZone("America/Toronto")
+        return fmt.format(Date())
+    }
+
+    private fun sanitizeTaskWord(word: String): String {
+        val slug = word.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+        return if (slug.isEmpty()) "word" else slug.take(40)
+    }
+
+    /** One row per word per day; retries overwrite the same word slot only. */
+    private fun handwritingTaskKey(wordIndex: Int, word: String): String {
+        val nn = String.format(Locale.US, "%02d", wordIndex + 1)
+        return "HandwritingPractice-${torontoYmd()}-printing-$nn-${sanitizeTaskWord(word)}"
+    }
+
+    private fun uploadWordSnapshot(bitmap: Bitmap, wordIndex: Int, word: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val sync = SupabaseInterface()
+            if (!sync.isConfigured()) {
+                Log.d(TAG, "Supabase not configured; skipping word snapshot upload")
+                return@launch
+            }
+            val profile = SettingsManager.readProfile(this@PrintingGameActivity) ?: "AM"
+            val task = handwritingTaskKey(wordIndex, word)
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 82, outputStream)
+            val base64Image = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+            val upload = sync.invokeAfUpsertImageUpload(profile, task, base64Image)
+            if (upload.isFailure) {
+                Log.e(TAG, "Word snapshot upload failed: ${upload.exceptionOrNull()?.message}")
+            } else {
+                Log.d(TAG, "Word snapshot uploaded (profile=$profile, task=$task)")
+            }
+        }
+    }
+
     private fun completeGame() {
         val totalStars = wordStars.values.sum()
         lifecycleScope.launch(Dispatchers.IO) {

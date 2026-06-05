@@ -113,6 +113,10 @@ class WebGameActivity : AppCompatActivity() {
             return
         }
 
+        if (gameUrl.contains("handwriting.html", ignoreCase = true)) {
+            clearHandwritingPaperUploadsOnLaunch()
+        }
+
         // Defer WebView creation and TTS init to next frame so onCreate returns immediately.
         // WebView first-time init and TTS engine startup are heavy and were blocking the
         // main thread long enough to cause "Input dispatching timed out" ANR in TrainingMapActivity.
@@ -262,6 +266,27 @@ class WebGameActivity : AppCompatActivity() {
         timeTracker.endActivity("webgame")
         setResult(RESULT_CANCELED)
         super.onBackPressed()
+    }
+
+    /** Wipe prior handwriting-paper snapshots for this profile so each session starts fresh. */
+    private fun clearHandwritingPaperUploadsOnLaunch() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val sync = SupabaseInterface()
+                if (!sync.isConfigured()) {
+                    android.util.Log.d("WebGameActivity", "Supabase not configured; skipping clear of handwriting paper uploads")
+                    return@launch
+                }
+                val profile = SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
+                val n = sync.invokeAfDeleteImageUploadsIlike(profile, "HandwritingPractice%-sent%").getOrElse {
+                    android.util.Log.e("WebGameActivity", "clear handwriting paper uploads RPC failed: ${it.message}")
+                    return@launch
+                }
+                android.util.Log.d("WebGameActivity", "Cleared handwriting paper uploads (profile=$profile): deleted $n rows")
+            } catch (e: Exception) {
+                android.util.Log.e("WebGameActivity", "Error clearing handwriting paper uploads", e)
+            }
+        }
     }
 
     inner class WebGameInterface(
@@ -548,6 +573,94 @@ class WebGameActivity : AppCompatActivity() {
         @JavascriptInterface
         fun getCurrentProfile(): String {
             return SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
+        }
+
+        @JavascriptInterface
+        fun captureAndUploadHandwriting(task: String, successCallback: String, errorCallback: String) {
+            android.util.Log.d("WebGameActivity", "captureAndUploadHandwriting task=$task")
+            runOnUiThread {
+                val wv = webView
+                if (wv == null || wv.width <= 0 || wv.height <= 0) {
+                    val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                    webView?.evaluateJavascript(
+                        "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('WebView not ready');",
+                        null
+                    )
+                    return@runOnUiThread
+                }
+                try {
+                    val bitmap = android.graphics.Bitmap.createBitmap(
+                        wv.width,
+                        wv.height,
+                        android.graphics.Bitmap.Config.ARGB_8888
+                    )
+                    val canvas = android.graphics.Canvas(bitmap)
+                    wv.draw(canvas)
+                    Thread {
+                        try {
+                            val sync = SupabaseInterface()
+                            if (!sync.isConfigured()) {
+                                runOnUiThread {
+                                    val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                                    webView?.evaluateJavascript(
+                                        "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('Supabase not configured');",
+                                        null
+                                    )
+                                }
+                                return@Thread
+                            }
+                            val profile = SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
+                            val outputStream = java.io.ByteArrayOutputStream()
+                            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, outputStream)
+                            val base64Image = android.util.Base64.encodeToString(
+                                outputStream.toByteArray(),
+                                android.util.Base64.NO_WRAP
+                            )
+                            val uploadResult = runBlocking(Dispatchers.IO) {
+                                sync.invokeAfUpsertImageUpload(profile, task, base64Image)
+                            }
+                            runOnUiThread {
+                                val escapedCallback = if (uploadResult.isSuccess) {
+                                    successCallback.replace("\\", "\\\\").replace("'", "\\'")
+                                } else {
+                                    errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                                }
+                                if (uploadResult.isSuccess) {
+                                    webView?.evaluateJavascript(
+                                        "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']();",
+                                        null
+                                    )
+                                } else {
+                                    val msg = (uploadResult.exceptionOrNull()?.message ?: "Upload failed")
+                                        .replace("'", "\\'").replace("\"", "\\\"")
+                                    webView?.evaluateJavascript(
+                                        "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$msg');",
+                                        null
+                                    )
+                                }
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("WebGameActivity", "captureAndUploadHandwriting failed", e)
+                            runOnUiThread {
+                                val errorMsg = (e.message ?: "Unknown error").replace("'", "\\'").replace("\"", "\\\"")
+                                val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                                webView?.evaluateJavascript(
+                                    "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
+                                    null
+                                )
+                            }
+                        }
+                    }.start()
+                } catch (e: Exception) {
+                    android.util.Log.e("WebGameActivity", "captureAndUploadHandwriting capture failed", e)
+                    val errorMsg = (e.message ?: "Capture failed").replace("'", "\\'").replace("\"", "\\\"")
+                    val escapedCallback = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                    webView?.evaluateJavascript(
+                        "if (typeof window['$escapedCallback'] === 'function') window['$escapedCallback']('$errorMsg');",
+                        null
+                    )
+                }
+            }
         }
 
         @JavascriptInterface

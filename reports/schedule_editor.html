@@ -430,6 +430,15 @@
             return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
         }
 
+        const ALWAYS_OFF_DISABLE = 'Dec 31, 2099';
+
+        function isAlwaysOffDisable(disable) {
+            if (!disable || !String(disable).trim()) return false;
+            if (String(disable).trim() === ALWAYS_OFF_DISABLE) return true;
+            const d = parseDisableDate(disable);
+            return d ? d.getFullYear() >= 2099 : false;
+        }
+
         function startOfToday() {
             const t = new Date();
             t.setHours(0, 0, 0, 0);
@@ -473,6 +482,7 @@
 
         function daysSummary(task) {
             if (!isScheduleOn(task)) {
+                if (isAlwaysOffDisable(task.disable)) return 'Always off';
                 const d = parseDisableDate(task.disable);
                 return d ? `Off until ${formatDisableDate(d)}` : 'Off';
             }
@@ -768,7 +778,7 @@
             if (!entry) return closeModals();
             const mode = document.querySelector('input[name="offMode"]:checked')?.value;
             if (mode === 'always') {
-                entry.data.disable = 'Dec 31, 2099';
+                entry.data.disable = ALWAYS_OFF_DISABLE;
             } else {
                 const raw = document.getElementById('offUntilDate').value;
                 if (!raw) { alert('Pick a date'); return; }

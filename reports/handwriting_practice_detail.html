@@ -70,14 +70,26 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .sheet img {
-            max-width: 100%;
+        .snapshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            text-align: left;
+        }
+        .snapshot-card {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #e8e8e8;
+        }
+        .snapshot-card img {
+            width: 100%;
             height: auto;
             border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             cursor: zoom-in;
         }
-        .task-line { margin-top: 14px; color: #666; font-size: 0.88em; word-break: break-all; }
+        .task-line { margin-top: 10px; color: #666; font-size: 0.8em; word-break: break-all; }
         .modal {
             display: none;
             position: fixed;
@@ -124,8 +136,7 @@
         <div id="loading" class="loading">Loading…</div>
         <div id="error" class="error" style="display:none;"></div>
         <div id="sheet" class="sheet" style="display:none;">
-            <img id="snapshot" alt="Handwriting snapshot" />
-            <p class="task-line" id="taskLine"></p>
+            <div id="snapshotsGrid" class="snapshots-grid"></div>
         </div>
         <div id="noData" class="no-data" style="display:none;">No handwriting upload for this profile on this Toronto calendar day yet.</div>
     </div>
@@ -251,19 +262,31 @@
             return (await alt.json()).filter(isHandwritingRow);
         }
 
-        function pickBestForDay(rows, ymdToronto) {
+        function wordOrderFromTask(task) {
+            const m = (task || '').match(/printing-(\d{2})-/i);
+            return m ? parseInt(m[1], 10) : 999;
+        }
+
+        function pickAllForDay(rows, ymdToronto) {
             const hits = [];
             for (const r of rows || []) {
                 if (!r.image) continue;
                 if (rowTorontoYmd(r) === ymdToronto) hits.push(r);
             }
-            if (hits.length === 0) return null;
             hits.sort((a, b) => {
+                const oa = wordOrderFromTask(a.task);
+                const ob = wordOrderFromTask(b.task);
+                if (oa !== ob) return oa - ob;
                 const ta = Date.parse(a.capture_date_time || '') || 0;
                 const tb = Date.parse(b.capture_date_time || '') || 0;
-                return tb - ta;
+                return ta - tb;
             });
-            return hits[0];
+            return hits;
+        }
+
+        function imageDataUrl(raw) {
+            if (!raw) return '';
+            return raw.startsWith('data:') ? raw : `data:image/jpeg;base64,${raw}`;
         }
 
         async function render() {
@@ -286,10 +309,10 @@
 
             try {
                 const rows = await fetchHandwritingUploads(url, key);
-                const winner = pickBestForDay(rows, selectedYmd);
+                const dayHits = pickAllForDay(rows, selectedYmd);
                 document.getElementById('loading').style.display = 'none';
 
-                if (!winner) {
+                if (dayHits.length === 0) {
                     document.getElementById('noData').style.display = 'block';
                     document.getElementById('meta').innerHTML =
                         `<strong>No upload</strong> for ${profileParam} on <strong>${selectedYmd}</strong> (Toronto). ` +
@@ -297,18 +320,28 @@
                     return;
                 }
 
+                const latest = dayHits[dayHits.length - 1];
                 document.getElementById('meta').innerHTML =
                     `Results for day: <strong>${formatTorontoLong(selectedYmd)}</strong><br>` +
-                    `last_updated (capture_time): <strong>${formatTorontoDayTime(winner.capture_date_time)}</strong> (America/Toronto)<br>` +
-                    `task key: ${escapeHtml(winner.task)}`;
+                    `<strong>${dayHits.length}</strong> snapshot${dayHits.length === 1 ? '' : 's'} ` +
+                    `(latest capture: <strong>${formatTorontoDayTime(latest.capture_date_time)}</strong>, America/Toronto)`;
 
-                const imgEl = document.getElementById('snapshot');
-                let raw = winner.image;
-                if (!raw.startsWith('data:')) {
-                    raw = `data:image/png;base64,${raw}`;
-                }
-                imgEl.src = raw;
-                document.getElementById('taskLine').textContent = winner.task || '';
+                const grid = document.getElementById('snapshotsGrid');
+                grid.innerHTML = '';
+                dayHits.forEach((hit) => {
+                    const card = document.createElement('div');
+                    card.className = 'snapshot-card';
+                    const img = document.createElement('img');
+                    img.alt = hit.task || 'Handwriting snapshot';
+                    img.src = imageDataUrl(hit.image);
+                    img.addEventListener('click', () => openModal(img.src));
+                    const line = document.createElement('p');
+                    line.className = 'task-line';
+                    line.textContent = hit.task || '';
+                    card.appendChild(img);
+                    card.appendChild(line);
+                    grid.appendChild(card);
+                });
                 document.getElementById('sheet').style.display = 'block';
             } catch (e) {
                 console.error(e);
@@ -342,10 +375,10 @@
         }
 
         const modal = document.getElementById('modal');
-        document.getElementById('snapshot').onclick = () => {
+        function openModal(src) {
+            document.getElementById('modalImg').src = src;
             modal.classList.add('show');
-            document.getElementById('modalImg').src = document.getElementById('snapshot').src;
-        };
+        }
         modal.onclick = () => modal.classList.remove('show');
         modal.querySelector('.close-x').onclick = (ev) => { ev.stopPropagation(); modal.classList.remove('show'); };
 

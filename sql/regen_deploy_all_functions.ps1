@@ -86,7 +86,9 @@ $files = @(
 
   "af_reward_time_expire.sql",
 
-  "af_reward_time_add.sql"
+  "af_reward_time_add.sql",
+
+  "af_push_profile_config_to_github.sql"
 
 )
 

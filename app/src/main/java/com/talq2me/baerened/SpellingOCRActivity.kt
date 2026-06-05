@@ -99,9 +99,8 @@ class SpellingOCRActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Word file from intent: $wordFile")
         
-        // Clear old spelling OCR images for this profile+game in Supabase so each launch starts fresh
         clearOldSpellingOcrImagesOnLaunch()
-        
+
         // Use French TTS when word list is French or game is French Spelling OCR
         val fileLower = wordFile.lowercase(Locale.ROOT)
         useFrenchTTS = fileLower.contains("frenchwordsgr1") || fileLower.contains("frenchwordsgr4") ||
@@ -617,7 +616,6 @@ class SpellingOCRActivity : AppCompatActivity() {
                     wordFile.contains("french", ignoreCase = true) -> "FrSpellingOCR"
                     else -> "EngSpellingOCR"
                 }
-                // PostgREST: task ilike 'EngSpellingOCR%' -> task=ilike.EngSpellingOCR%25 (URL-encoded %)
                 val n = cloudSyncService.invokeAfDeleteImageUploadsIlike(profile, "$taskPrefix%").getOrElse {
                     Log.e(TAG, "clear spelling OCR images RPC failed: ${it.message}")
                     return@launch
@@ -628,7 +626,7 @@ class SpellingOCRActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     /**
      * Uploads spelling image to Supabase image_uploads table
      * Task format: "EngSpellingOCR-01-uncooked-X" or "EngSpellingOCR-01-uncooked-✓"
@@ -658,8 +656,6 @@ class SpellingOCRActivity : AppCompatActivity() {
                 // Determine status based on correctness
                 val status = if (isCorrect) "✓" else "X"
                 
-                // Format: EngSpellingOCR-01-uncooked-X or EngSpellingOCR-01-uncooked-✓
-                // Use expectedWord (the word asked to spell), NOT the OCR recognized text
                 val task = "$gameName-$questionNumber-$expectedWord-$status"
                 
                 // Convert bitmap to base64
@@ -667,7 +663,6 @@ class SpellingOCRActivity : AppCompatActivity() {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
                 val base64Image = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
                 
-                // Get timestamp in America/Toronto
                 Log.d(TAG, "Uploading spelling image (profile=$profile, task=$task)")
                 val taskPattern = "$gameName-$questionNumber-$expectedWord-%"
                 val existingId = cloudSyncService.invokeAfGetImageUploadId(profile, taskPattern).getOrNull()
