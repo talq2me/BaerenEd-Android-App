@@ -223,6 +223,7 @@
             <a href="chores.html" class="kid-button" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">🪙 Chores 4 🪙</a>
             <a href="kid_bank_balance.html" class="kid-button" style="background: linear-gradient(135deg, #4DD0E1 0%, #0097A7 100%);">🏦 Kids Bank</a>
             <a href="schedule.html" class="kid-button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📅 Weekly Schedule</a>
+            <a href="schedule_editor.html" class="kid-button" style="background: linear-gradient(135deg, #e040fb 0%, #7b1fa2 100%);">✏️ Edit Schedule</a>
             <a href="banked_time.html" class="kid-button" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);">⏰ Banked Time</a>
             <a href="reward_time_day.html" class="kid-button" style="background: linear-gradient(135deg, #7C4DFF 0%, #536DFE 100%);">📈 Reward Time Today</a>
             <a href="task_manager.html" class="kid-button" style="background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);">🎯 Task Manager</a>
@@ -235,8 +236,9 @@
             <h3>⚙️ Configuration</h3>
             <input type="text" id="supabaseUrl" class="config-input" placeholder="Supabase URL (e.g., https://xxxxx.supabase.co)">
             <input type="text" id="supabaseKey" class="config-input" placeholder="Supabase API Key">
+            <input type="password" id="scheduleWriteKey" class="config-input" placeholder="Schedule editor write key (optional — for GitHub config sync)">
             <button class="save-config" onclick="saveConfig()">Save Configuration</button>
-            <p class="info-text">Your configuration is saved locally in your browser</p>
+            <p class="info-text">Credentials are saved locally in your browser. The write key must match <code>schedule_editor_write_key</code> in Supabase Vault.</p>
         </div>
     </div>
 
@@ -245,18 +247,26 @@
         function loadConfig() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
+            const writeKey = localStorage.getItem('scheduleWriteKey');
             if (url) document.getElementById('supabaseUrl').value = url;
             if (key) document.getElementById('supabaseKey').value = key;
+            if (writeKey) document.getElementById('scheduleWriteKey').value = writeKey;
         }
 
         // Save configuration
         function saveConfig() {
             const url = document.getElementById('supabaseUrl').value.trim();
             const key = document.getElementById('supabaseKey').value.trim();
+            const writeKey = document.getElementById('scheduleWriteKey').value.trim();
             
             if (url && key) {
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
+                if (writeKey) {
+                    localStorage.setItem('scheduleWriteKey', writeKey);
+                } else {
+                    localStorage.removeItem('scheduleWriteKey');
+                }
                 alert('Configuration saved!');
                 loadHealthStatus(); // Reload health status after saving config
             } else {

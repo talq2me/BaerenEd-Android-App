@@ -15,11 +15,10 @@ DROP FUNCTION IF EXISTS af_daily_reset(text);
 DROP FUNCTION IF EXISTS af_delete_image_upload_by_id(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_uploads_ilike(text, text);
 DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
-DROP FUNCTION IF EXISTS af_can_show_optional_map(text);
-DROP FUNCTION IF EXISTS af_get_required_progress_today(text);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 DROP FUNCTION IF EXISTS af_get_device_row(text);
 DROP FUNCTION IF EXISTS af_get_image_upload_id(text, text);
+DROP FUNCTION IF EXISTS af_get_required_progress_today(text);
 DROP FUNCTION IF EXISTS af_get_reward_time_state(text);
 DROP FUNCTION IF EXISTS af_get_settings_last_updated();
 DROP FUNCTION IF EXISTS af_get_settings_row();
@@ -31,16 +30,16 @@ DROP FUNCTION IF EXISTS af_get_user_data(text);
 DROP FUNCTION IF EXISTS af_get_user_last_reset(text);
 DROP FUNCTION IF EXISTS af_get_user_last_updated(text);
 DROP FUNCTION IF EXISTS af_insert_user_data_profile(text);
+DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
+DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text);
 DROP FUNCTION IF EXISTS af_reward_time_add(TEXT, INTEGER);
-DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT);
 DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS af_reward_time_pause(TEXT);
 DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
 DROP FUNCTION IF EXISTS af_update_berries_banked(text, int, int);
 DROP FUNCTION IF EXISTS af_update_game_index(text, text, int);
-DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
 DROP FUNCTION IF EXISTS af_update_pokemon_unlocked(text, int);
--- af_update_task_completion: all overloads removed in-place before recreate (DO block ahead of CREATE in that section).
+DROP FUNCTION IF EXISTS af_update_task_completion(text, text, text, int, int, int, int);
 DROP FUNCTION IF EXISTS af_update_tasks_bonus(text, text, int, int, int, int, int);
 DROP FUNCTION IF EXISTS af_update_tasks_checklist_items(text, text, boolean);
 DROP FUNCTION IF EXISTS af_update_tasks_chores(text, int, boolean);
@@ -53,7 +52,7 @@ DROP FUNCTION IF EXISTS af_update_tasks_practice(text, text, int, int, int, int,
 DROP FUNCTION IF EXISTS af_update_tasks_required(text, text, text, int, int, int);
 DROP FUNCTION IF EXISTS af_upsert_device(text, text, text, text, text, text, text, boolean);
 DROP FUNCTION IF EXISTS af_upsert_image_upload(text, text, text);
-DROP FUNCTION IF EXISTS af_upsert_settings_row(text, text, boolean);
+DROP FUNCTION IF EXISTS af_upsert_settings_row(text, text, boolean, boolean, integer);
 DROP FUNCTION IF EXISTS af_upsert_user_data_columns(text, jsonb);
 
 -- -----------------------------------------------------------------------------
@@ -1223,6 +1222,8 @@ GRANT EXECUTE ON FUNCTION af_get_user_data(text) TO anon, authenticated, service
 --   SupabaseInterface.fetchRewardTimeState — periodic UI poll + reward state refresh (no daily reset).
 
 -- Minimal read for dumb-UI reward display: avoids shipping the full user_data row on a timer.
+-- reward_mins_remaining is computed on the server (America/Toronto vs reward_time_expiry) so clients
+-- do not depend on device clock or local timestamp parsing.
 
 CREATE OR REPLACE FUNCTION af_get_reward_time_state(p_profile text)
 RETURNS jsonb
@@ -2038,18 +2039,139 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_bonus(text, text, int, int, int, int, 
 
 
 -- -----------------------------------------------------------------------------
+-- FILE: af_get_required_progress_today.sql
+-- -----------------------------------------------------------------------------
+-- Deploy to Supabase from this repo only; the Android app invokes PostgREST RPCs on Supabase.
+-- Call sites (BaerenEd Android, this repo):
+--   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfGetRequiredProgressToday.
+--   app/src/main/java/com/talq2me/baerened/BattleHubActivity.kt  -  Earn Extra Berries / Daily Spin gate; battle-end snapshot.
+--
+-- BaerenEd: combined "today's required progress" needed by Battle Hub.
+--   all_done       : true iff every visible-today required task AND every visible-today checklist item with stars>0 is complete/done.
+--                    Special case (matches legacy DailyProgressManager): if nothing is visible today, returns true only when both
+--                    required_tasks and checklist_items are literally empty in user_data (kid has nothing to do at all).
+--   earned_berries : sum of berry_value for the visible rows that are currently complete/done. Used to snapshot/compare across battles.
+
+DROP FUNCTION IF EXISTS af_get_required_progress_today(text);
+
+CREATE OR REPLACE FUNCTION af_get_required_progress_today(p_profile text)
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH
+    raw AS (
+      SELECT
+        COALESCE(required_tasks, '{}'::jsonb)   AS rt,
+        COALESCE(checklist_items, '{}'::jsonb)  AS ci
+      FROM user_data
+      WHERE profile = p_profile
+    ),
+    -- af_get_tasks_required already applies today's day-rules (showdays/hidedays/displayDays/disable).
+    -- We additionally drop checklist rows with stars<=0 to match the legacy "stars > 0" filter.
+    rows AS (
+      SELECT
+        lower(t.completion_status) AS s,
+        COALESCE(t.berry_value, 0) AS b
+      FROM af_get_tasks_required(p_profile) AS t
+      WHERE NOT t.is_checklist OR COALESCE(t.berry_value, 0) > 0
+    )
+  SELECT jsonb_build_object(
+    'all_done',
+    CASE
+      WHEN EXISTS (SELECT 1 FROM rows) THEN
+        NOT EXISTS (SELECT 1 FROM rows WHERE s NOT IN ('complete', 'done'))
+      ELSE
+        COALESCE((SELECT (rt = '{}'::jsonb AND ci = '{}'::jsonb) FROM raw), false)
+    END,
+    'earned_berries',
+    COALESCE((SELECT SUM(b) FROM rows WHERE s IN ('complete', 'done')), 0)::int
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION af_get_required_progress_today(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_maybe_advance_spelling_pools.sql
+-- -----------------------------------------------------------------------------
+-- Call sites: af_update_task_completion (required), af_update_tasks_checklist_items (mark done).
+--
+-- Summer spelling pool: when all visible required work for today is done, advance
+-- engSpellingDrag and frSpellingDrag by 5 (mod pool size), at most once per calendar day (Toronto).
+-- Games read these keys with ?pool=5&poolKey=... and do not write indices on session complete.
+
+DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
+
+CREATE OR REPLACE FUNCTION af_maybe_advance_spelling_pools(p_profile text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  progress jsonb;
+  all_done boolean;
+  today text;
+  cur jsonb;
+  last_adv text;
+  en_idx int;
+  fr_idx int;
+  pool_size int := 100;
+  step int := 5;
+BEGIN
+  progress := af_get_required_progress_today(p_profile);
+  all_done := COALESCE((progress->>'all_done')::boolean, false);
+  IF NOT all_done THEN
+    RETURN;
+  END IF;
+
+  today := to_char((NOW() AT TIME ZONE 'America/Toronto')::date, 'YYYY-MM-DD');
+
+  SELECT COALESCE(game_indices, '{}'::jsonb) INTO cur FROM user_data WHERE profile = p_profile;
+  last_adv := cur->>'_spellingPoolAdvancedOn';
+  IF last_adv = today THEN
+    RETURN;
+  END IF;
+
+  en_idx := COALESCE((cur->>'engSpellingDrag')::int, 0);
+  fr_idx := COALESCE((cur->>'frSpellingDrag')::int, 0);
+
+  cur := jsonb_set(cur, ARRAY['engSpellingDrag'], to_jsonb((en_idx + step) % pool_size), true);
+  cur := jsonb_set(cur, ARRAY['frSpellingDrag'], to_jsonb((fr_idx + step) % pool_size), true);
+  cur := jsonb_set(cur, ARRAY['_spellingPoolAdvancedOn'], to_jsonb(today), true);
+
+  UPDATE user_data
+  SET
+    game_indices = cur,
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
+  WHERE profile = p_profile;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_maybe_advance_spelling_pools(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
 -- FILE: af_update_task_completion.sql
 -- -----------------------------------------------------------------------------
 -- Call sites (BaerenEd Android, this repo):
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfUpdateTaskCompletion.
 --   app/src/main/java/com/talq2me/baerened/DailyProgressManager.kt  -  markTaskCompletedWithName.
 --
--- Drops every public overload of af_update_task_completion, then creates the single canonical 7-arg API.
+-- Deploy: DROP legacy `af_update_task_completion(text,text,int,int,int,int)` below if it still exists (PostgREST
+-- mismatch / unknown-arg errors). Clients should send `p_section_id` as a JSON **string** (e.g. "optional"), never
+-- JSON null, so Postgres binds it as text.
 --
 -- BaerenEd: Unified completion RPC for dumb UI (invoke only on Supabase; SQL is maintained in this repo).
 -- Routes to required / practice / bonus updaters and returns earned stars from DB rules. NO FALLBACKS:
 -- this RPC calls the canonical functions only; if one is missing the call fails so the bug is visible.
 -- Practice (optional): calls af_update_tasks_practice (increments counters, toggles "completed" when the full set is done; see that function).
+--
+-- PostgREST: if more than ONE overload exists, resolution often fails → 404 or "could not choose best candidate".
+-- CREATE OR REPLACE only replaces ONE signature at a time, so orphans must be dropped explicitly.
 DO $$
 DECLARE
   r RECORD;
@@ -2304,59 +2426,6 @@ GRANT EXECUTE ON FUNCTION af_update_game_index(text, text, int) TO anon, authent
 
 
 -- -----------------------------------------------------------------------------
--- FILE: af_maybe_advance_spelling_pools.sql
--- -----------------------------------------------------------------------------
-
-CREATE OR REPLACE FUNCTION af_maybe_advance_spelling_pools(p_profile text)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  progress jsonb;
-  all_done boolean;
-  today text;
-  cur jsonb;
-  last_adv text;
-  en_idx int;
-  fr_idx int;
-  pool_size int := 100;
-  step int := 5;
-BEGIN
-  progress := af_get_required_progress_today(p_profile);
-  all_done := COALESCE((progress->>'all_done')::boolean, false);
-  IF NOT all_done THEN
-    RETURN;
-  END IF;
-
-  today := to_char((NOW() AT TIME ZONE 'America/Toronto')::date, 'YYYY-MM-DD');
-
-  SELECT COALESCE(game_indices, '{}'::jsonb) INTO cur FROM user_data WHERE profile = p_profile;
-  last_adv := cur->>'_spellingPoolAdvancedOn';
-  IF last_adv = today THEN
-    RETURN;
-  END IF;
-
-  en_idx := COALESCE((cur->>'engSpellingDrag')::int, 0);
-  fr_idx := COALESCE((cur->>'frSpellingDrag')::int, 0);
-
-  cur := jsonb_set(cur, ARRAY['engSpellingDrag'], to_jsonb((en_idx + step) % pool_size), true);
-  cur := jsonb_set(cur, ARRAY['frSpellingDrag'], to_jsonb((fr_idx + step) % pool_size), true);
-  cur := jsonb_set(cur, ARRAY['_spellingPoolAdvancedOn'], to_jsonb(today), true);
-
-  UPDATE user_data
-  SET
-    game_indices = cur,
-    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
-  WHERE profile = p_profile;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION af_maybe_advance_spelling_pools(text) TO anon, authenticated, service_role;
-
-
--- -----------------------------------------------------------------------------
 -- FILE: af_update_pokemon_unlocked.sql
 -- -----------------------------------------------------------------------------
 -- Call sites (BaerenEd Android, this repo):
@@ -2439,7 +2508,7 @@ GRANT EXECUTE ON FUNCTION af_update_berries_banked(text, int, int) TO anon, auth
 -- Call sites (BaerenEd Android, this repo):
 --   SupabaseInterface.invokeUseRewardTime ("af_reward_time_use"); RewardSelectionActivity.
 
--- Activates banked reward time: moves banked_mins into reward_time_expiry (Toronto).
+-- Activates banked reward time: moves banked_mins into reward_time_expiry (Toronto wall clock).
 
 DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
 
@@ -2462,6 +2531,7 @@ BEGIN
     END IF;
 
     v_now_ts := (CURRENT_TIMESTAMP AT TIME ZONE 'America/Toronto')::timestamp(3);
+    -- Instant + banked minutes, then render as America/Toronto wall clock (matches column contract).
     v_expiry := (
         (CURRENT_TIMESTAMP + (v_banked * INTERVAL '1 minute'))
         AT TIME ZONE 'America/Toronto'
@@ -2521,12 +2591,14 @@ BEGIN
 
     v_now_ts := (CURRENT_TIMESTAMP AT TIME ZONE 'America/Toronto')::timestamp(3);
 
+    -- True remaining minutes: interpret stored expiry as Toronto wall clock vs current instant.
     v_remaining := GREATEST(0, CEIL(
         EXTRACT(EPOCH FROM (
             (v_expiry AT TIME ZONE 'America/Toronto') - CURRENT_TIMESTAMP
         )) / 60.0
     ));
 
+    -- Never bank more than this session was started with (guards corrupt / mis-parsed expiry values).
     SELECT reward_mins_remaining INTO v_session_start
     FROM reward_time_log
     WHERE profile = p_profile
@@ -2560,11 +2632,11 @@ GRANT EXECUTE ON FUNCTION af_reward_time_pause(TEXT) TO anon, authenticated, ser
 -- -----------------------------------------------------------------------------
 -- FILE: af_reward_time_expire.sql
 -- -----------------------------------------------------------------------------
--- Call sites: BaerenLock SupabaseInterface.expireRewards -> af_reward_time_expire.
--- Other: 000Requirements.md (BaerenLock on expiry); reports/banked_time.html.
+-- Call sites: BaerenLock SupabaseInterface.expireRewards -> af_reward_time_expire (p_force default false).
+-- reports/banked_time.html parent "Expire Reward Time" -> af_reward_time_expire with p_force true.
 
 -- Natural expiry (BaerenLock timer): clears reward_time_expiry only when expiry <= now (Toronto).
--- Parent force expiry (p_force true): ends any active session immediately.
+-- Parent force expiry (p_force true): ends any active session immediately (expiry set to now, then cleared).
 
 CREATE OR REPLACE FUNCTION af_reward_time_expire(p_profile TEXT, p_force BOOLEAN DEFAULT FALSE)
 RETURNS VOID
@@ -2614,6 +2686,7 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Natural expiry: session ended when stored Toronto wall-clock expiry is at or before now.
     UPDATE user_data
     SET reward_time_expiry = NULL,
         last_updated = v_now
@@ -2643,8 +2716,9 @@ GRANT EXECUTE ON FUNCTION af_reward_time_expire(TEXT, BOOLEAN) TO anon, authenti
 -- -----------------------------------------------------------------------------
 -- Call sites (BaerenEd Android, this repo):
 --   SupabaseInterface.invokeAddRewardTime; MainActivity.kt (grant minutes); BattleHubActivity.kt.
+-- reports/banked_time.html — positive minutes add, negative minutes remove.
 
--- Parent path: add/remove minutes on banked_mins or extend/shrink active reward_time_expiry.
+-- Parent path: add/remove minutes on banked_mins (no active session) or extend/shrink active reward_time_expiry.
 
 CREATE OR REPLACE FUNCTION af_reward_time_add(p_profile TEXT, p_minutes INTEGER)
 RETURNS VOID
@@ -2700,87 +2774,137 @@ GRANT EXECUTE ON FUNCTION af_reward_time_add(TEXT, INTEGER) TO anon, authenticat
 
 
 -- -----------------------------------------------------------------------------
--- FILE: af_can_show_optional_map.sql
+-- FILE: af_push_profile_config_to_github.sql
 -- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfCanShowOptionalMap.
---   app/src/main/java/com/talq2me/baerened/MainActivity.kt  -  optional training map gate.
+-- Parent schedule editor: push profile config JSON to GitHub (Contents API).
+-- Call site: reports/schedule_editor.html (after user_data PATCH).
 --
--- BaerenEd: gate for showing the Extra Practice (optional) map. Returns true iff every visible required task
--- (per af_get_tasks_required, excluding checklist rows) is currently 'complete' / 'done'. With no visible required
--- tasks, returns false (no implicit unlock).
-
-CREATE OR REPLACE FUNCTION af_can_show_optional_map(p_profile text)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  WITH rows AS (
-    SELECT lower(t.completion_status) AS s
-    FROM af_get_tasks_required(p_profile) AS t
-    WHERE NOT t.is_checklist
-  )
-  SELECT
-    EXISTS (SELECT 1 FROM rows)
-    AND NOT EXISTS (
-      SELECT 1 FROM rows
-      WHERE s NOT IN ('complete', 'done')
-    );
-$$;
-
-GRANT EXECUTE ON FUNCTION af_can_show_optional_map(text) TO anon, authenticated, service_role;
-
-
--- -----------------------------------------------------------------------------
--- FILE: af_get_required_progress_today.sql
--- -----------------------------------------------------------------------------
--- Call sites (BaerenEd Android, this repo):
---   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfGetRequiredProgressToday.
---   app/src/main/java/com/talq2me/baerened/BattleHubActivity.kt  -  Earn Extra Berries / Daily Spin gate; battle-end snapshot.
+-- Setup (Supabase Dashboard → Project Settings → Vault):
+--   1. schedule_editor_write_key  — shared secret; enter same value in reports config.
+--   2. github_config_pat          — fine-grained PAT with Contents: Read and write on BaerenEd-Android-App.
 --
--- BaerenEd: combined "today's required progress" needed by Battle Hub.
---   all_done       : true iff every visible-today required task AND every visible-today checklist item with stars>0 is complete/done.
---                    Special case (matches legacy DailyProgressManager): if nothing is visible today, returns true only when both
---                    required_tasks and checklist_items are literally empty in user_data (kid has nothing to do at all).
---   earned_berries : sum of berry_value for the visible rows that are currently complete/done. Used to snapshot/compare across battles.
+-- GitHub branch: V3 (same branch GitHub Pages serves for config).
 
-CREATE OR REPLACE FUNCTION af_get_required_progress_today(p_profile text)
+CREATE OR REPLACE FUNCTION af_push_profile_config_to_github(
+  p_profile text,
+  p_config_json jsonb,
+  p_write_key text
+)
 RETURNS jsonb
-LANGUAGE sql
-STABLE
+LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
-  WITH
-    raw AS (
-      SELECT
-        COALESCE(required_tasks, '{}'::jsonb)   AS rt,
-        COALESCE(checklist_items, '{}'::jsonb)  AS ci
-      FROM user_data
-      WHERE profile = p_profile
-    ),
-    rows AS (
-      SELECT
-        lower(t.completion_status) AS s,
-        COALESCE(t.berry_value, 0) AS b
-      FROM af_get_tasks_required(p_profile) AS t
-      WHERE NOT t.is_checklist OR COALESCE(t.berry_value, 0) > 0
-    )
-  SELECT jsonb_build_object(
-    'all_done',
-    CASE
-      WHEN EXISTS (SELECT 1 FROM rows) THEN
-        NOT EXISTS (SELECT 1 FROM rows WHERE s NOT IN ('complete', 'done'))
-      ELSE
-        COALESCE((SELECT (rt = '{}'::jsonb AND ci = '{}'::jsonb) FROM raw), false)
-    END,
-    'earned_berries',
-    COALESCE((SELECT SUM(b) FROM rows WHERE s IN ('complete', 'done')), 0)::int
+DECLARE
+  v_profile text := upper(trim(p_profile));
+  v_expected_key text;
+  v_pat text;
+  v_path text;
+  v_api_url text;
+  v_get_status int;
+  v_get_body jsonb;
+  v_sha text;
+  v_content text;
+  v_content_b64 text;
+  v_put_request text;
+  v_put_status int;
+  v_put_response jsonb;
+  v_branch text := 'V3';
+BEGIN
+  IF v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+
+  IF p_config_json IS NULL OR jsonb_typeof(p_config_json) != 'object' THEN
+    RAISE EXCEPTION 'p_config_json must be a JSON object';
+  END IF;
+
+  SELECT decrypted_secret INTO v_expected_key
+  FROM vault.decrypted_secrets
+  WHERE name = 'schedule_editor_write_key'
+  LIMIT 1;
+
+  IF v_expected_key IS NULL OR v_expected_key = '' THEN
+    RAISE EXCEPTION 'schedule_editor_write_key not configured in Supabase Vault';
+  END IF;
+
+  IF p_write_key IS NULL OR p_write_key = '' OR p_write_key IS DISTINCT FROM v_expected_key THEN
+    RAISE EXCEPTION 'Invalid schedule editor write key';
+  END IF;
+
+  SELECT decrypted_secret INTO v_pat
+  FROM vault.decrypted_secrets
+  WHERE name = 'github_config_pat'
+  LIMIT 1;
+
+  IF v_pat IS NULL OR v_pat = '' THEN
+    RAISE EXCEPTION 'github_config_pat not configured in Supabase Vault';
+  END IF;
+
+  v_path := 'app/src/main/assets/config/' || v_profile || '_config.json';
+  v_api_url := 'https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/' || v_path || '?ref=' || v_branch;
+
+  SELECT r.status, r.content::jsonb
+  INTO v_get_status, v_get_body
+  FROM extensions.http((
+    'GET',
+    v_api_url,
+    ARRAY[
+      extensions.http_header('Authorization', 'Bearer ' || v_pat),
+      extensions.http_header('Accept', 'application/vnd.github+json'),
+      extensions.http_header('User-Agent', 'BaerenEd-Schedule-Editor')
+    ]::extensions.http_header[],
+    NULL,
+    NULL
+  )::extensions.http_request) r;
+
+  IF v_get_status != 200 OR v_get_body IS NULL THEN
+    RAISE EXCEPTION 'GitHub GET failed (status %): %', COALESCE(v_get_status, -1), COALESCE(v_get_body::text, 'null');
+  END IF;
+
+  v_sha := v_get_body->>'sha';
+  IF v_sha IS NULL OR v_sha = '' THEN
+    RAISE EXCEPTION 'GitHub GET did not return file sha';
+  END IF;
+
+  v_content := jsonb_pretty(p_config_json);
+  v_content_b64 := encode(convert_to(v_content, 'UTF8'), 'base64');
+
+  v_put_request := jsonb_build_object(
+    'message', 'Schedule editor: update ' || v_profile || '_config.json',
+    'content', v_content_b64,
+    'branch', v_branch,
+    'sha', v_sha
+  )::text;
+
+  SELECT r.status, r.content::jsonb
+  INTO v_put_status, v_put_response
+  FROM extensions.http((
+    'PUT',
+    'https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/' || v_path,
+    ARRAY[
+      extensions.http_header('Authorization', 'Bearer ' || v_pat),
+      extensions.http_header('Accept', 'application/vnd.github+json'),
+      extensions.http_header('User-Agent', 'BaerenEd-Schedule-Editor')
+    ]::extensions.http_header[],
+    'application/json',
+    v_put_request
+  )::extensions.http_request) r;
+
+  IF v_put_status NOT IN (200, 201) THEN
+    RAISE EXCEPTION 'GitHub PUT failed (status %): %', COALESCE(v_put_status, -1), COALESCE(v_put_response::text, 'null');
+  END IF;
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'profile', v_profile,
+    'path', v_path,
+    'branch', v_branch,
+    'commit_sha', v_put_response->'commit'->>'sha'
   );
+END;
 $$;
 
-GRANT EXECUTE ON FUNCTION af_get_required_progress_today(text) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION af_push_profile_config_to_github(text, jsonb, text) TO anon, authenticated, service_role;
 
 
