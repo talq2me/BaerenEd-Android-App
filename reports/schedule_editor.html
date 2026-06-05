@@ -508,11 +508,24 @@
         }
 
         function mergeTask(title, cfgTask, dbTasks) {
-            const db = dbTasks[title] || {};
-            const merged = { ...defaultDbTask(title, cfgTask), ...db };
+            const db = dbTasks[title];
+            const merged = { ...defaultDbTask(title, cfgTask), ...(db || {}) };
             if (cfgTask?.stars != null && merged.stars == null) merged.stars = cfgTask.stars;
             if (cfgTask?.totalQuestions != null && merged.totalQuestions == null) {
                 merged.totalQuestions = cfgTask.totalQuestions;
+            }
+            // When a DB row exists, schedule visibility/days come from DB (parent edits).
+            // Config disable/displayDays only seed brand-new tasks with no DB row yet.
+            if (db) {
+                for (const k of ['disable', 'displayDays', 'showdays', 'hidedays']) {
+                    if (k in db) {
+                        if (db[k] === undefined || db[k] === null || db[k] === '') {
+                            delete merged[k];
+                        }
+                    } else {
+                        delete merged[k];
+                    }
+                }
             }
             return merged;
         }
