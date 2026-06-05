@@ -1,5 +1,5 @@
 {
-  "version": "2025-10-04",
+  "version": "2026-06-04",
   "header": {
     "buttons": [
       {"label": "My Pokedex", "action": "openPokedex"},
@@ -157,11 +157,15 @@
           "disable": "Jan 15, 2027"
         },
         {
+          "title": "Printing Practice",
+          "launch": "printing",
+          "stars": 3
+        },
+        {
           "title": "Handwriting",
           "launch": "handwriting",
           "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
           "stars": 3,
-          "disable": "Jan 15, 2027",
           "webGame": true
         },
         {

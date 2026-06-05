@@ -383,6 +383,33 @@
             doneButton.textContent = 'Saving picture…';
 
             const runUploadThenFinish = () => {
+                const taskKey = buildHandwritingTaskKey();
+                const startUploadSafetyTimer = () => {
+                    window._hwPracticeUploadSafetyTimer = setTimeout(() => {
+                        window._hwPracticeUploadSafetyTimer = null;
+                        console.warn('Handwriting upload: safety timeout — closing game.');
+                        finishAfterHandwritingAttempt();
+                    }, 20000);
+                };
+
+                // Prefer native WebView capture on Android (no CDN html2canvas dependency).
+                if (
+                    window.Android &&
+                    typeof window.Android.captureAndUploadHandwriting === 'function'
+                ) {
+                    try {
+                        startUploadSafetyTimer();
+                        window.Android.captureAndUploadHandwriting(
+                            taskKey,
+                            'hwPracticeUploadOk',
+                            'hwPracticeUploadErr'
+                        );
+                        return;
+                    } catch (e) {
+                        console.warn('Native handwriting capture failed:', e);
+                    }
+                }
+
                 captureHandwritingPng((dataUrl) => {
                     try {
                         if (
@@ -396,15 +423,11 @@
                             }
                             const payload = JSON.stringify({
                                 profile: profile,
-                                task: buildHandwritingTaskKey(),
+                                task: taskKey,
                                 image: dataUrl,
                                 capture_date_time: new Date().toISOString()
                             });
-                            window._hwPracticeUploadSafetyTimer = setTimeout(() => {
-                                window._hwPracticeUploadSafetyTimer = null;
-                                console.warn('Handwriting upload: safety timeout — closing game.');
-                                finishAfterHandwritingAttempt();
-                            }, 20000);
+                            startUploadSafetyTimer();
                             window.Android.uploadImageToSupabase(
                                 payload,
                                 'hwPracticeUploadOk',
@@ -416,7 +439,7 @@
                         console.warn('Handwriting upload path error:', e);
                     }
                     if (!dataUrl) {
-                        console.error('Handwriting snapshot not saved: could not capture image (html2canvas missing or failed).');
+                        console.error('Handwriting snapshot not saved: could not capture image.');
                         doneButton.textContent = 'Done (snapshot not saved)';
                     }
                     finishAfterHandwritingAttempt();

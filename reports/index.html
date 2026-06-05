@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Parent Progress Report - Select Child</title>
     <style>
         * {
@@ -198,12 +201,63 @@
             color: #666;
             padding: 15px;
         }
+
+        .reload-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .reload-button {
+            background: #fff;
+            color: #5a67d8;
+            border: 2px solid #e2e8f0;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .reload-button:active {
+            transform: scale(0.98);
+        }
+
+        .reload-hint {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        #pullRefreshIndicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 0;
+            overflow: hidden;
+            background: rgba(102, 126, 234, 0.95);
+            color: #fff;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: 600;
+            line-height: 48px;
+            transition: height 0.15s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    <div id="pullRefreshIndicator">Pull to refresh…</div>
     <div class="container">
         <h1>📊 Parent Progress Report</h1>
         <p class="subtitle">Select a child to view their progress</p>
+        <div class="reload-bar">
+            <button type="button" class="reload-button" onclick="hardReload()">↻ Reload</button>
+            <span class="reload-hint">Pull down at top to refresh</span>
+        </div>
 
         <div class="health-section">
             <h3>🛡️ BaerenLock Status</h3>
@@ -446,6 +500,51 @@
             const details = document.getElementById('healthDetails');
             details.classList.toggle('show');
         }
+
+        function hardReload() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('_', String(Date.now()));
+            window.location.replace(url.toString());
+        }
+
+        (function setupPullToRefresh() {
+            const indicator = document.getElementById('pullRefreshIndicator');
+            const threshold = 72;
+            let startY = 0;
+            let tracking = false;
+
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY > 4) return;
+                startY = e.touches[0].clientY;
+                tracking = true;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!tracking) return;
+                const pull = Math.max(0, e.touches[0].clientY - startY);
+                if (pull <= 0) {
+                    indicator.style.height = '0';
+                    return;
+                }
+                const h = Math.min(pull * 0.45, 56);
+                indicator.style.height = h + 'px';
+                indicator.textContent = pull >= threshold ? 'Release to refresh' : 'Pull to refresh…';
+            }, { passive: true });
+
+            function endPull(e) {
+                if (!tracking) return;
+                tracking = false;
+                const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : startY;
+                const pull = Math.max(0, endY - startY);
+                indicator.style.height = '0';
+                if (pull >= threshold && window.scrollY <= 4) {
+                    hardReload();
+                }
+            }
+
+            document.addEventListener('touchend', endPull, { passive: true });
+            document.addEventListener('touchcancel', endPull, { passive: true });
+        })();
 
         // Load config and health status on page load
         loadConfig();
