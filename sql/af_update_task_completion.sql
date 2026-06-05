@@ -93,6 +93,10 @@ BEGIN
     earned_stars := GREATEST(COALESCE(p_stars, 0), 0);
   END IF;
 
+  IF normalized_section = 'required' THEN
+    PERFORM af_maybe_advance_spelling_pools(p_profile);
+  END IF;
+
   RETURN earned_stars;
 END;
 $$;

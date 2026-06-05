@@ -91,11 +91,11 @@
         {
           "from": "came",
           "to": "game",
-          "prompt": "Say came. Change c to g for game. Build game. (Sentence: Blake was late to the game.)"
+          "prompt": "Say came. Change c to g for game. Build game."
         },
         {
           "word": "skate",
-          "prompt": "Build skate. (Sample a_e vocabulary.)",
+          "prompt": "Build skate.",
           "correctChoices": [
             {
               "text": "s"
@@ -125,7 +125,7 @@
         },
         {
           "word": "lake",
-          "prompt": "Build lake. (Who will be at the lake?)",
+          "prompt": "Build lake.",
           "correctChoices": [
             {
               "text": "l"
@@ -153,7 +153,7 @@
         {
           "from": "lake",
           "to": "late",
-          "prompt": "Build late. (Sentence: Blake was late to the game.)"
+          "prompt": "Build late."
         }
       ]
     }

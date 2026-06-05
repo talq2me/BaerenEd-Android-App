@@ -356,6 +356,7 @@
         </div>
     </div>
 
+    <script src="https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingPool.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -392,80 +393,42 @@
         let plotPlantTimeouts = {};
         let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
         let isFirstAttempt = true;
+        let poolActive = false;
 
-        function getGameConfig() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const file = urlParams.get('file');
-            const fileName = file || 'englishWordsGr1.json';
-            
-            // Detect language from filename - if filename contains "french" (case-insensitive), use French TTS
-            if (fileName.toLowerCase().includes('french')) {
-                ttsLanguage = 'fr-FR';
-            } else {
-                ttsLanguage = 'en-US';
-            }
-            
-            return fileName;
-        }
-
-        function loadWords(fileName) {
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                        words = data;
-                    } else if (Array.isArray(data)) {
-                        words = data.map(word => ({ word: word, sentence: "" }));
-                    } else {
-                        words = [];
-                    }
+        async function loadWords() {
+            try {
+                const prep = await SpellingPool.prepareSession();
+                ttsLanguage = prep.ttsLanguage;
+                poolActive = prep.cfg.poolActive;
+                if (poolActive) {
+                    words = prep.sessionWords.map(SpellingPool.toPlayWord);
                     maxQuestions = words.length;
-                    startGame();
-                } catch (error) {
-                    console.error('Error loading words file:', error);
-                    words = [];
-                    startGame();
+                } else {
+                    words = prep.allWords.map(SpellingPool.toPlayWord);
+                    maxQuestions = words.length;
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                            words = data;
-                        } else if (Array.isArray(data)) {
-                            words = data.map(word => ({ word: word, sentence: "" }));
-                        } else {
-                            words = [];
-                        }
-                        maxQuestions = words.length;
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.error('Error loading words file:', error);
-                        words = [];
-                        startGame();
-                    });
+                startGame();
+            } catch (error) {
+                console.error('Error loading words file:', error);
+                words = [];
+                maxQuestions = 0;
+                poolActive = false;
+                startGame();
             }
         }
 
         function startGame() {
-            // Load saved progress if available
-            if (window.Android && typeof window.Android.loadProgress === 'function') {
+            currentWordIndex = 0;
+            if (!poolActive && window.Android && typeof window.Android.loadProgress === 'function') {
                 try {
-                    currentWordIndex = window.Android.loadProgress();
+                    const saved = window.Android.loadProgress();
+                    if (Number.isFinite(saved) && saved >= 0 && saved < maxQuestions) {
+                        currentWordIndex = saved;
+                    }
                     console.log('Loaded saved progress: currentWordIndex =', currentWordIndex);
                 } catch (error) {
                     console.log('No saved progress found, starting from 0');
-                    currentWordIndex = 0;
                 }
-            } else {
-                currentWordIndex = 0;
             }
 
             correctCount = 0;
@@ -925,8 +888,7 @@
         function nextWord() {
             currentWordIndex++;
 
-            // Save progress
-            if (window.Android && typeof window.Android.saveProgress === 'function') {
+            if (!poolActive && window.Android && typeof window.Android.saveProgress === 'function') {
                 try {
                     window.Android.saveProgress(currentWordIndex);
                     console.log('Saved progress: currentWordIndex =', currentWordIndex);
@@ -975,8 +937,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const jsonUrl = getGameConfig();
-            loadWords(jsonUrl);
+            loadWords();
         });
     </script>
 </body>

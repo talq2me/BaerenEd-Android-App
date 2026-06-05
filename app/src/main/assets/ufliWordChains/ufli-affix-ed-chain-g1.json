@@ -140,7 +140,7 @@
         },
         {
           "word": "fix -> ?",
-          "prompt": "Say the word: fix. If we add ed at the end, what new word do we make? (She fixed many of the kites.)",
+          "prompt": "Say the word: fix. If we add ed at the end, what new word do we make?",
           "correctChoices": [
             {
               "text": "f"
@@ -267,7 +267,7 @@
         {
           "from": "rest",
           "to": "miss",
-          "prompt": "Say the word: miss. If we add ed at the end, what new word do we make? (Have they missed any of the shots?)"
+          "prompt": "Say the word: miss. If we add ed at the end, what new word do we make?"
         }
       ]
     }

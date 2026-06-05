@@ -96,7 +96,7 @@
         {
           "from": "kite",
           "to": "rack",
-          "prompt": "Build rack. (The white rack can fit nine bikes.)"
+          "prompt": "Build rack."
         }
       ]
     },
@@ -107,12 +107,12 @@
         {
           "from": "pike",
           "to": "five",
-          "prompt": "Build vocabulary: five. (We will be there by five.)"
+          "prompt": "Build five."
         },
         {
           "from": "five",
           "to": "kite",
-          "prompt": "Build vocabulary: kite. (Sample i_e.)"
+          "prompt": "Build kite."
         }
       ]
     }

@@ -1,0 +1,767 @@
+{
+  "lang": "en",
+  "words": [
+    {
+      "word": "animal",
+      "syllables": [
+        "an",
+        "i",
+        "mal"
+      ]
+    },
+    {
+      "word": "around",
+      "syllables": [
+        "a",
+        "round"
+      ]
+    },
+    {
+      "word": "before",
+      "syllables": [
+        "be",
+        "fore"
+      ]
+    },
+    {
+      "word": "because",
+      "syllables": [
+        "be",
+        "cause"
+      ]
+    },
+    {
+      "word": "brother",
+      "syllables": [
+        "broth",
+        "er"
+      ]
+    },
+    {
+      "word": "carry",
+      "syllables": [
+        "car",
+        "ry"
+      ]
+    },
+    {
+      "word": "champion",
+      "syllables": [
+        "cham",
+        "pi",
+        "on"
+      ]
+    },
+    {
+      "word": "comfortable",
+      "syllables": [
+        "com",
+        "fort",
+        "a",
+        "ble"
+      ]
+    },
+    {
+      "word": "country",
+      "syllables": [
+        "coun",
+        "try"
+      ]
+    },
+    {
+      "word": "different",
+      "syllables": [
+        "dif",
+        "fer",
+        "ent"
+      ]
+    },
+    {
+      "word": "durable",
+      "syllables": [
+        "du",
+        "ra",
+        "ble"
+      ]
+    },
+    {
+      "word": "equipment",
+      "syllables": [
+        "e",
+        "quip",
+        "ment"
+      ]
+    },
+    {
+      "word": "every",
+      "syllables": [
+        "ev",
+        "ery"
+      ]
+    },
+    {
+      "word": "family",
+      "syllables": [
+        "fam",
+        "i",
+        "ly"
+      ]
+    },
+    {
+      "word": "father",
+      "syllables": [
+        "fa",
+        "ther"
+      ]
+    },
+    {
+      "word": "follow",
+      "syllables": [
+        "fol",
+        "low"
+      ]
+    },
+    {
+      "word": "garden",
+      "syllables": [
+        "gar",
+        "den"
+      ]
+    },
+    {
+      "word": "heavy",
+      "syllables": [
+        "hea",
+        "vy"
+      ]
+    },
+    {
+      "word": "hospital",
+      "syllables": [
+        "hos",
+        "pi",
+        "tal"
+      ]
+    },
+    {
+      "word": "important",
+      "syllables": [
+        "im",
+        "por",
+        "tant"
+      ]
+    },
+    {
+      "word": "likelihood",
+      "syllables": [
+        "like",
+        "li",
+        "hood"
+      ]
+    },
+    {
+      "word": "market",
+      "syllables": [
+        "mar",
+        "ket"
+      ]
+    },
+    {
+      "word": "member",
+      "syllables": [
+        "mem",
+        "ber"
+      ]
+    },
+    {
+      "word": "mother",
+      "syllables": [
+        "moth",
+        "er"
+      ]
+    },
+    {
+      "word": "mountain",
+      "syllables": [
+        "moun",
+        "tain"
+      ]
+    },
+    {
+      "word": "neighbourhood",
+      "syllables": [
+        "neigh",
+        "bour",
+        "hood"
+      ]
+    },
+    {
+      "word": "number",
+      "syllables": [
+        "num",
+        "ber"
+      ]
+    },
+    {
+      "word": "people",
+      "syllables": [
+        "peo",
+        "ple"
+      ]
+    },
+    {
+      "word": "picture",
+      "syllables": [
+        "pic",
+        "ture"
+      ]
+    },
+    {
+      "word": "possible",
+      "syllables": [
+        "pos",
+        "si",
+        "ble"
+      ]
+    },
+    {
+      "word": "question",
+      "syllables": [
+        "ques",
+        "tion"
+      ]
+    },
+    {
+      "word": "remember",
+      "syllables": [
+        "re",
+        "mem",
+        "ber"
+      ]
+    },
+    {
+      "word": "scholarship",
+      "syllables": [
+        "schol",
+        "ar",
+        "ship"
+      ]
+    },
+    {
+      "word": "second",
+      "syllables": [
+        "sec",
+        "ond"
+      ]
+    },
+    {
+      "word": "sister",
+      "syllables": [
+        "sis",
+        "ter"
+      ]
+    },
+    {
+      "word": "something",
+      "syllables": [
+        "some",
+        "thing"
+      ]
+    },
+    {
+      "word": "statement",
+      "syllables": [
+        "state",
+        "ment"
+      ]
+    },
+    {
+      "word": "summer",
+      "syllables": [
+        "sum",
+        "mer"
+      ]
+    },
+    {
+      "word": "surprise",
+      "syllables": [
+        "sur",
+        "prise"
+      ]
+    },
+    {
+      "word": "terrible",
+      "syllables": [
+        "ter",
+        "ri",
+        "ble"
+      ]
+    },
+    {
+      "word": "thought",
+      "syllables": [
+        "thought"
+      ]
+    },
+    {
+      "word": "through",
+      "syllables": [
+        "through"
+      ]
+    },
+    {
+      "word": "together",
+      "syllables": [
+        "to",
+        "geth",
+        "er"
+      ]
+    },
+    {
+      "word": "until",
+      "syllables": [
+        "un",
+        "til"
+      ]
+    },
+    {
+      "word": "visible",
+      "syllables": [
+        "vis",
+        "i",
+        "ble"
+      ]
+    },
+    {
+      "word": "washable",
+      "syllables": [
+        "wash",
+        "a",
+        "ble"
+      ]
+    },
+    {
+      "word": "water",
+      "syllables": [
+        "wa",
+        "ter"
+      ]
+    },
+    {
+      "word": "winter",
+      "syllables": [
+        "win",
+        "ter"
+      ]
+    },
+    {
+      "word": "woman",
+      "syllables": [
+        "wo",
+        "man"
+      ]
+    },
+    {
+      "word": "wonder",
+      "syllables": [
+        "won",
+        "der"
+      ]
+    },
+    {
+      "word": "write",
+      "syllables": [
+        "write"
+      ]
+    },
+    {
+      "word": "young",
+      "syllables": [
+        "young"
+      ]
+    },
+    {
+      "word": "excitement",
+      "syllables": [
+        "ex",
+        "cite",
+        "ment"
+      ]
+    },
+    {
+      "word": "leadership",
+      "syllables": [
+        "lead",
+        "er",
+        "ship"
+      ]
+    },
+    {
+      "word": "membership",
+      "syllables": [
+        "mem",
+        "ber",
+        "ship"
+      ]
+    },
+    {
+      "word": "ownership",
+      "syllables": [
+        "own",
+        "er",
+        "ship"
+      ]
+    },
+    {
+      "word": "profitable",
+      "syllables": [
+        "prof",
+        "it",
+        "a",
+        "ble"
+      ]
+    },
+    {
+      "word": "falsehood",
+      "syllables": [
+        "false",
+        "hood"
+      ]
+    },
+    {
+      "word": "championship",
+      "syllables": [
+        "cham",
+        "pi",
+        "on",
+        "ship"
+      ]
+    },
+    {
+      "word": "sensible",
+      "syllables": [
+        "sen",
+        "si",
+        "ble"
+      ]
+    },
+    {
+      "word": "motherhood",
+      "syllables": [
+        "moth",
+        "er",
+        "hood"
+      ]
+    },
+    {
+      "word": "dependable",
+      "syllables": [
+        "de",
+        "pend",
+        "a",
+        "ble"
+      ]
+    },
+    {
+      "word": "agreeable",
+      "syllables": [
+        "a",
+        "gree",
+        "a",
+        "ble"
+      ]
+    },
+    {
+      "word": "beautiful",
+      "syllables": [
+        "beau",
+        "ti",
+        "ful"
+      ]
+    },
+    {
+      "word": "adventure",
+      "syllables": [
+        "ad",
+        "ven",
+        "ture"
+      ]
+    },
+    {
+      "word": "calendar",
+      "syllables": [
+        "cal",
+        "en",
+        "dar"
+      ]
+    },
+    {
+      "word": "celebrate",
+      "syllables": [
+        "cel",
+        "e",
+        "brate"
+      ]
+    },
+    {
+      "word": "community",
+      "syllables": [
+        "com",
+        "mu",
+        "ni",
+        "ty"
+      ]
+    },
+    {
+      "word": "condition",
+      "syllables": [
+        "con",
+        "di",
+        "tion"
+      ]
+    },
+    {
+      "word": "continue",
+      "syllables": [
+        "con",
+        "tin",
+        "ue"
+      ]
+    },
+    {
+      "word": "creature",
+      "syllables": [
+        "crea",
+        "ture"
+      ]
+    },
+    {
+      "word": "dangerous",
+      "syllables": [
+        "dan",
+        "ger",
+        "ous"
+      ]
+    },
+    {
+      "word": "decision",
+      "syllables": [
+        "de",
+        "ci",
+        "sion"
+      ]
+    },
+    {
+      "word": "delicious",
+      "syllables": [
+        "de",
+        "li",
+        "cious"
+      ]
+    },
+    {
+      "word": "discover",
+      "syllables": [
+        "dis",
+        "cov",
+        "er"
+      ]
+    },
+    {
+      "word": "distance",
+      "syllables": [
+        "dis",
+        "tance"
+      ]
+    },
+    {
+      "word": "division",
+      "syllables": [
+        "di",
+        "vi",
+        "sion"
+      ]
+    },
+    {
+      "word": "electric",
+      "syllables": [
+        "e",
+        "lec",
+        "tric"
+      ]
+    },
+    {
+      "word": "elephant",
+      "syllables": [
+        "el",
+        "e",
+        "phant"
+      ]
+    },
+    {
+      "word": "enormous",
+      "syllables": [
+        "e",
+        "nor",
+        "mous"
+      ]
+    },
+    {
+      "word": "especially",
+      "syllables": [
+        "es",
+        "pe",
+        "cial",
+        "ly"
+      ]
+    },
+    {
+      "word": "everyone",
+      "syllables": [
+        "ev",
+        "ery",
+        "one"
+      ]
+    },
+    {
+      "word": "exercise",
+      "syllables": [
+        "ex",
+        "er",
+        "cise"
+      ]
+    },
+    {
+      "word": "experience",
+      "syllables": [
+        "ex",
+        "pe",
+        "ri",
+        "ence"
+      ]
+    },
+    {
+      "word": "favourite",
+      "syllables": [
+        "fa",
+        "vour",
+        "ite"
+      ]
+    },
+    {
+      "word": "February",
+      "syllables": [
+        "Feb",
+        "ru",
+        "ar",
+        "y"
+      ]
+    },
+    {
+      "word": "fifteen",
+      "syllables": [
+        "fif",
+        "teen"
+      ]
+    },
+    {
+      "word": "fourteen",
+      "syllables": [
+        "four",
+        "teen"
+      ]
+    },
+    {
+      "word": "thirteen",
+      "syllables": [
+        "thir",
+        "teen"
+      ]
+    },
+    {
+      "word": "twelve",
+      "syllables": [
+        "twelve"
+      ]
+    },
+    {
+      "word": "thousand",
+      "syllables": [
+        "thou",
+        "sand"
+      ]
+    },
+    {
+      "word": "hundred",
+      "syllables": [
+        "hun",
+        "dred"
+      ]
+    },
+    {
+      "word": "library",
+      "syllables": [
+        "li",
+        "brar",
+        "y"
+      ]
+    },
+    {
+      "word": "medicine",
+      "syllables": [
+        "med",
+        "i",
+        "cine"
+      ]
+    },
+    {
+      "word": "national",
+      "syllables": [
+        "na",
+        "tion",
+        "al"
+      ]
+    },
+    {
+      "word": "natural",
+      "syllables": [
+        "nat",
+        "u",
+        "ral"
+      ]
+    },
+    {
+      "word": "necessary",
+      "syllables": [
+        "nec",
+        "es",
+        "sar",
+        "y"
+      ]
+    },
+    {
+      "word": "newspaper",
+      "syllables": [
+        "news",
+        "pa",
+        "per"
+      ]
+    },
+    {
+      "word": "November",
+      "syllables": [
+        "No",
+        "vem",
+        "ber"
+      ]
+    },
+    {
+      "word": "October",
+      "syllables": [
+        "Oc",
+        "to",
+        "ber"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,9 @@
-\
-remove 2 extra options in baerened settings>profiles
+the spelling drag needs more json
+replace spellings with spelling drag
+more boukili books
+multidigit add to AM profile
+page to turn on/off config, set days visible, modes, etc.
+
 
 
 spelling gives option of loading OCR or Picture version

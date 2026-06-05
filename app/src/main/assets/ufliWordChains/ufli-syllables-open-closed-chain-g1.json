@@ -116,7 +116,7 @@
       "steps": [
         {
           "word": "open",
-          "prompt": "Build the vocabulary word: open.",
+          "prompt": "Build open.",
           "correctChoices": [
             {
               "text": "o"
@@ -149,11 +149,11 @@
         {
           "from": "open",
           "to": "item",
-          "prompt": "Build the vocabulary word: item."
+          "prompt": "Build item."
         },
         {
           "word": "music",
-          "prompt": "Build the vocabulary word: music.",
+          "prompt": "Build music.",
           "correctChoices": [
             {
               "text": "m"
@@ -183,7 +183,7 @@
         },
         {
           "word": "secret",
-          "prompt": "Build the vocabulary word: secret.",
+          "prompt": "Build secret.",
           "correctChoices": [
             {
               "text": "s"
@@ -217,11 +217,11 @@
         {
           "from": "secret",
           "to": "frozen",
-          "prompt": "Build the vocabulary word: frozen."
+          "prompt": "Build frozen."
         },
         {
           "word": "token",
-          "prompt": "Build token. (Sentence: My friend has two tokens.) Change one letter from taken if you compare them.",
+          "prompt": "Build token.",
           "correctChoices": [
             {
               "text": "t"

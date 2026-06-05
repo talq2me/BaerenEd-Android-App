@@ -108,16 +108,16 @@
         {
           "from": "puppy",
           "to": "muddy",
-          "prompt": "Build vocabulary: muddy."
+          "prompt": "Build muddy."
         },
         {
           "from": "muddy",
           "to": "penny",
-          "prompt": "Build vocabulary: penny."
+          "prompt": "Build penny."
         },
         {
           "word": "lady",
-          "prompt": "Build vocabulary: lady.",
+          "prompt": "Build lady.",
           "correctChoices": [
             {
               "text": "l"
@@ -145,11 +145,11 @@
         {
           "from": "lady",
           "to": "tiny",
-          "prompt": "Build vocabulary: tiny."
+          "prompt": "Build tiny."
         },
         {
           "word": "teddy",
-          "prompt": "Build vocabulary: teddy. (I will bring a teddy for the baby.)",
+          "prompt": "Build teddy.",
           "correctChoices": [
             {
               "text": "t"

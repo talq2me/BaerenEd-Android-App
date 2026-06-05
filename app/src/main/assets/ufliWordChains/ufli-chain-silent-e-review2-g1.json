@@ -45,7 +45,7 @@
         {
           "from": "cone",
           "to": "cane",
-          "prompt": "Say cone. Change the o to a for cane. Build cane. (There are five cones at the gate.)"
+          "prompt": "Say cone. Change the o to a for cane. Build cane."
         }
       ]
     },
@@ -101,7 +101,7 @@
       "steps": [
         {
           "word": "grade",
-          "prompt": "Build vocabulary: grade. (Sample word from this silent e lesson.)",
+          "prompt": "Build grade.",
           "correctChoices": [
             {
               "text": "g"
@@ -132,7 +132,7 @@
         {
           "from": "grade",
           "to": "these",
-          "prompt": "Build vocabulary: these."
+          "prompt": "Build these."
         }
       ]
     }

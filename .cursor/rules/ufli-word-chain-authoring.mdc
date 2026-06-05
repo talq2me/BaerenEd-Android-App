@@ -1,0 +1,90 @@
+# UFLI Word Chain Authoring
+
+When converting UFLI Home Practice Word Work text into game JSON, produce **two files per lesson**:
+
+| File | Folder | HTML mode |
+|------|--------|-----------|
+| `ufli-chain-<concept>-g1.json` | `ufliWordChains/` | `mode=chain` (slider) |
+| `ufli-irr-<concept>-g1.json` | `ufliIrregularWords/` | `mode=spell` (letter tap) |
+
+Content is served from GitHub Pages only (not bundled APK). Match an existing lesson’s naming stem between chain and irregular files (e.g. `dge` → `ufli-chain-dge-g1.json` + `ufli-irr-dge-g1.json`).
+
+## Ignore in source text
+
+- Parent instructions and general directions
+- Tags like `[spelling]`, `[reading]`
+- Headers such as “New Concept and Sample Words”
+- Blank lines and page numbers
+
+## Chain file schema (v2)
+
+```json
+{
+  "id": "ufli-chain-<concept>-g1",
+  "concept": "<concept>",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": { "word": "edge", "prompt": "Write the word edge.", "correctChoices": [...], "extraChoices": [...] },
+      "steps": [
+        { "from": "edge", "to": "wedge", "prompt": "Say edge. Add w at the beginning. Build wedge." }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "<last chain word>",
+      "steps": [
+        { "from": "budge", "to": "ridge", "prompt": "Build ridge." }
+      ]
+    }
+  ]
+}
+```
+
+### Parsing rules
+
+1. **Numbered chains** (Chain 1, Chain 2, …): each becomes a `group` with `id` `chain-1`, `chain-2`, etc.
+2. **Seed step** — prompt matches `Write the word …` or `Make the word …`:
+   - Set `group.seed` with `word`, `prompt`, `correctChoices`, `extraChoices` (one letter button per grapheme; add 2–4 plausible `extraChoices`).
+   - Do **not** add a slider step for the seed word.
+3. **Slider steps** — prompt matches `Say X. … Build Y.` or similar change/add/remove wording:
+   - Add `{ "from": "<previous word>", "to": "<target>", "prompt": "<full prompt>" }`.
+   - `from` must equal the word the child just built (previous step’s `to`, or `seed.word` for the first slider step).
+4. **Vocabulary / sample words** — source may say `Build vocabulary: …` with sample sentences in parentheses:
+   - Append to a single `vocab` group continuing from the **last word of the last numbered chain**.
+   - Set `continuesFrom` to that word; chain each vocab item off the previous target word.
+   - **Prompt text must be only** `Build <word>.` (e.g. `Build eve.`) — no `vocabulary:`, no `(Sample word.)`, no sentence parentheticals, no extra teacher notes.
+5. **All chain prompts** — strip parenthetical asides `(…)` from slider/seed/vocab prompts unless the aside is essential to the spelling action (rare). Do not paste sample sentences from the PDF into prompts.
+6. **Validate slider pairs**: consecutive `from→to` must be a **single edit region** (one insert, replace, or delete block). Use the same logic as `analyzeStep()` in `UfliSpellingChain.html`. If a pair fails (e.g. `badge→smudge`), use an intermediate slider step, reorder words, or make the target a **seed spell** step inside the group instead of a slider step.
+
+## Irregular file schema
+
+Array of spell rounds (GameActivity / spelling-jumble shape):
+
+```json
+[
+  {
+    "prompt": { "text": "Build the irregular word: move. (Should we move the fridge?)", "lang": "eng", "displayText": true },
+    "question": { "text": "move", "lang": "eng", "displayText": true },
+    "correctChoices": [{ "text": "m" }, { "text": "o" }, { "text": "v" }, { "text": "e" }],
+    "extraChoices": [{ "text": "a" }, { "text": "u" }]
+  }
+]
+```
+
+### Parsing rules
+
+- Prompt matches `Build the irregular word: …` → **only** in `ufliIrregularWords/`, never in chain JSON.
+- Keep any parenthetical sentence in `prompt.text` after the word (e.g. `(Should we move the fridge?)`).
+- One array entry per irregular word.
+
+## Migration checklist
+
+For each new lesson:
+
+1. Create / update `ufli-chain-<concept>-g1.json` with chains + vocab only.
+2. Create / update `ufli-irr-<concept>-g1.json` (empty array `[]` if no irregular words).
+3. Run `python scripts/regenerate_ufli_index.py` so `index.json` in each folder lists all lesson files (alphabetical).
+4. Run or follow `scripts/migrate_ufli_chains.py` when converting legacy flat `GameData[]` files.
+5. Config tasks `ufliWordChains` and `ufliIrregularWords` use generic `webGame: true`; rotation and DB persist happen in `UfliSpellingChain.html` via `index.json`, `Android.loadProgress()`, and `Android.gameCompleted(..., nextIndex)`.

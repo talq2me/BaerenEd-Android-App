@@ -285,7 +285,7 @@
         },
         {
           "word": "lifting",
-          "prompt": "Say lifting. Build the word lifting. (He is lifting the box into the trunk.)",
+          "prompt": "Say lifting. Build the word lifting.",
           "correctChoices": [
             {
               "text": "l"

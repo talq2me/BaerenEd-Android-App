@@ -251,6 +251,7 @@
         </div>
     </div>
 
+    <script src="https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingPool.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -288,67 +289,22 @@
         /** BCP-47 tag passed to Android TTS; set from URL or word-list filename (same idea as wordGarden / wordFishing). */
         let ttsLanguage = 'en-US';
 
-        function getGameConfig() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const file = urlParams.get('file');
-            const fileName = file || 'englishWordsGr1.json';
-            const langParam = (urlParams.get('lang') || '').toLowerCase().trim();
-            // Explicit override: ?lang=fr or ?lang=french (also en / english)
-            if (langParam === 'fr' || langParam === 'french') {
-                ttsLanguage = 'fr-FR';
-            } else if (langParam === 'en' || langParam === 'english') {
-                ttsLanguage = 'en-US';
-            } else if (fileName.toLowerCase().includes('french')) {
-                ttsLanguage = 'fr-FR';
-            } else {
-                ttsLanguage = 'en-US';
-            }
-            return fileName;
-        }
-
-        function loadWords(fileName) {
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                        words = data;
-                    } else if (Array.isArray(data)) {
-                        words = data.map(word => ({ word: word, sentence: "" }));
-                    } else {
-                        words = [];
-                    }
-                    maxQuestions = words.length;
-                    startGame();
-                } catch (error) {
-                    console.error('Error loading words file:', error);
-                    words = [];
-                    startGame();
+        async function loadWords() {
+            try {
+                const prep = await SpellingPool.prepareSession();
+                ttsLanguage = prep.ttsLanguage;
+                if (prep.cfg.poolActive) {
+                    words = prep.sessionWords.map(SpellingPool.toPlayWord);
+                } else {
+                    words = prep.allWords.map(SpellingPool.toPlayWord);
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                            words = data;
-                        } else if (Array.isArray(data)) {
-                            words = data.map(word => ({ word: word, sentence: "" }));
-                        } else {
-                            words = [];
-                        }
-                        maxQuestions = words.length;
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.error('Error loading words file:', error);
-                        words = [];
-                        startGame();
-                    });
+                maxQuestions = words.length;
+                startGame();
+            } catch (error) {
+                console.error('Error loading words file:', error);
+                words = [];
+                maxQuestions = 0;
+                startGame();
             }
         }
 
@@ -550,9 +506,8 @@
 
         // Handle Enter key
         document.addEventListener('DOMContentLoaded', () => {
-            const jsonUrl = getGameConfig();
-            loadWords(jsonUrl);
-            
+            loadWords();
+
             document.getElementById('spellingInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && raceStarted) {
                     const input = document.getElementById('spellingInput');

@@ -113,7 +113,7 @@
       "steps": [
         {
           "word": "table",
-          "prompt": "Build vocabulary: table.",
+          "prompt": "Build table.",
           "correctChoices": [
             {
               "text": "t"
@@ -143,7 +143,7 @@
         },
         {
           "word": "saddle",
-          "prompt": "Build vocabulary: saddle.",
+          "prompt": "Build saddle.",
           "correctChoices": [
             {
               "text": "s"
@@ -177,21 +177,21 @@
         {
           "from": "saddle",
           "to": "settle",
-          "prompt": "Build vocabulary: settle."
+          "prompt": "Build settle."
         },
         {
           "from": "settle",
           "to": "meddle",
-          "prompt": "Build vocabulary: meddle."
+          "prompt": "Build meddle."
         },
         {
           "from": "meddle",
           "to": "simple",
-          "prompt": "Build vocabulary: simple."
+          "prompt": "Build simple."
         },
         {
           "word": "shuttle",
-          "prompt": "Build vocabulary: shuttle. (They will take the next shuttle.)",
+          "prompt": "Build shuttle.",
           "correctChoices": [
             {
               "text": "s"

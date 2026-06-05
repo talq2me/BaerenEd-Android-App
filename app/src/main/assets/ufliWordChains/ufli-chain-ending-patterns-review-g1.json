@@ -123,7 +123,7 @@
       "steps": [
         {
           "word": "most",
-          "prompt": "Build vocabulary: most.",
+          "prompt": "Build most.",
           "correctChoices": [
             {
               "text": "m"
@@ -151,11 +151,11 @@
         {
           "from": "most",
           "to": "told",
-          "prompt": "Build vocabulary: told."
+          "prompt": "Build told."
         },
         {
           "word": "why",
-          "prompt": "Build vocabulary: why.",
+          "prompt": "Build why.",
           "correctChoices": [
             {
               "text": "w"
@@ -180,11 +180,11 @@
         {
           "from": "why",
           "to": "sky",
-          "prompt": "Build vocabulary: sky."
+          "prompt": "Build sky."
         },
         {
           "word": "baby",
-          "prompt": "Build vocabulary: baby.",
+          "prompt": "Build baby.",
           "correctChoices": [
             {
               "text": "b"
@@ -211,7 +211,7 @@
         },
         {
           "word": "lucky",
-          "prompt": "Build vocabulary: lucky.",
+          "prompt": "Build lucky.",
           "correctChoices": [
             {
               "text": "l"
@@ -241,7 +241,7 @@
         },
         {
           "word": "middle",
-          "prompt": "Build vocabulary: middle.",
+          "prompt": "Build middle.",
           "correctChoices": [
             {
               "text": "m"
@@ -275,11 +275,11 @@
         {
           "from": "middle",
           "to": "jungle",
-          "prompt": "Build vocabulary: jungle."
+          "prompt": "Build jungle."
         },
         {
           "word": "puppy",
-          "prompt": "Build vocabulary: puppy. (The puppy sits by the nice woman.)",
+          "prompt": "Build puppy.",
           "correctChoices": [
             {
               "text": "p"

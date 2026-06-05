@@ -50,17 +50,17 @@
         {
           "from": "some",
           "to": "dove",
-          "prompt": "Build the word dove. (Silent e exceptions chain two.)"
+          "prompt": "Build dove."
         },
         {
           "from": "dove",
           "to": "none",
-          "prompt": "Build the word none."
+          "prompt": "Build none."
         },
         {
           "from": "none",
           "to": "done",
-          "prompt": "Build the word done."
+          "prompt": "Build done."
         }
       ]
     }

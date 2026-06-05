@@ -370,6 +370,7 @@
         </div>
     </div>
 
+    <script src="https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingPool.js"></script>
     <script>
         let words = [];
         let currentWord = null;
@@ -437,64 +438,24 @@
             }
         }
 
-        function getGameConfig() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const file = urlParams.get('file');
-            const fileName = file || 'englishWordsGr1.json';
-            
-            // Detect language from filename - if filename contains "french" (case-insensitive), use French TTS
-            if (fileName.toLowerCase().includes('french')) {
-                ttsLanguage = 'fr-FR';
-            } else {
-                ttsLanguage = 'en-US';
-            }
-            
-            return fileName;
-        }
-
-        function loadWords(fileName) {
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                        words = data;
-                    } else if (Array.isArray(data)) {
-                        words = data.map(word => ({ word: word, sentence: "" }));
-                    } else {
-                        words = [];
-                    }
-                    totalWords = words.length;
+        async function loadWords() {
+            try {
+                const prep = await SpellingPool.prepareSession();
+                ttsLanguage = prep.ttsLanguage;
+                if (prep.cfg.poolActive) {
+                    words = prep.sessionWords.map(SpellingPool.toPlayWord);
+                    maxQuestions = words.length;
+                } else {
+                    words = prep.allWords.map(SpellingPool.toPlayWord);
                     maxQuestions = Math.min(words.length, maxQuestions);
-                    startGame();
-                } catch (error) {
-                    console.error('Error loading words file:', error);
-                    words = [];
-                    startGame();
                 }
-            } else {
-                const jsonUrl = `https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                            words = data;
-                        } else if (Array.isArray(data)) {
-                            words = data.map(word => ({ word: word, sentence: "" }));
-                        } else {
-                            words = [];
-                        }
-                        totalWords = words.length;
-                        maxQuestions = Math.min(words.length, maxQuestions);
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.error('Error loading words file:', error);
-                        words = [];
-                        startGame();
-                    });
+                totalWords = words.length;
+                startGame();
+            } catch (error) {
+                console.error('Error loading words file:', error);
+                words = [];
+                totalWords = 0;
+                startGame();
             }
         }
 
@@ -1211,8 +1172,7 @@
             // Ensure layout is complete before measuring (helps tablets/WebViews)
             requestAnimationFrame(() => {
                 updateGameScale();
-                const jsonUrl = getGameConfig();
-                loadWords(jsonUrl);
+                loadWords();
             });
         });
     </script>

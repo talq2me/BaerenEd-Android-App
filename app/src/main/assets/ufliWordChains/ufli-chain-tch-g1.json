@@ -105,16 +105,16 @@
         {
           "from": "witch",
           "to": "match",
-          "prompt": "Build vocabulary: match."
+          "prompt": "Build match."
         },
         {
           "from": "match",
           "to": "catch",
-          "prompt": "Build vocabulary: catch."
+          "prompt": "Build catch."
         },
         {
           "word": "switch",
-          "prompt": "Build vocabulary: switch.",
+          "prompt": "Build switch.",
           "correctChoices": [
             {
               "text": "s"
@@ -148,11 +148,11 @@
         {
           "from": "switch",
           "to": "sketch",
-          "prompt": "Build vocabulary: sketch."
+          "prompt": "Build sketch."
         },
         {
           "word": "stretch",
-          "prompt": "Build vocabulary: stretch.",
+          "prompt": "Build stretch.",
           "correctChoices": [
             {
               "text": "s"

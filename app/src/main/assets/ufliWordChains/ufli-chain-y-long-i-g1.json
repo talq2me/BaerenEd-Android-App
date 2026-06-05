@@ -96,12 +96,12 @@
         {
           "from": "sky",
           "to": "spy",
-          "prompt": "Build vocabulary: spy."
+          "prompt": "Build spy."
         },
         {
           "from": "spy",
           "to": "why",
-          "prompt": "Build vocabulary: why."
+          "prompt": "Build why."
         }
       ]
     }

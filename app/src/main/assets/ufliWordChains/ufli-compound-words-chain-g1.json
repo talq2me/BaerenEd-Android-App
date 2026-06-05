@@ -128,7 +128,7 @@
       "steps": [
         {
           "word": "uphill",
-          "prompt": "Build the compound word: uphill.",
+          "prompt": "Build uphill.",
           "correctChoices": [
             {
               "text": "u"
@@ -166,7 +166,7 @@
       "steps": [
         {
           "word": "himself",
-          "prompt": "Build the compound word: himself.",
+          "prompt": "Build himself.",
           "correctChoices": [
             {
               "text": "h"
@@ -208,21 +208,21 @@
         {
           "from": "himself",
           "to": "bathtub",
-          "prompt": "Build the compound word: bathtub."
+          "prompt": "Build bathtub."
         },
         {
           "from": "bathtub",
           "to": "stepdad",
-          "prompt": "Build the compound word: stepdad."
+          "prompt": "Build stepdad."
         },
         {
           "from": "stepdad",
           "to": "sandbox",
-          "prompt": "Build the compound word: sandbox. (I did a handstand by the sandbox.)"
+          "prompt": "Build sandbox."
         },
         {
           "word": "something",
-          "prompt": "Build the compound word: something.",
+          "prompt": "Build something.",
           "correctChoices": [
             {
               "text": "s"

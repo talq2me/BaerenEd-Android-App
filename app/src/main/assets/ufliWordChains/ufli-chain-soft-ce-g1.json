@@ -53,7 +53,7 @@
       "id": "chain-2",
       "seed": {
         "word": "ice",
-        "prompt": "Make the word ice. (Sentence: Can you get one ice cube?)",
+        "prompt": "Make the word ice.",
         "correctChoices": [
           {
             "text": "i"
@@ -92,7 +92,7 @@
         },
         {
           "word": "space",
-          "prompt": "Build the word space. (Sentence: I think there will be space in the trunk.)",
+          "prompt": "Build space.",
           "correctChoices": [
             {
               "text": "s"

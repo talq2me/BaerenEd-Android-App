@@ -1,16 +1,729 @@
 {
   "lang": "fr",
   "words": [
-    { "word": "lundi", "syllables": ["lun", "di"] },
-    { "word": "mardi", "syllables": ["mar", "di"] },
-    { "word": "mercredi", "syllables": ["mer", "cre", "di"] },
-    { "word": "jeudi", "syllables": ["jeu", "di"] },
-    { "word": "vendredi", "syllables": ["ven", "dre", "di"] },
-    { "word": "samedi", "syllables": ["sa", "me", "di"] },
-    { "word": "dimanche", "syllables": ["di", "man", "che"] },
-    { "word": "neige", "syllables": ["nei", "ge"] },
-    { "word": "toupie", "syllables": ["tou", "pie"] },
-    { "word": "ouvre", "syllables": ["ou", "vre"] },
-    { "word": "lutin", "syllables": ["lu", "tin"] }
+    {
+      "word": "animal",
+      "syllables": [
+        "a",
+        "ni",
+        "mal"
+      ]
+    },
+    {
+      "word": "anniversaire",
+      "syllables": [
+        "an",
+        "ni",
+        "ver",
+        "saire"
+      ]
+    },
+    {
+      "word": "apporter",
+      "syllables": [
+        "ap",
+        "por",
+        "ter"
+      ]
+    },
+    {
+      "word": "arbre",
+      "syllables": [
+        "ar",
+        "bre"
+      ]
+    },
+    {
+      "word": "arriver",
+      "syllables": [
+        "ar",
+        "ri",
+        "ver"
+      ]
+    },
+    {
+      "word": "attendre",
+      "syllables": [
+        "at",
+        "ten",
+        "dre"
+      ]
+    },
+    {
+      "word": "automne",
+      "syllables": [
+        "au",
+        "tomne"
+      ]
+    },
+    {
+      "word": "avion",
+      "syllables": [
+        "a",
+        "vion"
+      ]
+    },
+    {
+      "word": "avril",
+      "syllables": [
+        "a",
+        "vril"
+      ]
+    },
+    {
+      "word": "baleine",
+      "syllables": [
+        "ba",
+        "leine"
+      ]
+    },
+    {
+      "word": "banane",
+      "syllables": [
+        "ba",
+        "nane"
+      ]
+    },
+    {
+      "word": "bateau",
+      "syllables": [
+        "ba",
+        "teau"
+      ]
+    },
+    {
+      "word": "biberon",
+      "syllables": [
+        "bi",
+        "be",
+        "ron"
+      ]
+    },
+    {
+      "word": "biscuit",
+      "syllables": [
+        "bis",
+        "cuit"
+      ]
+    },
+    {
+      "word": "bouteille",
+      "syllables": [
+        "bou",
+        "teille"
+      ]
+    },
+    {
+      "word": "cadeau",
+      "syllables": [
+        "ca",
+        "deau"
+      ]
+    },
+    {
+      "word": "cahier",
+      "syllables": [
+        "ca",
+        "hier"
+      ]
+    },
+    {
+      "word": "camarade",
+      "syllables": [
+        "ca",
+        "ma",
+        "rade"
+      ]
+    },
+    {
+      "word": "camion",
+      "syllables": [
+        "ca",
+        "mion"
+      ]
+    },
+    {
+      "word": "camping",
+      "syllables": [
+        "cam",
+        "ping"
+      ]
+    },
+    {
+      "word": "caramel",
+      "syllables": [
+        "ca",
+        "ra",
+        "mel"
+      ]
+    },
+    {
+      "word": "carotte",
+      "syllables": [
+        "ca",
+        "rot",
+        "te"
+      ]
+    },
+    {
+      "word": "cerise",
+      "syllables": [
+        "ce",
+        "rise"
+      ]
+    },
+    {
+      "word": "chambre",
+      "syllables": [
+        "cham",
+        "bre"
+      ]
+    },
+    {
+      "word": "chanter",
+      "syllables": [
+        "chan",
+        "ter"
+      ]
+    },
+    {
+      "word": "chanson",
+      "syllables": [
+        "chan",
+        "son"
+      ]
+    },
+    {
+      "word": "chapeau",
+      "syllables": [
+        "cha",
+        "peau"
+      ]
+    },
+    {
+      "word": "chocolat",
+      "syllables": [
+        "cho",
+        "co",
+        "lat"
+      ]
+    },
+    {
+      "word": "classe",
+      "syllables": [
+        "classe"
+      ]
+    },
+    {
+      "word": "collage",
+      "syllables": [
+        "col",
+        "lage"
+      ]
+    },
+    {
+      "word": "couleur",
+      "syllables": [
+        "cou",
+        "leur"
+      ]
+    },
+    {
+      "word": "courrier",
+      "syllables": [
+        "cour",
+        "rier"
+      ]
+    },
+    {
+      "word": "cousin",
+      "syllables": [
+        "cou",
+        "sin"
+      ]
+    },
+    {
+      "word": "crayon",
+      "syllables": [
+        "cray",
+        "on"
+      ]
+    },
+    {
+      "word": "danseur",
+      "syllables": [
+        "dan",
+        "seur"
+      ]
+    },
+    {
+      "word": "décembre",
+      "syllables": [
+        "dé",
+        "cem",
+        "bre"
+      ]
+    },
+    {
+      "word": "demain",
+      "syllables": [
+        "de",
+        "main"
+      ]
+    },
+    {
+      "word": "descendre",
+      "syllables": [
+        "des",
+        "cen",
+        "dre"
+      ]
+    },
+    {
+      "word": "dessin",
+      "syllables": [
+        "des",
+        "sin"
+      ]
+    },
+    {
+      "word": "dimanche",
+      "syllables": [
+        "di",
+        "man",
+        "che"
+      ]
+    },
+    {
+      "word": "dîner",
+      "syllables": [
+        "di",
+        "ner"
+      ]
+    },
+    {
+      "word": "douzaine",
+      "syllables": [
+        "dou",
+        "zaine"
+      ]
+    },
+    {
+      "word": "échelle",
+      "syllables": [
+        "é",
+        "chel",
+        "le"
+      ]
+    },
+    {
+      "word": "école",
+      "syllables": [
+        "é",
+        "cole"
+      ]
+    },
+    {
+      "word": "écouter",
+      "syllables": [
+        "é",
+        "cou",
+        "ter"
+      ]
+    },
+    {
+      "word": "éléphant",
+      "syllables": [
+        "é",
+        "lé",
+        "phant"
+      ]
+    },
+    {
+      "word": "enfant",
+      "syllables": [
+        "en",
+        "fant"
+      ]
+    },
+    {
+      "word": "entrer",
+      "syllables": [
+        "en",
+        "trer"
+      ]
+    },
+    {
+      "word": "escalier",
+      "syllables": [
+        "es",
+        "ca",
+        "lier"
+      ]
+    },
+    {
+      "word": "étoile",
+      "syllables": [
+        "é",
+        "toile"
+      ]
+    },
+    {
+      "word": "été",
+      "syllables": [
+        "é",
+        "té"
+      ]
+    },
+    {
+      "word": "février",
+      "syllables": [
+        "fé",
+        "vrier"
+      ]
+    },
+    {
+      "word": "fille",
+      "syllables": [
+        "fi",
+        "lle"
+      ]
+    },
+    {
+      "word": "forêt",
+      "syllables": [
+        "fo",
+        "rêt"
+      ]
+    },
+    {
+      "word": "fourmi",
+      "syllables": [
+        "four",
+        "mi"
+      ]
+    },
+    {
+      "word": "fromage",
+      "syllables": [
+        "fro",
+        "mage"
+      ]
+    },
+    {
+      "word": "fête",
+      "syllables": [
+        "fête"
+      ]
+    },
+    {
+      "word": "galette",
+      "syllables": [
+        "ga",
+        "lette"
+      ]
+    },
+    {
+      "word": "garage",
+      "syllables": [
+        "ga",
+        "rage"
+      ]
+    },
+    {
+      "word": "garderie",
+      "syllables": [
+        "gar",
+        "de",
+        "rie"
+      ]
+    },
+    {
+      "word": "garçon",
+      "syllables": [
+        "gar",
+        "çon"
+      ]
+    },
+    {
+      "word": "gâteau",
+      "syllables": [
+        "gâ",
+        "teau"
+      ]
+    },
+    {
+      "word": "gentil",
+      "syllables": [
+        "gen",
+        "til"
+      ]
+    },
+    {
+      "word": "grenouille",
+      "syllables": [
+        "gre",
+        "nouille"
+      ]
+    },
+    {
+      "word": "hibou",
+      "syllables": [
+        "hi",
+        "bou"
+      ]
+    },
+    {
+      "word": "histoire",
+      "syllables": [
+        "his",
+        "toire"
+      ]
+    },
+    {
+      "word": "hiver",
+      "syllables": [
+        "hi",
+        "ver"
+      ]
+    },
+    {
+      "word": "hockey",
+      "syllables": [
+        "hoc",
+        "key"
+      ]
+    },
+    {
+      "word": "idée",
+      "syllables": [
+        "i",
+        "dée"
+      ]
+    },
+    {
+      "word": "inviter",
+      "syllables": [
+        "in",
+        "vi",
+        "ter"
+      ]
+    },
+    {
+      "word": "janvier",
+      "syllables": [
+        "jan",
+        "vier"
+      ]
+    },
+    {
+      "word": "jardin",
+      "syllables": [
+        "jar",
+        "din"
+      ]
+    },
+    {
+      "word": "jeudi",
+      "syllables": [
+        "jeu",
+        "di"
+      ]
+    },
+    {
+      "word": "journal",
+      "syllables": [
+        "jour",
+        "nal"
+      ]
+    },
+    {
+      "word": "journée",
+      "syllables": [
+        "jour",
+        "née"
+      ]
+    },
+    {
+      "word": "juillet",
+      "syllables": [
+        "jui",
+        "llet"
+      ]
+    },
+    {
+      "word": "juin",
+      "syllables": [
+        "juin"
+      ]
+    },
+    {
+      "word": "lundi",
+      "syllables": [
+        "lun",
+        "di"
+      ]
+    },
+    {
+      "word": "mardi",
+      "syllables": [
+        "mar",
+        "di"
+      ]
+    },
+    {
+      "word": "mercredi",
+      "syllables": [
+        "mer",
+        "cre",
+        "di"
+      ]
+    },
+    {
+      "word": "magasin",
+      "syllables": [
+        "ma",
+        "ga",
+        "sin"
+      ]
+    },
+    {
+      "word": "manger",
+      "syllables": [
+        "man",
+        "ger"
+      ]
+    },
+    {
+      "word": "manteau",
+      "syllables": [
+        "man",
+        "teau"
+      ]
+    },
+    {
+      "word": "marmotte",
+      "syllables": [
+        "mar",
+        "motte"
+      ]
+    },
+    {
+      "word": "matin",
+      "syllables": [
+        "ma",
+        "tin"
+      ]
+    },
+    {
+      "word": "mitaine",
+      "syllables": [
+        "mi",
+        "tai",
+        "ne"
+      ]
+    },
+    {
+      "word": "monnaie",
+      "syllables": [
+        "mon",
+        "nai",
+        "e"
+      ]
+    },
+    {
+      "word": "montagne",
+      "syllables": [
+        "mon",
+        "tagne"
+      ]
+    },
+    {
+      "word": "montre",
+      "syllables": [
+        "mon",
+        "tre"
+      ]
+    },
+    {
+      "word": "musique",
+      "syllables": [
+        "mu",
+        "sique"
+      ]
+    },
+    {
+      "word": "neige",
+      "syllables": [
+        "nei",
+        "ge"
+      ]
+    },
+    {
+      "word": "noël",
+      "syllables": [
+        "no",
+        "ël"
+      ]
+    },
+    {
+      "word": "nuage",
+      "syllables": [
+        "nu",
+        "age"
+      ]
+    },
+    {
+      "word": "octobre",
+      "syllables": [
+        "oc",
+        "tobre"
+      ]
+    },
+    {
+      "word": "oiseau",
+      "syllables": [
+        "oi",
+        "seau"
+      ]
+    },
+    {
+      "word": "oreille",
+      "syllables": [
+        "o",
+        "reille"
+      ]
+    },
+    {
+      "word": "oublier",
+      "syllables": [
+        "ou",
+        "bli",
+        "er"
+      ]
+    },
+    {
+      "word": "ouvrir",
+      "syllables": [
+        "ou",
+        "vrir"
+      ]
+    },
+    {
+      "word": "pantalon",
+      "syllables": [
+        "pan",
+        "ta",
+        "lon"
+      ]
+    },
+    {
+      "word": "papillon",
+      "syllables": [
+        "pa",
+        "pil",
+        "lon"
+      ]
+    }
   ]
 }

@@ -45,7 +45,7 @@
         {
           "from": "sage",
           "to": "stage",
-          "prompt": "Say sage. Add t between s and a. Build stage. (Sentence: That stage is huge!)"
+          "prompt": "Say sage. Add t between s and a. Build stage."
         }
       ]
     },
@@ -78,7 +78,7 @@
         {
           "from": "age",
           "to": "page",
-          "prompt": "Say age. Add p at the beginning. Build page. (Sentence: She wants to look at the next page.)"
+          "prompt": "Say age. Add p at the beginning. Build page."
         },
         {
           "from": "page",

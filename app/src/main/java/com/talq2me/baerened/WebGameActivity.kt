@@ -71,6 +71,10 @@ class WebGameActivity : AppCompatActivity() {
     private var cameraImageFile: File? = null // Store file path for full resolution image
     private var lastWebGameCorrectAnswers: Int = -1
     private var lastWebGameIncorrectAnswers: Int = -1
+    /** When set (from ?poolKey=), load/save game_indices under this key instead of task launch id. */
+    private var progressStorageKey: String? = null
+    /** When true (?pool=N), games must not advance index on session complete; RPC advances after all required done. */
+    private var freezePoolIndex: Boolean = false
 
     // HTTP client for fetching JSON from GitHub
     private val httpClient = OkHttpClient.Builder()
@@ -113,9 +117,27 @@ class WebGameActivity : AppCompatActivity() {
         // WebView first-time init and TTS engine startup are heavy and were blocking the
         // main thread long enough to cause "Input dispatching timed out" ANR in TrainingMapActivity.
         val container = findViewById<android.view.ViewGroup>(R.id.webview_container)
+        parseSpellingPoolParams(gameUrl)
+
         container.post {
             if (isFinishing) return@post
             setupWebViewAndLoad(container, gameUrl)
+        }
+    }
+
+    private fun parseSpellingPoolParams(gameUrl: String) {
+        try {
+            val uri = Uri.parse(gameUrl)
+            progressStorageKey = uri.getQueryParameter("poolKey")?.trim()?.takeIf { it.isNotEmpty() }
+            val pool = uri.getQueryParameter("pool")?.trim()
+            freezePoolIndex = !pool.isNullOrEmpty() && (pool.toIntOrNull() ?: 0) > 0
+            android.util.Log.d(
+                "WebGameActivity",
+                "Spelling pool: progressKey=$progressStorageKey freezeIndex=$freezePoolIndex"
+            )
+        } catch (e: Exception) {
+            progressStorageKey = null
+            freezePoolIndex = false
         }
     }
 
@@ -207,7 +229,7 @@ class WebGameActivity : AppCompatActivity() {
         TtsManager.setOnUtteranceProgressListener(webGameTtsListener)
 
         android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
-        wv.addJavascriptInterface(WebGameInterface(taskId), "Android")
+        wv.addJavascriptInterface(WebGameInterface(taskId, progressStorageKey, freezePoolIndex), "Android")
         wv.loadUrl(gameUrl)
     }
 
@@ -242,7 +264,12 @@ class WebGameActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
-    inner class WebGameInterface(private val taskId: String?) {
+    inner class WebGameInterface(
+        private val taskId: String?,
+        private val progressKey: String?,
+        private val freezePoolIndex: Boolean
+    ) {
+        private fun indexStorageKey(): String? = progressKey?.takeIf { it.isNotEmpty() } ?: taskId
         /** 2-arg overload for games that only pass correct/incorrect (e.g. Time Telling). WebView bridge matches on exact signature, so gameCompleted(1, 0) would otherwise "Method not found". */
         @JavascriptInterface
         fun gameCompleted(correctAnswers: Int, incorrectAnswers: Int) {
@@ -255,8 +282,9 @@ class WebGameActivity : AppCompatActivity() {
             android.util.Log.d("WebGameActivity", "JavaScript called gameCompleted() with correct: $correctAnswers, incorrect: $incorrectAnswers, finalIndex: $finalIndex")
             // Never block the main thread: saveIndex does RPC + refetch (was runBlocking inside runOnUiThread → ANR).
             lifecycleScope.launch(Dispatchers.IO) {
-                if (taskId != null && finalIndex >= 0) {
-                    val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
+                val storageKey = indexStorageKey()
+                if (!freezePoolIndex && storageKey != null && finalIndex >= 0) {
+                    val webGameProgress = WebGameProgress(this@WebGameActivity, storageKey)
                     val r = webGameProgress.saveIndex(finalIndex)
                     if (r.isFailure) {
                         android.util.Log.e("WebGameActivity", "saveIndex failed", r.exceptionOrNull())
@@ -268,7 +296,7 @@ class WebGameActivity : AppCompatActivity() {
                             ).show()
                         }
                     } else {
-                        android.util.Log.d("WebGameActivity", "Saved game index $finalIndex for $taskId (game_indices)")
+                        android.util.Log.d("WebGameActivity", "Saved game index $finalIndex for $storageKey (game_indices)")
                     }
                 }
                 withContext(Dispatchers.Main) {
@@ -283,7 +311,8 @@ class WebGameActivity : AppCompatActivity() {
         @JavascriptInterface
         fun saveProgress(index: Int) {
             android.util.Log.d("WebGameActivity", "JavaScript called saveProgress() with index: $index for taskId: $taskId")
-            val tid = taskId ?: return
+            if (freezePoolIndex) return
+            val tid = indexStorageKey() ?: return
             lifecycleScope.launch(Dispatchers.IO) {
                 val r = WebGameProgress(this@WebGameActivity, tid).saveIndex(index)
                 if (r.isFailure) {
@@ -301,13 +330,17 @@ class WebGameActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun loadProgress(): Int {
-            val index = if (taskId != null) {
-                val webGameProgress = WebGameProgress(this@WebGameActivity, taskId)
+            val storageKey = indexStorageKey()
+            val index = if (storageKey != null) {
+                val webGameProgress = WebGameProgress(this@WebGameActivity, storageKey)
                 webGameProgress.getCurrentIndex()
             } else {
                 0
             }
-            android.util.Log.d("WebGameActivity", "JavaScript called loadProgress() returning index: $index for taskId: $taskId")
+            android.util.Log.d(
+                "WebGameActivity",
+                "JavaScript called loadProgress() returning index: $index for key: $storageKey (taskId=$taskId)"
+            )
             return index
         }
 

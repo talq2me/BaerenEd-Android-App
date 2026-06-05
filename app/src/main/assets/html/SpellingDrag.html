@@ -160,6 +160,7 @@
         <div id="loadingMsg" class="loading">Loading…</div>
     </div>
 
+    <script src="https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingPool.js"></script>
     <script>
         const GITHUB_DATA = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data';
 
@@ -264,24 +265,19 @@
             });
         }
 
-        function getConfig() {
-            const p = new URLSearchParams(window.location.search);
-            const file = p.get('file') || 'spellingDragFrGr1.json';
-            const tq = parseInt(p.get('totalQuestions') || '5', 10);
-            return {
-                file,
-                wordsPerSession: Number.isFinite(tq) && tq > 0 ? tq : 5
-            };
-        }
+        let poolActive = false;
 
-        function loadProgressIndex() {
-            if (window.Android && typeof window.Android.loadProgress === 'function') {
-                try {
-                    const idx = window.Android.loadProgress();
-                    if (Number.isFinite(idx) && idx >= 0) return idx;
-                } catch (e) { /* start at 0 */ }
-            }
-            return 0;
+        function getConfig() {
+            const poolCfg = SpellingPool.getConfig();
+            const p = new URLSearchParams(window.location.search);
+            const tq = parseInt(p.get('totalQuestions') || '5', 10);
+            poolActive = poolCfg.poolActive;
+            return {
+                file: poolCfg.file,
+                wordsPerSession: poolActive
+                    ? poolCfg.poolSize
+                    : (Number.isFinite(tq) && tq > 0 ? tq : 5)
+            };
         }
 
         function normalizeLang(lang) {
@@ -581,7 +577,9 @@
 
         function finishGame() {
             const len = allWords.length;
-            const nextIndex = len > 0 ? (startIndex + sessionWords.length) % len : -1;
+            const nextIndex = poolActive
+                ? -1
+                : (len > 0 ? (startIndex + sessionWords.length) % len : -1);
             if (window.Android && typeof window.Android.gameCompleted === 'function') {
                 window.Android.gameCompleted(correctCount, incorrectCount, nextIndex);
             } else if (window.parent && window.parent !== window) {
@@ -623,7 +621,7 @@
                 readText(currentEntry.word, ttsLang, TTS_SLOW, () => setInteractionLocked(false));
             };
 
-            startIndex = loadProgressIndex();
+            startIndex = SpellingPool.loadProgressIndex();
             buildSession();
             sessionWordIndex = 0;
 

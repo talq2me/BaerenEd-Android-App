@@ -102,27 +102,27 @@
         {
           "from": "rind",
           "to": "mild",
-          "prompt": "Build vocabulary: mild."
+          "prompt": "Build mild."
         },
         {
           "from": "mild",
           "to": "hold",
-          "prompt": "Build vocabulary: hold."
+          "prompt": "Build hold."
         },
         {
           "from": "hold",
           "to": "host",
-          "prompt": "Build vocabulary: host."
+          "prompt": "Build host."
         },
         {
           "from": "host",
           "to": "bolt",
-          "prompt": "Build vocabulary: bolt."
+          "prompt": "Build bolt."
         },
         {
           "from": "bolt",
           "to": "sold",
-          "prompt": "Build vocabulary: sold. (She sold the old truck.)"
+          "prompt": "Build sold."
         }
       ]
     }

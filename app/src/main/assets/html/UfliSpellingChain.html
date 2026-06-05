@@ -25,8 +25,18 @@
         }
         h1 { text-align: center; color: #2d5a27; margin: 0 0 8px 0; font-size: 1.6em; }
         #starCount { text-align: center; font-size: 22px; color: #b8860b; margin-bottom: 12px; }
-        .prompt { text-align: center; font-size: 1.15em; color: #333; margin: 12px 0; line-height: 1.4; min-height: 2.8em; }
-        .prompt .target-word { font-weight: bold; color: #1e3d1a; text-decoration: underline; }
+        .prompt { text-align: center; font-size: 1.15em; color: #444; margin: 12px 0; line-height: 1.5; min-height: 2.8em; }
+        .prompt .target-word {
+            font-size: 1.85em;
+            font-weight: 800;
+            color: #c45c00;
+            letter-spacing: 0.04em;
+            line-height: 1.2;
+            display: inline-block;
+            margin: 0 0.12em;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .prompt .prompt-target-line { margin-top: 10px; }
         .word-stage { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 24px 0 12px; min-height: 100px; }
         .word-fixed { font-size: 2.4em; font-weight: bold; color: #111; letter-spacing: 0.04em; user-select: none; }
         .reel-shell { position: relative; flex-shrink: 0; }
@@ -99,6 +109,7 @@
         const GITHUB_ROOT = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
         const VOWELS = 'aeiou';
         const CONSONANTS = 'bcdfghjklmnpqrstvwxyz';
+        const TTS_RATE = 0.70;
 
         const config = (() => {
             const p = new URLSearchParams(window.location.search);
@@ -128,16 +139,25 @@
         let spellCorrect = [];
         let spellUsedSlots = new Set();
 
+        window.onTTSFinished = function() {
+            if (window.pendingUfliTTSCallback) {
+                const cb = window.pendingUfliTTSCallback;
+                window.pendingUfliTTSCallback = null;
+                cb();
+            }
+        };
+
         function readText(text, lang, onEnd) {
             if (!text) { if (onEnd) onEnd(); return; }
+            const language = lang || 'en-US';
             if (window.Android && typeof window.Android.readText === 'function') {
-                window.Android.readText(text, lang || 'en-US');
-                setTimeout(() => { if (onEnd) onEnd(); }, Math.max(1200, text.length * 55));
+                window.pendingUfliTTSCallback = onEnd || null;
+                window.Android.readText(text, language, String(TTS_RATE));
             } else if ('speechSynthesis' in window) {
                 if (window._tts) window.speechSynthesis.cancel();
                 window._tts = new SpeechSynthesisUtterance(text);
-                window._tts.lang = lang || 'en-US';
-                window._tts.rate = 0.88;
+                window._tts.lang = language;
+                window._tts.rate = TTS_RATE;
                 window._tts.onend = () => { window._tts = null; if (onEnd) onEnd(); };
                 window.speechSynthesis.speak(window._tts);
             } else if (onEnd) onEnd();
@@ -278,6 +298,36 @@
             document.getElementById('reelHint').classList.toggle('hidden', !show);
         }
 
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function getStepTargetWord(step) {
+            if (!step) return '';
+            const w = step.to || step.word || (step.question && step.question.text) || '';
+            return String(w).trim();
+        }
+
+        function renderPrompt(promptText, targetWord) {
+            const el = document.getElementById('promptText');
+            const text = promptText || '';
+            const word = (targetWord || '').trim();
+            if (!word) {
+                el.textContent = text;
+                return;
+            }
+            const escaped = escapeHtml(text);
+            const re = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            if (re.test(text)) {
+                el.innerHTML = escaped.replace(re, (m) => `<span class="target-word">${escapeHtml(m)}</span>`);
+            } else {
+                el.innerHTML = `${escaped}<div class="prompt-target-line"><span class="target-word">${escapeHtml(word)}</span></div>`;
+            }
+        }
+
         function speakCurrentPrompt() { readText(currentPrompt, 'en-US'); }
 
         function advanceQueue() {
@@ -307,7 +357,7 @@
             spellTarget = (step.word || step.question?.text || '').toLowerCase();
             currentPrompt = step.prompt || step.prompt?.text || `Build the word ${spellTarget}.`;
             if (typeof step.prompt === 'object') currentPrompt = step.prompt.text;
-            document.getElementById('promptText').textContent = currentPrompt;
+            renderPrompt(currentPrompt, spellTarget);
 
             spellCorrect = (step.correctChoices || []).map(c => c.text);
             const extras = (step.extraChoices || []).map(c => c.text);
@@ -366,7 +416,7 @@
 
         function renderSlidePrompt(step) {
             currentPrompt = step.prompt;
-            document.getElementById('promptText').textContent = step.prompt;
+            renderPrompt(step.prompt, getStepTargetWord(step));
         }
 
         function updateActiveReelItem(reelWindow) {

@@ -1,0 +1,735 @@
+{
+  "lang": "fr",
+  "words": [
+    {
+      "word": "animal",
+      "syllables": [
+        "a",
+        "ni",
+        "mal"
+      ]
+    },
+    {
+      "word": "annoncer",
+      "syllables": [
+        "an",
+        "non",
+        "cer"
+      ]
+    },
+    {
+      "word": "apparaître",
+      "syllables": [
+        "ap",
+        "pa",
+        "raî",
+        "tre"
+      ]
+    },
+    {
+      "word": "arranger",
+      "syllables": [
+        "ar",
+        "ran",
+        "ger"
+      ]
+    },
+    {
+      "word": "attacher",
+      "syllables": [
+        "at",
+        "ta",
+        "cher"
+      ]
+    },
+    {
+      "word": "automne",
+      "syllables": [
+        "au",
+        "tomne"
+      ]
+    },
+    {
+      "word": "aventure",
+      "syllables": [
+        "a",
+        "ven",
+        "ture"
+      ]
+    },
+    {
+      "word": "bottine",
+      "syllables": [
+        "bot",
+        "tine"
+      ]
+    },
+    {
+      "word": "campagne",
+      "syllables": [
+        "cam",
+        "pagne"
+      ]
+    },
+    {
+      "word": "chambre",
+      "syllables": [
+        "cham",
+        "bre"
+      ]
+    },
+    {
+      "word": "château",
+      "syllables": [
+        "châ",
+        "teau"
+      ]
+    },
+    {
+      "word": "connaître",
+      "syllables": [
+        "con",
+        "naî",
+        "tre"
+      ]
+    },
+    {
+      "word": "courage",
+      "syllables": [
+        "cou",
+        "ra",
+        "ge"
+      ]
+    },
+    {
+      "word": "cuisine",
+      "syllables": [
+        "cui",
+        "sine"
+      ]
+    },
+    {
+      "word": "danger",
+      "syllables": [
+        "dan",
+        "ger"
+      ]
+    },
+    {
+      "word": "décembre",
+      "syllables": [
+        "dé",
+        "cem",
+        "bre"
+      ]
+    },
+    {
+      "word": "dernier",
+      "syllables": [
+        "der",
+        "nier"
+      ]
+    },
+    {
+      "word": "échapper",
+      "syllables": [
+        "é",
+        "chap",
+        "per"
+      ]
+    },
+    {
+      "word": "échelle",
+      "syllables": [
+        "é",
+        "chel",
+        "le"
+      ]
+    },
+    {
+      "word": "évidemment",
+      "syllables": [
+        "é",
+        "vi",
+        "dem",
+        "ment"
+      ]
+    },
+    {
+      "word": "exercice",
+      "syllables": [
+        "ex",
+        "er",
+        "cice"
+      ]
+    },
+    {
+      "word": "fenêtre",
+      "syllables": [
+        "fe",
+        "nêtre"
+      ]
+    },
+    {
+      "word": "forêt",
+      "syllables": [
+        "fo",
+        "rêt"
+      ]
+    },
+    {
+      "word": "gâteau",
+      "syllables": [
+        "gâ",
+        "teau"
+      ]
+    },
+    {
+      "word": "histoire",
+      "syllables": [
+        "his",
+        "toire"
+      ]
+    },
+    {
+      "word": "hiver",
+      "syllables": [
+        "hi",
+        "ver"
+      ]
+    },
+    {
+      "word": "hôpital",
+      "syllables": [
+        "hô",
+        "pi",
+        "tal"
+      ]
+    },
+    {
+      "word": "janvier",
+      "syllables": [
+        "jan",
+        "vier"
+      ]
+    },
+    {
+      "word": "magasin",
+      "syllables": [
+        "ma",
+        "ga",
+        "sin"
+      ]
+    },
+    {
+      "word": "montagne",
+      "syllables": [
+        "mon",
+        "tagne"
+      ]
+    },
+    {
+      "word": "musique",
+      "syllables": [
+        "mu",
+        "sique"
+      ]
+    },
+    {
+      "word": "nuage",
+      "syllables": [
+        "nu",
+        "age"
+      ]
+    },
+    {
+      "word": "novembre",
+      "syllables": [
+        "no",
+        "vem",
+        "bre"
+      ]
+    },
+    {
+      "word": "octobre",
+      "syllables": [
+        "oc",
+        "tobre"
+      ]
+    },
+    {
+      "word": "orage",
+      "syllables": [
+        "o",
+        "rage"
+      ]
+    },
+    {
+      "word": "pardonner",
+      "syllables": [
+        "par",
+        "don",
+        "ner"
+      ]
+    },
+    {
+      "word": "premier",
+      "syllables": [
+        "pre",
+        "mier"
+      ]
+    },
+    {
+      "word": "printemps",
+      "syllables": [
+        "prin",
+        "temps"
+      ]
+    },
+    {
+      "word": "quitter",
+      "syllables": [
+        "quit",
+        "ter"
+      ]
+    },
+    {
+      "word": "rapporter",
+      "syllables": [
+        "rap",
+        "por",
+        "ter"
+      ]
+    },
+    {
+      "word": "recommencer",
+      "syllables": [
+        "re",
+        "com",
+        "men",
+        "cer"
+      ]
+    },
+    {
+      "word": "rivière",
+      "syllables": [
+        "ri",
+        "vière"
+      ]
+    },
+    {
+      "word": "science",
+      "syllables": [
+        "sci",
+        "ence"
+      ]
+    },
+    {
+      "word": "septembre",
+      "syllables": [
+        "sep",
+        "tem",
+        "bre"
+      ]
+    },
+    {
+      "word": "serrer",
+      "syllables": [
+        "ser",
+        "rer"
+      ]
+    },
+    {
+      "word": "souffle",
+      "syllables": [
+        "sou",
+        "ffle"
+      ]
+    },
+    {
+      "word": "tempête",
+      "syllables": [
+        "tem",
+        "pête"
+      ]
+    },
+    {
+      "word": "voyage",
+      "syllables": [
+        "vo",
+        "yage"
+      ]
+    },
+    {
+      "word": "voiture",
+      "syllables": [
+        "voi",
+        "ture"
+      ]
+    },
+    {
+      "word": "février",
+      "syllables": [
+        "fé",
+        "vrier"
+      ]
+    },
+    {
+      "word": "mars",
+      "syllables": [
+        "mars"
+      ]
+    },
+    {
+      "word": "avril",
+      "syllables": [
+        "a",
+        "vril"
+      ]
+    },
+    {
+      "word": "mai",
+      "syllables": [
+        "mai"
+      ]
+    },
+    {
+      "word": "juin",
+      "syllables": [
+        "juin"
+      ]
+    },
+    {
+      "word": "juillet",
+      "syllables": [
+        "jui",
+        "llet"
+      ]
+    },
+    {
+      "word": "août",
+      "syllables": [
+        "août"
+      ]
+    },
+    {
+      "word": "dimanche",
+      "syllables": [
+        "di",
+        "man",
+        "che"
+      ]
+    },
+    {
+      "word": "lundi",
+      "syllables": [
+        "lun",
+        "di"
+      ]
+    },
+    {
+      "word": "mardi",
+      "syllables": [
+        "mar",
+        "di"
+      ]
+    },
+    {
+      "word": "mercredi",
+      "syllables": [
+        "mer",
+        "cre",
+        "di"
+      ]
+    },
+    {
+      "word": "jeudi",
+      "syllables": [
+        "jeu",
+        "di"
+      ]
+    },
+    {
+      "word": "vendredi",
+      "syllables": [
+        "ven",
+        "dre",
+        "di"
+      ]
+    },
+    {
+      "word": "samedi",
+      "syllables": [
+        "sa",
+        "me",
+        "di"
+      ]
+    },
+    {
+      "word": "boulanger",
+      "syllables": [
+        "bou",
+        "lan",
+        "ger"
+      ]
+    },
+    {
+      "word": "boulangerie",
+      "syllables": [
+        "bou",
+        "lan",
+        "ge",
+        "rie"
+      ]
+    },
+    {
+      "word": "épicerie",
+      "syllables": [
+        "é",
+        "pi",
+        "ce",
+        "rie"
+      ]
+    },
+    {
+      "word": "pharmacie",
+      "syllables": [
+        "phar",
+        "ma",
+        "cie"
+      ]
+    },
+    {
+      "word": "bibliothèque",
+      "syllables": [
+        "bi",
+        "bli",
+        "o",
+        "thèque"
+      ]
+    },
+    {
+      "word": "université",
+      "syllables": [
+        "u",
+        "ni",
+        "ver",
+        "si",
+        "té"
+      ]
+    },
+    {
+      "word": "athlétisme",
+      "syllables": [
+        "ath",
+        "lé",
+        "tisme"
+      ]
+    },
+    {
+      "word": "natation",
+      "syllables": [
+        "na",
+        "ta",
+        "tion"
+      ]
+    },
+    {
+      "word": "gymnase",
+      "syllables": [
+        "gym",
+        "nase"
+      ]
+    },
+    {
+      "word": "cinéma",
+      "syllables": [
+        "ci",
+        "né",
+        "ma"
+      ]
+    },
+    {
+      "word": "théâtre",
+      "syllables": [
+        "thé",
+        "â",
+        "tre"
+      ]
+    },
+    {
+      "word": "musée",
+      "syllables": [
+        "mu",
+        "sée"
+      ]
+    },
+    {
+      "word": "parc",
+      "syllables": [
+        "parc"
+      ]
+    },
+    {
+      "word": "jardin",
+      "syllables": [
+        "jar",
+        "din"
+      ]
+    },
+    {
+      "word": "camping",
+      "syllables": [
+        "cam",
+        "ping"
+      ]
+    },
+    {
+      "word": "plage",
+      "syllables": [
+        "plage"
+      ]
+    },
+    {
+      "word": "piscine",
+      "syllables": [
+        "pis",
+        "cine"
+      ]
+    },
+    {
+      "word": "avion",
+      "syllables": [
+        "a",
+        "vion"
+      ]
+    },
+    {
+      "word": "bateau",
+      "syllables": [
+        "ba",
+        "teau"
+      ]
+    },
+    {
+      "word": "train",
+      "syllables": [
+        "train"
+      ]
+    },
+    {
+      "word": "autobus",
+      "syllables": [
+        "au",
+        "to",
+        "bus"
+      ]
+    },
+    {
+      "word": "camion",
+      "syllables": [
+        "ca",
+        "mion"
+      ]
+    },
+    {
+      "word": "moto",
+      "syllables": [
+        "mo",
+        "to"
+      ]
+    },
+    {
+      "word": "vélo",
+      "syllables": [
+        "vé",
+        "lo"
+      ]
+    },
+    {
+      "word": "route",
+      "syllables": [
+        "route"
+      ]
+    },
+    {
+      "word": "rue",
+      "syllables": [
+        "rue"
+      ]
+    },
+    {
+      "word": "avenue",
+      "syllables": [
+        "a",
+        "ve",
+        "nue"
+      ]
+    },
+    {
+      "word": "pont",
+      "syllables": [
+        "pont"
+      ]
+    },
+    {
+      "word": "lac",
+      "syllables": [
+        "lac"
+      ]
+    },
+    {
+      "word": "océan",
+      "syllables": [
+        "o",
+        "céan"
+      ]
+    },
+    {
+      "word": "île",
+      "syllables": [
+        "île"
+      ]
+    },
+    {
+      "word": "mont",
+      "syllables": [
+        "mont"
+      ]
+    },
+    {
+      "word": "colline",
+      "syllables": [
+        "col",
+        "line"
+      ]
+    },
+    {
+      "word": "vallée",
+      "syllables": [
+        "val",
+        "lée"
+      ]
+    },
+    {
+      "word": "champ",
+      "syllables": [
+        "champ"
+      ]
+    },
+    {
+      "word": "ferme",
+      "syllables": [
+        "fer",
+        "me"
+      ]
+    },
+    {
+      "word": "grange",
+      "syllables": [
+        "gran",
+        "ge"
+      ]
+    }
+  ]
+}

@@ -366,6 +366,7 @@
         </div>
     </div>
 
+    <script src="https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingPool.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -400,64 +401,22 @@
         let isFirstAttempt = true;
         let fishElements = [];
 
-        function getGameConfig() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const file = urlParams.get('file');
-            const fileName = file || 'englishWordsGr1.json';
-            
-            // Detect language from filename - if filename contains "french" (case-insensitive), use French TTS
-            if (fileName.toLowerCase().includes('french')) {
-                ttsLanguage = 'fr-FR';
-            } else {
-                ttsLanguage = 'en-US';
-            }
-            
-            return fileName;
-        }
-
-        function loadWords(fileName) {
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                        words = data;
-                    } else if (Array.isArray(data)) {
-                        words = data.map(word => ({ word: word, sentence: "" }));
-                    } else {
-                        words = [];
-                    }
-                    maxQuestions = words.length;
-                    startGame();
-                } catch (error) {
-                    console.error('Error loading words file:', error);
-                    words = [];
-                    startGame();
+        async function loadWords() {
+            try {
+                const prep = await SpellingPool.prepareSession();
+                ttsLanguage = prep.ttsLanguage;
+                if (prep.cfg.poolActive) {
+                    words = prep.sessionWords.map(SpellingPool.toPlayWord);
+                } else {
+                    words = prep.allWords.map(SpellingPool.toPlayWord);
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                            words = data;
-                        } else if (Array.isArray(data)) {
-                            words = data.map(word => ({ word: word, sentence: "" }));
-                        } else {
-                            words = [];
-                        }
-                        maxQuestions = words.length;
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.error('Error loading words file:', error);
-                        words = [];
-                        startGame();
-                    });
+                maxQuestions = words.length;
+                startGame();
+            } catch (error) {
+                console.error('Error loading words file:', error);
+                words = [];
+                maxQuestions = 0;
+                startGame();
             }
         }
 
@@ -785,8 +744,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const jsonUrl = getGameConfig();
-            loadWords(jsonUrl);
+            loadWords();
         });
     </script>
 </body>

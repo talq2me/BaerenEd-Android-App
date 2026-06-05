@@ -242,7 +242,7 @@
         {
           "from": "brush",
           "to": "class",
-          "prompt": "Say the word: class. If we add es at the end, what new word do we make? (Sentence: There are two classes in line.)"
+          "prompt": "Say the word: class. If we add es at the end, what new word do we make?"
         }
       ]
     }

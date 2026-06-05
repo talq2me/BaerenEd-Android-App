@@ -92,7 +92,7 @@
         },
         {
           "word": "flute",
-          "prompt": "Build the word flute. (They will tune the flute once.)",
+          "prompt": "Build flute.",
           "correctChoices": [
             {
               "text": "f"
@@ -122,7 +122,7 @@
         },
         {
           "word": "tube",
-          "prompt": "Build tube. (Sentence: Should we get one tube?)",
+          "prompt": "Build tube.",
           "correctChoices": [
             {
               "text": "t"
@@ -156,7 +156,7 @@
         {
           "from": "fume",
           "to": "tune",
-          "prompt": "Build vocabulary: tune."
+          "prompt": "Build tune."
         }
       ]
     }

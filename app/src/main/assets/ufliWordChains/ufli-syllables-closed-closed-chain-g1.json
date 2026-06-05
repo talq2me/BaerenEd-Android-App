@@ -125,7 +125,7 @@
       "steps": [
         {
           "word": "rocket",
-          "prompt": "Build the closed-closed word: rocket.",
+          "prompt": "Build rocket.",
           "correctChoices": [
             {
               "text": "r"
@@ -163,7 +163,7 @@
       "steps": [
         {
           "word": "until",
-          "prompt": "Build the closed-closed word: until.",
+          "prompt": "Build until.",
           "correctChoices": [
             {
               "text": "u"
@@ -198,7 +198,7 @@
       "steps": [
         {
           "word": "dentist",
-          "prompt": "Build the closed-closed word: dentist. (Basket and safety lesson.)",
+          "prompt": "Build dentist.",
           "correctChoices": [
             {
               "text": "d"
@@ -239,7 +239,7 @@
       "steps": [
         {
           "word": "napkin",
-          "prompt": "Build the closed-closed word: napkin. (Sentence: Can you get a small basket?)",
+          "prompt": "Build napkin.",
           "correctChoices": [
             {
               "text": "n"
@@ -277,7 +277,7 @@
       "steps": [
         {
           "word": "contest",
-          "prompt": "Build the closed-closed word: contest.",
+          "prompt": "Build contest.",
           "correctChoices": [
             {
               "text": "c"
@@ -318,7 +318,7 @@
       "steps": [
         {
           "word": "absent",
-          "prompt": "Build the closed-closed word: absent. (Ben rides with a helmet to be safe.)",
+          "prompt": "Build absent.",
           "correctChoices": [
             {
               "text": "a"

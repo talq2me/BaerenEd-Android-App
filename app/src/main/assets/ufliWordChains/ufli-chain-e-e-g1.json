@@ -95,7 +95,7 @@
         },
         {
           "word": "lake",
-          "prompt": "Build lake. (They should hike by the lake.)",
+          "prompt": "Build lake.",
           "correctChoices": [
             {
               "text": "l"
@@ -123,7 +123,7 @@
         {
           "from": "lake",
           "to": "cake",
-          "prompt": "Build cake. (I will bake a cake for my class.)"
+          "prompt": "Build cake."
         }
       ]
     },
@@ -133,7 +133,7 @@
       "steps": [
         {
           "word": "eve",
-          "prompt": "Build vocabulary: eve. (Sample word.)",
+          "prompt": "Build eve.",
           "correctChoices": [
             {
               "text": "e"

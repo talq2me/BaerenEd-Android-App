@@ -64,6 +64,10 @@ $files = @(
 
   "af_update_tasks_bonus.sql",
 
+  "af_get_required_progress_today.sql",
+
+  "af_maybe_advance_spelling_pools.sql",
+
   "af_update_task_completion.sql",
 
   "af_update_tasks_checklist_items.sql",

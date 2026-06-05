@@ -101,7 +101,7 @@
       "steps": [
         {
           "word": "vote",
-          "prompt": "Build vocabulary: vote. (Who did you vote for?)",
+          "prompt": "Build vote.",
           "correctChoices": [
             {
               "text": "v"
@@ -129,11 +129,11 @@
         {
           "from": "vote",
           "to": "nine",
-          "prompt": "Build vocabulary: nine. (We drove home at nine.)"
+          "prompt": "Build nine."
         },
         {
           "word": "drove",
-          "prompt": "Build vocabulary: drove. (We drove home at nine.)",
+          "prompt": "Build drove.",
           "correctChoices": [
             {
               "text": "d"
@@ -163,7 +163,7 @@
         },
         {
           "word": "note",
-          "prompt": "Build vocabulary: note. (Sample o_e word.)",
+          "prompt": "Build note.",
           "correctChoices": [
             {
               "text": "n"

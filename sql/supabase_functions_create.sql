@@ -38,6 +38,7 @@ DROP FUNCTION IF EXISTS af_reward_time_pause(TEXT);
 DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
 DROP FUNCTION IF EXISTS af_update_berries_banked(text, int, int);
 DROP FUNCTION IF EXISTS af_update_game_index(text, text, int);
+DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
 DROP FUNCTION IF EXISTS af_update_pokemon_unlocked(text, int);
 -- af_update_task_completion: all overloads removed in-place before recreate (DO block ahead of CREATE in that section).
 DROP FUNCTION IF EXISTS af_update_tasks_bonus(text, text, int, int, int, int, int);
@@ -2129,6 +2130,10 @@ BEGIN
     earned_stars := GREATEST(COALESCE(p_stars, 0), 0);
   END IF;
 
+  IF normalized_section = 'required' THEN
+    PERFORM af_maybe_advance_spelling_pools(p_profile);
+  END IF;
+
   RETURN earned_stars;
 END;
 $$;
@@ -2188,6 +2193,10 @@ BEGIN
     banked_mins = COALESCE(banked_mins, 0) + add_mins,
     last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
+
+  IF p_done AND NOT old_done THEN
+    PERFORM af_maybe_advance_spelling_pools(p_profile);
+  END IF;
 END;
 $$;
 
@@ -2292,6 +2301,59 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_update_game_index(text, text, int) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_maybe_advance_spelling_pools.sql
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION af_maybe_advance_spelling_pools(p_profile text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  progress jsonb;
+  all_done boolean;
+  today text;
+  cur jsonb;
+  last_adv text;
+  en_idx int;
+  fr_idx int;
+  pool_size int := 100;
+  step int := 5;
+BEGIN
+  progress := af_get_required_progress_today(p_profile);
+  all_done := COALESCE((progress->>'all_done')::boolean, false);
+  IF NOT all_done THEN
+    RETURN;
+  END IF;
+
+  today := to_char((NOW() AT TIME ZONE 'America/Toronto')::date, 'YYYY-MM-DD');
+
+  SELECT COALESCE(game_indices, '{}'::jsonb) INTO cur FROM user_data WHERE profile = p_profile;
+  last_adv := cur->>'_spellingPoolAdvancedOn';
+  IF last_adv = today THEN
+    RETURN;
+  END IF;
+
+  en_idx := COALESCE((cur->>'engSpellingDrag')::int, 0);
+  fr_idx := COALESCE((cur->>'frSpellingDrag')::int, 0);
+
+  cur := jsonb_set(cur, ARRAY['engSpellingDrag'], to_jsonb((en_idx + step) % pool_size), true);
+  cur := jsonb_set(cur, ARRAY['frSpellingDrag'], to_jsonb((fr_idx + step) % pool_size), true);
+  cur := jsonb_set(cur, ARRAY['_spellingPoolAdvancedOn'], to_jsonb(today), true);
+
+  UPDATE user_data
+  SET
+    game_indices = cur,
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
+  WHERE profile = p_profile;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_maybe_advance_spelling_pools(text) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------

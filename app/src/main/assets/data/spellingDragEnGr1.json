@@ -1,18 +1,707 @@
 {
   "lang": "en",
   "words": [
-    { "word": "tune", "syllables": ["tu", "ne"] },
-    { "word": "tone", "syllables": ["to", "ne"] },
-    { "word": "cone", "syllables": ["co", "ne"] },
-    { "word": "cane", "syllables": ["ca", "ne"] },
-    { "word": "tame", "syllables": ["ta", "me"] },
-    { "word": "time", "syllables": ["ti", "me"] },
-    { "word": "dime", "syllables": ["di", "me"] },
-    { "word": "dome", "syllables": ["do", "me"] },
-    { "word": "who", "syllables": ["who"] },
-    { "word": "my", "syllables": ["my"] },
-    { "word": "by", "syllables": ["by"] },
-    { "word": "one", "syllables": ["one"] },
-    { "word": "once", "syllables": ["on", "ce"] }
+    {
+      "word": "about",
+      "syllables": [
+        "a",
+        "bout"
+      ]
+    },
+    {
+      "word": "after",
+      "syllables": [
+        "af",
+        "ter"
+      ]
+    },
+    {
+      "word": "again",
+      "syllables": [
+        "a",
+        "gain"
+      ]
+    },
+    {
+      "word": "animal",
+      "syllables": [
+        "an",
+        "i",
+        "mal"
+      ]
+    },
+    {
+      "word": "around",
+      "syllables": [
+        "a",
+        "round"
+      ]
+    },
+    {
+      "word": "away",
+      "syllables": [
+        "a",
+        "way"
+      ]
+    },
+    {
+      "word": "basket",
+      "syllables": [
+        "bas",
+        "ket"
+      ]
+    },
+    {
+      "word": "because",
+      "syllables": [
+        "be",
+        "cause"
+      ]
+    },
+    {
+      "word": "before",
+      "syllables": [
+        "be",
+        "fore"
+      ]
+    },
+    {
+      "word": "birthday",
+      "syllables": [
+        "birth",
+        "day"
+      ]
+    },
+    {
+      "word": "blanket",
+      "syllables": [
+        "blan",
+        "ket"
+      ]
+    },
+    {
+      "word": "breakfast",
+      "syllables": [
+        "break",
+        "fast"
+      ]
+    },
+    {
+      "word": "brother",
+      "syllables": [
+        "broth",
+        "er"
+      ]
+    },
+    {
+      "word": "bunny",
+      "syllables": [
+        "bun",
+        "ny"
+      ]
+    },
+    {
+      "word": "cannot",
+      "syllables": [
+        "can",
+        "not"
+      ]
+    },
+    {
+      "word": "carry",
+      "syllables": [
+        "car",
+        "ry"
+      ]
+    },
+    {
+      "word": "chicken",
+      "syllables": [
+        "chick",
+        "en"
+      ]
+    },
+    {
+      "word": "children",
+      "syllables": [
+        "chil",
+        "dren"
+      ]
+    },
+    {
+      "word": "chocolate",
+      "syllables": [
+        "choc",
+        "o",
+        "late"
+      ]
+    },
+    {
+      "word": "cookie",
+      "syllables": [
+        "cook",
+        "ie"
+      ]
+    },
+    {
+      "word": "could",
+      "syllables": [
+        "could"
+      ]
+    },
+    {
+      "word": "cousin",
+      "syllables": [
+        "cou",
+        "sin"
+      ]
+    },
+    {
+      "word": "dolphin",
+      "syllables": [
+        "dol",
+        "phin"
+      ]
+    },
+    {
+      "word": "dragon",
+      "syllables": [
+        "dra",
+        "gon"
+      ]
+    },
+    {
+      "word": "during",
+      "syllables": [
+        "dur",
+        "ing"
+      ]
+    },
+    {
+      "word": "eight",
+      "syllables": [
+        "eight"
+      ]
+    },
+    {
+      "word": "enjoy",
+      "syllables": [
+        "en",
+        "joy"
+      ]
+    },
+    {
+      "word": "evening",
+      "syllables": [
+        "eve",
+        "ning"
+      ]
+    },
+    {
+      "word": "every",
+      "syllables": [
+        "ev",
+        "ery"
+      ]
+    },
+    {
+      "word": "family",
+      "syllables": [
+        "fam",
+        "i",
+        "ly"
+      ]
+    },
+    {
+      "word": "father",
+      "syllables": [
+        "fa",
+        "ther"
+      ]
+    },
+    {
+      "word": "finger",
+      "syllables": [
+        "fin",
+        "ger"
+      ]
+    },
+    {
+      "word": "flower",
+      "syllables": [
+        "flow",
+        "er"
+      ]
+    },
+    {
+      "word": "follow",
+      "syllables": [
+        "fol",
+        "low"
+      ]
+    },
+    {
+      "word": "garden",
+      "syllables": [
+        "gar",
+        "den"
+      ]
+    },
+    {
+      "word": "ginger",
+      "syllables": [
+        "gin",
+        "ger"
+      ]
+    },
+    {
+      "word": "happy",
+      "syllables": [
+        "hap",
+        "py"
+      ]
+    },
+    {
+      "word": "helpful",
+      "syllables": [
+        "help",
+        "ful"
+      ]
+    },
+    {
+      "word": "hockey",
+      "syllables": [
+        "hoc",
+        "key"
+      ]
+    },
+    {
+      "word": "honey",
+      "syllables": [
+        "hon",
+        "ey"
+      ]
+    },
+    {
+      "word": "hungry",
+      "syllables": [
+        "hun",
+        "gry"
+      ]
+    },
+    {
+      "word": "inside",
+      "syllables": [
+        "in",
+        "side"
+      ]
+    },
+    {
+      "word": "jacket",
+      "syllables": [
+        "jack",
+        "et"
+      ]
+    },
+    {
+      "word": "kitten",
+      "syllables": [
+        "kit",
+        "ten"
+      ]
+    },
+    {
+      "word": "kitchen",
+      "syllables": [
+        "kit",
+        "chen"
+      ]
+    },
+    {
+      "word": "ladder",
+      "syllables": [
+        "lad",
+        "der"
+      ]
+    },
+    {
+      "word": "lemon",
+      "syllables": [
+        "lem",
+        "on"
+      ]
+    },
+    {
+      "word": "letter",
+      "syllables": [
+        "let",
+        "ter"
+      ]
+    },
+    {
+      "word": "little",
+      "syllables": [
+        "lit",
+        "tle"
+      ]
+    },
+    {
+      "word": "marker",
+      "syllables": [
+        "mark",
+        "er"
+      ]
+    },
+    {
+      "word": "market",
+      "syllables": [
+        "mar",
+        "ket"
+      ]
+    },
+    {
+      "word": "maybe",
+      "syllables": [
+        "may",
+        "be"
+      ]
+    },
+    {
+      "word": "monkey",
+      "syllables": [
+        "mon",
+        "key"
+      ]
+    },
+    {
+      "word": "morning",
+      "syllables": [
+        "mor",
+        "ning"
+      ]
+    },
+    {
+      "word": "mother",
+      "syllables": [
+        "moth",
+        "er"
+      ]
+    },
+    {
+      "word": "moving",
+      "syllables": [
+        "mov",
+        "ing"
+      ]
+    },
+    {
+      "word": "music",
+      "syllables": [
+        "mu",
+        "sic"
+      ]
+    },
+    {
+      "word": "myself",
+      "syllables": [
+        "my",
+        "self"
+      ]
+    },
+    {
+      "word": "napkin",
+      "syllables": [
+        "nap",
+        "kin"
+      ]
+    },
+    {
+      "word": "neighbor",
+      "syllables": [
+        "neigh",
+        "bor"
+      ]
+    },
+    {
+      "word": "nothing",
+      "syllables": [
+        "noth",
+        "ing"
+      ]
+    },
+    {
+      "word": "number",
+      "syllables": [
+        "num",
+        "ber"
+      ]
+    },
+    {
+      "word": "ocean",
+      "syllables": [
+        "o",
+        "cean"
+      ]
+    },
+    {
+      "word": "often",
+      "syllables": [
+        "of",
+        "ten"
+      ]
+    },
+    {
+      "word": "orange",
+      "syllables": [
+        "or",
+        "ange"
+      ]
+    },
+    {
+      "word": "other",
+      "syllables": [
+        "oth",
+        "er"
+      ]
+    },
+    {
+      "word": "outside",
+      "syllables": [
+        "out",
+        "side"
+      ]
+    },
+    {
+      "word": "pancake",
+      "syllables": [
+        "pan",
+        "cake"
+      ]
+    },
+    {
+      "word": "paper",
+      "syllables": [
+        "pa",
+        "per"
+      ]
+    },
+    {
+      "word": "parent",
+      "syllables": [
+        "par",
+        "ent"
+      ]
+    },
+    {
+      "word": "party",
+      "syllables": [
+        "par",
+        "ty"
+      ]
+    },
+    {
+      "word": "peanut",
+      "syllables": [
+        "pea",
+        "nut"
+      ]
+    },
+    {
+      "word": "people",
+      "syllables": [
+        "peo",
+        "ple"
+      ]
+    },
+    {
+      "word": "picture",
+      "syllables": [
+        "pic",
+        "ture"
+      ]
+    },
+    {
+      "word": "pillow",
+      "syllables": [
+        "pil",
+        "low"
+      ]
+    },
+    {
+      "word": "pirate",
+      "syllables": [
+        "pi",
+        "rate"
+      ]
+    },
+    {
+      "word": "pizza",
+      "syllables": [
+        "piz",
+        "za"
+      ]
+    },
+    {
+      "word": "pocket",
+      "syllables": [
+        "pock",
+        "et"
+      ]
+    },
+    {
+      "word": "police",
+      "syllables": [
+        "po",
+        "lice"
+      ]
+    },
+    {
+      "word": "pretty",
+      "syllables": [
+        "pret",
+        "ty"
+      ]
+    },
+    {
+      "word": "princess",
+      "syllables": [
+        "prin",
+        "cess"
+      ]
+    },
+    {
+      "word": "puppet",
+      "syllables": [
+        "pup",
+        "pet"
+      ]
+    },
+    {
+      "word": "purple",
+      "syllables": [
+        "pur",
+        "ple"
+      ]
+    },
+    {
+      "word": "puzzle",
+      "syllables": [
+        "puz",
+        "zle"
+      ]
+    },
+    {
+      "word": "rabbit",
+      "syllables": [
+        "rab",
+        "bit"
+      ]
+    },
+    {
+      "word": "river",
+      "syllables": [
+        "riv",
+        "er"
+      ]
+    },
+    {
+      "word": "robot",
+      "syllables": [
+        "ro",
+        "bot"
+      ]
+    },
+    {
+      "word": "rocket",
+      "syllables": [
+        "rock",
+        "et"
+      ]
+    },
+    {
+      "word": "sailor",
+      "syllables": [
+        "sail",
+        "or"
+      ]
+    },
+    {
+      "word": "second",
+      "syllables": [
+        "sec",
+        "ond"
+      ]
+    },
+    {
+      "word": "shadow",
+      "syllables": [
+        "shad",
+        "ow"
+      ]
+    },
+    {
+      "word": "sister",
+      "syllables": [
+        "sis",
+        "ter"
+      ]
+    },
+    {
+      "word": "sleepy",
+      "syllables": [
+        "sleep",
+        "y"
+      ]
+    },
+    {
+      "word": "snowman",
+      "syllables": [
+        "snow",
+        "man"
+      ]
+    },
+    {
+      "word": "soccer",
+      "syllables": [
+        "soc",
+        "cer"
+      ]
+    },
+    {
+      "word": "spider",
+      "syllables": [
+        "spi",
+        "der"
+      ]
+    },
+    {
+      "word": "squirrel",
+      "syllables": [
+        "squir",
+        "rel"
+      ]
+    },
+    {
+      "word": "station",
+      "syllables": [
+        "sta",
+        "tion"
+      ]
+    },
+    {
+      "word": "strawberry",
+      "syllables": [
+        "straw",
+        "ber",
+        "ry"
+      ]
+    },
+    {
+      "word": "student",
+      "syllables": [
+        "stu",
+        "dent"
+      ]
+    }
   ]
 }

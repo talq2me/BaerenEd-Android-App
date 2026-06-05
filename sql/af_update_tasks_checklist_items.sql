@@ -47,6 +47,10 @@ BEGIN
     banked_mins = COALESCE(banked_mins, 0) + add_mins,
     last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
+
+  IF p_done AND NOT old_done THEN
+    PERFORM af_maybe_advance_spelling_pools(p_profile);
+  END IF;
 END;
 $$;
 
