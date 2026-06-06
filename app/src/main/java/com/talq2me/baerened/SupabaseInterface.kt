@@ -799,5 +799,29 @@ open class SupabaseInterface {
                 }
             }
         }
+        sanitizeGameIndicesForGson(obj)
+    }
+
+    /**
+     * [DbUserData.gameIndices] is Map<String, Int>. Postgres may store metadata strings in the same
+     * JSONB object (e.g. `_spellingPoolAdvancedOn` from af_maybe_advance_spelling_pools).
+     */
+    private fun sanitizeGameIndicesForGson(obj: JsonObject) {
+        val field = obj.get("game_indices") ?: return
+        if (!field.isJsonObject) return
+        val indices = field.asJsonObject
+        val sanitized = JsonObject()
+        indices.entrySet().forEach { (key, value) ->
+            when {
+                value.isJsonPrimitive && value.asJsonPrimitive.isNumber ->
+                    sanitized.add(key, value)
+                value.isJsonPrimitive && value.asJsonPrimitive.isString ->
+                    value.asString.toIntOrNull()?.let { sanitized.addProperty(key, it) }
+            }
+        }
+        if (sanitized.size() != indices.size()) {
+            Log.d(TAG, "Sanitized game_indices: kept ${sanitized.size()} of ${indices.size()} entries")
+        }
+        obj.add("game_indices", sanitized)
     }
 }

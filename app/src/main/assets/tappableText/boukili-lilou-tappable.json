@@ -1,0 +1,356 @@
+{
+  "id": "boukili-lilou-tappable",
+  "title": "Boukili — Lilou ne fait jamais d'erreurs (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Voici Lilou.",
+        "Lilou ne fait JAMAIS d'erreurs.",
+        "Elle fait du vélo sans les petites",
+        "roues.",
+        "- C'est facile! dit Lilou."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'mistakes'.",
+          "correct_word": "d'erreurs"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'petites'.",
+          "correct_word": "petites"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'jamais'.",
+          "correct_word": "JAMAIS"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Lilou peut lacer ses souliers toute",
+        "seule.",
+        "Et ce n'est pas tout ...",
+        "Elle ne dépasse JAMAIS les lignes",
+        "en dessinant!",
+        "C'est vraiment étonnant."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'dessinant'.",
+          "correct_word": "dessinant"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'shoes'.",
+          "correct_word": "souliers"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'vraiment'.",
+          "correct_word": "vraiment"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Aujourd'hui, Lilou veut fabriquer",
+        "un bracelet pour Mamie.",
+        "Un bracelet spécial pour célébrer",
+        "son anniversaire.",
+        "Lilou choisit une belle ficelle",
+        "argentée.",
+        "Elle prend un bocal rempli de",
+        "perles multicolores."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'birthday'.",
+          "correct_word": "anniversaire"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'multicolores'.",
+          "correct_word": "multicolores"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'aujourd'hui'.",
+          "correct_word": "Aujourd'hui"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Lilou choisit les plus jolies perles.",
+        "Elle enfile une perle sur la ficelle",
+        "puis une autre, et une autre ...",
+        "Il y a 10 perles sur la ficelle!"
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'choisit'.",
+          "correct_word": "choisit"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'string'.",
+          "correct_word": "ficelle"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'pretty'.",
+          "correct_word": "jolies"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Combien de perles Lilou enfile-t-elle sur la ficelle ?",
+        "options": [
+          "5 perles",
+          "10 perles",
+          "20 perles",
+          "Aucune perle"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Lilou soulève son bracelet pour",
+        "l'examiner.",
+        "Toutes les perles se mettent à",
+        "tomber.",
+        "Lilou essaie de les attraper.",
+        "Le bocal de perles tombe sur le",
+        "plancher."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'examiner'.",
+          "correct_word": "l'examiner"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'bracelet'.",
+          "correct_word": "bracelet"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'attraper'.",
+          "correct_word": "attraper"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "C'est la CA-TAS-TRO-PHE!",
+        "Lilou rougit de la tête aux pieds.",
+        "- Madame Marie-Andrée va se",
+        "fâcher!",
+        "Les amis vont rire de moi! pense",
+        "Lilou."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'ca-tas-tro-phe'.",
+          "correct_word": "CA-TAS-TRO-PHE"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'marie-andree'.",
+          "correct_word": "Marie-Andrée"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'blushes'.",
+          "correct_word": "rougit"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Lilou veut se cacher et tout",
+        "abandonner.",
+        "Frédérique s'approche de son",
+        "amie.",
+        "- As-tu besoin d'aide, Lilou?",
+        "demande Frédérique.",
+        "Lilou sent ses larmes monter."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'quit'.",
+          "correct_word": "abandonner"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'frederique'.",
+          "correct_word": "Frédérique"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'approaches'.",
+          "correct_word": "s'approche"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p7_c1",
+        "prompt": "Qui demande à Lilou si elle a besoin d'aide ?",
+        "options": [
+          "Madame Marie-Andrée",
+          "Frédérique",
+          "Mamie",
+          "Un étranger"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "- Je n'aime pas faire des",
+        "bracelets! dit Lilou.",
+        "- Faire des erreurs est normal,",
+        "répond Frédérique.",
+        "Moi aussi je fais des erreurs.",
+        "Parfois, je mets mes souliers à",
+        "l'envers."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'frederique'.",
+          "correct_word": "Frédérique"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'bracelets'.",
+          "correct_word": "bracelets"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'shoes'.",
+          "correct_word": "souliers"
+        }
+      ]
+    },
+    {
+      "page_number": 9,
+      "text": [
+        "Soudain, un grand bruit résonne",
+        "dans la classe.",
+        "Tous les livres sont tombés par",
+        "terre.",
+        "- Même les adultes font des",
+        "erreurs, dit Madame",
+        "Marie-Andrée.",
+        "Madame Marie-Andrée et les",
+        "enfants rient."
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p9"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p9_tw1",
+          "prompt": "Tape le mot qui veut dire 'marie-andree'.",
+          "correct_word": "Marie-Andrée"
+        },
+        {
+          "id": "p9_tw2",
+          "prompt": "Tape le mot qui veut dire 'soudain'.",
+          "correct_word": "Soudain"
+        },
+        {
+          "id": "p9_tw3",
+          "prompt": "Tape le mot qui veut dire 'resonne'.",
+          "correct_word": "résonne"
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "text": [
+        "Lilou et Frédérique ramassent les",
+        "perles.",
+        "Lilou trouve une solution pour",
+        "fabriquer son bracelet.",
+        "- Tout le monde fait des erreurs,",
+        "dit Lilou.",
+        "Les erreurs, c'est pour s'améliorer!"
+      ],
+      "image": {
+        "image_id": "boukili/lilou/p10"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p10_tw1",
+          "prompt": "Tape le mot qui veut dire 'ameliorer'.",
+          "correct_word": "s'améliorer"
+        },
+        {
+          "id": "p10_tw2",
+          "prompt": "Tape le mot qui veut dire 'frederique'.",
+          "correct_word": "Frédérique"
+        },
+        {
+          "id": "p10_tw3",
+          "prompt": "Tape le mot qui veut dire 'ramassent'.",
+          "correct_word": "ramassent"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p10_c1",
+        "prompt": "Que dit Lilou sur les erreurs à la fin ?",
+        "options": [
+          "Il faut les cacher",
+          "C'est pour s'améliorer",
+          "Seuls les enfants en font",
+          "Il vaut mieux abandonner"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

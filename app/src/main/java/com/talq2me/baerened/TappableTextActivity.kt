@@ -222,6 +222,7 @@ class TappableTextActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tappable_text)
+        TtsManager.restoreDefaultSpeechRate()
 
         easyMode = intent.getBooleanExtra(EXTRA_EASY_MODE, false)
         Log.d(TAG, "onCreate: easyMode=$easyMode")
@@ -1513,29 +1514,30 @@ class TappableTextActivity : AppCompatActivity() {
         }
         imageView.visibility = View.VISIBLE
         imageView.setImageDrawable(null)
-        // Default: books/images/<id>.webp|.png — Boukili captures: full path e.g. boukili/singe/p1
-        val tryPaths = if (imageId.contains('/')) {
-            listOf("$imageId.webp", "$imageId.png")
-        } else {
-            listOf("books/images/$imageId.webp", "books/images/$imageId.png")
-        }
+        // All page images load from GitHub Pages only (never bundled APK assets).
+        // Boukili: image_id like boukili/singe/p1 → …/assets/boukili/singe/p1.webp
+        // Other books: image_id like emma → …/assets/books/images/emma.webp
+        val assetBase = imageId
+            .removeSuffix(".webp")
+            .removeSuffix(".png")
+            .let { id ->
+                if (id.contains('/')) id else "books/images/$id"
+            }
         // Decode off the UI thread so a large bitmap can't block layout (which would let TTS
         // race ahead of the text). The ImageView is updated on the main thread once decoded.
         val targetPageIndex = currentPageIndex
         lifecycleScope.launch(Dispatchers.IO) {
-            var bitmap: android.graphics.Bitmap? = null
-            for (path in tryPaths) {
-                bitmap = GitHubPagesAssets.fetchBitmapWithWebpFallback(path)
-                    ?: GitHubPagesAssets.fetchBitmap(path)
-                if (bitmap != null) break
-            }
+            val bitmap = GitHubPagesAssets.fetchBitmapPreferWebp(assetBase)
             withContext(Dispatchers.Main) {
                 // Drop the result if the user already turned the page.
                 if (currentPageIndex != targetPageIndex) return@withContext
                 if (bitmap != null) {
                     imageView.setImageBitmap(bitmap)
                 } else {
-                    Log.w(TAG, "Could not load image for image_id=$imageId (tried $tryPaths)")
+                    Log.w(
+                        TAG,
+                        "Could not load image from GitHub Pages for image_id=$imageId (path=$assetBase)"
+                    )
                     imageView.setImageDrawable(null)
                 }
             }

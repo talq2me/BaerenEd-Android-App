@@ -1,0 +1,243 @@
+{
+  "id": "boukili-josee-tappable",
+  "title": "Boukili — Josée aime inventer (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Josée aime inventer!"
+      ],
+      "image": {
+        "image_id": "boukili/josee/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'invent'.",
+          "correct_word": "inventer"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'josee'.",
+          "correct_word": "Josée"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Josée a plein d'idées!"
+      ],
+      "image": {
+        "image_id": "boukili/josee/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'idees'.",
+          "correct_word": "d'idées"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'josee'.",
+          "correct_word": "Josée"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'plein'.",
+          "correct_word": "plein"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Elle dessine des souliers pour",
+        "sauter."
+      ],
+      "image": {
+        "image_id": "boukili/josee/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'shoes'.",
+          "correct_word": "souliers"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'draws'.",
+          "correct_word": "dessine"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'sauter'.",
+          "correct_word": "sauter"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Qu'est-ce que Josée dessine pour sauter ?",
+        "options": [
+          "Un robot",
+          "Des souliers",
+          "Un parapluie",
+          "Une machine à maïs soufflé"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Elle dessine une machine à maïs",
+        "soufflé."
+      ],
+      "image": {
+        "image_id": "boukili/josee/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'draws'.",
+          "correct_word": "dessine"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'machine'.",
+          "correct_word": "machine"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'souffle'.",
+          "correct_word": "soufflé"
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Elle dessine une imprimante à",
+        "costumes."
+      ],
+      "image": {
+        "image_id": "boukili/josee/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'printer'.",
+          "correct_word": "imprimante"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'costumes'.",
+          "correct_word": "costumes"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'draws'.",
+          "correct_word": "dessine"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p5_c1",
+        "prompt": "Qu'est-ce que Josée dessine pour imprimer des costumes ?",
+        "options": [
+          "Une imprimante",
+          "Un chien",
+          "Des souliers",
+          "Un robot"
+        ],
+        "correct_index": 0
+      }
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Elle dessine un robot pour tout",
+        "nettoyer."
+      ],
+      "image": {
+        "image_id": "boukili/josee/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'clean'.",
+          "correct_word": "nettoyer"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'draws'.",
+          "correct_word": "dessine"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'robot'.",
+          "correct_word": "robot"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Elle dessine un parapluie pour",
+        "son chien Pépé."
+      ],
+      "image": {
+        "image_id": "boukili/josee/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'umbrella'.",
+          "correct_word": "parapluie"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'draws'.",
+          "correct_word": "dessine"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'dog'.",
+          "correct_word": "chien"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Josée est très créative!"
+      ],
+      "image": {
+        "image_id": "boukili/josee/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'creative'.",
+          "correct_word": "créative"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'josee'.",
+          "correct_word": "Josée"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Comment Josée est-elle décrite à la fin ?",
+        "options": [
+          "Très timide",
+          "Très créative",
+          "Très fatiguée",
+          "Très en colère"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

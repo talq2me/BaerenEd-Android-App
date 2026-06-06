@@ -4,7 +4,7 @@ Boukili books -> tappableText JSON (for BaerenEd rotation).
 
 Input layout (under app/src/main/assets/boukili/<folder>/):
   - One .txt per book; pages separated by 3+ blank lines.
-  - Images: p1.png … pN.png (sorted by page number).
+  - Images: p1.webp … pN.webp (or .png; sorted by page number).
 
 Output: app/src/main/assets/tappableText/<id>.json
 
@@ -13,7 +13,9 @@ To add a new book:
   2. Append a dict to BOOKS (folder, txt filename, id, title, merge_last_two_pages).
   3. Extend FR_EN (_RAW) for better English glosses in prompts.
   4. Run: python scripts/generate_boukili_tappable.py
-  5. Comprehension MCQs live in COMPREHENSION_QUESTIONS in this file; to refresh only
+  5. Push to GitHub Pages (same repo path as above): new/changed p*.webp + boukili-*-tappable.json.
+     Tablets load JSON and images from GitHub only — no app rebuild required.
+  6. Comprehension MCQs live in COMPREHENSION_QUESTIONS in this file; to refresh only
      those fields in existing JSON (e.g. no PNGs in this checkout): add --inject-comprehension-only
 
 merge_last_two_pages: only if text has one extra page vs images (rare); prefer matching N pages to N pngs.
@@ -51,6 +53,15 @@ carte map sucettes lollipops lourd heavy couler sink canard duck perroquet parro
 accompagnent accompany amis friends bateau boat destination aperçoit spots brousse bush prennent take
 sortes kinds bâtir build voler steal joyeux joyful fâché angry usé worn pousse pushes doux soft
 bientôt soon télésphore télésphore chantonnent sing rempli full bouge moves
+inventer invent idées ideas dessine draws souliers shoes machine machine
+maïs corn soufflé popped imprimante printer costumes costumes robot robot
+nettoyer clean parapluie umbrella chien dog créative creative erreurs mistakes
+vélo bicycle roues wheels facile easy lacer lace bracelet bracelet mamie grandma
+anniversaire birthday ficelle string perles beads jolies pretty enfile threads
+catastrophe catastrophe rougit blushes abandonner quit cacher hide larmes tears
+améliorer improve bibliothèque library blagues jokes youpi yay chut shush
+bibliothécaire librarian chuchote whispers déranger disturb drôle funny soccer soccer
+rapide fast faufile darts éclair lightning tableau board gêné embarrassed
 """
 for line in _RAW.strip().splitlines():
     parts = line.split()
@@ -189,6 +200,34 @@ BOOKS = [
         "txt": "Le Pirate Raté voyage sur la mer.txt",
         "id": "boukili-pirate-rate-tappable",
         "title": "Boukili — Le Pirate Raté voyage sur la mer (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "josee",
+        "txt": "josee.txt",
+        "id": "boukili-josee-tappable",
+        "title": "Boukili — Josée aime inventer (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "lilou",
+        "txt": "lilou.txt",
+        "id": "boukili-lilou-tappable",
+        "title": "Boukili — Lilou ne fait jamais d'erreurs (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "simon",
+        "txt": "simon.txt.txt",
+        "id": "boukili-simon-tappable",
+        "title": "Boukili — Simon est le plus petit (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "bibliotheque",
+        "txt": "biblio.txt.txt",
+        "id": "boukili-bibliotheque-tappable",
+        "title": "Boukili — Christopher à la bibliothèque (Tappable Text)",
         "merge_last_two_pages": False,
     },
 ]
@@ -370,6 +409,146 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
+    "boukili-josee-tappable": [
+        {
+            "page": 3,
+            "prompt": "Qu'est-ce que Josée dessine pour sauter ?",
+            "options": [
+                "Un robot",
+                "Des souliers",
+                "Un parapluie",
+                "Une machine à maïs soufflé",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 5,
+            "prompt": "Qu'est-ce que Josée dessine pour imprimer des costumes ?",
+            "options": [
+                "Une imprimante",
+                "Un chien",
+                "Des souliers",
+                "Un robot",
+            ],
+            "correct_index": 0,
+        },
+        {
+            "page": 8,
+            "prompt": "Comment Josée est-elle décrite à la fin ?",
+            "options": [
+                "Très timide",
+                "Très créative",
+                "Très fatiguée",
+                "Très en colère",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-lilou-tappable": [
+        {
+            "page": 4,
+            "prompt": "Combien de perles Lilou enfile-t-elle sur la ficelle ?",
+            "options": [
+                "5 perles",
+                "10 perles",
+                "20 perles",
+                "Aucune perle",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 7,
+            "prompt": "Qui demande à Lilou si elle a besoin d'aide ?",
+            "options": [
+                "Madame Marie-Andrée",
+                "Frédérique",
+                "Mamie",
+                "Un étranger",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 10,
+            "prompt": "Que dit Lilou sur les erreurs à la fin ?",
+            "options": [
+                "Il faut les cacher",
+                "C'est pour s'améliorer",
+                "Seuls les enfants en font",
+                "Il vaut mieux abandonner",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-simon-tappable": [
+        {
+            "page": 3,
+            "prompt": "Pourquoi Simon est-il gêné sur sa chaise ?",
+            "options": [
+                "La chaise est trop basse",
+                "Ses pieds ne touchent pas le plancher",
+                "Il ne voit pas le tableau",
+                "Il est assis derrière",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 5,
+            "prompt": "Que pensent parfois les autres à propos de Simon ?",
+            "options": [
+                "Qu'il est un bébé",
+                "Qu'il est le plus grand",
+                "Qu'il n'aime pas le soccer",
+                "Qu'il ne sait pas lire",
+            ],
+            "correct_index": 0,
+        },
+        {
+            "page": 8,
+            "prompt": "Qu'est-ce qui est le plus important pour Simon ?",
+            "options": [
+                "Être le plus grand",
+                "Que ses amis l'aiment comme il est",
+                "Gagner au soccer",
+                "Toucher le plancher",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-bibliotheque-tappable": [
+        {
+            "page": 3,
+            "prompt": "Que dit le bibliothécaire quand Christopher parle trop fort ?",
+            "options": [
+                "Youpi!",
+                "Chut!",
+                "Ha! Ha!",
+                "Au revoir!",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 6,
+            "prompt": "Qu'est-ce que Christopher ne veut pas faire ?",
+            "options": [
+                "Lire des blagues",
+                "Déranger les autres",
+                "Aller à la bibliothèque",
+                "Chuchoter",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 9,
+            "prompt": "Que fait le bibliothécaire quand il lit le livre ?",
+            "options": [
+                "Il se met en colère",
+                "Il se met à rire aussi",
+                "Il le jette",
+                "Il dort",
+            ],
+            "correct_index": 1,
+        },
+    ],
 }
 
 
@@ -400,14 +579,20 @@ def main() -> None:
             a, b = pages[-2], pages[-1]
             pages = pages[:-2] + [a + "\n\n" + b]
 
-        png_dir = os.path.join(BOUKILI, folder)
-        pngs = sorted(
-            [x for x in os.listdir(png_dir) if x.lower().endswith(".png")],
-            key=lambda s: int(re.search(r"p(\d+)", s, re.I).group(1)) if re.search(r"p(\d+)", s, re.I) else 0,
-        )
+        img_dir = os.path.join(BOUKILI, folder)
+        page_images: dict[int, str] = {}
+        for x in os.listdir(img_dir):
+            m = re.match(r"p(\d+)\.(webp|png)$", x, re.I)
+            if not m:
+                continue
+            num = int(m.group(1))
+            ext = m.group(2).lower()
+            if num not in page_images or ext == "webp":
+                page_images[num] = x
+        pngs = [page_images[n] for n in sorted(page_images)]
         if len(pages) != len(pngs):
             raise SystemExit(
-                f"{folder}: page count {len(pages)} != png count {len(pngs)}"
+                f"{folder}: page count {len(pages)} != image count {len(pngs)}"
             )
 
         out_pages = []

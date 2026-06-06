@@ -387,9 +387,12 @@ class WebGameActivity : AppCompatActivity() {
         fun readText(text: String, lang: String, rate: String) {
             val locale = if (lang.lowercase().startsWith("fr")) Locale.FRENCH else Locale.US
             val utteranceId = "tts_callback_${System.currentTimeMillis()}_${text.hashCode()}"
-            rate.toFloatOrNull()
-                ?.takeIf { it in 0.1f..2.0f }
-                ?.let { TtsManager.setSpeechRate(it) }
+            val parsedRate = rate.toFloatOrNull()?.takeIf { it in 0.1f..2.0f }
+            if (parsedRate != null) {
+                TtsManager.setSpeechRate(parsedRate)
+            } else {
+                TtsManager.restoreDefaultSpeechRate()
+            }
             TtsManager.speak(text, locale, TextToSpeech.QUEUE_FLUSH, utteranceId)
         }
 
@@ -1031,6 +1034,9 @@ class WebGameActivity : AppCompatActivity() {
             timeTracker.endActivity("webgame")
         }
         TtsManager.stop()
+        // Spelling games (e.g. SpellingDrag at 0.1) mutate the shared engine rate; reset so
+        // TappableText and other activities are not left slow after stop() skips onDone.
+        TtsManager.restoreDefaultSpeechRate()
         TtsManager.setOnUtteranceProgressListener(null)
         webView?.removeJavascriptInterface("Android")
         webView?.destroy()

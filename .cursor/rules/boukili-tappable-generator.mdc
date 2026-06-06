@@ -9,11 +9,19 @@ alwaysApply: false
 Canonical generator: **`scripts/generate_boukili_tappable.py`**
 
 - Reads `app/src/main/assets/boukili/<folder>/<txt>` (pages = blocks split by 3+ newlines).
-- Expects `p1.png` … `pN.png` in the same folder; **page count must equal `N`**.
+- Expects `p1.webp` … `pN.webp` in the same folder (or `.png`); **page count must equal `N`**.
 - Writes `app/src/main/assets/tappableText/<id>.json` (`*_tappable.json` for game rotation).
 
 **Add a new book:** extend `BOOKS` and `FR_EN` in that script, then run:
 
 `python scripts/generate_boukili_tappable.py`
 
-**TappableTextActivity** loads images from `books/images/…` or, when `image_id` contains `/`, from assets e.g. `boukili/singe/p4.png`.
+**Runtime (tablets):** JSON and WebP images are fetched from GitHub Pages only — no APK rebuild when adding books.
+
+Deploy after generating:
+- `app/src/main/assets/tappableText/boukili-*-tappable.json`
+- `app/src/main/assets/boukili/<folder>/p*.webp`
+
+URL shape: `https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/boukili/singe/p1.webp`
+
+**TappableTextActivity** loads page images via [GitHubPagesAssets] (`fetchBitmapPreferWebp`); `image_id` in JSON is e.g. `boukili/singe/p1`.

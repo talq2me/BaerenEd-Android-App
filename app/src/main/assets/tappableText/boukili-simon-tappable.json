@@ -1,0 +1,275 @@
+{
+  "id": "boukili-simon-tappable",
+  "title": "Boukili — Simon est le plus petit (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Simon est le plus petit de sa",
+        "classe.",
+        "Ce n'est pas toujours facile!"
+      ],
+      "image": {
+        "image_id": "boukili/simon/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'toujours'.",
+          "correct_word": "toujours"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'classe'.",
+          "correct_word": "classe"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'easy'.",
+          "correct_word": "facile"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Simon se sent petit dans la",
+        "classe.",
+        "Il est toujours assis devant.",
+        "Il voit mieux le tableau."
+      ],
+      "image": {
+        "image_id": "boukili/simon/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'toujours'.",
+          "correct_word": "toujours"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'board'.",
+          "correct_word": "tableau"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'classe'.",
+          "correct_word": "classe"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Simon est parfois gêné.",
+        "Sa chaise est trop haute.",
+        "Ses pieds ne touchent pas le",
+        "plancher."
+      ],
+      "image": {
+        "image_id": "boukili/simon/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'touchent'.",
+          "correct_word": "touchent"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'plancher'.",
+          "correct_word": "plancher"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'parfois'.",
+          "correct_word": "parfois"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p3_c1",
+        "prompt": "Pourquoi Simon est-il gêné sur sa chaise ?",
+        "options": [
+          "La chaise est trop basse",
+          "Ses pieds ne touchent pas le plancher",
+          "Il ne voit pas le tableau",
+          "Il est assis derrière"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Simon n'aime pas écrire au",
+        "tableau.",
+        "Il doit se tenir sur le bout des",
+        "pieds.",
+        "C'est gênant!"
+      ],
+      "image": {
+        "image_id": "boukili/simon/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'board'.",
+          "correct_word": "tableau"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'aime'.",
+          "correct_word": "n'aime"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'ecrire'.",
+          "correct_word": "écrire"
+        }
+      ]
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Simon semble plus jeune parce",
+        "qu'il est petit.",
+        "Les autres le prennent parfois",
+        "pour un bébé.",
+        "Ce n'est pas vrai! C'est un grand",
+        "garçon."
+      ],
+      "image": {
+        "image_id": "boukili/simon/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'prennent'.",
+          "correct_word": "prennent"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'parfois'.",
+          "correct_word": "parfois"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'semble'.",
+          "correct_word": "semble"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p5_c1",
+        "prompt": "Que pensent parfois les autres à propos de Simon ?",
+        "options": [
+          "Qu'il est un bébé",
+          "Qu'il est le plus grand",
+          "Qu'il n'aime pas le soccer",
+          "Qu'il ne sait pas lire"
+        ],
+        "correct_index": 0
+      }
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Parfois, c'est bien d'être le plus",
+        "petit ...",
+        "surtout au soccer."
+      ],
+      "image": {
+        "image_id": "boukili/simon/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'parfois'.",
+          "correct_word": "Parfois"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'surtout'.",
+          "correct_word": "surtout"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'etre'.",
+          "correct_word": "d'être"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Simon est plus petit et plus",
+        "rapide.",
+        "Il se faufile à la vitesse de l'éclair.",
+        "Il vole le ballon ...",
+        "et il compte!"
+      ],
+      "image": {
+        "image_id": "boukili/simon/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'eclair'.",
+          "correct_word": "l'éclair"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'darts'.",
+          "correct_word": "faufile"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'vitesse'.",
+          "correct_word": "vitesse"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "Simon est le plus petit de sa",
+        "classe.",
+        "Ce n'est pas toujours facile.",
+        "Ses amis l'aiment comme il est.",
+        "C'est le plus important."
+      ],
+      "image": {
+        "image_id": "boukili/simon/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'important'.",
+          "correct_word": "important"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'toujours'.",
+          "correct_word": "toujours"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'aiment'.",
+          "correct_word": "l'aiment"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Qu'est-ce qui est le plus important pour Simon ?",
+        "options": [
+          "Être le plus grand",
+          "Que ses amis l'aiment comme il est",
+          "Gagner au soccer",
+          "Toucher le plancher"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}
