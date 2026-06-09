@@ -62,6 +62,16 @@ catastrophe catastrophe rougit blushes abandonner quit cacher hide larmes tears
 améliorer improve bibliothèque library blagues jokes youpi yay chut shush
 bibliothécaire librarian chuchote whispers déranger disturb drôle funny soccer soccer
 rapide fast faufile darts éclair lightning tableau board gêné embarrassed
+gymnastique gymnastics roue cartwheel mains hands bobo boo-boo genou knee
+soigner treat pansement bandage grenouilles frogs princesses princesse princess
+perroquet parrot singe monkey baiser kiss transforme transforms endormie asleep
+rêve dream marché walked nuit night
+nature nature rythme rhythm chant song instruments instruments
+frou-frou rustling feuilles leaves vent wind souffle blows
+orage storm tonnerre thunder gronde rumbles branche branch casse breaks
+harmonie harmony pluie rain flaques puddles mélodie melody danse dance
+calme calm soleil sun plante plant fleur flower écouter listen compose composes
+annonce announces traversent cross
 """
 for line in _RAW.strip().splitlines():
     parts = line.split()
@@ -228,6 +238,27 @@ BOOKS = [
         "txt": "biblio.txt.txt",
         "id": "boukili-bibliotheque-tappable",
         "title": "Boukili — Christopher à la bibliothèque (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "alice",
+        "txt": "alice.txt",
+        "id": "boukili-alice-tappable",
+        "title": "Boukili — Alice fait de la gymnastique (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "coincoin1",
+        "txt": "coincoin1.txt",
+        "id": "boukili-coincoin-tappable",
+        "title": "Boukili — Coin-Coin et la princesse (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "melodie",
+        "txt": "melodie.txt",
+        "id": "boukili-melodie-tappable",
+        "title": "Boukili — La mélodie de la nature (Tappable Text)",
         "merge_last_two_pages": False,
     },
 ]
@@ -545,6 +576,111 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
                 "Il se met à rire aussi",
                 "Il le jette",
                 "Il dort",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-alice-tappable": [
+        {
+            "page": 2,
+            "prompt": "Qu'est-ce qu'Alice essaie de faire après la roue de Christopher ?",
+            "options": [
+                "Sauter à la corde",
+                "Marcher sur les mains",
+                "Courir vite",
+                "Faire un pansement",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 4,
+            "prompt": "Qu'est-ce qu'Alice dit quand elle se blesse ?",
+            "options": [
+                "J'ai faim!",
+                "J'ai un bobo!",
+                "Au revoir!",
+                "Merci beaucoup!",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 7,
+            "prompt": "Que fait Alice à la fin de l'histoire ?",
+            "options": [
+                "Elle pleure",
+                "Elle dit merci à Christopher",
+                "Elle refait une roue",
+                "Elle part seule",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-coincoin-tappable": [
+        {
+            "page": 2,
+            "prompt": "Selon Sherlock, que sont souvent les grenouilles ?",
+            "options": [
+                "Des pirates",
+                "Des princesses",
+                "Des singes",
+                "Des perroquets",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 4,
+            "prompt": "Que faut-il faire pour qu'une grenouille devienne une princesse ?",
+            "options": [
+                "Lui donner à manger",
+                "Lui donner un baiser",
+                "La laisser dormir",
+                "Marcher toute la nuit",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 8,
+            "prompt": "Qu'est-ce qui s'est vraiment passé avec Joséphine ?",
+            "options": [
+                "Elle est devenue une princesse pour toujours",
+                "Elle faisait un rêve en dormant",
+                "Elle est partie avec Métro",
+                "Sherlock lui a donné un baiser",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-melodie-tappable": [
+        {
+            "page": 1,
+            "prompt": "Que possède la nature dans cette histoire ?",
+            "options": [
+                "Des livres",
+                "Des instruments",
+                "Des pansements",
+                "Des sucettes",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 4,
+            "prompt": "Qu'est-ce que l'éclair annonce ?",
+            "options": [
+                "Le soleil",
+                "L'orage",
+                "La pluie seulement",
+                "Le calme",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 8,
+            "prompt": "Où se trouve la musique selon la fin du livre ?",
+            "options": [
+                "Seulement dans la pluie",
+                "Partout dans la nature",
+                "Uniquement dans le vent",
+                "Nulle part",
             ],
             "correct_index": 1,
         },

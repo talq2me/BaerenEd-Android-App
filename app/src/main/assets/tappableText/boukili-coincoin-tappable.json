@@ -1,0 +1,346 @@
+{
+  "id": "boukili-coincoin-tappable",
+  "title": "Boukili — Coin-Coin et la princesse (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "- Les grenouilles sont souvent",
+        "des princesses, dit Sherlock le",
+        "perroquet.",
+        "- Ça alors! s'exclame Coin-Coin."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'frogs'.",
+          "correct_word": "grenouilles"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'princesse'.",
+          "correct_word": "princesses"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'parrot'.",
+          "correct_word": "perroquet"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "- Je ne savais pas, dit Joséphine.",
+        "C'est pourtant connu, ajoute",
+        "Métro le singe."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'josephine'.",
+          "correct_word": "Joséphine"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'pourtant'.",
+          "correct_word": "pourtant"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'savais'.",
+          "correct_word": "savais"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Selon Sherlock, que sont souvent les grenouilles ?",
+        "options": [
+          "Des pirates",
+          "Des princesses",
+          "Des singes",
+          "Des perroquets"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "- Que faut-il faire pour qu'une",
+        "grenouille devienne une",
+        "princesse?",
+        "demande Coin-Coin."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'grenouille'.",
+          "correct_word": "grenouille"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'princesse'.",
+          "correct_word": "princesse"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'coin-coin'.",
+          "correct_word": "Coin-Coin"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "- C'est facile, dit Métro,",
+        "il suffit de lui donner un baiser."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'easy'.",
+          "correct_word": "facile"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'suffit'.",
+          "correct_word": "suffit"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'donner'.",
+          "correct_word": "donner"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Que faut-il faire pour qu'une grenouille devienne une princesse ?",
+        "options": [
+          "Lui donner à manger",
+          "Lui donner un baiser",
+          "La laisser dormir",
+          "Marcher toute la nuit"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "- Quelle bonne idée, approuve",
+        "Joséphine.",
+        "- C'est incroyable, dit Coin-Coin."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'incroyable'.",
+          "correct_word": "incroyable"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'josephine'.",
+          "correct_word": "Joséphine"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'coin-coin'.",
+          "correct_word": "Coin-Coin"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "- Je vais essayer!",
+        "Et Coin-Coin donne un baiser à",
+        "Joséphine."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'coin-coin'.",
+          "correct_word": "Coin-Coin"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'josephine'.",
+          "correct_word": "Joséphine"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'essayer'.",
+          "correct_word": "essayer"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Aussitôt, Joséphine se transforme",
+        "en jolie princesse."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'transforms'.",
+          "correct_word": "transforme"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'josephine'.",
+          "correct_word": "Joséphine"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'princesse'.",
+          "correct_word": "princesse"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "- Elle fait un rêve, murmure",
+        "Coin-Coin, penché au-dessus de",
+        "Joséphine.",
+        "Elle s'est endormie."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'coin-coin'.",
+          "correct_word": "Coin-Coin"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'au-dessus'.",
+          "correct_word": "au-dessus"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'josephine'.",
+          "correct_word": "Joséphine"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Qu'est-ce qui s'est vraiment passé avec Joséphine ?",
+        "options": [
+          "Elle est devenue une princesse pour toujours",
+          "Elle faisait un rêve en dormant",
+          "Elle est partie avec Métro",
+          "Sherlock lui a donné un baiser"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 9,
+      "text": [
+        "- C'est que nous avons beaucoup",
+        "marché, explique Métro."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p9"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p9_tw1",
+          "prompt": "Tape le mot qui veut dire 'beaucoup'.",
+          "correct_word": "beaucoup"
+        },
+        {
+          "id": "p9_tw2",
+          "prompt": "Tape le mot qui veut dire 'explique'.",
+          "correct_word": "explique"
+        },
+        {
+          "id": "p9_tw3",
+          "prompt": "Tape le mot qui veut dire 'marche'.",
+          "correct_word": "marché"
+        }
+      ]
+    },
+    {
+      "page_number": 10,
+      "text": [
+        "- Nous allons passer la nuit ici,",
+        "propose Sherlock."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p10"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p10_tw1",
+          "prompt": "Tape le mot qui veut dire 'sherlock'.",
+          "correct_word": "Sherlock"
+        },
+        {
+          "id": "p10_tw2",
+          "prompt": "Tape le mot qui veut dire 'propose'.",
+          "correct_word": "propose"
+        },
+        {
+          "id": "p10_tw3",
+          "prompt": "Tape le mot qui veut dire 'allons'.",
+          "correct_word": "allons"
+        }
+      ]
+    },
+    {
+      "page_number": 11,
+      "text": [
+        "- Près de notre princesse, soupire",
+        "Coin-Coin."
+      ],
+      "image": {
+        "image_id": "boukili/coincoin1/p11"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p11_tw1",
+          "prompt": "Tape le mot qui veut dire 'princesse'.",
+          "correct_word": "princesse"
+        },
+        {
+          "id": "p11_tw2",
+          "prompt": "Tape le mot qui veut dire 'coin-coin'.",
+          "correct_word": "Coin-Coin"
+        },
+        {
+          "id": "p11_tw3",
+          "prompt": "Tape le mot qui veut dire 'soupire'.",
+          "correct_word": "soupire"
+        }
+      ]
+    }
+  ]
+}

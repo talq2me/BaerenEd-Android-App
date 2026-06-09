@@ -239,7 +239,7 @@
 
             <div class="card">
                 <h2>Required tasks</h2>
-                <p class="hint">On tasks appear first. Toggle off to hide until a date or always. Tap 📅 to set which days it shows.</p>
+                <p class="hint">On tasks appear first. Toggle off to hide until a date or always. Each task appears once (deduped by launch + URL). Tap 📅 to set which days it shows.</p>
                 <div id="requiredList"></div>
             </div>
 
@@ -315,6 +315,8 @@
 
         let profile = 'AM';
         let configJson = null;
+        /** @type {{ profile?: string, required?: object[], practice?: object[], checklist?: object[] } | null} */
+        let scheduleMaster = null;
         let dbRow = {
             required_tasks: {},
             practice_tasks: {},
@@ -331,6 +333,32 @@
         function scheduleWriteKey() { return localStorage.getItem('scheduleWriteKey'); }
 
         const SCHEDULE_CONFIG_KEYS = ['stars', 'totalQuestions', 'displayDays', 'showdays', 'hidedays', 'disable'];
+
+        /** Stable id: launch + diagram/file/poolKey from URL, else launch+title. */
+        function taskScheduleKey(task, sectionId) {
+            const launch = String(task?.launch || '').trim();
+            const url = String(task?.url || '').trim();
+            let urlId = '';
+            if (url) {
+                try {
+                    const u = new URL(url);
+                    urlId = u.searchParams.get('diagram')
+                        || u.searchParams.get('file')
+                        || u.searchParams.get('poolKey')
+                        || '';
+                } catch (_) {
+                    urlId = url;
+                }
+            }
+            const title = String(task?.title || task?.label || '').trim();
+            if (launch && urlId) return `${sectionId}|${launch}|${urlId}`;
+            if (launch) return `${sectionId}|${launch}|${title}`;
+            return `${sectionId}|${title}`;
+        }
+
+        function entryLookupKey(entry) {
+            return entry.key || entry.title;
+        }
 
         function applyScheduleFields(target, data) {
             for (const k of SCHEDULE_CONFIG_KEYS) {
@@ -354,13 +382,15 @@
             for (const sec of out.sections) {
                 if (sec.id === 'required' && sec.tasks) {
                     for (const t of sec.tasks) {
-                        const entry = catalog.required.find(e => e.title === t.title);
+                        const sk = taskScheduleKey(t, 'required');
+                        const entry = catalog.required.find(e => e.key === sk || e.title === t.title);
                         if (entry) applyScheduleFields(t, entry.data);
                     }
                 }
                 if (sec.id === 'optional' && sec.tasks) {
                     for (const t of sec.tasks) {
-                        const entry = catalog.practice.find(e => e.title === t.title);
+                        const sk = taskScheduleKey(t, 'practice');
+                        const entry = catalog.practice.find(e => e.key === sk || e.title === t.title);
                         if (entry) applyScheduleFields(t, entry.data);
                     }
                 }
@@ -530,69 +560,112 @@
             return merged;
         }
 
+        function pushCatalogEntry(bucket, sectionKey, taskDef, dbTasks) {
+            const title = taskDef.title || taskDef.label;
+            if (!title) return;
+            const key = taskDef.scheduleKey || taskScheduleKey(taskDef, sectionKey);
+            if (catalog[bucket].some(e => e.key === key)) return;
+            catalog[bucket].push({
+                key,
+                title,
+                config: taskDef,
+                data: mergeTask(title, taskDef, dbTasks)
+            });
+        }
+
         function buildCatalog() {
             catalog = { required: [], practice: [], checklist: [] };
-            if (!configJson?.sections) return;
 
-            for (const sec of configJson.sections) {
-                if (sec.id === 'required' && sec.tasks) {
-                    for (const t of sec.tasks) {
-                        const title = t.title;
-                        if (!title) continue;
-                        catalog.required.push({
-                            title,
-                            config: t,
-                            data: mergeTask(title, t, dbRow.required_tasks)
-                        });
-                    }
+            const useMaster = scheduleMaster
+                && (scheduleMaster.required?.length || scheduleMaster.practice?.length || scheduleMaster.checklist?.length);
+
+            if (useMaster) {
+                for (const t of scheduleMaster.required || []) {
+                    pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
                 }
-                if (sec.id === 'optional' && sec.tasks) {
-                    for (const t of sec.tasks) {
-                        const title = t.title;
-                        if (!title) continue;
-                        catalog.practice.push({
-                            title,
-                            config: t,
-                            data: mergeTask(title, t, dbRow.practice_tasks)
-                        });
-                    }
+                for (const t of scheduleMaster.practice || []) {
+                    pushCatalogEntry('practice', 'practice', t, dbRow.practice_tasks);
                 }
-                if (sec.id === 'checklist' && sec.items?.length) {
-                    for (const it of sec.items) {
-                        const label = it.label;
-                        if (!label) continue;
-                        const existing = dbRow.checklist_items[label] || {};
-                        catalog.checklist.push({
-                            title: label,
-                            config: it,
-                            data: {
-                                done: existing.done === true,
-                                stars: existing.stars ?? it.stars ?? 0,
-                                id: existing.id ?? it.id,
-                                showdays: existing.showdays ?? it.showdays,
-                                hidedays: existing.hidedays ?? it.hidedays,
-                                displayDays: existing.displayDays ?? it.displayDays,
-                                disable: existing.disable ?? it.disable
-                            }
-                        });
+                for (const it of scheduleMaster.checklist || []) {
+                    const label = it.label;
+                    if (!label) continue;
+                    const key = it.scheduleKey || taskScheduleKey(it, 'checklist');
+                    if (catalog.checklist.some(e => e.key === key)) continue;
+                    const existing = dbRow.checklist_items[label] || {};
+                    catalog.checklist.push({
+                        key,
+                        title: label,
+                        config: it,
+                        data: {
+                            done: existing.done === true,
+                            stars: existing.stars ?? it.stars ?? 0,
+                            id: existing.id ?? it.id,
+                            showdays: existing.showdays ?? it.showdays,
+                            hidedays: existing.hidedays ?? it.hidedays,
+                            displayDays: existing.displayDays ?? it.displayDays,
+                            disable: existing.disable ?? it.disable
+                        }
+                    });
+                }
+            } else if (configJson?.sections) {
+                for (const sec of configJson.sections) {
+                    if (sec.id === 'required' && sec.tasks) {
+                        for (const t of sec.tasks) pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
+                    }
+                    if (sec.id === 'optional' && sec.tasks) {
+                        for (const t of sec.tasks) pushCatalogEntry('practice', 'practice', t, dbRow.practice_tasks);
+                    }
+                    if (sec.id === 'checklist' && sec.items?.length) {
+                        for (const it of sec.items) {
+                            const label = it.label;
+                            if (!label) continue;
+                            const key = taskScheduleKey(it, 'checklist');
+                            if (catalog.checklist.some(e => e.key === key)) continue;
+                            const existing = dbRow.checklist_items[label] || {};
+                            catalog.checklist.push({
+                                key,
+                                title: label,
+                                config: it,
+                                data: {
+                                    done: existing.done === true,
+                                    stars: existing.stars ?? it.stars ?? 0,
+                                    id: existing.id ?? it.id,
+                                    showdays: existing.showdays ?? it.showdays,
+                                    hidedays: existing.hidedays ?? it.hidedays,
+                                    displayDays: existing.displayDays ?? it.displayDays,
+                                    disable: existing.disable ?? it.disable
+                                }
+                            });
+                        }
                     }
                 }
             }
 
-            // DB-only entries not in config (keep editable)
+            // DB-only entries (legacy titles not in master/config)
             for (const [title, data] of Object.entries(dbRow.required_tasks || {})) {
                 if (!catalog.required.find(x => x.title === title)) {
-                    catalog.required.push({ title, config: {}, data: { ...data } });
+                    catalog.required.push({
+                        key: `legacy|required|${title}`,
+                        title,
+                        config: {},
+                        data: { ...data }
+                    });
                 }
             }
             for (const [title, data] of Object.entries(dbRow.practice_tasks || {})) {
                 if (!catalog.practice.find(x => x.title === title)) {
-                    catalog.practice.push({ title, config: {}, data: { ...data } });
+                    catalog.practice.push({
+                        key: `legacy|practice|${title}`,
+                        title,
+                        config: {},
+                        data: { ...data }
+                    });
                 }
             }
             for (const [label, data] of Object.entries(dbRow.checklist_items || {})) {
                 if (!catalog.checklist.find(x => x.title === label)) {
                     catalog.checklist.push({
+                        key: `legacy|checklist|${label}`,
                         title: label,
                         config: {},
                         data: { ...data }
@@ -669,21 +742,22 @@
                 const row = document.createElement('div');
                 row.className = 'task-row' + (on ? '' : ' off');
                 const starsVal = entry.data.stars ?? entry.config.stars ?? 1;
+                const rowKey = entryLookupKey(entry);
                 const qBlock = hasTotalQuestions(entry)
-                    ? `<label style="font-size:0.75rem;color:#666;">Q<input type="number" min="1" max="99" value="${entry.data.totalQuestions ?? entry.config.totalQuestions ?? ''}" data-field="totalQuestions" data-bucket="${bucket}" data-key="${escapeAttr(entry.title)}"></label>`
+                    ? `<label style="font-size:0.75rem;color:#666;">Q<input type="number" min="1" max="99" value="${entry.data.totalQuestions ?? entry.config.totalQuestions ?? ''}" data-field="totalQuestions" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>`
                     : '';
                 row.innerHTML = `
                     <label class="toggle" title="Schedule on/off">
-                        <input type="checkbox" ${on ? 'checked' : ''} data-action="toggle" data-bucket="${bucket}" data-key="${escapeAttr(entry.title)}">
+                        <input type="checkbox" ${on ? 'checked' : ''} data-action="toggle" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}">
                         <span></span>
                     </label>
                     <div>
                         <div class="name">${escapeHtml(entry.title)}</div>
                         <div class="meta">${escapeHtml(daysSummary(entry.data))}</div>
                     </div>
-                    <label style="font-size:0.75rem;color:#666;">⭐<input type="number" min="0" max="20" value="${starsVal}" data-field="stars" data-bucket="${bucket}" data-key="${escapeAttr(entry.title)}"></label>
+                    <label style="font-size:0.75rem;color:#666;">⭐<input type="number" min="0" max="20" value="${starsVal}" data-field="stars" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>
                     ${qBlock}
-                    <button type="button" class="icon-btn" data-action="days" data-bucket="${bucket}" data-key="${escapeAttr(entry.title)}" ${on ? '' : 'disabled'}>📅 Days</button>
+                    <button type="button" class="icon-btn" data-action="days" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" ${on ? '' : 'disabled'}>📅 Days</button>
                 `;
                 el.appendChild(row);
             });
@@ -707,7 +781,7 @@
         }
 
         function findEntry(bucket, key) {
-            return catalog[bucket].find(e => e.title === key);
+            return catalog[bucket].find(e => entryLookupKey(e) === key);
         }
 
         function onToggleSchedule(bucket, key, turnOn) {
@@ -836,8 +910,9 @@
             document.getElementById('editorContent').style.display = 'none';
             hideMessages();
             try {
-                const [cfgRes, dbRes] = await Promise.all([
+                const [cfgRes, masterRes, dbRes] = await Promise.all([
                     fetch(`${CONFIG_BASE}${profile}_config.json`),
+                    fetch(`${CONFIG_BASE}schedule_master_${profile}.json`),
                     fetch(`${url}/rest/v1/user_data?profile=eq.${profile}&select=required_tasks,practice_tasks,checklist_items`, {
                         headers: {
                             apikey: key,
@@ -848,6 +923,7 @@
                 if (!cfgRes.ok) throw new Error(`Config load failed: ${cfgRes.status}`);
                 if (!dbRes.ok) throw new Error(`Database load failed: ${dbRes.status}`);
                 configJson = await cfgRes.json();
+                scheduleMaster = masterRes.ok ? await masterRes.json() : null;
                 const rows = await dbRes.json();
                 const row = rows[0] || {};
                 dbRow = {
@@ -949,9 +1025,10 @@
         document.getElementById('addChecklistBtn').addEventListener('click', () => {
             const label = document.getElementById('newChecklistLabel').value.trim();
             if (!label) { alert('Enter a label'); return; }
-            if (catalog.checklist.find(c => c.title === label)) { alert('Already exists'); return; }
+            if (catalog.checklist.find(c => entryLookupKey(c) === label || c.title === label)) { alert('Already exists'); return; }
             const stars = parseInt(document.getElementById('newChecklistStars').value, 10) || 0;
             catalog.checklist.push({
+                key: taskScheduleKey({ label }, 'checklist'),
                 title: label,
                 config: { label, stars },
                 data: { done: false, stars, displayDays: 'mon,tue,wed,thu,fri,sat,sun' }

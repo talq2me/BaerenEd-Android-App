@@ -1,0 +1,224 @@
+{
+  "id": "boukili-alice-tappable",
+  "title": "Boukili — Alice fait de la gymnastique (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "- Veux-tu faire de la",
+        "gymnastique? demande",
+        "Christopher.",
+        "- J'aime beaucoup la",
+        "gymnastique! dit Alice."
+      ],
+      "image": {
+        "image_id": "boukili/alice/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'gymnastics'.",
+          "correct_word": "gymnastique"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'christopher'.",
+          "correct_word": "Christopher"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'beaucoup'.",
+          "correct_word": "beaucoup"
+        }
+      ]
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Christopher fait une belle roue.",
+        "C'est au tour d'Alice.",
+        "- Peux-tu marcher sur les",
+        "mains?"
+      ],
+      "image": {
+        "image_id": "boukili/alice/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'christopher'.",
+          "correct_word": "Christopher"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'alice'.",
+          "correct_word": "d'Alice"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'peux-tu'.",
+          "correct_word": "Peux-tu"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p2_c1",
+        "prompt": "Qu'est-ce qu'Alice essaie de faire après la roue de Christopher ?",
+        "options": [
+          "Sauter à la corde",
+          "Marcher sur les mains",
+          "Courir vite",
+          "Faire un pansement"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Alice marche sur ses mains et",
+        "tombe."
+      ],
+      "image": {
+        "image_id": "boukili/alice/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'marche'.",
+          "correct_word": "marche"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'alice'.",
+          "correct_word": "Alice"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'hands'.",
+          "correct_word": "mains"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Alice se fait mal.",
+        "- J'ai un bobo!"
+      ],
+      "image": {
+        "image_id": "boukili/alice/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'alice'.",
+          "correct_word": "Alice"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'boo-boo'.",
+          "correct_word": "bobo"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Qu'est-ce qu'Alice dit quand elle se blesse ?",
+        "options": [
+          "J'ai faim!",
+          "J'ai un bobo!",
+          "Au revoir!",
+          "Merci beaucoup!"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "- Il faut soigner ton genou.",
+        "Christopher nettoie le bobo",
+        "d'Alice."
+      ],
+      "image": {
+        "image_id": "boukili/alice/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'christopher'.",
+          "correct_word": "Christopher"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'treat'.",
+          "correct_word": "soigner"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'nettoie'.",
+          "correct_word": "nettoie"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Christopher met un pansement."
+      ],
+      "image": {
+        "image_id": "boukili/alice/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'christopher'.",
+          "correct_word": "Christopher"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'bandage'.",
+          "correct_word": "pansement"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "- Mon bobo me fait moins mal.",
+        "Alice dit merci à Christopher."
+      ],
+      "image": {
+        "image_id": "boukili/alice/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'christopher'.",
+          "correct_word": "Christopher"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'moins'.",
+          "correct_word": "moins"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'alice'.",
+          "correct_word": "Alice"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p7_c1",
+        "prompt": "Que fait Alice à la fin de l'histoire ?",
+        "options": [
+          "Elle pleure",
+          "Elle dit merci à Christopher",
+          "Elle refait une roue",
+          "Elle part seule"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}

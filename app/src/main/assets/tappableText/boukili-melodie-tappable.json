@@ -1,0 +1,278 @@
+{
+  "id": "boukili-melodie-tappable",
+  "title": "Boukili — La mélodie de la nature (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "La nature a un rythme et un",
+        "chant.",
+        "Elle possède des instruments.",
+        "Tu dois t'arrêter et l'écouter."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'instruments'.",
+          "correct_word": "instruments"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'arreter'.",
+          "correct_word": "t'arrêter"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'ecouter'.",
+          "correct_word": "l'écouter"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Que possède la nature dans cette histoire ?",
+        "options": [
+          "Des livres",
+          "Des instruments",
+          "Des pansements",
+          "Des sucettes"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "La nature compose un refrain.",
+        "Le frou-frou du frottement des",
+        "feuilles.",
+        "Le hou, hou du vent qui souffle."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'frottement'.",
+          "correct_word": "frottement"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'rustling'.",
+          "correct_word": "frou-frou"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'leaves'.",
+          "correct_word": "feuilles"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "La nature ajoute des notes.",
+        "Scraaaatch! l'éclair annonce",
+        "l'orage.",
+        "Braoum! le tonnerre gronde.",
+        "Crac! une branche d'arbre casse."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'scraaaatch'.",
+          "correct_word": "Scraaaatch"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'eclair'.",
+          "correct_word": "l'éclair"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'thunder'.",
+          "correct_word": "tonnerre"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "La nature continue en harmonie.",
+        "Ploc-ploc fait la pluie qui tombe.",
+        "Flic-floc, les animaux traversent",
+        "les flaques d'eau."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'cross'.",
+          "correct_word": "traversent"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'ploc-ploc'.",
+          "correct_word": "Ploc-ploc"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'flic-floc'.",
+          "correct_word": "Flic-floc"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Qu'est-ce que l'éclair annonce ?",
+        "options": [
+          "Le soleil",
+          "L'orage",
+          "La pluie seulement",
+          "Le calme"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "La nature répète sa mélodie.",
+        "Frou-frou, hou, hou et",
+        "scraaaatch!",
+        "Braoum, crac, ploc-ploc et",
+        "flic-floc!",
+        "Sa musique voyage dans le vent."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'scraaaatch'.",
+          "correct_word": "scraaaatch"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'rustling'.",
+          "correct_word": "Frou-frou"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'ploc-ploc'.",
+          "correct_word": "ploc-ploc"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "La nature poursuit sa mélodie.",
+        "Frou-frou, hou, hou et scraaatch!",
+        "Braoum, crac, ploc-ploc et",
+        "flic-floc!",
+        "Les arbres dansent en harmonie."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'rustling'.",
+          "correct_word": "Frou-frou"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'scraaatch'.",
+          "correct_word": "scraaatch"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'ploc-ploc'.",
+          "correct_word": "ploc-ploc"
+        }
+      ]
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "La nature ralentit sa mélodie.",
+        "Frou-frou, hou, hou et scraaatch!",
+        "Braoum, crac, ploc-ploc et",
+        "flic-floc!",
+        "Le calme revient et le soleil aussi."
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'rustling'.",
+          "correct_word": "Frou-frou"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'scraaatch'.",
+          "correct_word": "scraaatch"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'ploc-ploc'.",
+          "correct_word": "ploc-ploc"
+        }
+      ]
+    },
+    {
+      "page_number": 8,
+      "text": [
+        "La musique se trouve partout",
+        "dans la nature.",
+        "Chaque plante, fleur et animal est",
+        "un instrument.",
+        "As-tu pris le temps de l'écouter?"
+      ],
+      "image": {
+        "image_id": "boukili/melodie/p8"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p8_tw1",
+          "prompt": "Tape le mot qui veut dire 'instrument'.",
+          "correct_word": "instrument"
+        },
+        {
+          "id": "p8_tw2",
+          "prompt": "Tape le mot qui veut dire 'ecouter'.",
+          "correct_word": "l'écouter"
+        },
+        {
+          "id": "p8_tw3",
+          "prompt": "Tape le mot qui veut dire 'musique'.",
+          "correct_word": "musique"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p8_c1",
+        "prompt": "Où se trouve la musique selon la fin du livre ?",
+        "options": [
+          "Seulement dans la pluie",
+          "Partout dans la nature",
+          "Uniquement dans le vent",
+          "Nulle part"
+        ],
+        "correct_index": 1
+      }
+    }
+  ]
+}
