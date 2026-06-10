@@ -99,6 +99,9 @@
         <div id="spellUi" class="hidden">
             <div class="spell-slots" id="spellSlots"></div>
             <div class="letter-grid" id="letterGrid"></div>
+            <div style="text-align:center;margin-top:8px;">
+                <button type="button" class="button" id="deleteBtn" onclick="handleDelete()">⌫ Delete</button>
+            </div>
         </div>
 
         <div id="feedbackContainer"></div>
@@ -138,6 +141,7 @@
         let spellTarget = '';
         let spellCorrect = [];
         let spellUsedSlots = new Set();
+        let spellUsedButtons = [];
 
         window.onTTSFinished = function() {
             if (window.pendingUfliTTSCallback) {
@@ -364,6 +368,7 @@
             const letters = shuffle([...spellCorrect, ...extras]);
             spellAnswers = [];
             spellUsedSlots = new Set();
+            spellUsedButtons = [];
 
             const slots = document.getElementById('spellSlots');
             slots.innerHTML = '';
@@ -394,6 +399,7 @@
             if (spellUsedSlots.has(slot)) return;
             spellUsedSlots.add(slot);
             btn.classList.add('used');
+            spellUsedButtons.push(btn);
             spellAnswers.push(btn.dataset.letter);
             const slotEls = document.querySelectorAll('.spell-slot');
             const i = spellAnswers.length - 1;
@@ -407,6 +413,18 @@
                     '<div class="feedback incorrect">Try again — tap the letters in order.</div>';
                 setTimeout(() => startSpellStep(stepQueue[queueIndex]), 900);
             }
+        }
+
+        function handleDelete() {
+            if (locked || !spellAnswers.length) return;
+            spellAnswers.pop();
+            const btn = spellUsedButtons.pop();
+            if (btn) {
+                spellUsedSlots.delete(btn.dataset.slot);
+                btn.classList.remove('used');
+            }
+            const slotEls = document.querySelectorAll('.spell-slot');
+            if (slotEls[spellAnswers.length]) slotEls[spellAnswers.length].textContent = '';
         }
 
         /* ---- SLIDER MODE ---- */

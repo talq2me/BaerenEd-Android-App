@@ -156,6 +156,7 @@
         <div class="tile-bank" id="tileBank"></div>
         <div class="button-row">
             <button class="button" id="replayBtn" type="button">🔊 Play</button>
+            <button class="button" id="deleteBtn" type="button">⌫ Delete</button>
         </div>
         <div id="loadingMsg" class="loading">Loading…</div>
     </div>
@@ -255,6 +256,8 @@
         let roundsCompleted = 0;
 
         const filledSlots = [];
+        /** Most recent tile placements, for undo. */
+        const placementStack = [];
 
         function setInteractionLocked(locked) {
             interactionLocked = locked;
@@ -378,7 +381,23 @@
             slot.classList.add('filled');
             tileEl.classList.add('used');
             tileEl.draggable = false;
+            placementStack.push({ slotIndex, tileEl });
             return true;
+        }
+
+        function deleteLastPlacement() {
+            if (interactionLocked || !placementStack.length) return;
+            const { slotIndex, tileEl } = placementStack.pop();
+            filledSlots[slotIndex] = null;
+            const slot = document.querySelector(`.spell-slot[data-index="${slotIndex}"]`);
+            if (slot) {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+            }
+            if (tileEl) {
+                tileEl.classList.remove('used');
+                tileEl.draggable = true;
+            }
         }
 
         function tryDropOnSlot(tileEl, slotIndex) {
@@ -438,6 +457,7 @@
 
             const chunks = getChunksForRound();
             filledSlots.length = 0;
+            placementStack.length = 0;
             for (let i = 0; i < chunks.length; i++) filledSlots[i] = null;
 
             const isSyllable = roundType === 'syllables';
@@ -620,6 +640,7 @@
                 setInteractionLocked(true);
                 readText(currentEntry.word, ttsLang, TTS_SLOW, () => setInteractionLocked(false));
             };
+            document.getElementById('deleteBtn').onclick = deleteLastPlacement;
 
             startIndex = SpellingPool.loadProgressIndex();
             buildSession();
