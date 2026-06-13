@@ -70,6 +70,9 @@ class TappableTextActivity : AppCompatActivity() {
          * the same index.
          */
         const val GAME_KEY_TAPPABLE_BOOK_ROTATION = "tappableTextBooks"
+
+        /** GitHub Pages manifest listing all `*_tappable.json` paths for book rotation. */
+        private const val TAPPABLE_BOOK_INDEX_PATH = "tappableText/book_rotation_index.json"
     }
 
     private var game: TappableTextRoot? = null
@@ -221,7 +224,6 @@ class TappableTextActivity : AppCompatActivity() {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
     private val githubAssetsBase get() = GitHubGameContentService.GITHUB_PAGES_ASSETS_ROOT
-    private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/V3?recursive=1"
 
     private fun githubRequest(url: String): Request =
         Request.Builder()
@@ -256,7 +258,7 @@ class TappableTextActivity : AppCompatActivity() {
             if (resolvedFileName == null) {
                 Toast.makeText(
                     this@TappableTextActivity,
-                    resolveErrorMessage ?: "No tappable books found from GitHub Pages (check language filter if you used lang=).",
+                    resolveErrorMessage ?: "No tappable books found on GitHub Pages (rotation index missing or language filter matched nothing).",
                     Toast.LENGTH_LONG
                 ).show()
                 timeTracker.endActivity("tappableText")
@@ -436,7 +438,7 @@ class TappableTextActivity : AppCompatActivity() {
     private fun discoverTappableBookFiles(languageFilter: String?, ufliMode: UfliFilenameMode): List<String> {
         val all = fetchTappableBookFilesFromGithub()
         if (all.isEmpty()) {
-            Log.w(TAG, "discoverTappableBookFiles: GitHub tree returned no *_tappable.json files")
+            Log.w(TAG, "discoverTappableBookFiles: rotation index returned no *_tappable.json files")
             return emptyList()
         }
         val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
@@ -524,28 +526,29 @@ class TappableTextActivity : AppCompatActivity() {
 
     private fun fetchTappableBookFilesFromGithub(): List<String> {
         return try {
-            httpClient.newCall(githubRequest(githubTreeApi)).execute().use { response ->
-                if (!response.isSuccessful) {
-                    Log.w(TAG, "fetchTappableBookFilesFromGithub failed: HTTP ${response.code}")
-                    return emptyList()
-                }
-                val body = response.body?.string().orEmpty()
-                if (body.isBlank()) return emptyList()
-                val root = com.google.gson.JsonParser.parseString(body).asJsonObject
-                val tree = root.getAsJsonArray("tree") ?: return emptyList()
-                val prefix = "app/src/main/assets/tappableText/"
-                val files = mutableListOf<String>()
-                tree.forEach { node ->
-                    val obj = node.asJsonObject
-                    val type = obj.get("type")?.asString ?: return@forEach
-                    if (type != "blob") return@forEach
-                    val fullPath = obj.get("path")?.asString ?: return@forEach
-                    if (!fullPath.startsWith(prefix)) return@forEach
-                    if (!fullPath.endsWith("_tappable.json", ignoreCase = true)) return@forEach
-                    files.add(fullPath.removePrefix(prefix))
-                }
-                files.sorted()
+            val body = fetchGithubText(TAPPABLE_BOOK_INDEX_PATH)
+            if (body.isNullOrBlank()) {
+                Log.w(TAG, "fetchTappableBookFilesFromGithub: empty rotation index from GitHub Pages")
+                return emptyList()
             }
+            val root = com.google.gson.JsonParser.parseString(body).asJsonObject
+            val arr = root.getAsJsonArray("books") ?: run {
+                Log.w(TAG, "fetchTappableBookFilesFromGithub: rotation index missing books array")
+                return emptyList()
+            }
+            val files = mutableListOf<String>()
+            arr.forEach { el ->
+                val name = el.asString?.trim().orEmpty()
+                if (name.endsWith("_tappable.json", ignoreCase = true)) {
+                    files.add(name)
+                }
+            }
+            if (files.isEmpty()) {
+                Log.w(TAG, "fetchTappableBookFilesFromGithub: rotation index had no *_tappable.json entries")
+            } else {
+                Log.d(TAG, "fetchTappableBookFilesFromGithub: ${files.size} books from rotation index")
+            }
+            files.sorted()
         } catch (e: Exception) {
             Log.e(TAG, "fetchTappableBookFilesFromGithub exception", e)
             emptyList()

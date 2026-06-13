@@ -782,8 +782,28 @@ def inject_comprehension_only() -> None:
         print("Updated", out_path)
 
 
+def write_rotation_index() -> None:
+    """Write tappableText/book_rotation_index.json for app book rotation (GitHub Pages)."""
+    books: list[str] = []
+    for name in sorted(os.listdir(OUT)):
+        if name.endswith("_tappable.json"):
+            books.append(name)
+    eng_dir = os.path.join(OUT, "eng")
+    if os.path.isdir(eng_dir):
+        for name in sorted(os.listdir(eng_dir)):
+            if name.endswith("_tappable.json"):
+                books.append(f"eng/{name}")
+    books.sort()
+    index_path = os.path.join(OUT, "book_rotation_index.json")
+    with open(index_path, "w", encoding="utf-8") as f:
+        json.dump({"books": books}, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print("Wrote rotation index", index_path, "books", len(books))
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--inject-comprehension-only":
         inject_comprehension_only()
     else:
         main()
+        write_rotation_index()
