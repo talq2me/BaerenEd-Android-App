@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.text.Normalizer
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
  * Page-by-page reading game:
@@ -215,9 +216,18 @@ class TappableTextActivity : AppCompatActivity() {
     private var lastTappedSpanStart: Int = Int.MIN_VALUE
     private var lastTappedSpanNanos: Long = 0L
 
-    private val httpClient = OkHttpClient.Builder().build()
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
     private val githubAssetsBase get() = GitHubGameContentService.GITHUB_PAGES_ASSETS_ROOT
     private val githubTreeApi = "https://api.github.com/repos/talq2me/BaerenEd-Android-App/git/trees/V3?recursive=1"
+
+    private fun githubRequest(url: String): Request =
+        Request.Builder()
+            .url(url)
+            .header("User-Agent", "BaerenEd-Android-App")
+            .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -309,7 +319,8 @@ class TappableTextActivity : AppCompatActivity() {
      *
      * **Rotation** (per-kid index in [DailyProgressManager], key [rotationGameKey]):
      * - Empty url, `rotate`, or `list`
-     * - Query-only url, e.g. `lang=fr` or `language=en` (optional `&` / `?` separators)
+     * - Query-only url, e.g. `lang=fr` or `language=en` (optional `&` / `?` separators).
+     *   Language is inferred from path/filename (`eng/` → en, `UFLI-En-*` → en, else fr).
      * - Optional `ufli=only` (basename starts with `ufli`, case-insensitive) or `ufli=no` / `ufli=exclude` (exclude those).
      *
      * **Single book** (no rotation index update):
@@ -424,16 +435,44 @@ class TappableTextActivity : AppCompatActivity() {
 
     private fun discoverTappableBookFiles(languageFilter: String?, ufliMode: UfliFilenameMode): List<String> {
         val all = fetchTappableBookFilesFromGithub()
-        val byLang = run {
-            val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
-                ?: return@run all
-            all.filter { fileName -> readRootLanguageFromTappableRemote(fileName) == filt }
+        if (all.isEmpty()) {
+            Log.w(TAG, "discoverTappableBookFiles: GitHub tree returned no *_tappable.json files")
+            return emptyList()
         }
-        return when (ufliMode) {
+        val filt = languageFilter?.trim()?.lowercase(Locale.US)?.takeIf { it.length >= 2 }
+        val byLang = if (filt == null) {
+            all
+        } else {
+            val matched = all.filter { inferTappableBookLanguage(it) == filt }
+            Log.d(TAG, "discoverTappableBookFiles: lang=$filt matched ${matched.size} of ${all.size} books")
+            matched
+        }
+        val result = when (ufliMode) {
             UfliFilenameMode.ANY -> byLang
             UfliFilenameMode.ONLY_UFLI_PREFIX -> byLang.filter { basenameStartsWithUfli(it) }
             UfliFilenameMode.EXCLUDE_UFLI_PREFIX -> byLang.filter { !basenameStartsWithUfli(it) }
         }
+        if (result.isEmpty()) {
+            Log.w(
+                TAG,
+                "discoverTappableBookFiles: empty after filters lang=$filt ufli=$ufliMode (pool=${all.size})"
+            )
+        }
+        return result
+    }
+
+    /**
+     * Language for rotation filters (`lang=en` / `lang=fr`) without fetching each JSON.
+     * English books live under `eng/`; UFLI filenames use `UFLI-En-*` / `UFLI-Fr-*`; all other
+     * root-level books are French.
+     */
+    private fun inferTappableBookLanguage(fileName: String): String {
+        val path = fileName.trim().replace('\\', '/')
+        if (path.startsWith("eng/")) return "en"
+        val base = path.substringAfterLast('/').lowercase(Locale.US)
+        if (base.startsWith("ufli-en")) return "en"
+        if (base.startsWith("ufli-fr")) return "fr"
+        return "fr"
     }
 
     /** First 2-letter tag from values like `fr`, `FR`, `fr-CA`. */
@@ -470,8 +509,7 @@ class TappableTextActivity : AppCompatActivity() {
     private fun fetchGithubText(assetPath: String): String? {
         return try {
             val url = "$githubAssetsBase/$assetPath?nocache=${System.currentTimeMillis()}"
-            val request = Request.Builder().url(url).build()
-            httpClient.newCall(request).execute().use { response ->
+            httpClient.newCall(githubRequest(url)).execute().use { response ->
                 if (!response.isSuccessful) {
                     Log.w(TAG, "fetchGithubText failed [$assetPath]: HTTP ${response.code}")
                     return null
@@ -486,8 +524,7 @@ class TappableTextActivity : AppCompatActivity() {
 
     private fun fetchTappableBookFilesFromGithub(): List<String> {
         return try {
-            val request = Request.Builder().url(githubTreeApi).build()
-            httpClient.newCall(request).execute().use { response ->
+            httpClient.newCall(githubRequest(githubTreeApi)).execute().use { response ->
                 if (!response.isSuccessful) {
                     Log.w(TAG, "fetchTappableBookFilesFromGithub failed: HTTP ${response.code}")
                     return emptyList()
@@ -512,18 +549,6 @@ class TappableTextActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "fetchTappableBookFilesFromGithub exception", e)
             emptyList()
-        }
-    }
-
-    private fun readRootLanguageFromTappableRemote(fileName: String): String? {
-        return try {
-            val body = fetchGithubText("tappableText/$fileName") ?: return null
-            val obj = com.google.gson.JsonParser.parseString(body).asJsonObject
-            val lang = obj.get("language")?.asString?.trim()?.lowercase(Locale.US) ?: return null
-            lang.take(2)
-        } catch (e: Exception) {
-            Log.w(TAG, "readRootLanguageFromTappableRemote: $fileName", e)
-            null
         }
     }
 
