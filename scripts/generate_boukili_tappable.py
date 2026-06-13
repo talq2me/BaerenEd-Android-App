@@ -13,7 +13,7 @@ To add a new book:
   2. Append a dict to BOOKS (folder, txt filename, id, title, merge_last_two_pages).
   3. Extend FR_EN (_RAW) for better English glosses in prompts.
   4. Run: python scripts/generate_boukili_tappable.py
-  5. Push to GitHub Pages (same repo path as above): new/changed p*.webp + boukili-*-tappable.json.
+  5. Push to GitHub Pages (same repo path as above): new/changed p*.webp + boukili-*_tappable.json.
      Tablets load JSON and images from GitHub only — no app rebuild required.
   6. Comprehension MCQs live in COMPREHENSION_QUESTIONS in this file; to refresh only
      those fields in existing JSON (e.g. no PNGs in this checkout): add --inject-comprehension-only
@@ -180,84 +180,84 @@ BOOKS = [
     {
         "folder": "singe",
         "txt": "singe.txt",
-        "id": "boukili-singe-tappable",
+        "id": "boukili-singe_tappable",
         "title": "Boukili — Le bébé singe (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "nid",
         "txt": "nid.txt",
-        "id": "boukili-nid-tappable",
+        "id": "boukili-nid_tappable",
         "title": "Boukili — Le nid (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "pec",
         "txt": "pec.txt",
-        "id": "boukili-pec-tappable",
+        "id": "boukili-pec_tappable",
         "title": "Boukili — Pic-Bois (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "train",
         "txt": "train.txt",
-        "id": "boukili-train-tappable",
+        "id": "boukili-train_tappable",
         "title": "Boukili — Télésphore (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "les vrais tresors",
         "txt": "Le Pirate Raté voyage sur la mer.txt",
-        "id": "boukili-pirate-rate-tappable",
+        "id": "boukili-pirate-rate_tappable",
         "title": "Boukili — Le Pirate Raté voyage sur la mer (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "josee",
         "txt": "josee.txt",
-        "id": "boukili-josee-tappable",
+        "id": "boukili-josee_tappable",
         "title": "Boukili — Josée aime inventer (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "lilou",
         "txt": "lilou.txt",
-        "id": "boukili-lilou-tappable",
+        "id": "boukili-lilou_tappable",
         "title": "Boukili — Lilou ne fait jamais d'erreurs (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "simon",
         "txt": "simon.txt.txt",
-        "id": "boukili-simon-tappable",
+        "id": "boukili-simon_tappable",
         "title": "Boukili — Simon est le plus petit (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "bibliotheque",
         "txt": "biblio.txt.txt",
-        "id": "boukili-bibliotheque-tappable",
+        "id": "boukili-bibliotheque_tappable",
         "title": "Boukili — Christopher à la bibliothèque (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "alice",
         "txt": "alice.txt",
-        "id": "boukili-alice-tappable",
+        "id": "boukili-alice_tappable",
         "title": "Boukili — Alice fait de la gymnastique (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "coincoin1",
         "txt": "coincoin1.txt",
-        "id": "boukili-coincoin-tappable",
+        "id": "boukili-coincoin_tappable",
         "title": "Boukili — Coin-Coin et la princesse (Tappable Text)",
         "merge_last_two_pages": False,
     },
     {
         "folder": "melodie",
         "txt": "melodie.txt",
-        "id": "boukili-melodie-tappable",
+        "id": "boukili-melodie_tappable",
         "title": "Boukili — La mélodie de la nature (Tappable Text)",
         "merge_last_two_pages": False,
     },
@@ -265,7 +265,7 @@ BOOKS = [
 
 # Three multiple-choice questions per book (page_number, prompt, 4 options, 0-based correct_index).
 COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
-    "boukili-singe-tappable": [
+    "boukili-singe_tappable": [
         {
             "page": 4,
             "prompt": "Qu'est-ce que le bébé singe aime beaucoup dans cette histoire ?",
@@ -300,7 +300,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-nid-tappable": [
+    "boukili-nid_tappable": [
         {
             "page": 4,
             "prompt": "Qui prend la branche que Momo voulait utiliser pour le nid ?",
@@ -335,7 +335,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-pec-tappable": [
+    "boukili-pec_tappable": [
         {
             "page": 4,
             "prompt": "Pourquoi Pic-Bois n'entend pas les autres oiseaux ?",
@@ -370,7 +370,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-train-tappable": [
+    "boukili-train_tappable": [
         {
             "page": 3,
             "prompt": "Pourquoi Télésphore dit-il qu'il n'est pas un bon train ?",
@@ -405,7 +405,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-pirate-rate-tappable": [
+    "boukili-pirate-rate_tappable": [
         {
             "page": 2,
             "prompt": "Que montre la carte au trésor au Pirate Raté ?",
@@ -440,7 +440,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-josee-tappable": [
+    "boukili-josee_tappable": [
         {
             "page": 3,
             "prompt": "Qu'est-ce que Josée dessine pour sauter ?",
@@ -475,7 +475,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-lilou-tappable": [
+    "boukili-lilou_tappable": [
         {
             "page": 4,
             "prompt": "Combien de perles Lilou enfile-t-elle sur la ficelle ?",
@@ -510,7 +510,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-simon-tappable": [
+    "boukili-simon_tappable": [
         {
             "page": 3,
             "prompt": "Pourquoi Simon est-il gêné sur sa chaise ?",
@@ -545,7 +545,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-bibliotheque-tappable": [
+    "boukili-bibliotheque_tappable": [
         {
             "page": 3,
             "prompt": "Que dit le bibliothécaire quand Christopher parle trop fort ?",
@@ -580,7 +580,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-alice-tappable": [
+    "boukili-alice_tappable": [
         {
             "page": 2,
             "prompt": "Qu'est-ce qu'Alice essaie de faire après la roue de Christopher ?",
@@ -615,7 +615,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-coincoin-tappable": [
+    "boukili-coincoin_tappable": [
         {
             "page": 2,
             "prompt": "Selon Sherlock, que sont souvent les grenouilles ?",
@@ -650,7 +650,7 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
             "correct_index": 1,
         },
     ],
-    "boukili-melodie-tappable": [
+    "boukili-melodie_tappable": [
         {
             "page": 1,
             "prompt": "Que possède la nature dans cette histoire ?",

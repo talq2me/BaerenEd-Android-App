@@ -1,0 +1,1020 @@
+{
+  "profile": "AM",
+  "version": "2026-06-07",
+  "source": "AM_config.json",
+  "required": [
+    {
+      "url": "lang=en&ufli=only",
+      "easy": true,
+      "stars": 3,
+      "title": "English reading (tappable book)",
+      "launch": "tappableText",
+      "scheduleKey": "required|tappableText|English reading (tappable book)"
+    },
+    {
+      "url": "lang=fr&ufli=only",
+      "easy": true,
+      "stars": 3,
+      "title": "French reading (tappable book)",
+      "launch": "tappableText",
+      "scheduleKey": "required|tappableText|French reading (tappable book)"
+    },
+    {
+      "stars": 3,
+      "title": "Boukili",
+      "launch": "boukili",
+      "disable": "Dec 31, 2099",
+      "scheduleKey": "required|boukili|Boukili"
+    },
+    {
+      "url": "https://classroom.google.com/c/Nzk1OTQwNzgyMjUy",
+      "stars": 3,
+      "title": "Google Classroom",
+      "launch": "googleClassroom",
+      "disable": "Dec 31, 2099",
+      "chromePage": true,
+      "displayDays": "tue,fri",
+      "scheduleKey": "required|googleClassroom|Google Classroom"
+    },
+    {
+      "url": "https://jelis.rkpublishing.com/reader_demo?id=128",
+      "stars": 3,
+      "title": "Je Lis",
+      "launch": "jeLis",
+      "disable": "Dec 31, 2099",
+      "chromePage": true,
+      "displayDays": "tue,sat",
+      "scheduleKey": "required|jeLis|Je Lis"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
+      "stars": 3,
+      "title": "UFLI Word Chain",
+      "launch": "ufliWordChains",
+      "webGame": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|ufliWordChains|UFLI Word Chain"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell",
+      "stars": 3,
+      "title": "UFLI Irregular Words",
+      "launch": "ufliIrregularWords",
+      "webGame": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|ufliIrregularWords|UFLI Irregular Words"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "stars": 3,
+      "title": "Word Fishing FR",
+      "launch": "wordFishing",
+      "webGame": true,
+      "displayDays": "wed,sat",
+      "scheduleKey": "required|wordFishing|spellingDragFrGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "stars": 3,
+      "title": "Word Factory FR",
+      "launch": "wordFactory",
+      "webGame": true,
+      "displayDays": "thu,sun",
+      "scheduleKey": "required|wordFactory|spellingDragFrGr1.json"
+    },
+    {
+      "url": "file=frenchWordsGr1.json",
+      "stars": 3,
+      "title": "FR Spelling OCR",
+      "launch": "spellingOCR",
+      "disable": "Dec 31, 2099",
+      "displayDays": "mon,tue,wed",
+      "scheduleKey": "required|spellingOCR|FR Spelling OCR"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
+      "stars": 3,
+      "title": "Fr Spelling",
+      "launch": "frSpelling",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "thu,fri",
+      "harddays": "sat,sun,mon,tue,wed",
+      "displayDays": "thu,fri,sat,sun,mon,tue,wed",
+      "scheduleKey": "required|frSpelling|frenchWordsGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "stars": 3,
+      "title": "Fr Spelling Drag",
+      "launch": "frSpellingDrag",
+      "webGame": true,
+      "displayDays": "thu,fri,sat,sun,mon,tue,wed",
+      "totalQuestions": 5,
+      "scheduleKey": "required|frSpellingDrag|spellingDragFrGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "stars": 3,
+      "title": "Word Garden FR",
+      "launch": "wordGarden",
+      "webGame": true,
+      "displayDays": "tue,fri",
+      "scheduleKey": "required|wordGarden|spellingDragFrGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "stars": 3,
+      "title": "Snake Catch FR",
+      "launch": "snakeCatch",
+      "webGame": true,
+      "displayDays": "tue,fri,sat",
+      "scheduleKey": "required|snakeCatch|spellingDragFrGr1.json"
+    },
+    {
+      "url": "file=englishWordsGr1.json",
+      "stars": 3,
+      "title": "Eng Spelling OCR",
+      "launch": "spellingOCR",
+      "disable": "Dec 31, 2099",
+      "displayDays": "thu,fri",
+      "scheduleKey": "required|spellingOCR|Eng Spelling OCR"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
+      "stars": 3,
+      "title": "Eng Spelling",
+      "launch": "engSpelling",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "mon",
+      "harddays": "tue,wed",
+      "displayDays": "mon,tue,wed",
+      "scheduleKey": "required|engSpelling|englishWordsGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDrag",
+      "stars": 3,
+      "title": "Eng Spelling Drag",
+      "launch": "engSpellingDrag",
+      "webGame": true,
+      "displayDays": "mon,tue,wed",
+      "totalQuestions": 5,
+      "scheduleKey": "required|engSpellingDrag|spellingDragEnGr1.json"
+    },
+    {
+      "stars": 3,
+      "title": "Printing Practice",
+      "launch": "printing",
+      "scheduleKey": "required|printing|Printing Practice"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/fractionsPieGame.html",
+      "stars": 3,
+      "title": "Pie Fractions",
+      "launch": "fractionsPie",
+      "webGame": true,
+      "displayDays": "fri",
+      "scheduleKey": "required|fractionsPie|Pie Fractions"
+    },
+    {
+      "stars": 3,
+      "title": "Sentence Builder",
+      "launch": "englishSentences",
+      "displayDays": "sun,sat",
+      "blockOutlines": true,
+      "totalQuestions": 3,
+      "scheduleKey": "required|englishSentences|Sentence Builder"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
+      "stars": 3,
+      "title": "Time Telling",
+      "launch": "timeTelling",
+      "webGame": true,
+      "displayDays": "thu",
+      "totalQuestions": 5,
+      "scheduleKey": "required|timeTelling|Time Telling"
+    },
+    {
+      "stars": 3,
+      "title": "Money Game",
+      "launch": "canadianMoneyEasy",
+      "displayDays": "wed",
+      "totalQuestions": 5,
+      "scheduleKey": "required|canadianMoneyEasy|Money Game"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
+      "stars": 3,
+      "title": "Math Hole",
+      "launch": "mathHole",
+      "webGame": true,
+      "displayDays": "wed,fri",
+      "totalQuestions": 5,
+      "scheduleKey": "required|mathHole|Math Hole"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+      "stars": 3,
+      "title": "Number Line Math",
+      "launch": "numberLineMath",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|numberLineMath|Number Line Math"
+    },
+    {
+      "stars": 3,
+      "title": "Math Strategies (Practice 1)",
+      "launch": "gr1MathStrategies",
+      "totalQuestions": 10,
+      "scheduleKey": "required|gr1MathStrategies|Math Strategies (Practice 1)"
+    },
+    {
+      "stars": 3,
+      "title": "Math",
+      "launch": "jkmath",
+      "disable": "Dec 31, 2099",
+      "displayDays": "mon,wed,fri",
+      "totalQuestions": 5,
+      "scheduleKey": "required|jkmath|Math"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies&hideFinalAnswer=1",
+      "stars": 3,
+      "title": "Math Strategies Coach",
+      "launch": "gr1MathStrategiesHtml",
+      "webGame": true,
+      "displayDays": "mon,wed,fri",
+      "totalQuestions": 10,
+      "scheduleKey": "required|gr1MathStrategiesHtml|Math Strategies Coach"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
+      "stars": 3,
+      "title": "Ten Frame Math",
+      "launch": "tenFrameMath",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|tenFrameMath|Ten Frame Math"
+    },
+    {
+      "stars": 3,
+      "title": "Math Strategies (Practice 2)",
+      "launch": "gr1MathStrategies",
+      "totalQuestions": 10,
+      "scheduleKey": "required|gr1MathStrategies|Math Strategies (Practice 2)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
+      "stars": 3,
+      "title": "French Vowels (Required)",
+      "launch": "frenchVowels",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "required|frenchVowels|French Vowels (Required)"
+    },
+    {
+      "stars": 1,
+      "title": "Sight Words (Required)",
+      "launch": "sightWords",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "required|sightWords|Sight Words (Required)"
+    },
+    {
+      "stars": 2,
+      "title": "Money Game (Required)",
+      "launch": "canadianMoneyHard",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|canadianMoneyHard|Money Game (Required)"
+    },
+    {
+      "stars": 2,
+      "title": "Conjugation",
+      "launch": "conjugation",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|conjugation|Conjugation"
+    },
+    {
+      "stars": 3,
+      "title": "Conjugation (Required)",
+      "launch": "conjugation_limparfait",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|conjugation_limparfait|Conjugation (Required)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=circulatorySystem",
+      "stars": 3,
+      "title": "Diagram Labeler: Circulatory System (Required)",
+      "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "required|diagramLabeler|circulatorySystem"
+    },
+    {
+      "stars": 3,
+      "title": "Duological",
+      "launch": "duologicalGame",
+      "disable": "Dec 31, 2099",
+      "blockOutlines": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|duologicalGame|Duological"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
+      "stars": 3,
+      "title": "Eng Spelling (Required)",
+      "launch": "engSpellPhoto",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "thu,fri",
+      "harddays": "sat,sun",
+      "extremedays": "mon,tue,wed",
+      "scheduleKey": "required|engSpellPhoto|englishWordsGr1.json"
+    },
+    {
+      "stars": 3,
+      "title": "Facile A Lire 2",
+      "launch": "facileAlire2",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "required|facileAlire2|Facile A Lire 2"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
+      "stars": 3,
+      "title": "Fr Spelling (Required)",
+      "launch": "frSpellPhoto",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "thu,fri",
+      "harddays": "sat,sun",
+      "extremedays": "mon,tue,wed",
+      "scheduleKey": "required|frSpellPhoto|frenchWordsGr1.json"
+    },
+    {
+      "stars": 3,
+      "title": "French Stories",
+      "launch": "frenchStories",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|frenchStories|French Stories"
+    },
+    {
+      "stars": 3,
+      "title": "French UFLI",
+      "launch": "frenchUFLI",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "required|frenchUFLI|French UFLI"
+    },
+    {
+      "stars": 3,
+      "title": "Algebra",
+      "launch": "gr3algebra",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|gr3algebra|Algebra"
+    },
+    {
+      "stars": 3,
+      "title": "Fractions",
+      "launch": "gr3fractions",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|gr3fractions|Fractions"
+    },
+    {
+      "stars": 3,
+      "title": "Math (Required)",
+      "launch": "gr3math",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|gr3math|Math (Required)"
+    },
+    {
+      "stars": 3,
+      "title": "Mixed Math",
+      "launch": "gr3mixedproblems",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|gr3mixedproblems|Mixed Math"
+    },
+    {
+      "stars": 3,
+      "title": "Math Word Problems",
+      "launch": "gr3wordproblems",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|gr3wordproblems|Math Word Problems"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
+      "stars": 3,
+      "title": "Handwriting Paper Snapshot",
+      "launch": "handwriting",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "required|handwriting|Handwriting Paper Snapshot"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
+      "stars": 3,
+      "title": "Multi-Digit Add/Subtract",
+      "launch": "multiDigitAddSubtract",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|multiDigitAddSubtract|Multi-Digit Add/Subtract"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
+      "stars": 3,
+      "title": "Multi-Digit Multiplication",
+      "launch": "multiDigitMultiplication",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|multiDigitMultiplication|Multi-Digit Multiplication"
+    },
+    {
+      "stars": 1,
+      "title": "Kung Fu",
+      "launch": "noviceKungFuVideos",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "required|noviceKungFuVideos|Kung Fu"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDrag",
+      "stars": 3,
+      "title": "Spelling Race Eng",
+      "launch": "spellingRace",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "thu",
+      "scheduleKey": "required|spellingRace|spellingDragEnGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html?file=storySequence.json",
+      "stars": 3,
+      "title": "Story Sequence",
+      "launch": "storySequence",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "required|storySequence|storySequence.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=random",
+      "stars": 3,
+      "title": "Times Tables",
+      "launch": "timesTables",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "required|timesTables|Times Tables"
+    },
+    {
+      "stars": 3,
+      "title": "Translation",
+      "launch": "translation",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 5,
+      "scheduleKey": "required|translation|Translation"
+    },
+    {
+      "stars": 3,
+      "title": "UFLI Words",
+      "launch": "ufliLessonData",
+      "disable": "Dec 31, 2099",
+      "blockOutlines": true,
+      "totalQuestions": 5,
+      "scheduleKey": "required|ufliLessonData|UFLI Words"
+    },
+    {
+      "stars": 3,
+      "title": "Ufli Home Videos",
+      "launch": "uflivideos",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "required|uflivideos|Ufli Home Videos"
+    }
+  ],
+  "practice": [
+    {
+      "stars": 1,
+      "title": "Sight Words",
+      "launch": "sightWords",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|sightWords|Sight Words"
+    },
+    {
+      "stars": 1,
+      "title": "Math",
+      "launch": "jkmath",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|jkmath|Math"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchVowels.html",
+      "stars": 3,
+      "title": "French Vowels",
+      "launch": "frenchVowels",
+      "webGame": true,
+      "scheduleKey": "practice|frenchVowels|French Vowels"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=easy",
+      "stars": 3,
+      "title": "Time Telling",
+      "launch": "timeTelling",
+      "webGame": true,
+      "scheduleKey": "practice|timeTelling|Time Telling"
+    },
+    {
+      "stars": 1,
+      "title": "Money Game",
+      "launch": "canadianMoneyEasy",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|canadianMoneyEasy|Money Game"
+    },
+    {
+      "stars": 1,
+      "title": "Sentence Builder",
+      "launch": "englishSentences",
+      "blockOutlines": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|englishSentences|Sentence Builder"
+    },
+    {
+      "stars": 3,
+      "title": "Boukili (Practice)",
+      "launch": "boukili",
+      "disable": "Dec 31, 2099",
+      "scheduleKey": "practice|boukili|Boukili (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsGr1.json",
+      "stars": 3,
+      "title": "Eng Spelling (Practice)",
+      "launch": "engSpelling",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "mon",
+      "harddays": "tue,wed",
+      "displayDays": "mon,tue,wed",
+      "scheduleKey": "practice|engSpelling|englishWordsGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDragPractice",
+      "stars": 3,
+      "title": "Eng Spelling Drag (Practice)",
+      "launch": "engSpellingDrag",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "mon,tue,wed",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|engSpellingDrag|spellingDragEnGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsGr1.json",
+      "stars": 3,
+      "title": "Fr Spelling (Practice)",
+      "launch": "frSpelling",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "thu,fri",
+      "harddays": "sat,sun,mon,tue,wed",
+      "displayDays": "thu,fri,sat,sun,mon,tue,wed",
+      "scheduleKey": "practice|frSpelling|frenchWordsGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "stars": 3,
+      "title": "Fr Spelling Drag (Practice)",
+      "launch": "frSpellingDrag",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "thu,fri,sat,sun,mon,tue,wed",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|frSpellingDrag|spellingDragFrGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/fractionsPieGame.html",
+      "stars": 3,
+      "title": "Pie Fractions (Practice)",
+      "launch": "fractionsPie",
+      "webGame": true,
+      "scheduleKey": "practice|fractionsPie|Pie Fractions (Practice)"
+    },
+    {
+      "stars": 3,
+      "title": "Math Strategies (Practice 1) (Practice)",
+      "launch": "gr1MathStrategies",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr1MathStrategies|Math Strategies (Practice 1) (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/gr1MathStrategiesHtml.html?fileBase=gr1MathStrategies&hideFinalAnswer=1",
+      "stars": 3,
+      "title": "Math Strategies Coach (Practice)",
+      "launch": "gr1MathStrategiesHtml",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "mon,wed,fri",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr1MathStrategiesHtml|Math Strategies Coach (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
+      "stars": 3,
+      "title": "Math Hole (Practice)",
+      "launch": "mathHole",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "wed,fri",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|mathHole|Math Hole (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
+      "stars": 3,
+      "title": "Number Line Math (Practice)",
+      "launch": "numberLineMath",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|numberLineMath|Number Line Math (Practice)"
+    },
+    {
+      "stars": 3,
+      "title": "Printing Practice (Practice)",
+      "launch": "printing",
+      "disable": "Dec 31, 2099",
+      "scheduleKey": "practice|printing|Printing Practice (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "stars": 3,
+      "title": "Snake Catch FR (Practice)",
+      "launch": "snakeCatch",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "tue,fri,sat",
+      "scheduleKey": "practice|snakeCatch|spellingDragFrGr1.json"
+    },
+    {
+      "url": "file=frenchWordsGr1.json",
+      "stars": 3,
+      "title": "FR Spelling OCR (Practice)",
+      "launch": "spellingOCR",
+      "disable": "Dec 31, 2099",
+      "displayDays": "mon,tue,wed",
+      "scheduleKey": "practice|spellingOCR|FR Spelling OCR (Practice)"
+    },
+    {
+      "url": "lang=en&ufli=only",
+      "easy": true,
+      "stars": 3,
+      "title": "English reading (tappable book) (Practice)",
+      "launch": "tappableText",
+      "disable": "Dec 31, 2099",
+      "scheduleKey": "practice|tappableText|English reading (tappable book) (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
+      "stars": 3,
+      "title": "Ten Frame Math (Practice)",
+      "launch": "tenFrameMath",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|tenFrameMath|Ten Frame Math (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell",
+      "stars": 3,
+      "title": "UFLI Irregular Words (Practice)",
+      "launch": "ufliIrregularWords",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|ufliIrregularWords|UFLI Irregular Words (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
+      "stars": 3,
+      "title": "UFLI Word Chain (Practice)",
+      "launch": "ufliWordChains",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|ufliWordChains|UFLI Word Chain (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "stars": 3,
+      "title": "Word Factory FR (Practice)",
+      "launch": "wordFactory",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "thu,sun",
+      "scheduleKey": "practice|wordFactory|spellingDragFrGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "stars": 3,
+      "title": "Word Fishing FR (Practice)",
+      "launch": "wordFishing",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "wed,sat",
+      "scheduleKey": "practice|wordFishing|spellingDragFrGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "stars": 3,
+      "title": "Word Garden FR (Practice)",
+      "launch": "wordGarden",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "tue,fri",
+      "scheduleKey": "practice|wordGarden|spellingDragFrGr1.json"
+    },
+    {
+      "stars": 1,
+      "title": "Money Game (Practice)",
+      "launch": "canadianMoneyHard",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|canadianMoneyHard|Money Game (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Conjugation (Practice)",
+      "launch": "conjugation",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|conjugation|Conjugation (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Conjugation (Practice) 2",
+      "launch": "conjugation_limparfait",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|conjugation_limparfait|Conjugation (Practice) 2"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=circulatorySystem",
+      "stars": 3,
+      "title": "Diagram Labeler: Circulatory System",
+      "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "practice|diagramLabeler|circulatorySystem"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=digestiveSystem",
+      "stars": 4,
+      "title": "Diagram Labeler: Digestive System",
+      "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "practice|diagramLabeler|digestiveSystem"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=skeletalSystem",
+      "stars": 6,
+      "title": "Diagram Labeler: Skeletal System",
+      "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "practice|diagramLabeler|skeletalSystem"
+    },
+    {
+      "stars": 1,
+      "title": "Duological (Practice)",
+      "launch": "duologicalGame",
+      "disable": "Dec 31, 2099",
+      "blockOutlines": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|duologicalGame|Duological (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsGr1.json",
+      "stars": 1,
+      "title": "Eng Spelling (Practice) 2",
+      "launch": "engSpellPhoto",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "thu,fri",
+      "harddays": "sat,sun",
+      "extremedays": "mon,tue,wed",
+      "scheduleKey": "practice|engSpellPhoto|englishWordsGr1.json"
+    },
+    {
+      "stars": 1,
+      "title": "Facile A Lire 2 (Practice)",
+      "launch": "facileAlire2",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "practice|facileAlire2|Facile A Lire 2 (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsGr1.json",
+      "stars": 1,
+      "title": "Fr Spelling (Practice) 2",
+      "launch": "frSpellPhoto",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "easydays": "thu,fri",
+      "harddays": "sat,sun",
+      "extremedays": "mon,tue,wed",
+      "scheduleKey": "practice|frSpellPhoto|frenchWordsGr1.json"
+    },
+    {
+      "stars": 1,
+      "title": "French Stories (Practice)",
+      "launch": "frenchStories",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|frenchStories|French Stories (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "French UFLI (Practice)",
+      "launch": "frenchUFLI",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "practice|frenchUFLI|French UFLI (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Algebra (Practice)",
+      "launch": "gr3algebra",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr3algebra|Algebra (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Fractions (Practice)",
+      "launch": "gr3fractions",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr3fractions|Fractions (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Math (Practice)",
+      "launch": "gr3math",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr3math|Math (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Mixed Math (Practice)",
+      "launch": "gr3mixedproblems",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr3mixedproblems|Mixed Math (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Math Word Problems (Practice)",
+      "launch": "gr3wordproblems",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|gr3wordproblems|Math Word Problems (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/handwriting.html",
+      "stars": 1,
+      "title": "Handwriting Paper Snapshot (Practice)",
+      "launch": "handwriting",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "practice|handwriting|Handwriting Paper Snapshot (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
+      "stars": 1,
+      "title": "Multi-Digit Add/Subtract (Practice)",
+      "launch": "multiDigitAddSubtract",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|multiDigitAddSubtract|Multi-Digit Add/Subtract (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
+      "stars": 1,
+      "title": "Multi-Digit Multiplication (Practice)",
+      "launch": "multiDigitMultiplication",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|multiDigitMultiplication|Multi-Digit Multiplication (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Kung Fu (Practice)",
+      "launch": "noviceKungFuVideos",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "practice|noviceKungFuVideos|Kung Fu (Practice)"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDragPractice",
+      "stars": 1,
+      "title": "Spelling Race Eng (Practice)",
+      "launch": "spellingRace",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "displayDays": "thu",
+      "scheduleKey": "practice|spellingRace|spellingDragEnGr1.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html?file=storySequence.json",
+      "stars": 1,
+      "title": "Story Sequence (Practice)",
+      "launch": "storySequence",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "practice|storySequence|storySequence.json"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timesTables.html?table=random",
+      "stars": 1,
+      "title": "Times Tables (Practice)",
+      "launch": "timesTables",
+      "disable": "Dec 31, 2099",
+      "webGame": true,
+      "scheduleKey": "practice|timesTables|Times Tables (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Translation (Practice)",
+      "launch": "translation",
+      "disable": "Dec 31, 2099",
+      "totalQuestions": 1,
+      "scheduleKey": "practice|translation|Translation (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "UFLI Words (Practice)",
+      "launch": "ufliLessonData",
+      "disable": "Dec 31, 2099",
+      "blockOutlines": true,
+      "totalQuestions": 1,
+      "scheduleKey": "practice|ufliLessonData|UFLI Words (Practice)"
+    },
+    {
+      "stars": 1,
+      "title": "Ufli Home Videos (Practice)",
+      "launch": "uflivideos",
+      "disable": "Dec 31, 2099",
+      "videoSequence": "sequential",
+      "scheduleKey": "practice|uflivideos|Ufli Home Videos (Practice)"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "am_laundry",
+      "done": false,
+      "label": "Laundry",
+      "stars": 0,
+      "scheduleKey": "checklist|Laundry"
+    },
+    {
+      "id": "am_practice_kung_fu",
+      "done": false,
+      "label": "Practice Kung Fu",
+      "stars": 0,
+      "scheduleKey": "checklist|Practice Kung Fu"
+    },
+    {
+      "id": "am_practice_piano",
+      "done": false,
+      "label": "Practice piano",
+      "stars": 0,
+      "scheduleKey": "checklist|Practice piano"
+    },
+    {
+      "id": "am_push_ups",
+      "done": false,
+      "label": "Push ups: 15",
+      "stars": 0,
+      "scheduleKey": "checklist|Push ups: 15"
+    }
+  ]
+}

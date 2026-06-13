@@ -262,14 +262,14 @@
                 },
                 {
                     "stars": 2,
-                    "title": "Money Game (Required)",
+                    "title": "Money Game Easy (Required)",
                     "launch": "canadianMoneyEasy",
                     "disable": "Dec 31, 2099",
                     "totalQuestions": 5
                 },
                 {
                     "stars": 2,
-                    "title": "Money Game (Required)",
+                    "title": "Money Game Hard (Required)",
                     "launch": "canadianMoneyHard",
                     "disable": "Dec 31, 2099",
                     "totalQuestions": 5
@@ -589,7 +589,7 @@
                 },
                 {
                     "stars": 2,
-                    "title": "Money Game",
+                    "title": "Money Game Easy",
                     "launch": "canadianMoneyEasy",
                     "totalQuestions": 5
                 },
@@ -664,7 +664,7 @@
                 },
                 {
                     "stars": 2,
-                    "title": "Money Game",
+                    "title": "Money Game Hard",
                     "launch": "canadianMoneyHard",
                     "totalQuestions": 5
                 },

@@ -43,6 +43,13 @@
             margin: 20px 0;
             font-weight: bold;
         }
+        .word-hint {
+            display: inline-block;
+            font-size: 1.4em;
+            letter-spacing: 0.08em;
+            color: #0d5f9f;
+            margin-bottom: 8px;
+        }
         .ocean-container {
             background: linear-gradient(180deg, #87CEEB 0%, #4682B4 100%);
             border: 3px solid #1E90FF;
@@ -400,9 +407,16 @@
         let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
         let isFirstAttempt = true;
         let fishElements = [];
+        let gameMode = 'hard';
+
+        function getGameMode() {
+            const mode = new URLSearchParams(window.location.search).get('mode');
+            return ['easy', 'hard', 'extreme'].includes(mode) ? mode : 'hard';
+        }
 
         async function loadWords() {
             try {
+                gameMode = getGameMode();
                 const prep = await SpellingPool.prepareSession();
                 ttsLanguage = prep.ttsLanguage;
                 if (prep.cfg.poolActive) {
@@ -438,8 +452,11 @@
             caughtLetters = [];
             isFirstAttempt = true;
             fishElements = [];
-            document.getElementById('wordDisplay').innerHTML = 
-                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            const hintHtml = gameMode === 'easy'
+                ? `<div class="word-hint">${currentWord.word}</div>`
+                : '';
+            document.getElementById('wordDisplay').innerHTML =
+                `${hintHtml}<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
             document.getElementById('nextButton').classList.add('hidden');
@@ -470,10 +487,15 @@
             existingFish.forEach(fish => fish.remove());
             
             const letters = currentWord.word.split('');
-            const extra = 'abcdefghijklmnopqrstuvwxyz'.split('')
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 4);
-            const letterPool = [...letters, ...extra].sort(() => Math.random() - 0.5);
+            let letterPool = [...letters];
+            if (gameMode !== 'easy') {
+                const extraCount = gameMode === 'extreme' ? 8 : 4;
+                const extra = 'abcdefghijklmnopqrstuvwxyzéèàùç'.split('')
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, extraCount);
+                letterPool = [...letters, ...extra];
+            }
+            letterPool.sort(() => Math.random() - 0.5);
             
             letterPool.forEach((letter, index) => {
                 const fish = document.createElement('div');

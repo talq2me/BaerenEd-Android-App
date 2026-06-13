@@ -86,7 +86,8 @@
                     "title": "Word Fishing FR",
                     "launch": "wordFishing",
                     "webGame": true,
-                    "displayDays": "wed,sat"
+                    "displayDays": "wed,sat",
+                    "easydays": "wed,sat"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
@@ -300,7 +301,7 @@
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=circulatorySystem",
                     "stars": 3,
-                    "title": "Diagram Labeler",
+                    "title": "Diagram Labeler: Circulatory System (Required)",
                     "launch": "diagramLabeler",
                     "disable": "Dec 31, 2099",
                     "webGame": true
@@ -714,7 +715,8 @@
                     "launch": "wordFishing",
                     "disable": "Dec 31, 2099",
                     "webGame": true,
-                    "displayDays": "wed,sat"
+                    "displayDays": "wed,sat",
+                    "easydays": "wed,sat"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
@@ -748,8 +750,24 @@
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=circulatorySystem",
-                    "stars": 1,
-                    "title": "Diagram Labeler (Practice)",
+                    "stars": 3,
+                    "title": "Diagram Labeler: Circulatory System",
+                    "launch": "diagramLabeler",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=digestiveSystem",
+                    "stars": 4,
+                    "title": "Diagram Labeler: Digestive System",
+                    "launch": "diagramLabeler",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/diagramLabeler.html?diagram=skeletalSystem",
+                    "stars": 6,
+                    "title": "Diagram Labeler: Skeletal System",
                     "launch": "diagramLabeler",
                     "disable": "Dec 31, 2099",
                     "webGame": true
