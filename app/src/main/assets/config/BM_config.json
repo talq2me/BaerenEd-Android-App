@@ -20,7 +20,7 @@
             }
         ]
     },
-    "version": "2026-06-07",
+    "version": "2026-06-14",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -537,13 +537,6 @@
                     "stars": 0,
                     "disable": "Dec 31, 2099",
                     "displayDays": "thu,fri,sat,sun,mon,tue"
-                },
-                {
-                    "id": "bm_math_club",
-                    "done": false,
-                    "label": "Math Club",
-                    "stars": 0,
-                    "disable": "Dec 31, 2099"
                 }
             ],
             "title": "Checklist",
