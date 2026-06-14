@@ -16,7 +16,7 @@
             }
         ]
     },
-    "version": "2026-06-07",
+    "version": "2026-06-14",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -86,8 +86,8 @@
                     "title": "Word Fishing FR",
                     "launch": "wordFishing",
                     "webGame": true,
-                    "displayDays": "wed,sat",
-                    "easydays": "wed,sat"
+                    "easydays": "wed,sat",
+                    "displayDays": "wed,sat"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
@@ -405,8 +405,8 @@
                     "stars": 3,
                     "title": "Multi-Digit Add/Subtract",
                     "launch": "multiDigitAddSubtract",
-                    "disable": "Dec 31, 2099",
                     "webGame": true,
+                    "displayDays": "mon,wed,fri",
                     "totalQuestions": 5
                 },
                 {
@@ -715,8 +715,8 @@
                     "launch": "wordFishing",
                     "disable": "Dec 31, 2099",
                     "webGame": true,
-                    "displayDays": "wed,sat",
-                    "easydays": "wed,sat"
+                    "easydays": "wed,sat",
+                    "displayDays": "wed,sat"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
@@ -871,7 +871,6 @@
                     "stars": 1,
                     "title": "Multi-Digit Add/Subtract (Practice)",
                     "launch": "multiDigitAddSubtract",
-                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "totalQuestions": 1
                 },
