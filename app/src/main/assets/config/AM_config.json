@@ -401,7 +401,7 @@
                     "webGame": true
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html?mode=add",
                     "stars": 3,
                     "title": "Multi-Digit Add/Subtract",
                     "launch": "multiDigitAddSubtract",
@@ -867,7 +867,7 @@
                     "webGame": true
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitAddSubtract.html?mode=add",
                     "stars": 1,
                     "title": "Multi-Digit Add/Subtract (Practice)",
                     "launch": "multiDigitAddSubtract",

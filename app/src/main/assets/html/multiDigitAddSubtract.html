@@ -408,6 +408,10 @@
         */
         const urlParams = new URLSearchParams(window.location.search);
         const totalQuestionsParam = urlParams.get('totalQuestions');
+        const modeParam = (urlParams.get('mode') || 'both').toLowerCase();
+        const problemMode = modeParam === 'add' || modeParam === 'addition' ? 'add'
+            : modeParam === 'subtract' || modeParam === 'subtraction' ? 'subtract'
+            : 'both';
         let borrows = {}; // Track which positions have been borrowed
         let carries = {}; // Track which positions have carries
         let answerInputs = []; // Track answer input fields
@@ -460,62 +464,69 @@
             }
         }
 
+        function generateAdditionProblem() {
+            const numDigits = Math.floor(Math.random() * 3) + 2; // 2-4 digits
+            const num1 = generateNumber(numDigits);
+            const num2 = generateNumber(numDigits);
+            return {
+                question: 'Add these numbers:',
+                num1,
+                num2,
+                operation: 'add',
+                answer: num1 + num2
+            };
+        }
+
+        function generateSubtractionProblem() {
+            const numDigits = Math.floor(Math.random() * 3) + 2; // 2-4 digits
+            let num1 = generateNumber(numDigits);
+            let num2 = generateNumber(numDigits);
+
+            if (num2 > num1) {
+                [num1, num2] = [num2, num1];
+            }
+
+            const minNum2 = Math.max(1, Math.floor(num1 * 0.1));
+            if (num2 < minNum2) {
+                num2 = minNum2;
+            }
+            if (num1 <= num2) {
+                num2 = Math.max(1, num1 - 1);
+            }
+
+            const difference = num1 - num2;
+            if (num1 <= num2 || difference <= 0) {
+                return null;
+            }
+
+            return {
+                question: 'Subtract these numbers:',
+                num1,
+                num2,
+                operation: 'subtract',
+                answer: difference
+            };
+        }
+
         function generateProblems() {
             problems = [];
-            
-            // Generate addition problems (2-4 digits, grade 4 appropriate)
-            for (let i = 0; i < 15; i++) {
-                const numDigits = Math.floor(Math.random() * 3) + 2; // 2-4 digits
-                const num1 = generateNumber(numDigits);
-                const num2 = generateNumber(numDigits);
-                const sum = num1 + num2;
-                
-                problems.push({
-                    question: `Add these numbers:`,
-                    num1: num1,
-                    num2: num2,
-                    operation: 'add',
-                    answer: sum
-                });
-            }
-            
-            // Generate subtraction problems (2-4 digits, ensure num1 > num2)
-            for (let i = 0; i < 15; i++) {
-                const numDigits = Math.floor(Math.random() * 3) + 2; // 2-4 digits
-                // Generate two numbers, then ensure larger is on top
-                let num1 = generateNumber(numDigits);
-                let num2 = generateNumber(numDigits);
-                
-                // Ensure num1 >= num2 (larger number on top)
-                if (num2 > num1) {
-                    [num1, num2] = [num2, num1]; // Swap them
-                }
-                
-                // Make sure num2 is not too small (at least 10% of num1 for reasonable problems)
-                const minNum2 = Math.max(1, Math.floor(num1 * 0.1));
-                if (num2 < minNum2) {
-                    num2 = minNum2;
-                }
-                
-                // Final check: ensure num1 > num2
-                if (num1 <= num2) {
-                    num2 = Math.max(1, num1 - 1);
-                }
-                
-                const difference = num1 - num2;
-                
-                // Ensure we have a valid subtraction problem
-                if (num1 > num2 && difference > 0) {
-                    problems.push({
-                        question: `Subtract these numbers:`,
-                        num1: num1,
-                        num2: num2,
-                        operation: 'subtract',
-                        answer: difference
-                    });
+            const poolSize = problemMode === 'both' ? 15 : 30;
+
+            if (problemMode === 'add' || problemMode === 'both') {
+                for (let i = 0; i < poolSize; i++) {
+                    problems.push(generateAdditionProblem());
                 }
             }
-            
+
+            if (problemMode === 'subtract' || problemMode === 'both') {
+                for (let i = 0; i < poolSize; i++) {
+                    const problem = generateSubtractionProblem();
+                    if (problem) {
+                        problems.push(problem);
+                    }
+                }
+            }
+
             shuffleArray(problems);
             maxQuestions = Math.min(problems.length, maxQuestions);
         }
