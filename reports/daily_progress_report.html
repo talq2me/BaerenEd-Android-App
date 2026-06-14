@@ -449,6 +449,13 @@
                 }
             }
 
+            const checklistItems = {};
+            for (const [itemKey, item] of Object.entries(allChecklistItems)) {
+                if (isTaskVisible(item.showdays, item.hidedays, item.displayDays, item.disable)) {
+                    checklistItems[itemKey] = item;
+                }
+            }
+
             // Calculate completion metrics using filtered tasks
             const requiredTaskKeys = Object.keys(requiredTasks);
             const completedRequired = requiredTaskKeys.filter(key => {
@@ -529,12 +536,12 @@
             const checklistItemsList = document.getElementById('checklistItems');
             checklistItemsList.innerHTML = '';
             
-            const checklistItemKeys = Object.keys(allChecklistItems);
+            const checklistItemKeys = Object.keys(checklistItems);
             if (checklistItemKeys.length === 0) {
                 checklistItemsList.innerHTML = '<li class="task-item"><span class="task-name">No checklist items found</span></li>';
             } else {
                 checklistItemKeys.forEach(itemKey => {
-                    const item = allChecklistItems[itemKey];
+                    const item = checklistItems[itemKey];
                     const isComplete = item && (item.done === true || item.completed === true);
                     const stars = item?.stars || 0;
 

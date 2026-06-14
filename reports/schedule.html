@@ -354,22 +354,23 @@
                 const data = await response.json();
                 
                 if (!data || data.length === 0) {
-                    return { kid, tasks: {} };
+                    return { kid, tasks: {}, checklistItems: {} };
                 }
 
                 return { 
                     kid, 
-                    tasks: data[0].required_tasks || {}
+                    tasks: data[0].required_tasks || {},
+                    checklistItems: data[0].checklist_items || {}
                 };
             } catch (error) {
                 console.error(`Error fetching data for ${kid}:`, error);
-                return { kid, tasks: {}, error: error.message };
+                return { kid, tasks: {}, checklistItems: {}, error: error.message };
             }
         }
 
         // Organizes tasks by day of the week
         // Returns schedule with days ordered starting from current day (0 = today, 1 = tomorrow, etc.)
-        function organizeTasksByDay(tasks) {
+        function organizeTasksByDay(tasks, checklistItems) {
             const schedule = {
                 0: [], // Today
                 1: [], // Tomorrow
@@ -388,6 +389,18 @@
                         name: taskName,
                         ...task,
                         type: 'task'
+                    });
+                });
+            }
+
+            // Add checklist items (only on days where they are visible)
+            for (const [itemName, item] of Object.entries(checklistItems || {})) {
+                const visibleDays = getVisibleDaysForTask(item);
+                visibleDays.forEach(dayIndex => {
+                    schedule[dayIndex].push({
+                        name: itemName,
+                        ...item,
+                        type: 'checklist'
                     });
                 });
             }
@@ -522,15 +535,15 @@
                 }
 
                 // Organize tasks by day for each kid
-                const amSchedule = organizeTasksByDay(amData.tasks);
-                const bmSchedule = organizeTasksByDay(bmData.tasks);
+                const amSchedule = organizeTasksByDay(amData.tasks, amData.checklistItems);
+                const bmSchedule = organizeTasksByDay(bmData.tasks, bmData.checklistItems);
 
                 // Create combined schedule display
                 const scheduleContent = document.getElementById('scheduleContent');
                 scheduleContent.innerHTML = '';
 
-                const amHasData = Object.keys(amData.tasks).length > 0;
-                const bmHasData = Object.keys(bmData.tasks).length > 0;
+                const amHasData = Object.keys(amData.tasks).length > 0 || Object.keys(amData.checklistItems || {}).length > 0;
+                const bmHasData = Object.keys(bmData.tasks).length > 0 || Object.keys(bmData.checklistItems || {}).length > 0;
 
                 if (amHasData || bmHasData) {
                     scheduleContent.appendChild(createCombinedSchedule(amSchedule, bmSchedule));

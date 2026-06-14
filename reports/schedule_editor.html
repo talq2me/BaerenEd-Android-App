@@ -122,6 +122,8 @@
             font-size: 0.8rem;
         }
         .icon-btn:hover { border-color: #667eea; color: #667eea; }
+        .icon-btn.danger { border-color: #e53935; color: #e53935; }
+        .icon-btn.danger:hover { background: #ffebee; }
         .toggle {
             position: relative;
             width: 48px;
@@ -245,7 +247,7 @@
 
             <div class="card">
                 <h2>Checklist items</h2>
-                <p class="hint">Items with 0 stars still appear on the checklist. Toggle off uses the same until/always rules.</p>
+                <p class="hint">Items with 0 stars still appear on the checklist. Toggle off uses the same until/always rules. Use 🗑 to delete an item (saved to database on Save).</p>
                 <div id="checklistList"></div>
                 <div class="add-row">
                     <input type="text" id="newChecklistLabel" placeholder="New checklist label">
@@ -327,6 +329,8 @@
         let catalog = { required: [], practice: [], checklist: [] };
 
         let modalCtx = { type: null, key: null };
+        /** Labels removed this session; kept out of catalog until save + reload */
+        let deletedChecklistLabels = new Set();
 
         function supabaseUrl() { return localStorage.getItem('supabaseUrl'); }
         function supabaseKey() { return localStorage.getItem('supabaseKey'); }
@@ -576,6 +580,9 @@
         function buildCatalog() {
             catalog = { required: [], practice: [], checklist: [] };
 
+            const dbChecklist = dbRow.checklist_items || {};
+            const dbHasChecklist = Object.keys(dbChecklist).length > 0;
+
             const useMaster = scheduleMaster
                 && (scheduleMaster.required?.length || scheduleMaster.practice?.length || scheduleMaster.checklist?.length);
 
@@ -589,6 +596,8 @@
                 for (const it of scheduleMaster.checklist || []) {
                     const label = it.label;
                     if (!label) continue;
+                    if (dbHasChecklist && !(label in dbChecklist)) continue;
+                    if (deletedChecklistLabels.has(label)) continue;
                     const key = it.scheduleKey || taskScheduleKey(it, 'checklist');
                     if (catalog.checklist.some(e => e.key === key)) continue;
                     const existing = dbRow.checklist_items[label] || {};
@@ -619,6 +628,8 @@
                         for (const it of sec.items) {
                             const label = it.label;
                             if (!label) continue;
+                            if (dbHasChecklist && !(label in dbChecklist)) continue;
+                            if (deletedChecklistLabels.has(label)) continue;
                             const key = taskScheduleKey(it, 'checklist');
                             if (catalog.checklist.some(e => e.key === key)) continue;
                             const existing = dbRow.checklist_items[label] || {};
@@ -663,6 +674,7 @@
                 }
             }
             for (const [label, data] of Object.entries(dbRow.checklist_items || {})) {
+                if (deletedChecklistLabels.has(label)) continue;
                 if (!catalog.checklist.find(x => x.title === label)) {
                     catalog.checklist.push({
                         key: `legacy|checklist|${label}`,
@@ -746,6 +758,12 @@
                 const qBlock = hasTotalQuestions(entry)
                     ? `<label style="font-size:0.75rem;color:#666;">Q<input type="number" min="1" max="99" value="${entry.data.totalQuestions ?? entry.config.totalQuestions ?? ''}" data-field="totalQuestions" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>`
                     : '';
+                const deleteBtn = bucket === 'checklist'
+                    ? `<button type="button" class="icon-btn danger" data-action="delete" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" title="Delete from database">🗑</button>`
+                    : '';
+                if (bucket === 'checklist') {
+                    row.style.gridTemplateColumns = '52px 1fr auto auto auto auto';
+                }
                 row.innerHTML = `
                     <label class="toggle" title="Schedule on/off">
                         <input type="checkbox" ${on ? 'checked' : ''} data-action="toggle" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}">
@@ -758,6 +776,7 @@
                     <label style="font-size:0.75rem;color:#666;">⭐<input type="number" min="0" max="20" value="${starsVal}" data-field="stars" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>
                     ${qBlock}
                     <button type="button" class="icon-btn" data-action="days" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" ${on ? '' : 'disabled'}>📅 Days</button>
+                    ${deleteBtn}
                 `;
                 el.appendChild(row);
             });
@@ -771,6 +790,18 @@
             el.querySelectorAll('input[data-field]').forEach(inp => {
                 inp.addEventListener('change', () => onFieldChange(inp.dataset.bucket, inp.dataset.key, inp.dataset.field, inp.value));
             });
+            el.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', () => onDeleteChecklistItem(btn.dataset.key));
+            });
+        }
+
+        function onDeleteChecklistItem(key) {
+            const entry = findEntry('checklist', key);
+            if (!entry) return;
+            if (!confirm(`Delete checklist item "${entry.title}"? This removes it from the database when you save.`)) return;
+            deletedChecklistLabels.add(entry.title);
+            catalog.checklist = catalog.checklist.filter(e => entryLookupKey(e) !== key);
+            refreshUI();
         }
 
         function escapeHtml(s) {
@@ -909,6 +940,7 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('editorContent').style.display = 'none';
             hideMessages();
+            deletedChecklistLabels = new Set();
             try {
                 const [cfgRes, masterRes, dbRes] = await Promise.all([
                     fetch(`${CONFIG_BASE}${profile}_config.json`),
@@ -990,6 +1022,7 @@
                 document.getElementById('success').style.display = 'block';
                 document.getElementById('success').textContent =
                     `Saved schedule for ${profile}.${githubNote}`;
+                deletedChecklistLabels = new Set();
             } catch (e) {
                 showError('Save failed: ' + e.message);
             } finally {
