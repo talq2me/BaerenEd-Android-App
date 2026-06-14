@@ -564,16 +564,80 @@
             return merged;
         }
 
+        function mergeChecklistItem(label, cfgItem, dbItems) {
+            const db = dbItems[label];
+            const cfg = cfgItem || {};
+            const merged = {
+                done: db?.done === true,
+                stars: db?.stars ?? cfg.stars ?? 0,
+                id: db?.id ?? cfg.id
+            };
+            const hasDbRow = db && Object.keys(db).length > 0;
+            for (const k of ['disable', 'displayDays', 'showdays', 'hidedays']) {
+                if (hasDbRow) {
+                    if (k in db && db[k] !== undefined && db[k] !== null && db[k] !== '') {
+                        merged[k] = db[k];
+                    }
+                } else if (cfg[k] != null && cfg[k] !== '') {
+                    merged[k] = cfg[k];
+                }
+            }
+            return merged;
+        }
+
         function pushCatalogEntry(bucket, sectionKey, taskDef, dbTasks) {
             const title = taskDef.title || taskDef.label;
             if (!title) return;
             const key = taskDef.scheduleKey || taskScheduleKey(taskDef, sectionKey);
-            if (catalog[bucket].some(e => e.key === key)) return;
+            if (catalog[bucket].some(e => e.key === key || e.title === title)) return;
             catalog[bucket].push({
                 key,
                 title,
                 config: taskDef,
                 data: mergeTask(title, taskDef, dbTasks)
+            });
+        }
+
+        /** One row per title; DB schedule fields win over config defaults. */
+        function dedupeCatalogBucket(bucketName) {
+            const dbMap = bucketName === 'required' ? dbRow.required_tasks
+                : bucketName === 'practice' ? dbRow.practice_tasks
+                : dbRow.checklist_items;
+            const byTitle = new Map();
+            for (const entry of catalog[bucketName]) {
+                const prev = byTitle.get(entry.title);
+                if (!prev) {
+                    byTitle.set(entry.title, entry);
+                    continue;
+                }
+                const keep = isScheduleOn(entry.data) && !isScheduleOn(prev.data) ? entry : prev;
+                byTitle.set(entry.title, keep);
+            }
+            catalog[bucketName] = Array.from(byTitle.values()).map(entry => {
+                if (bucketName === 'checklist') {
+                    return {
+                        ...entry,
+                        data: mergeChecklistItem(entry.title, entry.config, dbMap)
+                    };
+                }
+                return {
+                    ...entry,
+                    data: mergeTask(entry.title, entry.config, dbMap)
+                };
+            });
+        }
+
+        function pushChecklistCatalogEntry(it, dbChecklist) {
+            const label = it.label;
+            if (!label) return;
+            if (deletedChecklistLabels.has(label)) return;
+            const key = it.scheduleKey || taskScheduleKey(it, 'checklist');
+            if (catalog.checklist.some(e => e.key === key || e.title === label)) return;
+            catalog.checklist.push({
+                key,
+                title: label,
+                config: it,
+                data: mergeChecklistItem(label, it, dbChecklist)
             });
         }
 
@@ -594,27 +658,8 @@
                     pushCatalogEntry('practice', 'practice', t, dbRow.practice_tasks);
                 }
                 for (const it of scheduleMaster.checklist || []) {
-                    const label = it.label;
-                    if (!label) continue;
-                    if (dbHasChecklist && !(label in dbChecklist)) continue;
-                    if (deletedChecklistLabels.has(label)) continue;
-                    const key = it.scheduleKey || taskScheduleKey(it, 'checklist');
-                    if (catalog.checklist.some(e => e.key === key)) continue;
-                    const existing = dbRow.checklist_items[label] || {};
-                    catalog.checklist.push({
-                        key,
-                        title: label,
-                        config: it,
-                        data: {
-                            done: existing.done === true,
-                            stars: existing.stars ?? it.stars ?? 0,
-                            id: existing.id ?? it.id,
-                            showdays: existing.showdays ?? it.showdays,
-                            hidedays: existing.hidedays ?? it.hidedays,
-                            displayDays: existing.displayDays ?? it.displayDays,
-                            disable: existing.disable ?? it.disable
-                        }
-                    });
+                    if (dbHasChecklist && !(it.label in dbChecklist)) continue;
+                    pushChecklistCatalogEntry(it, dbChecklist);
                 }
             } else if (configJson?.sections) {
                 for (const sec of configJson.sections) {
@@ -626,27 +671,8 @@
                     }
                     if (sec.id === 'checklist' && sec.items?.length) {
                         for (const it of sec.items) {
-                            const label = it.label;
-                            if (!label) continue;
-                            if (dbHasChecklist && !(label in dbChecklist)) continue;
-                            if (deletedChecklistLabels.has(label)) continue;
-                            const key = taskScheduleKey(it, 'checklist');
-                            if (catalog.checklist.some(e => e.key === key)) continue;
-                            const existing = dbRow.checklist_items[label] || {};
-                            catalog.checklist.push({
-                                key,
-                                title: label,
-                                config: it,
-                                data: {
-                                    done: existing.done === true,
-                                    stars: existing.stars ?? it.stars ?? 0,
-                                    id: existing.id ?? it.id,
-                                    showdays: existing.showdays ?? it.showdays,
-                                    hidedays: existing.hidedays ?? it.hidedays,
-                                    displayDays: existing.displayDays ?? it.displayDays,
-                                    disable: existing.disable ?? it.disable
-                                }
-                            });
+                            if (dbHasChecklist && !(it.label in dbChecklist)) continue;
+                            pushChecklistCatalogEntry(it, dbChecklist);
                         }
                     }
                 }
@@ -684,6 +710,10 @@
                     });
                 }
             }
+
+            dedupeCatalogBucket('required');
+            dedupeCatalogBucket('practice');
+            dedupeCatalogBucket('checklist');
 
             const sortOnFirst = (a, b) => {
                 const ao = isScheduleOn(a.data) ? 0 : 1;
