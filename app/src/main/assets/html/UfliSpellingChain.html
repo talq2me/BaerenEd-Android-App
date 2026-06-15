@@ -355,15 +355,22 @@
         }
 
         /* ---- SPELL MODE (irregular + chain seeds) ---- */
+        function resolveSpellTarget(step, correctChoiceTexts) {
+            const raw = String(step.word || step.question?.text || '').trim().toLowerCase();
+            const fromChoices = correctChoiceTexts.join('').toLowerCase();
+            // Authoring placeholders like "sun + set -> ?", "fill -> ?", "no -> ?"
+            if (!raw || raw.includes('?')) return fromChoices;
+            return raw;
+        }
+
         function startSpellStep(step) {
             locked = false;
             showChainUi(false);
-            spellTarget = (step.word || step.question?.text || '').toLowerCase();
+            spellCorrect = (step.correctChoices || []).map(c => c.text);
+            spellTarget = resolveSpellTarget(step, spellCorrect);
             currentPrompt = step.prompt || step.prompt?.text || `Build the word ${spellTarget}.`;
             if (typeof step.prompt === 'object') currentPrompt = step.prompt.text;
             renderPrompt(currentPrompt, spellTarget);
-
-            spellCorrect = (step.correctChoices || []).map(c => c.text);
             const extras = (step.extraChoices || []).map(c => c.text);
             const letters = shuffle([...spellCorrect, ...extras]);
             spellAnswers = [];

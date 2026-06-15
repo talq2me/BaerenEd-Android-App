@@ -7,7 +7,7 @@
       "id": "spell-1",
       "steps": [
         {
-          "word": "sun + set -> ?",
+          "word": "sunset",
           "prompt": "Say sunset. Build this compound word. First part sounds like sun, second part sounds like set.",
           "correctChoices": [
             {
@@ -45,7 +45,7 @@
       "id": "spell-2",
       "steps": [
         {
-          "word": "hot + dog -> ?",
+          "word": "hotdog",
           "prompt": "Say hotdog. Build this compound word. Hot plus dog smashed together.",
           "correctChoices": [
             {
@@ -83,7 +83,7 @@
       "id": "spell-3",
       "steps": [
         {
-          "word": "kick + ball -> ?",
+          "word": "kickball",
           "prompt": "Say kickball. Build this compound word. Kick plus ball.",
           "correctChoices": [
             {
