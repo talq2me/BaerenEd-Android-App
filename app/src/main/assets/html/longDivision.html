@@ -487,6 +487,21 @@
             }
             container.appendChild(bracketRow);
 
+            function appendRowLead(row, dividendCol) {
+                const lead = document.createElement('div');
+                lead.className = 'spacer-left';
+                lead.style.width = leftOffsetPx + 'px';
+                lead.style.minWidth = leftOffsetPx + 'px';
+                row.appendChild(lead);
+                const numSpacers = quotientSpacers + dividendCol;
+                for (let s = 0; s < numSpacers; s++) {
+                    const sp = document.createElement('div');
+                    sp.className = 'spacer';
+                    row.appendChild(sp);
+                }
+                return numSpacers;
+            }
+
             // ---- Steps: product row, subtraction line, then remainder + bring-down row
             const stepProductInputs = [];
             const stepRemainderInputs = [];
@@ -494,17 +509,7 @@
                 const productStr = String(step.product);
                 const row = document.createElement('div');
                 row.className = 'division-row';
-                const stepLeftSpacer = document.createElement('div');
-                stepLeftSpacer.className = 'spacer-left';
-                stepLeftSpacer.style.width = leftOffsetPx + 'px';
-                stepLeftSpacer.style.minWidth = leftOffsetPx + 'px';
-                row.appendChild(stepLeftSpacer);
-                const numSpacers = step.startCol;
-                for (let s = 0; s < numSpacers; s++) {
-                    const sp = document.createElement('div');
-                    sp.className = 'spacer';
-                    row.appendChild(sp);
-                }
+                appendRowLead(row, step.startCol);
                 const productInputs = [];
                 for (let d = 0; d < productStr.length; d++) {
                     const input = document.createElement('input');
@@ -526,16 +531,7 @@
 
                 const lineRow = document.createElement('div');
                 lineRow.className = 'division-row';
-                const lineLeftSpacer = document.createElement('div');
-                lineLeftSpacer.className = 'spacer-left';
-                lineLeftSpacer.style.width = leftOffsetPx + 'px';
-                lineLeftSpacer.style.minWidth = leftOffsetPx + 'px';
-                lineRow.appendChild(lineLeftSpacer);
-                for (let s = 0; s < numSpacers; s++) {
-                    const sp = document.createElement('div');
-                    sp.className = 'spacer';
-                    lineRow.appendChild(sp);
-                }
+                appendRowLead(lineRow, step.startCol);
                 const line = document.createElement('div');
                 line.className = 'division-line';
                 line.style.width = (productStr.length * digitWidth) + 'px';
@@ -545,16 +541,7 @@
                 if (step.remainderStr !== undefined) {
                     const remRow = document.createElement('div');
                     remRow.className = 'division-row';
-                    const remLeftSpacer = document.createElement('div');
-                    remLeftSpacer.className = 'spacer-left';
-                    remLeftSpacer.style.width = leftOffsetPx + 'px';
-                    remLeftSpacer.style.minWidth = leftOffsetPx + 'px';
-                    remRow.appendChild(remLeftSpacer);
-                    for (let s = 0; s < step.remainderStartCol; s++) {
-                        const sp = document.createElement('div');
-                        sp.className = 'spacer';
-                        remRow.appendChild(sp);
-                    }
+                    appendRowLead(remRow, step.remainderStartCol);
                     const remInputs = [];
                     for (let d = 0; d < step.remainderStr.length; d++) {
                         const input = document.createElement('input');
@@ -591,13 +578,40 @@
                 }
             });
 
-            // Build allInputs: q0, product0, remainder0, q1, product1, remainder1, ..., remainder digits
+            // Final remainder row below the last subtraction
+            const finalRemainderInputs = [];
+            if (steps.length > 0) {
+                const lastStep = steps[steps.length - 1];
+                const finalStartCol = lastStep.rightCol - remainderStr.length + 1;
+                const finalRow = document.createElement('div');
+                finalRow.className = 'division-row';
+                appendRowLead(finalRow, finalStartCol);
+                for (let d = 0; d < remainderStr.length; d++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'digit-cell input';
+                    input.setAttribute('readonly', 'readonly');
+                    input.setAttribute('inputmode', 'none');
+                    input.readOnly = true;
+                    input.maxLength = 1;
+                    input.dataset.correctValue = remainderStr[d];
+                    input.style.textAlign = 'center';
+                    input.addEventListener('input', (e) => handleAnyInput(e));
+                    input.addEventListener('keydown', (e) => handleKeyDown(e, input));
+                    finalRow.appendChild(input);
+                    finalRemainderInputs.push(input);
+                }
+                container.appendChild(finalRow);
+            }
+
+            // Build allInputs: q0, product0, remainder0, ..., final remainder, then top R remainder
             allInputs = [];
             for (let i = 0; i < steps.length; i++) {
                 allInputs.push(quotientInputs[i]);
                 stepProductInputs[i].forEach(inp => allInputs.push(inp));
                 stepRemainderInputs[i].forEach(inp => allInputs.push(inp));
             }
+            finalRemainderInputs.forEach(inp => allInputs.push(inp));
             for (let i = 0; i < remainderInputs.length; i++) {
                 allInputs.push(remainderInputs[i]);
             }

@@ -184,6 +184,11 @@
             margin-top: 5px;
             padding-top: 5px;
         }
+
+        .addition-carry-row {
+            height: 40px;
+            margin-bottom: 2px;
+        }
         
         .partial-row {
             margin-top: 2px;
@@ -532,12 +537,7 @@
                 return input;
             }
 
-            function carryValForTopIndex(part, topDigitIndex) {
-                if (topDigitIndex === -1) return part.carries[-1];
-                return part.carries[topDigitIndex];
-            }
-
-            function buildCarryRow(part, carryInputsByTopIndex) {
+            function buildCarryRow(part, carryInputsByTopIndex, partialStartCol) {
                 const row = document.createElement('div');
                 row.className = 'math-row';
                 row.style.height = '40px';
@@ -546,21 +546,37 @@
                     const cell = document.createElement('div');
                     cell.style.width = '50px';
                     cell.style.position = 'relative';
-                    const topDigitIndex = c - topStartColResolved;
-                    const carryVal = carryValForTopIndex(part, topDigitIndex);
-                    if (carryVal !== undefined && carryVal !== null) {
-                        const input = createCarryInput(carryVal);
-                        carryInputsByTopIndex[topDigitIndex] = input;
-                        cell.appendChild(input);
-                    }
                     row.appendChild(cell);
+                }
+                function placeCarry(topDigitIndex, carryVal) {
+                    let col;
+                    if (partialStartCol === null) {
+                        col = topStartColResolved + topDigitIndex;
+                    } else {
+                        if (topDigitIndex === -1) {
+                            col = partialStartCol + part.digits.length - topLen - 1;
+                        } else {
+                            col = partialStartCol + (part.digits.length - 1) - (topLen - 1 - topDigitIndex);
+                        }
+                    }
+                    if (col < 0 || col >= totalCols) return;
+                    const input = createCarryInput(carryVal);
+                    carryInputsByTopIndex[topDigitIndex] = input;
+                    row.children[col].appendChild(input);
+                }
+                for (const key of Object.keys(part.carries)) {
+                    const topDigitIndex = parseInt(key, 10);
+                    const carryVal = part.carries[key];
+                    if (carryVal !== undefined && carryVal !== null) {
+                        placeCarry(topDigitIndex, carryVal);
+                    }
                 }
                 return row;
             }
 
             const firstPartial = partials[0];
             const carryInputsByTopIndex0 = {};
-            container.appendChild(buildCarryRow(firstPartial, carryInputsByTopIndex0));
+            container.appendChild(buildCarryRow(firstPartial, carryInputsByTopIndex0, null));
             
             // Top number row
             const topRow = document.createElement('div');
@@ -618,7 +634,8 @@
                     const part = partials[p];
                     if (p === 1) {
                         const carryInputsByTopIndex1 = {};
-                        container.appendChild(buildCarryRow(part, carryInputsByTopIndex1));
+                        const partialStartCol = totalCols - part.digits.length - part.offset;
+                        container.appendChild(buildCarryRow(part, carryInputsByTopIndex1, partialStartCol));
                         carryInputsByTopIndexPerRow[1] = carryInputsByTopIndex1;
                     }
 
@@ -674,44 +691,46 @@
             const additionCarryInputsByCol = {};
             if (partials.length > 1) {
                 const addCarries = computeAdditionCarries(partials[0], partials[1], totalCols, finalAnswer.length);
-                additionCarryRow = document.createElement('div');
-                additionCarryRow.className = 'math-row';
-                additionCarryRow.style.height = '40px';
-                additionCarryRow.style.marginBottom = '2px';
-                additionCarryRow.style.display = 'none';
-                additionCarryRow.id = 'additionCarryRow';
-                for (let c = 0; c < totalCols; c++) {
-                    const cell = document.createElement('div');
-                    cell.style.width = '50px';
-                    // addCarries[col] = carry from adding column col; display it above column col-1 (cell at c = totalCols - finalAnswer.length + col - 1).
-                    // So col = c - (totalCols - finalAnswer.length) + 1; show addCarries[col] and key additionCarryInputsByCol[col-1] for "carry above column col-1".
-                    const colAdded = c - (totalCols - finalAnswer.length) + 1;
-                    if (colAdded >= 1 && colAdded < finalAnswer.length && addCarries[colAdded] !== undefined) {
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.className = 'digit-cell input addition-carry-input';
-                        input.setAttribute('readonly', 'readonly');
-                        input.setAttribute('inputmode', 'none');
-                        input.readOnly = true;
-                        input.style.width = '40px';
-                        input.style.height = '35px';
-                        input.style.fontSize = '1.2rem';
-                        input.maxLength = 1;
-                        input.dataset.correctValue = String(addCarries[colAdded]);
-                        input.dataset.additionCarry = 'true';
-                        input.style.textAlign = 'center';
-                        input.addEventListener('input', (e) => handleAnyInput(e));
-                        additionCarryInputsByCol[colAdded - 1] = input;  // key by column above which we show
-                        cell.appendChild(input);
+                const answerStartCol = totalCols - finalAnswer.length;
+                if (Object.keys(addCarries).length > 0) {
+                    additionCarryRow = document.createElement('div');
+                    additionCarryRow.className = 'math-row addition-carry-row';
+                    additionCarryRow.style.display = 'none';
+                    additionCarryRow.id = 'additionCarryRow';
+                    for (let c = 0; c < totalCols; c++) {
+                        const cell = document.createElement('div');
+                        cell.style.width = '50px';
+                        additionCarryRow.appendChild(cell);
                     }
-                    additionCarryRow.appendChild(cell);
+                    for (const key of Object.keys(addCarries)) {
+                        const colAdded = parseInt(key, 10);
+                        const displayCol = answerStartCol + colAdded - 1;
+                        if (displayCol >= 0 && displayCol < totalCols) {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.className = 'digit-cell input addition-carry-input';
+                            input.setAttribute('readonly', 'readonly');
+                            input.setAttribute('inputmode', 'none');
+                            input.readOnly = true;
+                            input.style.width = '40px';
+                            input.style.height = '35px';
+                            input.style.fontSize = '1.2rem';
+                            input.maxLength = 1;
+                            input.dataset.correctValue = String(addCarries[colAdded]);
+                            input.dataset.additionCarry = 'true';
+                            input.style.textAlign = 'center';
+                            input.addEventListener('input', (e) => handleAnyInput(e));
+                            additionCarryInputsByCol[colAdded - 1] = input;
+                            additionCarryRow.children[displayCol].appendChild(input);
+                        }
+                    }
+                    container.appendChild(additionCarryRow);
                 }
-                container.appendChild(additionCarryRow);
             }
             
-            // Final answer row
+            // Final answer row (no extra top border — lineRow2 already provides the separator)
             const answerRow = document.createElement('div');
-            answerRow.className = isSingleDigitMultiplier ? 'math-row' : 'math-row answer-row';
+            answerRow.className = 'math-row';
             const answerSpacers = totalCols - finalAnswer.length;
             for (let s = 0; s < answerSpacers; s++) {
                 const sp = document.createElement('div');
@@ -790,6 +809,8 @@
         function showAdditionCarryRow() {
             if (additionCarryRowRef && additionCarryRowRef.style.display === 'none') {
                 additionCarryRowRef.style.display = 'flex';
+                additionCarryRowRef.style.height = '40px';
+                additionCarryRowRef.style.marginBottom = '2px';
             }
         }
 
