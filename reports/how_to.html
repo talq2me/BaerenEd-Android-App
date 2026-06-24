@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How To — Parent Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.65;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 28px 30px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.92;
+            font-size: 1.05em;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.32);
+        }
+
+        .toc-card,
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .toc-card h2,
+        .section-card h2 {
+            font-size: 1.35em;
+            margin-bottom: 16px;
+            color: #444;
+            border-bottom: 2px solid #e8eaf6;
+            padding-bottom: 10px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-list li {
+            margin-bottom: 10px;
+        }
+
+        .toc-list a {
+            color: #5c6bc0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .toc-list a:hover {
+            text-decoration: underline;
+        }
+
+        .section-card h3 {
+            font-size: 1.15em;
+            margin: 22px 0 10px;
+            color: #3949ab;
+        }
+
+        .section-card h3:first-of-type {
+            margin-top: 0;
+        }
+
+        .section-card p {
+            margin-bottom: 12px;
+        }
+
+        .section-card ul,
+        .section-card ol {
+            margin: 0 0 14px 1.4em;
+        }
+
+        .section-card li {
+            margin-bottom: 6px;
+        }
+
+        code {
+            background: #f0f2f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.92em;
+            word-break: break-all;
+        }
+
+        .param-block {
+            background: #f8f9fc;
+            border-left: 4px solid #7986cb;
+            padding: 14px 16px;
+            margin: 14px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .param-block p {
+            margin-bottom: 6px;
+        }
+
+        .param-block p:last-child {
+            margin-bottom: 0;
+        }
+
+        .mode-label {
+            display: inline-block;
+            font-weight: 700;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .mode-summer {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .mode-school {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 16px;
+            font-size: 0.95em;
+        }
+
+        .file-table th,
+        .file-table td {
+            border: 1px solid #e0e0e0;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .file-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 How To</h1>
+            <p>Parent guide for configuring BaerenEd tasks and content.</p>
+            <a href="index.html" class="back-button">← Back to Reports</a>
+        </div>
+
+        <nav class="toc-card" aria-label="Table of contents">
+            <h2>Table of contents</h2>
+            <ol class="toc-list">
+                <li><a href="#spelling-school-summer">Toggle spelling: School Mode ↔ Summer Mode</a></li>
+            </ol>
+        </nav>
+
+        <article class="section-card" id="spelling-school-summer">
+            <h2>Toggle spelling from School Mode to Summer Mode</h2>
+            <p>
+                Spelling is split into two systems. <strong>Rotating-pool games</strong> share a word list
+                and progress key across Drag, Garden, Fishing, Race, Factory, and Snake Catch.
+                <strong>School-list games</strong> always use the weekly school JSON files directly.
+            </p>
+
+            <h3>Rotating-pool games (Summer Mode)</h3>
+            <p>These games use the shared spelling pool (same words across games that share a <code>poolKey</code>):</p>
+            <ul>
+                <li>Spelling Drag</li>
+                <li>Word Garden</li>
+                <li>Word Fishing</li>
+                <li>Spelling Race</li>
+                <li>Word Factory</li>
+                <li>Snake Catch</li>
+            </ul>
+
+            <h3>School-list games (always on school JSON)</h3>
+            <ul>
+                <li>Fr / Eng Spelling Jumble</li>
+                <li>Spelling OCR</li>
+            </ul>
+            <p>
+                Update the school word files (<code>frenchWordsAM.json</code>, <code>englishWordsBM.json</code>, etc.)
+                each week for Jumble and OCR. The rotating-pool games are configured separately in the schedule URLs.
+            </p>
+
+            <h3>URL parameters (rotating-pool games)</h3>
+            <p>Each rotating-pool task URL includes query parameters like:</p>
+            <div class="param-block">
+                <p><code>?file=spellingDragFrBM.json&amp;pool=all&amp;poolKey=frSpellingDrag</code></p>
+                <p><strong>file</strong> — master word list (100-word rotating lists: <code>spellingDragFrAM.json</code> / <code>spellingDragEnAM.json</code> for AM, <code>spellingDragFrBM.json</code> / <code>spellingDragEnBM.json</code> for BM)</p>
+                <p><strong>pool=all</strong> — use the entire word list for each session (no need to update a word count when the list size changes)</p>
+                <p><strong>poolKey</strong> — <code>frSpellingDrag</code> or <code>engSpellingDrag</code>. All required games with the same <code>poolKey</code> get the <strong>same words that day</strong>. Practice tasks use separate keys (<code>frSpellingDragPractice</code>, etc.).</p>
+            </div>
+            <p>
+                When all required work for the day is finished, the pool index advances by 5 words (Toronto calendar day),
+                so the rotating master list progresses over time during Summer Mode.
+            </p>
+
+            <h3>Spelling Drag rounds</h3>
+            <p>Spelling Drag has three rounds per word (when syllables exist in the JSON):</p>
+            <ol>
+                <li><strong>Star 1</strong> — drag <strong>syllables</strong> while the word is displayed</li>
+                <li><strong>Star 2</strong> — drag <strong>letters</strong> while the word is displayed</li>
+                <li><strong>Star 3</strong> — spell from memory (word hidden, audio only)</li>
+            </ol>
+            <p>
+                School word files (<code>frenchWordsBM.json</code>, etc.) do not include syllables, so Drag skips round 1
+                and only does letters → blind (2 stars max). To get the syllable round on school words, the JSON would need syllable data (as in the <code>spellingDrag*</code> files).
+            </p>
+
+            <h3>Switch rotating-pool games to School Mode</h3>
+            <p><span class="mode-label mode-school">School mode</span></p>
+            <p>In <strong>Schedule Editor</strong> (or <code>AM_config.json</code> / <code>BM_config.json</code>), for each rotating-pool spelling game URL:</p>
+            <ol>
+                <li>
+                    Change <code>file=</code> to the school list for that profile:
+                    <table class="file-table">
+                        <thead>
+                            <tr><th>Profile</th><th>French school list</th><th>English school list</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>AM</td><td><code>frenchWordsAM.json</code></td><td><code>englishWordsAM.json</code></td></tr>
+                            <tr><td>BM</td><td><code>frenchWordsBM.json</code></td><td><code>englishWordsBM.json</code></td></tr>
+                        </tbody>
+                    </table>
+                </li>
+                <li>Keep <code>pool=all</code> and the same <code>poolKey</code> (<code>frSpellingDrag</code> or <code>engSpellingDrag</code>) so all pooled games still share the same words.</li>
+                <li>Replace the weekly words in the school JSON on GitHub (same files Jumble and OCR use).</li>
+                <li>Publish config + data to GitHub Pages so tablets load the update.</li>
+            </ol>
+            <p>
+                Example school-mode French URL:
+                <code>...SpellingDrag.html?file=frenchWordsBM.json&amp;pool=all&amp;poolKey=frSpellingDrag</code>
+            </p>
+            <p>
+                With <code>pool=all</code>, every session uses the full school list. All pooled games stay in sync
+                because they share the same <code>poolKey</code>.
+            </p>
+
+            <h3>Switch rotating-pool games back to Summer Mode</h3>
+            <p><span class="mode-label mode-summer">Summer mode</span></p>
+            <ol>
+                <li>
+                    Change <code>file=</code> back to the rotating master list:
+                    <table class="file-table">
+                        <thead>
+                            <tr><th>Profile</th><th>French rotating list</th><th>English rotating list</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>AM</td><td><code>spellingDragFrAM.json</code></td><td><code>spellingDragEnAM.json</code></td></tr>
+                            <tr><td>BM</td><td><code>spellingDragFrBM.json</code></td><td><code>spellingDragEnBM.json</code></td></tr>
+                        </tbody>
+                    </table>
+                </li>
+                <li>Keep <code>pool=all</code> and <code>poolKey</code> unchanged.</li>
+                <li>Publish updated config to GitHub Pages.</li>
+            </ol>
+            <p>
+                Example summer-mode French URL:
+                <code>...SpellingDrag.html?file=spellingDragFrBM.json&amp;pool=all&amp;poolKey=frSpellingDrag</code>
+            </p>
+            <p>
+                The 100-word master lists do not need weekly edits; the pool index advances automatically when
+                required daily work is complete.
+            </p>
+        </article>
+    </div>
+</body>
+</html>
