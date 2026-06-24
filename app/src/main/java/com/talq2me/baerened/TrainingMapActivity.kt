@@ -902,17 +902,21 @@ open class TrainingMapActivity : AppCompatActivity() {
         val stars = game.estimatedTime
         val isRequired = sectionId == "required"
         
-        // Extract word file from task URL, default to englishWordsGr1.json
         val wordFile = when {
-            task.url == null -> "englishWordsGr1.json"
+            task.url == null -> null
             task.url.contains("file=") -> {
                 val extracted = task.url.substringAfter("file=").substringBefore("&").trim()
-                if (extracted.isNotEmpty() && extracted.endsWith(".json")) extracted else "englishWordsGr1.json"
+                extracted.takeIf { it.isNotEmpty() && it.endsWith(".json") }
             }
             task.url.endsWith(".json") -> task.url
-            else -> "englishWordsGr1.json"
+            else -> null
         }
-        
+        if (wordFile == null) {
+            android.util.Log.e("TrainingMapActivity", "Spelling OCR missing word file in task.url: ${task.url}")
+            android.widget.Toast.makeText(this, "Spelling OCR is not configured (missing word file).", android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+
         android.util.Log.d("TrainingMapActivity", "Launching Spelling OCR Game with word file: $wordFile")
         
         val intent = Intent(this, SpellingOCRActivity::class.java).apply {

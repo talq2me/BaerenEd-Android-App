@@ -143,16 +143,17 @@
     const playAgainButton = document.getElementById('playAgainButton');
 
         const VOWELS_TO_INCLUDE = ['a', 'e', 'é', 'è', 'ê', 'i', 'o', 'u', 'y'];
+        const AUDIO_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/audio/en';
         const allVowelData = [
-            {"word": "é", "audio": "../audio/en/ay.wav"},
-            {"word": "e", "audio": "../audio/en/e.wav"},
-            {"word": "è", "audio": "../audio/en/eh.wav"},
-            {"word": "ê", "audio": "../audio/en/eh.wav"},
-            {"word": "o", "audio": "../audio/en/o.wav"},
-            {"word": "u", "audio": "../audio/en/ew.wav"},
-            {"word": "a", "audio": "../audio/en/a.wav"},
-            {"word": "i", "audio": "../audio/en/ee.wav"},
-            {"word": "y", "audio": "../audio/en/ee.wav"}
+            {"word": "é", "audio": AUDIO_BASE + "/ay.wav"},
+            {"word": "e", "audio": AUDIO_BASE + "/e.wav"},
+            {"word": "è", "audio": AUDIO_BASE + "/eh.wav"},
+            {"word": "ê", "audio": AUDIO_BASE + "/eh.wav"},
+            {"word": "o", "audio": AUDIO_BASE + "/o.wav"},
+            {"word": "u", "audio": AUDIO_BASE + "/ew.wav"},
+            {"word": "a", "audio": AUDIO_BASE + "/a.wav"},
+            {"word": "i", "audio": AUDIO_BASE + "/ee.wav"},
+            {"word": "y", "audio": AUDIO_BASE + "/ee.wav"}
         ];
 
     let currentVowelCards = [];

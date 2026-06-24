@@ -139,8 +139,8 @@ nettoyer|net-toy-er
 """.strip().splitlines()
 
 if __name__ == "__main__":
-    write_file("spellingDragEnGr1.json", "en", EN_GR1[:100])
-    write_file("spellingDragFrGr1.json", "fr", FR_GR1[:100])
+    write_file("spellingDragEnAM.json", "en", EN_GR1[:100])
+    write_file("spellingDragFrAM.json", "fr", FR_GR1[:100])
 
     # BM: load existing + merge
     en_bm_existing = json.loads((ROOT / "spellingDragEnBM.json").read_text(encoding="utf-8"))

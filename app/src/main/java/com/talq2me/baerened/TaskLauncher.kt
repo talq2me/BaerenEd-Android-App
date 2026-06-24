@@ -310,32 +310,20 @@ class TaskLauncher(
         // Determine if game is required (check if in required section)
         val isRequired = sectionId == "required"
         
-        // Get word file from task config, default to englishWordsGr1.json
+        // Word file must come from task config (file=...json); no default fallback.
         val wordFile = when {
-            task.url == null -> {
-                Log.d(TAG, "Task URL is null, using default: englishWordsGr1.json")
-                "englishWordsGr1.json"
-            }
+            task.url == null -> null
             task.url.contains("file=") -> {
-                // Extract filename from URL like "file=englishWordsGr1.json" or "?file=englishWordsGr1.json&other=params"
                 val extracted = task.url.substringAfter("file=").substringBefore("&").trim()
-                if (extracted.isNotEmpty() && extracted.endsWith(".json")) {
-                    Log.d(TAG, "Extracted word file from URL: $extracted")
-                    extracted
-                } else {
-                    Log.w(TAG, "Extracted value '$extracted' doesn't look like a JSON file, using default")
-                    "englishWordsGr1.json"
-                }
+                extracted.takeIf { it.isNotEmpty() && it.endsWith(".json") }
             }
-            task.url.endsWith(".json") -> {
-                // URL is just the filename
-                Log.d(TAG, "URL is just the filename: ${task.url}")
-                task.url
-            }
-            else -> {
-                Log.w(TAG, "URL format not recognized: ${task.url}, using default")
-                "englishWordsGr1.json"
-            }
+            task.url.endsWith(".json") -> task.url
+            else -> null
+        }
+        if (wordFile == null) {
+            Log.e(TAG, "Spelling OCR missing word file in task.url: ${task.url}")
+            Toast.makeText(context, "Spelling OCR is not configured (missing word file).", Toast.LENGTH_LONG).show()
+            return
         }
         Log.d(TAG, "Spelling OCR word file: $wordFile")
         

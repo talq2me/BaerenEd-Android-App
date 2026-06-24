@@ -290,6 +290,7 @@
     </div>
 
     <script src="quizProgress.js"></script>
+    <script src="gameJsonLoader.js"></script>
     <script>
         // Register callback for Android TTS completion
         window.onTTSFinished = function(utteranceId) {
@@ -453,107 +454,54 @@
             return urlParams.get(name);
         }
 
+        async function tryLoadDiagramFile(tryFileName) {
+            const diagramData = await GameJsonLoader.loadDataJson(tryFileName);
+            if (diagramData.diagrams && Array.isArray(diagramData.diagrams)) {
+                return diagramData.diagrams.filter(d => d.image);
+            }
+            if (diagramData.title || diagramData.image) {
+                return [diagramData].filter(d => d.image);
+            }
+            return [];
+        }
+
         async function loadDiagrams() {
             try {
-                const isAndroid = window.Android !== undefined;
-                let data;
-                
-                // Check for specific diagram in URL parameter
                 const diagramParam = getURLParameter('diagram');
-                
-                // If a specific diagram is requested, try loading it as a separate JSON file first
+
                 if (diagramParam) {
-                    try {
-                        let diagramJsonString;
-                        // Try different filename variations: original case, then lowercase
-                        // Also handle common patterns like "System" with capital S
-                        const fileNameVariations = [
-                            diagramParam + '.json',  // Original: "circulatorySystem.json"
-                            diagramParam.replace(/system$/i, 'System') + '.json',  // "circulatorySystem.json" (already correct)
-                            diagramParam.toLowerCase().replace(/\s+/g, '') + '.json'  // "circulatorysystem.json"
-                        ];
-                        
-                        let loaded = false;
-                        
-                        if (isAndroid) {
-                            // Try different filename variations
-                            for (const tryFileName of fileNameVariations) {
-                                try {
-                                    diagramJsonString = window.Android.loadJsonFile(tryFileName);
-                                    loaded = true;
-                                    console.log(`Successfully loaded diagram file: ${tryFileName}`);
-                                    break;
-                                } catch (e) {
-                                    // Try next variation
-                                }
+                    const fileNameVariations = [
+                        diagramParam + '.json',
+                        diagramParam.replace(/system$/i, 'System') + '.json',
+                        diagramParam.toLowerCase().replace(/\s+/g, '') + '.json'
+                    ];
+                    for (const tryFileName of fileNameVariations) {
+                        try {
+                            const loaded = await tryLoadDiagramFile(tryFileName);
+                            if (loaded.length > 0) {
+                                diagrams = loaded;
+                                maxQuestions = diagrams.reduce((sum, d) => sum + d.parts.length, 0);
+                                startGame();
+                                return;
                             }
-                            if (!loaded) {
-                                throw new Error(`Could not load any variation: ${fileNameVariations.join(', ')}`);
-                            }
-                        } else {
-                            // Try different filename variations
-                            for (const tryFileName of fileNameVariations) {
-                                try {
-                                    const response = await fetch(`../data/${tryFileName}`);
-                                    if (response.ok) {
-                                        diagramJsonString = await response.text();
-                                        loaded = true;
-                                        console.log(`Successfully loaded diagram file: ${tryFileName}`);
-                                        break;
-                                    }
-                                } catch (e) {
-                                    // Try next variation
-                                }
-                            }
-                            if (!loaded) {
-                                throw new Error(`Could not load any variation: ${fileNameVariations.join(', ')}`);
-                            }
+                        } catch (e) {
+                            console.log(`Could not load ${tryFileName}:`, e);
                         }
-                        
-                        const diagramData = JSON.parse(diagramJsonString);
-                        // Handle both single diagram files and files with diagrams array
-                        if (diagramData.diagrams && Array.isArray(diagramData.diagrams)) {
-                            diagrams = diagramData.diagrams.filter(d => d.image);
-                        } else if (diagramData.title || diagramData.image) {
-                            diagrams = [diagramData].filter(d => d.image);
-                        }
-                        
-                        if (diagrams.length > 0) {
-                            // Set maxQuestions to total number of parts (all labels must be completed)
-                            maxQuestions = diagrams.reduce((sum, d) => sum + d.parts.length, 0);
-                            startGame();
-                            return; // Successfully loaded individual diagram file
-                        }
-                    } catch (error) {
-                        console.log(`Could not load ${diagramParam}.json, trying diagramLabeler.json instead`);
                     }
+                    console.log(`Could not load ${diagramParam}.json, trying diagramLabeler.json instead`);
                 }
-                
-                // Load main diagramLabeler.json
-                if (isAndroid) {
-                    const jsonString = window.Android.loadJsonFile('diagramLabeler.json');
-                    data = JSON.parse(jsonString);
-                } else {
-                    const response = await fetch('../data/diagramLabeler.json');
-                    data = await response.json();
-                }
-                
-                // Only use diagrams that have images (from diagrams folder)
+
+                const data = await GameJsonLoader.loadDataJson('diagramLabeler.json');
                 diagrams = data.diagrams.filter(d => d.image);
-                
-                // If a specific diagram is requested via URL parameter, filter to that one
+
                 if (diagramParam) {
-                    // Normalize the search parameter
                     const normalizedParam = diagramParam.toLowerCase().replace(/\s+/g, '').replace(/system/g, 'system');
                     const requestedDiagram = diagrams.find(d => {
-                        // Normalize title for comparison (remove "the", spaces, and handle variations)
                         const normalizedTitle = d.title.toLowerCase()
-                            .replace(/^the\s+/, '')  // Remove leading "the "
-                            .replace(/\s+/g, '')     // Remove all spaces
+                            .replace(/^the\s+/, '')
+                            .replace(/\s+/g, '')
                             .replace(/system/g, 'system');
-                        // Also check image filename
-                        const normalizedImage = d.image.toLowerCase().replace(/[\/\\]/g, '/');
-                        
+                        const normalizedImage = d.image.toLowerCase().replace(/[\/\]/g, '/');
                         return normalizedTitle === normalizedParam ||
                                normalizedTitle.includes(normalizedParam) ||
                                normalizedParam.includes(normalizedTitle) ||
@@ -564,27 +512,22 @@
                         diagrams = [requestedDiagram];
                     } else {
                         console.warn(`Diagram "${diagramParam}" not found. Available diagrams:`, diagrams.map(d => d.title));
-                        // Don't throw error, just use all available diagrams
                     }
                 }
-                
+
                 if (diagrams.length === 0) {
-                    throw new Error('No image-based diagrams found. Please add diagrams with images to diagramLabeler.json');
+                    throw new Error('No image-based diagrams found.');
                 }
-                
-                // Only shuffle if not a specific diagram
+
                 if (!diagramParam) {
                     shuffleArray(diagrams);
                 }
-                
-                // Set maxQuestions to total number of parts (all labels must be completed)
-                // This ensures the game continues until all labels are done, regardless of config.json
+
                 maxQuestions = diagrams.reduce((sum, d) => sum + d.parts.length, 0);
                 startGame();
             } catch (error) {
                 console.error('Error loading diagrams:', error);
-                alert('Error loading diagrams. Please make sure diagramLabeler.json contains diagrams with images.');
-                document.getElementById('instructionText').textContent = 'Error loading diagrams. Please check the console for details.';
+                GameJsonLoader.failGameLoad('Failed to load diagram data.');
             }
         }
 
@@ -690,11 +633,6 @@
                     this.onerror = img.onerror;
                     this.src = altPath;
                 } else if (fallbackAttempt === 2) {
-                    const relativePath = `../images/${imagePath}`;
-                    console.log('  Trying relative path:', relativePath);
-                    this.onerror = img.onerror;
-                    this.src = relativePath;
-                } else {
                     alert('Failed to load diagram image: ' + imagePath +
                           '\n\nPlease verify the image is published on GitHub Pages under assets/images/');
                 }

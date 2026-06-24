@@ -226,6 +226,7 @@
         </div>
     </div>
 
+    <script src="gameJsonLoader.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -257,55 +258,35 @@
         let stackedLetters = [];
         let isFirstAttempt = true;
 
+        function parseWordList(data) {
+            if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                return data;
+            }
+            if (Array.isArray(data) && data.length > 0) {
+                return data.map(word => (typeof word === 'string' ? { word: word, sentence: '' } : word));
+            }
+            return null;
+        }
+
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            return file || 'englishWordsGr1.json';
+            return file || 'englishWordsAM.json';
         }
 
-        function loadWords(fileName) {
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                        words = data;
-                    } else if (Array.isArray(data)) {
-                        words = data.map(word => ({ word: word, sentence: "" }));
-                    } else {
-                        words = [];
-                    }
-                    maxQuestions = Math.min(words.length, maxQuestions);
-                    startGame();
-                } catch (error) {
-                    console.error('Error loading words file:', error);
-                    words = [];
-                    startGame();
+        async function loadWords(fileName) {
+            try {
+                const data = await GameJsonLoader.loadDataJson(fileName);
+                const list = parseWordList(data);
+                if (!list || !list.length) {
+                    throw new Error('Empty word list');
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                            words = data;
-                        } else if (Array.isArray(data)) {
-                            words = data.map(word => ({ word: word, sentence: "" }));
-                        } else {
-                            words = [];
-                        }
-                        maxQuestions = Math.min(words.length, maxQuestions);
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.error('Error loading words file:', error);
-                        words = [];
-                        startGame();
-                    });
+                words = list;
+                maxQuestions = Math.min(words.length, maxQuestions);
+                startGame();
+            } catch (error) {
+                console.error('Failed to load words:', error);
+                GameJsonLoader.failGameLoad('Failed to load game data.');
             }
         }
 

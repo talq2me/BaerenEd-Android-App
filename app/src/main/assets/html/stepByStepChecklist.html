@@ -219,6 +219,7 @@
     </div>
 
     <script src="quizProgress.js"></script>
+    <script src="gameJsonLoader.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -270,112 +271,25 @@
         /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
 
         // Sample tasks for grade 1 level
-        const defaultTasks = [
-            {
-                task: "Make a Sandwich",
-                steps: [
-                    "Get two slices of bread",
-                    "Put peanut butter on one slice",
-                    "Put jelly on the other slice",
-                    "Put the slices together",
-                    "Cut the sandwich in half"
-                ]
-            },
-            {
-                task: "Get Ready for School",
-                steps: [
-                    "Wake up",
-                    "Brush your teeth",
-                    "Put on your clothes",
-                    "Eat breakfast",
-                    "Pack your backpack"
-                ]
-            },
-            {
-                task: "Plant a Seed",
-                steps: [
-                    "Get a pot and soil",
-                    "Put soil in the pot",
-                    "Make a hole in the soil",
-                    "Put the seed in the hole",
-                    "Water the seed"
-                ]
-            },
-            {
-                task: "Clean Your Room",
-                steps: [
-                    "Put toys in the toy box",
-                    "Put books on the shelf",
-                    "Put clothes in the hamper",
-                    "Make your bed",
-                    "Put trash in the trash can"
-                ]
-            },
-            {
-                task: "Make a Card",
-                steps: [
-                    "Get paper and crayons",
-                    "Fold the paper in half",
-                    "Draw a picture on the front",
-                    "Write a message inside",
-                    "Sign your name"
-                ]
-            }
-        ];
-
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            return file || 'stepByStepTasks.json';
+            return file || 'stepByStepChecklist.json';
         }
 
-        function loadTasks() {
+        async function loadTasks() {
             const fileName = getGameConfig();
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0) {
-                        tasks = data;
-                        console.log(`Loaded ${tasks.length} tasks from JSON file: ${fileName}`);
-                    } else {
-                        console.warn(`JSON file ${fileName} is empty or invalid, using default tasks`);
-                        tasks = defaultTasks;
-                    }
-                    maxQuestions = Math.min(tasks.length, maxQuestions);
-                    startGame();
-                } catch (error) {
-                    console.log('Using default tasks');
-                    tasks = defaultTasks;
-                    maxQuestions = Math.min(tasks.length, maxQuestions);
-                    startGame();
+            try {
+                const data = await GameJsonLoader.loadDataJson(fileName);
+                if (!Array.isArray(data) || !data.length) {
+                    throw new Error('Empty data');
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => {
-                        if (response.ok) return response.json();
-                        throw new Error('File not found');
-                    })
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0) {
-                            tasks = data;
-                        } else {
-                            tasks = defaultTasks;
-                        }
-                        maxQuestions = Math.min(tasks.length, maxQuestions);
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.log('Using default tasks');
-                        tasks = defaultTasks;
-                        maxQuestions = Math.min(tasks.length, maxQuestions);
-                        startGame();
-                    });
+                tasks = data;
+                maxQuestions = Math.min(tasks.length, maxQuestions);
+                startGame();
+            } catch (error) {
+                console.error('Failed to load game data:', error);
+                GameJsonLoader.failGameLoad('Failed to load game data.');
             }
         }
 

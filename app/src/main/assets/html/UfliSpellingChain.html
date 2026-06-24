@@ -108,6 +108,7 @@
         <div id="loadingMsg" class="loading">Loading lesson…</div>
     </div>
 
+    <script src="gameJsonLoader.js"></script>
     <script>
         const GITHUB_ROOT = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
         const VOWELS = 'aeiou';
@@ -168,12 +169,7 @@
         }
 
         async function loadAssetJson(assetPath) {
-            if (window.Android && typeof window.Android.loadAssetJson === 'function') {
-                return JSON.parse(window.Android.loadAssetJson(assetPath));
-            }
-            const r = await fetch(`${GITHUB_ROOT}/${assetPath}?nocache=${Date.now()}`);
-            if (!r.ok) throw new Error('Failed to load ' + assetPath);
-            return r.json();
+            return GameJsonLoader.loadAssetJson(assetPath);
         }
 
         function loadProgressIndex() {

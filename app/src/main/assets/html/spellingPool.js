@@ -1,6 +1,8 @@
 /**
- * Shared summer spelling pool: same 5 words all day until all required tasks are done.
- * URL: ?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag
+ * Shared spelling pool: same session words all day until all required tasks are done.
+ * URL: ?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag
+ * pool=all — entire word list once per session (no weekly count updates).
+ * pool=N — N consecutive words from the rotating index.
  * Index advances via af_maybe_advance_spelling_pools (not on gameCompleted).
  */
 (function (global) {
@@ -8,11 +10,13 @@
 
     function getConfig() {
         const p = new URLSearchParams(global.location.search);
-        const file = p.get('file') || 'spellingDragFrGr1.json';
-        const poolRaw = parseInt(p.get('pool') || '0', 10);
-        const poolSize = Number.isFinite(poolRaw) && poolRaw > 0 ? poolRaw : 0;
+        const file = p.get('file') || 'spellingDragFrAM.json';
+        const poolParam = (p.get('pool') || '').trim().toLowerCase();
+        const poolAll = poolParam === 'all';
+        const poolRaw = poolAll ? 0 : parseInt(p.get('pool') || '0', 10);
+        const poolSize = poolAll ? 0 : (Number.isFinite(poolRaw) && poolRaw > 0 ? poolRaw : 0);
         let poolKey = (p.get('poolKey') || '').trim();
-        if (!poolKey && poolSize > 0) {
+        if (!poolKey && (poolAll || poolSize > 0)) {
             const lower = file.toLowerCase();
             if (lower.includes('en') || lower.includes('english')) {
                 poolKey = 'engSpellingDrag';
@@ -23,7 +27,8 @@
         return {
             file,
             poolSize,
-            poolActive: poolSize > 0,
+            poolAll,
+            poolActive: poolAll || poolSize > 0,
             poolKey
         };
     }
@@ -47,13 +52,27 @@
 
     async function loadJson(fileName) {
         if (global.Android && typeof global.Android.loadJsonFile === 'function') {
-            return global.Android.loadJsonFile(fileName);
+            const raw = global.Android.loadJsonFile(fileName);
+            if (raw == null || String(raw).trim() === '') {
+                throw new Error('Failed to load ' + fileName);
+            }
+            const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            const parsed = parseWords(data);
+            if (!parsed.words.length) {
+                throw new Error('Empty word list: ' + fileName);
+            }
+            return data;
         }
         const r = await fetch(`${GITHUB_DATA}/${fileName}?nocache=${Date.now()}`);
         if (!r.ok) {
             throw new Error('Failed to load ' + fileName);
         }
-        return r.json();
+        const data = await r.json();
+        const parsed = parseWords(data);
+        if (!parsed.words.length) {
+            throw new Error('Empty word list: ' + fileName);
+        }
+        return data;
     }
 
     function loadProgressIndex() {
@@ -68,13 +87,17 @@
         return 0;
     }
 
-    function buildSession(allWords, startIndex, poolSize) {
+    function buildSession(allWords, startIndex, poolSize, poolAll) {
         const len = allWords.length;
-        if (!len || poolSize <= 0) {
+        if (!len) {
+            return [];
+        }
+        const count = poolAll ? len : poolSize;
+        if (count <= 0) {
             return [];
         }
         const session = [];
-        for (let i = 0; i < poolSize; i++) {
+        for (let i = 0; i < count; i++) {
             session.push(allWords[(startIndex + i) % len]);
         }
         return session;
@@ -109,10 +132,10 @@
             return String(parsedLang).toLowerCase().startsWith('en') ? 'en-US' : 'fr-FR';
         }
         const lower = cfg.file.toLowerCase();
-        if (lower.includes('french') || lower.includes('frgr') || lower.includes('frbm')) {
+        if (lower.includes('french') || lower.includes('fram') || lower.includes('frbm')) {
             return 'fr-FR';
         }
-        if (lower.includes('english') || lower.includes('engr') || lower.includes('enbm')) {
+        if (lower.includes('english') || lower.includes('enam') || lower.includes('enbm')) {
             return 'en-US';
         }
         if (lower.includes('spellingdragfr') || lower.includes('dragfr')) {
@@ -136,7 +159,7 @@
         let startIndex = 0;
         if (cfg.poolActive) {
             startIndex = loadProgressIndex();
-            sessionWords = buildSession(allWords, startIndex, cfg.poolSize);
+            sessionWords = buildSession(allWords, startIndex, cfg.poolSize, cfg.poolAll);
         }
         const ttsLanguage = detectTtsLang(cfg, parsed.lang);
         return { cfg, allWords, sessionWords, startIndex, ttsLanguage };

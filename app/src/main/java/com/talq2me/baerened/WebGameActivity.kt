@@ -134,7 +134,9 @@ class WebGameActivity : AppCompatActivity() {
             val uri = Uri.parse(gameUrl)
             progressStorageKey = uri.getQueryParameter("poolKey")?.trim()?.takeIf { it.isNotEmpty() }
             val pool = uri.getQueryParameter("pool")?.trim()
-            freezePoolIndex = !pool.isNullOrEmpty() && (pool.toIntOrNull() ?: 0) > 0
+            freezePoolIndex = !pool.isNullOrEmpty() && (
+                pool.equals("all", ignoreCase = true) || (pool.toIntOrNull() ?: 0) > 0
+            )
             android.util.Log.d(
                 "WebGameActivity",
                 "Spelling pool: progressKey=$progressStorageKey freezeIndex=$freezePoolIndex"
@@ -417,7 +419,8 @@ class WebGameActivity : AppCompatActivity() {
             } catch (e: IOException) {
                 android.util.Log.e("WebGameActivity", "Network error fetching asset JSON: ${e.message}")
             }
-            return "{}"
+            android.util.Log.e("WebGameActivity", "Could not load asset JSON from GitHub Pages: $assetPath")
+            return ""
         }
 
         @JavascriptInterface
@@ -432,7 +435,7 @@ class WebGameActivity : AppCompatActivity() {
                 httpClient.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
                         val body = response.body?.string()
-                        if (body != null) {
+                        if (!body.isNullOrBlank()) {
                             android.util.Log.d("WebGameActivity", "Fetched JSON from GitHub: $fileName")
                             return body
                         }
@@ -444,7 +447,7 @@ class WebGameActivity : AppCompatActivity() {
             }
 
             android.util.Log.e("WebGameActivity", "Could not load JSON from GitHub Pages: $fileName")
-            return "[]"
+            return ""
         }
 
         @JavascriptInterface

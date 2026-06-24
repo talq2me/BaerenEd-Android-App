@@ -139,76 +139,88 @@
             return normalizeSpellingAnswer(typed) === normalizeSpellingAnswer(expected);
         }
 
+        const GITHUB_DATA = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/data';
+
+        function failWordLoad(message) {
+            console.error(message);
+            const container = document.getElementById('messageContainer');
+            if (container) {
+                container.innerHTML = '<p style="color:red;font-weight:bold;">' + message + '</p>';
+            }
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                window.Android.gameCompleted(0, 0);
+            }
+        }
+
+        function applyWordList(data) {
+            let list = null;
+            if (Array.isArray(data) && data.length > 0 && data[0].word) {
+                list = data;
+            } else if (Array.isArray(data) && data.length > 0) {
+                list = data.map(w => (typeof w === 'string' ? { word: w, sentence: '' } : w));
+            }
+            if (!list || !list.length) {
+                return false;
+            }
+            words = list;
+            startGame();
+            return true;
+        }
+
         function loadWords(config) {
-            const defaultWords = ["chat", "chien", "maison", "soleil", "lune", "étoile", "fleur", "arbre", "oiseau", "livre"].map(w => ({ word: w, sentence: `C'est un ${w}.` }));
-            const isAndroid = window.Android !== undefined;
-            
-            // First, check if JSON data is passed directly in URL parameter
             if (config.jsonData) {
                 try {
-                    const decodedJson = decodeURIComponent(config.jsonData);
-                    const data = JSON.parse(decodedJson);
-                    if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                        words = data;
-                    } else if (Array.isArray(data)) {
-                        words = data.map(word => ({ word: word, sentence: "" }));
-                    } else {
-                        words = defaultWords;
+                    const data = JSON.parse(decodeURIComponent(config.jsonData));
+                    if (applyWordList(data)) {
+                        return;
                     }
-                    startGame();
-                    return;
                 } catch (error) {
                     console.error('Error parsing JSON from URL parameter:', error);
-                    // Fall through to try loading from file
                 }
+                failWordLoad('Failed to load words.');
+                return;
             }
-            
-            // If no JSON in URL or parsing failed, try loading from file
+
             const fileName = config.file;
-            if (fileName) {
-                if (isAndroid && typeof window.Android.loadJsonFile === 'function') {
-                    // Use Android interface to load JSON from assets
-                    try {
-                        const jsonString = window.Android.loadJsonFile(fileName);
-                        const data = JSON.parse(jsonString);
-                        if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                            words = data;
-                        } else if (Array.isArray(data)) {
-                            words = data.map(word => ({ word: word, sentence: "" }));
-                        } else {
-                            words = defaultWords;
-                        }
-                        startGame();
-                    } catch (error) {
-                        console.error('Error loading words file via Android interface:', error);
-                        words = defaultWords;
-                        startGame();
-                    }
-                } else {
-                    // Use fetch for web
-                    const jsonUrl = `../data/${fileName}`;
-                    fetch(jsonUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (Array.isArray(data) && data.length > 0 && data[0].word) {
-                                words = data;
-                            } else if (Array.isArray(data)) {
-                                words = data.map(word => ({ word: word, sentence: "" }));
-                            } else {
-                                words = defaultWords;
-                            }
-                            startGame();
-                        })
-                        .catch(error => {
-                            console.error('Error loading words file:', error);
-                            words = defaultWords;
-                            startGame();
-                        });
-                }
-            } else {
-                words = defaultWords;
-                startGame();
+            if (!fileName) {
+                failWordLoad('No word file configured.');
+                return;
             }
+
+            if (window.Android && typeof window.Android.loadJsonFile === 'function') {
+                try {
+                    const jsonString = window.Android.loadJsonFile(fileName);
+                    if (!jsonString || !String(jsonString).trim()) {
+                        failWordLoad('Failed to load words from GitHub.');
+                        return;
+                    }
+                    const data = JSON.parse(jsonString);
+                    if (!applyWordList(data)) {
+                        failWordLoad('Failed to load words from GitHub.');
+                    }
+                } catch (error) {
+                    console.error('Error loading words file via Android interface:', error);
+                    failWordLoad('Failed to load words.');
+                }
+                return;
+            }
+
+            fetch(`${GITHUB_DATA}/${fileName}?nocache=${Date.now()}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!applyWordList(data)) {
+                        failWordLoad('Failed to load words.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading words file:', error);
+                    failWordLoad('Failed to load words.');
+                });
         }
 
         function startGame() {

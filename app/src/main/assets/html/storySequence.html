@@ -276,6 +276,7 @@
     </div>
 
     <script src="quizProgress.js"></script>
+    <script src="gameJsonLoader.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -327,112 +328,25 @@
         let draggedElement = null;
 
         // Sample stories for grade 1 level
-        const defaultStories = [
-            {
-                story: "The cat sat on the mat. Then it saw a mouse. The cat ran after the mouse. The mouse ran away. The cat went back to the mat.",
-                sentences: [
-                    "The cat sat on the mat.",
-                    "Then it saw a mouse.",
-                    "The cat ran after the mouse.",
-                    "The mouse ran away.",
-                    "The cat went back to the mat."
-                ]
-            },
-            {
-                story: "Sam woke up early. He brushed his teeth. He ate breakfast. He put on his backpack. He went to school.",
-                sentences: [
-                    "Sam woke up early.",
-                    "He brushed his teeth.",
-                    "He ate breakfast.",
-                    "He put on his backpack.",
-                    "He went to school."
-                ]
-            },
-            {
-                story: "The sun was shining. The birds were singing. The flowers were blooming. It was a beautiful day. Everyone was happy.",
-                sentences: [
-                    "The sun was shining.",
-                    "The birds were singing.",
-                    "The flowers were blooming.",
-                    "It was a beautiful day.",
-                    "Everyone was happy."
-                ]
-            },
-            {
-                story: "The dog found a ball. It picked up the ball. It ran to the park. It played with the ball. It was very happy.",
-                sentences: [
-                    "The dog found a ball.",
-                    "It picked up the ball.",
-                    "It ran to the park.",
-                    "It played with the ball.",
-                    "It was very happy."
-                ]
-            },
-            {
-                story: "Mom made cookies. The cookies smelled good. We waited for them to cool. Then we ate the cookies. They were delicious!",
-                sentences: [
-                    "Mom made cookies.",
-                    "The cookies smelled good.",
-                    "We waited for them to cool.",
-                    "Then we ate the cookies.",
-                    "They were delicious!"
-                ]
-            }
-        ];
-
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
             return file || 'storySequence.json';
         }
 
-        function loadStories() {
+        async function loadStories() {
             const fileName = getGameConfig();
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0) {
-                        stories = data;
-                        console.log(`Loaded ${stories.length} stories from JSON file: ${fileName}`);
-                    } else {
-                        console.warn(`JSON file ${fileName} is empty or invalid, using default stories`);
-                        stories = defaultStories;
-                    }
-                    maxQuestions = Math.min(stories.length, maxQuestions);
-                    startGame();
-                } catch (error) {
-                    console.log('Using default stories');
-                    stories = defaultStories;
-                    maxQuestions = Math.min(stories.length, maxQuestions);
-                    startGame();
+            try {
+                const data = await GameJsonLoader.loadDataJson(fileName);
+                if (!Array.isArray(data) || !data.length) {
+                    throw new Error('Empty data');
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => {
-                        if (response.ok) return response.json();
-                        throw new Error('File not found');
-                    })
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0) {
-                            stories = data;
-                        } else {
-                            stories = defaultStories;
-                        }
-                        maxQuestions = Math.min(stories.length, maxQuestions);
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.log('Using default stories');
-                        stories = defaultStories;
-                        maxQuestions = Math.min(stories.length, maxQuestions);
-                        startGame();
-                    });
+                stories = data;
+                maxQuestions = Math.min(stories.length, maxQuestions);
+                startGame();
+            } catch (error) {
+                console.error('Failed to load game data:', error);
+                GameJsonLoader.failGameLoad('Failed to load game data.');
             }
         }
 

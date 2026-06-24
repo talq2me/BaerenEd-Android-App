@@ -199,6 +199,7 @@
     </div>
 
     <script src="quizProgress.js"></script>
+    <script src="gameJsonLoader.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -255,55 +256,22 @@
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
-            console.log('Treasure Map Quest - URL params:', window.location.search);
-            console.log('Treasure Map Quest - file parameter:', file);
-            return file || 'treasureQuests.json';
+            return file || 'treasureMapQuest.json';
         }
 
-        function loadQuests() {
+        async function loadQuests() {
             const fileName = getGameConfig();
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0) {
-                        quests = data;
-                        console.log(`Loaded ${quests.length} quests from JSON file: ${fileName}`);
-                        maxQuestions = Math.min(quests.length, maxQuestions);
-                        startGame();
-                    } else {
-                        console.error(`JSON file ${fileName} is empty or invalid. Cannot load game without quest data.`);
-                        document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error: No quest data found. Please check the JSON file.</p>';
-                    }
-                } catch (error) {
-                    console.error('Error loading quests from JSON:', error);
-                    document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error loading quest data. Please check the JSON file.</p>';
+            try {
+                const data = await GameJsonLoader.loadDataJson(fileName);
+                if (!Array.isArray(data) || !data.length) {
+                    throw new Error('Empty data');
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => {
-                        if (response.ok) return response.json();
-                        throw new Error('File not found');
-                    })
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0) {
-                            quests = data;
-                            maxQuestions = Math.min(quests.length, maxQuestions);
-                            startGame();
-                        } else {
-                            console.error(`JSON file ${fileName} is empty or invalid. Cannot load game without quest data.`);
-                            document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error: No quest data found. Please check the JSON file.</p>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading quests from JSON:', error);
-                        document.getElementById('mapContainer').innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error loading quest data. Please check the JSON file.</p>';
-                    });
+                quests = data;
+                maxQuestions = Math.min(quests.length, maxQuestions);
+                startGame();
+            } catch (error) {
+                console.error('Failed to load game data:', error);
+                GameJsonLoader.failGameLoad('Failed to load game data.');
             }
         }
 

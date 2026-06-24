@@ -60,12 +60,12 @@ class SpellingOCRActivity : AppCompatActivity() {
     private var isRequiredGame: Boolean = false
     private var sectionId: String? = null
     private var battleHubTaskId: String? = null
-    private var wordFile: String = "englishWordsGr1.json"
+    private lateinit var wordFile: String
     
     // TTS (uses shared TtsManager pre-warmed at app launch)
     private var isTtsReady = false
     private var pendingWordData: WordData? = null
-    private var useFrenchTTS = false // French TTS for frenchWordsGr1/Gr4 or French Spelling OCR
+    private var useFrenchTTS = false // French TTS for frenchWords* lists or French Spelling OCR
     
     // OCR
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -81,6 +81,17 @@ class SpellingOCRActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val wordFileFromIntent = intent.getStringExtra("WORD_FILE")
+        if (wordFileFromIntent.isNullOrBlank() || !wordFileFromIntent.endsWith(".json")) {
+            Log.e(TAG, "Missing or invalid WORD_FILE in intent: '$wordFileFromIntent'")
+            Toast.makeText(this, "Failed to load words", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        wordFile = wordFileFromIntent
+        Log.d(TAG, "Word file from intent: $wordFile")
+
         setContentView(R.layout.activity_spelling_ocr)
         
         // Get game config from intent
@@ -90,20 +101,12 @@ class SpellingOCRActivity : AppCompatActivity() {
         isRequiredGame = intent.getBooleanExtra("IS_REQUIRED_GAME", false)
         sectionId = intent.getStringExtra("SECTION_ID")
         battleHubTaskId = intent.getStringExtra("BATTLE_HUB_TASK_ID")
-        val wordFileFromIntent = intent.getStringExtra("WORD_FILE")
-        wordFile = if (wordFileFromIntent != null && wordFileFromIntent.isNotEmpty() && wordFileFromIntent.endsWith(".json")) {
-            wordFileFromIntent
-        } else {
-            Log.w(TAG, "Invalid or missing WORD_FILE in intent: '$wordFileFromIntent', using default")
-            "englishWordsGr1.json"
-        }
-        Log.d(TAG, "Word file from intent: $wordFile")
         
         clearOldSpellingOcrImagesOnLaunch()
 
         // Use French TTS when word list is French or game is French Spelling OCR
         val fileLower = wordFile.lowercase(Locale.ROOT)
-        useFrenchTTS = fileLower.contains("frenchwordsgr1") || fileLower.contains("frenchwordsgr4") ||
+        useFrenchTTS = fileLower.contains("frenchwords") ||
             gameTitle.contains("french", ignoreCase = true)
         Log.d(TAG, "TTS language: ${if (useFrenchTTS) "French" else "English"}")
         
@@ -141,7 +144,7 @@ class SpellingOCRActivity : AppCompatActivity() {
             }
         })
         
-        // Load words from JSON (GitHub first, then cache, then assets - same as Word Garden)
+        // Load words from GitHub only (no bundled fallback).
         loadWords()
         
         // Setup button listeners
@@ -152,7 +155,7 @@ class SpellingOCRActivity : AppCompatActivity() {
         val fileName = wordFile.removeSuffix(".json")
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Same strategy as Word Garden: fetch from GitHub first (cache-bust), then cache, then assets
+                // GitHub Pages only (see GitHubGameContentService).
                 val contentUpdateService = GitHubGameContentService()
                 val json = contentUpdateService.fetchGameContent(this@SpellingOCRActivity, fileName)
                 if (json.isNullOrEmpty()) {

@@ -328,6 +328,7 @@
     </div>
 
     <script src="quizProgress.js"></script>
+    <script src="gameJsonLoader.js"></script>
     <script>
         let currentProblem = null;
         let currentAnswer = null;
@@ -426,11 +427,12 @@
             }
         }
 
-        // Load problems from JSON file
         async function loadProblems() {
             try {
-                const response = await fetch('../data/numberLineMath.json');
-                const data = await response.json();
+                const data = await GameJsonLoader.loadDataJson('numberLineMath.json');
+                if (!data.problems || !data.problems.length) {
+                    throw new Error('Empty problem list');
+                }
                 problems = data.problems;
                 shuffleArray(problems);
                 maxQuestions = Math.min(problems.length, maxQuestions);
@@ -441,20 +443,7 @@
                 loadNextProblem();
             } catch (error) {
                 console.error('Error loading problems:', error);
-                // Fallback problems if JSON fails to load
-                problems = [
-                    { question: "What is 7 take away 4?", start: 7, operation: "subtract", value: 4, answer: 3 },
-                    { question: "What is 5 plus 3?", start: 5, operation: "add", value: 3, answer: 8 },
-                    { question: "What is 10 take away 6?", start: 10, operation: "subtract", value: 6, answer: 4 },
-                    { question: "What is 8 plus 4?", start: 8, operation: "add", value: 4, answer: 12 },
-                    { question: "What is 9 take away 5?", start: 9, operation: "subtract", value: 5, answer: 4 }
-                ];
-                maxQuestions = Math.min(problems.length, maxQuestions);
-                initQuizProgress(maxQuestions);
-                if (quiz) quiz.setRequiredCorrect(maxQuestions);
-                syncQuizVars();
-                document.getElementById('maxQuestions').textContent = maxQuestions;
-                loadNextProblem();
+                GameJsonLoader.failGameLoad('Failed to load game data.');
             }
         }
 

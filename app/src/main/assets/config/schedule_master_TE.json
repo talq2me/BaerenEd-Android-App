@@ -27,13 +27,13 @@
       "scheduleKey": "required|boukili|Boukili"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnAM.json&pool=all&poolKey=engSpellingDrag",
       "stars": 3,
       "title": "Spelling Race",
       "launch": "spellingRace",
       "disable": "Dec 31, 2099",
       "webGame": true,
-      "scheduleKey": "required|spellingRace|spellingDragEnGr1.json"
+      "scheduleKey": "required|spellingRace|spellingDragEnAM.json"
     },
     {
       "stars": 3,
@@ -57,7 +57,7 @@
       "scheduleKey": "required|engSpelling|englishWordsTE.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnAM.json&pool=all&poolKey=engSpellingDrag",
       "stars": 3,
       "title": "Eng Spelling Drag",
       "launch": "engSpellingDrag",
@@ -66,7 +66,7 @@
       "harddays": "thu,fri",
       "extremedays": "sat,sun",
       "totalQuestions": 5,
-      "scheduleKey": "required|engSpellingDrag|spellingDragEnGr1.json"
+      "scheduleKey": "required|engSpellingDrag|spellingDragEnAM.json"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
@@ -98,7 +98,7 @@
       "scheduleKey": "required|frSpelling|frenchWordsTE.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag",
       "stars": 3,
       "title": "Fr Spelling Drag",
       "launch": "frSpellingDrag",
@@ -107,7 +107,7 @@
       "harddays": "sat,sun",
       "extremedays": "mon,tue,wed",
       "totalQuestions": 5,
-      "scheduleKey": "required|frSpellingDrag|spellingDragFrGr1.json"
+      "scheduleKey": "required|frSpellingDrag|spellingDragFrAM.json"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsTE.json",
@@ -197,13 +197,13 @@
       "scheduleKey": "required|ufliLessonData|UFLI Words"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag",
       "stars": 3,
       "title": "Snake Catch",
       "launch": "snakeCatch",
       "disable": "Dec 31, 2099",
       "webGame": true,
-      "scheduleKey": "required|snakeCatch|spellingDragFrGr1.json"
+      "scheduleKey": "required|snakeCatch|spellingDragFrAM.json"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
@@ -217,14 +217,14 @@
       "scheduleKey": "required|mathHole|Math Hole"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag",
       "stars": 3,
       "title": "Word Garden",
       "launch": "wordGarden",
       "disable": "Dec 31, 2099",
       "webGame": true,
       "displayDays": "tue,fri",
-      "scheduleKey": "required|wordGarden|spellingDragFrGr1.json"
+      "scheduleKey": "required|wordGarden|spellingDragFrAM.json"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
@@ -265,23 +265,23 @@
       "scheduleKey": "required|tenFrameMath|Ten Frame Math"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag",
       "stars": 3,
       "title": "Word Fishing",
       "launch": "wordFishing",
       "disable": "Dec 31, 2099",
       "webGame": true,
       "displayDays": "wed,sat",
-      "scheduleKey": "required|wordFishing|spellingDragFrGr1.json"
+      "scheduleKey": "required|wordFishing|spellingDragFrAM.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDrag",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag",
       "stars": 3,
       "title": "Word Factory",
       "launch": "wordFactory",
       "disable": "Dec 31, 2099",
       "webGame": true,
-      "scheduleKey": "required|wordFactory|spellingDragFrGr1.json"
+      "scheduleKey": "required|wordFactory|spellingDragFrAM.json"
     },
     {
       "stars": 1,
@@ -580,7 +580,7 @@
       "scheduleKey": "practice|engSpelling|englishWordsTE.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnAM.json&pool=all&poolKey=engSpellingDragPractice",
       "stars": 3,
       "title": "Eng Spelling Drag (Practice)",
       "launch": "engSpellingDrag",
@@ -590,7 +590,7 @@
       "harddays": "thu,fri",
       "extremedays": "sat,sun",
       "totalQuestions": 1,
-      "scheduleKey": "practice|engSpellingDrag|spellingDragEnGr1.json"
+      "scheduleKey": "practice|engSpellingDrag|spellingDragEnAM.json"
     },
     {
       "stars": 3,
@@ -634,7 +634,7 @@
       "scheduleKey": "practice|frSpelling|frenchWordsTE.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDragPractice",
       "stars": 3,
       "title": "Fr Spelling Drag (Practice)",
       "launch": "frSpellingDrag",
@@ -644,7 +644,7 @@
       "harddays": "sat,sun",
       "extremedays": "mon,tue,wed",
       "totalQuestions": 1,
-      "scheduleKey": "practice|frSpellingDrag|spellingDragFrGr1.json"
+      "scheduleKey": "practice|frSpellingDrag|spellingDragFrAM.json"
     },
     {
       "stars": 3,
@@ -729,13 +729,13 @@
       "scheduleKey": "practice|printing|Printing Practice (Practice)"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDragPractice",
       "stars": 3,
       "title": "Snake Catch (Practice)",
       "launch": "snakeCatch",
       "disable": "Dec 31, 2099",
       "webGame": true,
-      "scheduleKey": "practice|snakeCatch|spellingDragFrGr1.json"
+      "scheduleKey": "practice|snakeCatch|spellingDragFrAM.json"
     },
     {
       "url": "file=frenchWordsTE.json",
@@ -746,13 +746,13 @@
       "scheduleKey": "practice|spellingOCR|French Spelling OCR (Practice)"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnGr1.json&pool=5&poolKey=engSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnAM.json&pool=all&poolKey=engSpellingDragPractice",
       "stars": 3,
       "title": "Spelling Race (Practice)",
       "launch": "spellingRace",
       "disable": "Dec 31, 2099",
       "webGame": true,
-      "scheduleKey": "practice|spellingRace|spellingDragEnGr1.json"
+      "scheduleKey": "practice|spellingRace|spellingDragEnAM.json"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
@@ -793,33 +793,33 @@
       "scheduleKey": "practice|uflivideos|Ufli Home Videos (Practice)"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDragPractice",
       "stars": 3,
       "title": "Word Factory (Practice)",
       "launch": "wordFactory",
       "disable": "Dec 31, 2099",
       "webGame": true,
-      "scheduleKey": "practice|wordFactory|spellingDragFrGr1.json"
+      "scheduleKey": "practice|wordFactory|spellingDragFrAM.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDragPractice",
       "stars": 3,
       "title": "Word Fishing (Practice)",
       "launch": "wordFishing",
       "disable": "Dec 31, 2099",
       "webGame": true,
       "displayDays": "wed,sat",
-      "scheduleKey": "practice|wordFishing|spellingDragFrGr1.json"
+      "scheduleKey": "practice|wordFishing|spellingDragFrAM.json"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrGr1.json&pool=5&poolKey=frSpellingDragPractice",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDragPractice",
       "stars": 3,
       "title": "Word Garden (Practice)",
       "launch": "wordGarden",
       "disable": "Dec 31, 2099",
       "webGame": true,
       "displayDays": "tue,fri",
-      "scheduleKey": "practice|wordGarden|spellingDragFrGr1.json"
+      "scheduleKey": "practice|wordGarden|spellingDragFrAM.json"
     },
     {
       "stars": 1,

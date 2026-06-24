@@ -292,6 +292,7 @@
     </div>
 
     <script src="quizProgress.js"></script>
+    <script src="gameJsonLoader.js"></script>
     <script>
         function readText(text, lang, rate = 0.8, onEndCallback = null) {
             if (window.Android && typeof window.Android.readText === 'function') {
@@ -343,110 +344,25 @@
 
         /* LEGACY (pre-quizProgress) — revert by uncommenting this block and removing quiz usage below */
 
-        const defaultStructures = [
-            {
-                name: "Simple House",
-                steps: [
-                    { part: "foundation", label: "Build Foundation", emoji: "⬜" },
-                    { part: "wall", label: "Build Walls", emoji: "🧱" },
-                    { part: "door", label: "Add Door", emoji: "🚪" },
-                    { part: "window", label: "Add Windows", emoji: "🪟" },
-                    { part: "roof", label: "Build Roof", emoji: "🏠" }
-                ]
-            },
-            {
-                name: "Cozy House",
-                steps: [
-                    { part: "foundation", label: "Build Foundation", emoji: "⬜" },
-                    { part: "wall", label: "Build Walls", emoji: "🧱" },
-                    { part: "door", label: "Add Door", emoji: "🚪" },
-                    { part: "window", label: "Add Windows", emoji: "🪟" },
-                    { part: "roof", label: "Build Roof", emoji: "🏠" }
-                ]
-            },
-            {
-                name: "Small House",
-                steps: [
-                    { part: "foundation", label: "Build Foundation", emoji: "⬜" },
-                    { part: "wall", label: "Build Walls", emoji: "🧱" },
-                    { part: "door", label: "Add Door", emoji: "🚪" },
-                    { part: "window", label: "Add Windows", emoji: "🪟" },
-                    { part: "roof", label: "Build Roof", emoji: "🏠" }
-                ]
-            },
-            {
-                name: "Family House",
-                steps: [
-                    { part: "foundation", label: "Build Foundation", emoji: "⬜" },
-                    { part: "wall", label: "Build Walls", emoji: "🧱" },
-                    { part: "door", label: "Add Door", emoji: "🚪" },
-                    { part: "window", label: "Add Windows", emoji: "🪟" },
-                    { part: "roof", label: "Build Roof", emoji: "🏠" }
-                ]
-            },
-            {
-                name: "Dream House",
-                steps: [
-                    { part: "foundation", label: "Build Foundation", emoji: "⬜" },
-                    { part: "wall", label: "Build Walls", emoji: "🧱" },
-                    { part: "door", label: "Add Door", emoji: "🚪" },
-                    { part: "window", label: "Add Windows", emoji: "🪟" },
-                    { part: "roof", label: "Build Roof", emoji: "🏠" }
-                ]
-            }
-        ];
-
         function getGameConfig() {
             const urlParams = new URLSearchParams(window.location.search);
             const file = urlParams.get('file');
             return file || 'structures.json';
         }
 
-        function loadStructures() {
+        async function loadStructures() {
             const fileName = getGameConfig();
-            const isAndroid = window.Android !== undefined;
-            
-            if (isAndroid) {
-                // Use Android interface to load JSON from assets
-                try {
-                    const jsonString = window.Android.loadJsonFile(fileName);
-                    const data = JSON.parse(jsonString);
-                    if (Array.isArray(data) && data.length > 0) {
-                        structures = data;
-                    } else {
-                        structures = defaultStructures;
-                    }
-                    maxQuestions = Math.min(structures.length, maxQuestions);
-                    startGame();
-                } catch (error) {
-                    console.log('Using default structures');
-                    structures = defaultStructures;
-                    maxQuestions = Math.min(structures.length, maxQuestions);
-                    startGame();
+            try {
+                const data = await GameJsonLoader.loadDataJson(fileName);
+                if (!Array.isArray(data) || !data.length) {
+                    throw new Error('Empty structure list');
                 }
-            } else {
-                // Use fetch for web
-                const jsonUrl = `../data/${fileName}`;
-                fetch(jsonUrl)
-                    .then(response => {
-                        if (response.ok) return response.json();
-                        throw new Error('File not found');
-                    })
-                    .then(data => {
-                        if (Array.isArray(data) && data.length > 0) {
-                            structures = data;
-                        } else {
-                            structures = defaultStructures;
-                        }
-                        maxQuestions = Math.min(structures.length, maxQuestions);
-                        startGame();
-                    })
-                    .catch(error => {
-                        console.log('Using default structures');
-                        structures = defaultStructures;
-                        maxQuestions = Math.min(structures.length, maxQuestions);
-                        startGame();
-                    });
+                structures = data;
+                maxQuestions = Math.min(structures.length, maxQuestions);
+                startGame();
+            } catch (error) {
+                console.error('Failed to load structures:', error);
+                GameJsonLoader.failGameLoad('Failed to load game data.');
             }
         }
 

@@ -2101,7 +2101,7 @@ GRANT EXECUTE ON FUNCTION af_get_required_progress_today(text) TO anon, authenti
 --
 -- Summer spelling pool: when all visible required work for today is done, advance
 -- engSpellingDrag and frSpellingDrag by 5 (mod pool size), at most once per calendar day (Toronto).
--- Games read these keys with ?pool=5&poolKey=... and do not write indices on session complete.
+-- Games read these keys with ?pool=all|N&poolKey=... and do not write indices on session complete.
 
 DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
 

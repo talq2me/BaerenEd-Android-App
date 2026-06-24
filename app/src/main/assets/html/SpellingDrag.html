@@ -277,8 +277,10 @@
             poolActive = poolCfg.poolActive;
             return {
                 file: poolCfg.file,
+                poolAll: poolCfg.poolAll,
+                poolSize: poolCfg.poolSize,
                 wordsPerSession: poolActive
-                    ? poolCfg.poolSize
+                    ? (poolCfg.poolAll ? 0 : poolCfg.poolSize)
                     : (Number.isFinite(tq) && tq > 0 ? tq : 5)
             };
         }
@@ -306,11 +308,20 @@
         async function loadWords(fileName) {
             if (window.Android && typeof window.Android.loadJsonFile === 'function') {
                 const jsonString = window.Android.loadJsonFile(fileName);
-                return parseContent(jsonString);
+                if (!jsonString || !String(jsonString).trim()) {
+                    throw new Error('Failed to load ' + fileName);
+                }
+                const words = parseContent(jsonString);
+                if (!words.length) {
+                    throw new Error('Empty word list: ' + fileName);
+                }
+                return words;
             }
             const r = await fetch(`${GITHUB_DATA}/${fileName}?nocache=${Date.now()}`);
             if (!r.ok) throw new Error('Failed to load ' + fileName);
-            return parseContent(await r.json());
+            const words = parseContent(await r.json());
+            if (!words.length) throw new Error('Empty word list: ' + fileName);
+            return words;
         }
 
         function buildSession() {
@@ -627,6 +638,10 @@
             if (!allWords.length) {
                 document.getElementById('loadingMsg').textContent = 'No words loaded.';
                 return;
+            }
+
+            if (poolActive && cfg.poolAll) {
+                wordsPerSession = allWords.length;
             }
 
             if (cfg.file.toLowerCase().includes('en')) {

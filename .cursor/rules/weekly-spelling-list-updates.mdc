@@ -1,17 +1,17 @@
 ---
 description: Enforce consistent weekly spelling list replacement workflow
-globs: app/src/main/assets/data/*WordsGr*.json
+globs: app/src/main/assets/data/*WordsAM.json,app/src/main/assets/data/*WordsBM.json
 alwaysApply: false
 ---
 
-# Weekly Spelling List Updates (Eng/French Gr1/Gr4)
+# Weekly Spelling List Updates (Eng/French AM/BM)
 
 This rule applies to weekly updates for:
 
-- `app/src/main/assets/data/englishWordsGr1.json`
-- `app/src/main/assets/data/englishWordsGr4.json`
-- `app/src/main/assets/data/frenchWordsGr1.json`
-- `app/src/main/assets/data/frenchWordsGr4.json`
+- `app/src/main/assets/data/englishWordsAM.json`
+- `app/src/main/assets/data/englishWordsBM.json`
+- `app/src/main/assets/data/frenchWordsAM.json`
+- `app/src/main/assets/data/frenchWordsBM.json`
 
 When the user asks to update this week's words:
 

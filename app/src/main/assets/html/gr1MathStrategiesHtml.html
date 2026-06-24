@@ -59,6 +59,7 @@
   </div>
 
   <script src="quizProgress.js"></script>
+  <script src="gameJsonLoader.js"></script>
   <script>
     let questionBank = [];
     let bankIndex = 0;
@@ -382,32 +383,19 @@
       return shuffle(selected);
     }
 
-    function loadQuestions(fileName) {
+    async function loadQuestions(fileName) {
       try {
-        if (window.Android && typeof window.Android.loadJsonFile === "function") {
-          const json = window.Android.loadJsonFile(fileName);
-          questionBank = JSON.parse(json) || [];
+        const data = await GameJsonLoader.loadDataJson(fileName);
+        const loaded = Array.isArray(data) ? data : [];
+        if (!loaded.length) {
+          throw new Error('Empty question bank');
         }
+        questionBank = buildMixedQuestionSet(loaded, loaded.length);
+        start();
       } catch (e) {
-        console.error("Android load failed:", e);
+        console.error('Failed to load questions:', e);
+        GameJsonLoader.failGameLoad('Failed to load game data.');
       }
-
-      if (!questionBank.length) {
-        fetch(`../data/${fileName}`)
-          .then(r => r.json())
-          .then(data => {
-            const loaded = Array.isArray(data) ? data : [];
-            questionBank = buildMixedQuestionSet(loaded, loaded.length);
-            start();
-          })
-          .catch(() => {
-            questionBank = [];
-            start();
-          });
-        return;
-      }
-      questionBank = buildMixedQuestionSet(questionBank, questionBank.length);
-      start();
     }
 
     function setText(id, text) { document.getElementById(id).textContent = text; }
