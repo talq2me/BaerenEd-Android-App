@@ -217,6 +217,25 @@
                     "totalQuestions": 5
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/longDivision.html",
+                    "stars": 3,
+                    "title": "Long Division",
+                    "launch": "longDivision",
+                    "webGame": true,
+                    "displayDays": "mon,wed,fri,sun",
+                    "easydays": "mon,wed,fri,sun",
+                    "totalQuestions": 5
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
+                    "stars": 3,
+                    "title": "Multi-Digit Multiplication",
+                    "launch": "multiDigitMultiplication",
+                    "webGame": true,
+                    "displayDays": "tue,thu,sat",
+                    "totalQuestions": 5
+                },
+                {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
                     "stars": 3,
                     "title": "Time Telling",
@@ -408,15 +427,6 @@
                     "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "wed,fri",
-                    "totalQuestions": 5
-                },
-                {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
-                    "stars": 3,
-                    "title": "Multi-Digit Multiplication",
-                    "launch": "multiDigitMultiplication",
-                    "disable": "Dec 31, 2099",
-                    "webGame": true,
                     "totalQuestions": 5
                 },
                 {

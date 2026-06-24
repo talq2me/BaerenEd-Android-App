@@ -269,8 +269,18 @@
         const totalQuestionsParam = urlParams.get('totalQuestions');
         let allInputs = [];
         let skipCursorMove = false;
+        let gameMode = 'easy';
 
         function isAndroidWebView() { return typeof window.Android !== 'undefined'; }
+
+        function resolveGameMode(config) {
+            const urlMode = urlParams.get('mode');
+            if (urlMode === 'hard' || urlMode === 'extreme') return 'hard';
+            if (urlMode === 'easy') return 'easy';
+            if (config && (config.mode === 'hard' || config.mode === 'extreme')) return 'hard';
+            if (config && config.mode === 'easy') return 'easy';
+            return 'easy';
+        }
 
         function loadConfig() {
             try {
@@ -282,6 +292,7 @@
                     if (saved) configJson = saved;
                 }
                 const config = JSON.parse(configJson);
+                gameMode = resolveGameMode(config);
                 if (!totalQuestionsParam) {
                     if (config.sections && config.sections.length) {
                         for (const s of config.sections) {
@@ -304,7 +315,9 @@
             problems = [];
             for (let i = 0; i < 40; i++) {
                 const dividendLen = Math.floor(Math.random() * 4) + 1;
-                const divisorLen = Math.floor(Math.random() * 2) + 1;
+                const divisorLen = gameMode === 'easy'
+                    ? 1
+                    : (2 + Math.floor(Math.random() * 2)); // hard: 2- or 3-digit divisor
                 let dividend = generateNumber(dividendLen);
                 let divisor = generateNumber(divisorLen);
                 if (divisor === 0) divisor = 1;
@@ -711,7 +724,9 @@
             document.getElementById('nextButton').style.display = 'none';
             document.getElementById('nextButton').textContent = 'Next Question';
             document.getElementById('errorMessage').textContent = '';
-            document.getElementById('hintText').textContent = 'Tip: Divide from left to right. Multiply divisor × quotient digit, subtract, bring down.';
+            document.getElementById('hintText').textContent = gameMode === 'easy'
+                ? 'Tip: Divide from left to right. Single-digit divisors only.'
+                : 'Tip: Divide from left to right. Multi-digit divisors — take your time.';
             createDivisionProblem(currentProblem);
         }
 
