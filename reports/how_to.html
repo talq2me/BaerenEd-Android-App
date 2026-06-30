@@ -234,9 +234,10 @@
             <h3>URL parameters (rotating-pool games)</h3>
             <p>Each rotating-pool task URL includes query parameters like:</p>
             <div class="param-block">
-                <p><code>?file=spellingDragFrBM.json&amp;pool=all&amp;poolKey=frSpellingDrag</code></p>
+                <p><code>?file=spellingDragFrBM.json&amp;pool=5&amp;poolKey=frSpellingDrag</code></p>
                 <p><strong>file</strong> — master word list (100-word rotating lists: <code>spellingDragFrAM.json</code> / <code>spellingDragEnAM.json</code> for AM, <code>spellingDragFrBM.json</code> / <code>spellingDragEnBM.json</code> for BM)</p>
-                <p><strong>pool=all</strong> — use the entire word list for each session (no need to update a word count when the list size changes)</p>
+                <p><strong>pool=5</strong> (Summer Mode) — 5 words per session from the rotating index; same 5 all day across games sharing the <code>poolKey</code></p>
+                <p><strong>pool=all</strong> (School Mode only) — entire school list each session; use with <code>frenchWordsBM.json</code> / <code>englishWordsAM.json</code> etc. instead of <code>spellingDrag*</code></p>
                 <p><strong>poolKey</strong> — <code>frSpellingDrag</code> or <code>engSpellingDrag</code>. All required games with the same <code>poolKey</code> get the <strong>same words that day</strong>. Practice tasks use separate keys (<code>frSpellingDragPractice</code>, etc.).</p>
             </div>
             <p>
@@ -272,7 +273,7 @@
                         </tbody>
                     </table>
                 </li>
-                <li>Keep <code>pool=all</code> and the same <code>poolKey</code> (<code>frSpellingDrag</code> or <code>engSpellingDrag</code>) so all pooled games still share the same words.</li>
+                <li>Keep <code>pool=5</code> and the same <code>poolKey</code> (<code>frSpellingDrag</code> or <code>engSpellingDrag</code>) so all pooled games still share the same words.</li>
                 <li>Replace the weekly words in the school JSON on GitHub (same files Jumble and OCR use).</li>
                 <li>Publish config + data to GitHub Pages so tablets load the update.</li>
             </ol>
@@ -300,12 +301,12 @@
                         </tbody>
                     </table>
                 </li>
-                <li>Keep <code>pool=all</code> and <code>poolKey</code> unchanged.</li>
+                <li>Keep <code>pool=5</code> and <code>poolKey</code> unchanged.</li>
                 <li>Publish updated config to GitHub Pages.</li>
             </ol>
             <p>
                 Example summer-mode French URL:
-                <code>...SpellingDrag.html?file=spellingDragFrBM.json&amp;pool=all&amp;poolKey=frSpellingDrag</code>
+                <code>...SpellingDrag.html?file=spellingDragFrBM.json&amp;pool=5&amp;poolKey=frSpellingDrag</code>
             </p>
             <p>
                 The 100-word master lists do not need weekly edits; the pool index advances automatically when

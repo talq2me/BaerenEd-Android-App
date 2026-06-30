@@ -1,6 +1,7 @@
 /**
  * Shared spelling pool: same session words all day until all required tasks are done.
- * URL: ?file=spellingDragFrAM.json&pool=all&poolKey=frSpellingDrag
+ * URL: ?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDrag  (summer)
+ * URL: ?file=frenchWordsBM.json&pool=all&poolKey=frSpellingDrag   (school week)
  * pool=all — entire word list once per session (no weekly count updates).
  * pool=N — N consecutive words from the rotating index.
  * Index advances via af_maybe_advance_spelling_pools (not on gameCompleted).
