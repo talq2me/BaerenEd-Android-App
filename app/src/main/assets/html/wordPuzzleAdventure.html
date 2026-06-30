@@ -235,6 +235,11 @@
         let selectedCells = [];
         let isFirstAttempt = true;
 
+        function incorrectSpellingFeedback(word) {
+            const w = (word || '').toUpperCase();
+            return `<div class="feedback incorrect">✗ Not quite right. Correct spelling: <strong>${w}</strong></div>`;
+        }
+
         function parseWordList(data) {
             if (Array.isArray(data) && data.length > 0 && data[0].word) {
                 return data;
@@ -388,8 +393,8 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
+                document.getElementById('feedbackContainer').innerHTML =
+                    incorrectSpellingFeedback(currentWord.word);
                 
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';

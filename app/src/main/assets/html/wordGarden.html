@@ -276,6 +276,11 @@
             color: #155724;
             border: 2px solid #c3e6cb;
         }
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
         .popup-message {
             position: fixed;
             top: 50%;
@@ -394,6 +399,14 @@
         let ttsLanguage = 'en-US'; // Default to English, will be set based on filename
         let isFirstAttempt = true;
         let poolActive = false;
+
+        function incorrectSpellingFeedback(word) {
+            const w = (word || '').toUpperCase();
+            if (ttsLanguage === 'fr-FR') {
+                return `<div class="feedback incorrect">✗ Pas tout à fait. Bonne orthographe : <strong>${w}</strong></div>`;
+            }
+            return `<div class="feedback incorrect">✗ Not quite right. Correct spelling: <strong>${w}</strong></div>`;
+        }
 
         async function loadWords() {
             try {
@@ -847,8 +860,8 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback" style="background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb;">✗ Not quite right. Try again!</div>';
+                document.getElementById('feedbackContainer').innerHTML =
+                    incorrectSpellingFeedback(currentWord.word);
                 
                 // Clear and reset
                 setTimeout(() => {

@@ -333,6 +333,14 @@
         let letterBoxes = [];
         let conveyorInterval = null;
 
+        function incorrectSpellingFeedback(word) {
+            const w = (word || '').toUpperCase();
+            if (ttsLanguage === 'fr-FR') {
+                return `<div class="feedback incorrect">✗ Pas tout à fait. Bonne orthographe : <strong>${w}</strong></div>`;
+            }
+            return `<div class="feedback incorrect">✗ Not quite right. Correct spelling: <strong>${w}</strong></div>`;
+        }
+
         async function loadWords() {
             try {
                 const prep = await SpellingPool.prepareSession();
@@ -600,8 +608,8 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML = 
-                    '<div class="feedback incorrect">✗ Not quite right. Try picking different letters!</div>';
+                document.getElementById('feedbackContainer').innerHTML =
+                    incorrectSpellingFeedback(currentWord.word);
                 
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';

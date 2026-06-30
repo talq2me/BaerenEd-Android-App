@@ -413,7 +413,7 @@
             if (built === spellTarget) onStepCorrect(spellTarget);
             else {
                 document.getElementById('feedbackContainer').innerHTML =
-                    '<div class="feedback incorrect">Try again — tap the letters in order.</div>';
+                    `<div class="feedback incorrect">Try again. Correct spelling: <strong>${spellTarget.toUpperCase()}</strong></div>`;
                 setTimeout(() => startSpellStep(stepQueue[queueIndex]), 900);
             }
         }
