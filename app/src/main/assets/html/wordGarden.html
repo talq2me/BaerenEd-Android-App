@@ -40,6 +40,22 @@
             color: #2e7d32;
             margin: 20px 0;
             font-weight: bold;
+            min-height: 104px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-sizing: border-box;
+        }
+        .revealed-spelling {
+            font-size: 1.4em;
+            margin-bottom: 12px;
+            color: #721c24;
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 12px 16px;
         }
         .garden-container {
             background: #e8f5e9;
@@ -400,12 +416,24 @@
         let isFirstAttempt = true;
         let poolActive = false;
 
-        function incorrectSpellingFeedback(word) {
-            const w = (word || '').toUpperCase();
+        function showPlayWordButton() {
+            document.getElementById('wordDisplay').innerHTML =
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+        }
+
+        function showRevealedCorrectWord() {
+            const w = (currentWord.word || '').toUpperCase();
+            const label = ttsLanguage === 'fr-FR' ? 'Bonne orthographe :' : 'Correct spelling:';
+            document.getElementById('wordDisplay').innerHTML =
+                `<div class="revealed-spelling">${label} <strong>${w}</strong></div>` +
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+        }
+
+        function tryAgainFeedback() {
             if (ttsLanguage === 'fr-FR') {
-                return `<div class="feedback incorrect">✗ Pas tout à fait. Bonne orthographe : <strong>${w}</strong></div>`;
+                return '<div class="feedback incorrect">✗ Pas tout à fait. Essaie encore!</div>';
             }
-            return `<div class="feedback incorrect">✗ Not quite right. Correct spelling: <strong>${w}</strong></div>`;
+            return '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
         }
 
         async function loadWords() {
@@ -458,8 +486,7 @@
             
             currentWord = words[currentWordIndex];
             isFirstAttempt = true;
-            document.getElementById('wordDisplay').innerHTML = 
-                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            showPlayWordButton();
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
             document.getElementById('nextButton').classList.add('hidden');
@@ -860,9 +887,9 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML =
-                    incorrectSpellingFeedback(currentWord.word);
-                
+                showRevealedCorrectWord();
+                document.getElementById('feedbackContainer').innerHTML = tryAgainFeedback();
+
                 // Clear and reset
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';

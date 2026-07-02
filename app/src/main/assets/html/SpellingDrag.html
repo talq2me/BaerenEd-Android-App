@@ -43,6 +43,15 @@
             min-height: 1.2em;
             letter-spacing: 0.06em;
         }
+        .model-word.revealed-hint {
+            font-size: 1.6em;
+            color: #721c24;
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-height: 1.2em;
+        }
         .model-word.hidden { visibility: hidden; }
         .slots-row {
             display: flex;
@@ -426,9 +435,10 @@
                 }
                 if (roundType === 'blind') {
                     const model = document.getElementById('modelWord');
-                    model.textContent = currentEntry.word;
+                    const label = strings.correctSpelling(currentEntry.word);
+                    model.textContent = label;
                     model.classList.remove('hidden');
-                    showToast(strings.correctSpelling(currentEntry.word), false);
+                    model.classList.add('revealed-hint');
                 } else {
                     showToast(strings.tryAgain, false);
                 }
@@ -582,6 +592,7 @@
             hideToast();
 
             const model = document.getElementById('modelWord');
+            model.classList.remove('revealed-hint');
             if (roundType === 'blind') {
                 model.textContent = '';
                 model.classList.add('hidden');

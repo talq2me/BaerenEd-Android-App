@@ -42,6 +42,13 @@
             color: #1E90FF;
             margin: 20px 0;
             font-weight: bold;
+            min-height: 104px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-sizing: border-box;
         }
         .word-hint {
             display: inline-block;
@@ -49,6 +56,15 @@
             letter-spacing: 0.08em;
             color: #0d5f9f;
             margin-bottom: 8px;
+        }
+        .revealed-spelling {
+            font-size: 1.4em;
+            margin-bottom: 12px;
+            color: #721c24;
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 12px 16px;
         }
         .ocean-container {
             background: linear-gradient(180deg, #87CEEB 0%, #4682B4 100%);
@@ -409,12 +425,27 @@
         let fishElements = [];
         let gameMode = 'hard';
 
-        function incorrectSpellingFeedback(word) {
-            const w = (word || '').toUpperCase();
+        function showPlayWordButton() {
+            const hintHtml = gameMode === 'easy'
+                ? `<div class="word-hint">${currentWord.word}</div>`
+                : '';
+            document.getElementById('wordDisplay').innerHTML =
+                `${hintHtml}<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+        }
+
+        function showRevealedCorrectWord() {
+            const w = (currentWord.word || '').toUpperCase();
+            const label = ttsLanguage === 'fr-FR' ? 'Bonne orthographe :' : 'Correct spelling:';
+            document.getElementById('wordDisplay').innerHTML =
+                `<div class="revealed-spelling">${label} <strong>${w}</strong></div>` +
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+        }
+
+        function tryAgainFeedback() {
             if (ttsLanguage === 'fr-FR') {
-                return `<div class="feedback incorrect">✗ Pas tout à fait. Bonne orthographe : <strong>${w}</strong></div>`;
+                return '<div class="feedback incorrect">✗ Pas tout à fait. Essaie encore!</div>';
             }
-            return `<div class="feedback incorrect">✗ Not quite right. Correct spelling: <strong>${w}</strong></div>`;
+            return '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
         }
 
         function getGameMode() {
@@ -460,11 +491,7 @@
             caughtLetters = [];
             isFirstAttempt = true;
             fishElements = [];
-            const hintHtml = gameMode === 'easy'
-                ? `<div class="word-hint">${currentWord.word}</div>`
-                : '';
-            document.getElementById('wordDisplay').innerHTML =
-                `${hintHtml}<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            showPlayWordButton();
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
             document.getElementById('nextButton').classList.add('hidden');
@@ -716,9 +743,9 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML =
-                    incorrectSpellingFeedback(currentWord.word);
-                
+                showRevealedCorrectWord();
+                document.getElementById('feedbackContainer').innerHTML = tryAgainFeedback();
+
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';
                     // Reset
