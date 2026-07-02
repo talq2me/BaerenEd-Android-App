@@ -50,6 +50,15 @@
             margin: 20px 0;
             font-weight: bold;
         }
+        .revealed-spelling {
+            font-size: 1.4em;
+            margin-bottom: 12px;
+            color: #721c24;
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
         .factory-line {
             background: #f5f5f5;
             border: 2px solid #667eea;
@@ -333,12 +342,24 @@
         let letterBoxes = [];
         let conveyorInterval = null;
 
-        function incorrectSpellingFeedback(word) {
-            const w = (word || '').toUpperCase();
+        function showPlayWordButton() {
+            document.getElementById('wordDisplay').innerHTML =
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+        }
+
+        function showRevealedCorrectWord() {
+            const w = (currentWord.word || '').toUpperCase();
+            const label = ttsLanguage === 'fr-FR' ? 'Bonne orthographe :' : 'Correct spelling:';
+            document.getElementById('wordDisplay').innerHTML =
+                `<div class="revealed-spelling">${label} <strong>${w}</strong></div>` +
+                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+        }
+
+        function tryAgainFeedback() {
             if (ttsLanguage === 'fr-FR') {
-                return `<div class="feedback incorrect">✗ Pas tout à fait. Bonne orthographe : <strong>${w}</strong></div>`;
+                return '<div class="feedback incorrect">✗ Pas tout à fait. Essaie encore!</div>';
             }
-            return `<div class="feedback incorrect">✗ Not quite right. Correct spelling: <strong>${w}</strong></div>`;
+            return '<div class="feedback incorrect">✗ Not quite right. Try again!</div>';
         }
 
         async function loadWords() {
@@ -396,8 +417,7 @@
             document.getElementById('assemblyLine').innerHTML = '';
             createAssemblyLine();
             
-            document.getElementById('wordDisplay').innerHTML = 
-                `<button class="button" id="playButton" onclick="playInstruction()">🔊 Play Word</button>`;
+            showPlayWordButton();
             document.getElementById('feedbackContainer').innerHTML = '';
             document.getElementById('checkButton').disabled = false;
             document.getElementById('deleteButton').disabled = true; // Disable delete button initially
@@ -608,17 +628,17 @@
                     incorrectCount++;
                     isFirstAttempt = false;
                 }
-                document.getElementById('feedbackContainer').innerHTML =
-                    incorrectSpellingFeedback(currentWord.word);
-                
+                showRevealedCorrectWord();
+                document.getElementById('feedbackContainer').innerHTML = tryAgainFeedback();
+
                 setTimeout(() => {
                     document.getElementById('feedbackContainer').innerHTML = '';
-                    // Reset
                     assembledLetters = [];
                     document.querySelectorAll('.assembly-slot').forEach(slot => {
                         slot.textContent = '';
                         slot.classList.remove('filled');
                     });
+                    document.getElementById('deleteButton').disabled = true;
                 }, 2000);
             }
         }
