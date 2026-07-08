@@ -20,7 +20,7 @@
             }
         ]
     },
-    "version": "2026-06-14",
+    "version": "2026-07-08",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -222,8 +222,8 @@
                     "title": "Long Division",
                     "launch": "longDivision",
                     "webGame": true,
-                    "displayDays": "mon,wed,fri,sun",
                     "easydays": "mon,wed,fri,sun",
+                    "displayDays": "mon,wed,fri,sun",
                     "totalQuestions": 5
                 },
                 {
@@ -517,6 +517,13 @@
             "id": "checklist",
             "items": [
                 {
+                    "id": "bm_french_reading",
+                    "done": false,
+                    "label": "French Reading",
+                    "stars": 0,
+                    "displayDays": "thu,fri,sat,sun,mon,tue"
+                },
+                {
                     "id": "bm_laundry",
                     "done": false,
                     "label": "Laundry",
@@ -539,14 +546,6 @@
                     "done": false,
                     "label": "Push Ups: Pushes 25 reg & 10 knuckle",
                     "stars": 0
-                },
-                {
-                    "id": "bm_french_reading",
-                    "done": false,
-                    "label": "French Reading",
-                    "stars": 0,
-                    "disable": "Dec 31, 2099",
-                    "displayDays": "thu,fri,sat,sun,mon,tue"
                 }
             ],
             "title": "Checklist",
@@ -676,6 +675,7 @@
                     "stars": 3,
                     "title": "Diagram Labeler: Circulatory System",
                     "launch": "diagramLabeler",
+                    "disable": "Dec 31, 2099",
                     "webGame": true
                 },
                 {
@@ -683,6 +683,7 @@
                     "stars": 4,
                     "title": "Diagram Labeler: Digestive System",
                     "launch": "diagramLabeler",
+                    "disable": "Dec 31, 2099",
                     "webGame": true
                 },
                 {
@@ -690,6 +691,7 @@
                     "stars": 6,
                     "title": "Diagram Labeler: Skeletal System",
                     "launch": "diagramLabeler",
+                    "disable": "Dec 31, 2099",
                     "webGame": true
                 },
                 {
