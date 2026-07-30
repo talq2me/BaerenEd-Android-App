@@ -113,6 +113,7 @@
         .behavior-btn.activated { background: linear-gradient(135deg, #FFA726 0%, #EF6C00 100%); }
         .behavior-btn.hyper { background: linear-gradient(135deg, #FDD835 0%, #F9A825 100%); color: #333; }
         .behavior-btn.attention { background: linear-gradient(135deg, #42A5F5 0%, #1565C0 100%); }
+        .behavior-btn.medication { background: linear-gradient(135deg, #66BB6A 0%, #2E7D32 100%); }
         .behavior-btn.refresh {
             background: linear-gradient(135deg, #78909C 0%, #546E7A 100%);
             text-align: center;
@@ -170,6 +171,7 @@
         .log-item.activated { border-left-color: #EF6C00; }
         .log-item.hyper { border-left-color: #F9A825; }
         .log-item.attention { border-left-color: #1565C0; }
+        .log-item.medication { border-left-color: #2E7D32; }
         .log-item .time {
             flex: 0 0 auto;
             font-weight: 700;
@@ -266,7 +268,8 @@
             Meltdown: { css: 'meltdown', color: '#C62828' },
             'Activated/Argumentative': { css: 'activated', color: '#EF6C00' },
             Hyper: { css: 'hyper', color: '#F9A825' },
-            Attention: { css: 'attention', color: '#1565C0' }
+            Attention: { css: 'attention', color: '#1565C0' },
+            Medication: { css: 'medication', color: '#2E7D32' }
         };
 
         const BEHAVIORS = [
@@ -279,7 +282,8 @@
             { name: 'Conflict/putting others down', category: 'Activated/Argumentative' },
             { name: 'Loud Noises', category: 'Hyper' },
             { name: 'Rowdiness when inappropriate', category: 'Hyper' },
-            { name: 'Not staying on task', category: 'Attention' }
+            { name: 'Not staying on task', category: 'Attention' },
+            { name: 'Medication administered', category: 'Medication' }
         ];
 
         let currentProfile = 'BM';
