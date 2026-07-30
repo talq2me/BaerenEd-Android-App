@@ -220,8 +220,8 @@
         <div class="section">
             <h3>Child</h3>
             <div class="profile-tabs" id="profileTabs">
-                <button type="button" class="profile-tab active" data-profile="AM">AM</button>
-                <button type="button" class="profile-tab" data-profile="BM">BM</button>
+                <button type="button" class="profile-tab" data-profile="AM">AM</button>
+                <button type="button" class="profile-tab active" data-profile="BM">BM</button>
             </div>
         </div>
 
@@ -253,9 +253,9 @@
                 <div class="chart-wrap">
                     <canvas id="behaviorChart"></canvas>
                 </div>
-                <p class="legend-note">
-                    Bars show how many logs fell in each hour (0–23), stacked by category.
-                    Multi-day ranges add up the same hour across days.
+                <p class="legend-note" id="graphLegend">
+                    Last day: bars by hour (0–23), stacked by category.
+                    Longer ranges: one bar per day (oldest left, today right), all hours combined.
                 </p>
             </div>
         </div>
@@ -272,9 +272,9 @@
         const BEHAVIORS = [
             { name: 'Sibling Hitting', category: 'Meltdown' },
             { name: 'Parent Hitting', category: 'Meltdown' },
-            { name: 'Swearing', category: 'Activated/Argumentative' },
             { name: 'Shouting/Yelling', category: 'Meltdown' },
             { name: 'Throwing/Breaking Things (attempts)', category: 'Meltdown' },
+            { name: 'Swearing', category: 'Activated/Argumentative' },
             { name: 'Defiance', category: 'Activated/Argumentative' },
             { name: 'Conflict/putting others down', category: 'Activated/Argumentative' },
             { name: 'Loud Noises', category: 'Hyper' },
@@ -282,7 +282,7 @@
             { name: 'Not staying on task', category: 'Attention' }
         ];
 
-        let currentProfile = 'AM';
+        let currentProfile = 'BM';
         let viewMode = 'list';
         let graphRange = 'day';
         let chart = null;
@@ -489,20 +489,51 @@
             }).join('');
         }
 
-        function buildHourCounts(rows) {
-            const hours = {};
+        function logYmd(logDateTime) {
+            const raw = String(logDateTime || '').trim();
+            const m = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+            if (m) return m[1];
+            const ms = parseLogDateTime(raw);
+            if (isNaN(ms)) return null;
+            return torontoYmd(new Date(ms));
+        }
+
+        function logHour(logDateTime) {
+            const raw = String(logDateTime || '').trim();
+            const m = raw.match(/\s(\d{2}):/);
+            if (m) return Number(m[1]);
+            const ms = parseLogDateTime(raw);
+            if (isNaN(ms)) return null;
+            return Number(torontoParts(new Date(ms)).H);
+        }
+
+        function enumerateDays(startYmd, endYmdInclusive) {
+            const days = [];
+            let cur = startYmd;
+            while (cur <= endYmdInclusive) {
+                days.push(cur);
+                cur = addDaysYmd(cur, 1);
+            }
+            return days;
+        }
+
+        function formatDayLabel(ymd) {
+            const [, m, d] = ymd.split('-');
+            return `${m}-${d}`;
+        }
+
+        function emptyCategorySeries(length) {
+            const series = {};
             Object.keys(CATEGORIES).forEach((cat) => {
-                hours[cat] = Array(24).fill(0);
+                series[cat] = Array(length).fill(0);
             });
+            return series;
+        }
+
+        function buildHourCounts(rows) {
+            const hours = emptyCategorySeries(24);
             (rows || []).forEach((r) => {
-                const raw = String(r.log_date_time || '');
-                let hour = null;
-                const m = raw.match(/\s(\d{2}):/);
-                if (m) hour = Number(m[1]);
-                else {
-                    const ms = parseLogDateTime(raw);
-                    if (!isNaN(ms)) hour = Number(torontoParts(new Date(ms)).H);
-                }
+                const hour = logHour(r.log_date_time);
                 if (hour == null || hour < 0 || hour > 23) return;
                 const cat = r.category;
                 if (!hours[cat]) hours[cat] = Array(24).fill(0);
@@ -511,14 +542,54 @@
             return hours;
         }
 
+        function buildDayCounts(rows, dayLabels) {
+            const indexByDay = Object.fromEntries(dayLabels.map((d, i) => [d, i]));
+            const counts = emptyCategorySeries(dayLabels.length);
+            (rows || []).forEach((r) => {
+                const ymd = logYmd(r.log_date_time);
+                if (!ymd || indexByDay[ymd] == null) return;
+                const cat = r.category;
+                if (!counts[cat]) counts[cat] = Array(dayLabels.length).fill(0);
+                counts[cat][indexByDay[ymd]] += 1;
+            });
+            return counts;
+        }
+
         function renderChart(rows, rangeKey) {
             const bounds = rangeBounds(rangeKey);
-            document.getElementById('graphTitle').textContent = `By hour — ${bounds.label}`;
-            const counts = buildHourCounts(rows);
-            const labels = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+            const byHour = rangeKey === 'day';
+            const today = torontoYmd();
+            const startYmd = bounds.start.slice(0, 10);
+
+            let labels;
+            let counts;
+            let xTitle;
+            let chartTitle;
+            let tooltipTitle;
+
+            if (byHour) {
+                labels = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+                counts = buildHourCounts(rows);
+                xTitle = 'Hour of day';
+                chartTitle = `By hour — ${bounds.label}`;
+                tooltipTitle = (items) => items.length ? `Hour ${items[0].label}:00` : '';
+            } else {
+                const dayKeys = enumerateDays(startYmd, today);
+                labels = dayKeys.map(formatDayLabel);
+                counts = buildDayCounts(rows, dayKeys);
+                xTitle = 'Day';
+                chartTitle = `By day — ${bounds.label}`;
+                tooltipTitle = (items) => {
+                    if (!items.length) return '';
+                    const i = items[0].dataIndex;
+                    return dayKeys[i] || items[0].label;
+                };
+            }
+
+            document.getElementById('graphTitle').textContent = chartTitle;
             const datasets = Object.keys(CATEGORIES).map((cat) => ({
                 label: cat,
-                data: counts[cat] || Array(24).fill(0),
+                data: counts[cat] || Array(labels.length).fill(0),
                 backgroundColor: CATEGORIES[cat].color,
                 borderWidth: 0,
                 borderRadius: 2
@@ -539,16 +610,19 @@
                             labels: { boxWidth: 12, font: { size: 11 } }
                         },
                         tooltip: {
-                            callbacks: {
-                                title: (items) => items.length ? `Hour ${items[0].label}:00` : ''
-                            }
+                            callbacks: { title: tooltipTitle }
                         }
                     },
                     scales: {
                         x: {
                             stacked: true,
-                            title: { display: true, text: 'Hour of day' },
-                            ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+                            title: { display: true, text: xTitle },
+                            ticks: {
+                                maxRotation: byHour ? 0 : 45,
+                                minRotation: byHour ? 0 : 0,
+                                autoSkip: true,
+                                maxTicksLimit: byHour ? 12 : (rangeKey === '6mo' ? 12 : 16)
+                            }
                         },
                         y: {
                             stacked: true,
