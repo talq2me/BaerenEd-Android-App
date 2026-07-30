@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Parent Progress Report - Select Child</title>
+    <title>Parent Progress Report</title>
     <style>
         * {
             margin: 0;
@@ -16,133 +16,146 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(160deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            min-height: 100dvh;
+            padding: 12px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+            padding: 16px;
+            max-width: 480px;
             width: 100%;
-            text-align: center;
+            margin: 0 auto;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2em;
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .page-header h1 {
+            color: #222;
+            font-size: 1.25em;
+            line-height: 1.25;
+            text-align: left;
         }
 
         .subtitle {
             color: #666;
-            margin-bottom: 40px;
-            font-size: 1.1em;
+            font-size: 0.82em;
+            margin-top: 2px;
+            text-align: left;
         }
 
-        .kid-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        .reload-button {
+            flex: 0 0 auto;
+            background: #f7f8fc;
+            color: #5a67d8;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .reload-button:active {
+            transform: scale(0.97);
+            background: #eef0f8;
+        }
+
+        .section {
+            margin-top: 14px;
+        }
+
+        .section-label {
+            color: #888;
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .nav-grid.single {
+            grid-template-columns: 1fr;
         }
 
         .kid-button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 20px 40px;
-            border-radius: 12px;
-            font-size: 1.2em;
+            padding: 13px 10px;
+            border-radius: 11px;
+            font-size: 0.92em;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
-            display: block;
-        }
-
-        .kid-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.25;
+            min-height: 48px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
         }
 
         .kid-button:active {
-            transform: translateY(0);
+            transform: scale(0.98);
+            opacity: 0.92;
         }
 
-        .config-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 1px solid #eee;
+        .kid-button.wide {
+            grid-column: 1 / -1;
         }
 
-        .config-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        .config-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            margin-bottom: 10px;
-        }
-
-        .config-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .save-config {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1em;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .save-config:hover {
-            background: #45a049;
-        }
-
-        .info-text {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }
+        .kid-button.am { background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%); }
+        .kid-button.bm { background: linear-gradient(135deg, #7c4dff 0%, #536dfe 100%); }
+        .kid-button.chores { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #333; }
+        .kid-button.bank { background: linear-gradient(135deg, #4DD0E1 0%, #0097A7 100%); }
+        .kid-button.schedule { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .kid-button.schedule-edit { background: linear-gradient(135deg, #e040fb 0%, #7b1fa2 100%); }
+        .kid-button.banked { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); }
+        .kid-button.reward { background: linear-gradient(135deg, #7C4DFF 0%, #536DFE 100%); }
+        .kid-button.tasks { background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%); }
+        .kid-button.photos { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .kid-button.ocr { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); }
+        .kid-button.handwriting { background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%); }
+        .kid-button.behavior { background: linear-gradient(135deg, #EF5350 0%, #E53935 100%); }
+        .kid-button.howto { background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%); }
 
         .health-section {
-            margin-top: 0;
-            margin-bottom: 30px;
-            padding-top: 0;
-            padding-bottom: 30px;
-            border-top: none;
+            margin-top: 4px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #eee;
         }
 
-        .health-status {
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 10px;
+        .health-section .section-label {
+            margin-bottom: 6px;
         }
 
-        .health-status:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        .health-status {
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
         }
 
         .health-status.healthy {
@@ -162,18 +175,18 @@
 
         .health-status-title {
             font-weight: 600;
-            font-size: 1.1em;
-            margin-bottom: 5px;
+            font-size: 0.95em;
+            margin-bottom: 2px;
         }
 
         .health-status-time {
-            font-size: 0.85em;
+            font-size: 0.78em;
             opacity: 0.9;
         }
 
         .health-details {
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 8px;
+            padding: 10px;
             background: #f5f5f5;
             border-radius: 8px;
             display: none;
@@ -186,48 +199,92 @@
 
         .health-details h4 {
             color: #333;
-            margin-bottom: 10px;
-            font-size: 1em;
+            margin-bottom: 8px;
+            font-size: 0.9em;
         }
 
         .health-details p {
             color: #666;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+            margin-bottom: 4px;
+            font-size: 0.85em;
         }
 
-        .health-loading {
-            text-align: center;
-            color: #666;
-            padding: 15px;
+        .config-section {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            text-align: left;
         }
 
-        .reload-bar {
+        .config-toggle {
+            width: 100%;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            background: none;
+            border: none;
+            padding: 4px 0;
+            cursor: pointer;
+            color: #555;
+            font-size: 0.85em;
+            font-weight: 600;
         }
 
-        .reload-button {
-            background: #fff;
-            color: #5a67d8;
-            border: 2px solid #e2e8f0;
-            padding: 10px 18px;
-            border-radius: 10px;
+        .config-toggle .chevron {
+            color: #999;
+            font-size: 0.9em;
+            transition: transform 0.15s;
+        }
+
+        .config-section.open .config-toggle .chevron {
+            transform: rotate(90deg);
+        }
+
+        .config-body {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .config-section.open .config-body {
+            display: block;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 11px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px; /* avoids iOS zoom on focus */
+            margin-bottom: 8px;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .save-config {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
             font-size: 0.95em;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
+            margin-top: 2px;
         }
 
-        .reload-button:active {
-            transform: scale(0.98);
+        .save-config:active {
+            background: #45a049;
         }
 
-        .reload-hint {
-            color: #888;
-            font-size: 0.8em;
+        .info-text {
+            color: #777;
+            font-size: 0.78em;
+            margin-top: 8px;
+            line-height: 1.35;
         }
 
         #pullRefreshIndicator {
@@ -247,20 +304,28 @@
             z-index: 1000;
             pointer-events: none;
         }
+
+        @media (min-width: 480px) {
+            body { padding: 20px; }
+            .container { padding: 20px; }
+            .page-header h1 { font-size: 1.4em; }
+            .kid-button { font-size: 0.95em; padding: 14px 12px; }
+        }
     </style>
 </head>
 <body>
     <div id="pullRefreshIndicator">Pull to refresh…</div>
     <div class="container">
-        <h1>📊 Parent Progress Report</h1>
-        <p class="subtitle">Select a child to view their progress</p>
-        <div class="reload-bar">
+        <div class="page-header">
+            <div>
+                <h1>Parent Reports</h1>
+                <p class="subtitle">Kids, rewards, learning &amp; logs</p>
+            </div>
             <button type="button" class="reload-button" onclick="hardReload()">↻ Reload</button>
-            <span class="reload-hint">Pull down at top to refresh</span>
         </div>
 
         <div class="health-section">
-            <h3>🛡️ BaerenLock Status</h3>
+            <div class="section-label">BaerenLock</div>
             <div id="healthStatus" class="health-status unknown" onclick="toggleHealthDetails()">
                 <div class="health-status-title">Loading...</div>
                 <div class="health-status-time"></div>
@@ -271,35 +336,66 @@
             </div>
         </div>
 
-        <div class="kid-selector">
-            <a href="daily_progress_report.html?kid=AM" class="kid-button">AM's Report</a>
-            <a href="daily_progress_report.html?kid=BM" class="kid-button">BM's Report</a>
-            <a href="chores.html" class="kid-button" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">🪙 Chores 4 🪙</a>
-            <a href="kid_bank_balance.html" class="kid-button" style="background: linear-gradient(135deg, #4DD0E1 0%, #0097A7 100%);">🏦 Kids Bank</a>
-            <a href="schedule.html" class="kid-button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📅 Weekly Schedule</a>
-            <a href="schedule_editor.html" class="kid-button" style="background: linear-gradient(135deg, #e040fb 0%, #7b1fa2 100%);">✏️ Edit Schedule</a>
-            <a href="banked_time.html" class="kid-button" style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);">⏰ Banked Time</a>
-            <a href="reward_time_day.html" class="kid-button" style="background: linear-gradient(135deg, #7C4DFF 0%, #536DFE 100%);">📈 Reward Time Today</a>
-            <a href="task_manager.html" class="kid-button" style="background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);">🎯 Task Manager</a>
-            <a href="spelling_photos.html" class="kid-button" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">📸 Spelling Photos</a>
-            <a href="spelling_ocr_report.html" class="kid-button" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);">📝 Spelling OCR</a>
-            <a href="handwriting_practice_report.html" class="kid-button" style="background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%);">✍️ Handwriting snapshot</a>
-            <a href="behavior_log.html" class="kid-button" style="background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);">📋 Behavior Log</a>
-            <a href="how_to.html" class="kid-button" style="background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%);">📖 How To</a>
+        <div class="section">
+            <div class="section-label">Children</div>
+            <div class="nav-grid">
+                <a href="daily_progress_report.html?kid=AM" class="kid-button am">AM Report</a>
+                <a href="daily_progress_report.html?kid=BM" class="kid-button bm">BM Report</a>
+            </div>
         </div>
 
-        <div class="config-section">
-            <h3>⚙️ Configuration</h3>
-            <input type="text" id="supabaseUrl" class="config-input" placeholder="Supabase URL (e.g., https://xxxxx.supabase.co)">
-            <input type="text" id="supabaseKey" class="config-input" placeholder="Supabase API Key">
-            <input type="password" id="scheduleWriteKey" class="config-input" placeholder="Schedule editor write key (optional — for GitHub config sync)">
-            <button class="save-config" onclick="saveConfig()">Save Configuration</button>
-            <p class="info-text">Credentials are saved locally in your browser. The write key must match <code>schedule_editor_write_key</code> in Supabase Vault.</p>
+        <div class="section">
+            <div class="section-label">Today</div>
+            <div class="nav-grid">
+                <a href="behavior_log.html" class="kid-button behavior">Behavior Log</a>
+                <a href="chores.html" class="kid-button chores">Chores</a>
+                <a href="task_manager.html" class="kid-button tasks">Task Manager</a>
+                <a href="kid_bank_balance.html" class="kid-button bank">Kids Bank</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-label">Time &amp; Schedule</div>
+            <div class="nav-grid">
+                <a href="banked_time.html" class="kid-button banked">Banked Time</a>
+                <a href="reward_time_day.html" class="kid-button reward">Reward Time</a>
+                <a href="schedule.html" class="kid-button schedule">Schedule</a>
+                <a href="schedule_editor.html" class="kid-button schedule-edit">Edit Schedule</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-label">Learning</div>
+            <div class="nav-grid">
+                <a href="spelling_photos.html" class="kid-button photos">Spelling Photos</a>
+                <a href="spelling_ocr_report.html" class="kid-button ocr">Spelling OCR</a>
+                <a href="handwriting_practice_report.html" class="kid-button handwriting wide">Handwriting snapshot</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-label">Help</div>
+            <div class="nav-grid single">
+                <a href="how_to.html" class="kid-button howto">How To</a>
+            </div>
+        </div>
+
+        <div class="config-section" id="configSection">
+            <button type="button" class="config-toggle" onclick="toggleConfig()" aria-expanded="false">
+                <span>Configuration</span>
+                <span class="chevron">›</span>
+            </button>
+            <div class="config-body">
+                <input type="text" id="supabaseUrl" class="config-input" placeholder="Supabase URL" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <input type="text" id="supabaseKey" class="config-input" placeholder="Supabase API Key" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <input type="password" id="scheduleWriteKey" class="config-input" placeholder="Schedule editor write key (optional)" autocomplete="off">
+                <button class="save-config" onclick="saveConfig()">Save Configuration</button>
+                <p class="info-text">Saved in this browser only. Write key must match <code>schedule_editor_write_key</code> in Supabase Vault.</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Load saved configuration
         function loadConfig() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
@@ -307,14 +403,25 @@
             if (url) document.getElementById('supabaseUrl').value = url;
             if (key) document.getElementById('supabaseKey').value = key;
             if (writeKey) document.getElementById('scheduleWriteKey').value = writeKey;
+
+            // Auto-open config if credentials are missing
+            if (!url || !key) {
+                document.getElementById('configSection').classList.add('open');
+                document.querySelector('.config-toggle').setAttribute('aria-expanded', 'true');
+            }
         }
 
-        // Save configuration
+        function toggleConfig() {
+            const section = document.getElementById('configSection');
+            const open = section.classList.toggle('open');
+            document.querySelector('.config-toggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
         function saveConfig() {
             const url = document.getElementById('supabaseUrl').value.trim();
             const key = document.getElementById('supabaseKey').value.trim();
             const writeKey = document.getElementById('scheduleWriteKey').value.trim();
-            
+
             if (url && key) {
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
@@ -324,24 +431,22 @@
                     localStorage.removeItem('scheduleWriteKey');
                 }
                 alert('Configuration saved!');
-                loadHealthStatus(); // Reload health status after saving config
+                loadHealthStatus();
             } else {
                 alert('Please enter both Supabase URL and API Key');
             }
         }
 
-        // Load health status from Supabase devices table
         async function loadHealthStatus() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
-            
+
             if (!url || !key) {
                 updateHealthStatus('unknown', 'Configuration required', null);
                 return;
             }
 
             try {
-                // Query devices table - health data is stored per device, not per profile
                 const response = await fetch(`${url}/rest/v1/devices?select=device_id,device_name,active_profile,baerenlock_health_status,baerenlock_health_issues,baerenlock_last_health_check&order=active_profile,device_name`, {
                     headers: {
                         'apikey': key,
@@ -355,15 +460,13 @@
 
                 const data = await response.json();
                 if (data && data.length > 0) {
-                    // Exclude Pixel tablets from health display
                     const devices = data.filter(d => {
                         const name = (d.device_name || d.device_id || '').toLowerCase();
                         return !name.includes('pixel');
                     });
-                    // Unhealthy only when there are actual issues; "unhealthy" with no issues = stale (not counted)
-                    const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' && 
+                    const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' &&
                         (d.baerenlock_health_issues && String(d.baerenlock_health_issues).trim() !== '');
-                    const overallStatus = devices.some(hasActualIssues) ? 'unhealthy' : 
+                    const overallStatus = devices.some(hasActualIssues) ? 'unhealthy' :
                                          devices.some(d => d.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
                     updateHealthStatus(overallStatus, devices);
                 } else {
@@ -375,21 +478,18 @@
             }
         }
 
-        // Update health status display
         function updateHealthStatus(status, profiles) {
             const statusElement = document.getElementById('healthStatus');
             const titleElement = statusElement.querySelector('.health-status-title');
             const timeElement = statusElement.querySelector('.health-status-time');
             const profilesElement = document.getElementById('healthProfiles');
 
-            // Remove all status classes
             statusElement.classList.remove('healthy', 'unhealthy', 'unknown');
             statusElement.classList.add(status);
 
-            // Set overall title
             let title = 'All systems operational';
             if (status === 'unhealthy') {
-                const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' && 
+                const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' &&
                     (d.baerenlock_health_issues && String(d.baerenlock_health_issues).trim() !== '');
                 const unhealthyCount = profiles.filter(hasActualIssues).length;
                 title = `${unhealthyCount} device${unhealthyCount > 1 ? 's' : ''} with issues`;
@@ -398,7 +498,6 @@
             }
             titleElement.textContent = title;
 
-            // Set overall last check time (most recent across all devices)
             const allLastChecks = profiles
                 .map(d => d.baerenlock_last_health_check ? new Date(d.baerenlock_last_health_check).getTime() : 0)
                 .filter(t => t > 0);
@@ -409,12 +508,10 @@
                 timeElement.textContent = 'No check data available';
             }
 
-            // Build per-device details (grouped by active_profile)
             profilesElement.innerHTML = '';
             if (profiles.length === 0) {
                 profilesElement.innerHTML = '<p>No health data available for any device</p>';
             } else {
-                // Group devices by active_profile
                 const devicesByProfile = {};
                 profiles.forEach(device => {
                     const profile = device.active_profile || 'Unknown';
@@ -423,23 +520,21 @@
                     }
                     devicesByProfile[profile].push(device);
                 });
-                
-                // Display devices grouped by profile
+
                 Object.keys(devicesByProfile).sort().forEach(profile => {
                     const devices = devicesByProfile[profile];
                     const profileDiv = document.createElement('div');
-                    profileDiv.style.marginBottom = '20px';
-                    profileDiv.style.padding = '15px';
+                    profileDiv.style.marginBottom = '12px';
+                    profileDiv.style.padding = '10px';
                     profileDiv.style.background = '#fff';
                     profileDiv.style.borderRadius = '8px';
-                    profileDiv.style.border = '2px solid #ddd';
-                    
-                    // Profile status: unhealthy only when a device has actual issues (not just stale)
-                    const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' && 
+                    profileDiv.style.border = '1px solid #ddd';
+
+                    const hasActualIssues = d => d.baerenlock_health_status === 'unhealthy' &&
                         (d.baerenlock_health_issues && String(d.baerenlock_health_issues).trim() !== '');
-                    const profileStatus = devices.some(hasActualIssues) ? 'unhealthy' : 
+                    const profileStatus = devices.some(hasActualIssues) ? 'unhealthy' :
                                          devices.some(d => d.baerenlock_health_status === 'healthy') ? 'healthy' : 'unknown';
-                    
+
                     let statusColor = '#666';
                     let statusText = 'Unknown';
                     if (profileStatus === 'healthy') {
@@ -449,8 +544,8 @@
                         statusColor = '#f44336';
                         statusText = 'Unhealthy';
                     }
-                    
-                    let devicesHtml = '<div style="margin-top: 10px;">';
+
+                    let devicesHtml = '<div style="margin-top: 8px;">';
                     devices.forEach(device => {
                         const deviceStatus = device.baerenlock_health_status || 'unknown';
                         const deviceIssues = device.baerenlock_health_issues || null;
@@ -458,7 +553,7 @@
                         const deviceName = device.device_name || device.device_id || 'Unknown Device';
                         const hasIssues = deviceStatus === 'unhealthy' && (deviceIssues && String(deviceIssues).trim() !== '');
                         const isStale = deviceStatus === 'unhealthy' && !hasIssues;
-                        
+
                         let deviceStatusColor = '#666';
                         let deviceStatusText = 'Unknown';
                         if (deviceStatus === 'healthy') {
@@ -471,33 +566,32 @@
                             deviceStatusColor = '#ff9800';
                             deviceStatusText = 'Stale – run check to refresh';
                         }
-                        
+
                         devicesHtml += `
-                            <div style="margin-bottom: 10px; padding: 10px; background: #f9f9f9; border-radius: 6px; border-left: 3px solid ${deviceStatusColor};">
-                                <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                            <div style="margin-bottom: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; border-left: 3px solid ${deviceStatusColor};">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 4px; font-size: 0.9em;">
                                     ${deviceName}: <span style="color: ${deviceStatusColor}">${deviceStatusText}</span>
                                 </div>
-                                ${deviceIssues ? `<div style="color: #d32f2f; margin-bottom: 5px; font-size: 0.9em;">Issues: ${deviceIssues}</div>` : (isStale ? '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No recent check – open BaerenLock to refresh</div>' : '<div style="color: #666; margin-bottom: 5px; font-size: 0.9em;">No issues detected</div>')}
-                                ${deviceLastCheck ? `<div style="color: #666; font-size: 0.85em;">Last checked: ${new Date(deviceLastCheck).toLocaleString()}</div>` : '<div style="color: #999; font-size: 0.85em;">No check data available</div>'}
+                                ${deviceIssues ? `<div style="color: #d32f2f; margin-bottom: 4px; font-size: 0.82em;">Issues: ${deviceIssues}</div>` : (isStale ? '<div style="color: #666; margin-bottom: 4px; font-size: 0.82em;">No recent check – open BaerenLock to refresh</div>' : '<div style="color: #666; margin-bottom: 4px; font-size: 0.82em;">No issues detected</div>')}
+                                ${deviceLastCheck ? `<div style="color: #666; font-size: 0.78em;">Last checked: ${new Date(deviceLastCheck).toLocaleString()}</div>` : '<div style="color: #999; font-size: 0.78em;">No check data available</div>'}
                             </div>
                         `;
                     });
                     devicesHtml += '</div>';
-                    
+
                     profileDiv.innerHTML = `
-                        <div style="font-weight: 600; color: #333; margin-bottom: 10px; font-size: 1.1em;">
+                        <div style="font-weight: 600; color: #333; margin-bottom: 4px; font-size: 0.95em;">
                             Profile ${profile}: <span style="color: ${statusColor}">${statusText}</span>
-                            <span style="font-size: 0.85em; color: #666; font-weight: normal;">(${devices.length} device${devices.length > 1 ? 's' : ''})</span>
+                            <span style="font-size: 0.8em; color: #666; font-weight: normal;">(${devices.length} device${devices.length > 1 ? 's' : ''})</span>
                         </div>
                         ${devicesHtml}
                     `;
-                    
+
                     profilesElement.appendChild(profileDiv);
                 });
             }
         }
 
-        // Toggle health details visibility
         function toggleHealthDetails() {
             const details = document.getElementById('healthDetails');
             details.classList.toggle('show');
@@ -548,11 +642,8 @@
             document.addEventListener('touchcancel', endPull, { passive: true });
         })();
 
-        // Load config and health status on page load
         loadConfig();
         loadHealthStatus();
-        
-        // Refresh health status every 30 seconds
         setInterval(loadHealthStatus, 30000);
     </script>
 </body>
