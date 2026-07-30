@@ -15,6 +15,7 @@ DROP FUNCTION IF EXISTS af_daily_reset(text);
 DROP FUNCTION IF EXISTS af_delete_image_upload_by_id(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_uploads_ilike(text, text);
 DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
+DROP FUNCTION IF EXISTS af_get_behavior_log(text, timestamp, timestamp);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 DROP FUNCTION IF EXISTS af_get_device_row(text);
 DROP FUNCTION IF EXISTS af_get_image_upload_id(text, text);
@@ -30,6 +31,7 @@ DROP FUNCTION IF EXISTS af_get_user_data(text);
 DROP FUNCTION IF EXISTS af_get_user_last_reset(text);
 DROP FUNCTION IF EXISTS af_get_user_last_updated(text);
 DROP FUNCTION IF EXISTS af_insert_user_data_profile(text);
+DROP FUNCTION IF EXISTS af_log_behavior(text, text, text);
 DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
 DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text);
 DROP FUNCTION IF EXISTS af_reward_time_add(TEXT, INTEGER);
@@ -2906,5 +2908,103 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_push_profile_config_to_github(text, jsonb, text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_log_behavior.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (reports):
+--   reports/behavior_log.html — parent taps a behavior button to insert a log row.
+
+-- Inserts one behavior_log row with America/Toronto wall-clock log_date_time.
+-- Returns the inserted row so the UI can refresh immediately if desired.
+
+CREATE OR REPLACE FUNCTION af_log_behavior(
+    p_profile text,
+    p_behavior text,
+    p_category text
+)
+RETURNS TABLE (
+    id bigint,
+    profile text,
+    behavior text,
+    category text,
+    log_date_time timestamp
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF p_profile IS NULL OR btrim(p_profile) = '' THEN
+        RAISE EXCEPTION 'p_profile is required';
+    END IF;
+    IF p_behavior IS NULL OR btrim(p_behavior) = '' THEN
+        RAISE EXCEPTION 'p_behavior is required';
+    END IF;
+    IF p_category IS NULL OR btrim(p_category) = '' THEN
+        RAISE EXCEPTION 'p_category is required';
+    END IF;
+
+    RETURN QUERY
+    INSERT INTO behavior_log (profile, behavior, category, log_date_time)
+    VALUES (
+        btrim(p_profile),
+        btrim(p_behavior),
+        btrim(p_category),
+        (NOW() AT TIME ZONE 'America/Toronto')
+    )
+    RETURNING
+        behavior_log.id,
+        behavior_log.profile,
+        behavior_log.behavior,
+        behavior_log.category,
+        behavior_log.log_date_time;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_log_behavior(text, text, text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_get_behavior_log.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (reports):
+--   reports/behavior_log.html — list mode (today) and graph mode (date range).
+
+-- Returns behavior_log rows for a profile between inclusive start/end (America/Toronto wall clock).
+-- Ordered most recent first.
+
+CREATE OR REPLACE FUNCTION af_get_behavior_log(
+    p_profile text,
+    p_start_date_time timestamp,
+    p_end_date_time timestamp
+)
+RETURNS TABLE (
+    id bigint,
+    profile text,
+    behavior text,
+    category text,
+    log_date_time timestamp
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        bl.id,
+        bl.profile,
+        bl.behavior,
+        bl.category,
+        bl.log_date_time
+    FROM behavior_log bl
+    WHERE bl.profile = p_profile
+      AND bl.log_date_time >= p_start_date_time
+      AND bl.log_date_time < p_end_date_time
+    ORDER BY bl.log_date_time DESC, bl.id DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_get_behavior_log(text, timestamp, timestamp) TO anon, authenticated, service_role;
 
 
