@@ -92,7 +92,9 @@ $files = @(
 
   "af_log_behavior.sql",
 
-  "af_get_behavior_log.sql"
+  "af_get_behavior_log.sql",
+
+  "af_update_behavior_log_time.sql"
 
 )
 
