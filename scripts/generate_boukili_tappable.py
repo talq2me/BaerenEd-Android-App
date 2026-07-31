@@ -72,6 +72,12 @@ orage storm tonnerre thunder gronde rumbles branche branch casse breaks
 harmonie harmony pluie rain flaques puddles mélodie melody danse dance
 calme calm soleil sun plante plant fleur flower écouter listen compose composes
 annonce announces traversent cross
+cuisine cooks petit-déjeuner breakfast petit-dejeuner breakfast santé healthy
+goûte tastes goute tastes omelette omelette hoquet hiccup arrêter stop
+arreter stop déjeuner lunch dejeuner lunch salade salad dîner dinner diner dinner
+soupe soup retient holds souffle breath revient returns tourne turns
+rapidement quickly saute jumps pied foot gauche left parti gone manger eat
+maintenant now fruitée fruity
 """
 for line in _RAW.strip().splitlines():
     parts = line.split()
@@ -259,6 +265,13 @@ BOOKS = [
         "txt": "melodie.txt",
         "id": "boukili-melodie_tappable",
         "title": "Boukili — La mélodie de la nature (Tappable Text)",
+        "merge_last_two_pages": False,
+    },
+    {
+        "folder": "fruitee",
+        "txt": "fruitee.txt.txt",
+        "id": "boukili-fruitee_tappable",
+        "title": "Boukili — Madame Fruitée (Tappable Text)",
         "merge_last_two_pages": False,
     },
 ]
@@ -681,6 +694,41 @@ COMPREHENSION_QUESTIONS: dict[str, list[dict[str, object]]] = {
                 "Partout dans la nature",
                 "Uniquement dans le vent",
                 "Nulle part",
+            ],
+            "correct_index": 1,
+        },
+    ],
+    "boukili-fruitee_tappable": [
+        {
+            "page": 1,
+            "prompt": "Qu'est-ce qui arrive soudainement à Madame Fruitée ?",
+            "options": [
+                "Elle tombe",
+                "Un hoquet",
+                "Elle a faim",
+                "Elle rit",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 4,
+            "prompt": "Que fait Madame Fruitée pour arrêter le hoquet ?",
+            "options": [
+                "Elle chante",
+                "Elle retient son souffle",
+                "Elle dort",
+                "Elle court",
+            ],
+            "correct_index": 1,
+        },
+        {
+            "page": 6,
+            "prompt": "Que se passe-t-il après qu'elle saute trois fois ?",
+            "options": [
+                "Le hoquet revient",
+                "Le hoquet est parti",
+                "Elle tombe",
+                "Elle pleure",
             ],
             "correct_index": 1,
         },

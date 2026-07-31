@@ -1,0 +1,240 @@
+{
+  "id": "boukili-fruitee_tappable",
+  "title": "Boukili — Madame Fruitée (Tappable Text)",
+  "language": "fr",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": [
+        "Madame Fruitée cuisine un",
+        "petit-déjeuner santé.",
+        "Elle goûte son omelette.",
+        "Tout à coup, *hic* un hoquet.",
+        "Impossible de l'arrêter!"
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p1"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p1_tw1",
+          "prompt": "Tape le mot qui veut dire 'breakfast'.",
+          "correct_word": "petit-déjeuner"
+        },
+        {
+          "id": "p1_tw2",
+          "prompt": "Tape le mot qui veut dire 'omelette'.",
+          "correct_word": "omelette"
+        },
+        {
+          "id": "p1_tw3",
+          "prompt": "Tape le mot qui veut dire 'hiccup'.",
+          "correct_word": "hoquet"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p1_c1",
+        "prompt": "Qu'est-ce qui arrive soudainement à Madame Fruitée ?",
+        "options": [
+          "Elle tombe",
+          "Un hoquet",
+          "Elle a faim",
+          "Elle rit"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 2,
+      "text": [
+        "Madame Fruitée cuisine un",
+        "déjeuner santé.",
+        "Elle goûte sa salade.",
+        "Tout à coup, *hic* un hoquet.",
+        "Impossible de l'arrêter!"
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p2"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p2_tw1",
+          "prompt": "Tape le mot qui veut dire 'lunch'.",
+          "correct_word": "déjeuner"
+        },
+        {
+          "id": "p2_tw2",
+          "prompt": "Tape le mot qui veut dire 'salad'.",
+          "correct_word": "salade"
+        },
+        {
+          "id": "p2_tw3",
+          "prompt": "Tape le mot qui veut dire 'hiccup'.",
+          "correct_word": "hoquet"
+        }
+      ]
+    },
+    {
+      "page_number": 3,
+      "text": [
+        "Madame Fruitée cuisine un dîner",
+        "santé.",
+        "Elle goûte sa soupe.",
+        "Tout à coup, *hic* un hoquet.",
+        "Impossible de l'arrêter!"
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p3"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p3_tw1",
+          "prompt": "Tape le mot qui veut dire 'dinner'.",
+          "correct_word": "dîner"
+        },
+        {
+          "id": "p3_tw2",
+          "prompt": "Tape le mot qui veut dire 'soup'.",
+          "correct_word": "soupe"
+        },
+        {
+          "id": "p3_tw3",
+          "prompt": "Tape le mot qui veut dire 'cooks'.",
+          "correct_word": "cuisine"
+        }
+      ]
+    },
+    {
+      "page_number": 4,
+      "text": [
+        "Elle retient son souffle.",
+        "Mais *hic* le hoquet revient."
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p4"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p4_tw1",
+          "prompt": "Tape le mot qui veut dire 'holds'.",
+          "correct_word": "retient"
+        },
+        {
+          "id": "p4_tw2",
+          "prompt": "Tape le mot qui veut dire 'breath'.",
+          "correct_word": "souffle"
+        },
+        {
+          "id": "p4_tw3",
+          "prompt": "Tape le mot qui veut dire 'returns'.",
+          "correct_word": "revient"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p4_c1",
+        "prompt": "Que fait Madame Fruitée pour arrêter le hoquet ?",
+        "options": [
+          "Elle chante",
+          "Elle retient son souffle",
+          "Elle dort",
+          "Elle court"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 5,
+      "text": [
+        "Elle tourne en rond rapidement.",
+        "S'il te plaît, hoquet, arrête!"
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p5"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p5_tw1",
+          "prompt": "Tape le mot qui veut dire 'quickly'.",
+          "correct_word": "rapidement"
+        },
+        {
+          "id": "p5_tw2",
+          "prompt": "Tape le mot qui veut dire 'turns'.",
+          "correct_word": "tourne"
+        },
+        {
+          "id": "p5_tw3",
+          "prompt": "Tape le mot qui veut dire 'hiccup'.",
+          "correct_word": "hoquet"
+        }
+      ]
+    },
+    {
+      "page_number": 6,
+      "text": [
+        "Elle saute trois fois sur son pied",
+        "gauche.",
+        "Et tout à coup ... plus rien!",
+        "Le hoquet est parti!"
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p6"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p6_tw1",
+          "prompt": "Tape le mot qui veut dire 'jumps'.",
+          "correct_word": "saute"
+        },
+        {
+          "id": "p6_tw2",
+          "prompt": "Tape le mot qui veut dire 'left'.",
+          "correct_word": "gauche"
+        },
+        {
+          "id": "p6_tw3",
+          "prompt": "Tape le mot qui veut dire 'gone'.",
+          "correct_word": "parti"
+        }
+      ],
+      "comprehension_question": {
+        "id": "p6_c1",
+        "prompt": "Que se passe-t-il après qu'elle saute trois fois ?",
+        "options": [
+          "Le hoquet revient",
+          "Le hoquet est parti",
+          "Elle tombe",
+          "Elle pleure"
+        ],
+        "correct_index": 1
+      }
+    },
+    {
+      "page_number": 7,
+      "text": [
+        "Madame Fruitée peut maintenant",
+        "manger."
+      ],
+      "image": {
+        "image_id": "boukili/fruitee/p7"
+      },
+      "tappable_word_questions": [
+        {
+          "id": "p7_tw1",
+          "prompt": "Tape le mot qui veut dire 'now'.",
+          "correct_word": "maintenant"
+        },
+        {
+          "id": "p7_tw2",
+          "prompt": "Tape le mot qui veut dire 'eat'.",
+          "correct_word": "manger"
+        },
+        {
+          "id": "p7_tw3",
+          "prompt": "Tape le mot qui veut dire 'Fruitée'.",
+          "correct_word": "Fruitée"
+        }
+      ]
+    }
+  ]
+}

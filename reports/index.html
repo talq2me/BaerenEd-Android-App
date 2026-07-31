@@ -126,20 +126,9 @@
             grid-column: 1 / -1;
         }
 
-        .kid-button.am { background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%); }
-        .kid-button.bm { background: linear-gradient(135deg, #7c4dff 0%, #536dfe 100%); }
-        .kid-button.chores { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #333; }
-        .kid-button.bank { background: linear-gradient(135deg, #4DD0E1 0%, #0097A7 100%); }
-        .kid-button.schedule { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .kid-button.schedule-edit { background: linear-gradient(135deg, #e040fb 0%, #7b1fa2 100%); }
-        .kid-button.banked { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); }
-        .kid-button.reward { background: linear-gradient(135deg, #7C4DFF 0%, #536DFE 100%); }
-        .kid-button.tasks { background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%); }
-        .kid-button.photos { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .kid-button.ocr { background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); }
-        .kid-button.handwriting { background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%); }
+        /* Today section buttons may use distinct colours; all others use the default .kid-button style */
         .kid-button.behavior { background: linear-gradient(135deg, #EF5350 0%, #E53935 100%); }
-        .kid-button.howto { background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%); }
+        .kid-button.banked { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); }
 
         .health-section {
             margin-top: 4px;
@@ -337,46 +326,46 @@
         </div>
 
         <div class="section">
-            <div class="section-label">Children</div>
+            <div class="section-label">Today</div>
             <div class="nav-grid">
-                <a href="daily_progress_report.html?kid=AM" class="kid-button am">AM Report</a>
-                <a href="daily_progress_report.html?kid=BM" class="kid-button bm">BM Report</a>
+                <a href="behavior_log.html" class="kid-button behavior">Behavior Log</a>
+                <a href="banked_time.html" class="kid-button banked">Banked Time</a>
             </div>
         </div>
 
         <div class="section">
-            <div class="section-label">Today</div>
+            <div class="section-label">Progress Reports</div>
             <div class="nav-grid">
-                <a href="behavior_log.html" class="kid-button behavior">Behavior Log</a>
-                <a href="chores.html" class="kid-button chores">Chores</a>
-                <a href="task_manager.html" class="kid-button tasks">Task Manager</a>
-                <a href="kid_bank_balance.html" class="kid-button bank">Kids Bank</a>
+                <a href="daily_progress_report.html?kid=AM" class="kid-button">AM Report</a>
+                <a href="daily_progress_report.html?kid=BM" class="kid-button">BM Report</a>
+                <a href="chores.html" class="kid-button">Chores</a>
+                <a href="kid_bank_balance.html" class="kid-button">Kids Bank</a>
             </div>
         </div>
 
         <div class="section">
             <div class="section-label">Time &amp; Schedule</div>
             <div class="nav-grid">
-                <a href="banked_time.html" class="kid-button banked">Banked Time</a>
-                <a href="reward_time_day.html" class="kid-button reward">Reward Time</a>
-                <a href="schedule.html" class="kid-button schedule">Schedule</a>
-                <a href="schedule_editor.html" class="kid-button schedule-edit">Edit Schedule</a>
+                <a href="task_manager.html" class="kid-button">Task Manager</a>
+                <a href="reward_time_day.html" class="kid-button">Reward Time</a>
+                <a href="schedule.html" class="kid-button">Schedule</a>
+                <a href="schedule_editor.html" class="kid-button">Edit Schedule</a>
             </div>
         </div>
 
         <div class="section">
             <div class="section-label">Learning</div>
             <div class="nav-grid">
-                <a href="spelling_photos.html" class="kid-button photos">Spelling Photos</a>
-                <a href="spelling_ocr_report.html" class="kid-button ocr">Spelling OCR</a>
-                <a href="handwriting_practice_report.html" class="kid-button handwriting wide">Handwriting snapshot</a>
+                <a href="spelling_photos.html" class="kid-button">Spelling Photos</a>
+                <a href="spelling_ocr_report.html" class="kid-button">Spelling OCR</a>
+                <a href="handwriting_practice_report.html" class="kid-button wide">Handwriting snapshot</a>
             </div>
         </div>
 
         <div class="section">
             <div class="section-label">Help</div>
             <div class="nav-grid single">
-                <a href="how_to.html" class="kid-button howto">How To</a>
+                <a href="how_to.html" class="kid-button">How To</a>
             </div>
         </div>
 
