@@ -11,94 +11,124 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: #f5f5f5;
-            padding: 20px;
-            line-height: 1.55;
+            padding: 12px;
+            line-height: 1.4;
         }
         .container { max-width: 1200px; margin: 0 auto; }
         .header {
-            background: linear-gradient(135deg, #7C4DFF 0%, #536DFE 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
             color: white;
-            padding: 28px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        .header h1 { font-size: 2em; margin-bottom: 8px; }
-        .header p { opacity: 0.95; max-width: 720px; margin: 0 auto; font-size: 0.95em; }
+        .header h1 { font-size: 1.05em; margin: 0; font-weight: 700; }
         .back-button {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 10px 20px;
+            flex: 0 0 auto;
+            padding: 7px 10px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
         }
-        .back-button:hover { background: rgba(255, 255, 255, 0.3); }
+        .back-button:active { background: rgba(255, 255, 255, 0.3); }
         .section {
             background: white;
-            margin: 20px 0;
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
         }
         .section h3 {
-            color: #333;
-            margin-bottom: 12px;
-            font-size: 1.25em;
-            border-bottom: 2px solid #7C4DFF;
-            padding-bottom: 8px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
         }
-        .chart-wrap { position: relative; height: 420px; margin-top: 12px; }
+        .chart-wrap { position: relative; height: 420px; margin-top: 8px; }
         @media (max-width: 600px) { .chart-wrap { height: 320px; } }
-        .loading { text-align: center; padding: 40px; color: #666; }
+        .loading { text-align: center; padding: 24px; color: #666; font-size: 0.9em; }
         .error {
             background: #ffebee;
             border: 1px solid #f44336;
             border-radius: 8px;
-            padding: 16px;
+            padding: 12px;
             color: #c62828;
-            margin: 16px 0;
-        }
-        .legend-note { font-size: 0.88em; color: #555; margin-top: 12px; }
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-top: 16px;
-        }
-        .pill {
-            background: #f3f0ff;
-            border-radius: 8px;
-            padding: 12px 14px;
-            border-left: 4px solid #7C4DFF;
-        }
-        .pill strong { display: block; color: #4527a0; margin-bottom: 4px; }
-        .pill span { color: #444; font-size: 0.9em; }
-        .toolbar { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .toolbar button {
-            background: #536DFE;
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+            margin: 10px 0;
             font-size: 0.9em;
         }
-        .toolbar button:hover { background: #455ede; }
+        .legend-note { font-size: 0.78em; color: #64748b; margin-top: 10px; line-height: 1.35; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        @media (max-width: 520px) {
+            .summary { grid-template-columns: 1fr; }
+        }
+        .pill {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 8px 10px;
+            border-left: 3px solid #5a7a9c;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .pill strong {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            color: #334155;
+            font-size: 0.88em;
+            margin: 0;
+        }
+        .pill .mins {
+            font-variant-numeric: tabular-nums;
+            color: #4a6a8a;
+            font-weight: 700;
+        }
+        .pill span {
+            color: #64748b;
+            font-size: 0.72em;
+            line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .toolbar { margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .toolbar button {
+            background: #5a7a9c;
+            color: #fff;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 600;
+        }
+        .toolbar button:active { background: #4a6a8a; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Reward time today</h1>
-            <p>
-                Lines use reward_time_log for today (America/Toronto): session starts, pauses, and expiries.
-                Y is minutes on the active countdown while a session is running, and banked minutes when paused (not draining).
-                If a child has an active session now, the line continues to the wall-clock reward_time_expiry—even if that moment is still in the future.
-            </p>
-            <a href="index.html" class="back-button">← Back to Reports</a>
+            <h1>Reward Time Today</h1>
+            <a href="index.html" class="back-button">← Back</a>
         </div>
 
         <div id="loading" class="loading">Loading reward time data…</div>
@@ -106,22 +136,22 @@
 
         <div id="content" style="display: none;">
             <div class="section">
+                <h3>Current snapshot</h3>
+                <div class="summary" id="summary"></div>
+            </div>
+            <div class="section">
                 <h3 id="chartTitle">Minutes vs time of day</h3>
                 <div class="toolbar">
                     <button type="button" onclick="loadAll()">Refresh</button>
-                    <span id="torontoDate" style="color:#555;font-size:0.9em;"></span>
+                    <span id="torontoDate" style="color:#555;font-size:0.82em;"></span>
                 </div>
                 <div class="chart-wrap">
                     <canvas id="chart"></canvas>
                 </div>
                 <p class="legend-note">
-                    Earning extra minutes from tasks still goes to banked_mins and does not add rows to this log—only start, pause, and expiry do.
-                    Projection uses the same wall-clock expiry the apps use; it does not model usage-stats-based burn on the device.
+                    Earning from tasks updates banked_mins only—this chart logs start, pause, and expiry.
+                    Active sessions project to wall-clock expiry.
                 </p>
-            </div>
-            <div class="section">
-                <h3>Current snapshot</h3>
-                <div class="summary" id="summary"></div>
             </div>
         </div>
     </div>
@@ -271,9 +301,9 @@
                 div.style.borderLeftColor = COLORS[p] || '#7C4DFF';
 
                 if (active) {
-                    div.innerHTML = `<strong>${p}</strong><span>Active session: about <b>${rem}</b> min left (runs out near <b>${formatClock(expiryMs)}</b>).</span>`;
+                    div.innerHTML = `<strong>${p}<span class="mins">${rem} min</span></strong><span>Active · until ${formatClock(expiryMs)}</span>`;
                 } else {
-                    div.innerHTML = `<strong>${p}</strong><span>No active session. Banked: <b>${banked}</b> min.</span>`;
+                    div.innerHTML = `<strong>${p}<span class="mins">${banked} min</span></strong><span>Paused · banked</span>`;
                 }
                 el.appendChild(div);
             });

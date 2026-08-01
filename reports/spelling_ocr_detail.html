@@ -24,32 +24,43 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
             color: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.05em;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .header-meta {
+            font-size: 0.78em;
+            opacity: 0.92;
+            margin-top: 2px;
         }
 
         .back-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
+            flex: 0 0 auto;
+            padding: 7px 10px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.2s;
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        .back-button:hover {
+        .back-button:active {
             background: rgba(255, 255, 255, 0.3);
         }
 
@@ -225,11 +236,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📝 Spelling OCR Report</h1>
-            <p id="headerSubtitle">Loading...</p>
-            <p id="lastUpdated" style="margin-top: 8px; font-size: 0.95em; opacity: 0.95;"></p>
-            <a href="spelling_ocr_report.html" class="back-button">← Back to Selection</a>
+            <div>
+                <h1>Spelling OCR</h1>
+                <div class="header-meta" id="headerSubtitle">Loading...</div>
+            </div>
+            <a href="spelling_ocr_report.html" class="back-button">← Back</a>
         </div>
+        <div id="lastUpdated" class="header-meta" style="margin: -4px 0 12px; color: #64748b; font-size: 0.78em;"></div>
 
         <div id="loading" class="loading">Loading spelling submissions...</div>
         <div id="entriesContainer"></div>

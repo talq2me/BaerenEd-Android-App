@@ -13,9 +13,9 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5a7a9c 0%, #4a6a8a 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
         }
 
         .container {
@@ -24,109 +24,146 @@
         }
 
         .header {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            margin-bottom: 30px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 10px 12px;
+            margin-bottom: 12px;
         }
 
         .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 1.1em;
+            color: white;
+            margin: 0;
+            font-size: 1.05em;
+            font-weight: 700;
         }
 
         .back-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            flex: 0 0 auto;
+            padding: 7px 10px;
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
             border-radius: 8px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        .back-button:active {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .profiles-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 1024px) {
-            .profiles-container {
-                grid-template-columns: 1fr;
-            }
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
         .profile-section {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
         .profile-header {
-            text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid transparent;
+        }
+
+        .profile-section.open .profile-header {
+            border-bottom-color: #e2e8f0;
+        }
+
+        .profile-header:active {
+            background: #f8fafc;
+        }
+
+        .profile-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .profile-chevron {
+            color: #94a3b8;
+            font-size: 0.85em;
+            transition: transform 0.15s;
+            flex: 0 0 auto;
+        }
+
+        .profile-section.open .profile-chevron {
+            transform: rotate(90deg);
         }
 
         .profile-header h2 {
-            color: #333;
-            font-size: 2em;
-            margin-bottom: 10px;
+            color: #222;
+            font-size: 1em;
+            font-weight: 700;
+            margin: 0;
         }
 
         .profile-stats {
             display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-            font-size: 0.9em;
-            color: #666;
+            align-items: center;
+            gap: 10px;
+            flex: 0 0 auto;
         }
 
         .stat-item {
             text-align: center;
+            min-width: 44px;
         }
 
         .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
+            font-size: 1em;
+            font-weight: 700;
+            color: #4a6a8a;
+            line-height: 1.1;
         }
 
         .stat-label {
-            font-size: 0.85em;
-            color: #999;
+            font-size: 0.65em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .profile-body {
+            display: none;
+            padding: 8px 12px 12px;
+        }
+
+        .profile-section.open .profile-body {
+            display: block;
         }
 
         .task-list {
             list-style: none;
-            max-height: 600px;
+            max-height: 60vh;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 4px;
         }
 
         .task-item {
             background: #f8f9fa;
-            margin: 12px 0;
-            padding: 15px;
-            border-radius: 12px;
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 10px;
             border: 2px solid #e9ecef;
             display: flex;
             justify-content: space-between;
@@ -135,8 +172,8 @@
         }
 
         .task-item:hover {
-            border-color: #667eea;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            border-color: #5a7a9c;
+            box-shadow: 0 2px 8px rgba(90, 122, 156, 0.2);
         }
 
         .task-item.complete {
@@ -151,26 +188,28 @@
 
         .task-info {
             flex: 1;
+            min-width: 0;
         }
 
         .task-name {
             font-weight: 600;
             color: #333;
-            font-size: 1.1em;
-            margin-bottom: 5px;
+            font-size: 0.95em;
+            margin-bottom: 4px;
         }
 
         .task-details {
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #666;
         }
 
         .toggle-switch {
             position: relative;
             display: inline-block;
-            width: 60px;
-            height: 30px;
-            margin-left: 15px;
+            width: 52px;
+            height: 28px;
+            margin-left: 12px;
+            flex: 0 0 auto;
         }
 
         .toggle-switch input {
@@ -194,8 +233,8 @@
         .toggle-slider:before {
             position: absolute;
             content: "";
-            height: 22px;
-            width: 22px;
+            height: 20px;
+            width: 20px;
             left: 4px;
             bottom: 4px;
             background-color: white;
@@ -208,14 +247,14 @@
         }
 
         input:checked + .toggle-slider:before {
-            transform: translateX(30px);
+            transform: translateX(24px);
         }
 
         .save-section {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 14px;
             text-align: center;
         }
 
@@ -223,118 +262,121 @@
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            border-radius: 12px;
-            font-size: 1.2em;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1em;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin: 10px;
-        }
-
-        .save-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+            width: 100%;
+            max-width: 320px;
         }
 
         .save-button:active {
-            transform: translateY(0);
+            opacity: 0.92;
         }
 
         .save-button:disabled {
             background: #ccc;
             cursor: not-allowed;
-            transform: none;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 24px;
             color: #666;
+            background: white;
+            border-radius: 12px;
         }
 
         .error {
             background: #ffebee;
-            border: 2px solid #f44336;
-            border-radius: 12px;
-            padding: 20px;
+            border: 1px solid #f44336;
+            border-radius: 10px;
+            padding: 12px;
             color: #c62828;
-            margin: 20px 0;
+            margin: 10px 0;
+            font-size: 0.9em;
         }
 
         .success {
             background: #e8f5e9;
-            border: 2px solid #4CAF50;
-            border-radius: 12px;
-            padding: 20px;
+            border: 1px solid #4CAF50;
+            border-radius: 10px;
+            padding: 12px;
             color: #2e7d32;
-            margin: 20px 0;
+            margin: 10px 0;
+            font-size: 0.9em;
         }
 
         .no-tasks {
             text-align: center;
-            padding: 40px;
+            padding: 24px;
             color: #999;
             font-style: italic;
+            font-size: 0.9em;
         }
 
         .config-section {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            margin-bottom: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .config-section.hidden {
+            display: none;
         }
 
         .config-section h3 {
             color: #333;
-            margin-bottom: 15px;
-            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-size: 0.95em;
         }
 
         .config-input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
+            padding: 11px;
+            border: 1.5px solid #ddd;
             border-radius: 8px;
-            font-size: 1em;
-            margin-bottom: 10px;
+            font-size: 16px;
+            margin-bottom: 8px;
         }
 
         .config-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #5a7a9c;
         }
 
         .save-config {
-            background: #667eea;
+            background: #5a7a9c;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 16px;
             border-radius: 8px;
-            font-size: 1em;
+            font-size: 0.95em;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 2px;
         }
 
-        .save-config:hover {
-            background: #5568d3;
+        .save-config:active {
+            background: #4a6a8a;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Task Manager</h1>
-            <p>Edit required tasks for both profiles</p>
-            <a href="index.html" class="back-button">← Back to Selection</a>
+            <h1>Task Manager</h1>
+            <a href="index.html" class="back-button">← Back</a>
         </div>
 
-        <div class="config-section" id="configSection">
-            <h3>⚙️ Configuration</h3>
-            <input type="text" id="supabaseUrl" class="config-input" placeholder="Supabase URL (e.g., https://xxxxx.supabase.co)">
-            <input type="text" id="supabaseKey" class="config-input" placeholder="Supabase API Key">
+        <div class="config-section hidden" id="configSection">
+            <h3>Configuration</h3>
+            <input type="text" id="supabaseUrl" class="config-input" placeholder="Supabase URL (e.g., https://xxxxx.supabase.co)" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <input type="text" id="supabaseKey" class="config-input" placeholder="Supabase API Key" autocomplete="off" autocapitalize="off" spellcheck="false">
             <button class="save-config" onclick="saveConfig()">Save Configuration</button>
         </div>
 
@@ -347,18 +389,20 @@
 
         <div id="content" style="display: none;">
             <div class="profiles-container">
-                <!-- Profile AM -->
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <h2>Profile AM</h2>
+                <div class="profile-section" id="profileAM">
+                    <div class="profile-header" onclick="toggleProfile('AM')" role="button" aria-expanded="false">
+                        <div class="profile-title">
+                            <span class="profile-chevron">›</span>
+                            <h2>AM</h2>
+                        </div>
                         <div class="profile-stats">
                             <div class="stat-item">
                                 <div class="stat-value" id="amComplete">0</div>
-                                <div class="stat-label">Complete</div>
+                                <div class="stat-label">Done</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value" id="amIncomplete">0</div>
-                                <div class="stat-label">Incomplete</div>
+                                <div class="stat-label">Left</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value" id="amTotal">0</div>
@@ -366,21 +410,25 @@
                             </div>
                         </div>
                     </div>
-                    <ul class="task-list" id="amTasks"></ul>
+                    <div class="profile-body">
+                        <ul class="task-list" id="amTasks"></ul>
+                    </div>
                 </div>
 
-                <!-- Profile BM -->
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <h2>Profile BM</h2>
+                <div class="profile-section" id="profileBM">
+                    <div class="profile-header" onclick="toggleProfile('BM')" role="button" aria-expanded="false">
+                        <div class="profile-title">
+                            <span class="profile-chevron">›</span>
+                            <h2>BM</h2>
+                        </div>
                         <div class="profile-stats">
                             <div class="stat-item">
                                 <div class="stat-value" id="bmComplete">0</div>
-                                <div class="stat-label">Complete</div>
+                                <div class="stat-label">Done</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value" id="bmIncomplete">0</div>
-                                <div class="stat-label">Incomplete</div>
+                                <div class="stat-label">Left</div>
                             </div>
                             <div class="stat-item">
                                 <div class="stat-value" id="bmTotal">0</div>
@@ -388,26 +436,32 @@
                             </div>
                         </div>
                     </div>
-                    <ul class="task-list" id="bmTasks"></ul>
+                    <div class="profile-body">
+                        <ul class="task-list" id="bmTasks"></ul>
+                    </div>
                 </div>
             </div>
 
             <div class="save-section">
-                <button class="save-button" id="saveButton" onclick="saveChanges()">💾 Save All Changes</button>
-                <p style="color: #666; margin-top: 15px; font-size: 0.9em;">
-                    Changes are saved to the database immediately when you click Save
-                </p>
+                <button class="save-button" id="saveButton" onclick="saveChanges()">Save All Changes</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Load saved configuration
+        // Load saved configuration; hide pane when already configured
         function loadConfig() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
+            const configSection = document.getElementById('configSection');
             if (url) document.getElementById('supabaseUrl').value = url;
             if (key) document.getElementById('supabaseKey').value = key;
+
+            if (url && key) {
+                configSection.classList.add('hidden');
+            } else {
+                configSection.classList.remove('hidden');
+            }
         }
 
         // Save configuration
@@ -418,11 +472,17 @@
             if (url && key) {
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
-                alert('Configuration saved! Loading tasks...');
+                document.getElementById('configSection').classList.add('hidden');
                 loadTasks();
             } else {
                 alert('Please enter both Supabase URL and API Key');
             }
+        }
+
+        function toggleProfile(profile) {
+            const section = document.getElementById(`profile${profile}`);
+            const open = section.classList.toggle('open');
+            section.querySelector('.profile-header').setAttribute('aria-expanded', open ? 'true' : 'false');
         }
 
         // Store current task data
@@ -549,6 +609,7 @@
 
             if (!supabaseUrl || !supabaseKey) {
                 document.getElementById('loading').style.display = 'none';
+                document.getElementById('configSection').classList.remove('hidden');
                 document.getElementById('error').style.display = 'block';
                 document.getElementById('error').innerHTML = 
                     '<strong>Configuration Required:</strong> Please configure your Supabase URL and API Key above.';

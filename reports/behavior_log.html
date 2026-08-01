@@ -20,27 +20,31 @@
         .container { max-width: 640px; margin: 0 auto; }
 
         .header {
-            background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
             color: white;
-            padding: 22px 18px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        .header h1 { font-size: 1.6em; margin-bottom: 6px; }
-        .header p { opacity: 0.95; font-size: 0.9em; }
+        .header h1 { font-size: 1.05em; margin: 0; font-weight: 700; }
 
         .back-button {
-            display: inline-block;
-            margin-top: 14px;
-            padding: 10px 18px;
+            flex: 0 0 auto;
+            padding: 7px 10px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
         }
-        .back-button:hover { background: rgba(255, 255, 255, 0.3); }
+        .back-button:active { background: rgba(255, 255, 255, 0.3); }
 
         .section {
             background: white;
@@ -237,7 +241,7 @@
         .hidden { display: none !important; }
 
         @media (max-width: 400px) {
-            .header h1 { font-size: 1.35em; }
+            .header h1 { font-size: 1.05em; }
             .behavior-btn { font-size: 0.98em; padding: 13px 14px; }
             .range-tabs button { font-size: 0.88em; }
         }
@@ -247,8 +251,7 @@
     <div class="container">
         <div class="header">
             <h1>Behavior Log</h1>
-            <p>Tap a behavior to log it. Tap a log entry to edit its time. Times use America/Toronto.</p>
-            <a href="index.html" class="back-button">← Back to Reports</a>
+            <a href="index.html" class="back-button">← Back</a>
         </div>
 
         <div id="error" class="error"></div>

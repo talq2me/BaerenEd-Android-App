@@ -29,36 +29,37 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
             color: white;
-            padding: 28px 30px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
         .header h1 {
-            font-size: 2em;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            opacity: 0.92;
             font-size: 1.05em;
+            margin: 0;
+            font-weight: 700;
         }
 
         .back-button {
-            display: inline-block;
-            margin-top: 16px;
-            padding: 10px 18px;
+            flex: 0 0 auto;
+            padding: 7px 10px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 0.82em;
             font-weight: 600;
+            white-space: nowrap;
         }
 
-        .back-button:hover {
+        .back-button:active {
             background: rgba(255, 255, 255, 0.32);
         }
 
@@ -190,9 +191,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📖 How To</h1>
-            <p>Parent guide for configuring BaerenEd tasks and content.</p>
-            <a href="index.html" class="back-button">← Back to Reports</a>
+            <h1>How To</h1>
+            <a href="index.html" class="back-button">← Back</a>
         </div>
 
         <nav class="toc-card" aria-label="Table of contents">

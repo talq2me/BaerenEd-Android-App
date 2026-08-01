@@ -14,26 +14,32 @@
         }
         .container { max-width: 960px; margin: 0 auto; }
         .header {
-            background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
             color: white;
-            padding: 28px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.12);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        .header h1 { font-size: 2em; margin-bottom: 8px; }
+        .header h1 { font-size: 1.05em; margin: 0; font-weight: 700; }
+        .header-meta { font-size: 0.78em; opacity: 0.92; margin-top: 2px; }
         .back-button {
-            display: inline-block;
-            margin-top: 14px;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.22);
+            flex: 0 0 auto;
+            padding: 7px 10px;
+            background: rgba(255,255,255,0.2);
             color: white;
             text-decoration: none;
             border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
         }
-        .back-button:hover { background: rgba(255,255,255,0.32); }
-        #meta { margin-top: 10px; font-size: 0.95em; opacity: 0.95; }
+        .back-button:active { background: rgba(255,255,255,0.3); }
+        #meta { font-size: 0.78em; opacity: 0.92; }
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -120,10 +126,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>✍️ Handwriting snapshot</h1>
-            <p id="headerSubtitle">Loading…</p>
-            <p id="meta"></p>
-            <a href="handwriting_practice_report.html" class="back-button">← Back to handwriting report</a>
+            <div>
+                <h1>Handwriting · <span id="headerSubtitle">…</span></h1>
+                <div class="header-meta" id="meta"></div>
+            </div>
+            <a href="handwriting_practice_report.html" class="back-button">← Back</a>
         </div>
 
         <div class="toolbar">
@@ -232,7 +239,7 @@
             selectedYmd = torontoTodayYmd();
         }
 
-        document.getElementById('headerSubtitle').textContent = `Profile ${profileParam}`;
+        document.getElementById('headerSubtitle').textContent = profileParam;
 
         const fetchHeaders = (key) => ({
             apikey: key,

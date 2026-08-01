@@ -14,90 +14,106 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background-color: #f5f5f5;
-            padding: 20px;
-            line-height: 1.6;
+            padding: 10px;
+            line-height: 1.35;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 960px;
             margin: 0 auto;
         }
 
         .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #5a7a9c;
             color: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.05em;
+            margin: 0;
+            font-weight: 700;
         }
 
         .back-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
+            flex: 0 0 auto;
+            padding: 7px 10px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.2s;
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        .back-button:hover {
+        .back-button:active {
             background: rgba(255, 255, 255, 0.3);
+        }
+
+        .profiles {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .photo-section {
             background: white;
-            margin: 20px 0;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
         }
 
         .photo-section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-            border-bottom: 3px solid #4facfe;
-            padding-bottom: 10px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
 
         .photo-container {
             text-align: center;
-            margin: 20px 0;
+            min-width: 0;
         }
 
         .photo-label {
-            font-size: 1.3em;
+            font-size: 0.78em;
             font-weight: 600;
-            color: #555;
-            margin-bottom: 15px;
+            color: #475569;
+            margin-bottom: 6px;
         }
 
         .photo-image {
             max-width: 100%;
-            max-height: 600px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            margin: 10px 0;
+            max-height: 220px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .photo-image:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: #f8fafc;
         }
 
         .photo-image:active {
-            transform: scale(0.98);
+            opacity: 0.92;
         }
 
         .modal {
@@ -109,7 +125,6 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
-            animation: fadeIn 0.3s;
         }
 
         .modal.show {
@@ -118,109 +133,101 @@
             justify-content: center;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
         .modal-content {
             max-width: 95%;
             max-height: 95%;
             object-fit: contain;
             border-radius: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            animation: zoomIn 0.3s;
-        }
-
-        @keyframes zoomIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
         }
 
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 35px;
+            top: 12px;
+            right: 18px;
             color: #f1f1f1;
-            font-size: 40px;
+            font-size: 32px;
             font-weight: bold;
             cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: #fff;
-        }
-
-        .modal-close:active {
-            transform: scale(0.95);
+            line-height: 1;
         }
 
         .no-photo {
-            padding: 40px;
-            background: #f9f9f9;
-            border: 2px dashed #ddd;
-            border-radius: 8px;
-            color: #999;
-            font-size: 1.1em;
+            padding: 18px 10px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            color: #94a3b8;
+            font-size: 0.8em;
         }
 
         .photo-meta {
-            margin-top: 10px;
-            color: #666;
-            font-size: 0.9em;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 0.72em;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 1.1em;
+            padding: 18px 8px;
+            color: #94a3b8;
+            font-size: 0.82em;
         }
 
         .error {
             background: #ffebee;
             color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #c62828;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 0;
+            border-left: 3px solid #c62828;
+            font-size: 0.8em;
+            text-align: left;
+        }
+
+        @media (max-width: 520px) {
+            .photo-grid {
+                grid-template-columns: 1fr;
+            }
+            .photo-image {
+                max-height: 260px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📸 Spelling Photos Report</h1>
-            <p>View photos of completed spelling work</p>
-            <a href="index.html" class="back-button">← Back to Reports</a>
+            <h1>Spelling Photos</h1>
+            <a href="index.html" class="back-button">← Back</a>
         </div>
 
-        <div class="photo-section">
-            <h2>Profile AM</h2>
-            
-            <div class="photo-container">
-                <div class="photo-label">English Spelling Jumble</div>
-                <div id="amEnglish" class="loading">Loading...</div>
+        <div class="profiles">
+            <div class="photo-section">
+                <h2>AM</h2>
+                <div class="photo-grid">
+                    <div class="photo-container">
+                        <div class="photo-label">English</div>
+                        <div id="amEnglish" class="loading">Loading…</div>
+                    </div>
+                    <div class="photo-container">
+                        <div class="photo-label">French</div>
+                        <div id="amFrench" class="loading">Loading…</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="photo-container">
-                <div class="photo-label">French Spelling Jumble</div>
-                <div id="amFrench" class="loading">Loading...</div>
-            </div>
-        </div>
-
-        <div class="photo-section">
-            <h2>Profile BM</h2>
-            
-            <div class="photo-container">
-                <div class="photo-label">English Spelling Jumble</div>
-                <div id="bmEnglish" class="loading">Loading...</div>
-            </div>
-
-            <div class="photo-container">
-                <div class="photo-label">French Spelling Jumble</div>
-                <div id="bmFrench" class="loading">Loading...</div>
+            <div class="photo-section">
+                <h2>BM</h2>
+                <div class="photo-grid">
+                    <div class="photo-container">
+                        <div class="photo-label">English</div>
+                        <div id="bmEnglish" class="loading">Loading…</div>
+                    </div>
+                    <div class="photo-container">
+                        <div class="photo-label">French</div>
+                        <div id="bmFrench" class="loading">Loading…</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -276,8 +283,10 @@
                 if (data && data.length > 0 && data[0].image) {
                     // Photo exists - display it
                     const photoData = data[0];
-                    const captureDate = photoData.capture_date_time 
-                        ? new Date(photoData.capture_date_time).toLocaleString()
+                    const captureDate = photoData.capture_date_time
+                        ? new Date(photoData.capture_date_time).toLocaleString('en-US', {
+                            month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                        })
                         : 'Date unknown';
                     
                     // Ensure image has proper data URI prefix
@@ -294,7 +303,7 @@
                     
                     element.innerHTML = `
                         <img id="${imageId}" src="${imageSrc}" alt="${config.profile} - ${config.task}" class="photo-image" data-full-image="${escapedImageSrc}" onclick="showFullScreen('${imageId}')">
-                        <div class="photo-meta">Uploaded: ${captureDate}</div>
+                        <div class="photo-meta">${captureDate}</div>
                     `;
                 } else {
                     // No photo found
