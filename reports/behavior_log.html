@@ -129,8 +129,7 @@
             margin-bottom: 12px;
         }
         .view-toggle button,
-        .range-tabs button,
-        .chart-type-tabs button {
+        .range-tabs button {
             flex: 1;
             padding: 11px 8px;
             border: 2px solid #e0e0e0;
@@ -161,15 +160,34 @@
             background: #E3F2FD;
             color: #1565C0;
         }
-        .chart-type-tabs {
+        .chart-type-row {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 12px;
         }
-        .chart-type-tabs button.active {
+        .chart-type-row label {
+            flex: 0 0 auto;
+            font-size: 0.92em;
+            font-weight: 600;
+            color: #555;
+        }
+        .chart-type-row select {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+        }
+        .chart-type-row select:focus {
+            outline: none;
             border-color: #00897B;
             background: #E0F2F1;
-            color: #00695C;
         }
 
         .log-items { display: flex; flex-direction: column; gap: 8px; }
@@ -350,8 +368,8 @@
         @media (max-width: 400px) {
             .header h1 { font-size: 1.05em; }
             .behavior-btn { font-size: 0.98em; padding: 13px 14px; }
-            .range-tabs button,
-            .chart-type-tabs button { font-size: 0.88em; }
+            .range-tabs button { font-size: 0.88em; }
+            .chart-type-row select { font-size: 0.88em; }
             .heatmap-cell { width: 18px; height: 18px; }
             .heatmap-table thead th { min-width: 18px; padding: 5px 1px; font-size: 0.68em; }
         }
@@ -398,13 +416,17 @@
                     <button type="button" data-range="month">Last month</button>
                     <button type="button" data-range="6mo">Last 6 mo</button>
                 </div>
-                <div class="chart-type-tabs" id="chartTypeTabs">
-                    <button type="button" class="active" data-chart-type="bar">Bar</button>
-                    <button type="button" data-chart-type="heatmap">Heatmap</button>
+                <div class="chart-type-row">
+                    <label for="chartTypeSelect">Chart</label>
+                    <select id="chartTypeSelect">
+                        <option value="bar" selected>Bar</option>
+                        <option value="heatmap">Heatmap</option>
+                        <option value="scatter">Scatter</option>
+                    </select>
                 </div>
                 <h3 id="graphTitle">By hour of day</h3>
-                <div id="barPanel">
-                    <div class="chart-wrap">
+                <div id="chartCanvasPanel">
+                    <div class="chart-wrap" id="chartWrap">
                         <canvas id="behaviorChart"></canvas>
                     </div>
                 </div>
@@ -459,6 +481,8 @@
             'Last day: bars by hour (0–23), stacked by category. Longer ranges: one bar per day (oldest left, today right), all hours combined.';
         const HEAT_LEGEND =
             'Heatmap: each row is a day, each column is an hour (0–23). Color intensity is total behaviors that hour — compare the same hour across days.';
+        const SCATTER_LEGEND =
+            'Scatter: same day × hour data as the heatmap. Each point is a logged behavior (x = hour, y = day), colored by category — compare the same hour across days.';
 
         const supabaseUrl = () => localStorage.getItem('supabaseUrl');
         const supabaseKey = () => localStorage.getItem('supabaseKey');
@@ -1072,14 +1096,136 @@
             });
         }
 
+        function buildScatterPoints(rows, dayKeys) {
+            const indexByDay = Object.fromEntries(dayKeys.map((d, i) => [d, i]));
+            const pointsByCat = Object.fromEntries(Object.keys(CATEGORIES).map((c) => [c, []]));
+            const jitterBuckets = {};
+            (rows || []).forEach((r) => {
+                const ymd = logYmd(r.log_date_time);
+                const hour = logHour(r.log_date_time);
+                if (ymd == null || hour == null || hour < 0 || hour > 23) return;
+                const dayIndex = indexByDay[ymd];
+                if (dayIndex == null) return;
+                const cat = r.category;
+                if (!pointsByCat[cat]) pointsByCat[cat] = [];
+                const key = `${dayIndex}:${hour}:${cat}`;
+                const n = jitterBuckets[key] || 0;
+                jitterBuckets[key] = n + 1;
+                const jitter = ((n % 5) - 2) * 0.08;
+                pointsByCat[cat].push({
+                    x: hour + jitter,
+                    y: dayIndex,
+                    ymd,
+                    hour,
+                    behavior: r.behavior || '',
+                    category: cat
+                });
+            });
+            return pointsByCat;
+        }
+
+        function renderScatterChart(rows, rangeKey) {
+            const bounds = rangeBounds(rangeKey);
+            const today = torontoYmd();
+            const startYmd = bounds.start.slice(0, 10);
+            const dayKeys = enumerateDays(startYmd, today);
+            const pointsByCat = buildScatterPoints(rows, dayKeys);
+
+            document.getElementById('graphTitle').textContent = `Scatter hour × day — ${bounds.label}`;
+            document.getElementById('graphLegend').textContent = SCATTER_LEGEND;
+
+            const dayCount = dayKeys.length;
+            const wrap = document.getElementById('chartWrap');
+            wrap.style.height = `${Math.min(560, Math.max(300, 80 + dayCount * 22))}px`;
+
+            const datasets = Object.keys(CATEGORIES).map((cat) => ({
+                label: cat,
+                data: pointsByCat[cat] || [],
+                backgroundColor: CATEGORIES[cat].color,
+                borderColor: CATEGORIES[cat].color,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                showLine: false
+            }));
+
+            const ctx = document.getElementById('behaviorChart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'nearest', intersect: true },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => {
+                                    if (!items.length) return '';
+                                    const p = items[0].raw;
+                                    return `${p.ymd} · ${formatHourLabel(p.hour)}:00`;
+                                },
+                                label: (item) => {
+                                    const p = item.raw;
+                                    const name = p.behavior ? ` — ${p.behavior}` : '';
+                                    return `${p.category}${name}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: 23.5,
+                            title: { display: true, text: 'Hour of day' },
+                            ticks: {
+                                stepSize: 1,
+                                callback: (v) => {
+                                    const n = Number(v);
+                                    if (!Number.isInteger(n) || n < 0 || n > 23) return '';
+                                    return formatHourLabel(n);
+                                },
+                                maxTicksLimit: 12,
+                                autoSkip: true
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            reverse: true,
+                            min: -0.5,
+                            max: Math.max(0.5, dayCount - 0.5),
+                            title: { display: true, text: 'Day' },
+                            ticks: {
+                                stepSize: 1,
+                                callback: (v) => {
+                                    const n = Number(v);
+                                    if (!Number.isInteger(n) || n < 0 || n >= dayKeys.length) return '';
+                                    return formatDayLabel(dayKeys[n]);
+                                },
+                                autoSkip: true,
+                                maxTicksLimit: rangeKey === '6mo' ? 16 : 31
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function updateChartTypePanels() {
             const isHeat = chartType === 'heatmap';
-            document.getElementById('barPanel').classList.toggle('hidden', isHeat);
+            document.getElementById('chartCanvasPanel').classList.toggle('hidden', isHeat);
             document.getElementById('heatmapPanel').classList.toggle('hidden', !isHeat);
-            document.querySelectorAll('#chartTypeTabs button').forEach((b) => {
-                b.classList.toggle('active', b.dataset.chartType === chartType);
-            });
+            const select = document.getElementById('chartTypeSelect');
+            if (select && select.value !== chartType) select.value = chartType;
             if (!isHeat) hideHeatmapTooltip();
+            if (chartType === 'bar') {
+                document.getElementById('chartWrap').style.height = '300px';
+            }
         }
 
         function renderGraph(rows, rangeKey) {
@@ -1090,6 +1236,8 @@
                     chart = null;
                 }
                 renderHeatmap(rows, rangeKey);
+            } else if (chartType === 'scatter') {
+                renderScatterChart(rows, rangeKey);
             } else {
                 renderBarChart(rows, rangeKey);
             }
@@ -1137,7 +1285,8 @@
         }
 
         function setChartType(type) {
-            chartType = type === 'heatmap' ? 'heatmap' : 'bar';
+            if (type === 'heatmap' || type === 'scatter') chartType = type;
+            else chartType = 'bar';
             updateChartTypePanels();
             if (viewMode === 'graph') refreshGraph();
         }
@@ -1166,8 +1315,8 @@
                 });
             });
 
-            document.querySelectorAll('#chartTypeTabs button').forEach((btn) => {
-                btn.addEventListener('click', () => setChartType(btn.dataset.chartType));
+            document.getElementById('chartTypeSelect').addEventListener('change', (e) => {
+                setChartType(e.target.value);
             });
 
             document.addEventListener('scroll', hideHeatmapTooltip, true);
