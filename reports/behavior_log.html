@@ -17,7 +17,7 @@
             color: #222;
         }
 
-        .container { max-width: 640px; margin: 0 auto; }
+        .container { max-width: 720px; margin: 0 auto; }
 
         .header {
             display: flex;
@@ -129,7 +129,8 @@
             margin-bottom: 12px;
         }
         .view-toggle button,
-        .range-tabs button {
+        .range-tabs button,
+        .chart-type-tabs button {
             flex: 1;
             padding: 11px 8px;
             border: 2px solid #e0e0e0;
@@ -159,6 +160,16 @@
             border-color: #1565C0;
             background: #E3F2FD;
             color: #1565C0;
+        }
+        .chart-type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .chart-type-tabs button.active {
+            border-color: #00897B;
+            background: #E0F2F1;
+            color: #00695C;
         }
 
         .log-items { display: flex; flex-direction: column; gap: 8px; }
@@ -240,10 +251,109 @@
         .legend-note { font-size: 0.85em; color: #666; margin-top: 10px; }
         .hidden { display: none !important; }
 
+        .heatmap-wrap {
+            margin-top: 8px;
+            overflow: auto;
+            max-height: min(70vh, 560px);
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            background: #fff;
+            -webkit-overflow-scrolling: touch;
+        }
+        .heatmap-table {
+            border-collapse: separate;
+            border-spacing: 2px;
+            min-width: 100%;
+            font-variant-numeric: tabular-nums;
+        }
+        .heatmap-table th,
+        .heatmap-table td {
+            text-align: center;
+            font-size: 0.72em;
+            line-height: 1;
+        }
+        .heatmap-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #fafafa;
+            color: #555;
+            font-weight: 700;
+            padding: 6px 2px;
+            min-width: 22px;
+        }
+        .heatmap-table thead th.corner,
+        .heatmap-table tbody th {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background: #fafafa;
+            color: #333;
+            font-weight: 700;
+            text-align: left;
+            padding: 4px 8px 4px 6px;
+            white-space: nowrap;
+            min-width: 56px;
+        }
+        .heatmap-table thead th.corner { z-index: 4; }
+        .heatmap-table tbody th { z-index: 1; }
+        .heatmap-cell {
+            width: 22px;
+            height: 22px;
+            border-radius: 3px;
+            background: #f3f4f6;
+            color: transparent;
+            cursor: default;
+            padding: 0;
+        }
+        .heatmap-cell.has-count {
+            color: #1a1a1a;
+            font-weight: 700;
+            cursor: help;
+        }
+        .heatmap-cell.has-count.hot { color: #fff; }
+        .heatmap-scale {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .heatmap-scale .swatches {
+            display: flex;
+            gap: 2px;
+            flex: 1;
+            max-width: 180px;
+        }
+        .heatmap-scale .swatch {
+            flex: 1;
+            height: 12px;
+            border-radius: 2px;
+        }
+        .heatmap-tooltip {
+            position: fixed;
+            z-index: 20;
+            pointer-events: none;
+            background: rgba(33, 33, 33, 0.94);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 0.82em;
+            max-width: 240px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        .heatmap-tooltip .tt-title { font-weight: 700; margin-bottom: 4px; }
+        .heatmap-tooltip .tt-line { color: #ddd; margin-top: 2px; }
+
         @media (max-width: 400px) {
             .header h1 { font-size: 1.05em; }
             .behavior-btn { font-size: 0.98em; padding: 13px 14px; }
-            .range-tabs button { font-size: 0.88em; }
+            .range-tabs button,
+            .chart-type-tabs button { font-size: 0.88em; }
+            .heatmap-cell { width: 18px; height: 18px; }
+            .heatmap-table thead th { min-width: 18px; padding: 5px 1px; font-size: 0.68em; }
         }
     </style>
 </head>
@@ -288,10 +398,21 @@
                     <button type="button" data-range="month">Last month</button>
                     <button type="button" data-range="6mo">Last 6 mo</button>
                 </div>
-                <h3 id="graphTitle">By hour of day</h3>
-                <div class="chart-wrap">
-                    <canvas id="behaviorChart"></canvas>
+                <div class="chart-type-tabs" id="chartTypeTabs">
+                    <button type="button" class="active" data-chart-type="bar">Bar</button>
+                    <button type="button" data-chart-type="heatmap">Heatmap</button>
                 </div>
+                <h3 id="graphTitle">By hour of day</h3>
+                <div id="barPanel">
+                    <div class="chart-wrap">
+                        <canvas id="behaviorChart"></canvas>
+                    </div>
+                </div>
+                <div id="heatmapPanel" class="hidden">
+                    <div class="heatmap-wrap" id="heatmapWrap"></div>
+                    <div class="heatmap-scale" id="heatmapScale"></div>
+                </div>
+                <div id="heatmapTooltip" class="heatmap-tooltip" aria-hidden="true"></div>
                 <p class="legend-note" id="graphLegend">
                     Last day: bars by hour (0–23), stacked by category.
                     Longer ranges: one bar per day (oldest left, today right), all hours combined.
@@ -327,10 +448,17 @@
         let currentProfile = 'BM';
         let viewMode = 'list';
         let graphRange = 'day';
+        let chartType = 'bar';
         let chart = null;
         let logging = false;
         let savingTime = false;
         let editingLogId = null;
+
+        const HEAT_PALETTE = ['#f3f4f6', '#FFE0B2', '#FFB74D', '#FF8A65', '#EF5350', '#C62828'];
+        const BAR_LEGEND =
+            'Last day: bars by hour (0–23), stacked by category. Longer ranges: one bar per day (oldest left, today right), all hours combined.';
+        const HEAT_LEGEND =
+            'Heatmap: each row is a day, each column is an hour (0–23). Color intensity is total behaviors that hour — compare the same hour across days.';
 
         const supabaseUrl = () => localStorage.getItem('supabaseUrl');
         const supabaseKey = () => localStorage.getItem('supabaseKey');
@@ -711,7 +839,159 @@
             return counts;
         }
 
-        function renderChart(rows, rangeKey) {
+        function buildDayHourMatrix(rows, dayKeys) {
+            const matrix = dayKeys.map(() => Array.from({ length: 24 }, () => ({
+                total: 0,
+                byCat: Object.fromEntries(Object.keys(CATEGORIES).map((c) => [c, 0]))
+            })));
+            const indexByDay = Object.fromEntries(dayKeys.map((d, i) => [d, i]));
+            (rows || []).forEach((r) => {
+                const ymd = logYmd(r.log_date_time);
+                const hour = logHour(r.log_date_time);
+                if (ymd == null || hour == null || hour < 0 || hour > 23) return;
+                const di = indexByDay[ymd];
+                if (di == null) return;
+                const cell = matrix[di][hour];
+                cell.total += 1;
+                const cat = r.category;
+                if (cell.byCat[cat] != null) cell.byCat[cat] += 1;
+                else cell.byCat[cat] = 1;
+            });
+            return matrix;
+        }
+
+        function heatColor(count, maxCount) {
+            if (!count || maxCount <= 0) return HEAT_PALETTE[0];
+            const t = count / maxCount;
+            if (t <= 0.2) return HEAT_PALETTE[1];
+            if (t <= 0.4) return HEAT_PALETTE[2];
+            if (t <= 0.6) return HEAT_PALETTE[3];
+            if (t <= 0.8) return HEAT_PALETTE[4];
+            return HEAT_PALETTE[5];
+        }
+
+        function heatLevel(count, maxCount) {
+            if (!count || maxCount <= 0) return 0;
+            const t = count / maxCount;
+            if (t <= 0.2) return 1;
+            if (t <= 0.4) return 2;
+            if (t <= 0.6) return 3;
+            if (t <= 0.8) return 4;
+            return 5;
+        }
+
+        function formatHourLabel(h) {
+            return String(h).padStart(2, '0');
+        }
+
+        function hideHeatmapTooltip() {
+            const tip = document.getElementById('heatmapTooltip');
+            tip.style.display = 'none';
+            tip.setAttribute('aria-hidden', 'true');
+        }
+
+        function showHeatmapTooltip(cell, clientX, clientY) {
+            const tip = document.getElementById('heatmapTooltip');
+            const day = cell.dataset.day;
+            const hour = Number(cell.dataset.hour);
+            const total = Number(cell.dataset.total || 0);
+            let byCat;
+            try { byCat = JSON.parse(cell.dataset.byCat || '{}'); } catch (_) { byCat = {}; }
+            const catLines = Object.keys(CATEGORIES)
+                .filter((c) => (byCat[c] || 0) > 0)
+                .map((c) => `<div class="tt-line">${escapeHtml(c)}: ${byCat[c]}</div>`)
+                .join('');
+            tip.innerHTML = `
+                <div class="tt-title">${escapeHtml(day)} · ${formatHourLabel(hour)}:00</div>
+                <div>Total: ${total}</div>
+                ${catLines || '<div class="tt-line">No behaviors</div>'}
+            `;
+            tip.style.display = 'block';
+            tip.setAttribute('aria-hidden', 'false');
+            const pad = 12;
+            const rect = tip.getBoundingClientRect();
+            let left = clientX + pad;
+            let top = clientY + pad;
+            if (left + rect.width > window.innerWidth - 8) left = clientX - rect.width - pad;
+            if (top + rect.height > window.innerHeight - 8) top = clientY - rect.height - pad;
+            tip.style.left = `${Math.max(8, left)}px`;
+            tip.style.top = `${Math.max(8, top)}px`;
+        }
+
+        function renderHeatmap(rows, rangeKey) {
+            const bounds = rangeBounds(rangeKey);
+            const today = torontoYmd();
+            const startYmd = bounds.start.slice(0, 10);
+            const dayKeys = enumerateDays(startYmd, today);
+            const matrix = buildDayHourMatrix(rows, dayKeys);
+            let maxCount = 0;
+            matrix.forEach((dayRow) => {
+                dayRow.forEach((cell) => {
+                    if (cell.total > maxCount) maxCount = cell.total;
+                });
+            });
+
+            document.getElementById('graphTitle').textContent = `Hour × day — ${bounds.label}`;
+            document.getElementById('graphLegend').textContent = HEAT_LEGEND;
+
+            const hourHeaders = Array.from({ length: 24 }, (_, h) =>
+                `<th scope="col">${formatHourLabel(h)}</th>`
+            ).join('');
+
+            const body = dayKeys.map((ymd, di) => {
+                const cells = matrix[di].map((cell, hour) => {
+                    const level = heatLevel(cell.total, maxCount);
+                    const bg = heatColor(cell.total, maxCount);
+                    const hot = level >= 4 ? ' hot' : '';
+                    const has = cell.total > 0 ? ' has-count' : '';
+                    const label = cell.total > 0 ? String(cell.total) : '';
+                    return `<td class="heatmap-cell${has}${hot}"
+                        style="background:${bg}"
+                        data-day="${escapeAttr(ymd)}"
+                        data-hour="${hour}"
+                        data-total="${cell.total}"
+                        data-by-cat="${escapeAttr(JSON.stringify(cell.byCat))}"
+                        title="${escapeAttr(`${ymd} ${formatHourLabel(hour)}:00 — ${cell.total}`)}"
+                    >${label}</td>`;
+                }).join('');
+                return `<tr>
+                    <th scope="row">${escapeHtml(formatDayLabel(ymd))}</th>
+                    ${cells}
+                </tr>`;
+            }).join('');
+
+            const wrap = document.getElementById('heatmapWrap');
+            wrap.innerHTML = `
+                <table class="heatmap-table" aria-label="Behavior heatmap by day and hour">
+                    <thead>
+                        <tr>
+                            <th class="corner" scope="col">Day</th>
+                            ${hourHeaders}
+                        </tr>
+                    </thead>
+                    <tbody>${body}</tbody>
+                </table>
+            `;
+
+            const scale = document.getElementById('heatmapScale');
+            scale.innerHTML = `
+                <span>0</span>
+                <div class="swatches" aria-hidden="true">
+                    ${HEAT_PALETTE.map((c) => `<div class="swatch" style="background:${c}"></div>`).join('')}
+                </div>
+                <span>${maxCount || 0} max</span>
+            `;
+
+            wrap.querySelectorAll('.heatmap-cell').forEach((cell) => {
+                cell.addEventListener('mouseenter', (e) => showHeatmapTooltip(cell, e.clientX, e.clientY));
+                cell.addEventListener('mousemove', (e) => showHeatmapTooltip(cell, e.clientX, e.clientY));
+                cell.addEventListener('mouseleave', hideHeatmapTooltip);
+                cell.addEventListener('click', (e) => showHeatmapTooltip(cell, e.clientX, e.clientY));
+            });
+            hideHeatmapTooltip();
+        }
+
+        function renderBarChart(rows, rangeKey) {
             const bounds = rangeBounds(rangeKey);
             const byHour = rangeKey === 'day';
             const today = torontoYmd();
@@ -743,6 +1023,7 @@
             }
 
             document.getElementById('graphTitle').textContent = chartTitle;
+            document.getElementById('graphLegend').textContent = BAR_LEGEND;
             const datasets = Object.keys(CATEGORIES).map((cat) => ({
                 label: cat,
                 data: counts[cat] || Array(labels.length).fill(0),
@@ -791,6 +1072,29 @@
             });
         }
 
+        function updateChartTypePanels() {
+            const isHeat = chartType === 'heatmap';
+            document.getElementById('barPanel').classList.toggle('hidden', isHeat);
+            document.getElementById('heatmapPanel').classList.toggle('hidden', !isHeat);
+            document.querySelectorAll('#chartTypeTabs button').forEach((b) => {
+                b.classList.toggle('active', b.dataset.chartType === chartType);
+            });
+            if (!isHeat) hideHeatmapTooltip();
+        }
+
+        function renderGraph(rows, rangeKey) {
+            updateChartTypePanels();
+            if (chartType === 'heatmap') {
+                if (chart) {
+                    chart.destroy();
+                    chart = null;
+                }
+                renderHeatmap(rows, rangeKey);
+            } else {
+                renderBarChart(rows, rangeKey);
+            }
+        }
+
         async function refreshList() {
             const status = document.getElementById('listStatus');
             status.classList.remove('hidden');
@@ -810,7 +1114,7 @@
             try {
                 const rows = await fetchLogs(graphRange);
                 showError('');
-                renderChart(rows || [], graphRange);
+                renderGraph(rows || [], graphRange);
             } catch (e) {
                 console.error(e);
                 showError(e.message || String(e));
@@ -828,7 +1132,14 @@
             document.getElementById('btnGraphMode').classList.toggle('active', mode === 'graph');
             document.getElementById('listPanel').classList.toggle('hidden', mode !== 'list');
             document.getElementById('graphPanel').classList.toggle('hidden', mode !== 'graph');
+            if (mode !== 'graph') hideHeatmapTooltip();
             refreshCurrentView();
+        }
+
+        function setChartType(type) {
+            chartType = type === 'heatmap' ? 'heatmap' : 'bar';
+            updateChartTypePanels();
+            if (viewMode === 'graph') refreshGraph();
         }
 
         function wireUi() {
@@ -854,6 +1165,13 @@
                     if (viewMode === 'graph') refreshGraph();
                 });
             });
+
+            document.querySelectorAll('#chartTypeTabs button').forEach((btn) => {
+                btn.addEventListener('click', () => setChartType(btn.dataset.chartType));
+            });
+
+            document.addEventListener('scroll', hideHeatmapTooltip, true);
+            window.addEventListener('resize', hideHeatmapTooltip);
         }
 
         renderBehaviorButtons();
