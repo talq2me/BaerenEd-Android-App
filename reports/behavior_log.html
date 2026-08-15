@@ -266,6 +266,16 @@
             display: none;
         }
         .chart-wrap { position: relative; height: 300px; margin-top: 8px; }
+        .chart-scroll {
+            margin-top: 8px;
+            overflow: auto;
+            max-height: min(75vh, 720px);
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            background: #fff;
+            -webkit-overflow-scrolling: touch;
+        }
+        .chart-scroll .chart-wrap { margin-top: 0; }
         .legend-note { font-size: 0.85em; color: #666; margin-top: 10px; }
         .hidden { display: none !important; }
 
@@ -426,8 +436,10 @@
                 </div>
                 <h3 id="graphTitle">By hour of day</h3>
                 <div id="chartCanvasPanel">
-                    <div class="chart-wrap" id="chartWrap">
-                        <canvas id="behaviorChart"></canvas>
+                    <div id="chartScroll" class="chart-scroll">
+                        <div class="chart-wrap" id="chartWrap">
+                            <canvas id="behaviorChart"></canvas>
+                        </div>
                     </div>
                 </div>
                 <div id="heatmapPanel" class="hidden">
@@ -482,7 +494,7 @@
         const HEAT_LEGEND =
             'Heatmap: each row is a day, each column is an hour (0–23). Color intensity is total behaviors that hour — compare the same hour across days.';
         const SCATTER_LEGEND =
-            'Scatter: same day × hour data as the heatmap. Each point is a logged behavior (x = hour, y = day), colored by category — compare the same hour across days.';
+            'Scatter: each day is a labeled row (y), each hour is on the x axis (0–23). One point per logged behavior, colored by category — scroll if the range is long.';
 
         const supabaseUrl = () => localStorage.getItem('supabaseUrl');
         const supabaseKey = () => localStorage.getItem('supabaseKey');
@@ -808,8 +820,13 @@
 
         function logHour(logDateTime) {
             const raw = String(logDateTime || '').trim();
-            const m = raw.match(/\s(\d{2}):/);
-            if (m) return Number(m[1]);
+            // Prefer wall-clock hour from the stored string (space or ISO "T"),
+            // so browser timezone does not shift scatter/heatmap placement.
+            const m = raw.match(/[T\s](\d{1,2}):/);
+            if (m) {
+                const hour = Number(m[1]);
+                if (hour >= 0 && hour <= 23) return hour;
+            }
             const ms = parseLogDateTime(raw);
             if (isNaN(ms)) return null;
             return Number(torontoParts(new Date(ms)).H);
@@ -1135,18 +1152,37 @@
             document.getElementById('graphLegend').textContent = SCATTER_LEGEND;
 
             const dayCount = dayKeys.length;
+            const scroll = document.getElementById('chartScroll');
             const wrap = document.getElementById('chartWrap');
-            wrap.style.height = `${Math.min(560, Math.max(300, 80 + dayCount * 22))}px`;
+            // One discrete row per day (scroll when the range is long). Cap was
+            // previously flattening a month into ~15px/day with blank axis labels.
+            const rowPx = rangeKey === '6mo' ? 18 : 28;
+            const chartHeight = Math.max(320, 100 + dayCount * rowPx);
+            wrap.style.height = `${chartHeight}px`;
+            if (scroll) {
+                scroll.style.maxHeight = rangeKey === '6mo'
+                    ? 'min(75vh, 720px)'
+                    : 'min(75vh, 900px)';
+            }
 
-            const datasets = Object.keys(CATEGORIES).map((cat) => ({
+            const catKeys = Object.keys(CATEGORIES);
+            Object.keys(pointsByCat).forEach((cat) => {
+                if (!catKeys.includes(cat) && (pointsByCat[cat] || []).length) catKeys.push(cat);
+            });
+            const datasets = catKeys.map((cat) => ({
                 label: cat,
                 data: pointsByCat[cat] || [],
-                backgroundColor: CATEGORIES[cat].color,
-                borderColor: CATEGORIES[cat].color,
-                pointRadius: 5,
-                pointHoverRadius: 7,
+                backgroundColor: CATEGORIES[cat]?.color || '#607D8B',
+                borderColor: CATEGORIES[cat]?.color || '#607D8B',
+                pointRadius: rangeKey === '6mo' ? 4 : 5,
+                pointHoverRadius: rangeKey === '6mo' ? 6 : 7,
                 showLine: false
             }));
+
+            // Chart.js picks half-step ticks when min/max are ±0.5; integer-only
+            // tick callbacks then blank every label. Force one tick per day/hour.
+            const hourTickStep = 2;
+            const dayTickStep = rangeKey === '6mo' ? Math.max(1, Math.ceil(dayCount / 30)) : 1;
 
             const ctx = document.getElementById('behaviorChart').getContext('2d');
             if (chart) chart.destroy();
@@ -1156,7 +1192,9 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
                     interaction: { mode: 'nearest', intersect: true },
+                    layout: { padding: { top: 4, right: 8, bottom: 0, left: 0 } },
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -1182,16 +1220,21 @@
                             type: 'linear',
                             min: -0.5,
                             max: 23.5,
+                            offset: false,
                             title: { display: true, text: 'Hour of day' },
+                            afterBuildTicks: (scale) => {
+                                scale.ticks = [];
+                                for (let h = 0; h <= 23; h += hourTickStep) {
+                                    scale.ticks.push({ value: h });
+                                }
+                            },
                             ticks: {
-                                stepSize: 1,
+                                autoSkip: false,
                                 callback: (v) => {
                                     const n = Number(v);
                                     if (!Number.isInteger(n) || n < 0 || n > 23) return '';
                                     return formatHourLabel(n);
-                                },
-                                maxTicksLimit: 12,
-                                autoSkip: true
+                                }
                             }
                         },
                         y: {
@@ -1199,16 +1242,24 @@
                             reverse: true,
                             min: -0.5,
                             max: Math.max(0.5, dayCount - 0.5),
+                            offset: false,
                             title: { display: true, text: 'Day' },
+                            afterBuildTicks: (scale) => {
+                                scale.ticks = [];
+                                for (let i = 0; i < dayCount; i += dayTickStep) {
+                                    scale.ticks.push({ value: i });
+                                }
+                                if (dayCount > 1 && (dayCount - 1) % dayTickStep !== 0) {
+                                    scale.ticks.push({ value: dayCount - 1 });
+                                }
+                            },
                             ticks: {
-                                stepSize: 1,
+                                autoSkip: false,
                                 callback: (v) => {
                                     const n = Number(v);
                                     if (!Number.isInteger(n) || n < 0 || n >= dayKeys.length) return '';
                                     return formatDayLabel(dayKeys[n]);
-                                },
-                                autoSkip: true,
-                                maxTicksLimit: rangeKey === '6mo' ? 16 : 31
+                                }
                             }
                         }
                     }
@@ -1224,7 +1275,10 @@
             if (select && select.value !== chartType) select.value = chartType;
             if (!isHeat) hideHeatmapTooltip();
             if (chartType === 'bar') {
-                document.getElementById('chartWrap').style.height = '300px';
+                const wrap = document.getElementById('chartWrap');
+                wrap.style.height = '300px';
+                const scroll = document.getElementById('chartScroll');
+                if (scroll) scroll.style.maxHeight = '';
             }
         }
 
