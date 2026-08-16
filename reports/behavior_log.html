@@ -494,7 +494,7 @@
         const HEAT_LEGEND =
             'Heatmap: each row is a day, each column is an hour (0–23). Color intensity is total behaviors that hour — compare the same hour across days.';
         const SCATTER_LEGEND =
-            'Scatter: each day is a labeled row (y), each hour is on the x axis (0–23). One point per logged behavior, colored by category — scroll if the range is long.';
+            'Scatter: each day is a labeled row (y), each hour is on the x axis (0–23). Points in the same day×hour cell are staggered so overlapping logs stay visible — scroll if the range is long.';
 
         const supabaseUrl = () => localStorage.getItem('supabaseUrl');
         const supabaseKey = () => localStorage.getItem('supabaseKey');
@@ -1113,29 +1113,75 @@
             });
         }
 
+        function cellStaggerOffsets(count) {
+            // Pack points in a small grid inside the 1×1 day×hour cell so
+            // different categories at the same time do not fully cover each other.
+            if (count <= 1) return [{ dx: 0, dy: 0 }];
+            const cols = Math.ceil(Math.sqrt(count));
+            const rows = Math.ceil(count / cols);
+            const xSpan = 0.72;
+            const ySpan = 0.72;
+            const xStep = cols > 1 ? xSpan / (cols - 1) : 0;
+            const yStep = rows > 1 ? ySpan / (rows - 1) : 0;
+            const offsets = [];
+            for (let i = 0; i < count; i++) {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                offsets.push({
+                    dx: cols > 1 ? -xSpan / 2 + col * xStep : 0,
+                    dy: rows > 1 ? -ySpan / 2 + row * yStep : 0
+                });
+            }
+            return offsets;
+        }
+
         function buildScatterPoints(rows, dayKeys) {
             const indexByDay = Object.fromEntries(dayKeys.map((d, i) => [d, i]));
             const pointsByCat = Object.fromEntries(Object.keys(CATEGORIES).map((c) => [c, []]));
-            const jitterBuckets = {};
+            const cells = {};
             (rows || []).forEach((r) => {
                 const ymd = logYmd(r.log_date_time);
                 const hour = logHour(r.log_date_time);
                 if (ymd == null || hour == null || hour < 0 || hour > 23) return;
                 const dayIndex = indexByDay[ymd];
                 if (dayIndex == null) return;
-                const cat = r.category;
-                if (!pointsByCat[cat]) pointsByCat[cat] = [];
-                const key = `${dayIndex}:${hour}:${cat}`;
-                const n = jitterBuckets[key] || 0;
-                jitterBuckets[key] = n + 1;
-                const jitter = ((n % 5) - 2) * 0.08;
-                pointsByCat[cat].push({
-                    x: hour + jitter,
-                    y: dayIndex,
-                    ymd,
+                const key = `${dayIndex}:${hour}`;
+                if (!cells[key]) cells[key] = [];
+                cells[key].push({
+                    dayIndex,
                     hour,
+                    ymd,
                     behavior: r.behavior || '',
-                    category: cat
+                    category: r.category
+                });
+            });
+
+            Object.keys(cells).forEach((key) => {
+                const group = cells[key];
+                // Stable order so colors fan out consistently; medication last
+                // within the cell so it stays readable when many logs share a slot.
+                const catOrder = Object.keys(CATEGORIES);
+                group.sort((a, b) => {
+                    const ai = catOrder.indexOf(a.category);
+                    const bi = catOrder.indexOf(b.category);
+                    const ao = ai < 0 ? catOrder.length : ai;
+                    const bo = bi < 0 ? catOrder.length : bi;
+                    if (ao !== bo) return ao - bo;
+                    return String(a.behavior).localeCompare(String(b.behavior));
+                });
+                const offsets = cellStaggerOffsets(group.length);
+                group.forEach((item, i) => {
+                    const cat = item.category;
+                    if (!pointsByCat[cat]) pointsByCat[cat] = [];
+                    const { dx, dy } = offsets[i];
+                    pointsByCat[cat].push({
+                        x: item.hour + dx,
+                        y: item.dayIndex + dy,
+                        ymd: item.ymd,
+                        hour: item.hour,
+                        behavior: item.behavior,
+                        category: cat
+                    });
                 });
             });
             return pointsByCat;
@@ -1173,9 +1219,11 @@
                 label: cat,
                 data: pointsByCat[cat] || [],
                 backgroundColor: CATEGORIES[cat]?.color || '#607D8B',
-                borderColor: CATEGORIES[cat]?.color || '#607D8B',
-                pointRadius: rangeKey === '6mo' ? 4 : 5,
-                pointHoverRadius: rangeKey === '6mo' ? 6 : 7,
+                borderColor: '#ffffff',
+                borderWidth: 1,
+                pointRadius: rangeKey === '6mo' ? 2.5 : 3,
+                pointHoverRadius: rangeKey === '6mo' ? 5 : 6,
+                pointHitRadius: 6,
                 showLine: false
             }));
 
