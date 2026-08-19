@@ -214,6 +214,7 @@ open class TrainingMapActivity : AppCompatActivity() {
                 "optional" -> "🗺️ Extra Practice Map 🗺️"
                 "bonus" -> "🎮 Bonus Training Map 🎮"
                 "checklist" -> "✅ Checklist Map ✅"
+                "chores" -> "🧹 Chores Map 🧹"
                 else -> "🗺️ Training Map 🗺️"
             }
             textSize = 24f
@@ -572,8 +573,12 @@ open class TrainingMapActivity : AppCompatActivity() {
                         
                         // Text overlay (title and stars icon) - smaller text
                         val textOverlay = TextView(this@TrainingMapActivity).apply {
-                            val starsCount = task.stars ?: 1
-                            text = "${task.title}\n$starsCount ${icons.starsIcon}"
+                            text = if (mapType == "chores") {
+                                "${task.title}\n${ChorePhotoActivity.formatRewardCash(task.rewardCash)}"
+                            } else {
+                                val starsCount = task.stars ?: 1
+                                "${task.title}\n$starsCount ${icons.starsIcon}"
+                            }
                             textSize = 8f // Smaller text to prevent wrapping
                             setTextColor(if (isCompleted) android.graphics.Color.GRAY else android.graphics.Color.BLACK)
                             setTypeface(null, android.graphics.Typeface.BOLD)
@@ -674,6 +679,18 @@ open class TrainingMapActivity : AppCompatActivity() {
         // Videos should be handled before trying to fetch game content from data/ folder
         if (task.videoSequence != null) {
             handleVideoSequenceTask(task, sectionId)
+            return
+        }
+
+        if (task.launch == "chorePhoto" || mapType == "chores") {
+            lastLaunchedGameSectionId = sectionId
+            val intent = Intent(this, ChorePhotoActivity::class.java).apply {
+                putExtra(ChorePhotoActivity.EXTRA_CHORE_ID, task.choreId ?: task.launch)
+                putExtra(ChorePhotoActivity.EXTRA_TITLE, gameTitle)
+                putExtra(ChorePhotoActivity.EXTRA_DESCRIPTION, task.description ?: "")
+                putExtra(ChorePhotoActivity.EXTRA_REWARD_CASH, task.rewardCash ?: 0.0)
+            }
+            startActivityForResult(intent, ChorePhotoActivity.REQUEST_CHORE_PHOTO)
             return
         }
         
@@ -1162,7 +1179,7 @@ open class TrainingMapActivity : AppCompatActivity() {
         
         // Refresh the map when returning from any task to show updated completion status
         // Only refresh if the task was completed (RESULT_OK) to avoid unnecessary refreshes
-        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005 || requestCode == 1006 || requestCode == 1007) && resultCode == RESULT_OK) {
+        if ((requestCode == 1001 || requestCode == 1002 || requestCode == 1003 || requestCode == 1004 || requestCode == 1005 || requestCode == 1006 || requestCode == 1007 || requestCode == ChorePhotoActivity.REQUEST_CHORE_PHOTO) && resultCode == RESULT_OK) {
             val currentProfile = SettingsManager.readProfile(this) ?: "AM"
             // Task writes already went via RPC; refetch DB and apply before redraw.
             lifecycleScope.launch(Dispatchers.IO) {

@@ -35,7 +35,10 @@ object TrainerMapTaskMerge {
         val extremedays: String?,
         val easy: Boolean,
         val blockOutlines: Boolean,
-        val isChecklist: Boolean
+        val isChecklist: Boolean,
+        val choreId: String? = null,
+        val description: String? = null,
+        val rewardCash: Double? = null
     )
 
     fun parseRows(arr: JsonArray): List<DbRow> {
@@ -66,7 +69,10 @@ object TrainerMapTaskMerge {
                     extremedays = o.stringOrNull("extremedays"),
                     easy = o.boolOrDefault("easy", false),
                     blockOutlines = o.boolOrDefault("block_outlines", false),
-                    isChecklist = o.boolOrDefault("is_checklist", false)
+                    isChecklist = o.boolOrDefault("is_checklist", false),
+                    choreId = o.stringOrNull("chore_id"),
+                    description = o.stringOrNull("description"),
+                    rewardCash = o.doubleOrNull("reward_cash")
                 )
             )
         }
@@ -92,7 +98,10 @@ object TrainerMapTaskMerge {
             easydays = row.easydays,
             harddays = row.harddays,
             extremedays = row.extremedays,
-            easy = row.easy
+            easy = row.easy,
+            choreId = row.choreId,
+            description = row.description,
+            rewardCash = row.rewardCash
         )
     }
 
@@ -125,6 +134,7 @@ object TrainerMapTaskMerge {
         taskForLaunch(supabase.invokeAfGetRequiredTasksRows(profile).getOrNull())?.let { return it to "required" }
         taskForLaunch(supabase.invokeAfGetPracticeTasksRows(profile).getOrNull())?.let { return it to "optional" }
         taskForLaunch(supabase.invokeAfGetBonusTasksRows(profile).getOrNull())?.let { return it to "bonus" }
+        taskForLaunch(supabase.invokeAfGetPhotoChoreTasksRows(profile).getOrNull())?.let { return it to "chores" }
         return null
     }
 
@@ -155,6 +165,16 @@ object TrainerMapTaskMerge {
                 "0", "false", "f", "no", "n" -> false
                 else -> default
             }
+        }
+    }
+
+    private fun JsonObject.doubleOrNull(key: String): Double? {
+        val v = get(key) ?: return null
+        if (v.isJsonNull) return null
+        return try {
+            v.asDouble
+        } catch (_: Exception) {
+            v.asString.toDoubleOrNull()
         }
     }
 
@@ -191,6 +211,7 @@ object TrainerMapTaskMerge {
             "required", "checklist" -> supabase.invokeAfGetRequiredTasksRows(profile)
             "optional" -> supabase.invokeAfGetPracticeTasksRows(profile)
             "bonus" -> supabase.invokeAfGetBonusTasksRows(profile)
+            "chores" -> supabase.invokeAfGetPhotoChoreTasksRows(profile)
             else -> Result.failure(IllegalArgumentException("Unknown mapType: $mapType"))
         }
         if (rowsResult.isFailure) {

@@ -92,6 +92,9 @@ class TaskLauncher(
             task.launch == "spellingOCR" -> {
                 launchSpellingOCRGame(task, sectionId, sourceTaskId, resultHandler)
             }
+            task.launch == "chorePhoto" || sectionId == "chores" -> {
+                launchChorePhotoTask(task, resultHandler)
+            }
             // Regular game tasks
             else -> {
                 launchGameTask(task, sectionId, sourceTaskId, resultHandler)
@@ -119,6 +122,17 @@ class TaskLauncher(
         }
 
         resultHandler?.launchActivity(intent, 1001) ?: (context as? Activity)?.startActivityForResult(intent, 1001)
+    }
+
+    private fun launchChorePhotoTask(task: Task, resultHandler: ActivityResultHandler?) {
+        val intent = Intent(context, ChorePhotoActivity::class.java).apply {
+            putExtra(ChorePhotoActivity.EXTRA_CHORE_ID, task.choreId ?: "")
+            putExtra(ChorePhotoActivity.EXTRA_TITLE, task.title ?: "Chore")
+            putExtra(ChorePhotoActivity.EXTRA_DESCRIPTION, task.description ?: "")
+            putExtra(ChorePhotoActivity.EXTRA_REWARD_CASH, task.rewardCash ?: 0.0)
+        }
+        resultHandler?.launchActivity(intent, ChorePhotoActivity.REQUEST_CHORE_PHOTO)
+            ?: (context as? Activity)?.startActivityForResult(intent, ChorePhotoActivity.REQUEST_CHORE_PHOTO)
     }
 
     /**

@@ -62,13 +62,14 @@ class DbProfileSessionLoader(private val context: Context) {
         if (!syncService.isConfigured()) {
             return@withContext Result.failure(Exception("Supabase not configured"))
         }
-        Log.d(TAG, "runGithubTaskConfigRpcsThenRefetch(profile=$profile): af_update_*_from_config ×5, then fetchUserData")
+        Log.d(TAG, "runGithubTaskConfigRpcsThenRefetch(profile=$profile): af_update_*_from_config ×6, then fetchUserData")
         val steps = listOf(
             "required_tasks" to syncService::invokeAfUpdateRequiredTasksFromConfig,
             "practice_tasks" to syncService::invokeAfUpdatePracticeTasksFromConfig,
             "bonus_tasks" to syncService::invokeAfUpdateBonusTasksFromConfig,
             "checklist_items" to syncService::invokeAfUpdateChecklistItemsFromConfig,
-            "chores" to syncService::invokeAfUpdateChoresFromGitHub
+            "chores" to syncService::invokeAfUpdateChoresFromGitHub,
+            "photo_chores" to syncService::invokeAfUpdatePhotoChoresFromConfig
         )
         for ((name, invoke) in steps) {
             val result = invoke(profile)

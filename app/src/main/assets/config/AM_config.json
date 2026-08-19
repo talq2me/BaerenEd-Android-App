@@ -1053,6 +1053,164 @@
             ],
             "title": "Bonus Games",
             "description": "Just for fun!"
+        },
+        {
+            "id": "chores",
+            "title": "Daily Chores",
+            "tasks": [
+                {
+                    "id": "wash_laundry",
+                    "title": "Wash laundry",
+                    "description": "Start a load of laundry in the washer.",
+                    "rewardCash": 1.0,
+                    "displayDays": "mon,thu",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "dry_laundry",
+                    "title": "Dry laundry",
+                    "description": "Move laundry to the dryer and start it.",
+                    "rewardCash": 1.0,
+                    "displayDays": "tue,fri",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "put_away_laundry",
+                    "title": "Put away laundry",
+                    "description": "Fold and put away the clean laundry.",
+                    "rewardCash": 2.0,
+                    "displayDays": "wed,sat",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "take_out_trash",
+                    "title": "Take out trash",
+                    "description": "Take the trash to the outside bin.",
+                    "rewardCash": 1.0,
+                    "displayDays": "mon,thu",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "take_out_recycling",
+                    "title": "Take out recycling",
+                    "description": "Take recycling to the outside bin.",
+                    "rewardCash": 1.0,
+                    "displayDays": "tue,fri",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "pack_school_bag",
+                    "title": "Pack school bag",
+                    "description": "Pack your school bag for tomorrow.",
+                    "rewardCash": 1.0,
+                    "displayDays": "mon,tue,wed,thu,sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "make_own_breakfast",
+                    "title": "Make own breakfast",
+                    "description": "Make your own breakfast.",
+                    "rewardCash": 1.0,
+                    "displayDays": "sat,sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "make_own_lunch",
+                    "title": "Make own lunch",
+                    "description": "Make your own lunch.",
+                    "rewardCash": 2.0,
+                    "displayDays": "sat,sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "clean_up_table",
+                    "title": "Clean up table",
+                    "description": "Clean up the table and wipe it clean.",
+                    "rewardCash": 2.0,
+                    "displayDays": "mon,wed,fri",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "clean_kitchen_counter",
+                    "title": "Clean kitchen counter",
+                    "description": "Clean up the kitchen counter and wipe it clean.",
+                    "rewardCash": 2.0,
+                    "displayDays": "tue,thu,sat",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "tidy_coffee_table",
+                    "title": "Tidy living room tops",
+                    "description": "Tidy the coffee table, toy chest and dresser top.",
+                    "rewardCash": 2.0,
+                    "displayDays": "thu,sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "clean_bathroom_counter",
+                    "title": "Clean bathroom counter",
+                    "description": "Clean the warm bathroom counter and wipe it clean.",
+                    "rewardCash": 2.0,
+                    "displayDays": "sat",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "unload_dishwasher",
+                    "title": "Unload dishwasher",
+                    "description": "Unload the dishwasher and put everything away.",
+                    "rewardCash": 2.0,
+                    "displayDays": "mon,wed,fri",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "feed_dog",
+                    "title": "Feed the dog",
+                    "description": "Feed the dog and give water if needed.",
+                    "rewardCash": 1.0,
+                    "displayDays": "mon,tue,wed,thu,fri,sat,sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "clean_room",
+                    "title": "Clean your room",
+                    "description": "Organize your room: tidy floor and desk/dresser tops. Do not shove everything in a drawer.",
+                    "rewardCash": 2.0,
+                    "displayDays": "wed,sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "tidy_toys_basement",
+                    "title": "Tidy basement toys",
+                    "description": "Tidy toys in the basement.",
+                    "rewardCash": 2.0,
+                    "displayDays": "sat",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "dust_windows_basement",
+                    "title": "Dust basement windows",
+                    "description": "Dust the windows in the basement.",
+                    "rewardCash": 2.0,
+                    "displayDays": "sun",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "dust_stairway",
+                    "title": "Dust stairway",
+                    "description": "Dust the stairway.",
+                    "rewardCash": 1.0,
+                    "displayDays": "wed",
+                    "launch": "chorePhoto"
+                },
+                {
+                    "id": "tidy_laundry_room",
+                    "title": "Tidy laundry room",
+                    "description": "Tidy the laundry room bench and boot tray; hang up jackets, pants, mittens and hats in bins.",
+                    "rewardCash": 1.0,
+                    "displayDays": "fri",
+                    "launch": "chorePhoto"
+                }
+            ]
         }
     ]
 }
