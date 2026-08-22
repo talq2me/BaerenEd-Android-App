@@ -473,9 +473,17 @@
         }
 
         function parseChoreTaskKey(task) {
+            const withReward = String(task || '').match(/^chore_(.+)_r([0-9]+(?:\.[0-9]+)?)_(\d{4}-\d{2}-\d{2})$/);
+            if (withReward) {
+                return {
+                    choreId: withReward[1],
+                    rewardCash: Number(withReward[2]),
+                    date: withReward[3]
+                };
+            }
             const m = String(task || '').match(/^chore_(.+)_(\d{4}-\d{2}-\d{2})$/);
             if (!m) return null;
-            return { choreId: m[1], date: m[2] };
+            return { choreId: m[1], rewardCash: null, date: m[2] };
         }
 
         function imageSrc(image) {
@@ -620,18 +628,18 @@
             }
             todayChorePhotos.forEach((row, idx) => {
                 const parsed = parseChoreTaskKey(row.task) || {};
-                const meta = photoChoresToday[parsed.choreId] || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[parsed.choreId]) || {};
-                const title = meta.title || parsed.choreId || 'Chore';
-                const src = imageSrc(row.image);
-                const paid = row.reward_granted === true;
-                const card = document.createElement('div');
-                card.className = 'chore-photo-card';
-                card.innerHTML = `
-                    <img src="${src}" alt="${title}">
-                    <div class="cap">${title}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
-                `;
-                card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
-                wrap.appendChild(card);
+            const meta = photoChoresToday[parsed.choreId] || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[parsed.choreId]) || {};
+            const title = meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' ');
+            const src = imageSrc(row.image);
+            const paid = row.reward_granted === true;
+            const card = document.createElement('div');
+            card.className = 'chore-photo-card';
+            card.innerHTML = `
+                <img src="${src}" alt="${title}">
+                <div class="cap">${title}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
+            `;
+            card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
+            wrap.appendChild(card);
             });
         }
 
@@ -655,8 +663,10 @@
                 idx,
                 row,
                 choreId: parsed.choreId,
-                title: meta.title || parsed.choreId || 'Chore',
-                rewardCash: meta.rewardCash != null ? Number(meta.rewardCash) : 0
+                title: meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' '),
+                rewardCash: meta.rewardCash != null
+                    ? Number(meta.rewardCash)
+                    : (parsed.rewardCash != null ? Number(parsed.rewardCash) : 0)
             };
             const modal = document.getElementById('imageModal');
             const img = document.getElementById('modalImage');
