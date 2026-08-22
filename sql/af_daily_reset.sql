@@ -4,7 +4,7 @@
 
 -- BaerenEd: Daily reset applied at read time (AF = "at fetch").
 -- Call this before reading user_data so the row for the given profile with last_reset date not equal to today (Toronto time)
--- gets reset: blank required_tasks, checklist_items, practice_tasks, berries_earned, banked_mins, chores;
+-- gets reset: blank required_tasks, checklist_items, practice_tasks, berries_earned, banked_mins, chores, photo_chores;
 -- set last_reset and last_updated to now() in America/Toronto. Does not change coins_earned, pokemon_unlocked, game_indices.
 -- When a reset row was updated (FOUND), repopulates task/chore columns from GitHub via af_update_*
 -- (full implementations are in the per-function af_update_* files in sql/).
@@ -33,7 +33,8 @@ BEGIN
     banked_mins = 0,
     reward_time_expiry = NULL,
     prize_unlocked = NULL,
-    chores = '[]'::jsonb
+    chores = '[]'::jsonb,
+    photo_chores = '{}'::jsonb
   WHERE profile = p_profile
     AND (last_reset IS NULL OR last_reset::date IS DISTINCT FROM today_est);
 
@@ -42,6 +43,7 @@ BEGIN
     PERFORM af_update_tasks_from_config_practice(p_profile);
     PERFORM af_update_tasks_from_config_bonus(p_profile);
     PERFORM af_update_tasks_from_config_chores(p_profile);
+    PERFORM af_update_tasks_from_config_photo_chores(p_profile);
   END IF;
 END;
 $$;

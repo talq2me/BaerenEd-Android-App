@@ -41,6 +41,9 @@ data class DbUserData(
     // Chores 4 $$: array of chore state (chore_id, description, coins_reward, done); done resets daily
     @SerializedName("chores") val chores: List<ChoreProgress> = emptyList(),
 
+    // Photo chores (trainer map): object keyed by chore id
+    @SerializedName("photo_chores") val photoChores: Map<String, PhotoChoreProgress> = emptyMap(),
+
     // Pokemon data
     @SerializedName("pokemon_unlocked") val pokemonUnlocked: Int = 0,
 
@@ -109,4 +112,20 @@ data class ChoreProgress(
     @SerializedName("description") val description: String = "",
     @SerializedName("coins_reward") val coinsReward: Int = 0,
     @SerializedName("done") val done: Boolean = false
+)
+
+/**
+ * Photo-chore progress stored in user_data.photo_chores (object keyed by chore id).
+ * status resets daily; photos stay in image_uploads.
+ */
+data class PhotoChoreProgress(
+    @SerializedName("status") val status: String = "incomplete",
+    @SerializedName("title") val title: String? = null,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("rewardCash") val rewardCash: Double? = null,
+    @SerializedName("launch") val launch: String? = null,
+    @SerializedName("displayDays") val displayDays: String? = null,
+    @SerializedName("showdays") val showdays: String? = null,
+    @SerializedName("hidedays") val hidedays: String? = null,
+    @SerializedName("disable") val disable: String? = null
 )

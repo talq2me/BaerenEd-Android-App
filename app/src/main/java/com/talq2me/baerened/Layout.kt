@@ -1088,7 +1088,7 @@ open class Layout(protected val activity: MainActivity) {
             val section = sections[index]
             android.util.Log.d("Layout", "Creating section ${index + 1}/${sections.size}: ${section.title}, tasks count: ${section.tasks?.size ?: 0}")
             when (section.id) {
-                "required", "optional", "bonus", "checklist" -> {
+                "required", "optional", "bonus", "checklist", "chores" -> {
                     renderSectionFromDb(section, section.id ?: "") {
                         createSectionsIncrementally(sections, index + 1)
                     }
@@ -1106,7 +1106,7 @@ open class Layout(protected val activity: MainActivity) {
     /**
      * Dashboard section render, DB-driven for known section ids.
      *
-     * - "required" / "optional" / "bonus" — list + completion from `af_get_tasks_*`.
+     * - "required" / "optional" / "bonus" / "chores" — list + completion from `af_get_tasks_*`.
      * - "checklist" — visibility/completion from `af_get_tasks_required` (`is_checklist` rows).
      *
      * No `DailyProgressManager` for these sections: Postgres already filters by today.
@@ -1647,6 +1647,17 @@ open class Layout(protected val activity: MainActivity) {
     private fun launchTask(task: Task, sectionId: String, sourceTaskId: String? = null) {
         val gameType = task.launch ?: "unknown"
         val gameTitle = task.title ?: "Task"
+
+        if (task.launch == "chorePhoto" || sectionId == "chores") {
+            val intent = android.content.Intent(activity, ChorePhotoActivity::class.java).apply {
+                putExtra(ChorePhotoActivity.EXTRA_CHORE_ID, task.choreId ?: "")
+                putExtra(ChorePhotoActivity.EXTRA_TITLE, gameTitle)
+                putExtra(ChorePhotoActivity.EXTRA_DESCRIPTION, task.description ?: "")
+                putExtra(ChorePhotoActivity.EXTRA_REWARD_CASH, task.rewardCash ?: 0.0)
+            }
+            activity.startActivityForResult(intent, ChorePhotoActivity.REQUEST_CHORE_PHOTO)
+            return
+        }
         
         // Check if this is a Chrome page task
         if (task.chromePage == true) {
@@ -2393,6 +2404,7 @@ open class Layout(protected val activity: MainActivity) {
             text = when (mapType) {
                 "optional" -> "🗺️ Extra Practice Map 🗺️"
                 "bonus" -> "🎮 Bonus Training Map 🎮"
+                "chores" -> "🧹 Chores Map 🧹"
                 else -> "🗺️ Training Map 🗺️"
             }
             textSize = 24f

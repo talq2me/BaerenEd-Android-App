@@ -820,7 +820,10 @@ class BattleHubActivity : AppCompatActivity() {
         }
 
         choresButton.setOnClickListener {
-            startActivityForResult(Intent(this, ChoresActivity::class.java), 2010)
+            val intent = Intent(this, TrainingMapActivity::class.java).apply {
+                putExtra("mapType", "chores")
+            }
+            startActivityForResult(intent, 2010)
         }
     }
     

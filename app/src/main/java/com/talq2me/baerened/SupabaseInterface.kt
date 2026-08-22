@@ -269,6 +269,9 @@ open class SupabaseInterface {
     suspend fun invokeAfUpdateChecklistItemsFromConfig(profile: String): Result<Unit> =
         invokeRpcProfileWithConfigJson("af_update_tasks_from_config_checklist_items", profile)
 
+    suspend fun invokeAfUpdatePhotoChoresFromConfig(profile: String): Result<Unit> =
+        invokeRpcProfileWithConfigJson("af_update_tasks_from_config_photo_chores", profile)
+
     suspend fun invokeAfUpdateChoresFromGitHub(profile: String): Result<Unit> {
         val choresJson = fetchChoresJsonFromGitHubPages().getOrElse { err ->
             return Result.failure(Exception("Could not fetch GitHub Pages chores.json: ${err.message}"))
@@ -320,6 +323,10 @@ open class SupabaseInterface {
     /** Stable bonus rows (current impl routed in SQL). */
     suspend fun invokeAfGetBonusTasksRows(profile: String): Result<JsonArray> =
         invokeRpcProfileReturningJsonArray("af_get_tasks_bonus", profile)
+
+    /** Today's photo-chore gym rows (current impl routed in SQL). */
+    suspend fun invokeAfGetPhotoChoreTasksRows(profile: String): Result<JsonArray> =
+        invokeRpcProfileReturningJsonArray("af_get_tasks_photo_chores", profile)
 
     /**
      * Today's required-task progress. `allDone` is true iff every visible-today required task AND every visible-today
@@ -503,6 +510,12 @@ open class SupabaseInterface {
     suspend fun invokeAfUpdateChecklistItem(profile: String, itemLabel: String, done: Boolean): Result<Unit> {
         val body = """{"p_profile":"${profile.escapeJson()}", "p_item_label":"${itemLabel.escapeJson()}", "p_done":$done}"""
         return invokeRpc("af_update_tasks_checklist_items", body)
+    }
+
+    /** Calls af_update_tasks_photo_chores; marks a photo chore complete (no cash/berries). */
+    suspend fun invokeAfUpdatePhotoChore(profile: String, choreId: String): Result<Unit> {
+        val body = """{"p_profile":"${profile.escapeJson()}", "p_chore_id":"${choreId.escapeJson()}"}"""
+        return invokeRpc("af_update_tasks_photo_chores", body)
     }
 
     /** Calls af_update_tasks_chores; DB updates chore and coins_earned. */
@@ -748,7 +761,7 @@ open class SupabaseInterface {
      */
     private fun fixJsonbFieldsInObject(obj: JsonObject) {
         // JSONB fields that should be objects (not strings)
-        val jsonbObjectFields = listOf("required_tasks", "practice_tasks", "bonus_tasks", "checklist_items", "game_indices")
+        val jsonbObjectFields = listOf("required_tasks", "practice_tasks", "bonus_tasks", "checklist_items", "game_indices", "photo_chores")
         jsonbObjectFields.forEach { fieldName ->
             val field = obj.get(fieldName)
             if (field != null) {

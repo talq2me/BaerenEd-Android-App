@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Chore</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background-color: #fffcf9;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2e7d32;
+            margin-bottom: 8px;
+        }
+        .description {
+            font-size: 18px;
+            color: #444;
+            margin: 12px 0 8px;
+        }
+        .reward {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .button, .green-button, .camera-button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 4px 8px 4px 0;
+            padding: 15px 30px;
+            font-size: 20px;
+            color: white;
+        }
+        .button { background-color: #6ac2ff; }
+        .green-button { background-color: #4CAF50; }
+        .camera-button {
+            background-color: #ff6b6b;
+            font-size: 24px;
+            padding: 20px 40px;
+            margin: 20px 0;
+        }
+        .button:hover, .green-button:hover, .camera-button:hover {
+            background-color: #ff8c00;
+            transform: scale(1.05);
+        }
+        .button:disabled, .green-button:disabled, .camera-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .hidden { display: none; }
+        .camera-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffeaa7;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 10px;
+            margin: 15px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .upload-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 id="choreTitle">Chore</h1>
+        <p class="description" id="choreDescription">Take a photo of the finished chore.</p>
+        <p class="reward" id="choreReward">Reward: $0 (parent reviews)</p>
+
+        <div>
+            <button class="camera-button" id="takePictureBtn" onclick="openCamera()">Take Photo</button>
+        </div>
+
+        <div class="camera-container hidden" id="cameraContainer">
+            <h3>Preview</h3>
+            <img id="imagePreview" class="image-preview" alt="Preview">
+            <div class="upload-actions">
+                <button class="button" id="retakeBtn" onclick="retakePhoto()">Retake</button>
+                <button class="green-button" id="doneBtn" onclick="submitPhoto()">Done</button>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    </div>
+
+    <script>
+        /**
+         * Query params (from config url):
+         *   choreId      - required; used in image_uploads.task = chore_{id}_r{reward}_{yyyy-MM-dd}
+         *   title        - screen title (also map task title in config)
+         *   description  - instructions
+         *   rewardCash   - dollars for parent report grant default (e.g. 1 or 1.5)
+         */
+        let capturedImageBase64 = null;
+        let submitting = false;
+        let choreId = '';
+        let choreTitle = 'Chore';
+        let choreDescription = 'Take a photo of the finished chore.';
+        let rewardCash = 0;
+
+        function formatRewardCash(amount) {
+            const value = Number(amount) || 0;
+            if (Math.abs(value - Math.round(value)) < 0.001) {
+                return '$' + Math.round(value);
+            }
+            return '$' + value.toFixed(2);
+        }
+
+        /** America/Toronto calendar date as yyyy-MM-dd. */
+        function torontoDateYmd() {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date());
+        }
+
+        /**
+         * Parent report parses: chore_{choreId}_r{reward}_{date}
+         * Reward is embedded so grant amount works without photo_chores DB rows.
+         */
+        function imageTaskKey(id, reward) {
+            const centsSafe = String(Number(reward) || 0);
+            return 'chore_' + id + '_r' + centsSafe + '_' + torontoDateYmd();
+        }
+
+        function readParams() {
+            const params = new URLSearchParams(window.location.search);
+            choreId = (params.get('choreId') || '').trim();
+            choreTitle = (params.get('title') || 'Chore').trim() || 'Chore';
+            choreDescription = (params.get('description') || '').trim()
+                || 'Take a photo of the finished chore.';
+            const rawReward = params.get('rewardCash');
+            rewardCash = rawReward != null && rawReward !== '' ? Number(rawReward) : 0;
+            if (Number.isNaN(rewardCash)) rewardCash = 0;
+        }
+
+        function applyUi() {
+            document.getElementById('choreTitle').textContent = choreTitle;
+            document.getElementById('choreDescription').textContent = choreDescription;
+            document.getElementById('choreReward').textContent =
+                'Reward: ' + formatRewardCash(rewardCash) + ' (parent reviews)';
+            if (!choreId) {
+                showMessage('This chore is missing choreId in the URL.', 'error');
+                document.getElementById('takePictureBtn').disabled = true;
+            }
+        }
+
+        function hideMessage() {
+            document.getElementById('messageContainer').innerHTML = '';
+        }
+
+        function showMessage(text, type) {
+            document.getElementById('messageContainer').innerHTML =
+                '<div class="message ' + (type || 'info') + '">' + text + '</div>';
+        }
+
+        function setBusy(busy) {
+            submitting = busy;
+            document.getElementById('takePictureBtn').disabled = busy;
+            document.getElementById('retakeBtn').disabled = busy;
+            document.getElementById('doneBtn').disabled = busy;
+        }
+
+        window.onCameraSuccess = function(imageBase64) {
+            if (imageBase64) {
+                capturedImageBase64 = imageBase64.startsWith('data:image')
+                    ? imageBase64
+                    : 'data:image/jpeg;base64,' + imageBase64;
+                document.getElementById('imagePreview').src = capturedImageBase64;
+                document.getElementById('cameraContainer').classList.remove('hidden');
+                document.getElementById('takePictureBtn').textContent = 'Retake photo';
+                hideMessage();
+            } else {
+                showMessage('No image captured. Please try again.', 'error');
+            }
+        };
+
+        window.onCameraError = function(error) {
+            showMessage('Failed to open camera. Please try again.', 'error');
+            console.error('Camera error:', error);
+        };
+
+        window.onUploadSuccess = function() {
+            showMessage('Photo submitted! Parent will review for the reward.', 'success');
+            // Complete like any other web game (marks the map task done).
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                try {
+                    window.Android.gameCompleted(1, 0);
+                } catch (e) {
+                    setBusy(false);
+                    showMessage('Photo saved but could not finish the task: ' + e.message, 'error');
+                }
+            } else {
+                setBusy(false);
+                showMessage('Photo saved. Close this screen when ready.', 'success');
+            }
+        };
+
+        window.onUploadError = function(error) {
+            setBusy(false);
+            showMessage('Could not save photo: ' + error, 'error');
+            console.error('Upload error:', error);
+        };
+
+        function openCamera() {
+            if (submitting || !choreId) return;
+            showMessage('Opening camera...', 'info');
+            if (window.Android && typeof window.Android.openCamera === 'function') {
+                try {
+                    window.Android.openCamera('onCameraSuccess', 'onCameraError');
+                } catch (e) {
+                    showMessage('Error opening camera: ' + e.message, 'error');
+                }
+                return;
+            }
+            const cameraInput = document.getElementById('cameraInput');
+            if (cameraInput) {
+                cameraInput.click();
+            } else {
+                showMessage('Camera not available', 'error');
+            }
+        }
+
+        document.getElementById('cameraInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                capturedImageBase64 = event.target.result;
+                document.getElementById('imagePreview').src = capturedImageBase64;
+                document.getElementById('cameraContainer').classList.remove('hidden');
+                document.getElementById('takePictureBtn').textContent = 'Retake photo';
+                hideMessage();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function retakePhoto() {
+            if (submitting) return;
+            document.getElementById('cameraContainer').classList.add('hidden');
+            document.getElementById('cameraInput').value = '';
+            capturedImageBase64 = null;
+            document.getElementById('takePictureBtn').textContent = 'Take Photo';
+            hideMessage();
+        }
+
+        function submitPhoto() {
+            if (submitting) return;
+            if (!capturedImageBase64) {
+                showMessage('Take a photo first.', 'error');
+                return;
+            }
+            if (!choreId) {
+                showMessage('This chore is missing choreId in the URL.', 'error');
+                return;
+            }
+            if (!window.Android || typeof window.Android.uploadImageToSupabase !== 'function') {
+                showMessage('Upload requires the Android app.', 'error');
+                return;
+            }
+
+            let profile = 'TE';
+            if (typeof window.Android.getCurrentProfile === 'function') {
+                try {
+                    profile = window.Android.getCurrentProfile() || 'TE';
+                } catch (e) {
+                    console.warn('Could not get profile:', e);
+                }
+            }
+
+            setBusy(true);
+            showMessage('Uploading photo...', 'info');
+
+            const uploadData = {
+                profile: profile,
+                task: imageTaskKey(choreId, rewardCash),
+                image: capturedImageBase64,
+                capture_date_time: new Date().toISOString()
+            };
+
+            try {
+                window.Android.uploadImageToSupabase(
+                    JSON.stringify(uploadData),
+                    'onUploadSuccess',
+                    'onUploadError'
+                );
+            } catch (e) {
+                setBusy(false);
+                showMessage('Error calling upload: ' + e.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            readParams();
+            applyUi();
+        });
+    </script>
+</body>
+</html>

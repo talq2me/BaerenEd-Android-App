@@ -10,6 +10,8 @@ $files = @(
 
   "af_update_tasks_from_config_chores.sql",
 
+  "af_update_tasks_from_config_photo_chores.sql",
+
   "af_update_tasks_from_config_practice.sql",
 
   "af_update_tasks_from_config_bonus.sql",
@@ -25,6 +27,8 @@ $files = @(
   "af_get_tasks_practice.sql",
 
   "af_get_tasks_bonus.sql",
+
+  "af_get_tasks_photo_chores.sql",
 
   "af_get_battle_hub_counts.sql",
 
@@ -52,6 +56,8 @@ $files = @(
 
   "af_upsert_image_upload.sql",
 
+  "af_grant_chore_reward.sql",
+
   "af_delete_image_uploads_ilike.sql",
 
   "af_get_image_upload_id.sql",
@@ -73,6 +79,8 @@ $files = @(
   "af_update_tasks_checklist_items.sql",
 
   "af_update_tasks_chores.sql",
+
+  "af_update_tasks_photo_chores.sql",
 
   "af_update_game_index.sql",
 

@@ -104,6 +104,11 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <activity
+            android:name=".ChorePhotoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <activity
             android:name=".TrainingMapActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"

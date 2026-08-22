@@ -1616,7 +1616,13 @@ data class Task(
     val displayDays: String? = null,
     val disable: String? = null,
     /** When true, tappableText uses simpler English hints for tap questions (see [TappableTextActivity]). */
-    val easy: Boolean? = null
+    val easy: Boolean? = null,
+    /** Photo-chore id (config `id`); used as photo_chores JSON key. */
+    val choreId: String? = null,
+    /** Photo-chore instructions shown on the camera screen. */
+    val description: String? = null,
+    /** Parent-review cash amount for photo chores (dollars). */
+    val rewardCash: Double? = null
 )
 
 data class ChecklistItem(
