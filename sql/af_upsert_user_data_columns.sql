@@ -34,6 +34,7 @@ BEGIN
       WHEN p_columns ? 'last_coins_payout_at' AND NULLIF(trim(p_columns->>'last_coins_payout_at'), '') IS NULL THEN NULL
       ELSE last_coins_payout_at END,
     chores = CASE WHEN p_columns ? 'chores' THEN (p_columns->'chores')::jsonb ELSE chores END,
+    photo_chores = CASE WHEN p_columns ? 'photo_chores' THEN (p_columns->'photo_chores')::jsonb ELSE photo_chores END,
     pokemon_unlocked = CASE WHEN p_columns ? 'pokemon_unlocked' THEN (p_columns->>'pokemon_unlocked')::int ELSE pokemon_unlocked END,
     game_indices = CASE WHEN p_columns ? 'game_indices' THEN (p_columns->'game_indices')::jsonb ELSE game_indices END,
     reward_time_expiry = CASE WHEN p_columns ? 'reward_time_expiry' AND NULLIF(trim(p_columns->>'reward_time_expiry'), '') IS NOT NULL

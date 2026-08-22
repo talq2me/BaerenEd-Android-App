@@ -91,6 +91,11 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Chores 4 $$: JSONB array of { chore_id, description, coins_reward, done }; done resets daily
     chores JSONB DEFAULT '[]'::jsonb,
 
+    -- Photo chores (trainer map): object keyed by chore id
+    -- { "unload_dishwasher": { "status": "incomplete"/"complete", "title", "description", "rewardCash", "launch", "displayDays", ... } }
+    -- status resets daily; photos in image_uploads are kept
+    photo_chores JSONB DEFAULT '{}'::jsonb,
+
     -- Pokemon data
     pokemon_unlocked INTEGER DEFAULT 0,
 
@@ -120,6 +125,9 @@ CREATE TABLE IF NOT EXISTS user_data (
 
 -- Create index on profile for faster lookups
 CREATE INDEX IF NOT EXISTS idx_user_data_profile ON user_data(profile);
+
+-- Existing DBs created before photo_chores: add the column without rebuilding user_data
+ALTER TABLE user_data ADD COLUMN IF NOT EXISTS photo_chores JSONB DEFAULT '{}'::jsonb;
 
 -- Enable Row Level Security (RLS) - adjust policies based on your security needs
 ALTER TABLE user_data ENABLE ROW LEVEL SECURITY;
@@ -317,16 +325,22 @@ CREATE POLICY "Allow all operations on devices" ON devices
 CREATE TABLE IF NOT EXISTS image_uploads (
     id BIGSERIAL PRIMARY KEY,
     profile TEXT NOT NULL, -- "AM" or "BM"
-    task TEXT NOT NULL, -- Task name (e.g., "englishSpellingJumblePhoto", "frenchSpellingJumblePhoto")
+    task TEXT NOT NULL, -- Task name (e.g., "englishSpellingJumblePhoto", "frenchSpellingJumblePhoto", "chore_{id}_{yyyy-MM-dd}")
     image TEXT NOT NULL, -- Base64 encoded image data
     capture_date_time TIMESTAMP(3) DEFAULT (NOW() AT TIME ZONE 'America/Toronto'), -- When the photo was taken/uploaded (Toronto time)
-    
+    reward_granted BOOLEAN DEFAULT false, -- Parent granted kid_bank_balance for this photo
+    granted_amount NUMERIC(12,2), -- Amount actually credited (may differ from config rewardCash)
+
     -- Unique task key per row; apps use distinct keys per word/day (retries overwrite same key only)
     UNIQUE(profile, task)
 );
 
 -- Create index on profile and task for faster lookups
 CREATE INDEX IF NOT EXISTS idx_image_uploads_profile_task ON image_uploads(profile, task);
+
+-- Existing DBs created before parent cash-grant columns
+ALTER TABLE image_uploads ADD COLUMN IF NOT EXISTS reward_granted BOOLEAN DEFAULT false;
+ALTER TABLE image_uploads ADD COLUMN IF NOT EXISTS granted_amount NUMERIC(12,2);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE image_uploads ENABLE ROW LEVEL SECURITY;

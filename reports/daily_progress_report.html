@@ -222,6 +222,115 @@
             font-size: 0.9em;
         }
 
+        .chore-photos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+            gap: 8px;
+            margin: 8px 0 12px;
+        }
+
+        .chore-photo-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+        }
+
+        .chore-photo-card img {
+            width: 100%;
+            height: 96px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .chore-photo-card .cap {
+            font-size: 0.68em;
+            padding: 4px 6px;
+            color: #334155;
+            line-height: 1.2;
+        }
+
+        .chore-photo-card .cap .paid {
+            color: #15803d;
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.82);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            max-width: 96vw;
+            max-height: 82vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .grant-dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            width: min(420px, 100%);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .grant-dialog h4 {
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        .grant-dialog p {
+            font-size: 0.9em;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        .grant-dialog input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 12px;
+        }
+
+        .grant-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .grant-actions button {
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .grant-no { background: #e2e8f0; color: #334155; }
+        .grant-yes { background: #15803d; color: white; }
+
         @media (min-width: 480px) {
             body { padding: 16px; }
             .header { padding: 12px 14px; }
@@ -313,7 +422,25 @@
 
             <div class="section" id="choresSection">
                 <h3>Chores</h3>
+                <div id="chorePhotos" class="chore-photos"></div>
                 <ul class="task-list" id="choresList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="modal" aria-hidden="true">
+        <span class="modal-close" id="imageModalClose">&times;</span>
+        <img class="modal-content" id="modalImage" alt="Chore photo">
+    </div>
+
+    <div id="grantModal" class="modal" aria-hidden="true">
+        <div class="grant-dialog">
+            <h4 id="grantTitle">Grant chore reward?</h4>
+            <p id="grantMessage">Add this amount to the kid's bank.</p>
+            <input id="grantAmount" type="number" min="0" step="0.01" inputmode="decimal">
+            <div class="grant-actions">
+                <button type="button" class="grant-no" id="grantNo">No</button>
+                <button type="button" class="grant-yes" id="grantYes">Yes</button>
             </div>
         </div>
     </div>
@@ -326,16 +453,73 @@
         // Load Supabase configuration
         const supabaseUrl = localStorage.getItem('supabaseUrl');
         const supabaseKey = localStorage.getItem('supabaseKey');
+        const restHeaders = {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+        };
 
-        // Fetch data from Supabase
+        let reportUserData = null;
+        let todayChorePhotos = [];
+        let openPhoto = null;
+
+        function todayTorontoYmd() {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date());
+        }
+
+        function parseChoreTaskKey(task) {
+            const withReward = String(task || '').match(/^chore_(.+)_r([0-9]+(?:\.[0-9]+)?)_(\d{4}-\d{2}-\d{2})$/);
+            if (withReward) {
+                return {
+                    choreId: withReward[1],
+                    rewardCash: Number(withReward[2]),
+                    date: withReward[3]
+                };
+            }
+            const m = String(task || '').match(/^chore_(.+)_(\d{4}-\d{2}-\d{2})$/);
+            if (!m) return null;
+            return { choreId: m[1], rewardCash: null, date: m[2] };
+        }
+
+        function imageSrc(image) {
+            if (!image) return '';
+            return image.startsWith('data:image') ? image : ('data:image/jpeg;base64,' + image);
+        }
+
+        function formatMoney(amount) {
+            const n = Number(amount);
+            if (!isFinite(n)) return '$0.00';
+            return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        }
+
+        async function fetchTodayChorePhotos() {
+            const today = todayTorontoYmd();
+            const url = `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${encodeURIComponent(kid)}&task=like.chore_*&select=task,image,capture_date_time,reward_granted,granted_amount&order=capture_date_time.desc`;
+            let response = await fetch(url, { headers: restHeaders });
+            if (!response.ok) {
+                const fallbackUrl = `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${encodeURIComponent(kid)}&task=like.chore_*&select=task,image,capture_date_time&order=capture_date_time.desc`;
+                response = await fetch(fallbackUrl, { headers: restHeaders });
+            }
+            if (!response.ok) {
+                throw new Error(`image_uploads: ${response.status}`);
+            }
+            const rows = await response.json();
+            return (Array.isArray(rows) ? rows : []).filter(row => {
+                const parsed = parseChoreTaskKey(row.task);
+                const captureDay = String(row.capture_date_time || '').slice(0, 10);
+                return parsed && (parsed.date === today || captureDay === today);
+            });
+        }
+
         async function fetchReportData() {
             try {
                 const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}&select=*`, {
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: restHeaders
                 });
 
                 if (!response.ok) {
@@ -348,8 +532,14 @@
                     throw new Error(`No data found for profile: ${kid}`);
                 }
 
-                const userData = data[0];
-                displayReport(userData);
+                reportUserData = data[0];
+                try {
+                    todayChorePhotos = await fetchTodayChorePhotos();
+                } catch (photoErr) {
+                    console.warn('Chore photos unavailable', photoErr);
+                    todayChorePhotos = [];
+                }
+                displayReport(reportUserData);
             } catch (error) {
                 console.error('Error fetching data:', error);
                 document.getElementById('loading').style.display = 'none';
@@ -428,6 +618,133 @@
 
             return true; // Visible by default if no restrictions
         }
+
+        function renderChorePhotos(photoChoresToday) {
+            const wrap = document.getElementById('chorePhotos');
+            wrap.innerHTML = '';
+            if (!todayChorePhotos.length) {
+                wrap.innerHTML = '<div class="task-info">No chore photos uploaded today.</div>';
+                return;
+            }
+            todayChorePhotos.forEach((row, idx) => {
+                const parsed = parseChoreTaskKey(row.task) || {};
+            const meta = photoChoresToday[parsed.choreId] || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[parsed.choreId]) || {};
+            const title = meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' ');
+            const src = imageSrc(row.image);
+            const paid = row.reward_granted === true;
+            const card = document.createElement('div');
+            card.className = 'chore-photo-card';
+            card.innerHTML = `
+                <img src="${src}" alt="${title}">
+                <div class="cap">${title}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
+            `;
+            card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
+            wrap.appendChild(card);
+            });
+        }
+
+        function closeImageModalOnly() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('show');
+            document.getElementById('modalImage').src = '';
+            document.body.style.overflow = '';
+        }
+
+        function closeGrantModal() {
+            document.getElementById('grantModal').classList.remove('show');
+        }
+
+        function openChorePhoto(idx, photoChoresToday) {
+            const row = todayChorePhotos[idx];
+            if (!row) return;
+            const parsed = parseChoreTaskKey(row.task) || {};
+            const meta = photoChoresToday[parsed.choreId] || {};
+            openPhoto = {
+                idx,
+                row,
+                choreId: parsed.choreId,
+                title: meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' '),
+                rewardCash: meta.rewardCash != null
+                    ? Number(meta.rewardCash)
+                    : (parsed.rewardCash != null ? Number(parsed.rewardCash) : 0)
+            };
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            img.src = imageSrc(row.image);
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function requestCloseChorePhoto() {
+            const modal = document.getElementById('imageModal');
+            if (!modal.classList.contains('show')) return;
+            closeImageModalOnly();
+            const photo = openPhoto;
+            if (!photo) return;
+            if (photo.row.reward_granted === true) {
+                openPhoto = null;
+                return;
+            }
+            document.getElementById('grantTitle').textContent = `Grant reward for ${photo.title}?`;
+            document.getElementById('grantMessage').textContent = `Add this amount to ${kid}'s bank.`;
+            document.getElementById('grantAmount').value = Number(photo.rewardCash || 0).toFixed(2);
+            document.getElementById('grantModal').classList.add('show');
+        }
+
+        async function grantChoreReward() {
+            const photo = openPhoto;
+            if (!photo) {
+                closeGrantModal();
+                return;
+            }
+            const amount = Number(document.getElementById('grantAmount').value);
+            if (!isFinite(amount) || amount < 0) {
+                alert('Enter a valid amount (0 or more).');
+                return;
+            }
+            const yesBtn = document.getElementById('grantYes');
+            yesBtn.disabled = true;
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_grant_chore_reward`, {
+                    method: 'POST',
+                    headers: restHeaders,
+                    body: JSON.stringify({
+                        p_profile: kid,
+                        p_task_key: photo.row.task,
+                        p_amount: amount
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(await response.text() || response.statusText);
+                }
+                const result = await response.json();
+                todayChorePhotos[photo.idx].reward_granted = true;
+                todayChorePhotos[photo.idx].granted_amount = result.granted_amount != null ? result.granted_amount : amount;
+                closeGrantModal();
+                openPhoto = null;
+                if (reportUserData) displayReport(reportUserData);
+            } catch (err) {
+                alert('Could not grant reward: ' + (err.message || err));
+            } finally {
+                yesBtn.disabled = false;
+            }
+        }
+
+        document.getElementById('imageModalClose').addEventListener('click', requestCloseChorePhoto);
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) requestCloseChorePhoto();
+        });
+        document.getElementById('grantNo').addEventListener('click', function() {
+            closeGrantModal();
+            openPhoto = null;
+        });
+        document.getElementById('grantYes').addEventListener('click', grantChoreReward);
+        document.getElementById('grantModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGrantModal();
+                openPhoto = null;
+            }
+        });
 
         // Display the report
         function displayReport(userData) {
@@ -519,9 +836,18 @@
             }
 
             // Chores 4 🪙 (today = done=true; coins today = sum of coins_reward for done)
+            const allPhotoChores = userData.photo_chores || {};
+            const photoChoresToday = {};
+            for (const [choreId, chore] of Object.entries(allPhotoChores)) {
+                if (isTaskVisible(chore.showdays, chore.hidedays, chore.displayDays, chore.disable)) {
+                    photoChoresToday[choreId] = chore;
+                }
+            }
+            const photoChoresCompletedToday = Object.values(photoChoresToday).filter(c => (c.status || '').toLowerCase() === 'complete').length;
+
             const chores = userData.chores || [];
             const doneChores = Array.isArray(chores) ? chores.filter(c => c.done === true) : [];
-            const choresCompletedToday = doneChores.length;
+            const choresCompletedToday = doneChores.length + photoChoresCompletedToday;
             const coinsEarnedToday = doneChores.reduce((sum, c) => sum + (c.coins_reward || 0), 0);
             const coinsEarnedLifetime = userData.coins_earned || 0;
 
@@ -539,7 +865,23 @@
 
             const choresListEl = document.getElementById('choresList');
             choresListEl.innerHTML = '';
-            if (chores.length === 0) {
+            renderChorePhotos(photoChoresToday);
+            const photoChoreIds = Object.keys(photoChoresToday);
+            if (photoChoreIds.length > 0) {
+                photoChoreIds.forEach(choreId => {
+                    const chore = photoChoresToday[choreId];
+                    const isDone = (chore.status || '').toLowerCase() === 'complete';
+                    const desc = chore.title || chore.description || choreId;
+                    const reward = chore.rewardCash != null ? chore.rewardCash : 0;
+                    const li = document.createElement('li');
+                    li.className = `task-item ${isDone ? '' : 'incomplete'}`;
+                    li.innerHTML = `
+                        <span class="task-name">${isDone ? '✓' : '○'} ${desc}</span>
+                        <span class="task-info">${formatMoney(reward)} ${isDone ? 'Photo submitted' : 'Not done'}</span>
+                    `;
+                    choresListEl.appendChild(li);
+                });
+            } else if (chores.length === 0) {
                 choresListEl.innerHTML = '<li class="task-item"><span class="task-name">No chores configured</span></li>';
             } else {
                 chores.forEach(chore => {
