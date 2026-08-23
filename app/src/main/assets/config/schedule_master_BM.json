@@ -1,6 +1,6 @@
 {
   "profile": "BM",
-  "version": "2026-06-07",
+  "version": "2026-07-08",
   "source": "BM_config.json",
   "required": [
     {
@@ -211,6 +211,27 @@
       "webGame": true,
       "totalQuestions": 5,
       "scheduleKey": "required|multiDigitAddSubtract|Multi-Digit Add/Subtract"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/longDivision.html",
+      "stars": 3,
+      "title": "Long Division",
+      "launch": "longDivision",
+      "webGame": true,
+      "easydays": "mon,wed,fri,sun",
+      "displayDays": "mon,wed,fri,sun",
+      "totalQuestions": 5,
+      "scheduleKey": "required|longDivision|Long Division"
+    },
+    {
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
+      "stars": 3,
+      "title": "Multi-Digit Multiplication",
+      "launch": "multiDigitMultiplication",
+      "webGame": true,
+      "displayDays": "tue,thu,sat",
+      "totalQuestions": 5,
+      "scheduleKey": "required|multiDigitMultiplication|Multi-Digit Multiplication"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/timeTellingGame.html?mode=hard",
@@ -431,16 +452,6 @@
       "scheduleKey": "required|mathHole|Math Hole"
     },
     {
-      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/multiDigitMultiplication.html",
-      "stars": 3,
-      "title": "Multi-Digit Multiplication",
-      "launch": "multiDigitMultiplication",
-      "disable": "Dec 31, 2099",
-      "webGame": true,
-      "totalQuestions": 5,
-      "scheduleKey": "required|multiDigitMultiplication|Multi-Digit Multiplication"
-    },
-    {
       "stars": 1,
       "title": "Kung Fu",
       "launch": "noviceKungFuVideos",
@@ -529,6 +540,191 @@
       "disable": "Dec 31, 2099",
       "videoSequence": "sequential",
       "scheduleKey": "required|uflivideos|Ufli Home Videos"
+    },
+    {
+      "stars": 0,
+      "title": "Put away laundry",
+      "launch": "chorePutAwayLaundry",
+      "webGame": true,
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=put_away_laundry&title=Put%20away%20laundry&description=Fold%20and%20put%20away%20the%20clean%20laundry.&rewardCash=2",
+      "displayDays": "mon",
+      "scheduleKey": "required|chorePutAwayLaundry|Put away laundry"
+    },
+    {
+      "stars": 0,
+      "title": "Take out trash",
+      "launch": "choreTakeOutTrash",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=1",
+      "displayDays": "mon,thu",
+      "scheduleKey": "required|choreTakeOutTrash|Take out trash"
+    },
+    {
+      "stars": 0,
+      "title": "Take out recycling",
+      "launch": "choreTakeOutRecycling",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_recycling&title=Take%20out%20recycling&description=Take%20recycling%20to%20the%20outside%20bin.&rewardCash=1",
+      "displayDays": "tue,fri",
+      "scheduleKey": "required|choreTakeOutRecycling|Take out recycling"
+    },
+    {
+      "stars": 0,
+      "title": "Pack school bag",
+      "launch": "chorePackSchoolBag",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=pack_school_bag&title=Pack%20school%20bag&description=Pack%20your%20school%20bag%20for%20tomorrow.&rewardCash=1",
+      "displayDays": "mon,tue,wed,thu,sun",
+      "scheduleKey": "required|chorePackSchoolBag|Pack school bag"
+    },
+    {
+      "stars": 0,
+      "title": "Help Amren with homework",
+      "launch": "choreHelpAmrenHomework",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=help_amren_homework&title=Help%20Amren%20with%20homework&description=Help%20Amren%20with%20homework.&rewardCash=1",
+      "displayDays": "mon,wed,fri",
+      "scheduleKey": "required|choreHelpAmrenHomework|Help Amren with homework"
+    },
+    {
+      "stars": 0,
+      "title": "Make own breakfast",
+      "launch": "choreMakeOwnBreakfast",
+      "webGame": true,
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_breakfast&title=Make%20own%20breakfast&description=Make%20your%20own%20breakfast.&rewardCash=1",
+      "displayDays": "tue,thu",
+      "scheduleKey": "required|choreMakeOwnBreakfast|Make own breakfast"
+    },
+    {
+      "stars": 0,
+      "title": "Make sibling breakfast",
+      "launch": "choreMakeSiblingBreakfast",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_sibling_breakfast&title=Make%20sibling%20breakfast&description=Make%20sibling%27s%20breakfast%20if%20they%20agree%20to%20what%20you%20make.&rewardCash=1",
+      "displayDays": "sat,sun",
+      "scheduleKey": "required|choreMakeSiblingBreakfast|Make sibling breakfast"
+    },
+    {
+      "stars": 0,
+      "title": "Make own lunch",
+      "launch": "choreMakeOwnLunch",
+      "webGame": true,
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_lunch&title=Make%20own%20lunch&description=Make%20your%20own%20lunch.&rewardCash=2",
+      "displayDays": "tue,thu,sun",
+      "scheduleKey": "required|choreMakeOwnLunch|Make own lunch"
+    },
+    {
+      "stars": 0,
+      "title": "Clean up table",
+      "launch": "choreCleanUpTable",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_up_table&title=Clean%20up%20table&description=Clean%20up%20the%20table%20and%20wipe%20it%20clean.&rewardCash=2",
+      "displayDays": "mon,wed,fri",
+      "scheduleKey": "required|choreCleanUpTable|Clean up table"
+    },
+    {
+      "stars": 0,
+      "title": "Clean kitchen counters and table",
+      "launch": "choreCleanKitchenCounter",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_kitchen_counter&title=Clean%20kitchen%20counter&description=Clean%20up%20the%20kitchen%20counter%20and%20wipe%20it%20clean.&rewardCash=2",
+      "displayDays": "tue,thu,sat",
+      "scheduleKey": "required|choreCleanKitchenCounter|Clean kitchen counters and table"
+    },
+    {
+      "stars": 0,
+      "title": "Tidy living room",
+      "launch": "choreTidyCoffeeTable",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_coffee_table&title=Tidy%20living%20room%20tops&description=Tidy%20the%20coffee%20table%2C%20toy%20chest%20and%20dresser%20top.&rewardCash=2",
+      "displayDays": "thu,sun",
+      "scheduleKey": "required|choreTidyCoffeeTable|Tidy living room"
+    },
+    {
+      "stars": 0,
+      "title": "Clean bathroom counters",
+      "launch": "choreCleanBathroomCounter",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_bathroom_counter&title=Clean%20bathroom%20counter&description=Clean%20the%20warm%20bathroom%20counter%20and%20wipe%20it%20clean.&rewardCash=2",
+      "displayDays": "sat",
+      "scheduleKey": "required|choreCleanBathroomCounter|Clean bathroom counters"
+    },
+    {
+      "stars": 0,
+      "title": "Unload dishwasher",
+      "launch": "choreUnloadDishwasher",
+      "webGame": true,
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=2",
+      "displayDays": "fri",
+      "scheduleKey": "required|choreUnloadDishwasher|Unload dishwasher"
+    },
+    {
+      "stars": 0,
+      "title": "Feed the dog",
+      "launch": "choreFeedDog",
+      "webGame": true,
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=feed_dog&title=Feed%20the%20dog&description=Feed%20the%20dog%20and%20give%20water%20if%20needed.&rewardCash=1",
+      "displayDays": "mon,wed,fri,sat,sun",
+      "scheduleKey": "required|choreFeedDog|Feed the dog"
+    },
+    {
+      "stars": 0,
+      "title": "Clean your room",
+      "launch": "choreCleanRoom",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_room&title=Clean%20your%20room&description=Organize%20your%20room%3A%20tidy%20floor%20and%20desk%2Fdresser%20tops.%20Do%20not%20shove%20everything%20in%20a%20drawer.&rewardCash=2",
+      "displayDays": "wed,sun",
+      "scheduleKey": "required|choreCleanRoom|Clean your room"
+    },
+    {
+      "stars": 0,
+      "title": "Tidy basement toys",
+      "launch": "choreTidyToysBasement",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_toys_basement&title=Tidy%20basement%20toys&description=Tidy%20toys%20in%20the%20basement.&rewardCash=2",
+      "displayDays": "sat",
+      "scheduleKey": "required|choreTidyToysBasement|Tidy basement toys"
+    },
+    {
+      "stars": 0,
+      "title": "Dust basement windows",
+      "launch": "choreDustWindowsBasement",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_windows_basement&title=Dust%20basement%20windows&description=Dust%20the%20windows%20in%20the%20basement.&rewardCash=2",
+      "displayDays": "sun",
+      "scheduleKey": "required|choreDustWindowsBasement|Dust basement windows"
+    },
+    {
+      "stars": 0,
+      "title": "Dust stairway",
+      "launch": "choreDustStairway",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_stairway&title=Dust%20stairway&description=Dust%20the%20stairway.&rewardCash=1",
+      "displayDays": "wed",
+      "scheduleKey": "required|choreDustStairway|Dust stairway"
+    },
+    {
+      "stars": 0,
+      "title": "Tidy laundry room",
+      "launch": "choreTidyLaundryRoom",
+      "webGame": true,
+      "disable": "Dec 31, 2099",
+      "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_laundry_room&title=Tidy%20laundry%20room&description=Tidy%20the%20laundry%20room%20bench%20and%20boot%20tray%3B%20hang%20up%20jackets%2C%20pants%2C%20mittens%20and%20hats%20in%20bins.&rewardCash=1",
+      "displayDays": "fri",
+      "scheduleKey": "required|choreTidyLaundryRoom|Tidy laundry room"
     }
   ],
   "practice": [
@@ -671,6 +867,7 @@
       "stars": 3,
       "title": "Diagram Labeler: Circulatory System",
       "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
       "webGame": true,
       "scheduleKey": "practice|diagramLabeler|circulatorySystem"
     },
@@ -679,6 +876,7 @@
       "stars": 4,
       "title": "Diagram Labeler: Digestive System",
       "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
       "webGame": true,
       "scheduleKey": "practice|diagramLabeler|digestiveSystem"
     },
@@ -687,6 +885,7 @@
       "stars": 6,
       "title": "Diagram Labeler: Skeletal System",
       "launch": "diagramLabeler",
+      "disable": "Dec 31, 2099",
       "webGame": true,
       "scheduleKey": "practice|diagramLabeler|skeletalSystem"
     },
@@ -999,6 +1198,14 @@
   ],
   "checklist": [
     {
+      "id": "bm_french_reading",
+      "done": false,
+      "label": "French Reading",
+      "stars": 0,
+      "displayDays": "thu,fri,sat,sun,mon,tue",
+      "scheduleKey": "checklist|French Reading"
+    },
+    {
       "id": "bm_laundry",
       "done": false,
       "label": "Laundry",
@@ -1022,26 +1229,9 @@
     {
       "id": "bm_push_ups",
       "done": false,
-      "label": "Push Ups: Pushes 22 reg & 5 knuckle",
+      "label": "Push Ups: Pushes 25 reg & 10 knuckle",
       "stars": 0,
-      "scheduleKey": "checklist|Push Ups: Pushes 22 reg & 5 knuckle"
-    },
-    {
-      "id": "bm_french_reading",
-      "done": false,
-      "label": "French Reading",
-      "stars": 0,
-      "disable": "Dec 31, 2099",
-      "displayDays": "thu,fri,sat,sun,mon,tue",
-      "scheduleKey": "checklist|French Reading"
-    },
-    {
-      "id": "bm_math_club",
-      "done": false,
-      "label": "Math Club",
-      "stars": 0,
-      "disable": "Dec 31, 2099",
-      "scheduleKey": "checklist|Math Club"
+      "scheduleKey": "checklist|Push Ups: Pushes 25 reg & 10 knuckle"
     }
   ]
 }
