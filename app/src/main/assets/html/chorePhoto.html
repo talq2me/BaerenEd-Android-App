@@ -21,19 +21,39 @@
         }
         h1 {
             color: #2e7d32;
-            margin-bottom: 8px;
+            margin: 0 0 6px;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin: 4px 0 10px;
+            text-align: left;
         }
         .description {
             font-size: 18px;
             color: #444;
-            margin: 12px 0 8px;
+            margin: 0;
+            flex: 1;
+            min-width: 0;
         }
         .reward {
             font-size: 16px;
             color: #666;
-            margin-bottom: 20px;
+            margin: 0;
+            flex-shrink: 0;
+            text-align: right;
         }
-        .button, .green-button, .camera-button {
+        .photo-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 12px;
+            flex-wrap: wrap;
+        }
+        .green-button, .camera-button {
             font-family: inherit;
             border: none;
             border-radius: 15px;
@@ -42,32 +62,30 @@
             text-align: center;
             transition: background-color 0.3s, transform 0.2s;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            margin: 4px 8px 4px 0;
-            padding: 15px 30px;
+            margin: 0;
+            padding: 12px 24px;
             font-size: 20px;
             color: white;
         }
-        .button { background-color: #6ac2ff; }
         .green-button { background-color: #4CAF50; }
         .camera-button {
             background-color: #ff6b6b;
-            font-size: 24px;
-            padding: 20px 40px;
-            margin: 20px 0;
+            font-size: 22px;
+            padding: 14px 28px;
         }
-        .button:hover, .green-button:hover, .camera-button:hover {
+        .green-button:hover, .camera-button:hover {
             background-color: #ff8c00;
             transform: scale(1.05);
         }
-        .button:disabled, .green-button:disabled, .camera-button:disabled {
+        .green-button:disabled, .camera-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
         .hidden { display: none; }
         .camera-container {
-            margin: 20px 0;
-            padding: 20px;
+            margin: 8px 0;
+            padding: 12px;
             background: #fff3cd;
             border-radius: 10px;
             border: 2px solid #ffeaa7;
@@ -76,15 +94,8 @@
             max-width: 100%;
             max-height: 420px;
             border-radius: 10px;
-            margin: 15px 0;
+            margin: 0;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .upload-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-            flex-wrap: wrap;
         }
         .message {
             padding: 15px;
@@ -114,20 +125,18 @@
 <body>
     <div class="game-container">
         <h1 id="choreTitle">Chore</h1>
-        <p class="description" id="choreDescription">Take a photo of the finished chore.</p>
-        <p class="reward" id="choreReward">Reward: $0 (parent reviews)</p>
+        <div class="meta-row">
+            <p class="description" id="choreDescription">Take a photo of the finished chore.</p>
+            <p class="reward" id="choreReward">Reward: $0 (parent reviews)</p>
+        </div>
 
-        <div>
+        <div class="photo-actions">
             <button class="camera-button" id="takePictureBtn" onclick="openCamera()">Take Photo</button>
+            <button class="green-button hidden" id="doneBtn" onclick="submitPhoto()">Done</button>
         </div>
 
         <div class="camera-container hidden" id="cameraContainer">
-            <h3>Preview</h3>
             <img id="imagePreview" class="image-preview" alt="Preview">
-            <div class="upload-actions">
-                <button class="button" id="retakeBtn" onclick="retakePhoto()">Retake</button>
-                <button class="green-button" id="doneBtn" onclick="submitPhoto()">Done</button>
-            </div>
         </div>
 
         <div id="messageContainer"></div>
@@ -210,8 +219,13 @@
         function setBusy(busy) {
             submitting = busy;
             document.getElementById('takePictureBtn').disabled = busy;
-            document.getElementById('retakeBtn').disabled = busy;
             document.getElementById('doneBtn').disabled = busy;
+        }
+
+        function showCapturedUi() {
+            document.getElementById('cameraContainer').classList.remove('hidden');
+            document.getElementById('takePictureBtn').textContent = 'Retake photo';
+            document.getElementById('doneBtn').classList.remove('hidden');
         }
 
         window.onCameraSuccess = function(imageBase64) {
@@ -220,8 +234,7 @@
                     ? imageBase64
                     : 'data:image/jpeg;base64,' + imageBase64;
                 document.getElementById('imagePreview').src = capturedImageBase64;
-                document.getElementById('cameraContainer').classList.remove('hidden');
-                document.getElementById('takePictureBtn').textContent = 'Retake photo';
+                showCapturedUi();
                 hideMessage();
             } else {
                 showMessage('No image captured. Please try again.', 'error');
@@ -281,21 +294,11 @@
             reader.onload = function(event) {
                 capturedImageBase64 = event.target.result;
                 document.getElementById('imagePreview').src = capturedImageBase64;
-                document.getElementById('cameraContainer').classList.remove('hidden');
-                document.getElementById('takePictureBtn').textContent = 'Retake photo';
+                showCapturedUi();
                 hideMessage();
             };
             reader.readAsDataURL(file);
         });
-
-        function retakePhoto() {
-            if (submitting) return;
-            document.getElementById('cameraContainer').classList.add('hidden');
-            document.getElementById('cameraInput').value = '';
-            capturedImageBase64 = null;
-            document.getElementById('takePictureBtn').textContent = 'Take Photo';
-            hideMessage();
-        }
 
         function submitPhoto() {
             if (submitting) return;

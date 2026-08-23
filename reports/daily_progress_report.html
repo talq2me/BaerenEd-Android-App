@@ -329,7 +329,12 @@
         }
 
         .grant-no { background: #e2e8f0; color: #334155; }
+        .grant-resend { background: #c2410c; color: white; margin-right: auto; }
         .grant-yes { background: #15803d; color: white; }
+
+        #chorePhotos {
+            margin-top: 12px;
+        }
 
         @media (min-width: 480px) {
             body { padding: 16px; }
@@ -408,6 +413,7 @@
             <div class="section">
                 <h3>Required Tasks</h3>
                 <ul class="task-list" id="requiredTasks"></ul>
+                <div id="chorePhotos" class="chore-photos"></div>
             </div>
 
             <div class="section">
@@ -422,7 +428,6 @@
 
             <div class="section" id="choresSection">
                 <h3>Chores</h3>
-                <div id="chorePhotos" class="chore-photos"></div>
                 <ul class="task-list" id="choresList"></ul>
             </div>
         </div>
@@ -439,6 +444,7 @@
             <p id="grantMessage">Add this amount to the kid's bank.</p>
             <input id="grantAmount" type="number" min="0" step="0.01" inputmode="decimal">
             <div class="grant-actions">
+                <button type="button" class="grant-resend" id="grantResend">Resend</button>
                 <button type="button" class="grant-no" id="grantNo">No</button>
                 <button type="button" class="grant-yes" id="grantYes">Yes</button>
             </div>
@@ -623,9 +629,10 @@
             const wrap = document.getElementById('chorePhotos');
             wrap.innerHTML = '';
             if (!todayChorePhotos.length) {
-                wrap.innerHTML = '<div class="task-info">No chore photos uploaded today.</div>';
+                wrap.style.display = 'none';
                 return;
             }
+            wrap.style.display = '';
             todayChorePhotos.forEach((row, idx) => {
                 const parsed = parseChoreTaskKey(row.task) || {};
             const meta = photoChoresToday[parsed.choreId] || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[parsed.choreId]) || {};
@@ -730,6 +737,40 @@
             }
         }
 
+        async function resendChorePhoto() {
+            const photo = openPhoto;
+            if (!photo) {
+                closeGrantModal();
+                return;
+            }
+            if (!confirm(`Resend "${photo.title}"? This deletes the photo and marks the task incomplete so ${kid} must redo it.`)) {
+                return;
+            }
+            const resendBtn = document.getElementById('grantResend');
+            resendBtn.disabled = true;
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_resend_chore_photo`, {
+                    method: 'POST',
+                    headers: restHeaders,
+                    body: JSON.stringify({
+                        p_profile: kid,
+                        p_image_task: photo.row.task
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(await response.text() || response.statusText);
+                }
+                todayChorePhotos.splice(photo.idx, 1);
+                closeGrantModal();
+                openPhoto = null;
+                await fetchReportData();
+            } catch (err) {
+                alert('Could not resend chore: ' + (err.message || err));
+            } finally {
+                resendBtn.disabled = false;
+            }
+        }
+
         document.getElementById('imageModalClose').addEventListener('click', requestCloseChorePhoto);
         document.getElementById('imageModal').addEventListener('click', function(e) {
             if (e.target === this) requestCloseChorePhoto();
@@ -739,6 +780,7 @@
             openPhoto = null;
         });
         document.getElementById('grantYes').addEventListener('click', grantChoreReward);
+        document.getElementById('grantResend').addEventListener('click', resendChorePhoto);
         document.getElementById('grantModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeGrantModal();
