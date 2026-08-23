@@ -471,6 +471,155 @@
                     "launch": "uflivideos",
                     "disable": "Dec 31, 2099",
                     "videoSequence": "sequential"
+                },
+                
+
+
+                {
+                    "stars": 0,
+                    "title": "Put away laundry",
+                    "launch": "chorePutAwayLaundry",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=put_away_laundry&title=Put%20away%20laundry&description=Fold%20and%20put%20away%20the%20clean%20laundry.&rewardCash=2",
+                    "displayDays": "mon"
+                },
+                {
+                    "stars": 0,
+                    "title": "Take out trash",
+                    "launch": "choreTakeOutTrash",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=1",
+                    "displayDays": "mon,thu"
+                },
+                {
+                    "stars": 0,
+                    "title": "Take out recycling",
+                    "launch": "choreTakeOutRecycling",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_recycling&title=Take%20out%20recycling&description=Take%20recycling%20to%20the%20outside%20bin.&rewardCash=1",
+                    "displayDays": "tue,fri"
+                },
+                {
+                    "stars": 0,
+                    "title": "Pack school bag",
+                    "launch": "chorePackSchoolBag",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=pack_school_bag&title=Pack%20school%20bag&description=Pack%20your%20school%20bag%20for%20tomorrow.&rewardCash=1",
+                    "displayDays": "mon,tue,wed,thu,sun"
+                },
+                {
+                    "stars": 0,
+                    "title": "Make own breakfast",
+                    "launch": "choreMakeOwnBreakfast",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_breakfast&title=Make%20own%20breakfast&description=Make%20your%20own%20breakfast.&rewardCash=1",
+                    "displayDays": "sat,sun"
+                },
+                {
+                    "stars": 0,
+                    "title": "Make own lunch",
+                    "launch": "choreMakeOwnLunch",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_lunch&title=Make%20own%20lunch&description=Make%20your%20own%20lunch.&rewardCash=2",
+                    "displayDays": "sat,sun"
+                },
+                {
+                    "stars": 0,
+                    "title": "Clean up table",
+                    "launch": "choreCleanUpTable",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_up_table&title=Clean%20up%20table&description=Clean%20up%20the%20table%20and%20wipe%20it%20clean.&rewardCash=2",
+                    "displayDays": "mon,wed,fri"
+                },
+                {
+                    "stars": 0,
+                    "title": "Clean kitchen counter",
+                    "launch": "choreCleanKitchenCounter",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_kitchen_counter&title=Clean%20kitchen%20counter&description=Clean%20up%20the%20kitchen%20counter%20and%20wipe%20it%20clean.&rewardCash=2",
+                    "displayDays": "tue,thu,sat"
+                },
+                {
+                    "stars": 0,
+                    "title": "Tidy living room",
+                    "launch": "choreTidyCoffeeTable",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_coffee_table&title=Tidy%20living%20room%20tops&description=Tidy%20the%20coffee%20table%2C%20toy%20chest%20and%20dresser%20top.&rewardCash=2",
+                    "displayDays": "thu,sun"
+                },
+                {
+                    "stars": 0,
+                    "title": "Clean bathroom counters",
+                    "launch": "choreCleanBathroomCounters",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_bathroom_counter&title=Clean%20bathroom%20counter&description=Clean%20the%20warm%20bathroom%20counter%20and%20wipe%20it%20clean.&rewardCash=2",
+                    "displayDays": "mon,fri"
+                },
+                {
+                    "stars": 0,
+                    "title": "Unload dishwasher",
+                    "launch": "choreUnloadDishwasher",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=2",
+                    "displayDays": "mon,wed,fri"
+                },
+                {
+                    "stars": 0,
+                    "title": "Feed the dog",
+                    "launch": "choreFeedDog",
+                    "webGame": true,
+                    "disable": "Dec 31, 2099",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=feed_dog&title=Feed%20the%20dog&description=Feed%20the%20dog%20and%20give%20water%20if%20needed.&rewardCash=1",
+                    "displayDays": "mon,tue,wed,thu,fri,sat,sun"
+                },
+                {
+                    "stars": 0,
+                    "title": "Clean your room",
+                    "launch": "choreCleanRoom",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_room&title=Clean%20your%20room&description=Organize%20your%20room%3A%20tidy%20floor%20and%20desk%2Fdresser%20tops.%20Do%20not%20shove%20everything%20in%20a%20drawer.&rewardCash=2",
+                    "displayDays": "tue,fri"
+                },
+                {
+                    "stars": 0,
+                    "title": "Tidy basement toys",
+                    "launch": "choreTidyToysBasement",
+                    "webGame": true,
+                    "disable": "Dec 31, 2099",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_toys_basement&title=Tidy%20basement%20toys&description=Tidy%20toys%20in%20the%20basement.&rewardCash=2",
+                    "displayDays": "sat"
+                },
+                {
+                    "stars": 0,
+                    "title": "Dust basement windows",
+                    "launch": "choreDustWindowsBasement",
+                    "webGame": true,
+                    "disable": "Dec 31, 2099",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_windows_basement&title=Dust%20basement%20windows&description=Dust%20the%20windows%20in%20the%20basement.&rewardCash=2",
+                    "displayDays": "sun"
+                },
+                {
+                    "stars": 0,
+                    "title": "Dust stairway",
+                    "launch": "choreDustStairway",
+                    "webGame": true,
+                    "disable": "Dec 31, 2099",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_stairway&title=Dust%20stairway&description=Dust%20the%20stairway.&rewardCash=1",
+                    "displayDays": "wed"
+                },
+                {
+                    "stars": 0,
+                    "title": "Tidy laundry room",
+                    "launch": "choreTidyLaundryRoom",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_laundry_room&title=Tidy%20laundry%20room&description=Tidy%20the%20laundry%20room%20bench%20and%20boot%20tray%3B%20hang%20up%20jackets%2C%20pants%2C%20mittens%20and%20hats%20in%20bins.&rewardCash=1",
+                    "displayDays": "sat"
                 }
             ],
             "title": "Required Tasks",
@@ -1053,164 +1202,6 @@
             ],
             "title": "Bonus Games",
             "description": "Just for fun!"
-        },
-        {
-            "id": "chores",
-            "title": "Daily Chores",
-            "tasks": [
-                {
-                    "id": "wash_laundry",
-                    "title": "Wash laundry",
-                    "description": "Start a load of laundry in the washer.",
-                    "rewardCash": 1.0,
-                    "displayDays": "mon,thu",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "dry_laundry",
-                    "title": "Dry laundry",
-                    "description": "Move laundry to the dryer and start it.",
-                    "rewardCash": 1.0,
-                    "displayDays": "tue,fri",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "put_away_laundry",
-                    "title": "Put away laundry",
-                    "description": "Fold and put away the clean laundry.",
-                    "rewardCash": 2.0,
-                    "displayDays": "wed,sat",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "take_out_trash",
-                    "title": "Take out trash",
-                    "description": "Take the trash to the outside bin.",
-                    "rewardCash": 1.0,
-                    "displayDays": "mon,thu",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "take_out_recycling",
-                    "title": "Take out recycling",
-                    "description": "Take recycling to the outside bin.",
-                    "rewardCash": 1.0,
-                    "displayDays": "tue,fri",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "pack_school_bag",
-                    "title": "Pack school bag",
-                    "description": "Pack your school bag for tomorrow.",
-                    "rewardCash": 1.0,
-                    "displayDays": "mon,tue,wed,thu,sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "make_own_breakfast",
-                    "title": "Make own breakfast",
-                    "description": "Make your own breakfast.",
-                    "rewardCash": 1.0,
-                    "displayDays": "sat,sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "make_own_lunch",
-                    "title": "Make own lunch",
-                    "description": "Make your own lunch.",
-                    "rewardCash": 2.0,
-                    "displayDays": "sat,sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "clean_up_table",
-                    "title": "Clean up table",
-                    "description": "Clean up the table and wipe it clean.",
-                    "rewardCash": 2.0,
-                    "displayDays": "mon,wed,fri",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "clean_kitchen_counter",
-                    "title": "Clean kitchen counter",
-                    "description": "Clean up the kitchen counter and wipe it clean.",
-                    "rewardCash": 2.0,
-                    "displayDays": "tue,thu,sat",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "tidy_coffee_table",
-                    "title": "Tidy living room tops",
-                    "description": "Tidy the coffee table, toy chest and dresser top.",
-                    "rewardCash": 2.0,
-                    "displayDays": "thu,sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "clean_bathroom_counter",
-                    "title": "Clean bathroom counter",
-                    "description": "Clean the warm bathroom counter and wipe it clean.",
-                    "rewardCash": 2.0,
-                    "displayDays": "sat",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "unload_dishwasher",
-                    "title": "Unload dishwasher",
-                    "description": "Unload the dishwasher and put everything away.",
-                    "rewardCash": 2.0,
-                    "displayDays": "mon,wed,fri",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "feed_dog",
-                    "title": "Feed the dog",
-                    "description": "Feed the dog and give water if needed.",
-                    "rewardCash": 1.0,
-                    "displayDays": "mon,tue,wed,thu,fri,sat,sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "clean_room",
-                    "title": "Clean your room",
-                    "description": "Organize your room: tidy floor and desk/dresser tops. Do not shove everything in a drawer.",
-                    "rewardCash": 2.0,
-                    "displayDays": "wed,sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "tidy_toys_basement",
-                    "title": "Tidy basement toys",
-                    "description": "Tidy toys in the basement.",
-                    "rewardCash": 2.0,
-                    "displayDays": "sat",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "dust_windows_basement",
-                    "title": "Dust basement windows",
-                    "description": "Dust the windows in the basement.",
-                    "rewardCash": 2.0,
-                    "displayDays": "sun",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "dust_stairway",
-                    "title": "Dust stairway",
-                    "description": "Dust the stairway.",
-                    "rewardCash": 1.0,
-                    "displayDays": "wed",
-                    "launch": "chorePhoto"
-                },
-                {
-                    "id": "tidy_laundry_room",
-                    "title": "Tidy laundry room",
-                    "description": "Tidy the laundry room bench and boot tray; hang up jackets, pants, mittens and hats in bins.",
-                    "rewardCash": 1.0,
-                    "displayDays": "fri",
-                    "launch": "chorePhoto"
-                }
-            ]
         }
     ]
 }

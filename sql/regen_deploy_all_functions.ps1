@@ -58,6 +58,8 @@ $files = @(
 
   "af_grant_chore_reward.sql",
 
+  "af_resend_chore_photo.sql",
+
   "af_delete_image_uploads_ilike.sql",
 
   "af_get_image_upload_id.sql",

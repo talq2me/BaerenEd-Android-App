@@ -32,6 +32,7 @@ DROP FUNCTION IF EXISTS af_get_user_data(text);
 DROP FUNCTION IF EXISTS af_get_user_last_reset(text);
 DROP FUNCTION IF EXISTS af_get_user_last_updated(text);
 DROP FUNCTION IF EXISTS af_grant_chore_reward(text, text, numeric);
+DROP FUNCTION IF EXISTS af_resend_chore_photo(text, text);
 DROP FUNCTION IF EXISTS af_insert_user_data_profile(text);
 DROP FUNCTION IF EXISTS af_log_behavior(text, text, text);
 DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
@@ -253,6 +254,8 @@ BEGIN
           'description', t->>'description',
           'rewardCash', t->'rewardCash',
           'launch', COALESCE(NULLIF(TRIM(t->>'launch'), ''), 'chorePhoto'),
+          'url', t->>'url',
+          'webGame', t->'webGame',
           'showdays', t->>'showdays',
           'hidedays', t->>'hidedays',
           'displayDays', t->>'displayDays',
@@ -1278,7 +1281,13 @@ AS $$
       (e.value->>'description')::text AS description,
       COALESCE((e.value->>'rewardCash')::numeric, 0) AS reward_cash,
       COALESCE(e.value->>'status', 'incomplete')::text AS completion_status,
-      COALESCE(NULLIF(TRIM(e.value->>'launch'), ''), 'chorePhoto') AS launch
+      COALESCE(NULLIF(TRIM(e.value->>'launch'), ''), 'chorePhoto') AS launch,
+      NULLIF(TRIM(e.value->>'url'), '') AS url,
+      CASE
+        WHEN jsonb_typeof(e.value->'webGame') = 'boolean' THEN (e.value->>'webGame')::boolean
+        WHEN lower(COALESCE(e.value->>'webGame', '')) IN ('true', '1') THEN true
+        ELSE false
+      END AS web_game
     FROM params p
     CROSS JOIN jsonb_each(p.v_chores) AS e(key, value)
     WHERE
@@ -1319,8 +1328,8 @@ AS $$
     0 AS berry_value,
     0 AS mins_value,
     v.launch,
-    NULL::text AS url,
-    false AS web_game,
+    v.url,
+    v.web_game,
     false AS chrome_page,
     NULL::text AS video_sequence,
     NULL::text AS playlist_id,
@@ -1959,8 +1968,114 @@ GRANT EXECUTE ON FUNCTION af_grant_chore_reward(text, text, numeric) TO anon, au
 
 
 -- -----------------------------------------------------------------------------
+-- FILE: af_resend_chore_photo.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd reports, this repo):
+--   reports/daily_progress_report.html  -  parent "Resend" after reviewing a chore photo.
+
+-- BaerenEd: Parent rejects a chore photo — delete the image and mark the matching
+-- required task incomplete (reverse berries/mins if that completion had awarded them).
+-- POST /rest/v1/rpc/af_resend_chore_photo
+--   {"p_profile":"TE","p_image_task":"chore_make_bed_r1_2026-08-22"}
+
+CREATE OR REPLACE FUNCTION af_resend_chore_photo(
+  p_profile text,
+  p_image_task text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  chore_id text;
+  cur jsonb;
+  task_title text;
+  existing jsonb;
+  old_status text;
+  task_stars int;
+  remove_berries int := 0;
+  remove_mins int := 0;
+  deleted_n int := 0;
+BEGIN
+  IF NULLIF(TRIM(COALESCE(p_profile, '')), '') IS NULL THEN
+    RAISE EXCEPTION 'af_resend_chore_photo: p_profile is required';
+  END IF;
+  IF NULLIF(TRIM(COALESCE(p_image_task, '')), '') IS NULL THEN
+    RAISE EXCEPTION 'af_resend_chore_photo: p_image_task is required';
+  END IF;
+
+  -- chore_{id}_r{reward}_{yyyy-MM-dd} or chore_{id}_{yyyy-MM-dd}
+  chore_id := substring(p_image_task from '^chore_(.+)_r[0-9]+(?:\.[0-9]+)?_[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+  IF chore_id IS NULL THEN
+    chore_id := substring(p_image_task from '^chore_(.+)_[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+  END IF;
+  IF chore_id IS NULL THEN
+    RAISE EXCEPTION 'af_resend_chore_photo: unrecognized image task key %', p_image_task;
+  END IF;
+
+  DELETE FROM image_uploads
+  WHERE profile = p_profile AND task = p_image_task;
+  GET DIAGNOSTICS deleted_n = ROW_COUNT;
+
+  SELECT COALESCE(required_tasks, '{}'::jsonb) INTO cur FROM user_data WHERE profile = p_profile;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'af_resend_chore_photo: unknown profile %', p_profile;
+  END IF;
+
+  SELECT e.key INTO task_title
+  FROM jsonb_each(cur) AS e(key, value)
+  WHERE (e.value->>'url') ILIKE '%choreId=' || chore_id || '%'
+     OR (e.value->>'url') ILIKE '%choreId%3D' || chore_id || '%'
+  LIMIT 1;
+
+  IF task_title IS NOT NULL THEN
+    existing := cur->task_title;
+    old_status := existing->>'status';
+    IF lower(COALESCE(old_status, '')) = 'complete' THEN
+      task_stars := COALESCE((existing->>'stars')::int, 0);
+      IF task_stars > 0 THEN
+        remove_berries := task_stars;
+        remove_mins := af_get_stars_to_minutes(task_stars);
+      END IF;
+    END IF;
+
+    UPDATE user_data
+    SET
+      required_tasks = jsonb_set(
+        cur,
+        ARRAY[task_title],
+        (COALESCE(existing, '{}'::jsonb) || jsonb_build_object(
+          'status', 'incomplete',
+          'correct', 0,
+          'incorrect', 0,
+          'questions', 0
+        )),
+        true
+      ),
+      berries_earned = GREATEST(0, COALESCE(berries_earned, 0) - remove_berries),
+      banked_mins = GREATEST(0, COALESCE(banked_mins, 0) - remove_mins),
+      last_updated = (NOW() AT TIME ZONE 'America/Toronto')
+    WHERE profile = p_profile;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'deleted_images', deleted_n,
+    'chore_id', chore_id,
+    'required_task_title', task_title,
+    'berries_removed', remove_berries,
+    'mins_removed', remove_mins
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_resend_chore_photo(text, text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
 -- FILE: af_delete_image_uploads_ilike.sql
 -- -----------------------------------------------------------------------------
+
 -- Call sites (BaerenEd Android, this repo):
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfDeleteImageUploadsIlike.
 --   app/src/main/java/com/talq2me/baerened/SpellingOCRActivity.kt  -  clear old spelling OCR images on launch.

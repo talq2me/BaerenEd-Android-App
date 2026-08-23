@@ -43,6 +43,8 @@ BEGIN
           'description', t->>'description',
           'rewardCash', t->'rewardCash',
           'launch', COALESCE(NULLIF(TRIM(t->>'launch'), ''), 'chorePhoto'),
+          'url', t->>'url',
+          'webGame', t->'webGame',
           'showdays', t->>'showdays',
           'hidedays', t->>'hidedays',
           'displayDays', t->>'displayDays',

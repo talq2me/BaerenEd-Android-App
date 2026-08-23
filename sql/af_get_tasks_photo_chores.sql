@@ -50,7 +50,13 @@ AS $$
       (e.value->>'description')::text AS description,
       COALESCE((e.value->>'rewardCash')::numeric, 0) AS reward_cash,
       COALESCE(e.value->>'status', 'incomplete')::text AS completion_status,
-      COALESCE(NULLIF(TRIM(e.value->>'launch'), ''), 'chorePhoto') AS launch
+      COALESCE(NULLIF(TRIM(e.value->>'launch'), ''), 'chorePhoto') AS launch,
+      NULLIF(TRIM(e.value->>'url'), '') AS url,
+      CASE
+        WHEN jsonb_typeof(e.value->'webGame') = 'boolean' THEN (e.value->>'webGame')::boolean
+        WHEN lower(COALESCE(e.value->>'webGame', '')) IN ('true', '1') THEN true
+        ELSE false
+      END AS web_game
     FROM params p
     CROSS JOIN jsonb_each(p.v_chores) AS e(key, value)
     WHERE
@@ -91,8 +97,8 @@ AS $$
     0 AS berry_value,
     0 AS mins_value,
     v.launch,
-    NULL::text AS url,
-    false AS web_game,
+    v.url,
+    v.web_game,
     false AS chrome_page,
     NULL::text AS video_sequence,
     NULL::text AS playlist_id,

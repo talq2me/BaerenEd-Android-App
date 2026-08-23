@@ -468,21 +468,21 @@
                     "totalQuestions": 5
                 },
                 {
-                    "stars": 1,
+                    "stars": 0,
                     "title": "Make bed",
                     "launch": "choreMakeBed",
                     "webGame": true,
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_bed&title=Make%20bed&description=Make%20your%20bed%20neatly.&rewardCash=1"
                 },
                 {
-                    "stars": 1,
+                    "stars": 0,
                     "title": "Unload dishwasher",
                     "launch": "choreUnloadDishwasher",
                     "webGame": true,
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=2"
                 },
                 {
-                    "stars": 1,
+                    "stars": 0,
                     "title": "Take out trash",
                     "launch": "choreTakeOutTrash",
                     "webGame": true,

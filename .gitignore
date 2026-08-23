@@ -33,3 +33,6 @@ app/release/output-metadata.json
 app/release/baselineProfiles/1/app-release.dm
 local.properties
 commitMessage.txt
+
+# Supabase backups (local dumps)
+backups/
