@@ -270,6 +270,25 @@
             background: #45a049;
         }
 
+        .config-report-link {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 8px;
+            padding: 12px 16px;
+            text-align: center;
+            text-decoration: none;
+            background: #eee;
+            color: #333;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        .config-report-link:active {
+            background: #ddd;
+        }
+
         .info-text {
             color: #777;
             font-size: 0.78em;
@@ -377,6 +396,7 @@
                 <input type="text" id="supabaseKey" class="config-input" placeholder="Supabase API Key" autocomplete="off" autocapitalize="off" spellcheck="false">
                 <input type="password" id="scheduleWriteKey" class="config-input" placeholder="Schedule editor write key (optional)" autocomplete="off">
                 <button class="save-config" onclick="saveConfig()">Save Configuration</button>
+                <a href="daily_progress_report.html?kid=TE" class="config-report-link">TE Progress Report</a>
                 <p class="info-text">Saved in this browser only. Write key must match <code>schedule_editor_write_key</code> in Supabase Vault.</p>
             </div>
         </div>
