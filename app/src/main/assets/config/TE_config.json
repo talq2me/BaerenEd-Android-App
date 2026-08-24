@@ -472,21 +472,24 @@
                     "title": "Make bed",
                     "launch": "choreMakeBed",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_bed&title=Make%20bed&description=Make%20your%20bed%20neatly.&rewardCash=1"
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_bed&title=Make%20bed&description=Make%20your%20bed%20neatly.&rewardCash=1",
+                    "description": "Make your bed neatly."
                 },
                 {
                     "stars": 0,
                     "title": "Unload dishwasher",
                     "launch": "choreUnloadDishwasher",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=1"
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=1",
+                    "description": "Unload the dishwasher and put everything away."
                 },
                 {
                     "stars": 0,
                     "title": "Take out trash",
                     "launch": "choreTakeOutTrash",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25"
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25",
+                    "description": "Take the trash to the outside bin."
                 }
             ],
             "title": "Required Tasks",

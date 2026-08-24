@@ -504,6 +504,7 @@
       "launch": "choreMakeBed",
       "webGame": true,
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_bed&title=Make%20bed&description=Make%20your%20bed%20neatly.&rewardCash=1",
+      "description": "Make your bed neatly.",
       "scheduleKey": "required|choreMakeBed|Make bed"
     },
     {
@@ -512,6 +513,7 @@
       "launch": "choreUnloadDishwasher",
       "webGame": true,
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=1",
+      "description": "Unload the dishwasher and put everything away.",
       "scheduleKey": "required|choreUnloadDishwasher|Unload dishwasher"
     },
     {
@@ -520,6 +522,7 @@
       "launch": "choreTakeOutTrash",
       "webGame": true,
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25",
+      "description": "Take the trash to the outside bin.",
       "scheduleKey": "required|choreTakeOutTrash|Take out trash"
     }
   ],
