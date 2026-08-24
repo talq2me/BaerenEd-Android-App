@@ -76,6 +76,10 @@ $files = @(
 
   "af_maybe_advance_spelling_pools.sql",
 
+  "af_maybe_record_collector_card_day.sql",
+
+  "af_payout_collector_cards.sql",
+
   "af_update_task_completion.sql",
 
   "af_update_tasks_checklist_items.sql",

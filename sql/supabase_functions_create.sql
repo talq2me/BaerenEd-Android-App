@@ -32,11 +32,13 @@ DROP FUNCTION IF EXISTS af_get_user_data(text);
 DROP FUNCTION IF EXISTS af_get_user_last_reset(text);
 DROP FUNCTION IF EXISTS af_get_user_last_updated(text);
 DROP FUNCTION IF EXISTS af_grant_chore_reward(text, text, numeric);
-DROP FUNCTION IF EXISTS af_resend_chore_photo(text, text);
 DROP FUNCTION IF EXISTS af_insert_user_data_profile(text);
 DROP FUNCTION IF EXISTS af_log_behavior(text, text, text);
 DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
+DROP FUNCTION IF EXISTS af_maybe_record_collector_card_day(text);
+DROP FUNCTION IF EXISTS af_payout_collector_cards(text, int);
 DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text);
+DROP FUNCTION IF EXISTS af_resend_chore_photo(text, text);
 DROP FUNCTION IF EXISTS af_reward_time_add(TEXT, INTEGER);
 DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS af_reward_time_pause(TEXT);
@@ -2075,7 +2077,6 @@ GRANT EXECUTE ON FUNCTION af_resend_chore_photo(text, text) TO anon, authenticat
 -- -----------------------------------------------------------------------------
 -- FILE: af_delete_image_uploads_ilike.sql
 -- -----------------------------------------------------------------------------
-
 -- Call sites (BaerenEd Android, this repo):
 --   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfDeleteImageUploadsIlike.
 --   app/src/main/java/com/talq2me/baerened/SpellingOCRActivity.kt  -  clear old spelling OCR images on launch.
@@ -2554,6 +2555,114 @@ GRANT EXECUTE ON FUNCTION af_maybe_advance_spelling_pools(text) TO anon, authent
 
 
 -- -----------------------------------------------------------------------------
+-- FILE: af_maybe_record_collector_card_day.sql
+-- -----------------------------------------------------------------------------
+-- Call sites: af_update_task_completion (required), af_update_tasks_checklist_items (mark done).
+--
+-- When all visible required work for today is done (same definition as
+-- af_get_required_progress_today — checklist with stars<=0 excluded), upsert one
+-- collector_card_days row for today's Toronto date. Idempotent per profile/day.
+
+DROP FUNCTION IF EXISTS af_maybe_record_collector_card_day(text);
+
+CREATE OR REPLACE FUNCTION af_maybe_record_collector_card_day(p_profile text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  progress jsonb;
+  all_done boolean;
+  today date;
+BEGIN
+  progress := af_get_required_progress_today(p_profile);
+  all_done := COALESCE((progress->>'all_done')::boolean, false);
+  IF NOT all_done THEN
+    RETURN;
+  END IF;
+
+  today := (NOW() AT TIME ZONE 'America/Toronto')::date;
+
+  INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out)
+  VALUES (
+    p_profile,
+    today,
+    (NOW() AT TIME ZONE 'America/Toronto'),
+    false
+  )
+  ON CONFLICT (profile, completion_date) DO NOTHING;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_maybe_record_collector_card_day(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_payout_collector_cards.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (parent HTML reports):
+--   reports/collector_cards.html — mark N oldest unpaid collector-card days as paid out.
+--
+-- Marks the oldest unpaid collector_card_days rows for p_profile (by completion_date).
+-- Returns jsonb: { profile, requested, paid_out_count, remaining_unpaid }.
+
+DROP FUNCTION IF EXISTS af_payout_collector_cards(text, int);
+
+CREATE OR REPLACE FUNCTION af_payout_collector_cards(
+  p_profile text,
+  p_count int
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_count int := GREATEST(COALESCE(p_count, 0), 0);
+  v_paid int := 0;
+  v_remaining int := 0;
+  v_now timestamp(3) := (NOW() AT TIME ZONE 'America/Toronto');
+BEGIN
+  IF v_count > 0 THEN
+    WITH to_pay AS (
+      SELECT id
+      FROM collector_card_days
+      WHERE profile = p_profile
+        AND paid_out = false
+      ORDER BY completion_date ASC, id ASC
+      LIMIT v_count
+    ),
+    updated AS (
+      UPDATE collector_card_days c
+      SET
+        paid_out = true,
+        paid_out_at = v_now
+      FROM to_pay t
+      WHERE c.id = t.id
+      RETURNING c.id
+    )
+    SELECT COUNT(*) INTO v_paid FROM updated;
+  END IF;
+
+  SELECT COUNT(*) INTO v_remaining
+  FROM collector_card_days
+  WHERE profile = p_profile
+    AND paid_out = false;
+
+  RETURN jsonb_build_object(
+    'profile', p_profile,
+    'requested', v_count,
+    'paid_out_count', v_paid,
+    'remaining_unpaid', v_remaining
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_payout_collector_cards(text, int) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
 -- FILE: af_update_task_completion.sql
 -- -----------------------------------------------------------------------------
 -- Call sites (BaerenEd Android, this repo):
@@ -2653,6 +2762,7 @@ BEGIN
 
   IF normalized_section = 'required' THEN
     PERFORM af_maybe_advance_spelling_pools(p_profile);
+    PERFORM af_maybe_record_collector_card_day(p_profile);
   END IF;
 
   RETURN earned_stars;
@@ -2717,6 +2827,7 @@ BEGIN
 
   IF p_done AND NOT old_done THEN
     PERFORM af_maybe_advance_spelling_pools(p_profile);
+    PERFORM af_maybe_record_collector_card_day(p_profile);
   END IF;
 END;
 $$;

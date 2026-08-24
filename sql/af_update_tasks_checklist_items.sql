@@ -50,6 +50,7 @@ BEGIN
 
   IF p_done AND NOT old_done THEN
     PERFORM af_maybe_advance_spelling_pools(p_profile);
+    PERFORM af_maybe_record_collector_card_day(p_profile);
   END IF;
 END;
 $$;

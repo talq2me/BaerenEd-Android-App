@@ -192,6 +192,30 @@ CREATE POLICY "Allow all operations" ON behavior_log
     USING (true)
     WITH CHECK (true);
 
+-- Collector cards: one row per profile per Toronto day when all required work is done.
+-- Survives daily reset; parent report marks rows as paid_out when a physical card is given.
+CREATE TABLE IF NOT EXISTS collector_card_days (
+    id BIGSERIAL PRIMARY KEY,
+    profile TEXT NOT NULL,
+    completion_date DATE NOT NULL,
+    earned_at TIMESTAMP(3) NOT NULL DEFAULT (NOW() AT TIME ZONE 'America/Toronto'),
+    paid_out BOOLEAN NOT NULL DEFAULT false,
+    paid_out_at TIMESTAMP(3) NULL,
+    UNIQUE (profile, completion_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_collector_card_days_profile_paid_out_date
+    ON collector_card_days (profile, paid_out, completion_date);
+
+ALTER TABLE collector_card_days ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow all operations" ON collector_card_days;
+
+CREATE POLICY "Allow all operations" ON collector_card_days
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
 -- DISABLED: Trigger that automatically updates last_updated timestamp
 -- This trigger was causing sync issues because it overwrites client-provided timestamps.
 -- The client code explicitly manages timestamps, so this trigger should not be active.

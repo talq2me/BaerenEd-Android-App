@@ -95,6 +95,7 @@ BEGIN
 
   IF normalized_section = 'required' THEN
     PERFORM af_maybe_advance_spelling_pools(p_profile);
+    PERFORM af_maybe_record_collector_card_day(p_profile);
   END IF;
 
   RETURN earned_stars;
