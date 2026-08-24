@@ -84,6 +84,63 @@
             padding-bottom: 6px;
         }
 
+        .section.collapsible {
+            padding: 0;
+        }
+
+        .section-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+            color: inherit;
+        }
+
+        .section-toggle h3 {
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+            flex: 1;
+        }
+
+        .section-count {
+            font-weight: 600;
+            letter-spacing: 0;
+            text-transform: none;
+            color: #94a3b8;
+        }
+
+        .section-chevron {
+            flex-shrink: 0;
+            width: 1.05rem;
+            height: 1.05rem;
+            color: #64748b;
+            transition: transform 0.2s;
+        }
+
+        .section.collapsible.open .section-chevron {
+            transform: rotate(90deg);
+        }
+
+        .section.collapsible.open .section-toggle {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section.collapsible .section-body {
+            display: none;
+            padding: 8px 12px 12px;
+        }
+
+        .section.collapsible.open .section-body {
+            display: block;
+        }
+
         .summary-label {
             color: #64748b;
             font-size: 0.68em;
@@ -416,19 +473,24 @@
                 <div id="chorePhotos" class="chore-photos"></div>
             </div>
 
-            <div class="section">
-                <h3>Checklist</h3>
-                <ul class="task-list" id="checklistItems"></ul>
+            <div class="section collapsible">
+                <button type="button" class="section-toggle" aria-expanded="false">
+                    <svg class="section-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                    <h3>Checklist <span class="section-count" id="checklistCount"></span></h3>
+                </button>
+                <div class="section-body">
+                    <ul class="task-list" id="checklistItems"></ul>
+                </div>
             </div>
 
-            <div class="section">
-                <h3>Extra Practice</h3>
-                <ul class="task-list" id="practiceTasks"></ul>
-            </div>
-
-            <div class="section" id="choresSection">
-                <h3>Chores</h3>
-                <ul class="task-list" id="choresList"></ul>
+            <div class="section collapsible">
+                <button type="button" class="section-toggle" aria-expanded="false">
+                    <svg class="section-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                    <h3>Extra Practice <span class="section-count" id="practiceCount"></span></h3>
+                </button>
+                <div class="section-body">
+                    <ul class="task-list" id="practiceTasks"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -465,9 +527,11 @@
             'Content-Type': 'application/json'
         };
 
+        const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
         let reportUserData = null;
         let todayChorePhotos = [];
         let openPhoto = null;
+        let choreTitleSet = new Set();
 
         function todayTorontoYmd() {
             return new Intl.DateTimeFormat('en-CA', {
@@ -522,11 +586,40 @@
             });
         }
 
+        function collectChoreTitles(master) {
+            const titles = new Set();
+            for (const t of master?.required || []) {
+                const launch = String(t.launch || '').toLowerCase();
+                const url = String(t.url || '').toLowerCase();
+                if (launch.startsWith('chore') || url.includes('chorephoto')) {
+                    const title = String(t.title || '').trim().toLowerCase();
+                    if (title) titles.add(title);
+                }
+            }
+            return titles;
+        }
+
+        function isChoreRequiredTask(taskKey, task) {
+            const keyNorm = String(taskKey).trim().toLowerCase();
+            if (choreTitleSet.has(keyNorm)) return true;
+            if (String(task?.launch || '').toLowerCase().startsWith('chore')) return true;
+            if (String(task?.url || '').toLowerCase().includes('chorephoto')) return true;
+            const photoChores = (reportUserData && reportUserData.photo_chores) || {};
+            for (const [id, chore] of Object.entries(photoChores)) {
+                if (String(chore?.title || chore?.description || '').trim().toLowerCase() === keyNorm) return true;
+                if (String(id).replace(/_/g, ' ') === keyNorm) return true;
+            }
+            return false;
+        }
+
         async function fetchReportData() {
             try {
-                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}&select=*`, {
-                    headers: restHeaders
-                });
+                const [response, masterRes] = await Promise.all([
+                    fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}&select=*`, {
+                        headers: restHeaders
+                    }),
+                    fetch(`${CONFIG_BASE}schedule_master_${kid}.json`).catch(() => null)
+                ]);
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
@@ -539,6 +632,14 @@
                 }
 
                 reportUserData = data[0];
+                choreTitleSet = new Set();
+                if (masterRes && masterRes.ok) {
+                    try {
+                        choreTitleSet = collectChoreTitles(await masterRes.json());
+                    } catch (masterErr) {
+                        console.warn('Schedule master unavailable for chore titles', masterErr);
+                    }
+                }
                 try {
                     todayChorePhotos = await fetchTodayChorePhotos();
                 } catch (photoErr) {
@@ -779,6 +880,14 @@
             closeGrantModal();
             openPhoto = null;
         });
+        document.querySelectorAll('.section-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.closest('.section');
+                const open = section.classList.toggle('open');
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+
         document.getElementById('grantYes').addEventListener('click', grantChoreReward);
         document.getElementById('grantResend').addEventListener('click', resendChorePhoto);
         document.getElementById('grantModal').addEventListener('click', function(e) {
@@ -862,12 +971,13 @@
                     const correct = task?.correct || 0;
                     const incorrect = task?.incorrect || 0;
                     const questions = task?.questions || 0;
+                    const isChore = isChoreRequiredTask(taskKey, task);
 
                     const li = document.createElement('li');
                     li.className = `task-item ${isComplete ? '' : 'incomplete'}`;
                     
                     const taskName = taskKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    const answerInfo = questions > 0 ? `   ${correct} ✅   ${incorrect} ❌` : '';
+                    const answerInfo = (!isChore && questions > 0) ? `   ${correct} ✅   ${incorrect} ❌` : '';
                     
                     li.innerHTML = `
                         <span class="task-name">${taskName} ${isComplete ? '✓' : ''}</span>
@@ -905,46 +1015,15 @@
             }).length;
             document.getElementById('practiceCompletedCount').textContent = practiceCompleted;
 
-            const choresListEl = document.getElementById('choresList');
-            choresListEl.innerHTML = '';
             renderChorePhotos(photoChoresToday);
-            const photoChoreIds = Object.keys(photoChoresToday);
-            if (photoChoreIds.length > 0) {
-                photoChoreIds.forEach(choreId => {
-                    const chore = photoChoresToday[choreId];
-                    const isDone = (chore.status || '').toLowerCase() === 'complete';
-                    const desc = chore.title || chore.description || choreId;
-                    const reward = chore.rewardCash != null ? chore.rewardCash : 0;
-                    const li = document.createElement('li');
-                    li.className = `task-item ${isDone ? '' : 'incomplete'}`;
-                    li.innerHTML = `
-                        <span class="task-name">${isDone ? '✓' : '○'} ${desc}</span>
-                        <span class="task-info">${formatMoney(reward)} ${isDone ? 'Photo submitted' : 'Not done'}</span>
-                    `;
-                    choresListEl.appendChild(li);
-                });
-            } else if (chores.length === 0) {
-                choresListEl.innerHTML = '<li class="task-item"><span class="task-name">No chores configured</span></li>';
-            } else {
-                chores.forEach(chore => {
-                    const isDone = chore.done === true;
-                    const desc = chore.description || 'Chore';
-                    const reward = chore.coins_reward != null ? chore.coins_reward : 0;
-                    const li = document.createElement('li');
-                    li.className = `task-item ${isDone ? '' : 'incomplete'}`;
-                    li.innerHTML = `
-                        <span class="task-name">${isDone ? '✓' : '○'} ${desc}</span>
-                        <span class="task-info">+${reward} 🪙 ${isDone ? 'Done' : 'Not done'}</span>
-                    `;
-                    choresListEl.appendChild(li);
-                });
-            }
 
             // Display checklist items
             const checklistItemsList = document.getElementById('checklistItems');
             checklistItemsList.innerHTML = '';
             
             const checklistItemKeys = Object.keys(checklistItems);
+            const checklistCountEl = document.getElementById('checklistCount');
+            if (checklistCountEl) checklistCountEl.textContent = `(${checklistItemKeys.length})`;
             if (checklistItemKeys.length === 0) {
                 checklistItemsList.innerHTML = '<li class="task-item"><span class="task-name">No checklist items found</span></li>';
             } else {
@@ -972,6 +1051,8 @@
             const practiceTasksList = document.getElementById('practiceTasks');
             practiceTasksList.innerHTML = '';
             
+            const practiceCountEl = document.getElementById('practiceCount');
+            if (practiceCountEl) practiceCountEl.textContent = `(${practiceTaskKeys.length})`;
             if (practiceTaskKeys.length === 0) {
                 practiceTasksList.innerHTML = '<li class="task-item"><span class="task-name">No practice tasks found</span></li>';
             } else {

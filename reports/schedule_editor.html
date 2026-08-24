@@ -153,28 +153,29 @@
         .task-row .name { font-weight: 600; color: #222; font-size: 0.95rem; line-height: 1.3; }
         .task-row .controls {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
-            gap: 6px 8px;
+            gap: 4px 6px;
+            overflow-x: auto;
         }
         .task-row .meta {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #666;
-            flex: 1 1 auto;
-            min-width: 4.5rem;
-            max-width: 100%;
+            flex: 0 0 auto;
+            white-space: nowrap;
         }
         .task-row .field {
             display: inline-flex;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
             font-size: 0.72rem;
             color: #666;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .task-row input[type="number"] {
-            width: 2.4rem;
-            padding: 4px 2px;
+            width: 2.2rem;
+            padding: 3px 2px;
             border: 1px solid #ccc;
             border-radius: 5px;
             text-align: center;
@@ -187,16 +188,17 @@
             margin: 0;
         }
         .icon-btn {
-            padding: 4px 8px;
+            padding: 3px 6px;
             border: 1px solid #ccc;
             background: #fff;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.75rem;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .icon-btn:hover { border-color: #667eea; color: #667eea; }
-        .icon-btn.danger { border-color: #e53935; color: #e53935; }
+        .icon-btn.danger { border-color: #e53935; color: #e53935; margin-left: auto; }
         .icon-btn.danger:hover { background: #ffebee; }
         .toggle {
             position: relative;
@@ -340,6 +342,17 @@
             <div class="card">
                 <button type="button" class="card-toggle" aria-expanded="false">
                     <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                    <h2>Required chores config</h2>
+                </button>
+                <div class="card-body">
+                    <p class="hint">Photo chores from the required section. Same on/off, days, and star controls as required tasks.</p>
+                    <div id="requiredChoresList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <button type="button" class="card-toggle" aria-expanded="false">
+                    <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
                     <h2>Checklist items config</h2>
                 </button>
                 <div class="card-body">
@@ -414,6 +427,7 @@
             { key: 'fri', label: 'Fri' },
             { key: 'sat', label: 'Sat' }
         ];
+        const DAY_SHORT = { sun: 'su', mon: 'mo', tue: 'tu', wed: 'we', thu: 'th', fri: 'fr', sat: 'sa' };
         const DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -616,15 +630,22 @@
             return startOfToday() >= d;
         }
 
+        function formatDaysList(csv) {
+            return String(csv || '').split(',')
+                .map(d => DAY_SHORT[d.trim().toLowerCase()] || d.trim())
+                .filter(Boolean)
+                .join(',');
+        }
+
         function daysSummary(task) {
             if (!isScheduleOn(task)) {
                 if (isAlwaysOffDisable(task.disable)) return 'Always off';
                 const d = parseDisableDate(task.disable);
                 return d ? `Off until ${formatDisableDate(d)}` : 'Off';
             }
-            if (task.displayDays) return task.displayDays;
-            if (task.showdays) return task.showdays;
-            if (task.hidedays) return `all except ${task.hidedays}`;
+            if (task.displayDays) return formatDaysList(task.displayDays);
+            if (task.showdays) return formatDaysList(task.showdays);
+            if (task.hidedays) return `all except ${formatDaysList(task.hidedays)}`;
             return 'All days';
         }
 
@@ -874,6 +895,13 @@
             });
         }
 
+        function isChoreEntry(entry) {
+            const launch = String(entry?.config?.launch || '').toLowerCase();
+            if (launch.startsWith('chore')) return true;
+            const url = String(entry?.config?.url || '').toLowerCase();
+            return url.includes('chorephoto');
+        }
+
         function hasTotalQuestions(entry) {
             return entry.config?.totalQuestions != null || entry.data?.totalQuestions != null;
         }
@@ -900,10 +928,10 @@
                             <input type="checkbox" ${on ? 'checked' : ''} data-action="toggle" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}">
                             <span></span>
                         </label>
+                        <button type="button" class="icon-btn" data-action="days" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" ${on ? '' : 'disabled'} title="Choose days">📅</button>
                         <div class="meta">${escapeHtml(daysSummary(entry.data))}</div>
                         <label class="field">⭐ <input type="number" min="0" max="20" value="${starsVal}" data-field="stars" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>
                         ${qBlock}
-                        <button type="button" class="icon-btn" data-action="days" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" ${on ? '' : 'disabled'}>📅 Days</button>
                         ${deleteBtn}
                     </div>
                 `;
@@ -1041,7 +1069,8 @@
             buildCatalog();
             renderWeekGrid('requiredWeek', catalog.required);
             renderWeekGrid('practiceWeek', catalog.practice);
-            renderTaskList('requiredList', catalog.required, 'required');
+            renderTaskList('requiredList', catalog.required.filter(e => !isChoreEntry(e)), 'required');
+            renderTaskList('requiredChoresList', catalog.required.filter(e => isChoreEntry(e)), 'required');
             renderTaskList('practiceList', catalog.practice, 'practice');
             renderTaskList('checklistList', catalog.checklist, 'checklist');
         }
