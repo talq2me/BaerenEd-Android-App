@@ -463,6 +463,22 @@
 
         async function startRecordingNow() {
             showMessage('Starting camera…', 'info');
+
+            if (window.Android && typeof window.Android.ensureMediaPermissions === 'function') {
+                try {
+                    await new Promise(function(resolve, reject) {
+                        window.__onMediaPermOk = function() { resolve(); };
+                        window.__onMediaPermErr = function(msg) { reject(new Error(msg || 'Permission denied')); };
+                        window.Android.ensureMediaPermissions(false, true, '__onMediaPermOk', '__onMediaPermErr');
+                    });
+                } catch (permErr) {
+                    showMessage('Camera permission is required. ' + (permErr && permErr.message ? permErr.message : ''), 'error');
+                    document.getElementById('recordBtn').textContent = 'Record';
+                    document.getElementById('recordBtn').disabled = !choreId;
+                    return;
+                }
+            }
+
             try {
                 mediaStream = await navigator.mediaDevices.getUserMedia({
                     audio: false,
@@ -474,11 +490,20 @@
                     }
                 });
             } catch (e) {
-                showMessage('Could not access camera. Check permission and try again.', 'error');
-                console.error('getUserMedia error:', e);
-                document.getElementById('recordBtn').textContent = 'Record';
-                document.getElementById('recordBtn').disabled = !choreId;
-                return;
+                // Retry with looser video constraints (emulators often reject exact frameRate).
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: true
+                    });
+                } catch (e2) {
+                    const detail = (e2 && (e2.name || e2.message)) ? (e2.name + ': ' + e2.message) : String(e2);
+                    showMessage('Could not access camera (' + detail + '). Check permission and try again.', 'error');
+                    console.error('getUserMedia error:', e, e2);
+                    document.getElementById('recordBtn').textContent = 'Record';
+                    document.getElementById('recordBtn').disabled = !choreId;
+                    return;
+                }
             }
 
             const mimeType = pickMimeType();

@@ -366,17 +366,38 @@
             showMessage('Starting microphone...', 'info');
             resetRecorded();
 
+            // Ask Android for RECORD_AUDIO first so WebView can grant getUserMedia immediately.
+            if (window.Android && typeof window.Android.ensureMediaPermissions === 'function') {
+                try {
+                    await new Promise(function(resolve, reject) {
+                        window.__onMediaPermOk = function() { resolve(); };
+                        window.__onMediaPermErr = function(msg) { reject(new Error(msg || 'Permission denied')); };
+                        window.Android.ensureMediaPermissions(true, false, '__onMediaPermOk', '__onMediaPermErr');
+                    });
+                } catch (permErr) {
+                    showMessage('Microphone permission is required. ' + (permErr && permErr.message ? permErr.message : ''), 'error');
+                    return;
+                }
+            }
+
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false
-                    },
-                    video: false
-                });
+                // Prefer simple constraint; detailed constraints often fail on emulators.
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                } catch (firstErr) {
+                    console.warn('getUserMedia simple failed, retrying with constraints', firstErr);
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        },
+                        video: false
+                    });
+                }
             } catch (e) {
-                showMessage('Could not access microphone. Check permission and try again.', 'error');
+                const detail = (e && (e.name || e.message)) ? (e.name + ': ' + e.message) : String(e);
+                showMessage('Could not access microphone (' + detail + '). On emulator: enable Microphone in Extended controls, then try again.', 'error');
                 console.error('getUserMedia error:', e);
                 return;
             }
