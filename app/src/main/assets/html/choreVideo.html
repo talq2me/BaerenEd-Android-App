@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Chore</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background-color: #fffcf9;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2e7d32;
+            margin: 0 0 6px;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin: 4px 0 10px;
+            text-align: left;
+        }
+        .description {
+            font-size: 18px;
+            color: #444;
+            margin: 0;
+            flex: 1;
+            min-width: 0;
+        }
+        .reward {
+            font-size: 16px;
+            color: #666;
+            margin: 0;
+            flex-shrink: 0;
+            text-align: right;
+        }
+        .video-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 12px;
+            flex-wrap: wrap;
+        }
+        .green-button, .record-button, .stop-button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 0;
+            padding: 14px 28px;
+            font-size: 22px;
+            line-height: 1.2;
+            box-sizing: border-box;
+            color: white;
+        }
+        .green-button { background-color: #4CAF50; }
+        .record-button { background-color: #ff6b6b; }
+        .stop-button { background-color: #e53935; }
+        .green-button:hover, .record-button:hover, .stop-button:hover {
+            background-color: #ff8c00;
+            transform: scale(1.05);
+        }
+        .green-button:disabled, .record-button:disabled, .stop-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .hidden { display: none; }
+        .recorder-panel {
+            margin: 8px 0;
+            padding: 16px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffeaa7;
+        }
+        .timer {
+            font-size: 36px;
+            font-weight: bold;
+            color: #c62828;
+            margin: 8px 0 12px;
+            font-variant-numeric: tabular-nums;
+        }
+        .timer.idle { color: #666; font-size: 28px; }
+        .timer.countdown { color: #ef6c00; font-size: 48px; }
+        .recording-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e53935;
+            margin-right: 8px;
+            vertical-align: middle;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+        video {
+            width: 100%;
+            max-width: 480px;
+            margin: 8px 0 0;
+            border-radius: 8px;
+            background: #111;
+        }
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 id="choreTitle">Video Chore</h1>
+        <div class="meta-row">
+            <p class="description" id="choreDescription">Record yourself doing the form.</p>
+            <p class="reward" id="choreReward">Reward: $0 (parent reviews)</p>
+        </div>
+
+        <div class="video-actions">
+            <button class="record-button" id="recordBtn" onclick="toggleRecord()">Record</button>
+            <button class="green-button hidden" id="doneBtn" onclick="submitVideo()">Done</button>
+        </div>
+
+        <div class="recorder-panel" id="recorderPanel">
+            <div class="timer idle" id="timerDisplay">0:00</div>
+            <video id="playback" controls playsinline muted class="hidden"></video>
+        </div>
+
+        <div id="messageContainer"></div>
+    </div>
+
+    <script>
+        /**
+         * Query params (from config url):
+         *   choreId      - required; used in image_uploads.task = chore_{id}_r{reward}_{yyyy-MM-dd}
+         *   title        - screen title
+         *   description  - instructions
+         *   rewardCash   - dollars for parent report grant default
+         *   maxSeconds   - optional max recording length (default 60)
+         *   countdownSeconds - optional delay before record starts (default 5)
+         */
+        const DEFAULT_MAX_SECONDS = 60;
+        const DEFAULT_COUNTDOWN_SECONDS = 5;
+        const VIDEO_BITRATE = 500000;
+
+        let mediaRecorder = null;
+        let mediaStream = null;
+        let recordedChunks = [];
+        let recordedBlob = null;
+        let recordedDataUrl = null;
+        let recordedMimeType = 'video/webm';
+        let recording = false;
+        let countingDown = false;
+        let submitting = false;
+        let timerInterval = null;
+        let countdownInterval = null;
+        let recordStartedAt = 0;
+        let elapsedMs = 0;
+        let maxSeconds = DEFAULT_MAX_SECONDS;
+        let countdownSeconds = DEFAULT_COUNTDOWN_SECONDS;
+        let audioCtx = null;
+
+        let choreId = '';
+        let choreTitle = 'Video Chore';
+        let choreDescription = 'Record yourself doing the form.';
+        let rewardCash = 0;
+
+        function formatRewardCash(amount) {
+            const value = Number(amount) || 0;
+            if (Math.abs(value - Math.round(value)) < 0.001) {
+                return '$' + Math.round(value);
+            }
+            return '$' + value.toFixed(2);
+        }
+
+        function formatMmSs(totalSeconds) {
+            const s = Math.max(0, Math.floor(totalSeconds));
+            const m = Math.floor(s / 60);
+            const rem = s % 60;
+            return m + ':' + String(rem).padStart(2, '0');
+        }
+
+        function torontoDateYmd() {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date());
+        }
+
+        function videoTaskKey(id, reward) {
+            const centsSafe = String(Number(reward) || 0);
+            return 'chore_' + id + '_r' + centsSafe + '_' + torontoDateYmd();
+        }
+
+        function readParams() {
+            const params = new URLSearchParams(window.location.search);
+            choreId = (params.get('choreId') || '').trim();
+            choreTitle = (params.get('title') || 'Video Chore').trim() || 'Video Chore';
+            choreDescription = (params.get('description') || '').trim()
+                || 'Record yourself doing the form.';
+            const rawReward = params.get('rewardCash');
+            rewardCash = rawReward != null && rawReward !== '' ? Number(rawReward) : 0;
+            if (Number.isNaN(rewardCash)) rewardCash = 0;
+            const rawMax = params.get('maxSeconds');
+            maxSeconds = rawMax != null && rawMax !== '' ? Number(rawMax) : DEFAULT_MAX_SECONDS;
+            if (!Number.isFinite(maxSeconds) || maxSeconds < 10) maxSeconds = DEFAULT_MAX_SECONDS;
+            const rawCd = params.get('countdownSeconds');
+            countdownSeconds = rawCd != null && rawCd !== '' ? Number(rawCd) : DEFAULT_COUNTDOWN_SECONDS;
+            if (!Number.isFinite(countdownSeconds) || countdownSeconds < 0) {
+                countdownSeconds = DEFAULT_COUNTDOWN_SECONDS;
+            }
+        }
+
+        function applyUi() {
+            document.getElementById('choreTitle').textContent = choreTitle;
+            document.getElementById('choreDescription').textContent = choreDescription;
+            document.getElementById('choreReward').textContent =
+                'Reward: ' + formatRewardCash(rewardCash) + ' (parent reviews)';
+            if (!choreId) {
+                showMessage('This chore is missing choreId in the URL.', 'error');
+                document.getElementById('recordBtn').disabled = true;
+            }
+        }
+
+        function hideMessage() {
+            document.getElementById('messageContainer').innerHTML = '';
+        }
+
+        function showMessage(text, type) {
+            document.getElementById('messageContainer').innerHTML =
+                '<div class="message ' + (type || 'info') + '">' + text + '</div>';
+        }
+
+        function setBusy(busy) {
+            submitting = busy;
+            document.getElementById('recordBtn').disabled = busy || !choreId || countingDown;
+            document.getElementById('doneBtn').disabled = busy;
+        }
+
+        function ensureAudioCtx() {
+            if (!audioCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (Ctx) audioCtx = new Ctx();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(function() {});
+            }
+            return audioCtx;
+        }
+
+        /** Short beep so kid hears countdown / record-start without looking at the tablet. */
+        function playBeep(freq, durationMs, volume) {
+            try {
+                const ctx = ensureAudioCtx();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq || 880;
+                gain.gain.value = volume != null ? volume : 0.35;
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+                osc.start(now);
+                gain.gain.setValueAtTime(gain.gain.value, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + (durationMs || 180) / 1000);
+                osc.stop(now + (durationMs || 180) / 1000 + 0.02);
+            } catch (e) {
+                console.warn('beep failed', e);
+            }
+        }
+
+        function pickMimeType() {
+            const types = [
+                'video/webm;codecs=vp8',
+                'video/webm',
+                'video/mp4'
+            ];
+            if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') {
+                return '';
+            }
+            for (let i = 0; i < types.length; i++) {
+                if (MediaRecorder.isTypeSupported(types[i])) return types[i];
+            }
+            return '';
+        }
+
+        function updateTimerDisplay() {
+            const el = document.getElementById('timerDisplay');
+            if (countingDown) return;
+            const secs = elapsedMs / 1000;
+            if (recording) {
+                el.classList.remove('idle', 'countdown');
+                el.innerHTML = '<span class="recording-dot"></span>' + formatMmSs(secs);
+            } else {
+                el.classList.remove('countdown');
+                el.classList.add('idle');
+                el.textContent = formatMmSs(secs);
+            }
+        }
+
+        function startTimer() {
+            recordStartedAt = Date.now();
+            elapsedMs = 0;
+            updateTimerDisplay();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(function() {
+                elapsedMs = Date.now() - recordStartedAt;
+                updateTimerDisplay();
+                if (elapsedMs >= maxSeconds * 1000) {
+                    stopRecording();
+                    showMessage('Max length reached (' + formatMmSs(maxSeconds) + '). You can submit or re-record.', 'info');
+                }
+            }, 200);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            if (recordStartedAt) {
+                elapsedMs = Date.now() - recordStartedAt;
+            }
+            updateTimerDisplay();
+        }
+
+        function blobToDataUrl(blob) {
+            return new Promise(function(resolve, reject) {
+                const reader = new FileReader();
+                reader.onload = function() { resolve(reader.result); };
+                reader.onerror = function() { reject(reader.error || new Error('Failed to read recording')); };
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function showRecordedUi() {
+            const playback = document.getElementById('playback');
+            if (recordedBlob) {
+                playback.src = URL.createObjectURL(recordedBlob);
+                playback.classList.remove('hidden');
+            }
+            document.getElementById('recordBtn').textContent = 'Re-record';
+            document.getElementById('recordBtn').classList.remove('stop-button');
+            document.getElementById('recordBtn').classList.add('record-button');
+            document.getElementById('doneBtn').classList.remove('hidden');
+        }
+
+        function resetRecorded() {
+            recordedBlob = null;
+            recordedDataUrl = null;
+            recordedChunks = [];
+            const playback = document.getElementById('playback');
+            playback.pause();
+            playback.removeAttribute('src');
+            playback.classList.add('hidden');
+            document.getElementById('doneBtn').classList.add('hidden');
+            elapsedMs = 0;
+            updateTimerDisplay();
+        }
+
+        function stopMediaStream() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(function(track) { track.stop(); });
+                mediaStream = null;
+            }
+        }
+
+        function cancelCountdown() {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            countingDown = false;
+            document.getElementById('recordBtn').disabled = !choreId || submitting;
+        }
+
+        async function beginCountdownThenRecord() {
+            if (submitting || !choreId || recording || countingDown) return;
+            if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+                showMessage('Camera not available in this browser.', 'error');
+                return;
+            }
+            if (typeof MediaRecorder === 'undefined') {
+                showMessage('Video recording is not supported on this device.', 'error');
+                return;
+            }
+
+            hideMessage();
+            resetRecorded();
+            ensureAudioCtx();
+
+            countingDown = true;
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('recordBtn').textContent = 'Get ready…';
+
+            const el = document.getElementById('timerDisplay');
+            el.classList.remove('idle');
+            el.classList.add('countdown');
+
+            if (countdownSeconds <= 0) {
+                countingDown = false;
+                el.classList.remove('countdown');
+                playBeep(1046, 320, 0.45);
+                startRecordingNow();
+                return;
+            }
+
+            let remaining = Math.ceil(countdownSeconds);
+
+            function tickCountdown() {
+                if (remaining > 0) {
+                    el.textContent = String(remaining);
+                    playBeep(660, 120, 0.3);
+                    showMessage('Recording starts in ' + remaining + '…', 'info');
+                    remaining -= 1;
+                    return;
+                }
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                countingDown = false;
+                el.classList.remove('countdown');
+                playBeep(1046, 320, 0.45);
+                startRecordingNow();
+            }
+
+            tickCountdown();
+            countdownInterval = setInterval(tickCountdown, 1000);
+        }
+
+        async function startRecordingNow() {
+            showMessage('Starting camera…', 'info');
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 640, max: 640 },
+                        height: { ideal: 360, max: 360 },
+                        frameRate: { ideal: 15, max: 15 }
+                    }
+                });
+            } catch (e) {
+                showMessage('Could not access camera. Check permission and try again.', 'error');
+                console.error('getUserMedia error:', e);
+                document.getElementById('recordBtn').textContent = 'Record';
+                document.getElementById('recordBtn').disabled = !choreId;
+                return;
+            }
+
+            const mimeType = pickMimeType();
+            recordedMimeType = mimeType || 'video/webm';
+            recordedChunks = [];
+
+            try {
+                const options = { videoBitsPerSecond: VIDEO_BITRATE };
+                if (mimeType) options.mimeType = mimeType;
+                mediaRecorder = new MediaRecorder(mediaStream, options);
+            } catch (e) {
+                try {
+                    mediaRecorder = mimeType
+                        ? new MediaRecorder(mediaStream, { mimeType: mimeType })
+                        : new MediaRecorder(mediaStream);
+                } catch (e2) {
+                    stopMediaStream();
+                    showMessage('Could not start recorder: ' + e2.message, 'error');
+                    document.getElementById('recordBtn').textContent = 'Record';
+                    document.getElementById('recordBtn').disabled = !choreId;
+                    return;
+                }
+            }
+
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data && event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onerror = function(event) {
+                console.error('MediaRecorder error:', event);
+                showMessage('Recording error. Please try again.', 'error');
+            };
+
+            mediaRecorder.onstop = async function() {
+                stopMediaStream();
+                recording = false;
+                stopTimer();
+                document.getElementById('recordBtn').textContent = 'Re-record';
+                document.getElementById('recordBtn').classList.remove('stop-button');
+                document.getElementById('recordBtn').classList.add('record-button');
+                document.getElementById('recordBtn').disabled = !choreId || submitting;
+
+                const type = recordedChunks[0] && recordedChunks[0].type
+                    ? recordedChunks[0].type
+                    : recordedMimeType;
+                recordedBlob = new Blob(recordedChunks, { type: type || 'video/webm' });
+                if (!recordedBlob.size) {
+                    showMessage('No video captured. Please try again.', 'error');
+                    return;
+                }
+                try {
+                    recordedDataUrl = await blobToDataUrl(recordedBlob);
+                    showRecordedUi();
+                    hideMessage();
+                } catch (err) {
+                    showMessage('Could not prepare recording: ' + err.message, 'error');
+                }
+            };
+
+            mediaRecorder.start(1000);
+            recording = true;
+            startTimer();
+            document.getElementById('recordBtn').textContent = 'Stop';
+            document.getElementById('recordBtn').classList.remove('record-button');
+            document.getElementById('recordBtn').classList.add('stop-button');
+            document.getElementById('recordBtn').disabled = false;
+            showMessage('Recording…', 'info');
+        }
+
+        function stopRecording() {
+            if (!recording || !mediaRecorder) return;
+            try {
+                if (mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+            } catch (e) {
+                console.error('stopRecording error:', e);
+                recording = false;
+                stopMediaStream();
+                stopTimer();
+            }
+        }
+
+        function toggleRecord() {
+            if (submitting || !choreId || countingDown) return;
+            if (recording) {
+                stopRecording();
+            } else {
+                beginCountdownThenRecord();
+            }
+        }
+
+        function submitVideo() {
+            if (submitting) return;
+            if (!recordedDataUrl) {
+                showMessage('Record a video first.', 'error');
+                return;
+            }
+            if (!choreId) {
+                showMessage('This chore is missing choreId in the URL.', 'error');
+                return;
+            }
+            if (!window.Android || typeof window.Android.uploadImageToSupabase !== 'function') {
+                showMessage('Upload requires the Android app.', 'error');
+                return;
+            }
+
+            let profile = 'TE';
+            if (typeof window.Android.getCurrentProfile === 'function') {
+                try {
+                    profile = window.Android.getCurrentProfile() || 'TE';
+                } catch (e) {
+                    console.warn('Could not get profile:', e);
+                }
+            }
+
+            setBusy(true);
+            showMessage('Uploading video…', 'info');
+
+            const uploadData = {
+                profile: profile,
+                task: videoTaskKey(choreId, rewardCash),
+                image: recordedDataUrl,
+                capture_date_time: new Date().toISOString()
+            };
+
+            try {
+                window.Android.uploadImageToSupabase(
+                    JSON.stringify(uploadData),
+                    'onUploadSuccess',
+                    'onUploadError'
+                );
+            } catch (e) {
+                setBusy(false);
+                showMessage('Error calling upload: ' + e.message, 'error');
+            }
+        }
+
+        window.onUploadSuccess = function() {
+            showMessage('Video submitted! Parent will review for the reward.', 'success');
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                try {
+                    window.Android.gameCompleted(1, 0);
+                } catch (e) {
+                    setBusy(false);
+                    showMessage('Saved but could not finish the task: ' + e.message, 'error');
+                }
+            } else {
+                setBusy(false);
+                showMessage('Video saved. Close this screen when ready.', 'success');
+            }
+        };
+
+        window.onUploadError = function(error) {
+            setBusy(false);
+            showMessage('Could not save video: ' + error, 'error');
+            console.error('Upload error:', error);
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            readParams();
+            applyUi();
+            updateTimerDisplay();
+        });
+
+        window.addEventListener('beforeunload', function() {
+            cancelCountdown();
+            stopRecording();
+            stopMediaStream();
+        });
+    </script>
+</body>
+</html>
