@@ -16,7 +16,7 @@
             }
         ]
     },
-    "version": "2026-08-24",
+    "version": "2026-08-26",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -575,7 +575,7 @@
                     "launch": "choreUnloadDishwasher",
                     "webGame": true,
                     "description": "Unload the dishwasher and put everything away.",
-                    "displayDays": "mon,wed,fri"
+                    "displayDays": "mon,fri"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=feed_dog&title=Feed%20dog%20and%20give%20water%20if%20needed&description=Feed%20the%20dog%20and%20give%20water%20if%20needed.&rewardCash=0.1",
@@ -594,7 +594,7 @@
                     "launch": "choreCleanRoom",
                     "webGame": true,
                     "description": "Organize your room: tidy floor and desk/dresser tops. Do not shove everything in a drawer.",
-                    "displayDays": "tue,fri"
+                    "displayDays": "wed,fri"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_toys_basement&title=Tidy%20toys%20in%20basement&description=Tidy%20toys%20in%20the%20basement.&rewardCash=1",
