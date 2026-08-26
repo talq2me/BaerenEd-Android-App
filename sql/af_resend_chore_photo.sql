@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION af_resend_chore_photo(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, storage
 AS $$
 DECLARE
   chore_id text;
@@ -25,6 +25,8 @@ DECLARE
   remove_berries int := 0;
   remove_mins int := 0;
   deleted_n int := 0;
+  img_payload text;
+  storage_path text;
 BEGIN
   IF NULLIF(TRIM(COALESCE(p_profile, '')), '') IS NULL THEN
     RAISE EXCEPTION 'af_resend_chore_photo: p_profile is required';
@@ -40,6 +42,16 @@ BEGIN
   END IF;
   IF chore_id IS NULL THEN
     RAISE EXCEPTION 'af_resend_chore_photo: unrecognized image task key %', p_image_task;
+  END IF;
+
+  SELECT image INTO img_payload
+  FROM image_uploads
+  WHERE profile = p_profile AND task = p_image_task;
+
+  IF img_payload LIKE 'storage:chore-videos/%' THEN
+    storage_path := substring(img_payload from length('storage:chore-videos/') + 1);
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'chore-videos' AND name = storage_path;
   END IF;
 
   DELETE FROM image_uploads

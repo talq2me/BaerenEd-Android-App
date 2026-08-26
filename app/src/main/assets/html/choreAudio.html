@@ -351,8 +351,42 @@
             updateTimerDisplay();
         }
 
+        function useNativeAudio() {
+            return !!(window.Android && typeof window.Android.startAudioRecording === 'function'
+                && typeof window.Android.stopAudioRecording === 'function');
+        }
+
         async function startRecording() {
             if (submitting || !choreId || recording) return;
+            hideMessage();
+            showMessage('Starting microphone...', 'info');
+            resetRecorded();
+
+            if (useNativeAudio()) {
+                window.__onNativeAudioStartOk = function() {
+                    recording = true;
+                    startTimer();
+                    document.getElementById('recordBtn').textContent = 'Stop';
+                    document.getElementById('recordBtn').classList.remove('record-button');
+                    document.getElementById('recordBtn').classList.add('stop-button');
+                    hideMessage();
+                };
+                window.__onNativeAudioStartErr = function(msg) {
+                    recording = false;
+                    stopTimer();
+                    document.getElementById('recordBtn').textContent = 'Record';
+                    document.getElementById('recordBtn').classList.remove('stop-button');
+                    document.getElementById('recordBtn').classList.add('record-button');
+                    showMessage('Could not start microphone: ' + msg, 'error');
+                };
+                try {
+                    window.Android.startAudioRecording('__onNativeAudioStartOk', '__onNativeAudioStartErr');
+                } catch (e) {
+                    showMessage('Could not start microphone: ' + e.message, 'error');
+                }
+                return;
+            }
+
             if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
                 showMessage('Microphone not available in this browser.', 'error');
                 return;
@@ -362,42 +396,11 @@
                 return;
             }
 
-            hideMessage();
-            showMessage('Starting microphone...', 'info');
-            resetRecorded();
-
-            // Ask Android for RECORD_AUDIO first so WebView can grant getUserMedia immediately.
-            if (window.Android && typeof window.Android.ensureMediaPermissions === 'function') {
-                try {
-                    await new Promise(function(resolve, reject) {
-                        window.__onMediaPermOk = function() { resolve(); };
-                        window.__onMediaPermErr = function(msg) { reject(new Error(msg || 'Permission denied')); };
-                        window.Android.ensureMediaPermissions(true, false, '__onMediaPermOk', '__onMediaPermErr');
-                    });
-                } catch (permErr) {
-                    showMessage('Microphone permission is required. ' + (permErr && permErr.message ? permErr.message : ''), 'error');
-                    return;
-                }
-            }
-
             try {
-                // Prefer simple constraint; detailed constraints often fail on emulators.
-                try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                } catch (firstErr) {
-                    console.warn('getUserMedia simple failed, retrying with constraints', firstErr);
-                    mediaStream = await navigator.mediaDevices.getUserMedia({
-                        audio: {
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        },
-                        video: false
-                    });
-                }
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             } catch (e) {
                 const detail = (e && (e.name || e.message)) ? (e.name + ': ' + e.message) : String(e);
-                showMessage('Could not access microphone (' + detail + '). On emulator: enable Microphone in Extended controls, then try again.', 'error');
+                showMessage('Could not access microphone (' + detail + ').', 'error');
                 console.error('getUserMedia error:', e);
                 return;
             }
@@ -447,8 +450,8 @@
                     recordedDataUrl = await blobToDataUrl(recordedBlob);
                     showRecordedUi();
                     hideMessage();
-                } catch (e) {
-                    showMessage('Could not prepare recording: ' + e.message, 'error');
+                } catch (err) {
+                    showMessage('Could not prepare recording: ' + err.message, 'error');
                 }
             };
 
@@ -469,7 +472,45 @@
         }
 
         function stopRecording() {
-            if (!recording || !mediaRecorder) return;
+            if (!recording) return;
+
+            if (useNativeAudio() && (!mediaRecorder || mediaRecorder.state === 'inactive')) {
+                showMessage('Saving recording...', 'info');
+                window.__onNativeAudioStopOk = function(dataUrl) {
+                    recording = false;
+                    stopTimer();
+                    document.getElementById('recordBtn').textContent = 'Re-record';
+                    document.getElementById('recordBtn').classList.remove('stop-button');
+                    document.getElementById('recordBtn').classList.add('record-button');
+                    recordedDataUrl = dataUrl;
+                    recordedMimeType = 'audio/mp4';
+                    try {
+                        recordedBlob = dataUrlToBlob(dataUrl);
+                    } catch (e) {
+                        recordedBlob = null;
+                    }
+                    showRecordedUi();
+                    hideMessage();
+                };
+                window.__onNativeAudioStopErr = function(msg) {
+                    recording = false;
+                    stopTimer();
+                    document.getElementById('recordBtn').textContent = 'Record';
+                    document.getElementById('recordBtn').classList.remove('stop-button');
+                    document.getElementById('recordBtn').classList.add('record-button');
+                    showMessage('Could not save recording: ' + msg, 'error');
+                };
+                try {
+                    window.Android.stopAudioRecording('__onNativeAudioStopOk', '__onNativeAudioStopErr');
+                } catch (e) {
+                    recording = false;
+                    stopTimer();
+                    showMessage('Could not stop recording: ' + e.message, 'error');
+                }
+                return;
+            }
+
+            if (!mediaRecorder) return;
             try {
                 if (mediaRecorder.state !== 'inactive') {
                     mediaRecorder.stop();
@@ -480,6 +521,15 @@
                 stopMediaStream();
                 stopTimer();
             }
+        }
+
+        function dataUrlToBlob(dataUrl) {
+            const parts = String(dataUrl).split(',');
+            const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'audio/mp4';
+            const bin = atob(parts[1] || '');
+            const arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            return new Blob([arr], { type: mime });
         }
 
         function toggleRecord() {

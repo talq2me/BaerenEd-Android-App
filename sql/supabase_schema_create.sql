@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS user_data (
 
     -- Photo chores (trainer map): object keyed by chore id
     -- { "unload_dishwasher": { "status": "incomplete"/"complete", "title", "description", "rewardCash", "launch", "displayDays", ... } }
-    -- status resets daily; photos in image_uploads are kept
+    -- status resets daily; image_uploads media older than 7 days is deleted by af_cleanup_old_chore_videos
     photo_chores JSONB DEFAULT '{}'::jsonb,
 
     -- Pokemon data
@@ -192,7 +192,8 @@ CREATE POLICY "Allow all operations" ON behavior_log
     USING (true)
     WITH CHECK (true);
 
--- Collector cards: one row per profile per Toronto day when all required work is done.
+-- Collector cards: one row per profile per Toronto day per earn_source.
+-- earn_source: required_done (all required work finished) or spin_prize (Pokemon/Soccer Card).
 -- Survives daily reset; parent report marks rows as paid_out when a physical card is given.
 CREATE TABLE IF NOT EXISTS collector_card_days (
     id BIGSERIAL PRIMARY KEY,
@@ -201,7 +202,8 @@ CREATE TABLE IF NOT EXISTS collector_card_days (
     earned_at TIMESTAMP(3) NOT NULL DEFAULT (NOW() AT TIME ZONE 'America/Toronto'),
     paid_out BOOLEAN NOT NULL DEFAULT false,
     paid_out_at TIMESTAMP(3) NULL,
-    UNIQUE (profile, completion_date)
+    earn_source TEXT NOT NULL DEFAULT 'required_done',
+    UNIQUE (profile, completion_date, earn_source)
 );
 
 CREATE INDEX IF NOT EXISTS idx_collector_card_days_profile_paid_out_date
@@ -405,3 +407,48 @@ INSERT INTO reward_spinner (name, percent) VALUES
 ON CONFLICT DO NOTHING;
 
 CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;
+
+-- =============================================================================
+-- Storage: chore video evidence (kung fu forms, etc.)
+-- Live bucket/policies are managed in Supabase; keep this for greenfield deploys.
+-- image_uploads.image stores pointer: storage:chore-videos/{profile}/{task}.{ext}
+-- =============================================================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'chore-videos',
+  'chore-videos',
+  true,
+  52428800,
+  ARRAY['video/webm', 'video/mp4', 'video/quicktime']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "Allow public read chore-videos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anon upload chore-videos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anon update chore-videos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anon delete chore-videos" ON storage.objects;
+
+CREATE POLICY "Allow public read chore-videos"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'chore-videos');
+
+CREATE POLICY "Allow anon upload chore-videos"
+ON storage.objects FOR INSERT
+TO anon, authenticated, service_role
+WITH CHECK (bucket_id = 'chore-videos');
+
+CREATE POLICY "Allow anon update chore-videos"
+ON storage.objects FOR UPDATE
+TO anon, authenticated, service_role
+USING (bucket_id = 'chore-videos')
+WITH CHECK (bucket_id = 'chore-videos');
+
+CREATE POLICY "Allow anon delete chore-videos"
+ON storage.objects FOR DELETE
+TO anon, authenticated, service_role
+USING (bucket_id = 'chore-videos');
+

@@ -2,7 +2,8 @@
 --
 -- When all visible required work for today is done (same definition as
 -- af_get_required_progress_today — checklist with stars<=0 excluded), upsert one
--- collector_card_days row for today's Toronto date. Idempotent per profile/day.
+-- collector_card_days row for today's Toronto date (earn_source required_done).
+-- Idempotent per profile/day/source.
 
 DROP FUNCTION IF EXISTS af_maybe_record_collector_card_day(text);
 
@@ -25,14 +26,15 @@ BEGIN
 
   today := (NOW() AT TIME ZONE 'America/Toronto')::date;
 
-  INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out)
+  INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out, earn_source)
   VALUES (
     p_profile,
     today,
     (NOW() AT TIME ZONE 'America/Toronto'),
-    false
+    false,
+    'required_done'
   )
-  ON CONFLICT (profile, completion_date) DO NOTHING;
+  ON CONFLICT (profile, completion_date, earn_source) DO NOTHING;
 END;
 $$;
 

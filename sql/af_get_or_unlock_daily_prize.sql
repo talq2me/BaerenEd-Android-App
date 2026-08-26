@@ -4,6 +4,9 @@
 
 -- If prize_unlocked already exists for the profile, return it.
 -- Otherwise, unlock only when all visible required/checklist tasks are complete for today.
+-- Newly unlocking Pokemon/Soccer Card also records one collector_card_days row (spin_prize).
+DROP FUNCTION IF EXISTS af_get_or_unlock_daily_prize(text);
+
 CREATE OR REPLACE FUNCTION af_get_or_unlock_daily_prize(p_profile text)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -91,6 +94,18 @@ BEGIN
     prize_unlocked = v_reward_name,
     last_updated = (NOW() AT TIME ZONE 'America/Toronto')
   WHERE profile = p_profile;
+
+  IF v_reward_name ~* '(pokemon|poke|soccer).{0,20}card' THEN
+    INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out, earn_source)
+    VALUES (
+      p_profile,
+      (NOW() AT TIME ZONE 'America/Toronto')::date,
+      (NOW() AT TIME ZONE 'America/Toronto'),
+      false,
+      'spin_prize'
+    )
+    ON CONFLICT (profile, completion_date, earn_source) DO NOTHING;
+  END IF;
 
   RETURN jsonb_build_object(
     'prize_unlocked', v_reward_name,

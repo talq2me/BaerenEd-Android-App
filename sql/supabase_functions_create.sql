@@ -12,6 +12,7 @@
 
 -- Drop existing function signatures first
 DROP FUNCTION IF EXISTS af_daily_reset(text);
+DROP FUNCTION IF EXISTS af_delete_behavior_log(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_upload_by_id(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_uploads_ilike(text, text);
 DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
@@ -19,6 +20,7 @@ DROP FUNCTION IF EXISTS af_get_behavior_log(text, timestamp, timestamp);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
 DROP FUNCTION IF EXISTS af_get_device_row(text);
 DROP FUNCTION IF EXISTS af_get_image_upload_id(text, text);
+DROP FUNCTION IF EXISTS af_get_or_unlock_daily_prize(text);
 DROP FUNCTION IF EXISTS af_get_required_progress_today(text);
 DROP FUNCTION IF EXISTS af_get_reward_time_state(text);
 DROP FUNCTION IF EXISTS af_get_settings_last_updated();
@@ -1987,7 +1989,7 @@ CREATE OR REPLACE FUNCTION af_resend_chore_photo(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, storage
 AS $$
 DECLARE
   chore_id text;
@@ -1999,6 +2001,8 @@ DECLARE
   remove_berries int := 0;
   remove_mins int := 0;
   deleted_n int := 0;
+  img_payload text;
+  storage_path text;
 BEGIN
   IF NULLIF(TRIM(COALESCE(p_profile, '')), '') IS NULL THEN
     RAISE EXCEPTION 'af_resend_chore_photo: p_profile is required';
@@ -2014,6 +2018,16 @@ BEGIN
   END IF;
   IF chore_id IS NULL THEN
     RAISE EXCEPTION 'af_resend_chore_photo: unrecognized image task key %', p_image_task;
+  END IF;
+
+  SELECT image INTO img_payload
+  FROM image_uploads
+  WHERE profile = p_profile AND task = p_image_task;
+
+  IF img_payload LIKE 'storage:chore-videos/%' THEN
+    storage_path := substring(img_payload from length('storage:chore-videos/') + 1);
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'chore-videos' AND name = storage_path;
   END IF;
 
   DELETE FROM image_uploads
@@ -2561,7 +2575,8 @@ GRANT EXECUTE ON FUNCTION af_maybe_advance_spelling_pools(text) TO anon, authent
 --
 -- When all visible required work for today is done (same definition as
 -- af_get_required_progress_today — checklist with stars<=0 excluded), upsert one
--- collector_card_days row for today's Toronto date. Idempotent per profile/day.
+-- collector_card_days row for today's Toronto date (earn_source required_done).
+-- Idempotent per profile/day/source.
 
 DROP FUNCTION IF EXISTS af_maybe_record_collector_card_day(text);
 
@@ -2584,14 +2599,15 @@ BEGIN
 
   today := (NOW() AT TIME ZONE 'America/Toronto')::date;
 
-  INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out)
+  INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out, earn_source)
   VALUES (
     p_profile,
     today,
     (NOW() AT TIME ZONE 'America/Toronto'),
-    false
+    false,
+    'required_done'
   )
-  ON CONFLICT (profile, completion_date) DO NOTHING;
+  ON CONFLICT (profile, completion_date, earn_source) DO NOTHING;
 END;
 $$;
 
@@ -2660,6 +2676,129 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_payout_collector_cards(text, int) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_get_or_unlock_daily_prize.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd Android, this repo):
+--   app/src/main/java/com/talq2me/baerened/SupabaseInterface.kt  -  invokeAfGetOrUnlockDailyPrize.
+--   app/src/main/java/com/talq2me/baerened/RewardSpinnerActivity.kt  -  resolve/open daily prize.
+
+-- If prize_unlocked already exists for the profile, return it.
+-- Otherwise, unlock only when all visible required/checklist tasks are complete for today.
+-- Newly unlocking Pokemon/Soccer Card also records one collector_card_days row (spin_prize).
+DROP FUNCTION IF EXISTS af_get_or_unlock_daily_prize(text);
+
+CREATE OR REPLACE FUNCTION af_get_or_unlock_daily_prize(p_profile text)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_prize_unlocked text := NULL;
+  v_reward_name text := NULL;
+  v_total_tasks int := 0;
+  v_incomplete_tasks int := 0;
+BEGIN
+  SELECT
+    NULLIF(trim(ud.prize_unlocked), '')
+  INTO v_prize_unlocked
+  FROM user_data ud
+  WHERE ud.profile = p_profile
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', NULL,
+      'newly_unlocked', false,
+      'eligible', false
+    );
+  END IF;
+
+  IF v_prize_unlocked IS NOT NULL THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', v_prize_unlocked,
+      'newly_unlocked', false,
+      'eligible', true
+    );
+  END IF;
+
+  SELECT
+    COUNT(*),
+    COUNT(*) FILTER (WHERE lower(coalesce(t.completion_status, 'incomplete')) <> 'complete')
+  INTO v_total_tasks, v_incomplete_tasks
+  FROM af_get_current_required_tasks(p_profile) t;
+
+  IF v_total_tasks = 0 OR v_incomplete_tasks > 0 THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', NULL,
+      'newly_unlocked', false,
+      'eligible', false
+    );
+  END IF;
+
+  WITH weighted AS (
+    SELECT
+      rs.id,
+      rs.name,
+      rs.percent,
+      SUM(rs.percent) OVER (ORDER BY rs.id) AS cumulative_weight
+    FROM reward_spinner rs
+    WHERE rs.percent > 0
+  ),
+  total AS (
+    SELECT MAX(cumulative_weight) AS total_weight
+    FROM weighted
+  ),
+  roll AS (
+    SELECT (FLOOR(random() * total_weight) + 1)::int AS ticket
+    FROM total
+  )
+  SELECT w.name
+  INTO v_reward_name
+  FROM weighted w, roll r
+  WHERE w.cumulative_weight >= r.ticket
+  ORDER BY w.cumulative_weight
+  LIMIT 1;
+
+  IF v_reward_name IS NULL THEN
+    RETURN jsonb_build_object(
+      'prize_unlocked', NULL,
+      'newly_unlocked', false,
+      'eligible', false,
+      'error', 'No reward spinner rows with positive percent.'
+    );
+  END IF;
+
+  UPDATE user_data
+  SET
+    prize_unlocked = v_reward_name,
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
+  WHERE profile = p_profile;
+
+  IF v_reward_name ~* '(pokemon|poke|soccer).{0,20}card' THEN
+    INSERT INTO collector_card_days (profile, completion_date, earned_at, paid_out, earn_source)
+    VALUES (
+      p_profile,
+      (NOW() AT TIME ZONE 'America/Toronto')::date,
+      (NOW() AT TIME ZONE 'America/Toronto'),
+      false,
+      'spin_prize'
+    )
+    ON CONFLICT (profile, completion_date, earn_source) DO NOTHING;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'prize_unlocked', v_reward_name,
+    'newly_unlocked', true,
+    'eligible', true
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_get_or_unlock_daily_prize(text) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------
@@ -3610,5 +3749,52 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_update_behavior_log_time(bigint, timestamp) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_delete_behavior_log.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (reports):
+--   reports/behavior_log.html — parent taps trash while editing a list item to delete that log row.
+
+-- Deletes one behavior_log row by id.
+-- Returns the deleted row.
+
+CREATE OR REPLACE FUNCTION af_delete_behavior_log(
+    p_id bigint
+)
+RETURNS TABLE (
+    id bigint,
+    profile text,
+    behavior text,
+    category text,
+    log_date_time timestamp
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF p_id IS NULL THEN
+        RAISE EXCEPTION 'p_id is required';
+    END IF;
+
+    RETURN QUERY
+    DELETE FROM behavior_log bl
+    WHERE bl.id = p_id
+    RETURNING
+        bl.id,
+        bl.profile,
+        bl.behavior,
+        bl.category,
+        bl.log_date_time;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'behavior_log row not found for id %', p_id;
+    END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_delete_behavior_log(bigint) TO anon, authenticated, service_role;
 
 

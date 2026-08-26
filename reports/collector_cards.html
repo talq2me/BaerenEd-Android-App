@@ -230,7 +230,7 @@
                 const summaryHtml = `
                     <div class="section">
                         <h3>Unpaid days</h3>
-                        <p class="hint">Each day a kid finishes all required tasks earns one collector card. Mark days paid when you hand out the cards.</p>
+                        <p class="hint">Each day a kid finishes all required tasks earns one collector card. Landing on Pokemon/Soccer Card on the daily spin earns another. Mark cards paid when you hand them out.</p>
                         ${profiles.map(profile => {
                             const unpaid = (byProfile[profile] || []).filter(r => !r.paid_out);
                             const n = unpaid.length;

@@ -80,6 +80,8 @@ $files = @(
 
   "af_payout_collector_cards.sql",
 
+  "af_get_or_unlock_daily_prize.sql",
+
   "af_update_task_completion.sql",
 
   "af_update_tasks_checklist_items.sql",
@@ -108,7 +110,9 @@ $files = @(
 
   "af_get_behavior_log.sql",
 
-  "af_update_behavior_log_time.sql"
+  "af_update_behavior_log_time.sql",
+
+  "af_delete_behavior_log.sql"
 
 )
 

@@ -294,11 +294,47 @@
             border: 1px solid #e2e8f0;
         }
 
-        .chore-photo-card img {
+        .chore-photo-card img,
+        .chore-photo-card video,
+        .chore-photo-card .audio-thumb,
+        .chore-photo-card .video-thumb {
             width: 100%;
             height: 96px;
             object-fit: cover;
             display: block;
+        }
+
+        .chore-photo-card .audio-thumb {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.85em;
+            font-weight: 700;
+            object-fit: unset;
+        }
+
+        .chore-photo-card .video-thumb {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 0.85em;
+            font-weight: 700;
+            object-fit: unset;
+        }
+
+        .modal-content.audio-player,
+        .modal-content.video-player {
+            width: min(520px, 96vw);
+            max-height: none;
+        }
+
+        .modal-content.video-player {
+            max-height: 80vh;
+            background: #000;
         }
 
         .chore-photo-card .cap {
@@ -498,6 +534,8 @@
     <div id="imageModal" class="modal" aria-hidden="true">
         <span class="modal-close" id="imageModalClose">&times;</span>
         <img class="modal-content" id="modalImage" alt="Chore photo">
+        <audio class="modal-content audio-player" id="modalAudio" controls style="display:none"></audio>
+        <video class="modal-content video-player" id="modalVideo" controls playsinline muted style="display:none"></video>
     </div>
 
     <div id="grantModal" class="modal" aria-hidden="true">
@@ -556,9 +594,29 @@
             return { choreId: m[1], rewardCash: null, date: m[2] };
         }
 
-        function imageSrc(image) {
+        function isAudioPayload(image) {
+            return typeof image === 'string' && image.startsWith('data:audio');
+        }
+
+        function isVideoPayload(image) {
+            return typeof image === 'string' && (
+                image.startsWith('storage:chore-videos/') ||
+                image.startsWith('data:video')
+            );
+        }
+
+        function mediaSrc(image) {
             if (!image) return '';
-            return image.startsWith('data:image') ? image : ('data:image/jpeg;base64,' + image);
+            if (image.startsWith('storage:chore-videos/')) {
+                const objectPath = image.substring('storage:chore-videos/'.length);
+                return `${supabaseUrl}/storage/v1/object/public/chore-videos/${objectPath}`;
+            }
+            if (image.startsWith('data:')) return image;
+            return 'data:image/jpeg;base64,' + image;
+        }
+
+        function imageSrc(image) {
+            return mediaSrc(image);
         }
 
         function formatMoney(amount) {
@@ -591,7 +649,7 @@
             for (const t of master?.required || []) {
                 const launch = String(t.launch || '').toLowerCase();
                 const url = String(t.url || '').toLowerCase();
-                if (launch.startsWith('chore') || url.includes('chorephoto')) {
+                if (launch.startsWith('chore') || url.includes('chorephoto') || url.includes('choreaudio') || url.includes('chorevideo')) {
                     const title = String(t.title || '').trim().toLowerCase();
                     if (title) titles.add(title);
                 }
@@ -604,6 +662,8 @@
             if (choreTitleSet.has(keyNorm)) return true;
             if (String(task?.launch || '').toLowerCase().startsWith('chore')) return true;
             if (String(task?.url || '').toLowerCase().includes('chorephoto')) return true;
+            if (String(task?.url || '').toLowerCase().includes('choreaudio')) return true;
+            if (String(task?.url || '').toLowerCase().includes('chorevideo')) return true;
             const photoChores = (reportUserData && reportUserData.photo_chores) || {};
             for (const [id, chore] of Object.entries(photoChores)) {
                 if (String(chore?.title || chore?.description || '').trim().toLowerCase() === keyNorm) return true;
@@ -738,12 +798,16 @@
                 const parsed = parseChoreTaskKey(row.task) || {};
             const meta = photoChoresToday[parsed.choreId] || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[parsed.choreId]) || {};
             const title = meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' ');
-            const src = imageSrc(row.image);
             const paid = row.reward_granted === true;
             const card = document.createElement('div');
             card.className = 'chore-photo-card';
+            const mediaHtml = isAudioPayload(row.image)
+                ? `<div class="audio-thumb" aria-label="Audio">Audio</div>`
+                : (isVideoPayload(row.image)
+                    ? `<div class="video-thumb" aria-label="Video">Video</div>`
+                    : `<img src="${mediaSrc(row.image)}" alt="${title}">`);
             card.innerHTML = `
-                <img src="${src}" alt="${title}">
+                ${mediaHtml}
                 <div class="cap">${title}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
             `;
             card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
@@ -755,6 +819,15 @@
             const modal = document.getElementById('imageModal');
             modal.classList.remove('show');
             document.getElementById('modalImage').src = '';
+            document.getElementById('modalImage').style.display = '';
+            const audio = document.getElementById('modalAudio');
+            audio.pause();
+            audio.removeAttribute('src');
+            audio.style.display = 'none';
+            const video = document.getElementById('modalVideo');
+            video.pause();
+            video.removeAttribute('src');
+            video.style.display = 'none';
             document.body.style.overflow = '';
         }
 
@@ -778,7 +851,34 @@
             };
             const modal = document.getElementById('imageModal');
             const img = document.getElementById('modalImage');
-            img.src = imageSrc(row.image);
+            const audio = document.getElementById('modalAudio');
+            const video = document.getElementById('modalVideo');
+            if (isAudioPayload(row.image)) {
+                img.style.display = 'none';
+                img.src = '';
+                video.style.display = 'none';
+                video.pause();
+                video.removeAttribute('src');
+                audio.style.display = '';
+                audio.src = mediaSrc(row.image);
+            } else if (isVideoPayload(row.image)) {
+                img.style.display = 'none';
+                img.src = '';
+                audio.style.display = 'none';
+                audio.pause();
+                audio.removeAttribute('src');
+                video.style.display = '';
+                video.src = mediaSrc(row.image);
+            } else {
+                audio.style.display = 'none';
+                audio.pause();
+                audio.removeAttribute('src');
+                video.style.display = 'none';
+                video.pause();
+                video.removeAttribute('src');
+                img.style.display = '';
+                img.src = mediaSrc(row.image);
+            }
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
         }
