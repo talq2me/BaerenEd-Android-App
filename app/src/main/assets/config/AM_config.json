@@ -593,7 +593,7 @@
                     "launch": "choreUnloadDishwasher",
                     "webGame": true,
                     "description": "Unload the dishwasher and put everything away.",
-                    "displayDays": "mon,fri"
+                    "displayDays": "mon,thu"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=feed_dog&title=Feed%20dog%20and%20give%20water%20if%20needed&description=Feed%20the%20dog%20and%20give%20water%20if%20needed.&rewardCash=0.1",
