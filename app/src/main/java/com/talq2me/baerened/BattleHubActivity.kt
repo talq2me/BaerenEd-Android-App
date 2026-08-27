@@ -250,7 +250,6 @@ class BattleHubActivity : AppCompatActivity() {
     private lateinit var checklistButton: Button
     private lateinit var earnExtraBerriesButton: Button
     private lateinit var bonusTrainingButton: Button
-    private lateinit var choresButton: Button
     private lateinit var pokedexTitle: TextView
     
     private fun initializeViews() {
@@ -280,7 +279,6 @@ class BattleHubActivity : AppCompatActivity() {
         checklistButton = findViewById(R.id.checklistButton)
         earnExtraBerriesButton = findViewById(R.id.earnExtraBerriesButton)
         bonusTrainingButton = findViewById(R.id.bonusTrainingButton)
-        choresButton = findViewById(R.id.choresButton)
         victoryOverlay = findViewById(R.id.victoryOverlay)
         victoryPokemonSprite = findViewById(R.id.victoryPokemonSprite)
         victoryPokemonName = findViewById(R.id.victoryPokemonName)
@@ -817,10 +815,6 @@ class BattleHubActivity : AppCompatActivity() {
                 putExtra("mapType", "bonus")
             }
             startActivityForResult(intent, 2003) // Use request code 2003 for bonus map
-        }
-
-        choresButton.setOnClickListener {
-            startActivityForResult(Intent(this, ChoresActivity::class.java), 2010)
         }
     }
     
@@ -2210,11 +2204,6 @@ class BattleHubActivity : AppCompatActivity() {
                     }
                 }
             }
-        }
-
-        // When returning from Chores 4 $$, fetch from DB then refresh so we show current state
-        if (requestCode == 2010) {
-            refreshProgressFromDbThenUpdateUI()
         }
     }
 }

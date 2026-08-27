@@ -667,12 +667,126 @@ open class SupabaseInterface {
     }
 
     suspend fun invokeAfUpsertImageUpload(profile: String, task: String, imageBase64: String): Result<Unit> {
+        invokeAfCleanupOldChoreVideos(7).onFailure { e ->
+            Log.w(TAG, "af_cleanup_old_chore_videos failed (continuing upload): ${e.message}")
+        }
         val obj = JsonObject().apply {
             addProperty("p_profile", profile)
             addProperty("p_task", task)
             addProperty("p_image", imageBase64)
         }
         return invokeRpc("af_upsert_image_upload", gson.toJson(obj))
+    }
+
+    /**
+     * Deletes all image_uploads rows older than [days] (chore photos, audio, spelling,
+     * handwriting, video pointers) and Storage-API-deletes matching old chore videos.
+     * Called before each media upload. Does not touch behavior_log or other data tables.
+     */
+    suspend fun invokeAfCleanupOldChoreVideos(days: Int = 7): Result<Unit> {
+        val obj = JsonObject().apply {
+            addProperty("p_days", days)
+        }
+        val raw = invokeRpcPostReadBody("af_cleanup_old_chore_videos", gson.toJson(obj))
+            .getOrElse { return Result.failure(it) }
+        try {
+            val el = JsonParser.parseString(raw)
+            val resultObj = when {
+                el.isJsonObject -> el.asJsonObject
+                el.isJsonPrimitive && el.asJsonPrimitive.isString ->
+                    JsonParser.parseString(el.asString).asJsonObject
+                else -> return Result.success(Unit)
+            }
+            val paths = resultObj.getAsJsonArray("storage_paths") ?: JsonArray()
+            for (p in paths) {
+                if (!p.isJsonPrimitive) continue
+                val name = p.asString
+                if (name.isBlank()) continue
+                deleteChoreVideoFromStorage("storage:chore-videos/$name").onFailure { e ->
+                    Log.w(TAG, "old chore video delete failed ($name): ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "af_cleanup_old_chore_videos parse failed: ${e.message}")
+        }
+        return Result.success(Unit)
+    }
+
+    /**
+     * Uploads chore video bytes to the public `chore-videos` bucket and returns the
+     * `storage:chore-videos/{objectPath}` pointer stored in image_uploads.image.
+     */
+    suspend fun uploadChoreVideoToStorage(
+        profile: String,
+        taskKey: String,
+        videoBytes: ByteArray,
+        contentType: String,
+        fileExt: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        try {
+            invokeAfCleanupOldChoreVideos(7).onFailure { e ->
+                Log.w(TAG, "af_cleanup_old_chore_videos failed (continuing upload): ${e.message}")
+            }
+
+            val safeProfile = profile.replace(Regex("[^A-Za-z0-9_-]"), "_")
+            val safeTask = taskKey.replace(Regex("[^A-Za-z0-9_.-]"), "_")
+            val ext = fileExt.trim('.').ifBlank { "webm" }
+            val objectPath = "$safeProfile/$safeTask.$ext"
+            val url = "${getSupabaseUrl()}/storage/v1/object/chore-videos/$objectPath"
+            val mediaType = contentType.toMediaType()
+            val request = Request.Builder()
+                .url(url)
+                .put(videoBytes.toRequestBody(mediaType))
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .addHeader("Content-Type", contentType)
+                .addHeader("x-upsert", "true")
+                .build()
+            client.newCall(request).execute().use { response ->
+                val raw = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    return@withContext Result.failure(
+                        Exception("Storage upload failed: ${response.code} $raw")
+                    )
+                }
+            }
+            Result.success("storage:chore-videos/$objectPath")
+        } catch (e: Exception) {
+            Log.e(TAG, "uploadChoreVideoToStorage failed", e)
+            Result.failure(e)
+        }
+    }
+
+    /** Best-effort delete of a chore video object when parent hits Resend. */
+    suspend fun deleteChoreVideoFromStorage(storagePointer: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!isConfigured()) return@withContext Result.failure(Exception("Supabase not configured"))
+        val prefix = "storage:chore-videos/"
+        if (!storagePointer.startsWith(prefix)) {
+            return@withContext Result.success(Unit)
+        }
+        val objectPath = storagePointer.removePrefix(prefix)
+        try {
+            val url = "${getSupabaseUrl()}/storage/v1/object/chore-videos/$objectPath"
+            val request = Request.Builder()
+                .url(url)
+                .delete()
+                .addHeader("apikey", getSupabaseKey())
+                .addHeader("Authorization", "Bearer ${getSupabaseKey()}")
+                .build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful && response.code != 404) {
+                    val raw = response.body?.string().orEmpty()
+                    return@withContext Result.failure(
+                        Exception("Storage delete failed: ${response.code} $raw")
+                    )
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteChoreVideoFromStorage failed", e)
+            Result.failure(e)
+        }
     }
 
     suspend fun invokeAfDeleteImageUploadsIlike(profile: String, taskPattern: String): Result<Int> {

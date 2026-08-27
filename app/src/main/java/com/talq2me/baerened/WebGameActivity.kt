@@ -1,16 +1,21 @@
 package com.talq2me.baerened
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.media.MediaRecorder
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.webkit.JavascriptInterface
+import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -56,6 +61,9 @@ class WebGameActivity : AppCompatActivity() {
         const val EXTRA_QUESTIONS_ANSWERED = "questions_answered"
         const val CAMERA_PERMISSION_REQUEST_CODE = 1001
         const val CAMERA_REQUEST_CODE = 1002
+        const val AUDIO_PERMISSION_REQUEST_CODE = 1003
+        /** WebView getUserMedia (mic and/or camera) for audio/video chores. */
+        const val WEB_MEDIA_PERMISSION_REQUEST_CODE = 1004
     }
 
     private var webView: WebView? = null
@@ -69,6 +77,11 @@ class WebGameActivity : AppCompatActivity() {
     private var cameraSuccessCallback: String? = null
     private var cameraErrorCallback: String? = null
     private var cameraImageFile: File? = null // Store file path for full resolution image
+    private var pendingWebPermissionRequest: PermissionRequest? = null
+    private var mediaPermissionSuccessCallback: String? = null
+    private var mediaPermissionErrorCallback: String? = null
+    private var nativeAudioRecorder: MediaRecorder? = null
+    private var nativeAudioFile: File? = null
     private var lastWebGameCorrectAnswers: Int = -1
     private var lastWebGameIncorrectAnswers: Int = -1
     /** When set (from ?poolKey=), load/save game_indices under this key instead of task launch id. */
@@ -180,10 +193,75 @@ class WebGameActivity : AppCompatActivity() {
                     android.util.Log.d("WebGameActivity", "Game page fully loaded")
                 }
             }
+
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                if (request == null) return
+                val wantsAudio = request.resources.any { it == PermissionRequest.RESOURCE_AUDIO_CAPTURE }
+                val wantsVideo = request.resources.any { it == PermissionRequest.RESOURCE_VIDEO_CAPTURE }
+                if (!wantsAudio && !wantsVideo) {
+                    request.deny()
+                    return
+                }
+                runOnUiThread {
+                    val needed = mutableListOf<String>()
+                    if (wantsAudio && ContextCompat.checkSelfPermission(
+                            this@WebGameActivity,
+                            Manifest.permission.RECORD_AUDIO
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        needed.add(Manifest.permission.RECORD_AUDIO)
+                    }
+                    if (wantsVideo && ContextCompat.checkSelfPermission(
+                            this@WebGameActivity,
+                            Manifest.permission.CAMERA
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        needed.add(Manifest.permission.CAMERA)
+                    }
+                    if (needed.isEmpty()) {
+                        // Grant exactly what WebView asked for (do not subset).
+                        request.grant(request.resources)
+                    } else {
+                        // Prefer Android permission already held (requested at chore launch).
+                        // Holding the PermissionRequest across the system dialog often fails
+                        // because the original getUserMedia promise times out.
+                        pendingWebPermissionRequest = request
+                        ActivityCompat.requestPermissions(
+                            this@WebGameActivity,
+                            needed.toTypedArray(),
+                            WEB_MEDIA_PERMISSION_REQUEST_CODE
+                        )
+                    }
+                }
+            }
         }
 
         wv.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?) = false
+
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): WebResourceResponse? {
+                val path = request?.url?.path.orEmpty()
+                // Prefer APK-bundled chore HTML so mic/video fixes ship with the app
+                // without waiting for GitHub Pages (config URL stays github.io).
+                val assetPath = when {
+                    path.endsWith("choreAudio.html") -> "html/choreAudio.html"
+                    path.endsWith("choreVideo.html") -> "html/choreVideo.html"
+                    else -> null
+                }
+                if (assetPath != null) {
+                    return try {
+                        android.util.Log.d("WebGameActivity", "Serving local asset $assetPath for $path")
+                        WebResourceResponse("text/html", "utf-8", assets.open(assetPath))
+                    } catch (e: Exception) {
+                        android.util.Log.e("WebGameActivity", "Failed to open $assetPath", e)
+                        super.shouldInterceptRequest(view, request)
+                    }
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -195,6 +273,7 @@ class WebGameActivity : AppCompatActivity() {
                         if (window.Android) {
                             console.log('Available methods:', Object.keys(window.Android));
                             console.log('openCamera available:', typeof window.Android.openCamera === 'function');
+                            console.log('startAudioRecording available:', typeof window.Android.startAudioRecording === 'function');
                         }
                     }, 500);
                 """.trimIndent(), null)
@@ -235,8 +314,124 @@ class WebGameActivity : AppCompatActivity() {
         TtsManager.setOnUtteranceProgressListener(webGameTtsListener)
 
         android.util.Log.d("WebGameActivity", "Loading URL: $gameUrl")
+        maybeRequestChoreMediaPermissions(gameUrl)
         wv.addJavascriptInterface(WebGameInterface(taskId, progressStorageKey, freezePoolIndex), "Android")
         wv.loadUrl(gameUrl)
+    }
+
+    /**
+     * Ask for mic/camera before the page calls getUserMedia.
+     * WebView PermissionRequest often fails if Android's permission dialog runs mid-getUserMedia.
+     */
+    private fun maybeRequestChoreMediaPermissions(gameUrl: String) {
+        val needAudio = gameUrl.contains("choreAudio.html", ignoreCase = true)
+        val needVideo = gameUrl.contains("choreVideo.html", ignoreCase = true)
+        if (!needAudio && !needVideo) return
+        val needed = mutableListOf<String>()
+        if (needAudio && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            needed.add(Manifest.permission.RECORD_AUDIO)
+        }
+        if (needVideo && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            needed.add(Manifest.permission.CAMERA)
+        }
+        if (needed.isEmpty()) {
+            android.util.Log.d("WebGameActivity", "Chore media Android permissions already granted")
+            return
+        }
+        android.util.Log.d("WebGameActivity", "Requesting chore media permissions early: $needed")
+        ActivityCompat.requestPermissions(
+            this,
+            needed.toTypedArray(),
+            WEB_MEDIA_PERMISSION_REQUEST_CODE
+        )
+    }
+
+    private fun releaseNativeAudioRecorder() {
+        try {
+            nativeAudioRecorder?.apply {
+                try {
+                    stop()
+                } catch (_: Exception) {
+                }
+                reset()
+                release()
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("WebGameActivity", "releaseNativeAudioRecorder", e)
+        } finally {
+            nativeAudioRecorder = null
+        }
+    }
+
+    private fun startNativeAudioRecordingInternal(): String? {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return "Microphone permission not granted"
+        }
+        releaseNativeAudioRecorder()
+        nativeAudioFile?.delete()
+        val outFile = File(cacheDir, "chore_audio_${System.currentTimeMillis()}.m4a")
+        nativeAudioFile = outFile
+        return try {
+            val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(this)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaRecorder()
+            }
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            recorder.setAudioEncodingBitRate(64000)
+            recorder.setAudioSamplingRate(44100)
+            recorder.setOutputFile(outFile.absolutePath)
+            recorder.prepare()
+            recorder.start()
+            nativeAudioRecorder = recorder
+            android.util.Log.d("WebGameActivity", "Native audio recording started: ${outFile.absolutePath}")
+            null
+        } catch (e: Exception) {
+            android.util.Log.e("WebGameActivity", "startNativeAudioRecording failed", e)
+            releaseNativeAudioRecorder()
+            outFile.delete()
+            nativeAudioFile = null
+            e.message ?: "Could not start microphone"
+        }
+    }
+
+    private fun stopNativeAudioRecordingInternal(): Pair<String?, String?> {
+        val file = nativeAudioFile
+        return try {
+            val recorder = nativeAudioRecorder
+            if (recorder == null) {
+                return Pair(null, "Not recording")
+            }
+            try {
+                recorder.stop()
+            } catch (e: Exception) {
+                android.util.Log.w("WebGameActivity", "MediaRecorder.stop", e)
+            }
+            releaseNativeAudioRecorder()
+            if (file == null || !file.exists() || file.length() == 0L) {
+                return Pair(null, "No audio captured")
+            }
+            val bytes = file.readBytes()
+            file.delete()
+            nativeAudioFile = null
+            val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+            Pair("data:audio/mp4;base64,$b64", null)
+        } catch (e: Exception) {
+            android.util.Log.e("WebGameActivity", "stopNativeAudioRecording failed", e)
+            releaseNativeAudioRecorder()
+            file?.delete()
+            nativeAudioFile = null
+            Pair(null, e.message ?: "Could not stop recording")
+        }
     }
 
     private fun finishGameWithResult(taskId: String?) {
@@ -581,6 +776,119 @@ class WebGameActivity : AppCompatActivity() {
             return SettingsManager.readProfile(this@WebGameActivity) ?: "AM"
         }
 
+        /**
+         * Request Android RECORD_AUDIO / CAMERA before the page calls getUserMedia.
+         * successCallback / errorCallback are global JS function names.
+         */
+        @JavascriptInterface
+        fun ensureMediaPermissions(
+            needAudio: Boolean,
+            needVideo: Boolean,
+            successCallback: String,
+            errorCallback: String
+        ) {
+            runOnUiThread {
+                val needed = mutableListOf<String>()
+                if (needAudio && ContextCompat.checkSelfPermission(
+                        this@WebGameActivity,
+                        Manifest.permission.RECORD_AUDIO
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    needed.add(Manifest.permission.RECORD_AUDIO)
+                }
+                if (needVideo && ContextCompat.checkSelfPermission(
+                        this@WebGameActivity,
+                        Manifest.permission.CAMERA
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    needed.add(Manifest.permission.CAMERA)
+                }
+                if (needed.isEmpty()) {
+                    val escaped = successCallback.replace("\\", "\\\\").replace("'", "\\'")
+                    webView?.evaluateJavascript(
+                        "if (typeof window['$escaped'] === 'function') window['$escaped']();",
+                        null
+                    )
+                    return@runOnUiThread
+                }
+                mediaPermissionSuccessCallback = successCallback
+                mediaPermissionErrorCallback = errorCallback
+                ActivityCompat.requestPermissions(
+                    this@WebGameActivity,
+                    needed.toTypedArray(),
+                    WEB_MEDIA_PERMISSION_REQUEST_CODE
+                )
+            }
+        }
+
+        /** Start native mic recording (bypasses flaky WebView getUserMedia). */
+        @JavascriptInterface
+        fun startAudioRecording(successCallback: String, errorCallback: String) {
+            runOnUiThread {
+                fun fail(msg: String) {
+                    val escapedCb = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                    val escapedMsg = msg.replace("\\", "\\\\").replace("'", "\\'")
+                    webView?.evaluateJavascript(
+                        "if (typeof window['$escapedCb'] === 'function') window['$escapedCb']('$escapedMsg');",
+                        null
+                    )
+                }
+                fun ok() {
+                    val escapedCb = successCallback.replace("\\", "\\\\").replace("'", "\\'")
+                    webView?.evaluateJavascript(
+                        "if (typeof window['$escapedCb'] === 'function') window['$escapedCb']();",
+                        null
+                    )
+                }
+                if (ContextCompat.checkSelfPermission(
+                        this@WebGameActivity,
+                        Manifest.permission.RECORD_AUDIO
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    mediaPermissionSuccessCallback = null
+                    mediaPermissionErrorCallback = errorCallback
+                    ActivityCompat.requestPermissions(
+                        this@WebGameActivity,
+                        arrayOf(Manifest.permission.RECORD_AUDIO),
+                        WEB_MEDIA_PERMISSION_REQUEST_CODE
+                    )
+                    fail("Microphone permission needed — allow it, then press Record again")
+                    return@runOnUiThread
+                }
+                val err = startNativeAudioRecordingInternal()
+                if (err != null) fail(err) else ok()
+            }
+        }
+
+        /** Stop native mic recording; successCallback receives data:audio/mp4;base64,... */
+        @JavascriptInterface
+        fun stopAudioRecording(successCallback: String, errorCallback: String) {
+            Thread {
+                val (dataUrl, err) = stopNativeAudioRecordingInternal()
+                runOnUiThread {
+                    if (dataUrl != null) {
+                        val escapedCb = successCallback.replace("\\", "\\\\").replace("'", "\\'")
+                        // Keep payload out of single-quoted JS strings; pass via JSON.
+                        val json = JSONObject.quote(dataUrl)
+                        webView?.evaluateJavascript(
+                            "if (typeof window['$escapedCb'] === 'function') window['$escapedCb']($json);",
+                            null
+                        )
+                    } else {
+                        val escapedCb = errorCallback.replace("\\", "\\\\").replace("'", "\\'")
+                        val escapedMsg = (err ?: "Stop failed").replace("\\", "\\\\").replace("'", "\\'")
+                        webView?.evaluateJavascript(
+                            "if (typeof window['$escapedCb'] === 'function') window['$escapedCb']('$escapedMsg');",
+                            null
+                        )
+                    }
+                }
+            }.start()
+        }
+
+        @JavascriptInterface
+        fun isAudioRecording(): Boolean = nativeAudioRecorder != null
+
         @JavascriptInterface
         fun captureAndUploadHandwriting(task: String, successCallback: String, errorCallback: String) {
             android.util.Log.d("WebGameActivity", "captureAndUploadHandwriting task=$task")
@@ -686,13 +994,6 @@ class WebGameActivity : AppCompatActivity() {
                     
                     android.util.Log.d("WebGameActivity", "Uploading image for profile: $profile, task: $task")
                     
-                    // Remove data:image/jpeg;base64, prefix if present
-                    val base64Image = if (imageBase64.startsWith("data:image")) {
-                        imageBase64.substring(imageBase64.indexOf(",") + 1)
-                    } else {
-                        imageBase64
-                    }
-                    
                     val sync = SupabaseInterface()
                     if (!sync.isConfigured()) {
                         android.util.Log.e("WebGameActivity", "Supabase not configured")
@@ -706,9 +1007,57 @@ class WebGameActivity : AppCompatActivity() {
                         return@Thread
                     }
 
-                    android.util.Log.d("WebGameActivity", "Uploading image via RPC (profile=$profile, task=$task, captureDateTime=$captureDateTime)")
-                    val uploadResult = runBlocking(Dispatchers.IO) {
-                        sync.invokeAfUpsertImageUpload(profile, task, base64Image)
+                    // Video chores: upload binary to Storage, store a short pointer in image_uploads.
+                    // Photos/audio stay as base64 (or data:audio URI) in Postgres.
+                    val uploadResult = if (imageBase64.startsWith("data:video")) {
+                        android.util.Log.d(
+                            "WebGameActivity",
+                            "Uploading chore video to Storage (profile=$profile, task=$task, captureDateTime=$captureDateTime)"
+                        )
+                        runBlocking(Dispatchers.IO) {
+                            val comma = imageBase64.indexOf(',')
+                            if (comma < 0) {
+                                return@runBlocking Result.failure(Exception("Invalid video data URI"))
+                            }
+                            val meta = imageBase64.substring(5, comma) // e.g. video/webm;base64
+                            val contentType = meta.substringBefore(';').ifBlank { "video/webm" }
+                            val ext = when {
+                                contentType.contains("mp4") -> "mp4"
+                                contentType.contains("quicktime") -> "mov"
+                                else -> "webm"
+                            }
+                            val bytes = android.util.Base64.decode(
+                                imageBase64.substring(comma + 1),
+                                android.util.Base64.DEFAULT
+                            )
+                            val pointerResult = sync.uploadChoreVideoToStorage(
+                                profile = profile,
+                                taskKey = task,
+                                videoBytes = bytes,
+                                contentType = contentType,
+                                fileExt = ext
+                            )
+                            val pointer = pointerResult.getOrElse {
+                                return@runBlocking Result.failure(it)
+                            }
+                            sync.invokeAfUpsertImageUpload(profile, task, pointer)
+                        }
+                    } else {
+                        // Strip data:image/...;base64, prefix for photos. Keep data:audio/... URIs intact
+                        // so parent reports can detect and play audio chore uploads.
+                        val base64Image = when {
+                            imageBase64.startsWith("data:audio") -> imageBase64
+                            imageBase64.startsWith("data:") && imageBase64.contains(",") ->
+                                imageBase64.substring(imageBase64.indexOf(",") + 1)
+                            else -> imageBase64
+                        }
+                        android.util.Log.d(
+                            "WebGameActivity",
+                            "Uploading image via RPC (profile=$profile, task=$task, captureDateTime=$captureDateTime)"
+                        )
+                        runBlocking(Dispatchers.IO) {
+                            sync.invokeAfUpsertImageUpload(profile, task, base64Image)
+                        }
                     }
                     if (uploadResult.isSuccess) {
                         android.util.Log.d("WebGameActivity", "af_upsert_image_upload successful")
@@ -772,6 +1121,49 @@ class WebGameActivity : AppCompatActivity() {
                 cameraSuccessCallback = null
                 cameraErrorCallback = null
                 Toast.makeText(this, "Camera permission is required to take pictures", Toast.LENGTH_LONG).show()
+            }
+        } else if (requestCode == AUDIO_PERMISSION_REQUEST_CODE ||
+            requestCode == WEB_MEDIA_PERMISSION_REQUEST_CODE
+        ) {
+            val pending = pendingWebPermissionRequest
+            pendingWebPermissionRequest = null
+            val successCb = mediaPermissionSuccessCallback
+            val errorCb = mediaPermissionErrorCallback
+            mediaPermissionSuccessCallback = null
+            mediaPermissionErrorCallback = null
+            val allGranted = grantResults.isNotEmpty() &&
+                grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+            android.util.Log.d(
+                "WebGameActivity",
+                "Web media permission granted: $allGranted (requestCode=$requestCode, pending=${pending != null})"
+            )
+            if (allGranted && pending != null) {
+                pending.grant(pending.resources)
+            } else if (!allGranted && pending != null) {
+                pending.deny()
+            }
+            if (successCb != null || errorCb != null) {
+                runOnUiThread {
+                    if (allGranted && successCb != null) {
+                        val escaped = successCb.replace("\\", "\\\\").replace("'", "\\'")
+                        webView?.evaluateJavascript(
+                            "if (typeof window['$escaped'] === 'function') window['$escaped']();",
+                            null
+                        )
+                    } else if (!allGranted && errorCb != null) {
+                        val escaped = errorCb.replace("\\", "\\\\").replace("'", "\\'")
+                        webView?.evaluateJavascript(
+                            "if (typeof window['$escaped'] === 'function') window['$escaped']('Permission denied');",
+                            null
+                        )
+                    }
+                }
+            } else if (!allGranted && pending == null) {
+                Toast.makeText(
+                    this,
+                    "Microphone/camera permission is required for this chore",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -1036,6 +1428,9 @@ class WebGameActivity : AppCompatActivity() {
         if (!gameCompleted) {
             timeTracker.endActivity("webgame")
         }
+        releaseNativeAudioRecorder()
+        nativeAudioFile?.delete()
+        nativeAudioFile = null
         TtsManager.stop()
         // Spelling games (e.g. SpellingDrag at 0.1) mutate the shared engine rate; reset so
         // TappableText and other activities are not left slow after stop() skips onDone.
