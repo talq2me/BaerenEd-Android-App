@@ -473,6 +473,22 @@
                     "videoSequence": "sequential"
                 },
                 {
+                    "stars": 0,
+                    "title": "Kung fu form",
+                    "launch": "choreKungfuForm",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreVideo.html?choreId=kungfu_form&title=Kung%20fu%20form&description=Set%20the%20tablet%20down%2C%20hit%20Record%2C%20wait%20for%20the%20beeps%2C%20then%20do%20your%20form.&rewardCash=1&maxSeconds=60&countdownSeconds=5",
+                    "description": "Set the tablet down, hit Record, wait for the beeps, then do your form."
+                },
+                {
+                    "stars": 0,
+                    "title": "Piano practice",
+                    "launch": "chorePianoPractice",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=piano_practice&title=Piano%20practice&description=Record%20yourself%20practicing%20piano.&rewardCash=1&maxSeconds=300",
+                    "description": "Record yourself practicing piano."
+                },
+                {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=put_away_laundry&title=Put%20away%20laundry&description=Fold%20and%20put%20away%20the%20clean%20laundry.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Put away laundry",

@@ -20,7 +20,7 @@
             }
         ]
     },
-    "version": "2026-07-08",
+    "version": "2026-08-27",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -508,6 +508,22 @@
                     "launch": "uflivideos",
                     "disable": "Dec 31, 2099",
                     "videoSequence": "sequential"
+                },
+                {
+                    "stars": 0,
+                    "title": "Kung fu form",
+                    "launch": "choreKungfuForm",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreVideo.html?choreId=kungfu_form&title=Kung%20fu%20form&description=Set%20the%20tablet%20down%2C%20hit%20Record%2C%20wait%20for%20the%20beeps%2C%20then%20do%20your%20form.&rewardCash=1&maxSeconds=60&countdownSeconds=5",
+                    "description": "Set the tablet down, hit Record, wait for the beeps, then do your form."
+                },
+                {
+                    "stars": 0,
+                    "title": "Piano practice",
+                    "launch": "chorePianoPractice",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=piano_practice&title=Piano%20practice&description=Record%20yourself%20practicing%20piano.&rewardCash=1&maxSeconds=300",
+                    "description": "Record yourself practicing piano."
                 },
                 {
                     "stars": 0,
