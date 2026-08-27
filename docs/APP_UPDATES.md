@@ -37,10 +37,18 @@ where `<tag>` matches your release tag (e.g. `v164`). Do not use GitHub Actions 
 
 | Secret | Description |
 |--------|-------------|
-| `KEYSTORE_BASE64` | Base64-encoded signing keystore (`base64 -w0 keystore.jks`) |
+| `KEYSTORE_BASE64` | Base64-encoded signing keystore (see below) |
 | `KEYSTORE_PASSWORD` | Keystore password |
-| `KEY_ALIAS` | Key alias (e.g. `key1`) |
+| `KEY_ALIAS` | Key alias — must be `key1` (required; empty alias fails CI) |
 | `KEY_PASSWORD` | Key password (optional if same as keystore password) |
+
+Encode the keystore in **Git Bash** (one line, no line breaks):
+
+```bash
+base64 -w0 "C:/Users/talqu/keystore1"
+```
+
+Do **not** use `certutil -encode` (adds PEM headers). The file is PKCS12 format; CI decodes it as `.p12` with `store.type=PKCS12`.
 
 ## Manual device test checklist
 

@@ -21,8 +21,30 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Decode signing keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/keystore.jks"
+      - name: Decode and verify signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEY_ALIAS:-}" ]; then
+            echo "ERROR: KEY_ALIAS secret is missing or empty. Set it to key1 in repo secrets."
+            exit 1
+          fi
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "ERROR: KEYSTORE_BASE64 secret is missing or empty."
+            exit 1
+          fi
+          KEYSTORE_PATH="${{ runner.temp }}/keystore.p12"
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '\n\r ' | base64 -d > "$KEYSTORE_PATH"
+          if ! keytool -list -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD" -storetype PKCS12 >/dev/null 2>&1; then
+            echo "ERROR: Could not read keystore after base64 decode."
+            echo "Re-create KEYSTORE_BASE64 with: base64 -w0 /path/to/keystore1"
+            exit 1
+          fi
+          echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo "KEYSTORE_TYPE=PKCS12" >> "$GITHUB_ENV"
 
       - name: Build signed release APK
         env:
@@ -33,7 +55,8 @@ jobs:
           chmod +x gradlew
           KEY_PASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
           ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file="${{ runner.temp }}/keystore.jks" \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
+            -Pandroid.injected.signing.store.type="$KEYSTORE_TYPE" \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASS"
