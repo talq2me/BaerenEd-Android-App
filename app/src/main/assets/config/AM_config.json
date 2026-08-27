@@ -16,7 +16,7 @@
             }
         ]
     },
-    "version": "2026-08-26",
+    "version": "2026-08-27",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -566,7 +566,7 @@
                     "launch": "choreCleanBathroomCounters",
                     "webGame": true,
                     "description": "Clean the warm bathroom counter and wipe it clean.",
-                    "displayDays": "tue,fri"
+                    "displayDays": "tue,thu,sat"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=1",
