@@ -40,6 +40,7 @@ DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
 DROP FUNCTION IF EXISTS af_maybe_record_collector_card_day(text);
 DROP FUNCTION IF EXISTS af_payout_collector_cards(text, int);
 DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text);
+DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text, jsonb);
 DROP FUNCTION IF EXISTS af_resend_chore_photo(text, text);
 DROP FUNCTION IF EXISTS af_reward_time_add(TEXT, INTEGER);
 DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT, BOOLEAN);
@@ -3469,7 +3470,7 @@ GRANT EXECUTE ON FUNCTION af_reward_time_add(TEXT, INTEGER) TO anon, authenticat
 -- -----------------------------------------------------------------------------
 -- FILE: af_push_profile_config_to_github.sql
 -- -----------------------------------------------------------------------------
--- Parent schedule editor: push profile config JSON to GitHub (Contents API).
+-- Parent schedule editor: push profile config JSON (and optional schedule master) to GitHub (Contents API).
 -- Call site: reports/schedule_editor.html (after user_data PATCH).
 --
 -- Setup (Supabase Dashboard → Project Settings → Vault):
@@ -3478,10 +3479,14 @@ GRANT EXECUTE ON FUNCTION af_reward_time_add(TEXT, INTEGER) TO anon, authenticat
 --
 -- GitHub branch: V3 (same branch GitHub Pages serves for config).
 
+DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text);
+DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text, jsonb);
+
 CREATE OR REPLACE FUNCTION af_push_profile_config_to_github(
   p_profile text,
   p_config_json jsonb,
-  p_write_key text
+  p_write_key text,
+  p_schedule_master_json jsonb DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -3492,6 +3497,10 @@ DECLARE
   v_profile text := upper(trim(p_profile));
   v_expected_key text;
   v_pat text;
+  v_files jsonb;
+  v_file jsonb;
+  v_idx int;
+  v_file_count int;
   v_path text;
   v_api_url text;
   v_get_status int;
@@ -3502,6 +3511,7 @@ DECLARE
   v_put_request text;
   v_put_status int;
   v_put_response jsonb;
+  v_paths jsonb := '[]'::jsonb;
   v_branch text := 'V3';
 BEGIN
   IF v_profile NOT IN ('AM', 'BM', 'TE') THEN
@@ -3534,71 +3544,97 @@ BEGIN
     RAISE EXCEPTION 'github_config_pat not configured in Supabase Vault';
   END IF;
 
-  v_path := 'app/src/main/assets/config/' || v_profile || '_config.json';
-  v_api_url := 'https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/' || v_path || '?ref=' || v_branch;
+  v_files := jsonb_build_array(
+    jsonb_build_object(
+      'path', 'app/src/main/assets/config/' || v_profile || '_config.json',
+      'payload', p_config_json,
+      'message', 'Schedule editor: update ' || v_profile || '_config.json'
+    )
+  );
 
-  SELECT r.status, r.content::jsonb
-  INTO v_get_status, v_get_body
-  FROM extensions.http((
-    'GET',
-    v_api_url,
-    ARRAY[
-      extensions.http_header('Authorization', 'Bearer ' || v_pat),
-      extensions.http_header('Accept', 'application/vnd.github+json'),
-      extensions.http_header('User-Agent', 'BaerenEd-Schedule-Editor')
-    ]::extensions.http_header[],
-    NULL,
-    NULL
-  )::extensions.http_request) r;
-
-  IF v_get_status != 200 OR v_get_body IS NULL THEN
-    RAISE EXCEPTION 'GitHub GET failed (status %): %', COALESCE(v_get_status, -1), COALESCE(v_get_body::text, 'null');
+  IF p_schedule_master_json IS NOT NULL AND jsonb_typeof(p_schedule_master_json) = 'object' THEN
+    v_files := v_files || jsonb_build_array(
+      jsonb_build_object(
+        'path', 'app/src/main/assets/config/schedule_master_' || v_profile || '.json',
+        'payload', p_schedule_master_json,
+        'message', 'Schedule editor: update schedule_master_' || v_profile || '.json'
+      )
+    );
   END IF;
 
-  v_sha := v_get_body->>'sha';
-  IF v_sha IS NULL OR v_sha = '' THEN
-    RAISE EXCEPTION 'GitHub GET did not return file sha';
-  END IF;
+  v_file_count := jsonb_array_length(v_files);
+  FOR v_idx IN 0 .. v_file_count - 1 LOOP
+    v_file := v_files -> v_idx;
+    v_path := v_file->>'path';
+    v_api_url := 'https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/' || v_path || '?ref=' || v_branch;
 
-  v_content := jsonb_pretty(p_config_json);
-  v_content_b64 := encode(convert_to(v_content, 'UTF8'), 'base64');
+    SELECT r.status, r.content::jsonb
+    INTO v_get_status, v_get_body
+    FROM extensions.http((
+      'GET',
+      v_api_url,
+      ARRAY[
+        extensions.http_header('Authorization', 'Bearer ' || v_pat),
+        extensions.http_header('Accept', 'application/vnd.github+json'),
+        extensions.http_header('User-Agent', 'BaerenEd-Schedule-Editor')
+      ]::extensions.http_header[],
+      NULL,
+      NULL
+    )::extensions.http_request) r;
 
-  v_put_request := jsonb_build_object(
-    'message', 'Schedule editor: update ' || v_profile || '_config.json',
-    'content', v_content_b64,
-    'branch', v_branch,
-    'sha', v_sha
-  )::text;
+    IF v_get_status != 200 OR v_get_body IS NULL THEN
+      RAISE EXCEPTION 'GitHub GET failed for % (status %): %', v_path, COALESCE(v_get_status, -1), COALESCE(v_get_body::text, 'null');
+    END IF;
 
-  SELECT r.status, r.content::jsonb
-  INTO v_put_status, v_put_response
-  FROM extensions.http((
-    'PUT',
-    'https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/' || v_path,
-    ARRAY[
-      extensions.http_header('Authorization', 'Bearer ' || v_pat),
-      extensions.http_header('Accept', 'application/vnd.github+json'),
-      extensions.http_header('User-Agent', 'BaerenEd-Schedule-Editor')
-    ]::extensions.http_header[],
-    'application/json',
-    v_put_request
-  )::extensions.http_request) r;
+    v_sha := v_get_body->>'sha';
+    IF v_sha IS NULL OR v_sha = '' THEN
+      RAISE EXCEPTION 'GitHub GET did not return file sha for %', v_path;
+    END IF;
 
-  IF v_put_status NOT IN (200, 201) THEN
-    RAISE EXCEPTION 'GitHub PUT failed (status %): %', COALESCE(v_put_status, -1), COALESCE(v_put_response::text, 'null');
-  END IF;
+    v_content := jsonb_pretty(v_file->'payload');
+    v_content_b64 := encode(convert_to(v_content, 'UTF8'), 'base64');
+
+    v_put_request := jsonb_build_object(
+      'message', v_file->>'message',
+      'content', v_content_b64,
+      'branch', v_branch,
+      'sha', v_sha
+    )::text;
+
+    SELECT r.status, r.content::jsonb
+    INTO v_put_status, v_put_response
+    FROM extensions.http((
+      'PUT',
+      'https://api.github.com/repos/talq2me/BaerenEd-Android-App/contents/' || v_path,
+      ARRAY[
+        extensions.http_header('Authorization', 'Bearer ' || v_pat),
+        extensions.http_header('Accept', 'application/vnd.github+json'),
+        extensions.http_header('User-Agent', 'BaerenEd-Schedule-Editor')
+      ]::extensions.http_header[],
+      'application/json',
+      v_put_request
+    )::extensions.http_request) r;
+
+    IF v_put_status NOT IN (200, 201) THEN
+      RAISE EXCEPTION 'GitHub PUT failed for % (status %): %', v_path, COALESCE(v_put_status, -1), COALESCE(v_put_response::text, 'null');
+    END IF;
+
+    v_paths := v_paths || jsonb_build_array(v_path);
+  END LOOP;
 
   RETURN jsonb_build_object(
     'ok', true,
     'profile', v_profile,
-    'path', v_path,
+    'path', v_paths->>0,
+    'paths', v_paths,
+    'master_path', CASE WHEN jsonb_array_length(v_paths) > 1 THEN v_paths->>1 ELSE NULL END,
     'branch', v_branch,
     'commit_sha', v_put_response->'commit'->>'sha'
   );
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION af_push_profile_config_to_github(text, jsonb, text) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION af_push_profile_config_to_github(text, jsonb, text, jsonb) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------

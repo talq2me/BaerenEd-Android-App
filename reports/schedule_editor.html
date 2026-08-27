@@ -36,13 +36,24 @@
             font-size: 0.82rem;
             font-weight: 600;
             white-space: nowrap;
+            border: none;
+            font-family: inherit;
+            line-height: 1.2;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .toolbar {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             margin-top: 10px;
         }
         .toolbar select, .toolbar button, .toolbar a.btn {
@@ -52,8 +63,12 @@
             font-size: 0.95rem;
             cursor: pointer;
         }
-        .toolbar select { min-width: 120px; }
-        .btn-primary { background: #fff; color: #5a67d8; font-weight: 600; }
+        .toolbar select {
+            width: 3.6rem;
+            min-width: 0;
+            padding: 10px 4px;
+            text-align: center;
+        }
         .btn-save { background: #4CAF50; color: #fff; font-weight: 600; }
         .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-link {
@@ -182,6 +197,7 @@
             font-size: 0.85rem;
             -moz-appearance: textfield;
         }
+        .task-row input[type="number"].cash { width: 3.8rem; }
         .task-row input[type="number"]::-webkit-outer-spin-button,
         .task-row input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -247,6 +263,39 @@
             max-width: 420px;
             width: 100%;
         }
+        .modal.wide { max-width: 520px; max-height: 92vh; overflow-y: auto; }
+        .modal-field { margin: 10px 0; }
+        .modal-field > span, .modal-field > label.block-label {
+            display: block;
+            font-size: 0.82rem;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .modal-field input[type="text"],
+        .modal-field input[type="number"],
+        .modal-field textarea,
+        .modal-field select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font: inherit;
+        }
+        .modal-field textarea { min-height: 64px; resize: vertical; }
+        .type-picks, .profile-picks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+        }
+        .type-picks label, .profile-picks label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.92rem;
+        }
+        .media-extras { display: none; }
+        .media-extras.show { display: block; }
         .modal h3 { margin-bottom: 12px; }
         .day-picks {
             display: grid;
@@ -288,7 +337,10 @@
         <div class="header">
             <div class="header-top">
                 <h1>Edit Schedule</h1>
-                <a href="index.html" class="header-back">← Back</a>
+                <div class="header-actions">
+                    <button type="button" class="header-back" id="reloadBtn">↻ Reload</button>
+                    <a href="index.html" class="header-back">← Back</a>
+                </div>
             </div>
             <div class="toolbar">
                 <select id="profileSelect" aria-label="Child profile">
@@ -296,10 +348,8 @@
                     <option value="BM">BM</option>
                     <option value="TE">TE</option>
                 </select>
-                <button type="button" class="btn-primary" id="reloadBtn">↻ Reload</button>
                 <button type="button" class="btn-save" id="saveBtn">💾 Save (DB + GitHub)</button>
                 <a href="schedule.html" class="btn-link">View schedule</a>
-                <a href="index.html" class="btn-link">← Reports</a>
             </div>
         </div>
 
@@ -345,8 +395,11 @@
                     <h2>Required chores config</h2>
                 </button>
                 <div class="card-body">
-                    <p class="hint">Photo chores from the required section. Same on/off, days, and star controls as required tasks.</p>
+                    <p class="hint">Photo, audio, and video chores. Same on/off and days as required tasks. Reward is dollars (not stars). New chores are written to the database and GitHub on Save, and can be added to more than one profile.</p>
                     <div id="requiredChoresList"></div>
+                    <div class="add-row">
+                        <button type="button" class="icon-btn" id="addChoreBtn">+ Add chore</button>
+                    </div>
                 </div>
             </div>
 
@@ -394,6 +447,61 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="addChoreModal">
+        <div class="modal wide">
+            <h3>Add chore</h3>
+            <div class="modal-field">
+                <span>Chore type</span>
+                <div class="type-picks">
+                    <label><input type="radio" name="addChoreType" value="photo" checked> Photo</label>
+                    <label><input type="radio" name="addChoreType" value="audio"> Audio</label>
+                    <label><input type="radio" name="addChoreType" value="video"> Video</label>
+                </div>
+            </div>
+            <div class="modal-field">
+                <label class="block-label" for="addChoreName">Chore name</label>
+                <input type="text" id="addChoreName" placeholder="e.g. Sweep kitchen">
+            </div>
+            <div class="modal-field">
+                <label class="block-label" for="addChoreDescription">Description</label>
+                <textarea id="addChoreDescription" placeholder="Instructions shown to the child"></textarea>
+            </div>
+            <div class="modal-field">
+                <label class="block-label" for="addChoreReward">Reward $</label>
+                <input type="number" id="addChoreReward" min="0" step="0.01" value="0.25">
+            </div>
+            <div class="modal-field media-extras" id="addChoreAudioExtras">
+                <label class="block-label" for="addChoreAudioMax">Max recording seconds (audio)</label>
+                <input type="number" id="addChoreAudioMax" min="5" max="3600" value="300">
+            </div>
+            <div class="modal-field media-extras" id="addChoreVideoExtras">
+                <label class="block-label" for="addChoreVideoMax">Max recording seconds (video)</label>
+                <input type="number" id="addChoreVideoMax" min="5" max="600" value="60">
+                <label class="block-label" for="addChoreVideoCountdown" style="margin-top:8px;">Countdown seconds before record</label>
+                <input type="number" id="addChoreVideoCountdown" min="0" max="30" value="5">
+            </div>
+            <div class="modal-field">
+                <span>Days visible</span>
+                <div class="day-picks" id="addChoreDayPicks"></div>
+                <label style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+                    <input type="checkbox" id="addChoreAllWeek" checked> All days
+                </label>
+            </div>
+            <div class="modal-field">
+                <span>Add to profiles</span>
+                <div class="profile-picks">
+                    <label><input type="checkbox" id="addChoreProfileAM" value="AM"> AM</label>
+                    <label><input type="checkbox" id="addChoreProfileBM" value="BM"> BM</label>
+                    <label><input type="checkbox" id="addChoreProfileTE" value="TE"> TE</label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="addChoreCancel">Cancel</button>
+                <button type="button" style="background:#4CAF50;color:#fff;" id="addChoreSave">Add chore</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="offModal">
         <div class="modal">
             <h3>Turn task off</h3>
@@ -418,6 +526,8 @@
 
     <script>
         const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
+        const CHORE_HTML_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/';
+        const ALL_PROFILES = ['AM', 'BM', 'TE'];
         const DAYS = [
             { key: 'sun', label: 'Sun' },
             { key: 'mon', label: 'Mon' },
@@ -447,6 +557,8 @@
         let modalCtx = { type: null, key: null };
         /** Labels removed this session; kept out of catalog until save + reload */
         let deletedChecklistLabels = new Set();
+        /** New chores queued for other profiles: { profiles: string[], task: object } */
+        let pendingChoreAdds = [];
 
         function supabaseUrl() { return localStorage.getItem('supabaseUrl'); }
         function supabaseKey() { return localStorage.getItem('supabaseKey'); }
@@ -474,6 +586,41 @@
             if (launch && urlId) return `${sectionId}|${launch}|${urlId}`;
             if (launch) return `${sectionId}|${launch}|${title}`;
             return `${sectionId}|${title}`;
+        }
+
+        function dedupeMasterTasks(tasks, sectionId) {
+            const out = [];
+            const seen = new Set();
+            for (const t of tasks || []) {
+                const title = String(t?.title || t?.label || '').trim();
+                if (!title && sectionId !== 'checklist') continue;
+                const key = taskScheduleKey(t, sectionId);
+                if (seen.has(key)) continue;
+                seen.add(key);
+                out.push({ ...t, scheduleKey: key });
+            }
+            return out;
+        }
+
+        function buildScheduleMasterJson(cfg, targetProfile) {
+            const master = {
+                profile: targetProfile,
+                version: cfg?.version || '',
+                source: `${targetProfile}_config.json`,
+                required: [],
+                practice: [],
+                checklist: []
+            };
+            for (const sec of cfg?.sections || []) {
+                if (sec.id === 'required' && sec.tasks) {
+                    master.required = dedupeMasterTasks(sec.tasks, 'required');
+                } else if (sec.id === 'optional' && sec.tasks) {
+                    master.practice = dedupeMasterTasks(sec.tasks, 'practice');
+                } else if (sec.id === 'checklist' && sec.items) {
+                    master.checklist = dedupeMasterTasks(sec.items, 'checklist');
+                }
+            }
+            return master;
         }
 
         function entryLookupKey(entry) {
@@ -504,7 +651,27 @@
                     for (const t of sec.tasks) {
                         const sk = taskScheduleKey(t, 'required');
                         const entry = catalog.required.find(e => e.key === sk || e.title === t.title);
-                        if (entry) applyScheduleFields(t, entry.data);
+                        if (entry) {
+                            applyScheduleFields(t, entry.data);
+                            if (isChoreTask(t) || isChoreEntry(entry)) {
+                                t.stars = 0;
+                                const reward = parseRewardCash(entry);
+                                const current = parseRewardCashFromUrl(t.url);
+                                if (t.url && (current == null || Math.abs(current - reward) >= 0.001)) {
+                                    t.url = setRewardCashOnUrl(t.url, reward);
+                                }
+                            }
+                        }
+                    }
+                    const existingTitles = new Set(sec.tasks.map(t => t.title));
+                    const existingLaunches = new Set(sec.tasks.map(t => t.launch).filter(Boolean));
+                    for (const entry of catalog.required.filter(isChoreEntry)) {
+                        const launch = entry.config?.launch || entry.data?.launch;
+                        if (existingTitles.has(entry.title) || (launch && existingLaunches.has(launch))) continue;
+                        const task = choreConfigFromEntry(entry);
+                        sec.tasks.push(task);
+                        existingTitles.add(task.title);
+                        if (task.launch) existingLaunches.add(task.launch);
                     }
                 }
                 if (sec.id === 'optional' && sec.tasks) {
@@ -532,7 +699,132 @@
             return out;
         }
 
-        async function pushConfigToGitHub(updatedConfig) {
+        function isChoreTask(task) {
+            const launch = String(task?.launch || '').toLowerCase();
+            if (launch.startsWith('chore')) return true;
+            const url = String(task?.url || '').toLowerCase();
+            return url.includes('chorephoto') || url.includes('choreaudio') || url.includes('chorevideo');
+        }
+
+        function isChoreEntry(entry) {
+            return isChoreTask(entry?.config) || isChoreTask(entry?.data);
+        }
+
+        function formatRewardCashParam(amount) {
+            const n = Number(amount);
+            if (isNaN(n)) return '0';
+            if (Math.abs(n - Math.round(n)) < 0.001) return String(Math.round(n));
+            return String(Math.round(n * 100) / 100);
+        }
+
+        function parseRewardCashFromUrl(url) {
+            if (!url) return null;
+            try {
+                const raw = new URL(url).searchParams.get('rewardCash');
+                if (raw == null || raw === '') return null;
+                const n = Number(raw);
+                return isNaN(n) ? null : n;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function parseRewardCash(entry) {
+            if (entry?.data?.rewardCash != null && entry.data.rewardCash !== '') {
+                const n = Number(entry.data.rewardCash);
+                if (!isNaN(n)) return n;
+            }
+            const fromUrl = parseRewardCashFromUrl(entry?.config?.url || entry?.data?.url || '');
+            return fromUrl != null ? fromUrl : 0;
+        }
+
+        function setRewardCashOnUrl(url, amount) {
+            if (!url) return url;
+            const value = encodeURIComponent(formatRewardCashParam(amount));
+            if (/[?&]rewardCash=/.test(url)) {
+                return url.replace(/([?&]rewardCash=)[^&]*/, '$1' + value);
+            }
+            const join = url.includes('?') ? '&' : '?';
+            return url + join + 'rewardCash=' + value;
+        }
+
+        function slugifyChoreId(name) {
+            return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        }
+
+        function choreLaunchId(name) {
+            const pascal = String(name).trim().split(/[^A-Za-z0-9]+/).filter(Boolean)
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join('');
+            return 'chore' + pascal;
+        }
+
+        function buildChoreUrl(opts) {
+            const type = opts.type || 'photo';
+            const html = type === 'video' ? 'choreVideo.html' : type === 'audio' ? 'choreAudio.html' : 'chorePhoto.html';
+            const parts = [
+                'choreId=' + encodeURIComponent(opts.choreId),
+                'title=' + encodeURIComponent(opts.title),
+                'description=' + encodeURIComponent(opts.description || ''),
+                'rewardCash=' + formatRewardCashParam(opts.rewardCash)
+            ];
+            if (type === 'audio') {
+                parts.push('maxSeconds=' + encodeURIComponent(String(opts.maxSeconds || 300)));
+            }
+            if (type === 'video') {
+                parts.push('maxSeconds=' + encodeURIComponent(String(opts.maxSeconds || 60)));
+                parts.push('countdownSeconds=' + encodeURIComponent(String(opts.countdownSeconds || 5)));
+            }
+            return CHORE_HTML_BASE + html + '?' + parts.join('&');
+        }
+
+        function choreConfigFromEntry(entry) {
+            const reward = parseRewardCash(entry);
+            const task = {
+                url: setRewardCashOnUrl(entry.config?.url || entry.data?.url || '', reward),
+                stars: 0,
+                title: entry.title,
+                launch: entry.config?.launch || entry.data?.launch || choreLaunchId(entry.title),
+                webGame: true,
+                description: entry.config?.description || entry.data?.description || ''
+            };
+            applyScheduleFields(task, entry.data || {});
+            task.stars = 0;
+            if (entry.data?.rewardCash != null) {
+                task.url = setRewardCashOnUrl(task.url, entry.data.rewardCash);
+            }
+            return task;
+        }
+
+        function ensureRequiredSection(cfg) {
+            if (!cfg.sections) cfg.sections = [];
+            let sec = cfg.sections.find(s => s.id === 'required');
+            if (!sec) {
+                sec = { id: 'required', tasks: [], title: 'Required Tasks', description: 'Complete all of these first!' };
+                cfg.sections.push(sec);
+            }
+            if (!Array.isArray(sec.tasks)) sec.tasks = [];
+            return sec;
+        }
+
+        function addChoreToLocalConfig(task) {
+            if (!configJson) return;
+            const sec = ensureRequiredSection(configJson);
+            if (!sec.tasks.some(t => t.title === task.title || t.launch === task.launch)) {
+                sec.tasks.push(JSON.parse(JSON.stringify(task)));
+            }
+            if (scheduleMaster) {
+                if (!Array.isArray(scheduleMaster.required)) scheduleMaster.required = [];
+                if (!scheduleMaster.required.some(t => t.title === task.title || t.launch === task.launch)) {
+                    scheduleMaster.required.push({
+                        ...JSON.parse(JSON.stringify(task)),
+                        scheduleKey: taskScheduleKey(task, 'required')
+                    });
+                }
+            }
+        }
+
+        async function pushConfigToGitHub(updatedConfig, targetProfile) {
             const writeKey = scheduleWriteKey();
             if (!writeKey) return { skipped: true };
             const url = supabaseUrl();
@@ -545,9 +837,10 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    p_profile: profile,
+                    p_profile: targetProfile || profile,
                     p_config_json: updatedConfig,
-                    p_write_key: writeKey
+                    p_write_key: writeKey,
+                    p_schedule_master_json: buildScheduleMasterJson(updatedConfig, targetProfile || profile)
                 })
             });
             if (!res.ok) {
@@ -684,6 +977,15 @@
                     }
                 }
             }
+            if (isChoreTask(cfgTask) || isChoreTask(merged)) {
+                if (merged.rewardCash == null || merged.rewardCash === '') {
+                    const fromUrl = parseRewardCashFromUrl(cfgTask?.url || merged.url);
+                    if (fromUrl != null) merged.rewardCash = fromUrl;
+                }
+                if (merged.launch == null && cfgTask?.launch) merged.launch = cfgTask.launch;
+                if (merged.url == null && cfgTask?.url) merged.url = cfgTask.url;
+                merged.stars = 0;
+            }
             return merged;
         }
 
@@ -801,6 +1103,18 @@
                 }
             }
 
+            // Chores added in the editor (or on GitHub config) may not be in schedule_master yet
+            if (configJson?.sections) {
+                for (const sec of configJson.sections) {
+                    if (sec.id !== 'required' || !sec.tasks) continue;
+                    for (const t of sec.tasks) {
+                        if (!isChoreTask(t)) continue;
+                        if (catalog.required.find(x => x.title === t.title || x.config?.launch === t.launch)) continue;
+                        pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
+                    }
+                }
+            }
+
             // DB-only entries (legacy titles not in master/config)
             for (const [title, data] of Object.entries(dbRow.required_tasks || {})) {
                 if (!catalog.required.find(x => x.title === title)) {
@@ -895,13 +1209,6 @@
             });
         }
 
-        function isChoreEntry(entry) {
-            const launch = String(entry?.config?.launch || '').toLowerCase();
-            if (launch.startsWith('chore')) return true;
-            const url = String(entry?.config?.url || '').toLowerCase();
-            return url.includes('chorephoto');
-        }
-
         function hasTotalQuestions(entry) {
             return entry.config?.totalQuestions != null || entry.data?.totalQuestions != null;
         }
@@ -915,9 +1222,13 @@
                 row.className = 'task-row' + (on ? '' : ' off');
                 const starsVal = entry.data.stars ?? entry.config.stars ?? 1;
                 const rowKey = entryLookupKey(entry);
+                const isChoreRow = containerId === 'requiredChoresList' || isChoreEntry(entry);
                 const qBlock = hasTotalQuestions(entry)
                     ? `<label class="field">Q <input type="number" min="1" max="99" value="${entry.data.totalQuestions ?? entry.config.totalQuestions ?? ''}" data-field="totalQuestions" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>`
                     : '';
+                const rewardBlock = isChoreRow
+                    ? `<label class="field">$ <input type="number" class="cash" min="0" step="0.01" value="${formatRewardCashParam(parseRewardCash(entry))}" data-field="rewardCash" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" title="Reward dollars"></label>`
+                    : `<label class="field">⭐ <input type="number" min="0" max="20" value="${starsVal}" data-field="stars" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>`;
                 const deleteBtn = bucket === 'checklist'
                     ? `<button type="button" class="icon-btn danger" data-action="delete" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" title="Delete from database">🗑</button>`
                     : '';
@@ -930,7 +1241,7 @@
                         </label>
                         <button type="button" class="icon-btn" data-action="days" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}" ${on ? '' : 'disabled'} title="Choose days">📅</button>
                         <div class="meta">${escapeHtml(daysSummary(entry.data))}</div>
-                        <label class="field">⭐ <input type="number" min="0" max="20" value="${starsVal}" data-field="stars" data-bucket="${bucket}" data-key="${escapeAttr(rowKey)}"></label>
+                        ${rewardBlock}
                         ${qBlock}
                         ${deleteBtn}
                     </div>
@@ -998,6 +1309,12 @@
             if (field === 'stars' || field === 'totalQuestions') {
                 const n = parseInt(value, 10);
                 entry.data[field] = isNaN(n) ? undefined : n;
+            } else if (field === 'rewardCash') {
+                const n = parseFloat(value);
+                entry.data.rewardCash = isNaN(n) ? 0 : n;
+                if (entry.config?.url) {
+                    entry.config.url = setRewardCashOnUrl(entry.config.url, entry.data.rewardCash);
+                }
             }
         }
 
@@ -1023,6 +1340,7 @@
         function closeModals() {
             document.getElementById('daysModal').classList.remove('open');
             document.getElementById('offModal').classList.remove('open');
+            document.getElementById('addChoreModal').classList.remove('open');
             modalCtx = { bucket: null, key: null };
         }
 
@@ -1099,6 +1417,7 @@
             document.getElementById('editorContent').style.display = 'none';
             hideMessages();
             deletedChecklistLabels = new Set();
+            pendingChoreAdds = [];
             try {
                 const [cfgRes, masterRes, dbRes] = await Promise.all([
                     fetch(`${CONFIG_BASE}${profile}_config.json`),
@@ -1167,15 +1486,23 @@
                 configJson = updatedConfig;
                 let githubNote = '';
                 try {
-                    const gh = await pushConfigToGitHub(updatedConfig);
+                    const gh = await pushConfigToGitHub(updatedConfig, profile);
                     if (gh?.skipped) {
                         githubNote = ' GitHub not updated (add schedule write key on reports home to enable).';
                     } else if (gh?.ok) {
-                        githubNote = ` GitHub config updated (${gh.path} on ${gh.branch}).`;
+                        scheduleMaster = buildScheduleMasterJson(updatedConfig, profile);
+                        const files = Array.isArray(gh.paths) && gh.paths.length
+                            ? gh.paths.map(p => String(p).split('/').pop()).join(', ')
+                            : (gh.path || `${profile}_config.json`);
+                        githubNote = ` GitHub updated (${files} on ${gh.branch}).`;
                     }
                 } catch (ghErr) {
                     githubNote = ` Database saved, but GitHub update failed: ${ghErr.message}`;
                 }
+
+                const otherNotes = await savePendingChoresToOtherProfiles();
+                if (otherNotes) githubNote += otherNotes;
+                pendingChoreAdds = [];
 
                 document.getElementById('success').style.display = 'block';
                 document.getElementById('success').textContent =
@@ -1186,6 +1513,200 @@
             } finally {
                 btn.disabled = false;
             }
+        }
+
+        function latestChoreTask(pending) {
+            const entry = catalog.required.find(e =>
+                e.title === pending.task.title || e.config?.launch === pending.task.launch
+            );
+            return entry ? choreConfigFromEntry(entry) : JSON.parse(JSON.stringify(pending.task));
+        }
+
+        async function patchProfileRequiredTasks(targetProfile, requiredTasks) {
+            const url = supabaseUrl();
+            const key = supabaseKey();
+            const res = await fetch(`${url}/rest/v1/user_data?profile=eq.${targetProfile}`, {
+                method: 'PATCH',
+                headers: {
+                    apikey: key,
+                    Authorization: `Bearer ${key}`,
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=minimal'
+                },
+                body: JSON.stringify({
+                    required_tasks: requiredTasks,
+                    last_updated: nowEST()
+                })
+            });
+            if (!res.ok) {
+                const t = await res.text();
+                throw new Error(`${res.status} ${t}`);
+            }
+        }
+
+        async function addChoresToOtherProfile(targetProfile, choreTasks) {
+            const url = supabaseUrl();
+            const key = supabaseKey();
+            const cfgRes = await fetch(`${CONFIG_BASE}${targetProfile}_config.json`);
+            if (!cfgRes.ok) throw new Error(`Config load failed for ${targetProfile}: ${cfgRes.status}`);
+            const cfg = await cfgRes.json();
+            const sec = ensureRequiredSection(cfg);
+            const dbRes = await fetch(`${url}/rest/v1/user_data?profile=eq.${targetProfile}&select=required_tasks`, {
+                headers: { apikey: key, Authorization: `Bearer ${key}` }
+            });
+            if (!dbRes.ok) throw new Error(`Database load failed for ${targetProfile}: ${dbRes.status}`);
+            const rows = await dbRes.json();
+            const requiredTasks = rows[0]?.required_tasks || {};
+            for (const task of choreTasks) {
+                if (!sec.tasks.some(t => t.title === task.title || t.launch === task.launch)) {
+                    sec.tasks.push(JSON.parse(JSON.stringify(task)));
+                }
+                if (!requiredTasks[task.title]) {
+                    const data = defaultDbTask(task.title, task);
+                    data.launch = task.launch;
+                    data.url = task.url;
+                    data.webGame = true;
+                    data.rewardCash = parseRewardCashFromUrl(task.url) ?? 0;
+                    data.stars = 0;
+                    requiredTasks[task.title] = data;
+                }
+            }
+            cfg.version = new Date().toISOString().slice(0, 10);
+            await patchProfileRequiredTasks(targetProfile, requiredTasks);
+            const gh = await pushConfigToGitHub(cfg, targetProfile);
+            if (gh?.skipped) {
+                throw new Error('GitHub not updated (add schedule write key on reports home)');
+            }
+        }
+
+        async function savePendingChoresToOtherProfiles() {
+            const otherProfiles = [...new Set(
+                pendingChoreAdds.flatMap(p => (p.profiles || []).filter(pr => pr !== profile))
+            )];
+            if (otherProfiles.length === 0) return '';
+            const notes = [];
+            for (const pr of otherProfiles) {
+                const tasksToAdd = pendingChoreAdds
+                    .filter(p => (p.profiles || []).includes(pr))
+                    .map(latestChoreTask);
+                if (tasksToAdd.length === 0) continue;
+                try {
+                    await addChoresToOtherProfile(pr, tasksToAdd);
+                    notes.push(` Also added ${tasksToAdd.length} chore(s) to ${pr} (DB + GitHub).`);
+                } catch (e) {
+                    notes.push(` Failed adding chores to ${pr}: ${e.message}`);
+                }
+            }
+            return notes.join('');
+        }
+
+        function selectedAddChoreType() {
+            return document.querySelector('input[name="addChoreType"]:checked')?.value || 'photo';
+        }
+
+        function updateAddChoreMediaExtras() {
+            const type = selectedAddChoreType();
+            document.getElementById('addChoreAudioExtras').classList.toggle('show', type === 'audio');
+            document.getElementById('addChoreVideoExtras').classList.toggle('show', type === 'video');
+        }
+
+        function openAddChoreModal() {
+            document.getElementById('addChoreName').value = '';
+            document.getElementById('addChoreDescription').value = '';
+            document.getElementById('addChoreReward').value = '0.25';
+            document.getElementById('addChoreAudioMax').value = '300';
+            document.getElementById('addChoreVideoMax').value = '60';
+            document.getElementById('addChoreVideoCountdown').value = '5';
+            const photoRadio = document.querySelector('input[name="addChoreType"][value="photo"]');
+            if (photoRadio) photoRadio.checked = true;
+            updateAddChoreMediaExtras();
+            ALL_PROFILES.forEach(pr => {
+                const cb = document.getElementById('addChoreProfile' + pr);
+                if (cb) cb.checked = pr === profile;
+            });
+            const picks = document.getElementById('addChoreDayPicks');
+            picks.innerHTML = '';
+            DAYS.forEach(d => {
+                const id = `addChoreDay_${d.key}`;
+                const label = document.createElement('label');
+                label.innerHTML = `<input type="checkbox" id="${id}" value="${d.key}" checked> ${d.label}`;
+                picks.appendChild(label);
+            });
+            document.getElementById('addChoreAllWeek').checked = true;
+            document.getElementById('addChoreModal').classList.add('open');
+            document.getElementById('addChoreName').focus();
+        }
+
+        function selectedAddChoreDays() {
+            if (document.getElementById('addChoreAllWeek').checked) return '';
+            const selected = [];
+            DAYS.forEach(d => {
+                const cb = document.getElementById(`addChoreDay_${d.key}`);
+                if (cb?.checked) selected.push(d.key);
+            });
+            return selected.join(',');
+        }
+
+        function selectedAddChoreProfiles() {
+            return ALL_PROFILES.filter(pr => document.getElementById('addChoreProfile' + pr)?.checked);
+        }
+
+        function submitAddChore() {
+            const title = document.getElementById('addChoreName').value.trim();
+            if (!title) { alert('Enter a chore name'); return; }
+            const description = document.getElementById('addChoreDescription').value.trim();
+            const rewardCash = parseFloat(document.getElementById('addChoreReward').value);
+            if (isNaN(rewardCash) || rewardCash < 0) { alert('Enter a valid reward $'); return; }
+            const profiles = selectedAddChoreProfiles();
+            if (profiles.length === 0) { alert('Pick at least one profile'); return; }
+            const type = selectedAddChoreType();
+            const choreId = slugifyChoreId(title);
+            if (!choreId) { alert('Enter a chore name with letters or numbers'); return; }
+            const launch = choreLaunchId(title);
+            if (profiles.includes(profile) && catalog.required.find(e => e.title === title || e.config?.launch === launch)) {
+                alert('A chore with this name already exists on the current profile');
+                return;
+            }
+            const url = buildChoreUrl({
+                type,
+                choreId,
+                title,
+                description,
+                rewardCash,
+                maxSeconds: type === 'audio'
+                    ? parseInt(document.getElementById('addChoreAudioMax').value, 10)
+                    : parseInt(document.getElementById('addChoreVideoMax').value, 10),
+                countdownSeconds: parseInt(document.getElementById('addChoreVideoCountdown').value, 10)
+            });
+            const displayDays = selectedAddChoreDays();
+            const task = {
+                url,
+                stars: 0,
+                title,
+                launch,
+                webGame: true,
+                description
+            };
+            if (displayDays) task.displayDays = displayDays;
+
+            pendingChoreAdds.push({ profiles: [...profiles], task: JSON.parse(JSON.stringify(task)) });
+
+            if (profiles.includes(profile)) {
+                addChoreToLocalConfig(task);
+                const data = defaultDbTask(title, task);
+                data.launch = launch;
+                data.url = url;
+                data.webGame = true;
+                data.rewardCash = rewardCash;
+                data.stars = 0;
+                dbRow.required_tasks[title] = data;
+                refreshUI();
+            } else {
+                document.getElementById('success').style.display = 'block';
+                document.getElementById('success').textContent =
+                    `Chore "${title}" will be added to ${profiles.join(', ')} when you Save.`;
+            }
+            closeModals();
         }
 
         function showError(msg) {
@@ -1218,6 +1739,26 @@
                     const cb = document.getElementById(`day_${d.key}`);
                     if (cb) cb.checked = true;
                 });
+            }
+        });
+
+        document.getElementById('addChoreBtn').addEventListener('click', openAddChoreModal);
+        document.getElementById('addChoreCancel').addEventListener('click', closeModals);
+        document.getElementById('addChoreSave').addEventListener('click', submitAddChore);
+        document.querySelectorAll('input[name="addChoreType"]').forEach(inp => {
+            inp.addEventListener('change', updateAddChoreMediaExtras);
+        });
+        document.getElementById('addChoreAllWeek').addEventListener('change', e => {
+            if (e.target.checked) {
+                DAYS.forEach(d => {
+                    const cb = document.getElementById(`addChoreDay_${d.key}`);
+                    if (cb) cb.checked = true;
+                });
+            }
+        });
+        document.getElementById('addChoreDayPicks').addEventListener('change', e => {
+            if (e.target && e.target.id && e.target.id.startsWith('addChoreDay_') && !e.target.checked) {
+                document.getElementById('addChoreAllWeek').checked = false;
             }
         });
 
