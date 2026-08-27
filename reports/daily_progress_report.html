@@ -938,6 +938,17 @@
             }
         }
 
+        async function deleteChoreVideoFromStorage(storagePath) {
+            if (!storagePath) return;
+            const res = await fetch(
+                `${supabaseUrl}/storage/v1/object/chore-videos/${encodeURI(storagePath)}`,
+                { method: 'DELETE', headers: restHeaders }
+            );
+            if (!res.ok && res.status !== 404) {
+                throw new Error(await res.text() || res.statusText);
+            }
+        }
+
         async function resendChorePhoto() {
             const photo = openPhoto;
             if (!photo) {
@@ -960,6 +971,15 @@
                 });
                 if (!response.ok) {
                     throw new Error(await response.text() || response.statusText);
+                }
+                const result = await response.json();
+                const storagePath = result && result.storage_path;
+                if (storagePath) {
+                    try {
+                        await deleteChoreVideoFromStorage(storagePath);
+                    } catch (e) {
+                        console.warn('Chore video file delete failed:', e);
+                    }
                 }
                 todayChorePhotos.splice(photo.idx, 1);
                 closeGrantModal();

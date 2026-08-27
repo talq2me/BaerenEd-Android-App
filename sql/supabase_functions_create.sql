@@ -1978,8 +1978,10 @@ GRANT EXECUTE ON FUNCTION af_grant_chore_reward(text, text, numeric) TO anon, au
 -- Call sites (BaerenEd reports, this repo):
 --   reports/daily_progress_report.html  -  parent "Resend" after reviewing a chore photo.
 
--- BaerenEd: Parent rejects a chore photo — delete the image and mark the matching
--- required task incomplete (reverse berries/mins if that completion had awarded them).
+-- BaerenEd: Parent rejects a chore photo/video — delete the image_uploads row and
+-- mark the matching required task incomplete (reverse berries/mins if awarded).
+-- If evidence is a chore-videos object, return storage_path so the client can
+-- Storage-API-delete it (direct DELETE FROM storage.objects is blocked).
 -- POST /rest/v1/rpc/af_resend_chore_photo
 --   {"p_profile":"TE","p_image_task":"chore_make_bed_r1_2026-08-22"}
 
@@ -1990,7 +1992,7 @@ CREATE OR REPLACE FUNCTION af_resend_chore_photo(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, storage
+SET search_path = public
 AS $$
 DECLARE
   chore_id text;
@@ -2027,8 +2029,6 @@ BEGIN
 
   IF img_payload LIKE 'storage:chore-videos/%' THEN
     storage_path := substring(img_payload from length('storage:chore-videos/') + 1);
-    DELETE FROM storage.objects
-    WHERE bucket_id = 'chore-videos' AND name = storage_path;
   END IF;
 
   DELETE FROM image_uploads
@@ -2081,7 +2081,8 @@ BEGIN
     'chore_id', chore_id,
     'required_task_title', task_title,
     'berries_removed', remove_berries,
-    'mins_removed', remove_mins
+    'mins_removed', remove_mins,
+    'storage_path', storage_path
   );
 END;
 $$;
