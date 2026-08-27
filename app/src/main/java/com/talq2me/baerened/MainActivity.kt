@@ -243,6 +243,10 @@ class MainActivity : AppCompatActivity() {
             // no internet → skip check
             return
         }
+        if (isBaerenLockDeviceOwner()) {
+            Log.d(TAG, "BaerenLock is device owner — skipping BaerenEd update prompt")
+            return
+        }
 
         checkForUpdates()
     }
@@ -607,6 +611,15 @@ class MainActivity : AppCompatActivity() {
         return try {
             val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
             devicePolicyManager.isDeviceOwnerApp(packageName)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun isBaerenLockDeviceOwner(): Boolean {
+        return try {
+            val devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            devicePolicyManager.isDeviceOwnerApp("com.talq2me.baerenlock")
         } catch (e: Exception) {
             false
         }

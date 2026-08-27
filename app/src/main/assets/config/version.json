@@ -1,5 +1,5 @@
 {
-    "latestVersionCode": 163,
-    "apkUrl": "https://talq2me.github.io/BaerenEd-Android-App/app/release/app-release.apk"
+    "package": "com.talq2me.baerened",
+    "latestVersionCode": 164,
+    "apkUrl": "https://github.com/talq2me/BaerenEd-Android-App/releases/download/v163/app-release.apk"
 }
-  

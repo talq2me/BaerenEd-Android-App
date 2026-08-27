@@ -1,0 +1,64 @@
+name: Release APK
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Decode signing keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/keystore.jks"
+
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          KEY_PASS="${KEY_PASSWORD:-$KEYSTORE_PASSWORD}"
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file="${{ runner.temp }}/keystore.jks" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASS"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
+
+      - name: Update version.json on main
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          APK_URL="https://github.com/talq2me/BaerenEd-Android-App/releases/download/${TAG}/app-release.apk"
+          VERSION_CODE=$(grep 'versionCode' app/build.gradle.kts | grep -o '[0-9]*' | head -1)
+          git fetch origin main
+          git checkout main
+          printf '%s\n' "{" "    \"package\": \"com.talq2me.baerened\"," "    \"latestVersionCode\": ${VERSION_CODE}," "    \"apkUrl\": \"${APK_URL}\"" "}" > app/src/main/assets/config/version.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/config/version.json
+          if git diff --staged --quiet; then
+            echo "version.json already up to date"
+          else
+            git commit -m "chore: update BaerenEd version.json apkUrl for ${TAG}"
+            git push origin main
+          fi
