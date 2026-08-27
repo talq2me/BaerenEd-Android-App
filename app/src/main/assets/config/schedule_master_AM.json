@@ -1120,7 +1120,7 @@
             "launch": "choreUnloadDishwasher",
             "webGame": true,
             "description": "Unload the dishwasher and put everything away.",
-            "displayDays": "mon,fri",
+            "displayDays": "mon,thu",
             "scheduleKey": "required|choreUnloadDishwasher|Unload dishwasher"
         },
         {
