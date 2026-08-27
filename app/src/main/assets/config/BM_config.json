@@ -510,205 +510,207 @@
                     "videoSequence": "sequential"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreVideo.html?choreId=kungfu_form&title=Kung%20fu%20form&description=Set%20the%20tablet%20down%2C%20hit%20Record%2C%20wait%20for%20the%20beeps%2C%20then%20do%20your%20form.&rewardCash=0.25&maxSeconds=60&countdownSeconds=5",
                     "stars": 0,
                     "title": "Kung fu form",
                     "launch": "choreKungfuForm",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreVideo.html?choreId=kungfu_form&title=Kung%20fu%20form&description=Set%20the%20tablet%20down%2C%20hit%20Record%2C%20wait%20for%20the%20beeps%2C%20then%20do%20your%20form.&rewardCash=1&maxSeconds=60&countdownSeconds=5",
-                    "description": "Set the tablet down, hit Record, wait for the beeps, then do your form."
+                    "description": "Set the tablet down, hit Record, wait for the beeps, then do your form.",
+                    "displayDays": "sun,tue,thu"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=piano_practice&title=Piano%20practice&description=Record%20yourself%20practicing%20piano.&rewardCash=0.25&maxSeconds=300",
                     "stars": 0,
                     "title": "Piano practice",
                     "launch": "chorePianoPractice",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=piano_practice&title=Piano%20practice&description=Record%20yourself%20practicing%20piano.&rewardCash=1&maxSeconds=300",
-                    "description": "Record yourself practicing piano."
+                    "description": "Record yourself practicing piano.",
+                    "displayDays": "mon,wed,fri"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=put_away_laundry&title=Put%20away%20laundry&description=Fold%20and%20put%20away%20the%20clean%20laundry.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Put away laundry",
                     "launch": "chorePutAwayLaundry",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=put_away_laundry&title=Put%20away%20laundry&description=Fold%20and%20put%20away%20the%20clean%20laundry.&rewardCash=0.5",
-                    "displayDays": "mon",
-                    "description": "Fold and put away the clean laundry."
+                    "description": "Fold and put away the clean laundry.",
+                    "displayDays": "mon"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25",
                     "stars": 0,
                     "title": "Take out trash",
                     "launch": "choreTakeOutTrash",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25",
-                    "displayDays": "mon,thu",
-                    "description": "Take the trash to the outside bin."
+                    "webGame": true,
+                    "description": "Take the trash to the outside bin.",
+                    "displayDays": "mon,thu"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_recycling&title=Take%20out%20recycling&description=Take%20recycling%20to%20the%20outside%20bin.&rewardCash=0.25",
                     "stars": 0,
                     "title": "Take out recycling",
                     "launch": "choreTakeOutRecycling",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_recycling&title=Take%20out%20recycling&description=Take%20recycling%20to%20the%20outside%20bin.&rewardCash=0.25",
-                    "displayDays": "tue,fri",
-                    "description": "Take recycling to the outside bin."
+                    "webGame": true,
+                    "description": "Take recycling to the outside bin.",
+                    "displayDays": "tue,fri"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=pack_school_bag&title=Pack%20school%20bag&description=Pack%20your%20school%20bag%20for%20tomorrow.&rewardCash=0.10",
                     "stars": 0,
                     "title": "Pack school bag",
                     "launch": "chorePackSchoolBag",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=pack_school_bag&title=Pack%20school%20bag&description=Pack%20your%20school%20bag%20for%20tomorrow.&rewardCash=0.10",
-                    "displayDays": "mon,tue,wed,thu,sun",
-                    "description": "Pack your school bag for tomorrow."
+                    "webGame": true,
+                    "description": "Pack your school bag for tomorrow.",
+                    "displayDays": "mon,tue,wed,thu,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=help_amren_homework&title=Help%20Amren%20with%20homework&description=Help%20Amren%20with%20homework.&rewardCash=1",
                     "stars": 0,
                     "title": "Help Amren with homework",
                     "launch": "choreHelpAmrenHomework",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=help_amren_homework&title=Help%20Amren%20with%20homework&description=Help%20Amren%20with%20homework.&rewardCash=1",
-                    "displayDays": "mon,wed,fri",
-                    "description": "Help Amren with homework."
+                    "webGame": true,
+                    "description": "Help Amren with homework.",
+                    "displayDays": "mon,wed,fri"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_breakfast&title=Make%20own%20breakfast&description=Make%20your%20own%20breakfast.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Make own breakfast",
                     "launch": "choreMakeOwnBreakfast",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_breakfast&title=Make%20own%20breakfast&description=Make%20your%20own%20breakfast.&rewardCash=0.5",
-                    "displayDays": "tue,thu",
-                    "description": "Make your own breakfast."
+                    "description": "Make your own breakfast.",
+                    "displayDays": "tue,thu"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_sibling_breakfast&title=Make%20sibling%27s%20breakfast&description=Make%20sibling%27s%20breakfast%20if%20they%20agree%20to%20what%20you%20make.&rewardCash=1",
                     "stars": 0,
                     "title": "Make sibling's breakfast",
                     "launch": "choreMakeSiblingBreakfast",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_sibling_breakfast&title=Make%20sibling%27s%20breakfast&description=Make%20sibling%27s%20breakfast%20if%20they%20agree%20to%20what%20you%20make.&rewardCash=1",
-                    "displayDays": "sat,sun",
-                    "description": "Make sibling's breakfast if they agree to what you make."
+                    "webGame": true,
+                    "description": "Make sibling's breakfast if they agree to what you make.",
+                    "displayDays": "sat,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_lunch&title=Make%20own%20lunch&description=Make%20your%20own%20lunch.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Make own lunch",
                     "launch": "choreMakeOwnLunch",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=make_own_lunch&title=Make%20own%20lunch&description=Make%20your%20own%20lunch.&rewardCash=0.5",
-                    "displayDays": "tue,thu,sun",
-                    "description": "Make your own lunch."
+                    "description": "Make your own lunch.",
+                    "displayDays": "tue,thu,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_up_table&title=Clean%20up%20table%20and%20wipe%20clean&description=Clean%20up%20the%20table%20and%20wipe%20it%20clean.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Clean up table and wipe clean",
                     "launch": "choreCleanUpTable",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_up_table&title=Clean%20up%20table%20and%20wipe%20clean&description=Clean%20up%20the%20table%20and%20wipe%20it%20clean.&rewardCash=0.5",
-                    "displayDays": "mon,wed,fri",
-                    "description": "Clean up the table and wipe it clean."
+                    "webGame": true,
+                    "description": "Clean up the table and wipe it clean.",
+                    "displayDays": "mon,wed,fri"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_kitchen_counter&title=Clean%20kitchen%20counters%20and%20table%2C%20wipe%20clean&description=Clean%20up%20the%20kitchen%20counters%20and%20table%2C%20then%20wipe%20them%20clean.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Clean kitchen counters and table, wipe clean",
                     "launch": "choreCleanKitchenCounter",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_kitchen_counter&title=Clean%20kitchen%20counters%20and%20table%2C%20wipe%20clean&description=Clean%20up%20the%20kitchen%20counters%20and%20table%2C%20then%20wipe%20them%20clean.&rewardCash=0.5",
-                    "displayDays": "tue,thu,sat",
-                    "description": "Clean up the kitchen counters and table, then wipe them clean."
+                    "webGame": true,
+                    "description": "Clean up the kitchen counters and table, then wipe them clean.",
+                    "displayDays": "tue,thu,sat"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_coffee_table&title=Tidy%20coffee%20table%2C%20toy%20chest%20and%20dresser%20top&description=Tidy%20the%20coffee%20table%2C%20toy%20chest%20and%20dresser%20top.&rewardCash=0.25",
                     "stars": 0,
                     "title": "Tidy coffee table, toy chest and dresser top",
                     "launch": "choreTidyCoffeeTable",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_coffee_table&title=Tidy%20coffee%20table%2C%20toy%20chest%20and%20dresser%20top&description=Tidy%20the%20coffee%20table%2C%20toy%20chest%20and%20dresser%20top.&rewardCash=0.25",
-                    "displayDays": "thu,sun",
-                    "description": "Tidy the coffee table, toy chest and dresser top."
+                    "webGame": true,
+                    "description": "Tidy the coffee table, toy chest and dresser top.",
+                    "displayDays": "thu,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_bathroom_counter&title=Clean%20bathroom%20counter%20and%20wipe%20clean&description=Clean%20the%20warm%20bathroom%20counter%20and%20wipe%20it%20clean.&rewardCash=0.20",
                     "stars": 0,
                     "title": "Clean bathroom counter and wipe clean",
                     "launch": "choreCleanBathroomCounter",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_bathroom_counter&title=Clean%20bathroom%20counter%20and%20wipe%20clean&description=Clean%20the%20warm%20bathroom%20counter%20and%20wipe%20it%20clean.&rewardCash=0.20",
-                    "displayDays": "sat",
-                    "description": "Clean the warm bathroom counter and wipe it clean."
+                    "webGame": true,
+                    "description": "Clean the warm bathroom counter and wipe it clean.",
+                    "displayDays": "sat"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=1",
                     "stars": 0,
                     "title": "Unload dishwasher",
                     "launch": "choreUnloadDishwasher",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=unload_dishwasher&title=Unload%20dishwasher&description=Unload%20the%20dishwasher%20and%20put%20everything%20away.&rewardCash=1",
-                    "displayDays": "fri",
-                    "description": "Unload the dishwasher and put everything away."
+                    "description": "Unload the dishwasher and put everything away.",
+                    "displayDays": "fri"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=feed_dog&title=Feed%20dog%20and%20give%20water%20if%20needed&description=Feed%20the%20dog%20and%20give%20water%20if%20needed.&rewardCash=0.1",
                     "stars": 0,
                     "title": "Feed dog and give water if needed",
                     "launch": "choreFeedDog",
                     "webGame": true,
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=feed_dog&title=Feed%20dog%20and%20give%20water%20if%20needed&description=Feed%20the%20dog%20and%20give%20water%20if%20needed.&rewardCash=0.1",
-                    "displayDays": "mon,wed,fri,sat,sun",
-                    "description": "Feed the dog and give water if needed."
+                    "description": "Feed the dog and give water if needed.",
+                    "displayDays": "mon,wed,fri,sat,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_room&title=Clean%20your%20room%20%28organize%2C%20do%20not%20shove%29&description=Organize%20your%20room%3A%20tidy%20floor%20and%20desk%2Fdresser%20tops.%20Do%20not%20shove%20everything%20in%20a%20drawer.&rewardCash=1",
                     "stars": 0,
                     "title": "Clean your room (organize, do not shove)",
                     "launch": "choreCleanRoom",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_room&title=Clean%20your%20room%20%28organize%2C%20do%20not%20shove%29&description=Organize%20your%20room%3A%20tidy%20floor%20and%20desk%2Fdresser%20tops.%20Do%20not%20shove%20everything%20in%20a%20drawer.&rewardCash=1",
-                    "displayDays": "wed,sun",
-                    "description": "Organize your room: tidy floor and desk/dresser tops. Do not shove everything in a drawer."
+                    "webGame": true,
+                    "description": "Organize your room: tidy floor and desk/dresser tops. Do not shove everything in a drawer.",
+                    "displayDays": "wed,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_toys_basement&title=Tidy%20toys%20in%20basement&description=Tidy%20toys%20in%20the%20basement.&rewardCash=1",
                     "stars": 0,
                     "title": "Tidy toys in basement",
                     "launch": "choreTidyToysBasement",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_toys_basement&title=Tidy%20toys%20in%20basement&description=Tidy%20toys%20in%20the%20basement.&rewardCash=1",
-                    "displayDays": "sat",
-                    "description": "Tidy toys in the basement."
+                    "webGame": true,
+                    "description": "Tidy toys in the basement.",
+                    "displayDays": "sat"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_windows_basement&title=Dust%20windows%20in%20basement&description=Dust%20the%20windows%20in%20the%20basement.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Dust windows in basement",
                     "launch": "choreDustWindowsBasement",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_windows_basement&title=Dust%20windows%20in%20basement&description=Dust%20the%20windows%20in%20the%20basement.&rewardCash=0.5",
-                    "displayDays": "sun",
-                    "description": "Dust the windows in the basement."
+                    "webGame": true,
+                    "description": "Dust the windows in the basement.",
+                    "displayDays": "sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_stairway&title=Dust%20stairway&description=Dust%20the%20stairway.&rewardCash=1",
                     "stars": 0,
                     "title": "Dust stairway",
                     "launch": "choreDustStairway",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=dust_stairway&title=Dust%20stairway&description=Dust%20the%20stairway.&rewardCash=1",
-                    "displayDays": "wed",
-                    "description": "Dust the stairway."
+                    "webGame": true,
+                    "description": "Dust the stairway.",
+                    "displayDays": "wed"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_laundry_room&title=Tidy%20laundry%20room%20bench%20and%20coats&description=Tidy%20the%20laundry%20room%20bench%20and%20boot%20tray%3B%20hang%20up%20jackets%2C%20pants%2C%20mittens%20and%20hats%20in%20bins.&rewardCash=1",
                     "stars": 0,
                     "title": "Tidy laundry room bench and coats",
                     "launch": "choreTidyLaundryRoom",
-                    "webGame": true,
                     "disable": "Dec 31, 2099",
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=tidy_laundry_room&title=Tidy%20laundry%20room%20bench%20and%20coats&description=Tidy%20the%20laundry%20room%20bench%20and%20boot%20tray%3B%20hang%20up%20jackets%2C%20pants%2C%20mittens%20and%20hats%20in%20bins.&rewardCash=1",
-                    "displayDays": "fri",
-                    "description": "Tidy the laundry room bench and boot tray; hang up jackets, pants, mittens and hats in bins."
+                    "webGame": true,
+                    "description": "Tidy the laundry room bench and boot tray; hang up jackets, pants, mittens and hats in bins.",
+                    "displayDays": "fri"
                 }
             ],
             "title": "Required Tasks",
