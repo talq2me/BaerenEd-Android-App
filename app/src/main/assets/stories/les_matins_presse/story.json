@@ -1,0 +1,163 @@
+{
+  "book_id": "les_matins_presse",
+  "language_source": "fr",
+  "language_target": "en",
+  "segments": [
+    {
+      "id": "segment_001",
+      "page": 1,
+      "image": "pages/1.webp",
+      "french_text": "Ma famille : maman, Dafné, papa",
+      "english_text": "My family : Mom, Dafné, Dad",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_002",
+      "page": 2,
+      "image": "pages/2.webp",
+      "french_text": "Les Doudoux : Nougat Noisette, Clafoutis, Vanille Charlotte, Moka",
+      "english_text": "Les Doudoux : Nougat Noisette, Clafutis, Vanille Charlotte, Moka",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_003",
+      "page": 3,
+      "image": "pages/3.webp",
+      "french_text": "Ce matin, pendant le petit-déjeuner, Dafné s'excite et fait un énorme dégat. Partout, il y a des taches de lait au chocolat : sur la table, sur sa robe et jusque sur son nez!",
+      "english_text": "This morning, during breakfast, Dafné gets excited and makes a huge damage. Everywhere, there are spots of chocolate milk: on the table, on her dress and on her nose!",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_004",
+      "page": 4,
+      "image": "pages/4.webp",
+      "french_text": "Dafn' gesticule, s'énerve et s'agite Elle sait pourtant que, le matin, il faut faire vite. C'est plus fort qu'elle, elle ignore pourquoi, mais elle a envie de tout barbouiller de chocolat.",
+      "english_text": "Dafn' gesticule, gets angry and agitated She knows, however, that in the morning, we must hurry. She doesn't know why, but she wants to drink chocolate.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_005",
+      "page": 5,
+      "image": "pages/5.webp",
+      "french_text": "Maman lui demande comment c'est arrivé. Elle monte le ton et commence a s'impatienter. Aprés tout, Dafné boit et mange tous les matins Et, d'habitude, il n'y a pas de pépin!",
+      "english_text": "Mom asks her how it happened. She raises her tone and starts to get impatient. After all, Dafné drinks and eats every morning and, usually, there is no problem!",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_006",
+      "page": 6,
+      "image": "pages/6.webp",
+      "french_text": "Dafné sent qu'au fond, quelque chose ne va pas. Elle est triste, mais ne parvient pas a dire pourquoi. Maman lui dit alors : < Ce n'est qu'un accident, ces choses-la arrivent de temps en temps.",
+      "english_text": "Dafné feels that, basically, something is wrong. She's sad, but she can't tell why. Mom then said to her, \"It's just an accident, these things happen from time to time.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_007",
+      "page": 7,
+      "image": "pages/7.webp",
+      "french_text": "En fait, Dafné n'aime pas ces matins pressés ou I'on doit se dépecher, car maman va travailler. Dafné est fachée que maman veuille s'en aller. Elle n'aime pas non plus se sentir bousculée",
+      "english_text": "In fact, Dafné doesn't like these rushed mornings or we have to hurry, because Mom's gonna work. Dafné's mad that mom wants to go. She doesn't like to feel upset either.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_008",
+      "page": 8,
+      "image": "pages/8.webp",
+      "french_text": "Heureusement, les Doudoux sont Iä pour nettoyer! Nougat et Charlotte aident maman a ramasser, pendant que Vanille aide la fillette a se débarbouiller. Dafné ouvre alors son coeur a son Doudoux adoré",
+      "english_text": "Fortunately, the Doudoux are here to clean up! Nougat and Charlotte help mom pick up, while Vanille helps the girl get rid of herself. Dafné then opens his heart to his beloved Doudoux",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_009",
+      "page": 9,
+      "image": "pages/9.webp",
+      "french_text": "- Vanille, ma douce Vanille bien-aimée, je voudrais etre avec maman et ne jamais la quitter. Lorsqu'elle part, je me sens un peu abandonnée. Elle me manque, car c'est long. toute une journée.",
+      "english_text": "- Vanilla, my sweet beloved Vanilla, I'd like to be with Mom and never leave her. When she leaves, I feel a little abandoned. I miss her because it's a long time. A whole day.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_010",
+      "page": 10,
+      "image": "pages/10.webp",
+      "french_text": "- Dafné, répond Vanille, toi, ce qui te fait plaisir, c'est de jouer, bouger, t'amuser et rire. Tu aimes apprendre, explorer, découvrir et vivre plein de choses qui te font grandir.",
+      "english_text": "- Dafné, says Vanille, you're happy to play, move, have fun and laugh. You like to learn, explore, discover and live a lot of things that make you grow.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_011",
+      "page": 11,
+      "image": "pages/11.webp",
+      "french_text": "Ta maman aussi aime faire toutes sortes d'activités. Avant d'etre maman, elle avait déja un métier. Si, par exemple, elle voulait t'empecher de jouer, tu serais la premiere a étre contrariée.",
+      "english_text": "Your mom also likes to do all kinds of activities. Before she was a mom, she already had a job. If, for example, she wanted to keep you from playing, you'd be the first to be upset.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_012",
+      "page": 12,
+      "image": "pages/12.webp",
+      "french_text": "Oü que soit ta maman, tu es son ange adoré. Tu es toujours dans son coeur et ses pensées. Et sa plus grande joie, a la fin de la journée, c'est de rentrer a la maison pour te retrouver.",
+      "english_text": "No matter where your mother is, you're her beloved angel. You're always in his heart and thoughts. And his greatest joy at the end of the day is to go home and find you.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    },
+    {
+      "id": "segment_013",
+      "page": 13,
+      "image": "pages/13.webp",
+      "french_text": "La fillette est soulagée d'avoir confié son chagrin. Dafné, les Doudoux et maman se font un gros cälin. Maman aussi se sent le coeur plus Iéger. es Doudoux savent si bien réconforter sa Dafné.",
+      "english_text": "The girl is relieved for having entrusted her grief. Dafné, the Doudoux and Mom are making a big hug. Mom, too, feels like she's a little lighter. Es Doudoux know how to comfort his Dafne so well.",
+      "tts": {
+        "voice": "fr-FR",
+        "speed": 1.0,
+        "pitch": 1.0
+      }
+    }
+  ]
+}

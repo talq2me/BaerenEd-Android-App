@@ -39,13 +39,13 @@ DROP FUNCTION IF EXISTS af_log_behavior(text, text, text);
 DROP FUNCTION IF EXISTS af_maybe_advance_spelling_pools(text);
 DROP FUNCTION IF EXISTS af_maybe_record_collector_card_day(text);
 DROP FUNCTION IF EXISTS af_payout_collector_cards(text, int);
-DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text);
 DROP FUNCTION IF EXISTS af_push_profile_config_to_github(text, jsonb, text, jsonb);
 DROP FUNCTION IF EXISTS af_resend_chore_photo(text, text);
 DROP FUNCTION IF EXISTS af_reward_time_add(TEXT, INTEGER);
 DROP FUNCTION IF EXISTS af_reward_time_expire(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS af_reward_time_pause(TEXT);
 DROP FUNCTION IF EXISTS af_reward_time_use(TEXT);
+DROP FUNCTION IF EXISTS af_story_read_assigned_today(text, date, int);
 DROP FUNCTION IF EXISTS af_update_behavior_log_time(bigint, timestamp);
 DROP FUNCTION IF EXISTS af_update_berries_banked(text, int, int);
 DROP FUNCTION IF EXISTS af_update_game_index(text, text, int);
@@ -510,6 +510,112 @@ GRANT EXECUTE ON FUNCTION af_update_tasks_from_config_bonus(text, jsonb) TO anon
 
 
 -- -----------------------------------------------------------------------------
+-- FILE: af_story_read_assigned_today.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (BaerenEd Android, this repo):
+--   sql/af_get_tasks_required.sql
+--   sql/af_update_tasks_from_config_required.sql
+--   sql/af_get_current_required_tasks.sql
+
+-- storyRead task.url: bookId?start=YYYY-MM-DD&days=0,1-3,4-8
+-- p_next_page is game_indices['storyRead_<bookId>'] (0/missing = 1).
+-- Returns true when the kid has a non-empty catch-up session today, or the schedule is past.
+
+DROP FUNCTION IF EXISTS af_story_read_assigned_today(text, date, int);
+
+CREATE OR REPLACE FUNCTION af_story_read_assigned_today(
+  p_url text,
+  p_today date,
+  p_next_page int
+)
+RETURNS boolean
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  v_q text;
+  v_start text;
+  v_days text;
+  v_start_date date;
+  v_day_index int;
+  v_next int;
+  v_due_end int := 0;
+  v_token text;
+  v_end int;
+  v_i int;
+  v_days_arr text[];
+  v_dash int;
+  v_n int;
+BEGIN
+  IF p_url IS NULL OR btrim(p_url) = '' THEN
+    RETURN true;
+  END IF;
+  v_next := COALESCE(NULLIF(p_next_page, 0), 1);
+  v_q := substring(p_url from '\?(.*)$');
+  IF v_q IS NULL OR v_q = '' THEN
+    RETURN true;
+  END IF;
+
+  v_start := (regexp_match(v_q, '(?:^|&)start=([^&]*)'))[1];
+  v_days := (regexp_match(v_q, '(?:^|&)days=([^&]*)'))[1];
+
+  IF v_days IS NULL OR btrim(v_days) = '' THEN
+    RETURN true;
+  END IF;
+
+  IF v_start IS NOT NULL AND btrim(v_start) <> '' THEN
+    BEGIN
+      v_start_date := v_start::date;
+    EXCEPTION WHEN others THEN
+      v_start_date := NULL;
+    END;
+  END IF;
+
+  IF v_start_date IS NOT NULL AND p_today < v_start_date THEN
+    RETURN false;
+  END IF;
+
+  v_days_arr := string_to_array(v_days, ',');
+  v_n := COALESCE(array_length(v_days_arr, 1), 0);
+
+  IF v_start_date IS NULL THEN
+    v_day_index := GREATEST(v_n - 1, 0);
+  ELSE
+    v_day_index := (p_today - v_start_date);
+  END IF;
+
+  IF v_day_index >= v_n THEN
+    RETURN true;
+  END IF;
+
+  FOR v_i IN 1..LEAST(v_day_index + 1, v_n) LOOP
+    v_token := btrim(COALESCE(v_days_arr[v_i], ''));
+    IF v_token = '' OR v_token = '0' THEN
+      CONTINUE;
+    END IF;
+    v_dash := position('-' in v_token);
+    BEGIN
+      IF v_dash > 0 THEN
+        v_end := substring(v_token from v_dash + 1)::int;
+      ELSE
+        v_end := v_token::int;
+      END IF;
+    EXCEPTION WHEN others THEN
+      v_end := 0;
+    END;
+    IF v_end > v_due_end THEN
+      v_due_end := v_end;
+    END IF;
+  END LOOP;
+
+  RETURN v_due_end >= v_next;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_story_read_assigned_today(text, date, int) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
 -- FILE: af_update_tasks_from_config_required.sql
 -- -----------------------------------------------------------------------------
 -- Call sites (BaerenEd Android, this repo):
@@ -534,6 +640,7 @@ DECLARE
   v_required_possible_stars int := 0;
   v_checklist_possible_stars int := 0;
   v_possible_stars int := 0;
+  v_game_indices jsonb;
 BEGIN
   IF p_config_json IS NOT NULL AND p_config_json != 'null'::jsonb THEN
     config_json := p_config_json;
@@ -547,7 +654,8 @@ BEGIN
     END IF;
   END IF;
 
-  SELECT COALESCE(required_tasks, '{}'::jsonb) INTO existing_required
+  SELECT COALESCE(required_tasks, '{}'::jsonb), COALESCE(game_indices, '{}'::jsonb)
+  INTO existing_required, v_game_indices
   FROM user_data
   WHERE profile = p_profile;
 
@@ -624,6 +732,18 @@ BEGIN
         FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
         WHERE d.day_token = v_today_short
       )
+    )
+    AND (
+      COALESCE(e.value->>'launch', '') IS DISTINCT FROM 'storyRead'
+      OR COALESCE(e.value->>'status', '') = 'complete'
+      OR af_story_read_assigned_today(
+           e.value->>'url',
+           v_today_date,
+           COALESCE(
+             (COALESCE(v_game_indices, '{}'::jsonb) ->> ('storyRead_' || split_part(COALESCE(e.value->>'url', ''), '?', 1)))::int,
+             0
+           )
+         )
     );
 
   SELECT COALESCE(SUM(COALESCE((e.value->>'stars')::int, 0)), 0)
@@ -749,6 +869,7 @@ AS $$
     SELECT
       COALESCE(ud.required_tasks, '{}'::jsonb) AS v_required,
       COALESCE(ud.checklist_items, '{}'::jsonb) AS v_checklist,
+      COALESCE(ud.game_indices, '{}'::jsonb) AS v_game_indices,
       lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short,
       (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date
     FROM (SELECT 1) AS _one
@@ -788,6 +909,18 @@ AS $$
           FROM unnest(string_to_array(lower(replace(coalesce(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
           WHERE d.day_token = p.v_today_short
         )
+      )
+      AND (
+        COALESCE(e.value->>'launch', '') IS DISTINCT FROM 'storyRead'
+        OR COALESCE(e.value->>'status', '') = 'complete'
+        OR af_story_read_assigned_today(
+             e.value->>'url',
+             p.v_today_date,
+             COALESCE(
+               (p.v_game_indices ->> ('storyRead_' || split_part(COALESCE(e.value->>'url', ''), '?', 1)))::int,
+               0
+             )
+           )
       )
   ),
   visible_checklist AS (
@@ -865,6 +998,7 @@ AS $$
     SELECT
       COALESCE(ud.required_tasks, '{}'::jsonb) AS v_required,
       COALESCE(ud.checklist_items, '{}'::jsonb) AS v_checklist,
+      COALESCE(ud.game_indices, '{}'::jsonb) AS v_game_indices,
       lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short,
       (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date
     FROM (SELECT 1) AS _one
@@ -918,6 +1052,18 @@ AS $$
           FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
           WHERE d.day_token = p.v_today_short
         )
+      )
+      AND (
+        COALESCE(e.value->>'launch', '') IS DISTINCT FROM 'storyRead'
+        OR COALESCE(e.value->>'status', '') = 'complete'
+        OR af_story_read_assigned_today(
+             e.value->>'url',
+             p.v_today_date,
+             COALESCE(
+               (p.v_game_indices ->> ('storyRead_' || split_part(COALESCE(e.value->>'url', ''), '?', 1)))::int,
+               0
+             )
+           )
       )
   ),
   visible_checklist AS (

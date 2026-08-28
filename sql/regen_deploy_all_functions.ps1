@@ -16,6 +16,8 @@ $files = @(
 
   "af_update_tasks_from_config_bonus.sql",
 
+  "af_story_read_assigned_today.sql",
+
   "af_update_tasks_from_config_required.sql",
 
   "af_daily_reset.sql",

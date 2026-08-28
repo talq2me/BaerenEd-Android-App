@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pack school lunch</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', 'Arial Rounded MT Bold', sans-serif;
+            background-color: #fffcf9;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2e7d32;
+            margin: 0 0 6px;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin: 4px 0 10px;
+            text-align: left;
+        }
+        .description {
+            font-size: 16px;
+            color: #444;
+            margin: 0;
+            flex: 1;
+            min-width: 0;
+        }
+        .reward {
+            font-size: 15px;
+            color: #666;
+            margin: 0;
+            flex-shrink: 0;
+            text-align: right;
+        }
+        .notes {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 12px;
+            text-align: left;
+        }
+        .section {
+            background: #fff;
+            border: 2px solid #c8e6c9;
+            border-radius: 12px;
+            padding: 10px;
+            margin: 0 0 12px;
+            text-align: left;
+        }
+        .section.optional {
+            border-color: #ffe082;
+            background: #fffde7;
+        }
+        .section-title {
+            font-size: 18px;
+            color: #1b5e20;
+            margin: 0 0 6px;
+        }
+        .section-intro {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 8px;
+        }
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-top: 1px solid #eee;
+        }
+        .check-row:first-of-type { border-top: none; }
+        .check-row input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .check-copy {
+            flex: 1;
+            min-width: 0;
+        }
+        .check-copy label {
+            font-size: 17px;
+            color: #333;
+            cursor: pointer;
+            display: block;
+        }
+        .check-copy .hint {
+            font-size: 13px;
+            color: #666;
+            margin: 2px 0 0;
+        }
+        .example-thumb {
+            width: 72px;
+            height: 54px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #81c784;
+            flex-shrink: 0;
+            cursor: pointer;
+            background: #eee;
+        }
+        .water-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #e3f2fd;
+            border: 2px solid #90caf9;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin: 0 0 12px;
+            text-align: left;
+        }
+        .water-row img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .water-row label {
+            font-size: 18px;
+            color: #1565c0;
+            cursor: pointer;
+            display: block;
+        }
+        .water-row .hint {
+            font-size: 13px;
+            color: #546e7a;
+            margin: 2px 0 0;
+        }
+        .water-row input {
+            width: 22px;
+            height: 22px;
+        }
+        .photo-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 12px;
+            flex-wrap: wrap;
+        }
+        .green-button, .camera-button, .close-button {
+            font-family: inherit;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 0;
+            padding: 14px 28px;
+            font-size: 22px;
+            line-height: 1.2;
+            color: white;
+        }
+        .green-button { background-color: #4CAF50; }
+        .camera-button { background-color: #ff6b6b; }
+        .close-button { background-color: #546e7a; font-size: 18px; padding: 10px 22px; }
+        .green-button:disabled, .camera-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .hidden { display: none; }
+        .camera-container {
+            margin: 8px 0;
+            padding: 12px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border: 2px solid #ffeaa7;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 10px;
+            margin: 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .message.success { background: #d4edda; color: #155724; }
+        .message.error { background: #f8d7da; color: #721c24; }
+        .message.info { background: #d1ecf1; color: #0c5460; }
+        input[type="file"] { display: none; }
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        .overlay.hidden { display: none; }
+        .overlay-card {
+            background: #fff;
+            border-radius: 14px;
+            max-width: 720px;
+            width: 100%;
+            max-height: 100%;
+            overflow: auto;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+        .overlay-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            display: block;
+        }
+        .overlay-card p {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #333;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 id="choreTitle">Pack school lunch</h1>
+        <div class="meta-row">
+            <p class="description" id="choreDescription">Check off servings, then photo your packed lunch.</p>
+            <p class="reward" id="choreReward">Reward: $0 (parent reviews)</p>
+        </div>
+        <p class="notes" id="notes"></p>
+        <div id="groups"></div>
+        <div id="waterSlot"></div>
+
+        <div class="photo-actions">
+            <button class="camera-button" id="takePictureBtn" onclick="openCamera()" disabled>Take Photo</button>
+            <button class="green-button hidden" id="doneBtn" onclick="submitPhoto()">Done</button>
+        </div>
+
+        <div class="camera-container hidden" id="cameraContainer">
+            <img id="imagePreview" class="image-preview" alt="Preview">
+        </div>
+
+        <div id="messageContainer"></div>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    </div>
+
+    <div class="overlay hidden" id="exampleOverlay" onclick="onOverlayBackdrop(event)">
+        <div class="overlay-card">
+            <img id="overlayImage" alt="Examples">
+            <p id="overlayCaption"></p>
+            <button type="button" class="close-button" onclick="closeExample()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const GITHUB_ROOT = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets';
+
+        let capturedImageBase64 = null;
+        let submitting = false;
+        let choreId = '';
+        let choreTitle = 'Pack school lunch';
+        let choreDescription = 'Check off servings, then photo your packed lunch.';
+        let rewardCash = 0;
+        let catalog = null;
+        const checkedIds = {};
+        let waterPacked = false;
+
+        function formatRewardCash(amount) {
+            const value = Number(amount) || 0;
+            if (Math.abs(value - Math.round(value)) < 0.001) {
+                return '$' + Math.round(value);
+            }
+            return '$' + value.toFixed(2);
+        }
+
+        function torontoDateYmd() {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date());
+        }
+
+        function imageTaskKey(id, reward) {
+            return 'chore_' + id + '_r' + String(Number(reward) || 0) + '_' + torontoDateYmd();
+        }
+
+        function readParams() {
+            const params = new URLSearchParams(window.location.search);
+            choreId = (params.get('choreId') || '').trim();
+            choreTitle = (params.get('title') || 'Pack school lunch').trim() || 'Pack school lunch';
+            choreDescription = (params.get('description') || '').trim()
+                || 'Check off servings, then photo your packed lunch.';
+            const rawReward = params.get('rewardCash');
+            rewardCash = rawReward != null && rawReward !== '' ? Number(rawReward) : 0;
+            if (Number.isNaN(rewardCash)) rewardCash = 0;
+        }
+
+        function applyUi() {
+            document.getElementById('choreTitle').textContent = choreTitle;
+            document.getElementById('choreDescription').textContent = choreDescription;
+            document.getElementById('choreReward').textContent =
+                'Reward: ' + formatRewardCash(rewardCash) + ' (parent reviews)';
+            if (!choreId) {
+                showMessage('This chore is missing choreId in the URL.', 'error');
+            }
+        }
+
+        function hideMessage() {
+            document.getElementById('messageContainer').innerHTML = '';
+        }
+
+        function showMessage(text, type) {
+            document.getElementById('messageContainer').innerHTML =
+                '<div class="message ' + (type || 'info') + '">' + text + '</div>';
+        }
+
+        function imageUrl(fileName) {
+            const base = (catalog && catalog.imageBase) ? catalog.imageBase : 'images/pack-lunch';
+            return GITHUB_ROOT + '/' + base + '/' + fileName;
+        }
+
+        function allChecks() {
+            const list = [];
+            (catalog.sections || []).forEach(function(section) {
+                (section.checks || []).forEach(function(check) {
+                    list.push(check);
+                });
+            });
+            return list;
+        }
+
+        function requiredGroupsMet() {
+            if (!catalog) return false;
+            if (catalog.water && catalog.water.required && !waterPacked) return false;
+            return allChecks().every(function(check) {
+                if (check.optional) return true;
+                return !!checkedIds[check.id];
+            });
+        }
+
+        function updatePhotoGate() {
+            const ready = requiredGroupsMet() && !!choreId && !submitting;
+            document.getElementById('takePictureBtn').disabled = !ready;
+            document.getElementById('doneBtn').disabled = submitting || !capturedImageBase64 || !ready;
+        }
+
+        function openExample(check) {
+            document.getElementById('overlayImage').src = imageUrl(check.example);
+            document.getElementById('overlayCaption').textContent = check.exampleCaption || '';
+            document.getElementById('exampleOverlay').classList.remove('hidden');
+        }
+
+        function closeExample() {
+            document.getElementById('exampleOverlay').classList.add('hidden');
+        }
+
+        function onOverlayBackdrop(event) {
+            if (event.target.id === 'exampleOverlay') closeExample();
+        }
+
+        function renderGroups() {
+            const root = document.getElementById('groups');
+            root.innerHTML = '';
+            (catalog.sections || []).forEach(function(section) {
+                const wrap = document.createElement('section');
+                const optionalSection = (section.checks || []).every(function(c) { return c.optional; });
+                wrap.className = 'section' + (optionalSection ? ' optional' : '');
+                const title = document.createElement('h2');
+                title.className = 'section-title';
+                title.textContent = section.title || '';
+                wrap.appendChild(title);
+                if (section.intro) {
+                    const intro = document.createElement('p');
+                    intro.className = 'section-intro';
+                    intro.textContent = section.intro;
+                    wrap.appendChild(intro);
+                }
+                (section.checks || []).forEach(function(check) {
+                    const row = document.createElement('div');
+                    row.className = 'check-row';
+                    const boxId = 'check_' + check.id;
+                    row.innerHTML =
+                        '<input type="checkbox">' +
+                        '<div class="check-copy"><label></label><p class="hint"></p></div>' +
+                        '<img class="example-thumb" alt="See examples">';
+                    const box = row.querySelector('input');
+                    box.id = boxId;
+                    box.checked = !!checkedIds[check.id];
+                    box.addEventListener('change', function() {
+                        checkedIds[check.id] = box.checked;
+                        updatePhotoGate();
+                    });
+                    const label = row.querySelector('label');
+                    label.htmlFor = boxId;
+                    label.textContent = check.label + (check.optional ? '' : '');
+                    row.querySelector('.hint').textContent = check.hint || 'Tap the picture to see examples';
+                    const thumb = row.querySelector('.example-thumb');
+                    thumb.src = imageUrl(check.example);
+                    thumb.addEventListener('click', function() { openExample(check); });
+                    wrap.appendChild(row);
+                });
+                root.appendChild(wrap);
+            });
+        }
+
+        function renderWater() {
+            const slot = document.getElementById('waterSlot');
+            slot.innerHTML = '';
+            if (!catalog.water) return;
+            const row = document.createElement('div');
+            row.className = 'water-row';
+            row.innerHTML =
+                '<img alt="Water bottle">' +
+                '<input type="checkbox" id="waterCheck">' +
+                '<div class="check-copy"><label for="waterCheck"></label><p class="hint"></p></div>';
+            row.querySelector('img').src = imageUrl(catalog.water.image);
+            row.querySelector('label').textContent = catalog.water.label || 'Refill water bottle and pack it';
+            row.querySelector('.hint').textContent = catalog.water.hint || '';
+            const box = row.querySelector('#waterCheck');
+            box.checked = waterPacked;
+            box.addEventListener('change', function() {
+                waterPacked = box.checked;
+                updatePhotoGate();
+            });
+            slot.appendChild(row);
+        }
+
+        function loadCatalog() {
+            return fetch(GITHUB_ROOT + '/data/packSchoolLunch.json?t=' + Date.now())
+                .then(function(res) {
+                    if (!res.ok) throw new Error('Could not load lunch list (' + res.status + ')');
+                    return res.json();
+                })
+                .then(function(data) {
+                    catalog = data;
+                    allChecks().forEach(function(check) {
+                        if (checkedIds[check.id] == null) checkedIds[check.id] = false;
+                    });
+                    document.getElementById('notes').textContent = catalog.notes || '';
+                    renderGroups();
+                    renderWater();
+                    updatePhotoGate();
+                });
+        }
+
+        function setBusy(busy) {
+            submitting = busy;
+            updatePhotoGate();
+        }
+
+        function showCapturedUi() {
+            document.getElementById('cameraContainer').classList.remove('hidden');
+            document.getElementById('takePictureBtn').textContent = 'Retake photo';
+            document.getElementById('doneBtn').classList.remove('hidden');
+            updatePhotoGate();
+        }
+
+        window.onCameraSuccess = function(imageBase64) {
+            if (imageBase64) {
+                capturedImageBase64 = imageBase64.startsWith('data:image')
+                    ? imageBase64
+                    : 'data:image/jpeg;base64,' + imageBase64;
+                document.getElementById('imagePreview').src = capturedImageBase64;
+                showCapturedUi();
+                hideMessage();
+            } else {
+                showMessage('No image captured. Please try again.', 'error');
+            }
+        };
+
+        window.onCameraError = function(error) {
+            showMessage('Failed to open camera. Please try again.', 'error');
+            console.error('Camera error:', error);
+        };
+
+        window.onUploadSuccess = function() {
+            showMessage('Photo submitted! Parent will review for the reward.', 'success');
+            if (window.Android && typeof window.Android.gameCompleted === 'function') {
+                try {
+                    window.Android.gameCompleted(1, 0);
+                } catch (e) {
+                    setBusy(false);
+                    showMessage('Photo saved but could not finish the task: ' + e.message, 'error');
+                }
+            } else {
+                setBusy(false);
+                showMessage('Photo saved. Close this screen when ready.', 'success');
+            }
+        };
+
+        window.onUploadError = function(error) {
+            setBusy(false);
+            showMessage('Could not save photo: ' + error, 'error');
+            console.error('Upload error:', error);
+        };
+
+        function openCamera() {
+            if (submitting || !choreId || !requiredGroupsMet()) return;
+            showMessage('Opening camera...', 'info');
+            if (window.Android && typeof window.Android.openCamera === 'function') {
+                try {
+                    window.Android.openCamera('onCameraSuccess', 'onCameraError');
+                } catch (e) {
+                    showMessage('Error opening camera: ' + e.message, 'error');
+                }
+                return;
+            }
+            const cameraInput = document.getElementById('cameraInput');
+            if (cameraInput) {
+                cameraInput.click();
+            } else {
+                showMessage('Camera not available', 'error');
+            }
+        }
+
+        document.getElementById('cameraInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                capturedImageBase64 = event.target.result;
+                document.getElementById('imagePreview').src = capturedImageBase64;
+                showCapturedUi();
+                hideMessage();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function submitPhoto() {
+            if (submitting) return;
+            if (!requiredGroupsMet()) {
+                showMessage('Check off the required servings, refill and pack water first.', 'error');
+                return;
+            }
+            if (!capturedImageBase64) {
+                showMessage('Take a photo first.', 'error');
+                return;
+            }
+            if (!choreId) {
+                showMessage('This chore is missing choreId in the URL.', 'error');
+                return;
+            }
+            if (!window.Android || typeof window.Android.uploadImageToSupabase !== 'function') {
+                showMessage('Upload requires the Android app.', 'error');
+                return;
+            }
+
+            let profile = 'TE';
+            if (typeof window.Android.getCurrentProfile === 'function') {
+                try {
+                    profile = window.Android.getCurrentProfile() || 'TE';
+                } catch (e) {
+                    console.warn('Could not get profile:', e);
+                }
+            }
+
+            setBusy(true);
+            showMessage('Uploading photo...', 'info');
+
+            const uploadData = {
+                profile: profile,
+                task: imageTaskKey(choreId, rewardCash),
+                image: capturedImageBase64,
+                capture_date_time: new Date().toISOString()
+            };
+
+            try {
+                window.Android.uploadImageToSupabase(
+                    JSON.stringify(uploadData),
+                    'onUploadSuccess',
+                    'onUploadError'
+                );
+            } catch (e) {
+                setBusy(false);
+                showMessage('Error calling upload: ' + e.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            readParams();
+            applyUi();
+            loadCatalog().catch(function(err) {
+                showMessage(err.message || 'Could not load lunch examples.', 'error');
+            });
+        });
+    </script>
+</body>
+</html>

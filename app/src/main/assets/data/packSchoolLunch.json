@@ -1,0 +1,94 @@
+{
+  "title": "Pack school lunch",
+  "notes": "Vegetarian, no nuts. Pack a meal plus 2 snacks first. Sweets are extra and optional (up to 2).",
+  "imageBase": "images/pack-lunch",
+  "sections": [
+    {
+      "title": "Lunch (meal)",
+      "checks": [
+        {
+          "id": "lunch_grain",
+          "label": "1 grain serving",
+          "hint": "Tap the picture to see examples",
+          "optional": false,
+          "example": "collage_grains.png",
+          "exampleCaption": "Bread, bagels, baguette, noodles, pasta, rice, crackers, tortillas, tortilla chips, pita"
+        },
+        {
+          "id": "lunch_protein",
+          "label": "1 protein serving (no nuts)",
+          "hint": "Tap the picture to see examples",
+          "optional": false,
+          "example": "collage_protein.png",
+          "exampleCaption": "Cheese, yogurt, hummus, beans, tofu, hard-boiled egg"
+        },
+        {
+          "id": "lunch_produce",
+          "label": "1 fruit or vegetable serving",
+          "hint": "Tap the picture to see examples",
+          "optional": false,
+          "example": "collage_produce.png",
+          "exampleCaption": "Apples, oranges, pears, berries, grapes, cucumber, carrot sticks, veggies and dip"
+        }
+      ]
+    },
+    {
+      "title": "Snacks",
+      "checks": [
+        {
+          "id": "snack1_produce",
+          "label": "Snack 1: fruit or veg",
+          "hint": "Tap the picture to see examples",
+          "optional": false,
+          "example": "collage_produce.png",
+          "exampleCaption": "Apples, oranges, pears, berries, grapes, cucumber, carrot sticks, veggies and dip"
+        },
+        {
+          "id": "snack2_grain_dairy",
+          "label": "Snack 2: grain or dairy",
+          "hint": "Tap the picture to see examples",
+          "optional": false,
+          "example": "collage_grain_dairy.png",
+          "exampleCaption": "Crackers, oatmeal bar, yogurt, cheese, milk"
+        },
+        {
+          "id": "snack3_optional",
+          "label": "Snack 3 (optional extra fruit, veg, or grain)",
+          "hint": "Skip if you do not need it. Tap the picture for ideas.",
+          "optional": true,
+          "example": "collage_produce.png",
+          "exampleCaption": "Apples, oranges, pears, berries, grapes, cucumber, carrot sticks, veggies and dip"
+        }
+      ]
+    },
+    {
+      "title": "Sweets (optional)",
+      "intro": "Pack meal and snacks first. Sweets are extra — up to 2.",
+      "checks": [
+        {
+          "id": "sweet1",
+          "label": "Sweet 1 (optional)",
+          "hint": "Tap the picture to see examples",
+          "optional": true,
+          "example": "collage_sweets.png",
+          "exampleCaption": "Cookie, muffin, chocolate (no nuts), fruit gummies"
+        },
+        {
+          "id": "sweet2",
+          "label": "Sweet 2 (optional)",
+          "hint": "Tap the picture to see examples",
+          "optional": true,
+          "example": "collage_sweets.png",
+          "exampleCaption": "Cookie, muffin, chocolate (no nuts), fruit gummies"
+        }
+      ]
+    }
+  ],
+  "water": {
+    "id": "water",
+    "label": "Refill water bottle and pack it",
+    "hint": "Fill it with fresh water, then put it in the lunch bag.",
+    "required": true,
+    "image": "water.png"
+  }
+}

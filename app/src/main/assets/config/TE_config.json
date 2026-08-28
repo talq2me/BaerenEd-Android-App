@@ -41,6 +41,12 @@
                     "disable": "Dec 31, 2099"
                 },
                 {
+                    "url": "les_matins_presse?start=2026-08-28&days=1-3,4-8,9-13",
+                    "stars": 3,
+                    "title": "French story",
+                    "launch": "storyRead"
+                },
+                {
                     "stars": 3,
                     "title": "Boukili",
                     "launch": "boukili",
@@ -506,6 +512,14 @@
                     "webGame": true,
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25",
                     "description": "Take the trash to the outside bin."
+                },
+                {
+                    "stars": 0,
+                    "title": "Pack school lunch",
+                    "launch": "chorePackSchoolLunch",
+                    "webGame": true,
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/packSchoolLunch.html?choreId=pack_school_lunch&title=Pack%20school%20lunch&description=Pack%20tomorrow%27s%20lunch%3A%20meal%20%2B%202%20snacks%2C%20vegetarian%2C%20no%20nuts.%20Sweets%20optional%20(up%20to%202).&rewardCash=0.5",
+                    "description": "Pack tomorrow's lunch: meal + 2 snacks, vegetarian, no nuts. Sweets optional (up to 2)."
                 }
             ],
             "title": "Required Tasks",

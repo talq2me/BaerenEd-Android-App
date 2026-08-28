@@ -20,6 +20,7 @@ DECLARE
   v_required_possible_stars int := 0;
   v_checklist_possible_stars int := 0;
   v_possible_stars int := 0;
+  v_game_indices jsonb;
 BEGIN
   IF p_config_json IS NOT NULL AND p_config_json != 'null'::jsonb THEN
     config_json := p_config_json;
@@ -33,7 +34,8 @@ BEGIN
     END IF;
   END IF;
 
-  SELECT COALESCE(required_tasks, '{}'::jsonb) INTO existing_required
+  SELECT COALESCE(required_tasks, '{}'::jsonb), COALESCE(game_indices, '{}'::jsonb)
+  INTO existing_required, v_game_indices
   FROM user_data
   WHERE profile = p_profile;
 
@@ -110,6 +112,18 @@ BEGIN
         FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
         WHERE d.day_token = v_today_short
       )
+    )
+    AND (
+      COALESCE(e.value->>'launch', '') IS DISTINCT FROM 'storyRead'
+      OR COALESCE(e.value->>'status', '') = 'complete'
+      OR af_story_read_assigned_today(
+           e.value->>'url',
+           v_today_date,
+           COALESCE(
+             (COALESCE(v_game_indices, '{}'::jsonb) ->> ('storyRead_' || split_part(COALESCE(e.value->>'url', ''), '?', 1)))::int,
+             0
+           )
+         )
     );
 
   SELECT COALESCE(SUM(COALESCE((e.value->>'stars')::int, 0)), 0)

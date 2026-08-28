@@ -38,6 +38,7 @@ AS $$
     SELECT
       COALESCE(ud.required_tasks, '{}'::jsonb) AS v_required,
       COALESCE(ud.checklist_items, '{}'::jsonb) AS v_checklist,
+      COALESCE(ud.game_indices, '{}'::jsonb) AS v_game_indices,
       lower(to_char((now() AT TIME ZONE 'America/Toronto'), 'Dy')) AS v_today_short,
       (now() AT TIME ZONE 'America/Toronto')::date AS v_today_date
     FROM (SELECT 1) AS _one
@@ -91,6 +92,18 @@ AS $$
           FROM unnest(string_to_array(lower(replace(COALESCE(e.value->>'showdays', ''), ' ', '')), ',')) AS d(day_token)
           WHERE d.day_token = p.v_today_short
         )
+      )
+      AND (
+        COALESCE(e.value->>'launch', '') IS DISTINCT FROM 'storyRead'
+        OR COALESCE(e.value->>'status', '') = 'complete'
+        OR af_story_read_assigned_today(
+             e.value->>'url',
+             p.v_today_date,
+             COALESCE(
+               (p.v_game_indices ->> ('storyRead_' || split_part(COALESCE(e.value->>'url', ''), '?', 1)))::int,
+               0
+             )
+           )
       )
   ),
   visible_checklist AS (
