@@ -1067,7 +1067,7 @@
             "launch": "choreMakeOwnLunch",
             "webGame": true,
             "description": "Make your own lunch.",
-            "displayDays": "sat,sun",
+            "displayDays": "sun",
             "scheduleKey": "required|choreMakeOwnLunch|Make own lunch"
         },
         {
