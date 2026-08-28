@@ -545,7 +545,7 @@
                     "launch": "choreMakeOwnLunch",
                     "webGame": true,
                     "description": "Make your own lunch.",
-                    "displayDays": "sat,sun"
+                    "displayDays": "sun"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_up_table&title=Clean%20up%20table%20and%20wipe%20clean&description=Clean%20up%20the%20table%20and%20wipe%20it%20clean.&rewardCash=0.5",
