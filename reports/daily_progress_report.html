@@ -1111,6 +1111,12 @@
                 });
             }
 
+            const choreRequiredKeys = requiredTaskKeys.filter(key => isChoreRequiredTask(key, requiredTasks[key]));
+            const choresCompleted = choreRequiredKeys.filter(key => {
+                const task = requiredTasks[key];
+                return task && (task.status === 'complete' || task.completed === true);
+            }).length;
+
             const allPhotoChores = userData.photo_chores || {};
             const photoChoresToday = {};
             for (const [choreId, chore] of Object.entries(allPhotoChores)) {
@@ -1118,16 +1124,14 @@
                     photoChoresToday[choreId] = chore;
                 }
             }
-            const photoChoreTotal = Object.keys(photoChoresToday).length;
-            const photoChoresCompletedToday = Object.values(photoChoresToday).filter(c => (c.status || '').toLowerCase() === 'complete').length;
             const choreEarnedToday = todayChorePhotos.reduce((sum, row) => {
                 if (row.reward_granted !== true) return sum;
                 const amt = Number(row.granted_amount);
                 return sum + (isFinite(amt) ? amt : 0);
             }, 0);
 
-            document.getElementById('choresComplete').textContent = photoChoresCompletedToday;
-            document.getElementById('choresIncomplete').textContent = Math.max(0, photoChoreTotal - photoChoresCompletedToday);
+            document.getElementById('choresComplete').textContent = choresCompleted;
+            document.getElementById('choresIncomplete').textContent = Math.max(0, choreRequiredKeys.length - choresCompleted);
             document.getElementById('choreEarnedToday').textContent = formatMoney(choreEarnedToday);
             document.getElementById('choreTotal').textContent = formatMoney(userData.kid_bank_balance);
 
