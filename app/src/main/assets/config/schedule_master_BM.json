@@ -1,7 +1,7 @@
 {
     "source": "BM_config.json",
     "profile": "BM",
-    "version": "2026-08-27",
+    "version": "2026-08-28",
     "practice": [
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html?file=storySequence.json",
@@ -1233,6 +1233,16 @@
             "description": "Tidy the laundry room bench and boot tray; hang up jackets, pants, mittens and hats in bins.",
             "displayDays": "fri",
             "scheduleKey": "required|choreTidyLaundryRoom|Tidy laundry room bench and coats"
+        },
+        {
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=read_to_sibling&title=Read%20to%20Sibling&description=Read%20a%20book%20to%20your%20brother%2F%20sister&rewardCash=0.4&maxSeconds=300",
+            "stars": 0,
+            "title": "Read to Sibling",
+            "launch": "choreReadToSibling",
+            "webGame": true,
+            "description": "Read a book to your brother/ sister",
+            "displayDays": "sat",
+            "scheduleKey": "required|choreReadToSibling|Read to Sibling"
         }
     ],
     "checklist": [
