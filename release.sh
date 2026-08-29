@@ -89,8 +89,10 @@ sed -i "s/versionName\s*=.*/versionName = \"$NEW_VERSION\"/" "$GRADLE_FILE"
 
 
 ### --- UPDATE version.json --- ###
-# Replace "latestVersionCode": X with new version
+# Tablets (and GitHub Pages on this branch) read both fields. CI also writes
+# this file on main; Pages currently serves V3, so apkUrl must be updated here.
 sed -i "s/\"latestVersionCode\":.*/\"latestVersionCode\": $NEW_VERSION,/" "$VERSION_JSON"
+sed -i "s|\"apkUrl\":.*|\"apkUrl\": \"https://github.com/talq2me/BaerenEd-Android-App/releases/download/v$NEW_VERSION/app-release.apk\"|" "$VERSION_JSON"
 
 ### --- BUILD SIGNED APK --- ###
 echo "Building signed APK..."
