@@ -107,35 +107,24 @@ echo "APK built."
 #cp "$APK_SOURCE" "$PAGES_APK_PATH"
 
 ### --- PULL LATEST CHANGES --- ###
-# Pull latest changes (e.g., report uploads from the app)
-# Use merge with 'theirs' strategy to automatically resolve conflicts
-# Report uploads won't conflict with release files, so this is safe
-echo "Pulling latest changes from remote..."
-git fetch origin main
+# Fast-forward this branch with its own upstream only.
+# Do not merge/rebase onto origin/main: V3 and main have diverged, and a
+# rebase onto main replays a huge unique history and conflicts version.json.
+# Tablets read version.json from GitHub Pages (main); CI updates that file
+# after the tag is pushed.
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "Fetching origin/$CURRENT_BRANCH ..."
+git fetch origin "$CURRENT_BRANCH"
 
-# Check if there are remote changes
-if git rev-list --count HEAD..origin/main > /dev/null 2>&1; then
-    REMOTE_COUNT=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo "0")
-    if [ "$REMOTE_COUNT" -gt 0 ]; then
-        echo "Remote has $REMOTE_COUNT new commit(s). Merging automatically..."
-        # Use merge with 'theirs' strategy to automatically accept remote changes
-        # This is safe since report uploads don't conflict with our release files
-        # Set GIT_MERGE_AUTOEDIT=no to prevent editor from opening
-        GIT_MERGE_AUTOEDIT=no git merge origin/main -X theirs -m "Merge remote changes (report uploads)" --no-edit || {
-            # If merge fails, try rebase with autostash
-            echo "Merge failed, trying rebase with autostash..."
-            git merge --abort 2>/dev/null || true
-            git pull --rebase --autostash origin main || {
-                # Last resort: just pull without rebase
-                echo "Rebase failed, pulling without rebase..."
-                git pull --no-edit origin main || true
-            }
-        }
-    else
-        echo "No remote changes to pull."
-    fi
+REMOTE_COUNT=$(git rev-list --count "HEAD..origin/$CURRENT_BRANCH" 2>/dev/null || echo "0")
+if [ "$REMOTE_COUNT" -gt 0 ]; then
+    echo "Upstream has $REMOTE_COUNT new commit(s). Fast-forwarding..."
+    git merge --ff-only "origin/$CURRENT_BRANCH" || {
+        echo "ERROR: Cannot fast-forward $CURRENT_BRANCH. Resolve upstream divergence before releasing."
+        exit 1
+    }
 else
-    echo "Already up to date with remote."
+    echo "Already up to date with origin/$CURRENT_BRANCH."
 fi
 
 ### --- GIT COMMIT + TAG + PUSH --- ###
@@ -143,6 +132,8 @@ fi
 git add -A
 # Explicitly exclude local.properties if it was tracked before
 git restore --staged local.properties 2>/dev/null || true
+# Never commit a local Python venv even if gitignore was missing
+git restore --staged tools/story-pipeline/.venv 2>/dev/null || true
 
 # Use commitMessage.txt if it exists, otherwise use default message
 COMMIT_MESSAGE="Release version $NEW_VERSION"

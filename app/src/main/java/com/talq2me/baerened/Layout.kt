@@ -879,6 +879,16 @@ open class Layout(protected val activity: MainActivity) {
                 }
                 activity.startActivity(intent)
             }
+            else if (task.launch == "storyRead") {
+                val intent = android.content.Intent(activity, StoryReadActivity::class.java).apply {
+                    putExtra(StoryReadActivity.EXTRA_STORY_URL, task.url ?: "")
+                    putExtra(StoryReadActivity.EXTRA_TASK_ID, gameType)
+                    putExtra(StoryReadActivity.EXTRA_SECTION_ID, sectionId)
+                    putExtra(StoryReadActivity.EXTRA_STARS, task.stars ?: 0)
+                    putExtra(StoryReadActivity.EXTRA_TASK_TITLE, gameTitle)
+                }
+                activity.startActivity(intent)
+            }
             else {
                 // Handle regular game content
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -1729,6 +1739,16 @@ open class Layout(protected val activity: MainActivity) {
                 putExtra(TappableTextActivity.EXTRA_STARS, task.stars ?: 0)
                 putExtra(TappableTextActivity.EXTRA_TASK_TITLE, gameTitle)
                 putExtra(TappableTextActivity.EXTRA_EASY_MODE, task.easy == true)
+            }
+            activity.startActivity(intent)
+        }
+        else if (task.launch == "storyRead") {
+            val intent = android.content.Intent(activity, StoryReadActivity::class.java).apply {
+                putExtra(StoryReadActivity.EXTRA_STORY_URL, task.url ?: "")
+                putExtra(StoryReadActivity.EXTRA_TASK_ID, gameType)
+                putExtra(StoryReadActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(StoryReadActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(StoryReadActivity.EXTRA_TASK_TITLE, gameTitle)
             }
             activity.startActivity(intent)
         }

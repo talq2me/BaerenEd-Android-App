@@ -89,6 +89,12 @@
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <activity
+            android:name=".StoryReadActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <activity
             android:name=".BattleHubActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"

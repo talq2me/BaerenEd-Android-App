@@ -84,6 +84,9 @@ class TaskLauncher(
             task.launch == "tappableText" -> {
                 launchTappableText(task, sectionId, sourceTaskId, resultHandler)
             }
+            task.launch == "storyRead" -> {
+                launchStoryRead(task, sectionId, sourceTaskId, resultHandler)
+            }
             // Printing Game
             task.launch == "printing" -> {
                 launchPrintingGame(task, sectionId, sourceTaskId, resultHandler)
@@ -272,6 +275,25 @@ class TaskLauncher(
         }
 
         resultHandler?.launchActivity(intent, 1008) ?: (context as? Activity)?.startActivityForResult(intent, 1008)
+    }
+
+    private fun launchStoryRead(
+        task: Task,
+        sectionId: String,
+        sourceTaskId: String?,
+        resultHandler: ActivityResultHandler?
+    ) {
+        val taskId = sourceTaskId ?: (task.launch ?: "storyRead")
+        val gameTitle = task.title ?: "French story"
+        val intent = Intent(context, StoryReadActivity::class.java).apply {
+            putExtra(StoryReadActivity.EXTRA_STORY_URL, task.url ?: "")
+            putExtra(StoryReadActivity.EXTRA_TASK_ID, taskId)
+            putExtra(StoryReadActivity.EXTRA_SECTION_ID, sectionId)
+            putExtra(StoryReadActivity.EXTRA_STARS, task.stars ?: 0)
+            putExtra(StoryReadActivity.EXTRA_TASK_TITLE, gameTitle)
+        }
+        resultHandler?.launchActivity(intent, StoryReadActivity.REQUEST_CODE)
+            ?: (context as? Activity)?.startActivityForResult(intent, StoryReadActivity.REQUEST_CODE)
     }
 
     /**

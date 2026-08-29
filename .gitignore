@@ -36,3 +36,12 @@ commitMessage.txt
 
 # Supabase backups (local dumps)
 backups/
+
+# Storybook OCR pipeline (large models, page scans, local venv)
+tools/story-pipeline/models/*
+!tools/story-pipeline/models/argos_fr_en/
+tools/story-pipeline/models/argos_fr_en/*
+!tools/story-pipeline/models/argos_fr_en/.gitkeep
+tools/story-pipeline/stories/*/pages/**
+tools/story-pipeline/.venv/
+**/__pycache__/

@@ -243,7 +243,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "tue,wed,thu",
-            "scheduleKey": "practice|spellingOCR|file=englishWordsBM.json"
+            "scheduleKey": "practice|spellingOCR|Eng Spelling OCR (Practice)"
         },
         {
             "url": "lang=en",
@@ -252,7 +252,7 @@
             "title": "English reading (tappable book) (Practice)",
             "launch": "tappableText",
             "disable": "Dec 31, 2099",
-            "scheduleKey": "practice|tappableText|lang=en"
+            "scheduleKey": "practice|tappableText|English reading (tappable book) (Practice)"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsBM.json",
@@ -569,7 +569,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "tue,wed,thu",
-            "scheduleKey": "required|spellingOCR|file=englishWordsBM.json"
+            "scheduleKey": "required|spellingOCR|Eng Spelling OCR"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsBM.json",
@@ -601,7 +601,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "sat,sun,mon",
-            "scheduleKey": "required|spellingOCR|file=frenchWordsBM.json"
+            "scheduleKey": "required|spellingOCR|FR Spelling OCR"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDrag",
@@ -636,7 +636,7 @@
             "stars": 3,
             "title": "English reading (tappable book)",
             "launch": "tappableText",
-            "scheduleKey": "required|tappableText|lang=en"
+            "scheduleKey": "required|tappableText|English reading (tappable book)"
         },
         {
             "url": "lang=fr&ufli=no",
@@ -644,7 +644,7 @@
             "stars": 3,
             "title": "French reading (tappable book)",
             "launch": "tappableText",
-            "scheduleKey": "required|tappableText|lang=fr&ufli=no"
+            "scheduleKey": "required|tappableText|French reading (tappable book)"
         },
         {
             "stars": 1,

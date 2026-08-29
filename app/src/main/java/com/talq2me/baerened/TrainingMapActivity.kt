@@ -791,6 +791,19 @@ open class TrainingMapActivity : AppCompatActivity() {
             startActivityForResult(intent, 1008)
             return
         }
+
+        if (task.launch == "storyRead") {
+            lastLaunchedGameSectionId = sectionId
+            val intent = Intent(this, StoryReadActivity::class.java).apply {
+                putExtra(StoryReadActivity.EXTRA_STORY_URL, task.url ?: "")
+                putExtra(StoryReadActivity.EXTRA_TASK_ID, gameType)
+                putExtra(StoryReadActivity.EXTRA_SECTION_ID, sectionId)
+                putExtra(StoryReadActivity.EXTRA_STARS, task.stars ?: 0)
+                putExtra(StoryReadActivity.EXTRA_TASK_TITLE, gameTitle)
+            }
+            startActivityForResult(intent, StoryReadActivity.REQUEST_CODE)
+            return
+        }
         
         // Check for Printing Game (doesn't need JSON)
         if (gameType == "printing") {
@@ -1092,8 +1105,26 @@ open class TrainingMapActivity : AppCompatActivity() {
                 }
             }
         }
-        
-        // Handle SpellingOCRActivity result (same format as PrintingGameActivity)
+
+        if (requestCode == StoryReadActivity.REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            val taskId = data.getStringExtra(StoryReadActivity.EXTRA_TASK_ID)
+            var taskTitle = data.getStringExtra(StoryReadActivity.EXTRA_TASK_TITLE)
+            val sectionId = data.getStringExtra(StoryReadActivity.EXTRA_SECTION_ID) ?: lastLaunchedGameSectionId ?: mapType
+            val stars = data.getIntExtra(StoryReadActivity.EXTRA_STARS, 0)
+            if (!taskId.isNullOrEmpty()) {
+                if (taskTitle.isNullOrEmpty()) {
+                    taskTitle = "French story"
+                }
+                completeTaskFromChildResult(
+                    sectionId,
+                    "Marked storyRead task as completed: taskId=$taskId, sectionId=$sectionId"
+                ) { pm ->
+                    pm.markTaskCompletedWithName(
+                        taskId, taskTitle ?: "French story", stars, sectionId
+                    )
+                }
+            }
+        }
         if (requestCode == 1006 && resultCode == RESULT_OK && data != null) {
             val rewardsAlreadyApplied = data.getBooleanExtra("REWARDS_APPLIED", false)
             if (!rewardsAlreadyApplied) {

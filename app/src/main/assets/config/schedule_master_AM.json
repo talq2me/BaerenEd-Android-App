@@ -174,7 +174,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "mon,tue,wed",
-            "scheduleKey": "practice|spellingOCR|file=frenchWordsAM.json"
+            "scheduleKey": "practice|spellingOCR|FR Spelling OCR (Practice)"
         },
         {
             "url": "lang=en&ufli=only",
@@ -183,7 +183,7 @@
             "title": "English reading (tappable book) (Practice)",
             "launch": "tappableText",
             "disable": "Dec 31, 2099",
-            "scheduleKey": "practice|tappableText|lang=en&ufli=only"
+            "scheduleKey": "practice|tappableText|English reading (tappable book) (Practice)"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/tenFrameMath.html?mode=easy",
@@ -491,7 +491,7 @@
             "stars": 3,
             "title": "English reading (tappable book)",
             "launch": "tappableText",
-            "scheduleKey": "required|tappableText|lang=en&ufli=only"
+            "scheduleKey": "required|tappableText|English reading (tappable book)"
         },
         {
             "url": "lang=fr&ufli=only",
@@ -499,7 +499,7 @@
             "stars": 3,
             "title": "French reading (tappable book)",
             "launch": "tappableText",
-            "scheduleKey": "required|tappableText|lang=fr&ufli=only"
+            "scheduleKey": "required|tappableText|French reading (tappable book)"
         },
         {
             "stars": 3,
@@ -572,7 +572,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "mon,tue,wed",
-            "scheduleKey": "required|spellingOCR|file=frenchWordsAM.json"
+            "scheduleKey": "required|spellingOCR|FR Spelling OCR"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsAM.json",
@@ -621,7 +621,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "thu,fri",
-            "scheduleKey": "required|spellingOCR|file=englishWordsAM.json"
+            "scheduleKey": "required|spellingOCR|Eng Spelling OCR"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsAM.json",
