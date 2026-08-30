@@ -2836,6 +2836,7 @@ GRANT EXECUTE ON FUNCTION af_payout_collector_cards(text, int) TO anon, authenti
 -- If prize_unlocked already exists for the profile, return it.
 -- Otherwise, unlock only when all visible required/checklist tasks are complete for today.
 -- Newly unlocking Pokemon/Soccer Card also records one collector_card_days row (spin_prize).
+-- Newly unlocking Extra 10 minutes screen time also grants 10 banked/active reward minutes (once per spin).
 DROP FUNCTION IF EXISTS af_get_or_unlock_daily_prize(text);
 
 CREATE OR REPLACE FUNCTION af_get_or_unlock_daily_prize(p_profile text)
@@ -2936,6 +2937,10 @@ BEGIN
       'spin_prize'
     )
     ON CONFLICT (profile, completion_date, earn_source) DO NOTHING;
+  END IF;
+
+  IF v_reward_name ~* 'extra\s+10\s+minute' THEN
+    PERFORM af_reward_time_add(p_profile, 10);
   END IF;
 
   RETURN jsonb_build_object(
