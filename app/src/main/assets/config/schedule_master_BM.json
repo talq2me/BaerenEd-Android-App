@@ -1,7 +1,7 @@
 {
     "source": "BM_config.json",
     "profile": "BM",
-    "version": "2026-08-28",
+    "version": "2026-09-04",
     "practice": [
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html?file=storySequence.json",
@@ -243,7 +243,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "tue,wed,thu",
-            "scheduleKey": "practice|spellingOCR|Eng Spelling OCR (Practice)"
+            "scheduleKey": "practice|spellingOCR|file=englishWordsBM.json"
         },
         {
             "url": "lang=en",
@@ -252,7 +252,7 @@
             "title": "English reading (tappable book) (Practice)",
             "launch": "tappableText",
             "disable": "Dec 31, 2099",
-            "scheduleKey": "practice|tappableText|English reading (tappable book) (Practice)"
+            "scheduleKey": "practice|tappableText|lang=en"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsBM.json",
@@ -569,7 +569,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "tue,wed,thu",
-            "scheduleKey": "required|spellingOCR|Eng Spelling OCR"
+            "scheduleKey": "required|spellingOCR|file=englishWordsBM.json"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsBM.json",
@@ -601,7 +601,7 @@
             "launch": "spellingOCR",
             "disable": "Dec 31, 2099",
             "displayDays": "sat,sun,mon",
-            "scheduleKey": "required|spellingOCR|FR Spelling OCR"
+            "scheduleKey": "required|spellingOCR|file=frenchWordsBM.json"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDrag",
@@ -636,7 +636,7 @@
             "stars": 3,
             "title": "English reading (tappable book)",
             "launch": "tappableText",
-            "scheduleKey": "required|tappableText|English reading (tappable book)"
+            "scheduleKey": "required|tappableText|lang=en"
         },
         {
             "url": "lang=fr&ufli=no",
@@ -644,7 +644,7 @@
             "stars": 3,
             "title": "French reading (tappable book)",
             "launch": "tappableText",
-            "scheduleKey": "required|tappableText|French reading (tappable book)"
+            "scheduleKey": "required|tappableText|lang=fr&ufli=no"
         },
         {
             "stars": 1,
@@ -1166,7 +1166,7 @@
             "launch": "choreUnloadDishwasher",
             "webGame": true,
             "description": "Unload the dishwasher and put everything away.",
-            "displayDays": "fri",
+            "displayDays": "sat",
             "scheduleKey": "required|choreUnloadDishwasher|Unload dishwasher"
         },
         {
