@@ -20,7 +20,7 @@
             }
         ]
     },
-    "version": "2026-09-04",
+    "version": "2026-09-08",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -534,7 +534,7 @@
                     "launch": "chorePutAwayLaundry",
                     "webGame": true,
                     "description": "Fold and put away the clean laundry.",
-                    "displayDays": "mon"
+                    "displayDays": "mon,tue"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=take_out_trash&title=Take%20out%20trash&description=Take%20the%20trash%20to%20the%20outside%20bin.&rewardCash=0.25",
