@@ -20,7 +20,7 @@
             }
         ]
     },
-    "version": "2026-09-08",
+    "version": "2026-09-16",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -43,24 +43,28 @@
                     "stars": 3,
                     "title": "Translation",
                     "launch": "translation",
+                    "disable": "Dec 31, 2099",
                     "totalQuestions": 5
                 },
                 {
                     "stars": 3,
                     "title": "French Stories",
                     "launch": "frenchStories",
+                    "disable": "Dec 31, 2099",
                     "totalQuestions": 5
                 },
                 {
                     "stars": 3,
                     "title": "Conjugation",
                     "launch": "conjugation_limparfait",
+                    "disable": "Dec 31, 2099",
                     "totalQuestions": 5
                 },
                 {
                     "stars": 3,
                     "title": "Duological",
                     "launch": "duologicalGame",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "fri",
                     "blockOutlines": true,
                     "totalQuestions": 5
@@ -176,14 +180,16 @@
                     "easy": true,
                     "stars": 3,
                     "title": "English reading (tappable book)",
-                    "launch": "tappableText"
+                    "launch": "tappableText",
+                    "disable": "Dec 31, 2099"
                 },
                 {
                     "url": "lang=fr&ufli=no",
                     "easy": true,
                     "stars": 3,
                     "title": "French reading (tappable book)",
-                    "launch": "tappableText"
+                    "launch": "tappableText",
+                    "disable": "Dec 31, 2099"
                 },
                 {
                     "stars": 1,
@@ -205,6 +211,7 @@
                     "stars": 3,
                     "title": "Times Tables",
                     "launch": "timesTables",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "sun,fri"
                 },
@@ -213,6 +220,7 @@
                     "stars": 3,
                     "title": "Multi-Digit Add/Subtract",
                     "launch": "multiDigitAddSubtract",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "totalQuestions": 5
                 },
@@ -221,6 +229,7 @@
                     "stars": 3,
                     "title": "Long Division",
                     "launch": "longDivision",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "easydays": "mon,wed,fri,sun",
                     "displayDays": "mon,wed,fri,sun",
@@ -231,6 +240,7 @@
                     "stars": 3,
                     "title": "Multi-Digit Multiplication",
                     "launch": "multiDigitMultiplication",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "tue,thu,sat",
                     "totalQuestions": 5
@@ -240,6 +250,7 @@
                     "stars": 3,
                     "title": "Time Telling",
                     "launch": "timeTelling",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "thu",
                     "totalQuestions": 5
@@ -248,6 +259,7 @@
                     "stars": 3,
                     "title": "Fractions",
                     "launch": "gr3fractions",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "fri",
                     "totalQuestions": 5
                 },
@@ -255,6 +267,7 @@
                     "stars": 3,
                     "title": "Math",
                     "launch": "gr3math",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "mon",
                     "totalQuestions": 5
                 },
@@ -262,6 +275,7 @@
                     "stars": 3,
                     "title": "Mixed Math",
                     "launch": "gr3mixedproblems",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "tue",
                     "totalQuestions": 5
                 },
@@ -269,6 +283,7 @@
                     "stars": 3,
                     "title": "Math Word Problems",
                     "launch": "gr3wordproblems",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "sat",
                     "totalQuestions": 5
                 },
@@ -276,6 +291,7 @@
                     "stars": 3,
                     "title": "Algebra",
                     "launch": "gr3algebra",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "sun",
                     "totalQuestions": 5
                 },
