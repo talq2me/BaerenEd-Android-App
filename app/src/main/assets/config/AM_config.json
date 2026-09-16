@@ -16,7 +16,7 @@
             }
         ]
     },
-    "version": "2026-09-08",
+    "version": "2026-09-16",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -172,13 +172,15 @@
                 {
                     "stars": 3,
                     "title": "Printing Practice",
-                    "launch": "printing"
+                    "launch": "printing",
+                    "disable": "Dec 31, 2099"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/fractionsPieGame.html",
                     "stars": 3,
                     "title": "Pie Fractions",
                     "launch": "fractionsPie",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "fri"
                 },
@@ -195,6 +197,7 @@
                     "stars": 3,
                     "title": "Time Telling",
                     "launch": "timeTelling",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "thu",
                     "totalQuestions": 5
@@ -203,6 +206,7 @@
                     "stars": 3,
                     "title": "Money Game",
                     "launch": "canadianMoneyEasy",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "wed",
                     "totalQuestions": 5
                 },
