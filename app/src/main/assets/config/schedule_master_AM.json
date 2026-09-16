@@ -1,7 +1,7 @@
 {
     "source": "AM_config.json",
     "profile": "AM",
-    "version": "2026-09-08",
+    "version": "2026-09-16",
     "practice": [
         {
             "stars": 1,
@@ -649,6 +649,7 @@
             "stars": 3,
             "title": "Printing Practice",
             "launch": "printing",
+            "disable": "Dec 31, 2099",
             "scheduleKey": "required|printing|Printing Practice"
         },
         {
@@ -656,6 +657,7 @@
             "stars": 3,
             "title": "Pie Fractions",
             "launch": "fractionsPie",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "fri",
             "scheduleKey": "required|fractionsPie|Pie Fractions"
@@ -674,6 +676,7 @@
             "stars": 3,
             "title": "Time Telling",
             "launch": "timeTelling",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "thu",
             "scheduleKey": "required|timeTelling|Time Telling",
@@ -683,6 +686,7 @@
             "stars": 3,
             "title": "Money Game",
             "launch": "canadianMoneyEasy",
+            "disable": "Dec 31, 2099",
             "displayDays": "wed",
             "scheduleKey": "required|canadianMoneyEasy|Money Game",
             "totalQuestions": 5
