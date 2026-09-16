@@ -1,7 +1,7 @@
 {
     "source": "BM_config.json",
     "profile": "BM",
-    "version": "2026-09-08",
+    "version": "2026-09-16",
     "practice": [
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/storySequence.html?file=storySequence.json",
@@ -486,6 +486,7 @@
             "stars": 3,
             "title": "Translation",
             "launch": "translation",
+            "disable": "Dec 31, 2099",
             "scheduleKey": "required|translation|Translation",
             "totalQuestions": 5
         },
@@ -493,6 +494,7 @@
             "stars": 3,
             "title": "French Stories",
             "launch": "frenchStories",
+            "disable": "Dec 31, 2099",
             "scheduleKey": "required|frenchStories|French Stories",
             "totalQuestions": 5
         },
@@ -500,6 +502,7 @@
             "stars": 3,
             "title": "Conjugation",
             "launch": "conjugation_limparfait",
+            "disable": "Dec 31, 2099",
             "scheduleKey": "required|conjugation_limparfait|Conjugation",
             "totalQuestions": 5
         },
@@ -507,6 +510,7 @@
             "stars": 3,
             "title": "Duological",
             "launch": "duologicalGame",
+            "disable": "Dec 31, 2099",
             "displayDays": "fri",
             "scheduleKey": "required|duologicalGame|Duological",
             "blockOutlines": true,
@@ -636,6 +640,7 @@
             "stars": 3,
             "title": "English reading (tappable book)",
             "launch": "tappableText",
+            "disable": "Dec 31, 2099",
             "scheduleKey": "required|tappableText|lang=en"
         },
         {
@@ -644,6 +649,7 @@
             "stars": 3,
             "title": "French reading (tappable book)",
             "launch": "tappableText",
+            "disable": "Dec 31, 2099",
             "scheduleKey": "required|tappableText|lang=fr&ufli=no"
         },
         {
@@ -668,6 +674,7 @@
             "stars": 3,
             "title": "Times Tables",
             "launch": "timesTables",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "sun,fri",
             "scheduleKey": "required|timesTables|Times Tables"
@@ -677,6 +684,7 @@
             "stars": 3,
             "title": "Multi-Digit Add/Subtract",
             "launch": "multiDigitAddSubtract",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "scheduleKey": "required|multiDigitAddSubtract|Multi-Digit Add/Subtract",
             "totalQuestions": 5
@@ -686,6 +694,7 @@
             "stars": 3,
             "title": "Long Division",
             "launch": "longDivision",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "easydays": "mon,wed,fri,sun",
             "displayDays": "mon,wed,fri,sun",
@@ -697,6 +706,7 @@
             "stars": 3,
             "title": "Multi-Digit Multiplication",
             "launch": "multiDigitMultiplication",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "tue,thu,sat",
             "scheduleKey": "required|multiDigitMultiplication|Multi-Digit Multiplication",
@@ -707,6 +717,7 @@
             "stars": 3,
             "title": "Time Telling",
             "launch": "timeTelling",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "thu",
             "scheduleKey": "required|timeTelling|Time Telling",
@@ -716,6 +727,7 @@
             "stars": 3,
             "title": "Fractions",
             "launch": "gr3fractions",
+            "disable": "Dec 31, 2099",
             "displayDays": "fri",
             "scheduleKey": "required|gr3fractions|Fractions",
             "totalQuestions": 5
@@ -724,6 +736,7 @@
             "stars": 3,
             "title": "Math",
             "launch": "gr3math",
+            "disable": "Dec 31, 2099",
             "displayDays": "mon",
             "scheduleKey": "required|gr3math|Math",
             "totalQuestions": 5
@@ -732,6 +745,7 @@
             "stars": 3,
             "title": "Mixed Math",
             "launch": "gr3mixedproblems",
+            "disable": "Dec 31, 2099",
             "displayDays": "tue",
             "scheduleKey": "required|gr3mixedproblems|Mixed Math",
             "totalQuestions": 5
@@ -740,6 +754,7 @@
             "stars": 3,
             "title": "Math Word Problems",
             "launch": "gr3wordproblems",
+            "disable": "Dec 31, 2099",
             "displayDays": "sat",
             "scheduleKey": "required|gr3wordproblems|Math Word Problems",
             "totalQuestions": 5
@@ -748,6 +763,7 @@
             "stars": 3,
             "title": "Algebra",
             "launch": "gr3algebra",
+            "disable": "Dec 31, 2099",
             "displayDays": "sun",
             "scheduleKey": "required|gr3algebra|Algebra",
             "totalQuestions": 5
