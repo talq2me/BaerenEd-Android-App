@@ -135,7 +135,7 @@
                     "extremedays": "sat,sun,mon"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrBM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Fr Spelling Drag",
                     "launch": "frSpellingDrag",
@@ -152,7 +152,7 @@
                     "displayDays": "sat,sun,mon"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrBM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Word Garden FR",
                     "launch": "wordGarden",
@@ -160,7 +160,7 @@
                     "displayDays": "wed,sat"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrBM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Word Fishing FR",
                     "launch": "wordFishing",
@@ -168,7 +168,7 @@
                     "displayDays": "thu,sun"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragFrBM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Spelling Race FR",
                     "launch": "spellingRace",
