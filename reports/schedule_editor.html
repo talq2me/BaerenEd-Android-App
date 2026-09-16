@@ -964,16 +964,24 @@
             if (cfgTask?.totalQuestions != null && merged.totalQuestions == null) {
                 merged.totalQuestions = cfgTask.totalQuestions;
             }
-            // When a DB row exists, schedule visibility/days come from DB (parent edits).
-            // Config disable/displayDays only seed brand-new tasks with no DB row yet.
+            // Days still come from DB when that row exists (parent day edits).
+            // disable: use DB when the key is present (including "" = parent turned on).
+            // If DB omits disable or it is null, keep config (e.g. off until 2099).
             if (db) {
-                for (const k of ['disable', 'displayDays', 'showdays', 'hidedays']) {
+                for (const k of ['displayDays', 'showdays', 'hidedays']) {
                     if (k in db) {
                         if (db[k] === undefined || db[k] === null || db[k] === '') {
                             delete merged[k];
                         }
                     } else {
                         delete merged[k];
+                    }
+                }
+                if (Object.prototype.hasOwnProperty.call(db, 'disable') && db.disable !== undefined && db.disable !== null) {
+                    if (String(db.disable).trim() === '') {
+                        merged.disable = '';
+                    } else {
+                        merged.disable = db.disable;
                     }
                 }
             }
@@ -998,7 +1006,7 @@
                 id: db?.id ?? cfg.id
             };
             const hasDbRow = db && Object.keys(db).length > 0;
-            for (const k of ['disable', 'displayDays', 'showdays', 'hidedays']) {
+            for (const k of ['displayDays', 'showdays', 'hidedays']) {
                 if (hasDbRow) {
                     if (k in db && db[k] !== undefined && db[k] !== null && db[k] !== '') {
                         merged[k] = db[k];
@@ -1006,6 +1014,11 @@
                 } else if (cfg[k] != null && cfg[k] !== '') {
                     merged[k] = cfg[k];
                 }
+            }
+            if (hasDbRow && Object.prototype.hasOwnProperty.call(db, 'disable') && db.disable !== undefined && db.disable !== null) {
+                merged.disable = String(db.disable).trim() === '' ? '' : db.disable;
+            } else if (cfg.disable != null && String(cfg.disable).trim() !== '') {
+                merged.disable = cfg.disable;
             }
             return merged;
         }
@@ -1287,7 +1300,7 @@
             const entry = findEntry(bucket, key);
             if (!entry) return;
             if (turnOn) {
-                delete entry.data.disable;
+                entry.data.disable = '';
                 if (!entry.data.displayDays && !entry.data.showdays) {
                     openDaysModal(bucket, key);
                 } else {
@@ -1361,7 +1374,7 @@
                 delete entry.data.showdays;
                 delete entry.data.hidedays;
             }
-            delete entry.data.disable;
+            entry.data.disable = '';
             closeModals();
             refreshUI();
         }
