@@ -86,6 +86,7 @@
                     "stars": 3,
                     "title": "Eng Spelling Drag",
                     "launch": "engSpellingDrag",
+                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "mon,tue,wed,thu,fri",
                     "totalQuestions": 5
@@ -95,6 +96,7 @@
                     "stars": 3,
                     "title": "Word Garden Eng",
                     "launch": "wordGarden",
+                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "tue"
                 },
@@ -103,6 +105,7 @@
                     "stars": 3,
                     "title": "Word Fishing Eng",
                     "launch": "wordFishing",
+                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "wed"
                 },
@@ -111,6 +114,7 @@
                     "stars": 3,
                     "title": "Spelling Race Eng",
                     "launch": "spellingRace",
+                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "thu"
                 },
@@ -211,7 +215,7 @@
                     "stars": 3,
                     "title": "Times Tables",
                     "launch": "timesTables",
-                    "disable": "Dec 31, 2099",
+                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "sun,fri"
                 },
@@ -250,7 +254,7 @@
                     "stars": 3,
                     "title": "Time Telling",
                     "launch": "timeTelling",
-                    "disable": "Dec 31, 2099",
+                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "thu",
                     "totalQuestions": 5
