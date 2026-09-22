@@ -86,7 +86,6 @@
                     "stars": 3,
                     "title": "Eng Spelling Drag",
                     "launch": "engSpellingDrag",
-                    "disable": "Sep 23, 2026",
                     "webGame": true,
                     "displayDays": "mon,tue,wed,thu,fri",
                     "totalQuestions": 5
