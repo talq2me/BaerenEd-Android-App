@@ -1,0 +1,8 @@
+[
+  {"prompt": {"text": "Spell the word", "lang": "eng"}, "question": {"text": "hand", "lang": "eng"}, "correctChoices": [{"text": "h"}, {"text": "a"}, {"text": "n"}, {"text": "d"}], "extraChoices": [{"text": "m"}, {"text": "e"}]},
+  {"prompt": {"text": "Spell the word", "lang": "eng"}, "question": {"text": "fast", "lang": "eng"}, "correctChoices": [{"text": "f"}, {"text": "a"}, {"text": "s"}, {"text": "t"}], "extraChoices": [{"text": "p"}, {"text": "e"}]},
+  {"prompt": {"text": "Spell the word", "lang": "eng"}, "question": {"text": "best", "lang": "eng"}, "correctChoices": [{"text": "b"}, {"text": "e"}, {"text": "s"}, {"text": "t"}], "extraChoices": [{"text": "d"}, {"text": "a"}]},
+  {"prompt": {"text": "Spell the word", "lang": "eng"}, "question": {"text": "list", "lang": "eng"}, "correctChoices": [{"text": "l"}, {"text": "i"}, {"text": "s"}, {"text": "t"}], "extraChoices": [{"text": "r"}, {"text": "a"}]},
+  {"prompt": {"text": "Spell the word", "lang": "eng"}, "question": {"text": "stop", "lang": "eng"}, "correctChoices": [{"text": "s"}, {"text": "t"}, {"text": "o"}, {"text": "p"}], "extraChoices": [{"text": "n"}, {"text": "a"}]},
+  {"prompt": {"text": "Spell the word", "lang": "eng"}, "question": {"text": "jump", "lang": "eng"}, "correctChoices": [{"text": "j"}, {"text": "u"}, {"text": "m"}, {"text": "p"}], "extraChoices": [{"text": "g"}, {"text": "a"}]}
+]

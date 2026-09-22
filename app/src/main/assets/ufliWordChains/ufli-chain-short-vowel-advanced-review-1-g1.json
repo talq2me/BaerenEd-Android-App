@@ -1,0 +1,107 @@
+{
+  "id": "ufli-chain-short-vowel-advanced-review-1-g1",
+  "concept": "short-vowel-advanced-review-1",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "just",
+        "prompt": "Make the word just.",
+        "correctChoices": [{"text": "j"}, {"text": "u"}, {"text": "s"}, {"text": "t"}],
+        "extraChoices": [{"text": "r"}, {"text": "e"}]
+      },
+      "steps": [
+        {
+          "from": "just",
+          "to": "rust",
+          "prompt": "Say just. Change j to r. Build rust."
+        },
+        {
+          "from": "rust",
+          "to": "rest",
+          "prompt": "Say rust. Change u to e. Build rest."
+        },
+        {
+          "from": "rest",
+          "to": "west",
+          "prompt": "Say rest. Change r to w. Build west."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "mist",
+        "prompt": "Make the word mist.",
+        "correctChoices": [{"text": "m"}, {"text": "i"}, {"text": "s"}, {"text": "t"}],
+        "extraChoices": [{"text": "f"}, {"text": "a"}]
+      },
+      "steps": [
+        {
+          "from": "mist",
+          "to": "fist",
+          "prompt": "Say mist. Change m to f. Build fist."
+        },
+        {
+          "from": "fist",
+          "to": "fast",
+          "prompt": "Say fist. Change i to a. Build fast."
+        },
+        {
+          "from": "fast",
+          "to": "past",
+          "prompt": "Say fast. Change f to p. Build past."
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "past",
+      "steps": [
+        {
+          "word": "hand",
+          "prompt": "Build hand.",
+          "correctChoices": [{"text": "h"}, {"text": "a"}, {"text": "n"}, {"text": "d"}],
+          "extraChoices": [{"text": "m"}, {"text": "e"}],
+          "type": "seed"
+        },
+        {
+          "word": "fast",
+          "prompt": "Build fast.",
+          "correctChoices": [{"text": "f"}, {"text": "a"}, {"text": "s"}, {"text": "t"}],
+          "extraChoices": [{"text": "p"}, {"text": "e"}],
+          "type": "seed"
+        },
+        {
+          "word": "best",
+          "prompt": "Build best.",
+          "correctChoices": [{"text": "b"}, {"text": "e"}, {"text": "s"}, {"text": "t"}],
+          "extraChoices": [{"text": "d"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "list",
+          "prompt": "Build list.",
+          "correctChoices": [{"text": "l"}, {"text": "i"}, {"text": "s"}, {"text": "t"}],
+          "extraChoices": [{"text": "r"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "stop",
+          "prompt": "Build stop.",
+          "correctChoices": [{"text": "s"}, {"text": "t"}, {"text": "o"}, {"text": "p"}],
+          "extraChoices": [{"text": "n"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "jump",
+          "prompt": "Build jump.",
+          "correctChoices": [{"text": "j"}, {"text": "u"}, {"text": "m"}, {"text": "p"}],
+          "extraChoices": [{"text": "g"}, {"text": "a"}],
+          "type": "seed"
+        }
+      ]
+    }
+  ]
+}

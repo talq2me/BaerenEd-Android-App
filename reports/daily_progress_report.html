@@ -337,6 +337,48 @@
             font-weight: 700;
         }
 
+        .sentence-reads {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 8px 0 12px;
+        }
+
+        .sentence-read-card {
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+            border-radius: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .sentence-read-card .sent {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #1e3a8a;
+            line-height: 1.35;
+            margin: 0 0 6px;
+        }
+
+        .sentence-read-card .hint {
+            font-size: 0.85em;
+            color: #1d4ed8;
+        }
+
+        .modal-sentence {
+            width: min(640px, 96vw);
+            background: #fff;
+            color: #0f172a;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.4;
+            text-align: center;
+            padding: 24px 20px 8px;
+            border-radius: 12px 12px 0 0;
+            margin: 0 auto;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -505,6 +547,7 @@
                     <ul class="task-list" id="requiredTasks"></ul>
                 </div>
                 <div id="chorePhotos" class="chore-photos"></div>
+                <div id="sentenceReads" class="sentence-reads"></div>
             </div>
 
             <div class="section collapsible">
@@ -531,6 +574,7 @@
 
     <div id="imageModal" class="modal" aria-hidden="true">
         <span class="modal-close" id="imageModalClose">&times;</span>
+        <p class="modal-sentence" id="modalSentenceText" style="display:none"></p>
         <img class="modal-content" id="modalImage" alt="Chore photo">
         <audio class="modal-content audio-player" id="modalAudio" controls style="display:none"></audio>
         <video class="modal-content video-player" id="modalVideo" controls playsinline muted style="display:none"></video>
@@ -568,6 +612,7 @@
         let todayChorePhotos = [];
         let openPhoto = null;
         let choreTitleSet = new Set();
+        let choreMetaById = {};
 
         function todayTorontoYmd() {
             return new Intl.DateTimeFormat('en-CA', {
@@ -643,16 +688,37 @@
         }
 
         function collectChoreTitles(master) {
+            choreMetaById = {};
             const titles = new Set();
             for (const t of master?.required || []) {
                 const launch = String(t.launch || '').toLowerCase();
-                const url = String(t.url || '').toLowerCase();
+                const rawUrl = String(t.url || '');
+                const url = rawUrl.toLowerCase();
                 if (launch.startsWith('chore') || url.includes('chorephoto') || url.includes('choreaudio') || url.includes('chorevideo')) {
-                    const title = String(t.title || '').trim().toLowerCase();
-                    if (title) titles.add(title);
+                    const title = String(t.title || '').trim();
+                    if (title) titles.add(title.toLowerCase());
+                    try {
+                        const parsedUrl = new URL(rawUrl);
+                        const choreId = parsedUrl.searchParams.get('choreId');
+                        if (choreId) {
+                            const urlTitle = parsedUrl.searchParams.get('title');
+                            const reward = parsedUrl.searchParams.get('rewardCash');
+                            choreMetaById[choreId] = {
+                                title: urlTitle || title,
+                                rewardCash: reward != null && reward !== '' ? Number(reward) : 0
+                            };
+                        }
+                    } catch (e) {}
                 }
             }
             return titles;
+        }
+
+        function resolveChoreMeta(choreId, photoChoresToday) {
+            return choreMetaById[choreId]
+                || (photoChoresToday && photoChoresToday[choreId])
+                || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[choreId])
+                || {};
         }
 
         function isChoreRequiredTask(taskKey, task) {
@@ -786,31 +852,48 @@
 
         function renderChorePhotos(photoChoresToday) {
             const wrap = document.getElementById('chorePhotos');
+            const audioWrap = document.getElementById('sentenceReads');
             wrap.innerHTML = '';
+            if (audioWrap) audioWrap.innerHTML = '';
             if (!todayChorePhotos.length) {
                 wrap.style.display = 'none';
+                if (audioWrap) audioWrap.style.display = 'none';
                 return;
             }
-            wrap.style.display = '';
+            let photoCount = 0;
+            let audioCount = 0;
             todayChorePhotos.forEach((row, idx) => {
                 const parsed = parseChoreTaskKey(row.task) || {};
-            const meta = photoChoresToday[parsed.choreId] || (reportUserData && reportUserData.photo_chores && reportUserData.photo_chores[parsed.choreId]) || {};
-            const title = meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' ');
-            const paid = row.reward_granted === true;
-            const card = document.createElement('div');
-            card.className = 'chore-photo-card';
-            const mediaHtml = isAudioPayload(row.image)
-                ? `<div class="audio-thumb" aria-label="Audio">Audio</div>`
-                : (isVideoPayload(row.image)
+                const meta = resolveChoreMeta(parsed.choreId, photoChoresToday);
+                const title = meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' ');
+                const paid = row.reward_granted === true;
+                if (isAudioPayload(row.image) && audioWrap) {
+                    const card = document.createElement('div');
+                    card.className = 'sentence-read-card';
+                    card.innerHTML = `
+                        <p class="sent">${String(title).replace(/</g, '&lt;')}</p>
+                        <div class="hint">▶ Play recording${paid ? ` · Paid ${formatMoney(row.granted_amount)}` : ''}</div>
+                    `;
+                    card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
+                    audioWrap.appendChild(card);
+                    audioCount += 1;
+                    return;
+                }
+                const card = document.createElement('div');
+                card.className = 'chore-photo-card';
+                const mediaHtml = isVideoPayload(row.image)
                     ? `<div class="video-thumb" aria-label="Video">Video</div>`
-                    : `<img src="${mediaSrc(row.image)}" alt="${title}">`);
-            card.innerHTML = `
-                ${mediaHtml}
-                <div class="cap">${title}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
-            `;
-            card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
-            wrap.appendChild(card);
+                    : `<img src="${mediaSrc(row.image)}" alt="${title}">`;
+                card.innerHTML = `
+                    ${mediaHtml}
+                    <div class="cap">${title}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
+                `;
+                card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
+                wrap.appendChild(card);
+                photoCount += 1;
             });
+            wrap.style.display = photoCount ? '' : 'none';
+            if (audioWrap) audioWrap.style.display = audioCount ? '' : 'none';
         }
 
         function closeImageModalOnly() {
@@ -818,6 +901,11 @@
             modal.classList.remove('show');
             document.getElementById('modalImage').src = '';
             document.getElementById('modalImage').style.display = '';
+            const sentEl = document.getElementById('modalSentenceText');
+            if (sentEl) {
+                sentEl.textContent = '';
+                sentEl.style.display = 'none';
+            }
             const audio = document.getElementById('modalAudio');
             audio.pause();
             audio.removeAttribute('src');
@@ -837,7 +925,7 @@
             const row = todayChorePhotos[idx];
             if (!row) return;
             const parsed = parseChoreTaskKey(row.task) || {};
-            const meta = photoChoresToday[parsed.choreId] || {};
+            const meta = resolveChoreMeta(parsed.choreId, photoChoresToday);
             openPhoto = {
                 idx,
                 row,
@@ -851,15 +939,21 @@
             const img = document.getElementById('modalImage');
             const audio = document.getElementById('modalAudio');
             const video = document.getElementById('modalVideo');
+            const sentEl = document.getElementById('modalSentenceText');
             if (isAudioPayload(row.image)) {
                 img.style.display = 'none';
                 img.src = '';
                 video.style.display = 'none';
                 video.pause();
                 video.removeAttribute('src');
+                if (sentEl) {
+                    sentEl.textContent = openPhoto.title;
+                    sentEl.style.display = '';
+                }
                 audio.style.display = '';
                 audio.src = mediaSrc(row.image);
             } else if (isVideoPayload(row.image)) {
+                if (sentEl) sentEl.style.display = 'none';
                 img.style.display = 'none';
                 img.src = '';
                 audio.style.display = 'none';
@@ -868,6 +962,7 @@
                 video.style.display = '';
                 video.src = mediaSrc(row.image);
             } else {
+                if (sentEl) sentEl.style.display = 'none';
                 audio.style.display = 'none';
                 audio.pause();
                 audio.removeAttribute('src');
@@ -886,11 +981,10 @@
             if (!modal.classList.contains('show')) return;
             closeImageModalOnly();
             const photo = openPhoto;
+            openPhoto = null;
             if (!photo) return;
-            if (photo.row.reward_granted === true) {
-                openPhoto = null;
-                return;
-            }
+            if (photo.row.reward_granted === true) return;
+            if (!Number(photo.rewardCash || 0)) return;
             document.getElementById('grantTitle').textContent = `Grant reward for ${photo.title}?`;
             document.getElementById('grantMessage').textContent = `Add this amount to ${kid}'s bank.`;
             document.getElementById('grantAmount').value = Number(photo.rewardCash || 0).toFixed(2);

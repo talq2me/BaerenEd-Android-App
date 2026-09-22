@@ -65,7 +65,7 @@
                     "displayDays": "tue,sat"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain&file=ufli-chain-short-vowel-advanced-review-1-g1.json",
                     "stars": 3,
                     "title": "UFLI Word Chain",
                     "launch": "ufliWordChains",
@@ -73,12 +73,28 @@
                     "totalQuestions": 5
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell&file=ufli-irr-short-vowel-advanced-review-1-g1.json",
                     "stars": 3,
                     "title": "UFLI Irregular Words",
                     "launch": "ufliIrregularWords",
                     "webGame": true,
                     "totalQuestions": 5
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_1&title=He%20went%20to%20get%20help.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
+                    "stars": 3,
+                    "title": "He went to get help.",
+                    "launch": "choreUfliSentence1",
+                    "webGame": true,
+                    "description": "Read this sentence out loud."
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_2&title=What%20is%20the%20best%20spot%3F&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
+                    "stars": 3,
+                    "title": "What is the best spot?",
+                    "launch": "choreUfliSentence2",
+                    "webGame": true,
+                    "description": "Read this sentence out loud."
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
@@ -168,6 +184,39 @@
                     "webGame": true,
                     "displayDays": "mon,tue,wed",
                     "totalQuestions": 5
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
+                    "stars": 3,
+                    "title": "Word Fishing Eng",
+                    "launch": "wordFishing",
+                    "webGame": true,
+                    "easydays": "wed,sat",
+                    "displayDays": "wed,sat"
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
+                    "stars": 3,
+                    "title": "Word Factory Eng",
+                    "launch": "wordFactory",
+                    "webGame": true,
+                    "displayDays": "thu,sun"
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
+                    "stars": 3,
+                    "title": "Word Garden Eng",
+                    "launch": "wordGarden",
+                    "webGame": true,
+                    "displayDays": "tue,fri"
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
+                    "stars": 3,
+                    "title": "Snake Catch Eng",
+                    "launch": "snakeCatch",
+                    "webGame": true,
+                    "displayDays": "tue,fri,sat"
                 },
                 {
                     "stars": 3,
@@ -464,7 +513,7 @@
                 {
                     "stars": 3,
                     "title": "UFLI Words",
-                    "launch": "ufliLessonData",
+                    "launch": "ufliLessonDataAM",
                     "disable": "Dec 31, 2099",
                     "blockOutlines": true,
                     "totalQuestions": 5
@@ -772,6 +821,43 @@
                     "totalQuestions": 1
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDragPractice",
+                    "stars": 3,
+                    "title": "Word Fishing Eng (Practice)",
+                    "launch": "wordFishing",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "easydays": "wed,sat",
+                    "displayDays": "wed,sat"
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDragPractice",
+                    "stars": 3,
+                    "title": "Word Factory Eng (Practice)",
+                    "launch": "wordFactory",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "displayDays": "thu,sun"
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDragPractice",
+                    "stars": 3,
+                    "title": "Word Garden Eng (Practice)",
+                    "launch": "wordGarden",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "displayDays": "tue,fri"
+                },
+                {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDragPractice",
+                    "stars": 3,
+                    "title": "Snake Catch Eng (Practice)",
+                    "launch": "snakeCatch",
+                    "disable": "Dec 31, 2099",
+                    "webGame": true,
+                    "displayDays": "tue,fri,sat"
+                },
+                {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsAM.json",
                     "stars": 3,
                     "title": "Fr Spelling (Practice)",
@@ -876,7 +962,7 @@
                     "totalQuestions": 1
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell&file=ufli-irr-short-vowel-advanced-review-1-g1.json",
                     "stars": 3,
                     "title": "UFLI Irregular Words (Practice)",
                     "launch": "ufliIrregularWords",
@@ -885,7 +971,7 @@
                     "totalQuestions": 1
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain&file=ufli-chain-short-vowel-advanced-review-1-g1.json",
                     "stars": 3,
                     "title": "UFLI Word Chain (Practice)",
                     "launch": "ufliWordChains",
@@ -1119,7 +1205,7 @@
                 {
                     "stars": 1,
                     "title": "UFLI Words (Practice)",
-                    "launch": "ufliLessonData",
+                    "launch": "ufliLessonDataAM",
                     "disable": "Dec 31, 2099",
                     "blockOutlines": true,
                     "totalQuestions": 1

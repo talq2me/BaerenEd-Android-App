@@ -1,0 +1,44 @@
+[
+  {
+    "prompt": {"text": "Build the irregular word: look.", "lang": "eng", "displayText": true},
+    "question": {"text": "look", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "l"}, {"text": "oo"}, {"text": "k"}],
+    "extraChoices": [{"text": "u"}, {"text": "ck"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: book.", "lang": "eng", "displayText": true},
+    "question": {"text": "book", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "b"}, {"text": "oo"}, {"text": "k"}],
+    "extraChoices": [{"text": "d"}, {"text": "u"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: are.", "lang": "eng", "displayText": true},
+    "question": {"text": "are", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "a"}, {"text": "r"}, {"text": "e"}],
+    "extraChoices": [{"text": "o"}, {"text": "i"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: was.", "lang": "eng", "displayText": true},
+    "question": {"text": "was", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "w"}, {"text": "a"}, {"text": "s"}],
+    "extraChoices": [{"text": "o"}, {"text": "h"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: you.", "lang": "eng", "displayText": true},
+    "question": {"text": "you", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "y"}, {"text": "ou"}],
+    "extraChoices": [{"text": "u"}, {"text": "w"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: what.", "lang": "eng", "displayText": true},
+    "question": {"text": "what", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "wh"}, {"text": "a"}, {"text": "t"}],
+    "extraChoices": [{"text": "w"}, {"text": "o"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: have.", "lang": "eng", "displayText": true},
+    "question": {"text": "have", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "h"}, {"text": "a"}, {"text": "v"}, {"text": "e"}],
+    "extraChoices": [{"text": "f"}, {"text": "i"}]
+  }
+]
