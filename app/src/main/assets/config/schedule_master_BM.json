@@ -193,7 +193,7 @@
             "scheduleKey": "practice|engSpelling|englishWordsBM.json"
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnBM.json&pool=5&poolKey=engSpellingDragPractice",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=englishWordsBM.json&pool=all&poolKey=engSpellingDragPractice",
             "stars": 3,
             "title": "Eng Spelling Drag (Practice)",
             "launch": "engSpellingDrag",
@@ -530,7 +530,7 @@
             "scheduleKey": "required|engSpelling|englishWordsBM.json"
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnBM.json&pool=5&poolKey=engSpellingDrag",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=englishWordsBM.json&pool=all&poolKey=engSpellingDrag",
             "stars": 3,
             "title": "Eng Spelling Drag",
             "launch": "engSpellingDrag",
