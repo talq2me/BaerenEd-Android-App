@@ -1,15 +1,12 @@
 [
-  {"word":"tune","sentence":"She hummed a happy tune."},
-  {"word":"tone","sentence":"He spoke in a kind tone."},
-  {"word":"cone","sentence":"I ate an ice cream cone."},
-  {"word":"cane","sentence":"The sugar cane grows tall."},
-  {"word":"tame","sentence":"The rabbit is tame and gentle."},
-  {"word":"time","sentence":"What time is it?"},
-  {"word":"dime","sentence":"A dime is worth ten cents."},
-  {"word":"dome","sentence":"The dome on the building is round."},
-  {"word":"who","sentence":"Who is at the door?"},
-  {"word":"my","sentence":"This is my favorite book."},
-  {"word":"by","sentence":"The cat sat by the window."},
-  {"word":"one","sentence":"I have one apple left."},
-  {"word":"once","sentence":"I went to the zoo once."}
+  {"word":"hop","sentence":"The frog can hop on the log."},
+  {"word":"mud","sentence":"My boots got stuck in the mud."},
+  {"word":"bed","sentence":"I made my bed this morning."},
+  {"word":"camp","sentence":"We will camp by the lake."},
+  {"word":"just","sentence":"She just got home from school."},
+  {"word":"sled","sentence":"We rode the sled down the hill."},
+  {"word":"pan","sentence":"Dad cooked eggs in a pan."},
+  {"word":"fix","sentence":"Can you help me fix my toy?"},
+  {"word":"plot","sentence":"We planted seeds in the plot."},
+  {"word":"list","sentence":"I wrote a list of things to buy."}
 ]
