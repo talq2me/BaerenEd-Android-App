@@ -217,7 +217,7 @@
             "scheduleKey": "practice|frSpelling|frenchWordsBM.json"
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrBM.json&pool=5&poolKey=frSpellingDragPractice",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=frenchWordsBM.json&pool=all&poolKey=frSpellingDragPractice",
             "stars": 3,
             "title": "Fr Spelling Drag (Practice)",
             "launch": "frSpellingDrag",
@@ -592,7 +592,7 @@
             "scheduleKey": "required|frSpelling|frenchWordsBM.json"
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrBM.json&pool=all&poolKey=frSpellingDrag",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=frenchWordsBM.json&pool=all&poolKey=frSpellingDrag",
             "stars": 3,
             "title": "Fr Spelling Drag",
             "launch": "frSpellingDrag",
