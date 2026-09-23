@@ -16,7 +16,7 @@
             }
         ]
     },
-    "version": "2026-09-16",
+    "version": "2026-09-23",
     "progress": {
         "message": "Earn stars to unlock your pokemon!",
         "starsGoal": 10,
@@ -31,14 +31,16 @@
                     "easy": true,
                     "stars": 3,
                     "title": "English reading (tappable book)",
-                    "launch": "tappableText"
+                    "launch": "tappableText",
+                    "disable": "Dec 31, 2099"
                 },
                 {
                     "url": "lang=fr&ufli=only",
                     "easy": true,
                     "stars": 3,
                     "title": "French reading (tappable book)",
-                    "launch": "tappableText"
+                    "launch": "tappableText",
+                    "disable": "Dec 31, 2099"
                 },
                 {
                     "stars": 3,
@@ -70,6 +72,7 @@
                     "title": "UFLI Word Chain",
                     "launch": "ufliWordChains",
                     "webGame": true,
+                    "displayDays": "mon,tue,wed,thu",
                     "totalQuestions": 5
                 },
                 {
@@ -78,11 +81,12 @@
                     "title": "UFLI Irregular Words",
                     "launch": "ufliIrregularWords",
                     "webGame": true,
+                    "displayDays": "mon,tue,wed,thu",
                     "totalQuestions": 5
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_1&title=He%20went%20to%20get%20help.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
-                    "stars": 3,
+                    "stars": 0,
                     "title": "He went to get help.",
                     "launch": "choreUfliSentence1",
                     "webGame": true,
@@ -90,7 +94,7 @@
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_2&title=What%20is%20the%20best%20spot%3F&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
-                    "stars": 3,
+                    "stars": 0,
                     "title": "What is the best spot?",
                     "launch": "choreUfliSentence2",
                     "webGame": true,
@@ -237,6 +241,7 @@
                     "stars": 3,
                     "title": "Sentence Builder",
                     "launch": "englishSentences",
+                    "disable": "Dec 31, 2099",
                     "displayDays": "sun,sat",
                     "blockOutlines": true,
                     "totalQuestions": 3
@@ -264,6 +269,7 @@
                     "stars": 3,
                     "title": "Math Hole",
                     "launch": "mathHole",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "wed,fri",
                     "totalQuestions": 5
