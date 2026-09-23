@@ -1,13 +1,10 @@
 [
-  {"word":"lundi","sentence":"Lundi, on retourne à l'école."},
-  {"word":"mardi","sentence":"Le cours de musique est mardi matin."},
-  {"word":"mercredi","sentence":"Papa travaille à la maison mercredi."},
-  {"word":"jeudi","sentence":"Jeudi, nous allons à la bibliothèque."},
-  {"word":"vendredi","sentence":"Nous mangeons de la pizza vendredi soir."},
-  {"word":"samedi","sentence":"Je joue au parc samedi avec mes amis."},
-  {"word":"dimanche","sentence":"Dimanche, toute la famille se repose."},
-  {"word":"neige","sentence":"La neige tombe dehors aujourd'hui."},
-  {"word":"toupie","sentence":"Ma toupie tourne très vite."},
-  {"word":"ouvre","sentence":"Il ouvre la porte doucement."},
-  {"word":"lutin","sentence":"Le lutin est caché dans la forêt."}
+  {"word":"après","sentence":"Nous jouons dehors après l'école."},
+  {"word":"frère","sentence":"Mon frère aime jouer au soccer."},
+  {"word":"règle","sentence":"La règle est sur mon bureau."},
+  {"word":"équipe","sentence":"Notre équipe a gagné le match."},
+  {"word":"école","sentence":"Je vais à l'école chaque matin."},
+  {"word":"météo","sentence":"La météo annonce du soleil demain."},
+  {"word":"élève","sentence":"Chaque élève a un crayon."},
+  {"word":"océan","sentence":"Nous nageons dans l'océan en été."}
 ]
