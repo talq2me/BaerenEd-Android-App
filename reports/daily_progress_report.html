@@ -257,35 +257,6 @@
             font-weight: 700;
         }
 
-        .sentence-reads {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin: 8px 0 12px;
-        }
-
-        .sentence-read-card {
-            background: #eff6ff;
-            border: 1px solid #93c5fd;
-            border-radius: 10px;
-            padding: 12px 14px;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .sentence-read-card .sent {
-            font-size: 1.25em;
-            font-weight: 700;
-            color: #1e3a8a;
-            line-height: 1.35;
-            margin: 0 0 6px;
-        }
-
-        .sentence-read-card .hint {
-            font-size: 0.85em;
-            color: #1d4ed8;
-        }
-
         .modal-sentence {
             width: min(640px, 96vw);
             background: #fff;
@@ -419,7 +390,6 @@
                     <ul class="task-list" id="requiredTasks"></ul>
                 </div>
                 <div id="chorePhotos" class="chore-photos"></div>
-                <div id="sentenceReads" class="sentence-reads"></div>
             </div>
 
             <div class="section collapsible">
@@ -724,33 +694,18 @@
 
         function renderChorePhotos(photoChoresToday) {
             const wrap = document.getElementById('chorePhotos');
-            const audioWrap = document.getElementById('sentenceReads');
             wrap.innerHTML = '';
-            if (audioWrap) audioWrap.innerHTML = '';
             if (!todayChorePhotos.length) {
                 wrap.style.display = 'none';
-                if (audioWrap) audioWrap.style.display = 'none';
                 return;
             }
             let photoCount = 0;
-            let audioCount = 0;
             todayChorePhotos.forEach((row, idx) => {
+                if (isAudioPayload(row.image)) return;
                 const parsed = parseChoreTaskKey(row.task) || {};
                 const meta = resolveChoreMeta(parsed.choreId, photoChoresToday);
                 const title = meta.title || String(parsed.choreId || 'Chore').replace(/_/g, ' ');
                 const paid = row.reward_granted === true;
-                if (isAudioPayload(row.image) && audioWrap) {
-                    const card = document.createElement('div');
-                    card.className = 'sentence-read-card';
-                    card.innerHTML = `
-                        <p class="sent">${String(title).replace(/</g, '&lt;')}</p>
-                        <div class="hint">▶ Play recording${paid ? ` · Paid ${formatMoney(row.granted_amount)}` : ''}</div>
-                    `;
-                    card.addEventListener('click', () => openChorePhoto(idx, photoChoresToday));
-                    audioWrap.appendChild(card);
-                    audioCount += 1;
-                    return;
-                }
                 const card = document.createElement('div');
                 card.className = 'chore-photo-card';
                 const mediaHtml = isVideoPayload(row.image)
@@ -765,7 +720,6 @@
                 photoCount += 1;
             });
             wrap.style.display = photoCount ? '' : 'none';
-            if (audioWrap) audioWrap.style.display = audioCount ? '' : 'none';
         }
 
         function closeImageModalOnly() {

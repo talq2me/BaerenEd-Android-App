@@ -394,6 +394,252 @@
             min-width: 2.2em;
         }
 
+        .kid-block {
+            margin-bottom: 10px;
+        }
+
+        .kid-block .kid-card {
+            margin-bottom: 0;
+        }
+
+        .sentence-reads {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .sentence-reads[hidden] {
+            display: none;
+        }
+
+        .sentence-read-card {
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+            border-radius: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font: inherit;
+        }
+
+        .sentence-read-card .sent {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #1e3a8a;
+            line-height: 1.35;
+            margin: 0 0 4px;
+        }
+
+        .sentence-read-card .hint {
+            font-size: 0.82em;
+            color: #1d4ed8;
+        }
+
+        .media-fold {
+            margin-top: 8px;
+        }
+
+        .media-fold[hidden] {
+            display: none;
+        }
+
+        .media-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f4f7fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font: inherit;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .media-chevron {
+            display: inline-block;
+            color: #5a7a9c;
+            transition: transform 0.15s ease;
+        }
+
+        .media-toggle[aria-expanded="true"] .media-chevron {
+            transform: rotate(90deg);
+        }
+
+        .media-loading {
+            margin: 8px 2px 0;
+            color: #64748b;
+            font-size: 0.82em;
+        }
+
+        .chore-photos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chore-photo-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            padding: 0;
+            font: inherit;
+            text-align: left;
+            width: 100%;
+        }
+
+        .chore-photo-card img,
+        .chore-photo-card .video-thumb,
+        .chore-photo-card .media-pending {
+            width: 100%;
+            height: 96px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .chore-photo-card .video-thumb,
+        .chore-photo-card .media-pending {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            object-fit: unset;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        .chore-photo-card .video-thumb {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        .chore-photo-card .media-pending {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .chore-photo-card .cap {
+            font-size: 0.68em;
+            padding: 4px 6px;
+            color: #334155;
+            line-height: 1.2;
+        }
+
+        .chore-photo-card .cap .paid {
+            color: #15803d;
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.82);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-sentence {
+            width: min(640px, 96vw);
+            background: #fff;
+            color: #0f172a;
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1.4;
+            text-align: center;
+            padding: 24px 20px 8px;
+            border-radius: 12px 12px 0 0;
+            margin: 0;
+        }
+
+        .modal-content.audio-player {
+            width: min(520px, 96vw);
+            background: #fff;
+            border-radius: 0 0 12px 12px;
+            padding: 8px 12px 16px;
+        }
+
+        .modal-content.photo {
+            max-width: 96vw;
+            max-height: 82vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .modal-content.video-player {
+            width: min(520px, 96vw);
+            max-height: 80vh;
+            background: #000;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .grant-dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            width: min(420px, 100%);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .grant-dialog h4 {
+            margin-bottom: 8px;
+            color: #334155;
+        }
+
+        .grant-dialog p {
+            font-size: 0.9em;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        .grant-dialog input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 12px;
+        }
+
+        .grant-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .grant-actions button {
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .grant-no { background: #e2e8f0; color: #334155; }
+        .grant-resend { background: #c2410c; color: white; margin-right: auto; }
+        .grant-yes { background: #15803d; color: white; }
+
         .config-body .section:first-child {
             margin-top: 8px;
         }
@@ -446,6 +692,7 @@
 
         <div class="section">
             <div class="section-label">Progress</div>
+            <div class="kid-block">
             <a class="kid-card" href="daily_progress_report.html?kid=AM">
                 <div class="kid-card-head">
                     <span class="kid-card-name">AM</span>
@@ -493,6 +740,10 @@
                     </div>
                 </div>
             </a>
+            <div id="AM-recordings" class="sentence-reads" hidden></div>
+            <div id="AM-media" class="media-fold" hidden></div>
+            </div>
+            <div class="kid-block">
             <a class="kid-card" href="daily_progress_report.html?kid=BM">
                 <div class="kid-card-head">
                     <span class="kid-card-name">BM</span>
@@ -540,6 +791,9 @@
                     </div>
                 </div>
             </a>
+            <div id="BM-recordings" class="sentence-reads" hidden></div>
+            <div id="BM-media" class="media-fold" hidden></div>
+            </div>
         </div>
 
         <div class="config-section" id="navSection">
@@ -606,6 +860,29 @@
                 <button class="save-config" onclick="saveConfig()">Save Configuration</button>
                 <a href="daily_progress_report.html?kid=TE" class="config-report-link">TE Progress Report</a>
                 <p class="info-text">Saved in this browser only. Write key must match <code>schedule_editor_write_key</code> in Supabase Vault.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="recordingModal" class="modal" aria-hidden="true">
+        <span class="modal-close" id="recordingModalClose">&times;</span>
+        <div id="recordingLayout">
+            <p class="modal-sentence" id="recordingSentence"></p>
+            <audio class="modal-content audio-player" id="recordingAudio" controls></audio>
+        </div>
+        <img class="modal-content photo" id="modalImage" alt="" style="display:none">
+        <video class="modal-content video-player" id="modalVideo" controls playsinline style="display:none"></video>
+    </div>
+
+    <div id="grantModal" class="modal" aria-hidden="true">
+        <div class="grant-dialog">
+            <h4 id="grantTitle">Grant chore reward?</h4>
+            <p id="grantMessage">Add this amount to the kid's bank.</p>
+            <input id="grantAmount" type="number" min="0" step="0.01" inputmode="decimal">
+            <div class="grant-actions">
+                <button type="button" class="grant-resend" id="grantResend">Resend</button>
+                <button type="button" class="grant-no" id="grantNo">No</button>
+                <button type="button" class="grant-yes" id="grantYes">Yes</button>
             </div>
         </div>
     </div>
@@ -871,6 +1148,14 @@
         const KID_PROFILES = ['AM', 'BM'];
         const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
         let kidSummaryLoad = null;
+        let recordingsByProfile = { AM: [], BM: [] };
+        let choreMetaByProfile = { AM: {}, BM: {} };
+        let photoChoresByProfile = { AM: {}, BM: {} };
+        let openRecording = null;
+        let visualMetaByProfile = { AM: [], BM: [] };
+        let mediaOpenByProfile = { AM: false, BM: false };
+        const recordingAudioByKey = new Map();
+        const visualMediaByKey = new Map();
 
         function todayTorontoYmd() {
             return new Intl.DateTimeFormat('en-CA', {
@@ -890,11 +1175,11 @@
         function parseChoreTaskKey(task) {
             const withReward = String(task || '').match(/^chore_(.+)_r([0-9]+(?:\.[0-9]+)?)_(\d{4}-\d{2}-\d{2})$/);
             if (withReward) {
-                return { choreId: withReward[1], date: withReward[3] };
+                return { choreId: withReward[1], rewardCash: Number(withReward[2]), date: withReward[3] };
             }
             const m = String(task || '').match(/^chore_(.+)_(\d{4}-\d{2}-\d{2})$/);
             if (!m) return null;
-            return { choreId: m[1], date: m[2] };
+            return { choreId: m[1], rewardCash: null, date: m[2] };
         }
 
         function isTaskVisible(showdays, hidedays, displayDays, disable) {
@@ -947,6 +1232,28 @@
                 }
             }
             return titles;
+        }
+
+        function collectChoreMeta(master) {
+            const meta = {};
+            for (const t of master?.required || []) {
+                const launch = String(t.launch || '').toLowerCase();
+                const rawUrl = String(t.url || '');
+                const url = rawUrl.toLowerCase();
+                if (!(launch.startsWith('chore') || url.includes('chorephoto') || url.includes('choreaudio') || url.includes('chorevideo'))) continue;
+                try {
+                    const parsedUrl = new URL(rawUrl);
+                    const choreId = parsedUrl.searchParams.get('choreId');
+                    if (!choreId) continue;
+                    const urlTitle = parsedUrl.searchParams.get('title');
+                    const reward = parsedUrl.searchParams.get('rewardCash');
+                    meta[choreId] = {
+                        title: urlTitle || String(t.title || '').trim(),
+                        rewardCash: reward != null && reward !== '' ? Number(reward) : 0
+                    };
+                } catch (e) {}
+            }
+            return meta;
         }
 
         function isChoreRequiredTask(taskKey, task, choreTitleSet, photoChores) {
@@ -1052,56 +1359,478 @@
             }
             if (!response.ok) return [];
             const rows = await response.json();
+            return (Array.isArray(rows) ? rows : []).filter(isTodayChoreUpload);
+        }
+
+        function isTodayChoreUpload(row) {
+            const parsed = parseChoreTaskKey(row.task);
+            const captureDay = String(row.capture_date_time || '').slice(0, 10);
             const today = todayTorontoYmd();
-            return (Array.isArray(rows) ? rows : []).filter(row => {
-                const parsed = parseChoreTaskKey(row.task);
-                const captureDay = String(row.capture_date_time || '').slice(0, 10);
-                return parsed && (parsed.date === today || captureDay === today);
+            return !!(parsed && (parsed.date === today || captureDay === today));
+        }
+
+        async function fetchTodayRecordingMeta(url, key) {
+            const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
+            const endpoint = `${url}/rest/v1/image_uploads?profile=in.(AM,BM)&task=like.chore_*&image=like.data:audio*&select=profile,task,capture_date_time,reward_granted,granted_amount&order=capture_date_time.desc`;
+            const response = await fetch(endpoint, { headers });
+            if (!response.ok) {
+                console.warn('Recordings unavailable', response.status);
+                return [];
+            }
+            const rows = await response.json();
+            return (Array.isArray(rows) ? rows : []).filter(isTodayChoreUpload);
+        }
+
+        async function ensureRecordingAudio(url, key, rows) {
+            const list = Array.isArray(rows) ? rows : [];
+            const needed = list.filter(row => row && row.task && !recordingAudioByKey.has(`${row.profile}|${row.task}`));
+            if (needed.length) {
+                const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
+                const orInner = needed.map(row => `task.eq."${String(row.task).replace(/"/g, '')}"`).join(',');
+                const response = await fetch(
+                    `${url}/rest/v1/image_uploads?profile=in.(AM,BM)&or=(${orInner})&select=profile,task,image`,
+                    { headers }
+                );
+                if (!response.ok) {
+                    console.warn('Recording audio unavailable', response.status);
+                } else {
+                    const data = await response.json();
+                    (Array.isArray(data) ? data : []).forEach(row => {
+                        if (row && row.image) recordingAudioByKey.set(`${row.profile}|${row.task}`, row.image);
+                    });
+                }
+            }
+            const live = new Set(list.map(row => `${row.profile}|${row.task}`));
+            for (const cacheKey of [...recordingAudioByKey.keys()]) {
+                if (!live.has(cacheKey)) recordingAudioByKey.delete(cacheKey);
+            }
+            return list.map(row => ({
+                ...row,
+                image: recordingAudioByKey.get(`${row.profile}|${row.task}`) || ''
+            }));
+        }
+
+        function isAudioPayload(image) {
+            return typeof image === 'string' && image.startsWith('data:audio');
+        }
+
+        function isVideoPayload(image) {
+            return typeof image === 'string' && (
+                image.startsWith('storage:chore-videos/') ||
+                image.startsWith('data:video')
+            );
+        }
+
+        function mediaSrc(image) {
+            if (!image) return '';
+            if (image.startsWith('storage:chore-videos/')) {
+                const objectPath = image.substring('storage:chore-videos/'.length);
+                const supabaseUrl = localStorage.getItem('supabaseUrl') || '';
+                return `${supabaseUrl}/storage/v1/object/public/chore-videos/${objectPath}`;
+            }
+            if (image.startsWith('data:')) return image;
+            return 'data:image/jpeg;base64,' + image;
+        }
+
+        function visualsReady(profile) {
+            const rows = visualMetaByProfile[profile] || [];
+            return rows.every(row => visualMediaByKey.has(`${row.profile}|${row.task}`));
+        }
+
+        async function ensureVisualMedia(url, key, rows) {
+            const list = Array.isArray(rows) ? rows : [];
+            const needed = list.filter(row => row && row.task && !visualMediaByKey.has(`${row.profile}|${row.task}`));
+            if (needed.length) {
+                const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
+                const orInner = needed.map(row => `task.eq."${String(row.task).replace(/"/g, '')}"`).join(',');
+                const response = await fetch(
+                    `${url}/rest/v1/image_uploads?profile=in.(AM,BM)&or=(${orInner})&select=profile,task,image`,
+                    { headers }
+                );
+                if (!response.ok) {
+                    console.warn('Chore photos unavailable', response.status);
+                } else {
+                    const data = await response.json();
+                    (Array.isArray(data) ? data : []).forEach(row => {
+                        if (row && row.image) visualMediaByKey.set(`${row.profile}|${row.task}`, row.image);
+                    });
+                    list.forEach(row => {
+                        const cacheKey = `${row.profile}|${row.task}`;
+                        if (row && row.task && !visualMediaByKey.has(cacheKey)) visualMediaByKey.set(cacheKey, '');
+                    });
+                }
+            }
+            const profiles = new Set(list.map(row => row.profile));
+            const live = new Set(list.map(row => `${row.profile}|${row.task}`));
+            for (const cacheKey of [...visualMediaByKey.keys()]) {
+                const profile = cacheKey.split('|')[0];
+                if (profiles.has(profile) && !live.has(cacheKey)) visualMediaByKey.delete(cacheKey);
+            }
+        }
+
+        function renderMediaFold(profile) {
+            const wrap = document.getElementById(profile + '-media');
+            if (!wrap) return;
+            const rows = visualMetaByProfile[profile] || [];
+            wrap.innerHTML = '';
+            if (!rows.length) {
+                wrap.hidden = true;
+                return;
+            }
+            const open = !!mediaOpenByProfile[profile];
+            wrap.hidden = false;
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'media-toggle';
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            toggle.innerHTML = `<span class="media-chevron">›</span><span>Photos &amp; videos (${rows.length})</span>`;
+            toggle.addEventListener('click', () => toggleMediaFold(profile));
+            wrap.appendChild(toggle);
+            if (!open) return;
+            const grid = document.createElement('div');
+            grid.className = 'chore-photos';
+            if (!visualsReady(profile)) {
+                grid.innerHTML = '<p class="media-loading">Loading…</p>';
+                wrap.appendChild(grid);
+                return;
+            }
+            rows.forEach((row, idx) => {
+                const image = visualMediaByKey.get(`${row.profile}|${row.task}`) || '';
+                if (isAudioPayload(image)) return;
+                const { title } = recordingTitle(profile, row, 'Chore');
+                const paid = row.reward_granted === true;
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'chore-photo-card';
+                const safeTitle = String(title).replace(/</g, '&lt;');
+                const thumb = !image
+                    ? `<div class="media-pending">Unavailable</div>`
+                    : isVideoPayload(image)
+                        ? `<div class="video-thumb">Video</div>`
+                        : `<img src="${mediaSrc(image)}" alt="${safeTitle}">`;
+                card.innerHTML = `
+                    ${thumb}
+                    <div class="cap">${safeTitle}${paid ? ` <span class="paid">Paid ${formatMoney(row.granted_amount)}</span>` : ''}</div>
+                `;
+                if (image) card.addEventListener('click', () => openVisual(profile, idx));
+                grid.appendChild(card);
             });
+            wrap.appendChild(grid);
+        }
+
+        async function toggleMediaFold(profile) {
+            mediaOpenByProfile[profile] = !mediaOpenByProfile[profile];
+            renderMediaFold(profile);
+            if (!mediaOpenByProfile[profile] || visualsReady(profile)) return;
+            const url = localStorage.getItem('supabaseUrl');
+            const key = localStorage.getItem('supabaseKey');
+            if (!url || !key) return;
+            await ensureVisualMedia(url, key, visualMetaByProfile[profile] || []);
+            if (mediaOpenByProfile[profile]) renderMediaFold(profile);
+        }
+
+        function clearMedia(profile) {
+            visualMetaByProfile[profile] = [];
+            mediaOpenByProfile[profile] = false;
+            renderMediaFold(profile);
+        }
+
+        function recordingTitle(profile, row, fallback) {
+            const parsed = parseChoreTaskKey(row.task) || {};
+            const meta = (choreMetaByProfile[profile] && choreMetaByProfile[profile][parsed.choreId])
+                || (photoChoresByProfile[profile] && photoChoresByProfile[profile][parsed.choreId])
+                || {};
+            const title = meta.title || String(parsed.choreId || fallback || 'Chore').replace(/_/g, ' ');
+            const rewardCash = meta.rewardCash != null
+                ? Number(meta.rewardCash)
+                : (parsed.rewardCash != null ? Number(parsed.rewardCash) : 0);
+            return { title, rewardCash };
+        }
+
+        function renderRecordings(profile) {
+            const wrap = document.getElementById(profile + '-recordings');
+            if (!wrap) return;
+            const rows = recordingsByProfile[profile] || [];
+            wrap.innerHTML = '';
+            if (!rows.length) {
+                wrap.hidden = true;
+                return;
+            }
+            wrap.hidden = false;
+            rows.forEach((row, idx) => {
+                const { title } = recordingTitle(profile, row, 'Recording');
+                const paid = row.reward_granted === true;
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'sentence-read-card';
+                card.innerHTML = `
+                    <p class="sent">${String(title).replace(/</g, '&lt;')}</p>
+                    <div class="hint">▶ Play recording${paid ? ` · Paid ${formatMoney(row.granted_amount)}` : ''}</div>
+                `;
+                card.addEventListener('click', () => openRecordingPlayer(profile, idx));
+                wrap.appendChild(card);
+            });
+        }
+
+        function clearRecordings(profile) {
+            recordingsByProfile[profile] = [];
+            renderRecordings(profile);
+        }
+
+        function hidePlayerMedia() {
+            const layout = document.getElementById('recordingLayout');
+            if (layout) layout.style.display = 'none';
+            const audio = document.getElementById('recordingAudio');
+            audio.pause();
+            audio.removeAttribute('src');
+            const img = document.getElementById('modalImage');
+            img.style.display = 'none';
+            img.removeAttribute('src');
+            const video = document.getElementById('modalVideo');
+            video.pause();
+            video.style.display = 'none';
+            video.removeAttribute('src');
+        }
+
+        function showPlayerModal() {
+            const modal = document.getElementById('recordingModal');
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRecordingModalOnly() {
+            const modal = document.getElementById('recordingModal');
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            hidePlayerMedia();
+            document.body.style.overflow = '';
+        }
+
+        function closeGrantModal() {
+            const modal = document.getElementById('grantModal');
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function openRecordingPlayer(profile, idx) {
+            const row = (recordingsByProfile[profile] || [])[idx];
+            if (!row || !row.image) return;
+            const info = recordingTitle(profile, row, 'Recording');
+            openRecording = { profile, idx, row, title: info.title, rewardCash: info.rewardCash, kind: 'audio' };
+            hidePlayerMedia();
+            document.getElementById('recordingLayout').style.display = '';
+            document.getElementById('recordingSentence').textContent = info.title;
+            const audio = document.getElementById('recordingAudio');
+            audio.src = row.image;
+            showPlayerModal();
+            audio.play().catch(() => {});
+        }
+
+        function openVisual(profile, idx) {
+            const row = (visualMetaByProfile[profile] || [])[idx];
+            if (!row) return;
+            const image = visualMediaByKey.get(`${row.profile}|${row.task}`) || '';
+            if (!image || isAudioPayload(image)) return;
+            const info = recordingTitle(profile, row, 'Chore');
+            const kind = isVideoPayload(image) ? 'video' : 'photo';
+            openRecording = { profile, idx, row, title: info.title, rewardCash: info.rewardCash, kind };
+            hidePlayerMedia();
+            if (kind === 'video') {
+                const video = document.getElementById('modalVideo');
+                video.style.display = '';
+                video.src = mediaSrc(image);
+            } else {
+                const img = document.getElementById('modalImage');
+                img.alt = info.title;
+                img.style.display = '';
+                img.src = mediaSrc(image);
+            }
+            showPlayerModal();
+        }
+
+        function requestCloseRecording() {
+            const modal = document.getElementById('recordingModal');
+            if (!modal.classList.contains('show')) return;
+            closeRecordingModalOnly();
+            const recording = openRecording;
+            if (!recording) return;
+            if (recording.row.reward_granted === true || !Number(recording.rewardCash || 0)) {
+                openRecording = null;
+                return;
+            }
+            document.getElementById('grantTitle').textContent = `Grant reward for ${recording.title}?`;
+            document.getElementById('grantMessage').textContent = `Add this amount to ${recording.profile}'s bank.`;
+            document.getElementById('grantAmount').value = Number(recording.rewardCash || 0).toFixed(2);
+            const grantModal = document.getElementById('grantModal');
+            grantModal.classList.add('show');
+            grantModal.setAttribute('aria-hidden', 'false');
+        }
+
+        async function reloadKidSummaries() {
+            if (kidSummaryLoad) await kidSummaryLoad;
+            return loadKidSummaries();
+        }
+
+        async function grantRecordingReward() {
+            const recording = openRecording;
+            if (!recording) {
+                closeGrantModal();
+                return;
+            }
+            const amount = Number(document.getElementById('grantAmount').value);
+            if (!isFinite(amount) || amount < 0) {
+                alert('Enter a valid amount (0 or more).');
+                return;
+            }
+            const yesBtn = document.getElementById('grantYes');
+            yesBtn.disabled = true;
+            try {
+                const url = localStorage.getItem('supabaseUrl');
+                const key = localStorage.getItem('supabaseKey');
+                const response = await fetch(`${url}/rest/v1/rpc/af_grant_chore_reward`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': key,
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        p_profile: recording.profile,
+                        p_task_key: recording.row.task,
+                        p_amount: amount
+                    })
+                });
+                if (!response.ok) throw new Error(await response.text() || response.statusText);
+                closeGrantModal();
+                openRecording = null;
+                await reloadKidSummaries();
+            } catch (err) {
+                alert('Could not grant reward: ' + (err.message || err));
+            } finally {
+                yesBtn.disabled = false;
+            }
+        }
+
+        async function resendRecording() {
+            const recording = openRecording;
+            if (!recording) {
+                closeGrantModal();
+                return;
+            }
+            if (!confirm(`Resend "${recording.title}"? This deletes the ${recording.kind === 'photo' ? 'photo' : recording.kind === 'video' ? 'video' : 'recording'} and marks the task incomplete so ${recording.profile} must redo it.`)) {
+                return;
+            }
+            const resendBtn = document.getElementById('grantResend');
+            resendBtn.disabled = true;
+            try {
+                const url = localStorage.getItem('supabaseUrl');
+                const key = localStorage.getItem('supabaseKey');
+                const headers = {
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Content-Type': 'application/json'
+                };
+                const response = await fetch(`${url}/rest/v1/rpc/af_resend_chore_photo`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        p_profile: recording.profile,
+                        p_image_task: recording.row.task
+                    })
+                });
+                if (!response.ok) throw new Error(await response.text() || response.statusText);
+                const result = await response.json();
+                const storagePath = result && result.storage_path;
+                if (storagePath) {
+                    try {
+                        const del = await fetch(`${url}/storage/v1/object/chore-videos/${encodeURI(storagePath)}`, {
+                            method: 'DELETE',
+                            headers
+                        });
+                        if (!del.ok && del.status !== 404) {
+                            console.warn('Recording file delete failed', await del.text());
+                        }
+                    } catch (e) {
+                        console.warn('Recording file delete failed:', e);
+                    }
+                }
+                recordingAudioByKey.delete(`${recording.profile}|${recording.row.task}`);
+                visualMediaByKey.delete(`${recording.profile}|${recording.row.task}`);
+                closeGrantModal();
+                openRecording = null;
+                await reloadKidSummaries();
+            } catch (err) {
+                alert('Could not resend chore: ' + (err.message || err));
+            } finally {
+                resendBtn.disabled = false;
+            }
         }
 
         async function loadKidSummariesNow() {
             const url = localStorage.getItem('supabaseUrl');
             const key = localStorage.getItem('supabaseKey');
             if (!url || !key) {
-                KID_PROFILES.forEach(profile => clearKidSummary(profile, 'Setup'));
+                KID_PROFILES.forEach(profile => {
+                    clearKidSummary(profile, 'Setup');
+                    clearRecordings(profile);
+                    clearMedia(profile);
+                });
                 return;
             }
 
             try {
                 const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
-                const [usersRes, photoRows, ...masterResults] = await Promise.all([
+                const [usersRes, photoRows, recordingMeta, ...masterResults] = await Promise.all([
                     fetch(`${url}/rest/v1/user_data?profile=in.(AM,BM)&select=profile,required_tasks,photo_chores,kid_bank_balance`, { headers }),
                     fetchTodayChorePhotos(url, key),
+                    fetchTodayRecordingMeta(url, key),
                     ...KID_PROFILES.map(profile => fetch(`${CONFIG_BASE}schedule_master_${profile}.json`).catch(() => null))
                 ]);
                 if (!usersRes.ok) throw new Error(`user_data: ${usersRes.status}`);
                 const users = await usersRes.json();
                 const byProfile = {};
                 (Array.isArray(users) ? users : []).forEach(row => { byProfile[row.profile] = row; });
+                const recordingRows = await ensureRecordingAudio(url, key, recordingMeta);
 
                 for (let i = 0; i < KID_PROFILES.length; i++) {
                     const profile = KID_PROFILES[i];
                     const userData = byProfile[profile];
-                    if (!userData) {
-                        clearKidSummary(profile, 'No data');
-                        continue;
-                    }
                     let choreTitleSet = new Set();
+                    choreMetaByProfile[profile] = {};
                     const masterRes = masterResults[i];
                     if (masterRes && masterRes.ok) {
                         try {
-                            choreTitleSet = collectChoreTitles(await masterRes.json());
+                            const master = await masterRes.json();
+                            choreTitleSet = collectChoreTitles(master);
+                            choreMetaByProfile[profile] = collectChoreMeta(master);
                         } catch (e) {
                             console.warn('Schedule master unavailable', profile, e);
                         }
                     }
-                    const photos = photoRows.filter(row => row.profile === profile);
-                    applyKidSummary(profile, summarizeProgress(userData, choreTitleSet, photos));
+                    photoChoresByProfile[profile] = (userData && userData.photo_chores) || {};
+                    recordingsByProfile[profile] = recordingRows.filter(row => row.profile === profile);
+                    const audioTasks = new Set(recordingsByProfile[profile].map(row => row.task));
+                    visualMetaByProfile[profile] = photoRows.filter(row => row.profile === profile && !audioTasks.has(row.task));
+                    if (!userData) {
+                        clearKidSummary(profile, 'No data');
+                    } else {
+                        const photos = photoRows.filter(row => row.profile === profile);
+                        applyKidSummary(profile, summarizeProgress(userData, choreTitleSet, photos));
+                    }
+                    renderRecordings(profile);
+                    if (mediaOpenByProfile[profile] && !visualsReady(profile)) {
+                        await ensureVisualMedia(url, key, visualMetaByProfile[profile]);
+                    }
+                    renderMediaFold(profile);
                 }
             } catch (error) {
                 console.error('Error loading kid summaries:', error);
-                KID_PROFILES.forEach(profile => clearKidSummary(profile, 'Error'));
+                KID_PROFILES.forEach(profile => {
+                    clearKidSummary(profile, 'Error');
+                    clearRecordings(profile);
+                    clearMedia(profile);
+                });
             }
         }
 
@@ -1110,6 +1839,23 @@
             kidSummaryLoad = loadKidSummariesNow().finally(() => { kidSummaryLoad = null; });
             return kidSummaryLoad;
         }
+
+        document.getElementById('recordingModalClose').addEventListener('click', requestCloseRecording);
+        document.getElementById('recordingModal').addEventListener('click', function(e) {
+            if (e.target === this) requestCloseRecording();
+        });
+        document.getElementById('grantNo').addEventListener('click', function() {
+            closeGrantModal();
+            openRecording = null;
+        });
+        document.getElementById('grantYes').addEventListener('click', grantRecordingReward);
+        document.getElementById('grantResend').addEventListener('click', resendRecording);
+        document.getElementById('grantModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGrantModal();
+                openRecording = null;
+            }
+        });
 
         loadConfig();
         loadHealthStatus();
