@@ -87,8 +87,7 @@
                     "title": "Eng Spelling Drag",
                     "launch": "engSpellingDrag",
                     "webGame": true,
-                    "displayDays": "mon,tue,wed,thu,fri",
-                    "totalQuestions": 5
+                    "displayDays": "mon,tue,wed,thu,fri"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragEnBM.json&pool=5&poolKey=engSpellingDrag",
@@ -143,8 +142,7 @@
                     "title": "Fr Spelling Drag",
                     "launch": "frSpellingDrag",
                     "webGame": true,
-                    "displayDays": "tue,wed,thu,fri,sat,sun,mon",
-                    "totalQuestions": 5
+                    "displayDays": "tue,wed,thu,fri,sat,sun,mon"
                 },
                 {
                     "url": "file=frenchWordsBM.json",

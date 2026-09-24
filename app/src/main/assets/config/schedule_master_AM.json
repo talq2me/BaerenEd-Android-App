@@ -704,8 +704,7 @@
             "launch": "engSpellingDrag",
             "webGame": true,
             "displayDays": "mon,tue,wed",
-            "scheduleKey": "required|engSpellingDrag|englishWordsAM.json",
-            "totalQuestions": 5
+            "scheduleKey": "required|engSpellingDrag|englishWordsAM.json"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",

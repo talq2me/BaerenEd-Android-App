@@ -536,8 +536,7 @@
             "launch": "engSpellingDrag",
             "webGame": true,
             "displayDays": "mon,tue,wed,thu,fri",
-            "scheduleKey": "required|engSpellingDrag|spellingDragEnBM.json",
-            "totalQuestions": 5
+            "scheduleKey": "required|engSpellingDrag|spellingDragEnBM.json"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragEnBM.json&pool=5&poolKey=engSpellingDrag",
@@ -598,8 +597,7 @@
             "launch": "frSpellingDrag",
             "webGame": true,
             "displayDays": "tue,wed,thu,fri,sat,sun,mon",
-            "scheduleKey": "required|frSpellingDrag|spellingDragFrBM.json",
-            "totalQuestions": 5
+            "scheduleKey": "required|frSpellingDrag|spellingDragFrBM.json"
         },
         {
             "url": "file=frenchWordsBM.json",

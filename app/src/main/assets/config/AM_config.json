@@ -185,8 +185,7 @@
                     "title": "Eng Spelling Drag",
                     "launch": "engSpellingDrag",
                     "webGame": true,
-                    "displayDays": "mon,tue,wed",
-                    "totalQuestions": 5
+                    "displayDays": "mon,tue,wed"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
