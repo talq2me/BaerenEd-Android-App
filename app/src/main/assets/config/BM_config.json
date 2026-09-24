@@ -108,7 +108,7 @@
                     "displayDays": "wed"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnBM.json&pool=5&poolKey=engSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsBM.json&pool=all&poolKey=engSpellingDrag",
                     "stars": 3,
                     "title": "Spelling Race Eng",
                     "launch": "spellingRace",
@@ -814,7 +814,7 @@
                     "webGame": true
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnBM.json&pool=5&poolKey=engSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsBM.json&pool=all&poolKey=engSpellingDragPractice",
                     "stars": 3,
                     "title": "Spelling Race",
                     "launch": "spellingRace",

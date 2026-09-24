@@ -85,12 +85,11 @@
       "scheduleKey": "required|ufliWordChains|UFLI Word Chain"
     },
     {
-      "url": "file=frenchWordsTE.json",
+      "url": "file=englishWordsAM.json",
       "stars": 3,
-      "title": "French Spelling OCR",
+      "title": "Eng Spelling OCR",
       "launch": "spellingOCR",
-      "disable": "Dec 31, 2099",
-      "scheduleKey": "required|spellingOCR|French Spelling OCR"
+      "scheduleKey": "required|spellingOCR|file=englishWordsAM.json"
     },
     {
       "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsTE.json",

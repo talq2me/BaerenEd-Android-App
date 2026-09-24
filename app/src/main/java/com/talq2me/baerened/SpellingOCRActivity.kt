@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -102,8 +103,6 @@ class SpellingOCRActivity : AppCompatActivity() {
         sectionId = intent.getStringExtra("SECTION_ID")
         battleHubTaskId = intent.getStringExtra("BATTLE_HUB_TASK_ID")
         
-        clearOldSpellingOcrImagesOnLaunch()
-
         // Use French TTS when word list is French or game is French Spelling OCR
         val fileLower = wordFile.lowercase(Locale.ROOT)
         useFrenchTTS = fileLower.contains("frenchwords") ||
@@ -601,39 +600,19 @@ class SpellingOCRActivity : AppCompatActivity() {
         progressTextView.text = "Words: $correctWords/${words.size}"
     }
     
-    /**
-     * On launch, delete all image_uploads rows for the current profile and this game's task pattern
-     * (e.g. profile=BM and task like 'EngSpellingOCR%', or profile=AM and task like 'FrSpellingOCR%').
-     */
-    private fun clearOldSpellingOcrImagesOnLaunch() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val cloudSyncService = SupabaseInterface()
-                if (!cloudSyncService.isConfigured()) {
-                    Log.d(TAG, "Supabase not configured, skipping clear of old spelling OCR images")
-                    return@launch
-                }
-                val profile = SettingsManager.readProfile(this@SpellingOCRActivity) ?: "AM"
-                val taskPrefix = when {
-                    wordFile.contains("english", ignoreCase = true) -> "EngSpellingOCR"
-                    wordFile.contains("french", ignoreCase = true) -> "FrSpellingOCR"
-                    else -> "EngSpellingOCR"
-                }
-                val n = cloudSyncService.invokeAfDeleteImageUploadsIlike(profile, "$taskPrefix%").getOrElse {
-                    Log.e(TAG, "clear spelling OCR images RPC failed: ${it.message}")
-                    return@launch
-                }
-                Log.d(TAG, "Cleared old spelling OCR images (profile=$profile, pattern=$taskPrefix%): deleted $n rows")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error clearing old spelling OCR images: ${e.message}", e)
-            }
-        }
+    /** Calendar day in America/Toronto, no time. Kept in the task name so each day is its own row. */
+    private fun torontoYmd(): String {
+        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        fmt.timeZone = TimeZone.getTimeZone("America/Toronto")
+        return fmt.format(Date())
     }
 
     /**
-     * Uploads spelling image to Supabase image_uploads table
-     * Task format: "EngSpellingOCR-01-uncooked-X" or "EngSpellingOCR-01-uncooked-✓"
-     * Uploads once per word with the final correct/incorrect status
+     * Uploads spelling image to Supabase image_uploads table.
+     * Task format: "EngSpellingOCR-2026-09-24-01-uncooked-X" (date, no time).
+     * Profile is the image_uploads.profile column, not part of the task name.
+     * A retry the same day replaces that word only. Older days stay until the
+     * 7-day image_uploads cleanup that runs on each upsert.
      * @param expectedWord The word that was asked to be spelled (from JSON), NOT the OCR recognized text
      * @param wordIndex 0-based index of the word (so question number in report is wordIndex+1, starting at 1)
      */
@@ -658,8 +637,9 @@ class SpellingOCRActivity : AppCompatActivity() {
                 
                 // Determine status based on correctness
                 val status = if (isCorrect) "✓" else "X"
-                
-                val task = "$gameName-$questionNumber-$expectedWord-$status"
+                val day = torontoYmd()
+
+                val task = "$gameName-$day-$questionNumber-$expectedWord-$status"
                 
                 // Convert bitmap to base64
                 val outputStream = ByteArrayOutputStream()
@@ -667,7 +647,7 @@ class SpellingOCRActivity : AppCompatActivity() {
                 val base64Image = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
                 
                 Log.d(TAG, "Uploading spelling image (profile=$profile, task=$task)")
-                val taskPattern = "$gameName-$questionNumber-$expectedWord-%"
+                val taskPattern = "$gameName-$day-$questionNumber-$expectedWord-%"
                 val existingId = cloudSyncService.invokeAfGetImageUploadId(profile, taskPattern).getOrNull()
                 if (existingId != null) {
                     cloudSyncService.invokeAfDeleteImageUploadById(existingId)

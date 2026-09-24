@@ -119,6 +119,13 @@
             color: #333;
         }
 
+        .day-heading {
+            margin: 18px 0 8px;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #334155;
+        }
+
         .entry-word {
             font-size: 1.3em;
             font-weight: 600;
@@ -355,7 +362,8 @@
         }
         
         /**
-         * Parse task strings like "EngSpellingOCR-01-uncooked-X" / "EngSpellingOCR-01-forty-two-✓".
+         * Parse task strings like "EngSpellingOCR-2026-09-24-01-uncooked-X"
+         * or the older "EngSpellingOCR-01-uncooked-X".
          * Words may contain "-" (hyphenated); the final segment is always the status marker.
          */
         function parseSpellingOcrTask(task) {
@@ -366,13 +374,19 @@
             const gamePrefix = parts[0];
             const gp = gamePrefix.toLowerCase();
             if (gp !== 'engspellingocr' && gp !== 'frspellingocr') return null;
-            const questionNumber = parseInt(parts[1], 10);
+            let index = 1;
+            let ymd = null;
+            if (parts.length >= 7 && /^\d{4}$/.test(parts[1]) && /^\d{2}$/.test(parts[2]) && /^\d{2}$/.test(parts[3])) {
+                ymd = `${parts[1]}-${parts[2]}-${parts[3]}`;
+                index = 4;
+            }
+            const questionNumber = parseInt(parts[index], 10);
             if (!Number.isFinite(questionNumber) || questionNumber < 1) return null;
             const status = parts[parts.length - 1];
-            const word = parts.slice(2, -1).join('-');
+            const word = parts.slice(index + 1, -1).join('-');
             if (!word) return null;
             const isCorrect = status === '✓' || status === 'checkmark' || status.toLowerCase() === 'correct';
-            return { gamePrefix, questionNumber, word, isCorrect };
+            return { gamePrefix, questionNumber, word, isCorrect, ymd };
         }
 
         function formatTorontoLongDateFromMs(ms) {
@@ -452,7 +466,12 @@
                 parsedRows.push({ entry, parsed: p });
             }
 
-            parsedRows.sort((a, b) => a.parsed.questionNumber - b.parsed.questionNumber);
+            parsedRows.sort((a, b) => {
+                const dayA = a.parsed.ymd || '';
+                const dayB = b.parsed.ymd || '';
+                if (dayA !== dayB) return dayB.localeCompare(dayA);
+                return a.parsed.questionNumber - b.parsed.questionNumber;
+            });
 
             const container = document.getElementById('entriesContainer');
             const noDataEl = document.getElementById('noData');
@@ -462,10 +481,19 @@
                 noDataEl.style.display = 'none';
             }
 
+            let lastDay = null;
             parsedRows.forEach(({ entry, parsed }) => {
                     const questionNumber = parsed.questionNumber;
                     const word = parsed.word;
                     const isCorrect = parsed.isCorrect;
+                    const dayKey = parsed.ymd || '';
+                    if (dayKey !== lastDay) {
+                        lastDay = dayKey;
+                        const dayHeading = document.createElement('div');
+                        dayHeading.className = 'day-heading';
+                        dayHeading.textContent = dayKey || 'Undated';
+                        container.appendChild(dayHeading);
+                    }
 
                     const entryDiv = document.createElement('div');
                     entryDiv.className = 'entry-container';

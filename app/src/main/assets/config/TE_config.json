@@ -99,11 +99,10 @@
                     "totalQuestions": 5
                 },
                 {
-                    "url": "file=frenchWordsTE.json",
+                    "url": "file=englishWordsAM.json",
                     "stars": 3,
-                    "title": "French Spelling OCR",
-                    "launch": "spellingOCR",
-                    "disable": "Dec 31, 2099"
+                    "title": "Eng Spelling OCR",
+                    "launch": "spellingOCR"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsTE.json",
