@@ -624,6 +624,15 @@
                     "displayDays": "tue,thu,sun"
                 },
                 {
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/packSchoolLunch.html?choreId=pack_school_lunch&title=Pack%20school%20lunch&description=Pack%20tomorrow%27s%20lunch%3A%20meal%20%2B%202%20snacks%2C%20vegetarian%2C%20no%20nuts.%20Sweets%20optional%20(up%20to%202).&rewardCash=0.5",
+                    "stars": 0,
+                    "title": "Pack school lunch",
+                    "launch": "chorePackSchoolLunch",
+                    "webGame": true,
+                    "description": "Pack tomorrow's lunch: meal + 2 snacks, vegetarian, no nuts. Sweets optional (up to 2).",
+                    "displayDays": "sun,mon,tue,wed,thu"
+                },
+                {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/chorePhoto.html?choreId=clean_up_table&title=Clean%20up%20table%20and%20wipe%20clean&description=Clean%20up%20the%20table%20and%20wipe%20it%20clean.&rewardCash=0.5",
                     "stars": 0,
                     "title": "Clean up table and wipe clean",

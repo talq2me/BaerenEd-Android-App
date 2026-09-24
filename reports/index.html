@@ -296,6 +296,108 @@
             line-height: 1.35;
         }
 
+        .kid-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            background: #f4f7fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .kid-card:active {
+            transform: scale(0.99);
+        }
+
+        .kid-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .kid-card-name {
+            font-weight: 700;
+            color: #222;
+            font-size: 1.05em;
+        }
+
+        .kid-card-open {
+            color: #5a7a9c;
+            font-size: 0.78em;
+            font-weight: 700;
+        }
+
+        .summary-label {
+            color: #64748b;
+            font-size: 0.68em;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .summary-label.chores {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .metric {
+            background: #eef2f6;
+            padding: 6px 4px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #4a6a8a;
+            line-height: 1.1;
+            margin-bottom: 1px;
+        }
+
+        .metric-label {
+            font-size: 0.64em;
+            color: #64748b;
+            line-height: 1.15;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #5a7a9c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.68em;
+            min-width: 2.2em;
+        }
+
+        .config-body .section:first-child {
+            margin-top: 8px;
+        }
+
         #pullRefreshIndicator {
             position: fixed;
             top: 0;
@@ -343,46 +445,152 @@
         </div>
 
         <div class="section">
-            <div class="section-label">Today</div>
-            <div class="nav-grid">
-                <a href="behavior_log.html" class="kid-button editable">Behavior Log</a>
-                <a href="banked_time.html" class="kid-button editable">Banked Time</a>
-            </div>
+            <div class="section-label">Progress</div>
+            <a class="kid-card" href="daily_progress_report.html?kid=AM">
+                <div class="kid-card-head">
+                    <span class="kid-card-name">AM</span>
+                    <span class="kid-card-open">Report ›</span>
+                </div>
+                <div class="summary-label">Required</div>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="AM-requiredComplete">–</div>
+                        <div class="metric-label">Complete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="AM-requiredIncomplete">–</div>
+                        <div class="metric-label">Incomplete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="AM-requiredCorrect">–</div>
+                        <div class="metric-label">Correct</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="AM-requiredIncorrect">–</div>
+                        <div class="metric-label">Incorrect</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="AM-progressFill" style="width: 0%">–</div>
+                </div>
+                <div class="summary-label chores">Chores</div>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="AM-choresComplete">–</div>
+                        <div class="metric-label">Complete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="AM-choresIncomplete">–</div>
+                        <div class="metric-label">Incomplete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="AM-choreEarnedToday">–</div>
+                        <div class="metric-label">Earned today</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="AM-choreTotal">–</div>
+                        <div class="metric-label">Total</div>
+                    </div>
+                </div>
+            </a>
+            <a class="kid-card" href="daily_progress_report.html?kid=BM">
+                <div class="kid-card-head">
+                    <span class="kid-card-name">BM</span>
+                    <span class="kid-card-open">Report ›</span>
+                </div>
+                <div class="summary-label">Required</div>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="BM-requiredComplete">–</div>
+                        <div class="metric-label">Complete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="BM-requiredIncomplete">–</div>
+                        <div class="metric-label">Incomplete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="BM-requiredCorrect">–</div>
+                        <div class="metric-label">Correct</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="BM-requiredIncorrect">–</div>
+                        <div class="metric-label">Incorrect</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="BM-progressFill" style="width: 0%">–</div>
+                </div>
+                <div class="summary-label chores">Chores</div>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="BM-choresComplete">–</div>
+                        <div class="metric-label">Complete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="BM-choresIncomplete">–</div>
+                        <div class="metric-label">Incomplete</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="BM-choreEarnedToday">–</div>
+                        <div class="metric-label">Earned today</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="BM-choreTotal">–</div>
+                        <div class="metric-label">Total</div>
+                    </div>
+                </div>
+            </a>
         </div>
 
-        <div class="section">
-            <div class="section-label">Progress Reports</div>
-            <div class="nav-grid">
-                <a href="daily_progress_report.html?kid=AM" class="kid-button">AM Report</a>
-                <a href="daily_progress_report.html?kid=BM" class="kid-button">BM Report</a>
-                <a href="collector_cards.html" class="kid-button">Collector Cards</a>
-                <a href="kid_bank_balance.html" class="kid-button">Kids Bank</a>
-            </div>
-        </div>
+        <div class="config-section" id="navSection">
+            <button type="button" class="config-toggle" onclick="toggleNav()" aria-expanded="false">
+                <span>Buttons</span>
+                <span class="chevron">›</span>
+            </button>
+            <div class="config-body">
+                <div class="section">
+                    <div class="section-label">Today</div>
+                    <div class="nav-grid">
+                        <a href="behavior_log.html" class="kid-button editable">Behavior Log</a>
+                        <a href="banked_time.html" class="kid-button editable">Banked Time</a>
+                    </div>
+                </div>
 
-        <div class="section">
-            <div class="section-label">Time &amp; Schedule</div>
-            <div class="nav-grid">
-                <a href="task_manager.html" class="kid-button editable">Task Manager</a>
-                <a href="schedule_editor.html" class="kid-button editable">Edit Schedule</a>
-                <a href="schedule.html" class="kid-button">Schedule</a>
-                <a href="reward_time_day.html" class="kid-button">Reward Time</a>
-            </div>
-        </div>
+                <div class="section">
+                    <div class="section-label">Progress Reports</div>
+                    <div class="nav-grid">
+                        <a href="daily_progress_report.html?kid=AM" class="kid-button">AM Report</a>
+                        <a href="daily_progress_report.html?kid=BM" class="kid-button">BM Report</a>
+                        <a href="collector_cards.html" class="kid-button">Collector Cards</a>
+                        <a href="kid_bank_balance.html" class="kid-button">Kids Bank</a>
+                    </div>
+                </div>
 
-        <div class="section">
-            <div class="section-label">Learning</div>
-            <div class="nav-grid">
-                <a href="spelling_photos.html" class="kid-button">Spelling Photos</a>
-                <a href="spelling_ocr_report.html" class="kid-button">Spelling OCR</a>
-                <a href="handwriting_practice_report.html" class="kid-button wide">Handwriting snapshot</a>
-            </div>
-        </div>
+                <div class="section">
+                    <div class="section-label">Time &amp; Schedule</div>
+                    <div class="nav-grid">
+                        <a href="task_manager.html" class="kid-button editable">Task Manager</a>
+                        <a href="schedule_editor.html" class="kid-button editable">Edit Schedule</a>
+                        <a href="schedule.html" class="kid-button">Schedule</a>
+                        <a href="reward_time_day.html" class="kid-button">Reward Time</a>
+                    </div>
+                </div>
 
-        <div class="section">
-            <div class="section-label">Help</div>
-            <div class="nav-grid single">
-                <a href="how_to.html" class="kid-button">How To</a>
+                <div class="section">
+                    <div class="section-label">Learning</div>
+                    <div class="nav-grid">
+                        <a href="spelling_photos.html" class="kid-button">Spelling Photos</a>
+                        <a href="spelling_ocr_report.html" class="kid-button">Spelling OCR</a>
+                        <a href="handwriting_practice_report.html" class="kid-button wide">Handwriting snapshot</a>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-label">Help</div>
+                    <div class="nav-grid single">
+                        <a href="how_to.html" class="kid-button">How To</a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -413,15 +621,24 @@
 
             // Auto-open config if credentials are missing
             if (!url || !key) {
-                document.getElementById('configSection').classList.add('open');
-                document.querySelector('.config-toggle').setAttribute('aria-expanded', 'true');
+                const section = document.getElementById('configSection');
+                section.classList.add('open');
+                section.querySelector('.config-toggle').setAttribute('aria-expanded', 'true');
             }
         }
 
-        function toggleConfig() {
-            const section = document.getElementById('configSection');
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
             const open = section.classList.toggle('open');
-            document.querySelector('.config-toggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+            section.querySelector('.config-toggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function toggleNav() {
+            toggleSection('navSection');
+        }
+
+        function toggleConfig() {
+            toggleSection('configSection');
         }
 
         function saveConfig() {
@@ -439,6 +656,7 @@
                 }
                 alert('Configuration saved!');
                 loadHealthStatus();
+                loadKidSummaries();
             } else {
                 alert('Please enter both Supabase URL and API Key');
             }
@@ -650,9 +868,256 @@
             document.addEventListener('touchcancel', endPull, { passive: true });
         })();
 
+        const KID_PROFILES = ['AM', 'BM'];
+        const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
+        let kidSummaryLoad = null;
+
+        function todayTorontoYmd() {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Toronto',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(new Date());
+        }
+
+        function formatMoney(amount) {
+            const n = Number(amount);
+            if (!isFinite(n)) return '$0.00';
+            return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        }
+
+        function parseChoreTaskKey(task) {
+            const withReward = String(task || '').match(/^chore_(.+)_r([0-9]+(?:\.[0-9]+)?)_(\d{4}-\d{2}-\d{2})$/);
+            if (withReward) {
+                return { choreId: withReward[1], date: withReward[3] };
+            }
+            const m = String(task || '').match(/^chore_(.+)_(\d{4}-\d{2}-\d{2})$/);
+            if (!m) return null;
+            return { choreId: m[1], date: m[2] };
+        }
+
+        function isTaskVisible(showdays, hidedays, displayDays, disable) {
+            if (disable) {
+                try {
+                    let disableDate;
+                    const dateMatch = String(disable).match(/(\w{3})\s+(\d{1,2}),\s+(\d{4})/);
+                    if (dateMatch) {
+                        const months = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+                                       jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11};
+                        const month = months[dateMatch[1].toLowerCase()];
+                        const day = parseInt(dateMatch[2], 10);
+                        const year = parseInt(dateMatch[3], 10);
+                        disableDate = new Date(year, month, day);
+                    } else {
+                        disableDate = new Date(disable);
+                    }
+                    if (disableDate && !isNaN(disableDate.getTime())) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        disableDate.setHours(0, 0, 0, 0);
+                        if (today < disableDate) return false;
+                    }
+                } catch (e) {
+                    console.warn('Error parsing disable date:', disable, e);
+                }
+            }
+
+            const todayShort = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+            if (hidedays) {
+                if (hidedays.split(',').map(d => d.trim()).includes(todayShort)) return false;
+            }
+            if (displayDays) {
+                return displayDays.split(',').map(d => d.trim()).includes(todayShort);
+            }
+            if (showdays) {
+                return showdays.split(',').map(d => d.trim()).includes(todayShort);
+            }
+            return true;
+        }
+
+        function collectChoreTitles(master) {
+            const titles = new Set();
+            for (const t of master?.required || []) {
+                const launch = String(t.launch || '').toLowerCase();
+                const url = String(t.url || '').toLowerCase();
+                if (launch.startsWith('chore') || url.includes('chorephoto') || url.includes('choreaudio') || url.includes('chorevideo')) {
+                    const title = String(t.title || '').trim();
+                    if (title) titles.add(title.toLowerCase());
+                }
+            }
+            return titles;
+        }
+
+        function isChoreRequiredTask(taskKey, task, choreTitleSet, photoChores) {
+            const keyNorm = String(taskKey).trim().toLowerCase();
+            if (choreTitleSet.has(keyNorm)) return true;
+            if (String(task?.launch || '').toLowerCase().startsWith('chore')) return true;
+            const taskUrl = String(task?.url || '').toLowerCase();
+            if (taskUrl.includes('chorephoto') || taskUrl.includes('choreaudio') || taskUrl.includes('chorevideo')) return true;
+            for (const [id, chore] of Object.entries(photoChores || {})) {
+                if (String(chore?.title || chore?.description || '').trim().toLowerCase() === keyNorm) return true;
+                if (String(id).replace(/_/g, ' ') === keyNorm) return true;
+            }
+            return false;
+        }
+
+        function summarizeProgress(userData, choreTitleSet, todayPhotos) {
+            const requiredTasks = {};
+            for (const [taskName, task] of Object.entries(userData.required_tasks || {})) {
+                if (isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)) {
+                    requiredTasks[taskName] = task;
+                }
+            }
+            const photoChores = userData.photo_chores || {};
+            const requiredTaskKeys = Object.keys(requiredTasks);
+            const isChore = key => isChoreRequiredTask(key, requiredTasks[key], choreTitleSet, photoChores);
+            const learningRequiredKeys = requiredTaskKeys.filter(key => !isChore(key));
+            const completedRequired = learningRequiredKeys.filter(key => {
+                const task = requiredTasks[key];
+                return task && (task.status === 'complete' || task.completed === true);
+            }).length;
+            const totalRequired = learningRequiredKeys.length;
+            const choreRequiredKeys = requiredTaskKeys.filter(isChore);
+            const choresCompleted = choreRequiredKeys.filter(key => {
+                const task = requiredTasks[key];
+                return task && (task.status === 'complete' || task.completed === true);
+            }).length;
+            const choreEarnedToday = todayPhotos.reduce((sum, row) => {
+                if (row.reward_granted !== true) return sum;
+                const amt = Number(row.granted_amount);
+                return sum + (isFinite(amt) ? amt : 0);
+            }, 0);
+
+            return {
+                requiredComplete: completedRequired,
+                requiredIncomplete: totalRequired - completedRequired,
+                requiredCorrect: learningRequiredKeys.reduce((sum, key) => sum + (Number(requiredTasks[key]?.correct) || 0), 0),
+                requiredIncorrect: learningRequiredKeys.reduce((sum, key) => sum + (Number(requiredTasks[key]?.incorrect) || 0), 0),
+                completionRate: totalRequired > 0 ? Math.round((completedRequired / totalRequired) * 100) : 0,
+                choresComplete: choresCompleted,
+                choresIncomplete: Math.max(0, choreRequiredKeys.length - choresCompleted),
+                choreEarnedToday: formatMoney(choreEarnedToday),
+                choreTotal: formatMoney(userData.kid_bank_balance)
+            };
+        }
+
+        function applyKidSummary(profile, summary) {
+            const set = (id, value) => {
+                const el = document.getElementById(profile + '-' + id);
+                if (el) el.textContent = value;
+            };
+            set('requiredComplete', summary.requiredComplete);
+            set('requiredIncomplete', summary.requiredIncomplete);
+            set('requiredCorrect', summary.requiredCorrect);
+            set('requiredIncorrect', summary.requiredIncorrect);
+            set('choresComplete', summary.choresComplete);
+            set('choresIncomplete', summary.choresIncomplete);
+            set('choreEarnedToday', summary.choreEarnedToday);
+            set('choreTotal', summary.choreTotal);
+            const fill = document.getElementById(profile + '-progressFill');
+            if (fill) {
+                fill.style.width = summary.completionRate + '%';
+                fill.style.background = '';
+                fill.textContent = summary.completionRate + '%';
+            }
+        }
+
+        function clearKidSummary(profile, message) {
+            applyKidSummary(profile, {
+                requiredComplete: '–',
+                requiredIncomplete: '–',
+                requiredCorrect: '–',
+                requiredIncorrect: '–',
+                completionRate: 0,
+                choresComplete: '–',
+                choresIncomplete: '–',
+                choreEarnedToday: '–',
+                choreTotal: '–'
+            });
+            const fill = document.getElementById(profile + '-progressFill');
+            if (fill) {
+                fill.style.width = '100%';
+                fill.style.background = '#94a3b8';
+                fill.textContent = message || '–';
+            }
+        }
+
+        async function fetchTodayChorePhotos(url, key) {
+            const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
+            const base = `${url}/rest/v1/image_uploads?profile=in.(AM,BM)&task=like.chore_*&order=capture_date_time.desc`;
+            let response = await fetch(`${base}&select=profile,task,capture_date_time,reward_granted,granted_amount`, { headers });
+            if (!response.ok) {
+                response = await fetch(`${base}&select=profile,task,capture_date_time`, { headers });
+            }
+            if (!response.ok) return [];
+            const rows = await response.json();
+            const today = todayTorontoYmd();
+            return (Array.isArray(rows) ? rows : []).filter(row => {
+                const parsed = parseChoreTaskKey(row.task);
+                const captureDay = String(row.capture_date_time || '').slice(0, 10);
+                return parsed && (parsed.date === today || captureDay === today);
+            });
+        }
+
+        async function loadKidSummariesNow() {
+            const url = localStorage.getItem('supabaseUrl');
+            const key = localStorage.getItem('supabaseKey');
+            if (!url || !key) {
+                KID_PROFILES.forEach(profile => clearKidSummary(profile, 'Setup'));
+                return;
+            }
+
+            try {
+                const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
+                const [usersRes, photoRows, ...masterResults] = await Promise.all([
+                    fetch(`${url}/rest/v1/user_data?profile=in.(AM,BM)&select=profile,required_tasks,photo_chores,kid_bank_balance`, { headers }),
+                    fetchTodayChorePhotos(url, key),
+                    ...KID_PROFILES.map(profile => fetch(`${CONFIG_BASE}schedule_master_${profile}.json`).catch(() => null))
+                ]);
+                if (!usersRes.ok) throw new Error(`user_data: ${usersRes.status}`);
+                const users = await usersRes.json();
+                const byProfile = {};
+                (Array.isArray(users) ? users : []).forEach(row => { byProfile[row.profile] = row; });
+
+                for (let i = 0; i < KID_PROFILES.length; i++) {
+                    const profile = KID_PROFILES[i];
+                    const userData = byProfile[profile];
+                    if (!userData) {
+                        clearKidSummary(profile, 'No data');
+                        continue;
+                    }
+                    let choreTitleSet = new Set();
+                    const masterRes = masterResults[i];
+                    if (masterRes && masterRes.ok) {
+                        try {
+                            choreTitleSet = collectChoreTitles(await masterRes.json());
+                        } catch (e) {
+                            console.warn('Schedule master unavailable', profile, e);
+                        }
+                    }
+                    const photos = photoRows.filter(row => row.profile === profile);
+                    applyKidSummary(profile, summarizeProgress(userData, choreTitleSet, photos));
+                }
+            } catch (error) {
+                console.error('Error loading kid summaries:', error);
+                KID_PROFILES.forEach(profile => clearKidSummary(profile, 'Error'));
+            }
+        }
+
+        function loadKidSummaries() {
+            if (kidSummaryLoad) return kidSummaryLoad;
+            kidSummaryLoad = loadKidSummariesNow().finally(() => { kidSummaryLoad = null; });
+            return kidSummaryLoad;
+        }
+
         loadConfig();
         loadHealthStatus();
-        setInterval(loadHealthStatus, 30000);
+        loadKidSummaries();
+        setInterval(() => {
+            loadHealthStatus();
+            loadKidSummaries();
+        }, 30000);
     </script>
 </body>
 </html>
