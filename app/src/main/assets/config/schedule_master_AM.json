@@ -656,8 +656,7 @@
             "launch": "frSpellingDrag",
             "webGame": true,
             "displayDays": "thu,fri,sat,sun,mon,tue,wed",
-            "scheduleKey": "required|frSpellingDrag|frenchWordsAM.json",
-            "totalQuestions": 5
+            "scheduleKey": "required|frSpellingDrag|frenchWordsAM.json"
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",

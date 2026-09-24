@@ -142,8 +142,7 @@
                     "title": "Fr Spelling Drag",
                     "launch": "frSpellingDrag",
                     "webGame": true,
-                    "displayDays": "thu,fri,sat,sun,mon,tue,wed",
-                    "totalQuestions": 5
+                    "displayDays": "thu,fri,sat,sun,mon,tue,wed"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
