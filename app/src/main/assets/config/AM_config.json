@@ -122,8 +122,7 @@
                     "stars": 3,
                     "title": "FR Spelling OCR",
                     "launch": "spellingOCR",
-                    "disable": "Dec 31, 2099",
-                    "displayDays": "mon,tue,wed"
+                    "displayDays": "sun"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsAM.json",
@@ -157,6 +156,7 @@
                     "stars": 3,
                     "title": "Snake Catch FR",
                     "launch": "snakeCatch",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "tue,fri,sat"
                 },
@@ -165,8 +165,7 @@
                     "stars": 3,
                     "title": "Eng Spelling OCR",
                     "launch": "spellingOCR",
-                    "disable": "Dec 31, 2099",
-                    "displayDays": "thu,fri"
+                    "displayDays": "wed"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsAM.json",
@@ -217,6 +216,7 @@
                     "stars": 3,
                     "title": "Snake Catch Eng",
                     "launch": "snakeCatch",
+                    "disable": "Dec 31, 2099",
                     "webGame": true,
                     "displayDays": "tue,fri,sat"
                 },

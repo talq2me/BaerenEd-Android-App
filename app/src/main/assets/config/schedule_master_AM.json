@@ -633,8 +633,7 @@
             "stars": 3,
             "title": "FR Spelling OCR",
             "launch": "spellingOCR",
-            "disable": "Dec 31, 2099",
-            "displayDays": "mon,tue,wed",
+            "displayDays": "sun",
             "scheduleKey": "required|spellingOCR|file=frenchWordsAM.json"
         },
         {
@@ -672,6 +671,7 @@
             "stars": 3,
             "title": "Snake Catch FR",
             "launch": "snakeCatch",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "tue,fri,sat",
             "scheduleKey": "required|snakeCatch|frenchWordsAM.json"
@@ -681,8 +681,7 @@
             "stars": 3,
             "title": "Eng Spelling OCR",
             "launch": "spellingOCR",
-            "disable": "Dec 31, 2099",
-            "displayDays": "thu,fri",
+            "displayDays": "wed",
             "scheduleKey": "required|spellingOCR|file=englishWordsAM.json"
         },
         {
@@ -739,6 +738,7 @@
             "stars": 3,
             "title": "Snake Catch Eng",
             "launch": "snakeCatch",
+            "disable": "Dec 31, 2099",
             "webGame": true,
             "displayDays": "tue,fri,sat",
             "scheduleKey": "required|snakeCatch|englishWordsAM.json"
