@@ -126,12 +126,51 @@
             color: #334155;
         }
 
+        .score-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: white;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+
+        .score-summary {
+            color: #334155;
+            font-size: 0.92em;
+            font-weight: 650;
+        }
+
+        .save-scores {
+            border: none;
+            background: #5a7a9c;
+            color: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .save-scores:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
         .entry-word {
-            font-size: 1.3em;
-            font-weight: 600;
+            font-size: 1.05em;
+            font-weight: 700;
             padding: 8px 12px;
             border-radius: 6px;
             display: inline-block;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .entry-word.dirty {
+            outline: 2px dashed #64748b;
+            outline-offset: 2px;
         }
 
         .entry-word.correct {
@@ -250,6 +289,10 @@
             <a href="spelling_ocr_report.html" class="back-button">← Back</a>
         </div>
         <div id="lastUpdated" class="header-meta" style="margin: -4px 0 12px; color: #64748b; font-size: 0.78em;"></div>
+        <div class="score-bar" id="scoreBar" style="display: none;">
+            <div class="score-summary" id="scoreSummary"></div>
+            <button type="button" class="save-scores" id="saveScores" disabled>Save</button>
+        </div>
 
         <div id="loading" class="loading">Loading spelling submissions...</div>
         <div id="entriesContainer"></div>
@@ -269,6 +312,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const profile = urlParams.get('profile') || 'AM';
         const game = urlParams.get('game') || 'EngSpellingOCR';
+        let rowsState = [];
 
         // Update header
         document.getElementById('headerSubtitle').textContent = `${profile} - ${game}`;
@@ -290,7 +334,7 @@
                 const taskPattern = `${game}-`;
                 const encodedPattern = encodeURIComponent(taskPattern) + '%25';
                 
-                const queryUrl = `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&task=ilike.${encodedPattern}&select=task,image,capture_date_time&order=task`;
+                const queryUrl = `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&task=ilike.${encodedPattern}&select=id,task,image,capture_date_time&order=task`;
                 console.log('Querying:', queryUrl);
                 
                 const response = await fetch(queryUrl, {
@@ -311,7 +355,7 @@
                     // Try alternative query without LIKE if the first one fails
                     console.log('Trying alternative query without pattern matching...');
                     const altResponse = await fetch(
-                        `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&select=task,image,capture_date_time&order=task`,
+                        `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&select=id,task,image,capture_date_time&order=task`,
                         {
                             headers: {
                                 'apikey': supabaseKey,
@@ -389,6 +433,29 @@
             return { gamePrefix, questionNumber, word, isCorrect, ymd };
         }
 
+        function taskWithStatus(task, isCorrect) {
+            const parts = String(task || '').trim().split('-');
+            parts[parts.length - 1] = isCorrect ? '✓' : 'X';
+            return parts.join('-');
+        }
+
+        function updateScoreBar() {
+            const bar = document.getElementById('scoreBar');
+            const summary = document.getElementById('scoreSummary');
+            const saveBtn = document.getElementById('saveScores');
+            if (!rowsState.length) {
+                bar.style.display = 'none';
+                return;
+            }
+            const correct = rowsState.filter((row) => row.parsed.isCorrect).length;
+            const incorrect = rowsState.length - correct;
+            const dirty = rowsState.some((row) => row.parsed.isCorrect !== row.savedCorrect);
+            bar.style.display = 'flex';
+            summary.textContent = `${correct} correct, ${incorrect} incorrect`;
+            saveBtn.disabled = !dirty;
+            saveBtn.textContent = dirty ? 'Save' : 'Saved';
+        }
+
         function formatTorontoLongDateFromMs(ms) {
             const d = new Date(ms);
             if (isNaN(d.getTime())) return '';
@@ -463,8 +530,15 @@
                     console.warn('Skipping unparsable OCR task:', entry.task);
                     continue;
                 }
-                parsedRows.push({ entry, parsed: p });
+                parsedRows.push({
+                    entry,
+                    parsed: p,
+                    savedCorrect: p.isCorrect,
+                    savedTask: entry.task
+                });
             }
+            rowsState = parsedRows;
+            updateScoreBar();
 
             parsedRows.sort((a, b) => {
                 const dayA = a.parsed.ymd || '';
@@ -505,9 +579,24 @@
                         <div class="entry-toggle">▼</div>
                         <div class="entry-info">
                             <div class="entry-number">#${questionNumber}</div>
-                            <div class="entry-word ${isCorrect ? 'correct' : 'incorrect'}">${word}</div>
                         </div>
                     `;
+                    const wordBtn = document.createElement('button');
+                    wordBtn.type = 'button';
+                    wordBtn.className = `entry-word ${isCorrect ? 'correct' : 'incorrect'}`;
+                    wordBtn.textContent = `${word} · ${isCorrect ? 'Correct' : 'Incorrect'}`;
+                    wordBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const row = rowsState.find((item) => item.entry === entry);
+                        if (!row) return;
+                        row.parsed.isCorrect = !row.parsed.isCorrect;
+                        const nowCorrect = row.parsed.isCorrect;
+                        wordBtn.className = `entry-word ${nowCorrect ? 'correct' : 'incorrect'}`;
+                        if (nowCorrect !== row.savedCorrect) wordBtn.classList.add('dirty');
+                        wordBtn.textContent = `${word} · ${nowCorrect ? 'Correct' : 'Incorrect'}`;
+                        updateScoreBar();
+                    });
+                    headerDiv.querySelector('.entry-info').appendChild(wordBtn);
 
                     // Create collapsible content
                     const contentDiv = document.createElement('div');
@@ -570,6 +659,47 @@
 
         modal.onclick = function() {
             modal.style.display = 'none';
+        }
+
+        document.getElementById('saveScores').addEventListener('click', saveScoreChanges);
+
+        async function saveScoreChanges() {
+            const saveBtn = document.getElementById('saveScores');
+            const dirty = rowsState.filter((row) => row.parsed.isCorrect !== row.savedCorrect);
+            if (!dirty.length) return;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            const headers = {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            };
+            try {
+                for (const row of dirty) {
+                    const newTask = taskWithStatus(row.savedTask, row.parsed.isCorrect);
+                    const response = await fetch(
+                        `${supabaseUrl}/rest/v1/image_uploads?id=eq.${encodeURIComponent(row.entry.id)}`,
+                        {
+                            method: 'PATCH',
+                            headers,
+                            body: JSON.stringify({ task: newTask })
+                        }
+                    );
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
+                    row.savedCorrect = row.parsed.isCorrect;
+                    row.savedTask = newTask;
+                    row.entry.task = newTask;
+                }
+                document.querySelectorAll('.entry-word.dirty').forEach((el) => el.classList.remove('dirty'));
+                updateScoreBar();
+            } catch (error) {
+                console.error('Error saving spelling scores:', error);
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save failed';
+            }
         }
 
         // Load data on page load

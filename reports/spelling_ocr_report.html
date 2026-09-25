@@ -65,13 +65,18 @@
             cursor: pointer;
             text-decoration: none;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 48px;
         }
 
-        .game-button:active {
-            opacity: 0.92;
+        .game-count {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.78em;
+            font-weight: 600;
+            opacity: 0.9;
         }
 
         .back-button {
@@ -116,26 +121,79 @@
         <div class="profile-section">
             <h3>Profile AM</h3>
             <div class="game-selector">
-                <a href="spelling_ocr_detail.html?profile=AM&game=EngSpellingOCR" class="game-button">English Spelling OCR</a>
-                <a href="spelling_ocr_detail.html?profile=AM&game=FrSpellingOCR" class="game-button">French Spelling OCR</a>
+                <a href="spelling_ocr_detail.html?profile=AM&game=EngSpellingOCR" class="game-button">English Spelling OCR<span class="game-count" data-profile="AM" data-game="EngSpellingOCR">…</span></a>
+                <a href="spelling_ocr_detail.html?profile=AM&game=FrSpellingOCR" class="game-button">French Spelling OCR<span class="game-count" data-profile="AM" data-game="FrSpellingOCR">…</span></a>
             </div>
         </div>
 
         <div class="profile-section">
             <h3>Profile BM</h3>
             <div class="game-selector">
-                <a href="spelling_ocr_detail.html?profile=BM&game=EngSpellingOCR" class="game-button">English Spelling OCR</a>
-                <a href="spelling_ocr_detail.html?profile=BM&game=FrSpellingOCR" class="game-button">French Spelling OCR</a>
+                <a href="spelling_ocr_detail.html?profile=BM&game=EngSpellingOCR" class="game-button">English Spelling OCR<span class="game-count" data-profile="BM" data-game="EngSpellingOCR">…</span></a>
+                <a href="spelling_ocr_detail.html?profile=BM&game=FrSpellingOCR" class="game-button">French Spelling OCR<span class="game-count" data-profile="BM" data-game="FrSpellingOCR">…</span></a>
             </div>
         </div>
 
         <div class="profile-section">
             <h3>Profile TE</h3>
             <div class="game-selector">
-                <a href="spelling_ocr_detail.html?profile=TE&game=EngSpellingOCR" class="game-button">English Spelling OCR</a>
-                <a href="spelling_ocr_detail.html?profile=TE&game=FrSpellingOCR" class="game-button">French Spelling OCR</a>
+                <a href="spelling_ocr_detail.html?profile=TE&game=EngSpellingOCR" class="game-button">English Spelling OCR<span class="game-count" data-profile="TE" data-game="EngSpellingOCR">…</span></a>
+                <a href="spelling_ocr_detail.html?profile=TE&game=FrSpellingOCR" class="game-button">French Spelling OCR<span class="game-count" data-profile="TE" data-game="FrSpellingOCR">…</span></a>
             </div>
         </div>
     </div>
+    <script>
+        function isCorrectStatus(status) {
+            return status === '✓' || status === 'checkmark' || String(status || '').toLowerCase() === 'correct';
+        }
+
+        function countTasks(tasks) {
+            let correct = 0;
+            let incorrect = 0;
+            (tasks || []).forEach((row) => {
+                const parts = String(row.task || '').trim().split('-');
+                if (parts.length < 4) return;
+                if (isCorrectStatus(parts[parts.length - 1])) correct += 1;
+                else incorrect += 1;
+            });
+            return { correct, incorrect };
+        }
+
+        async function loadGameCounts() {
+            const supabaseUrl = localStorage.getItem('supabaseUrl');
+            const supabaseKey = localStorage.getItem('supabaseKey');
+            const slots = document.querySelectorAll('.game-count');
+            if (!supabaseUrl || !supabaseKey) {
+                slots.forEach((el) => { el.textContent = 'Set Supabase on the main page'; });
+                return;
+            }
+            const headers = {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+            };
+            await Promise.all([...slots].map(async (el) => {
+                const profile = el.dataset.profile;
+                const game = el.dataset.game;
+                const pattern = encodeURIComponent(`${game}-`) + '%25';
+                try {
+                    const response = await fetch(
+                        `${supabaseUrl}/rest/v1/image_uploads?profile=eq.${profile}&task=ilike.${pattern}&select=task`,
+                        { headers }
+                    );
+                    if (!response.ok) throw new Error(await response.text());
+                    const counts = countTasks(await response.json());
+                    const total = counts.correct + counts.incorrect;
+                    el.textContent = total
+                        ? `${counts.correct} correct, ${counts.incorrect} incorrect`
+                        : 'No submissions';
+                } catch (error) {
+                    console.error('OCR count failed', profile, game, error);
+                    el.textContent = 'Could not load counts';
+                }
+            }));
+        }
+
+        loadGameCounts();
+    </script>
 </body>
 </html>
