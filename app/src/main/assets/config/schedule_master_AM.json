@@ -237,23 +237,23 @@
             "totalQuestions": 1
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell&file=ufli-irr-short-vowel-advanced-review-1-g1.json",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell&file=ufli-irr-all-oll-ull-ff-ll-ss-zz-g1.json",
             "stars": 3,
             "title": "UFLI Irregular Words (Practice)",
             "launch": "ufliIrregularWords",
             "disable": "Dec 31, 2099",
             "webGame": true,
-            "scheduleKey": "practice|ufliIrregularWords|ufli-irr-short-vowel-advanced-review-1-g1.json",
+            "scheduleKey": "practice|ufliIrregularWords|ufli-irr-all-oll-ull-ff-ll-ss-zz-g1.json",
             "totalQuestions": 1
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain&file=ufli-chain-short-vowel-advanced-review-1-g1.json",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain&file=ufli-chain-all-oll-ull-ff-ll-ss-zz-g1.json",
             "stars": 3,
             "title": "UFLI Word Chain (Practice)",
             "launch": "ufliWordChains",
             "disable": "Dec 31, 2099",
             "webGame": true,
-            "scheduleKey": "practice|ufliWordChains|ufli-chain-short-vowel-advanced-review-1-g1.json",
+            "scheduleKey": "practice|ufliWordChains|ufli-chain-all-oll-ull-ff-ll-ss-zz-g1.json",
             "totalQuestions": 1
         },
         {
@@ -572,42 +572,60 @@
             "scheduleKey": "required|jeLis|Je Lis"
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain&file=ufli-chain-short-vowel-advanced-review-1-g1.json",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain&file=ufli-chain-all-oll-ull-ff-ll-ss-zz-g1.json",
             "stars": 3,
             "title": "UFLI Word Chain",
             "launch": "ufliWordChains",
             "webGame": true,
             "displayDays": "mon,tue,wed,thu",
-            "scheduleKey": "required|ufliWordChains|ufli-chain-short-vowel-advanced-review-1-g1.json",
+            "scheduleKey": "required|ufliWordChains|ufli-chain-all-oll-ull-ff-ll-ss-zz-g1.json",
             "totalQuestions": 5
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell&file=ufli-irr-short-vowel-advanced-review-1-g1.json",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=spell&file=ufli-irr-all-oll-ull-ff-ll-ss-zz-g1.json",
             "stars": 3,
             "title": "UFLI Irregular Words",
             "launch": "ufliIrregularWords",
             "webGame": true,
             "displayDays": "mon,tue,wed,thu",
-            "scheduleKey": "required|ufliIrregularWords|ufli-irr-short-vowel-advanced-review-1-g1.json",
+            "scheduleKey": "required|ufliIrregularWords|ufli-irr-all-oll-ull-ff-ll-ss-zz-g1.json",
             "totalQuestions": 5
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_1&title=He%20went%20to%20get%20help.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_1&title=The%20bin%20is%20so%20full.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
             "stars": 0,
-            "title": "He went to get help.",
+            "title": "The bin is so full.",
             "launch": "choreUfliSentence1",
             "webGame": true,
             "description": "Read this sentence out loud.",
-            "scheduleKey": "required|choreUfliSentence1|He went to get help."
+            "scheduleKey": "required|choreUfliSentence1|The bin is so full."
         },
         {
-            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_2&title=What%20is%20the%20best%20spot%3F&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_2&title=I%20will%20go%20to%20the%20big%20mall.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
             "stars": 0,
-            "title": "What is the best spot?",
+            "title": "I will go to the big mall.",
             "launch": "choreUfliSentence2",
             "webGame": true,
             "description": "Read this sentence out loud.",
-            "scheduleKey": "required|choreUfliSentence2|What is the best spot?"
+            "scheduleKey": "required|choreUfliSentence2|I will go to the big mall."
+        },
+        {
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_3&title=I%20want%20to%20have%20less%20stuff.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
+            "stars": 0,
+            "title": "I want to have less stuff.",
+            "launch": "choreUfliSentence3",
+            "webGame": true,
+            "description": "Read this sentence out loud.",
+            "scheduleKey": "required|choreUfliSentence3|I want to have less stuff."
+        },
+        {
+            "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/choreAudio.html?choreId=ufli_sentence_4&title=Your%20doll%20fell%20off%20the%20desk.&description=Read%20this%20sentence%20out%20loud.&rewardCash=0&maxSeconds=60",
+            "stars": 0,
+            "title": "Your doll fell off the desk.",
+            "launch": "choreUfliSentence4",
+            "webGame": true,
+            "description": "Read this sentence out loud.",
+            "scheduleKey": "required|choreUfliSentence4|Your doll fell off the desk."
         },
         {
             "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",

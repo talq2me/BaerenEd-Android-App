@@ -1,0 +1,201 @@
+{
+  "id": "ufli-chain-all-oll-ull-ff-ll-ss-zz-g1",
+  "concept": "all-oll-ull-ff-ll-ss-zz",
+  "lang": "eng",
+  "groups": [
+    {
+      "id": "chain-1",
+      "seed": {
+        "word": "all",
+        "prompt": "Write the word all.",
+        "correctChoices": [{"text": "a"}, {"text": "l"}, {"text": "l"}],
+        "extraChoices": [{"text": "f"}, {"text": "m"}]
+      },
+      "steps": [
+        {
+          "from": "all",
+          "to": "fall",
+          "prompt": "Say all. Add f at the beginning. Build fall."
+        },
+        {
+          "from": "fall",
+          "to": "mall",
+          "prompt": "Say fall. Change f to m. Build mall."
+        },
+        {
+          "from": "mall",
+          "to": "small",
+          "prompt": "Say mall. Add s at the beginning. Build small."
+        }
+      ]
+    },
+    {
+      "id": "chain-2",
+      "seed": {
+        "word": "call",
+        "prompt": "Write the word call.",
+        "correctChoices": [{"text": "c"}, {"text": "a"}, {"text": "l"}, {"text": "l"}],
+        "extraChoices": [{"text": "h"}, {"text": "t"}]
+      },
+      "steps": [
+        {
+          "from": "call",
+          "to": "hall",
+          "prompt": "Say call. Change c to h. Build hall."
+        },
+        {
+          "from": "hall",
+          "to": "tall",
+          "prompt": "Say hall. Change h to t. Build tall."
+        },
+        {
+          "from": "tall",
+          "to": "stall",
+          "prompt": "Say tall. Add s at the beginning. Build stall."
+        }
+      ]
+    },
+    {
+      "id": "chain-3",
+      "seed": {
+        "word": "fell",
+        "prompt": "Write the word fell.",
+        "correctChoices": [{"text": "f"}, {"text": "e"}, {"text": "l"}, {"text": "l"}],
+        "extraChoices": [{"text": "t"}, {"text": "s"}]
+      },
+      "steps": [
+        {
+          "from": "fell",
+          "to": "tell",
+          "prompt": "Say fell. Change f to t. Build tell."
+        },
+        {
+          "from": "tell",
+          "to": "sell",
+          "prompt": "Say tell. Change t to s. Build sell."
+        },
+        {
+          "from": "sell",
+          "to": "spell",
+          "prompt": "Say sell. Add p between s and e. Build spell."
+        }
+      ]
+    },
+    {
+      "id": "chain-4",
+      "seed": {
+        "word": "moss",
+        "prompt": "Write the word moss.",
+        "correctChoices": [{"text": "m"}, {"text": "o"}, {"text": "s"}, {"text": "s"}],
+        "extraChoices": [{"text": "t"}, {"text": "l"}]
+      },
+      "steps": [
+        {
+          "from": "moss",
+          "to": "toss",
+          "prompt": "Say moss. Change m to t. Build toss."
+        },
+        {
+          "from": "toss",
+          "to": "loss",
+          "prompt": "Say toss. Change t to l. Build loss."
+        },
+        {
+          "from": "loss",
+          "to": "floss",
+          "prompt": "Say loss. Add f at the beginning. Build floss."
+        }
+      ]
+    },
+    {
+      "id": "vocab",
+      "continuesFrom": "floss",
+      "steps": [
+        {
+          "word": "tall",
+          "prompt": "Build tall.",
+          "correctChoices": [{"text": "t"}, {"text": "a"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "c"}, {"text": "w"}],
+          "type": "seed"
+        },
+        {
+          "word": "call",
+          "prompt": "Build call.",
+          "correctChoices": [{"text": "c"}, {"text": "a"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "h"}, {"text": "w"}],
+          "type": "seed"
+        },
+        {
+          "word": "wall",
+          "prompt": "Build wall.",
+          "correctChoices": [{"text": "w"}, {"text": "a"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "t"}, {"text": "c"}],
+          "type": "seed"
+        },
+        {
+          "word": "poll",
+          "prompt": "Build poll.",
+          "correctChoices": [{"text": "p"}, {"text": "o"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "b"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "full",
+          "prompt": "Build full.",
+          "correctChoices": [{"text": "f"}, {"text": "u"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "b"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "bull",
+          "prompt": "Build bull.",
+          "correctChoices": [{"text": "b"}, {"text": "u"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "f"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "off",
+          "prompt": "Build off.",
+          "correctChoices": [{"text": "o"}, {"text": "f"}, {"text": "f"}],
+          "extraChoices": [{"text": "a"}, {"text": "l"}],
+          "type": "seed"
+        },
+        {
+          "word": "bell",
+          "prompt": "Build bell.",
+          "correctChoices": [{"text": "b"}, {"text": "e"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "f"}, {"text": "t"}],
+          "type": "seed"
+        },
+        {
+          "word": "still",
+          "prompt": "Build still.",
+          "correctChoices": [{"text": "s"}, {"text": "t"}, {"text": "i"}, {"text": "l"}, {"text": "l"}],
+          "extraChoices": [{"text": "p"}, {"text": "e"}],
+          "type": "seed"
+        },
+        {
+          "word": "mess",
+          "prompt": "Build mess.",
+          "correctChoices": [{"text": "m"}, {"text": "e"}, {"text": "s"}, {"text": "s"}],
+          "extraChoices": [{"text": "t"}, {"text": "a"}],
+          "type": "seed"
+        },
+        {
+          "word": "grass",
+          "prompt": "Build grass.",
+          "correctChoices": [{"text": "g"}, {"text": "r"}, {"text": "a"}, {"text": "s"}, {"text": "s"}],
+          "extraChoices": [{"text": "m"}, {"text": "e"}],
+          "type": "seed"
+        },
+        {
+          "word": "jazz",
+          "prompt": "Build jazz.",
+          "correctChoices": [{"text": "j"}, {"text": "a"}, {"text": "z"}, {"text": "z"}],
+          "extraChoices": [{"text": "s"}, {"text": "e"}],
+          "type": "seed"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "prompt": {"text": "Build the irregular word: go.", "lang": "eng", "displayText": true},
+    "question": {"text": "go", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "g"}, {"text": "o"}],
+    "extraChoices": [{"text": "n"}, {"text": "a"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: no.", "lang": "eng", "displayText": true},
+    "question": {"text": "no", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "n"}, {"text": "o"}],
+    "extraChoices": [{"text": "g"}, {"text": "e"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: so.", "lang": "eng", "displayText": true},
+    "question": {"text": "so", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "s"}, {"text": "o"}],
+    "extraChoices": [{"text": "n"}, {"text": "a"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: your.", "lang": "eng", "displayText": true},
+    "question": {"text": "your", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "y"}, {"text": "ou"}, {"text": "r"}],
+    "extraChoices": [{"text": "u"}, {"text": "e"}]
+  },
+  {
+    "prompt": {"text": "Build the irregular word: want.", "lang": "eng", "displayText": true},
+    "question": {"text": "want", "lang": "eng", "displayText": true},
+    "correctChoices": [{"text": "w"}, {"text": "a"}, {"text": "n"}, {"text": "t"}],
+    "extraChoices": [{"text": "o"}, {"text": "e"}]
+  }
+]
