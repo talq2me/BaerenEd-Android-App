@@ -1,12 +1,12 @@
 [
-  {"word":"hop","sentence":"The frog can hop on the log."},
-  {"word":"mud","sentence":"My boots got stuck in the mud."},
-  {"word":"bed","sentence":"I made my bed this morning."},
-  {"word":"camp","sentence":"We will camp by the lake."},
-  {"word":"just","sentence":"She just got home from school."},
-  {"word":"sled","sentence":"We rode the sled down the hill."},
-  {"word":"pan","sentence":"Dad cooked eggs in a pan."},
-  {"word":"fix","sentence":"Can you help me fix my toy?"},
-  {"word":"plot","sentence":"We planted seeds in the plot."},
-  {"word":"list","sentence":"I wrote a list of things to buy."}
+  {"word":"off","sentence":"Please turn the light off."},
+  {"word":"pass","sentence":"Please pass the ball to me."},
+  {"word":"sell","sentence":"They sell apples at the store."},
+  {"word":"buzz","sentence":"The bees buzz near the flowers."},
+  {"word":"cliff","sentence":"The bird sat on the cliff."},
+  {"word":"all","sentence":"We ate all of the cookies."},
+  {"word":"fall","sentence":"Leaves fall from the tree."},
+  {"word":"roll","sentence":"Can you roll the ball to me?"},
+  {"word":"full","sentence":"The cup is full of water."},
+  {"word":"pull","sentence":"I will pull the wagon."}
 ]
