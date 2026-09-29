@@ -248,6 +248,8 @@
         let contentLang = 'fr';
         let ttsLang = 'fr-FR';
         let strings = UI.fr;
+        /** Lang declared on the word-list JSON, or null for flat school lists. */
+        let declaredLang = null;
 
         let startIndex = 0;
         let wordsPerSession = 5;
@@ -305,12 +307,14 @@
         function parseContent(raw) {
             const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
             if (data && Array.isArray(data.words)) {
+                declaredLang = data.lang || null;
                 contentLang = normalizeLang(data.lang);
                 strings = UI[contentLang];
                 ttsLang = contentLang === 'en' ? 'en-US' : 'fr-FR';
                 return data.words;
             }
             if (Array.isArray(data) && data.length && data[0].word) {
+                declaredLang = null;
                 return data;
             }
             return [];
@@ -664,11 +668,20 @@
                 wordsPerSession = allWords.length;
             }
 
-            if (cfg.file.toLowerCase().includes('en')) {
-                contentLang = 'en';
-                strings = UI.en;
-                ttsLang = 'en-US';
+            // "frenchWords" contains "en", so a raw includes('en') check speaks French lists in English.
+            if (window.SpellingPool && typeof SpellingPool.detectTtsLang === 'function') {
+                ttsLang = SpellingPool.detectTtsLang(cfg, declaredLang);
+            } else {
+                const fileLower = (cfg.file || '').toLowerCase();
+                const poolKey = (cfg.poolKey || '').toLowerCase();
+                if (poolKey.includes('fr') || fileLower.includes('fr')) {
+                    ttsLang = 'fr-FR';
+                } else if (poolKey.includes('eng') || fileLower.includes('en')) {
+                    ttsLang = 'en-US';
+                }
             }
+            contentLang = ttsLang.toLowerCase().startsWith('en') ? 'en' : 'fr';
+            strings = UI[contentLang];
             document.getElementById('gameTitle').textContent = strings.title;
             document.getElementById('replayBtn').onclick = () => {
                 if (!currentEntry) return;
