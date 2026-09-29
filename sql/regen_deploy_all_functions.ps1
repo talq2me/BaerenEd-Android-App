@@ -114,7 +114,9 @@ $files = @(
 
   "af_update_behavior_log_time.sql",
 
-  "af_delete_behavior_log.sql"
+  "af_delete_behavior_log.sql",
+
+  "af_sync_spelling_ocr_progress.sql"
 
 )
 
