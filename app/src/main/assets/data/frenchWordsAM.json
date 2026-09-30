@@ -1,10 +1,10 @@
 [
-  {"word":"après","sentence":"Nous jouons dehors après l'école."},
-  {"word":"frère","sentence":"Mon frère aime jouer au soccer."},
-  {"word":"règle","sentence":"La règle est sur mon bureau."},
-  {"word":"équipe","sentence":"Notre équipe a gagné le match."},
-  {"word":"école","sentence":"Je vais à l'école chaque matin."},
-  {"word":"météo","sentence":"La météo annonce du soleil demain."},
-  {"word":"élève","sentence":"Chaque élève a un crayon."},
-  {"word":"océan","sentence":"Nous nageons dans l'océan en été."}
+  {"word":"saison","sentence":"L'automne est ma saison préférée."},
+  {"word":"semaine","sentence":"Il y a sept jours dans une semaine."},
+  {"word":"seine","sentence":"Le pêcheur lance sa seine dans l'eau."},
+  {"word":"reine","sentence":"La reine porte une belle couronne."},
+  {"word":"beignet","sentence":"Je mange un beignet au chocolat."},
+  {"word":"gilet","sentence":"Je mets mon gilet quand il fait froid."},
+  {"word":"vêtement","sentence":"Mon vêtement préféré est rouge."},
+  {"word":"rêve","sentence":"J'ai fait un beau rêve cette nuit."}
 ]
