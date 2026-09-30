@@ -78,6 +78,8 @@ $files = @(
 
   "af_maybe_advance_spelling_pools.sql",
 
+  "af_enqueue_spelling_ocr_review.sql",
+
   "af_maybe_record_collector_card_day.sql",
 
   "af_payout_collector_cards.sql",
@@ -114,7 +116,13 @@ $files = @(
 
   "af_update_behavior_log_time.sql",
 
-  "af_delete_behavior_log.sql"
+  "af_delete_behavior_log.sql",
+
+  "af_web_list_tasks.sql",
+
+  "af_web_report_assignments.sql",
+
+  "af_web_save_schedule.sql"
 
 )
 

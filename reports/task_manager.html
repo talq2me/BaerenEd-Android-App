@@ -687,18 +687,10 @@
                 }
             }
 
-            // Filter checklist items by visibility today
-            const visibleChecklistItems = {};
-            for (const [itemKey, item] of Object.entries(data.checklist_items || {})) {
-                if (isTaskVisibleToday(item.showdays, item.hidedays, item.displayDays, item.disable)) {
-                    visibleChecklistItems[itemKey] = item;
-                }
-            }
-
-            const totalItems = Object.keys(visibleRequiredTasks).length + Object.keys(visibleChecklistItems).length;
+            const totalItems = Object.keys(visibleRequiredTasks).length;
             
             if (totalItems === 0) {
-                tasksList.innerHTML = '<li class="no-tasks">No visible required tasks or checklist items found for this profile today</li>';
+                tasksList.innerHTML = '<li class="no-tasks">No visible required tasks found for this profile today</li>';
                 updateStats(profile, 0, 0, 0);
                 return;
             }
@@ -730,34 +722,6 @@
                     <label class="toggle-switch">
                         <input type="checkbox" ${isComplete ? 'checked' : ''} 
                                onchange="toggleTask('${profile}', '${taskKey}', this.checked, 'required_tasks')">
-                        <span class="toggle-slider"></span>
-                    </label>
-                `;
-                tasksList.appendChild(li);
-            });
-
-            // Display checklist items
-            Object.entries(visibleChecklistItems).forEach(([itemKey, item]) => {
-                const isComplete = item && (item.done === true || item.status === 'complete');
-                
-                if (isComplete) completeCount++;
-                else incompleteCount++;
-
-                const li = document.createElement('li');
-                li.className = `task-item ${isComplete ? 'complete' : 'incomplete'}`;
-                
-                const itemName = itemKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const stars = item?.stars || 0;
-                const details = stars > 0 ? `${stars} ⭐` : '';
-
-                li.innerHTML = `
-                    <div class="task-info">
-                        <div class="task-name">${itemName} (Checklist)</div>
-                        ${details ? `<div class="task-details">${details}</div>` : ''}
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" ${isComplete ? 'checked' : ''} 
-                               onchange="toggleChecklistItem('${profile}', '${itemKey}', this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
                 `;

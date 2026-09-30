@@ -406,22 +406,6 @@
             <div class="card">
                 <button type="button" class="card-toggle" aria-expanded="false">
                     <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-                    <h2>Checklist items config</h2>
-                </button>
-                <div class="card-body">
-                    <p class="hint">Items with 0 stars still appear on the checklist. Toggle off uses the same until/always rules. Use 🗑 to delete an item (saved to database on Save).</p>
-                    <div id="checklistList"></div>
-                    <div class="add-row">
-                        <input type="text" id="newChecklistLabel" placeholder="New checklist label">
-                        <input type="number" id="newChecklistStars" min="0" max="10" value="1" style="width:2.6rem" title="Stars">
-                        <button type="button" class="icon-btn" id="addChecklistBtn">+ Add item</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <button type="button" class="card-toggle" aria-expanded="false">
-                    <svg class="card-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
                     <h2>Practice tasks config</h2>
                 </button>
                 <div class="card-body">
@@ -853,6 +837,79 @@
                 throw new Error(msg);
             }
             return res.json();
+        }
+
+        const WEB_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+        function webDisplayDays(data) {
+            if (!data) return null;
+            if (data.displayDays) return data.displayDays;
+            if (data.showdays) return data.showdays;
+            if (data.hidedays) {
+                const hide = new Set(String(data.hidedays).split(',').map(d => d.trim().toLowerCase()));
+                return WEB_DAY_KEYS.filter(d => !hide.has(d)).join(',');
+            }
+            return null;
+        }
+
+        function webScheduleRow(bucket, entry) {
+            const data = entry.data || {};
+            const cfg = entry.config || {};
+            const chore = isChoreEntry(entry);
+            const launch = bucket === 'checklist' ? null : (cfg.launch || data.launch || null);
+            let url = cfg.url || data.url || null;
+            if (chore && url) url = setRewardCashOnUrl(url, parseRewardCash(entry));
+            const questions = data.totalQuestions ?? cfg.totalQuestions;
+            return {
+                section: bucket === 'practice' ? 'optional' : (bucket === 'checklist' ? 'checklist' : 'required'),
+                title: entry.title,
+                launch: launch,
+                enabled: isScheduleOn(data),
+                display_days: webDisplayDays(data),
+                stars: chore ? 0 : (data.stars ?? cfg.stars ?? null),
+                total_questions: questions == null ? null : questions,
+                url: url,
+                web_game: cfg.webGame === true || data.webGame === true || chore,
+                description: cfg.description || data.description || null
+            };
+        }
+
+        function webRowsFromCatalog() {
+            const rows = [];
+            ['required', 'practice'].forEach(function (bucket) {
+                (catalog[bucket] || []).forEach(function (entry) {
+                    if (!entry.title) return;
+                    rows.push(webScheduleRow(bucket, entry));
+                });
+            });
+            return rows;
+        }
+
+        async function saveWebSchedule(targetProfile, rows, replaceChecklist) {
+            const url = supabaseUrl();
+            const key = supabaseKey();
+            const res = await fetch(`${url}/rest/v1/rpc/af_web_save_schedule`, {
+                method: 'POST',
+                headers: {
+                    apikey: key,
+                    Authorization: `Bearer ${key}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    p_profile: targetProfile,
+                    p_rows: rows,
+                    p_replace_checklist: !!replaceChecklist
+                })
+            });
+            if (!res.ok) {
+                const t = await res.text();
+                let msg = t;
+                try {
+                    const j = JSON.parse(t);
+                    msg = j.message || j.error || j.hint || t;
+                } catch (_) { /* keep raw */ }
+                throw new Error(msg);
+            }
         }
 
         function parseDisableDate(disable) {
@@ -1403,7 +1460,6 @@
             renderTaskList('requiredList', catalog.required.filter(e => !isChoreEntry(e)), 'required');
             renderTaskList('requiredChoresList', catalog.required.filter(e => isChoreEntry(e)), 'required');
             renderTaskList('practiceList', catalog.practice, 'practice');
-            renderTaskList('checklistList', catalog.checklist, 'checklist');
         }
 
         function nowEST() {
@@ -1495,6 +1551,14 @@
                     throw new Error(`${res.status} ${t}`);
                 }
 
+                let webNote = '';
+                try {
+                    await saveWebSchedule(profile, webRowsFromCatalog(), true);
+                    webNote = ' Web list updated.';
+                } catch (webErr) {
+                    webNote = ` Web list not updated: ${webErr.message}`;
+                }
+
                 const updatedConfig = buildUpdatedConfigJson();
                 configJson = updatedConfig;
                 let githubNote = '';
@@ -1519,7 +1583,7 @@
 
                 document.getElementById('success').style.display = 'block';
                 document.getElementById('success').textContent =
-                    `Saved schedule for ${profile}.${githubNote}`;
+                    `Saved schedule for ${profile}.${githubNote}${webNote}`;
                 deletedChecklistLabels = new Set();
             } catch (e) {
                 showError('Save failed: ' + e.message);
@@ -1590,6 +1654,9 @@
             if (gh?.skipped) {
                 throw new Error('GitHub not updated (add schedule write key on reports home)');
             }
+            await saveWebSchedule(targetProfile, choreTasks.map(function (task) {
+                return webScheduleRow('required', { title: task.title, config: task, data: task });
+            }), false);
         }
 
         async function savePendingChoresToOtherProfiles() {
@@ -1773,21 +1840,6 @@
             if (e.target && e.target.id && e.target.id.startsWith('addChoreDay_') && !e.target.checked) {
                 document.getElementById('addChoreAllWeek').checked = false;
             }
-        });
-
-        document.getElementById('addChecklistBtn').addEventListener('click', () => {
-            const label = document.getElementById('newChecklistLabel').value.trim();
-            if (!label) { alert('Enter a label'); return; }
-            if (catalog.checklist.find(c => entryLookupKey(c) === label || c.title === label)) { alert('Already exists'); return; }
-            const stars = parseInt(document.getElementById('newChecklistStars').value, 10) || 0;
-            catalog.checklist.push({
-                key: taskScheduleKey({ label }, 'checklist'),
-                title: label,
-                config: { label, stars },
-                data: { done: false, stars, displayDays: 'mon,tue,wed,thu,fri,sat,sun' }
-            });
-            document.getElementById('newChecklistLabel').value = '';
-            refreshUI();
         });
 
         profile = localStorage.getItem('scheduleEditorProfile') || 'AM';

@@ -1,0 +1,46 @@
+:root { color-scheme: light; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #f4f7fb; color: #1c2430; }
+.top { display: flex; gap: 16px; align-items: center; padding: 14px 18px; background: #1b3a4b; color: #fff; }
+.top a { color: #d6ecff; }
+.top h1 { margin: 0; font-size: 1.25rem; flex: 1; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+.profiles, .row { display: flex; gap: 8px; flex-wrap: wrap; }
+button, .task { font: inherit; border: 0; border-radius: 12px; padding: 12px 16px; cursor: pointer; }
+.profiles button { background: #d9e4ee; }
+.profiles button.on { background: #1b3a4b; color: #fff; }
+.section { margin: 18px 0; }
+.section h2 { margin: 0 0 8px; font-size: 1rem; }
+.tasks { display: grid; gap: 8px; }
+.task { text-align: left; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.task small { display: block; color: #667; }
+.task.later { opacity: .55; }
+.task.done { background: #e6e8eb; color: #8a9099; cursor: default; }
+.task.done small { color: #8a9099; }
+.panel { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.hub-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.counts { display: flex; gap: 14px; flex-wrap: wrap; font-weight: 700; }
+a.task.pokedex-link { display: block; width: fit-content; margin: 14px auto 4px; text-align: center; }
+.pokedex { display: flex; gap: 8px; overflow-x: auto; padding-top: 8px; }
+.pokedex.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); overflow: visible; }
+.pokedex figure { margin: 0; width: 76px; flex: 0 0 auto; text-align: center; font-size: 0.75rem; }
+.pokedex img { width: 64px; height: 64px; object-fit: contain; }
+.battle { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 16px 0 8px; text-align: center; }
+.maps { justify-content: center; margin-top: 40px; }
+.maps a.task, .maps button { background: #1b3a4b; color: #fff; }
+#hubMsg { text-align: center; }
+.battle img { width: 120px; height: 120px; object-fit: contain; }
+.vs { font-size: 1.4rem; font-weight: 800; }
+a.task { display: inline-block; text-decoration: none; color: inherit; background: #fff; }
+button:disabled { opacity: .45; cursor: default; }
+label { display: block; margin: 8px 0 4px; }
+input { width: 100%; max-width: 480px; padding: 10px; font: inherit; box-sizing: border-box; }
+.quiz { max-width: 800px; margin: 0 auto; padding: 16px; }
+.prompt, .question { font-size: 1.4rem; }
+.built { min-height: 1.4rem; font-size: 1.3rem; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices button { background: #fff; min-height: 52px; font-size: 1.15rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.choices button:disabled { opacity: .45; }
+.images { display: flex; gap: 8px; flex-wrap: wrap; }
+.images img { width: 120px; height: 120px; object-fit: contain; }
+.msg { font-weight: 700; }
+#submitBtn { background: #1b3a4b; color: #fff; }

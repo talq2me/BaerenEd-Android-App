@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BaerenEd</title>
+  <link rel="stylesheet" href="baeren.css">
+</head>
+<body>
+  <header class="top">
+    <a href="index.html">Battle hub</a>
+    <h1 id="title">Required</h1>
+  </header>
+  <div class="wrap">
+    <div id="lists"></div>
+  </div>
+  <script src="baeren.js"></script>
+  <script src="tasks.js"></script>
+  <script>
+    const practice = new URLSearchParams(location.search).get("map") === "practice";
+    const section = practice ? "optional" : "required";
+    document.getElementById("title").textContent = practice ? "Practice" : "Required";
+    document.title = practice ? "Practice" : "Required";
+
+    async function loadMap() {
+      const lists = document.getElementById("lists");
+      if (!Baeren.hasDb()) {
+        lists.textContent = "Save the Supabase URL and key in Parent setup to load the games.";
+        return;
+      }
+      await Baeren.ensureDailyReset();
+      const profile = Baeren.cfg().profile;
+      const rows = await Baeren.rpc("af_web_list_tasks", { p_profile: profile });
+      const rpcName = practice ? "af_get_tasks_practice" : "af_get_tasks_required";
+      const completion = await Baeren.rpc(rpcName, { p_profile: profile });
+      const done = Tasks.completionMap(completion, !practice);
+      const tasks = (rows || []).filter(function (task) { return task.section === section; });
+      Tasks.renderSection(lists, tasks, done);
+    }
+
+    loadMap().catch(function (err) {
+      document.getElementById("lists").textContent = err.message || String(err);
+    });
+  </script>
+</body>
+</html>

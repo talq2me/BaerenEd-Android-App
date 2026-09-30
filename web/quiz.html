@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz</title>
+  <link rel="stylesheet" href="baeren.css">
+</head>
+<body>
+  <header class="top">
+    <a href="index.html">Back</a>
+    <h1 id="title">Quiz</h1>
+    <span id="score"></span>
+  </header>
+  <main class="quiz">
+    <p id="prompt" class="prompt"></p>
+    <p id="question" class="question"></p>
+    <div id="images" class="images"></div>
+    <p id="built" class="built"></p>
+    <div id="choices" class="choices"></div>
+    <div class="row">
+      <button type="button" id="deleteBtn">Delete</button>
+      <button type="button" id="submitBtn">Submit</button>
+      <button type="button" id="replayBtn" hidden>Hear again</button>
+    </div>
+    <p id="msg" class="msg"></p>
+  </main>
+  <script src="baeren.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const launch = params.get("launch") || params.get("file") || "quiz";
+    const file = (params.get("file") || (launch + ".json")).replace(/^.*\//, "");
+    const title = params.get("title") || launch;
+    const section = params.get("section") || "optional";
+    const stars = params.get("stars");
+    const need = Math.max(1, parseInt(params.get("questions") || "5", 10) || 5);
+    document.getElementById("title").textContent = title;
+
+    let questions = [];
+    let index = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let answers = [];
+    let locked = false;
+    let current = null;
+
+    function localeOf(block) {
+      const lang = (block && block.lang || "").toLowerCase();
+      if (lang.startsWith("fr")) return "fr-FR";
+      if (lang.startsWith("es")) return "es-ES";
+      return "en-US";
+    }
+
+    function speakCurrent() {
+      if (!current) return;
+      const parts = [];
+      let locale = "en-US";
+      if (current.prompt && current.prompt.lang && current.prompt.text) {
+        parts.push(current.prompt.text);
+        locale = localeOf(current.prompt);
+      }
+      if (current.question && current.question.lang && current.question.text && current.question.displayText !== true) {
+        parts.push(current.question.text);
+        locale = localeOf(current.question);
+      }
+      if (parts.length) Baeren.speak(parts.join(". "), locale, Baeren.DEFAULT_RATE);
+    }
+
+    function showQuestion() {
+      locked = false;
+      answers = [];
+      current = questions[index % questions.length];
+      const prompt = current.prompt || {};
+      const question = current.question || {};
+      const promptEl = document.getElementById("prompt");
+      const questionEl = document.getElementById("question");
+      promptEl.textContent = (prompt.displayText || !prompt.lang) ? (prompt.text || "") : "";
+      questionEl.textContent = question.displayText ? (question.text || "") : "";
+      const images = document.getElementById("images");
+      images.innerHTML = "";
+      ((question.media && question.media.images) || []).forEach(function (src) {
+        const img = document.createElement("img");
+        img.alt = "";
+        const pngUrl = Baeren.assetUrl(src);
+        const webpUrl = pngUrl.replace(/\.png$/i, ".webp");
+        img.src = webpUrl === pngUrl ? pngUrl : webpUrl;
+        if (webpUrl !== pngUrl) {
+          img.onerror = function () {
+            img.onerror = null;
+            img.src = pngUrl;
+          };
+        }
+        images.appendChild(img);
+      });
+      document.getElementById("built").textContent = "";
+      document.getElementById("msg").textContent = "";
+      const box = document.getElementById("choices");
+      box.innerHTML = "";
+      const all = (current.correctChoices || []).concat(current.extraChoices || []);
+      for (let i = all.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = all[i]; all[i] = all[j]; all[j] = tmp;
+      }
+      all.forEach(function (choice) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = choice.text;
+        btn.addEventListener("click", function () {
+          if (locked || btn.disabled) return;
+          answers.push(choice.text);
+          btn.disabled = true;
+          document.getElementById("built").textContent = answers.join(" ");
+        });
+        box.appendChild(btn);
+      });
+      document.getElementById("score").textContent = correctCount + " / " + need;
+      document.getElementById("replayBtn").hidden = !(current.prompt && current.prompt.lang);
+      speakCurrent();
+    }
+
+    async function finish() {
+      locked = true;
+      document.getElementById("msg").textContent = "Saving…";
+      try {
+        if (Baeren.hasDb()) {
+          await Baeren.saveGameIndex(launch, index);
+          await Baeren.completeTask({
+            title: title,
+            section: section,
+            stars: stars == null || stars === "" ? null : Number(stars),
+            correct: correctCount,
+            incorrect: incorrectCount,
+            questionsAnswered: correctCount + incorrectCount
+          });
+        }
+        document.getElementById("msg").textContent = "Done.";
+        setTimeout(function () { location.href = "index.html"; }, 700);
+      } catch (err) {
+        document.getElementById("msg").textContent = err.message || String(err);
+      }
+    }
+
+    document.getElementById("deleteBtn").addEventListener("click", function () {
+      if (locked || !answers.length) return;
+      answers.pop();
+      const buttons = document.querySelectorAll("#choices button");
+      const used = {};
+      answers.forEach(function (text) { used[text] = (used[text] || 0) + 1; });
+      const seen = {};
+      buttons.forEach(function (btn) {
+        const n = seen[btn.textContent] || 0;
+        seen[btn.textContent] = n + 1;
+        btn.disabled = n < (used[btn.textContent] || 0);
+      });
+      document.getElementById("built").textContent = answers.join(" ");
+    });
+
+    document.getElementById("submitBtn").addEventListener("click", async function () {
+      if (locked || !current) return;
+      locked = true;
+      const expected = (current.correctChoices || []).map(function (c) { return c.text; });
+      const ok = answers.length === expected.length && answers.every(function (a, i) { return a === expected[i]; });
+      if (ok) correctCount++; else incorrectCount++;
+      index++;
+      document.getElementById("msg").textContent = ok ? "Correct" : "Not quite";
+      if (Baeren.hasDb()) {
+        try { await Baeren.saveGameIndex(launch, index); } catch (e) { console.warn(e); }
+      }
+      if (correctCount >= need) { await finish(); return; }
+      setTimeout(showQuestion, 600);
+    });
+
+    document.getElementById("replayBtn").addEventListener("click", speakCurrent);
+
+    (async function () {
+      try {
+        if (Baeren.hasDb()) {
+          try { index = await Baeren.loadGameIndex(launch); } catch (e) { console.warn(e); }
+        }
+        questions = JSON.parse(await Baeren.loadJson(file));
+        if (!questions.length) throw new Error("That game has no questions.");
+        showQuestion();
+      } catch (err) {
+        document.getElementById("msg").textContent = err.message || String(err);
+      }
+    })();
+  </script>
+</body>
+</html>

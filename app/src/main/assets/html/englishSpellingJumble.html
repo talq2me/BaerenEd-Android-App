@@ -266,6 +266,8 @@
 
         function startGame() {
             maxQuestions = words.length;
+            const cap = parseInt(new URLSearchParams(window.location.search).get('totalQuestions') || '', 10);
+            if (Number.isFinite(cap) && cap > 0) maxQuestions = Math.min(words.length, cap);
             currentWordIndex = 0;
             correctCount = 0;
             incorrectCount = 0;

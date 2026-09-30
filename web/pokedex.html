@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Pokedex</title>
+  <link rel="stylesheet" href="baeren.css">
+</head>
+<body>
+  <header class="top">
+    <a href="index.html">Battle hub</a>
+    <h1 id="title">My Pokedex</h1>
+  </header>
+  <div class="wrap">
+    <div id="pokedex" class="pokedex grid"></div>
+  </div>
+  <script src="baeren.js"></script>
+  <script src="tasks.js"></script>
+  <script>
+    async function loadPage() {
+      const box = document.getElementById("pokedex");
+      if (!Baeren.hasDb()) {
+        box.textContent = "Save the Supabase URL and key in Parent setup to load the games.";
+        return;
+      }
+      await Baeren.ensureDailyReset();
+      const hub = await Baeren.rpc("af_get_battle_hub_counts", { p_profile: Baeren.cfg().profile }) || {};
+      const unlocked = Number(hub.pokemon_unlocked || 0);
+      document.getElementById("title").textContent = "My Pokedex    Unlocked: " + unlocked;
+      const all = await Tasks.loadPokemonManifest();
+      const pokemon = all
+        .filter(function (poke) { return poke.prefix <= unlocked; })
+        .sort(function (a, b) { return a.pokenum - b.pokenum || Number(a.shiny) - Number(b.shiny); });
+      box.textContent = "";
+      pokemon.forEach(function (poke) {
+        const fig = document.createElement("figure");
+        const img = document.createElement("img");
+        img.alt = "#" + poke.pokenum + (poke.shiny ? " shiny" : "");
+        img.src = Baeren.assetUrl("images/pokeSprites/sprites/pokemon/" + poke.filename);
+        const cap = document.createElement("figcaption");
+        cap.textContent = "#" + poke.pokenum + (poke.shiny ? " shiny" : "");
+        fig.appendChild(img);
+        fig.appendChild(cap);
+        box.appendChild(fig);
+      });
+      if (!pokemon.length) box.textContent = "No Pokemon unlocked yet.";
+    }
+
+    loadPage().catch(function (err) {
+      document.getElementById("pokedex").textContent = err.message || String(err);
+    });
+  </script>
+</body>
+</html>

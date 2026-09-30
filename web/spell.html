@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spelling</title>
+  <link rel="stylesheet" href="baeren.css">
+  <style>
+    .paper { background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    canvas { width: 100%; height: 240px; touch-action: none; background: #fff; border: 2px dashed #c5d0dc; border-radius: 8px; cursor: crosshair; }
+    #doneBtn { background: #1b3a4b; color: #fff; }
+    #doneBtn:disabled { opacity: .45; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a href="index.html">Back</a>
+    <h1 id="title">Spelling</h1>
+    <span id="score"></span>
+  </header>
+  <main class="quiz">
+    <p id="prompt" class="prompt"></p>
+    <div class="paper"><canvas id="paper" width="900" height="360"></canvas></div>
+    <div class="row" style="margin-top:12px">
+      <button type="button" id="clearBtn">Clear</button>
+      <button type="button" id="hearBtn">Hear again</button>
+      <button type="button" id="doneBtn" disabled>Done</button>
+    </div>
+    <p id="msg" class="msg"></p>
+  </main>
+  <script src="baeren.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const file = (params.get("file") || "").replace(/^.*\//, "");
+    const title = params.get("title") || "Spelling";
+    const section = params.get("section") || "required";
+    const stars = params.get("stars");
+    const launch = params.get("launch") || "spellingOCR";
+    const cap = Math.max(0, parseInt(params.get("questions") || "0", 10) || 0);
+    const french = /french/i.test(file) || /french/i.test(title);
+    const gameName = french ? "FrSpellingOCR" : "EngSpellingOCR";
+    const locale = french ? "fr-FR" : "en-US";
+    const language = french ? "fr" : "eng";
+    document.getElementById("title").textContent = title;
+
+    const canvas = document.getElementById("paper");
+    const ctx = canvas.getContext("2d");
+    ctx.lineWidth = 6;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#1c2430";
+
+    let words = [];
+    let index = 0;
+    let drawing = false;
+    let dirty = false;
+    let busy = false;
+
+    function torontoYmd() {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Toronto",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date());
+    }
+
+    function blankSentence(word, sentence) {
+      if (!sentence) return "";
+      const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return sentence.replace(new RegExp(escaped, "ig"), "_".repeat(word.length));
+    }
+
+    function speakCurrent() {
+      const item = words[index];
+      if (!item) return;
+      const line = (item.sentence ? item.sentence + ". " : "") + "Spell: " + item.word;
+      Baeren.speak(line, locale, 0.75);
+    }
+
+    function fillPaper() {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      dirty = false;
+      document.getElementById("doneBtn").disabled = true;
+    }
+
+    function showWord() {
+      const item = words[index];
+      document.getElementById("prompt").textContent = blankSentence(item.word, item.sentence);
+      document.getElementById("score").textContent = (index + 1) + " / " + words.length;
+      document.getElementById("msg").textContent = "";
+      fillPaper();
+      speakCurrent();
+    }
+
+    function point(event) {
+      const src = event.touches ? event.touches[0] : event;
+      const box = canvas.getBoundingClientRect();
+      return {
+        x: (src.clientX - box.left) * canvas.width / box.width,
+        y: (src.clientY - box.top) * canvas.height / box.height
+      };
+    }
+
+    function startDraw(event) {
+      if (busy) return;
+      event.preventDefault();
+      drawing = true;
+      const p = point(event);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+
+    function moveDraw(event) {
+      if (!drawing) return;
+      event.preventDefault();
+      const p = point(event);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      dirty = true;
+      document.getElementById("doneBtn").disabled = false;
+    }
+
+    function endDraw() {
+      drawing = false;
+    }
+
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", moveDraw);
+    window.addEventListener("mouseup", endDraw);
+    canvas.addEventListener("touchstart", startDraw, { passive: false });
+    canvas.addEventListener("touchmove", moveDraw, { passive: false });
+    canvas.addEventListener("touchend", endDraw);
+
+    async function saveDrawing(word) {
+      const profile = Baeren.cfg().profile;
+      const day = torontoYmd();
+      const num = String(index + 1).padStart(2, "0");
+      const task = gameName + "-" + day + "-" + num + "-" + word + "-X";
+      const pattern = gameName + "-" + day + "-" + num + "-" + word + "-%";
+      try { await Baeren.rpc("af_cleanup_old_chore_videos", { p_days: 7 }); } catch (e) { console.warn(e); }
+      const existing = await Baeren.rpc("af_get_image_upload_id", {
+        p_profile: profile,
+        p_task_pattern: pattern
+      });
+      if (existing) await Baeren.rpc("af_delete_image_upload_by_id", { p_id: existing });
+      const dataUrl = canvas.toDataURL("image/png");
+      await Baeren.rpc("af_upsert_image_upload", {
+        p_profile: profile,
+        p_task: task,
+        p_image: dataUrl.slice(dataUrl.indexOf(",") + 1)
+      });
+    }
+
+    async function finish() {
+      document.getElementById("msg").textContent = "Sending for review…";
+      await Baeren.rpc("af_enqueue_spelling_ocr_review", {
+        p_profile: Baeren.cfg().profile,
+        p_language: language,
+        p_date: torontoYmd(),
+        p_expected_count: words.length
+      });
+      await Baeren.completeTask({
+        title: title,
+        section: section,
+        stars: stars == null || stars === "" ? null : Number(stars),
+        correct: 0,
+        incorrect: words.length,
+        questionsAnswered: words.length
+      });
+      document.getElementById("msg").textContent = "Done.";
+      setTimeout(function () { location.href = "index.html"; }, 700);
+    }
+
+    document.getElementById("clearBtn").addEventListener("click", function () {
+      if (!busy) fillPaper();
+    });
+    document.getElementById("hearBtn").addEventListener("click", speakCurrent);
+    document.getElementById("doneBtn").addEventListener("click", async function () {
+      if (busy || !dirty || !words[index]) return;
+      if (!Baeren.hasDb()) {
+        document.getElementById("msg").textContent = "Supabase is not configured in this browser.";
+        return;
+      }
+      busy = true;
+      document.getElementById("doneBtn").disabled = true;
+      document.getElementById("msg").textContent = "Saving…";
+      try {
+        await saveDrawing(words[index].word);
+        index++;
+        if (index >= words.length) { await finish(); return; }
+        busy = false;
+        showWord();
+      } catch (err) {
+        busy = false;
+        document.getElementById("doneBtn").disabled = !dirty;
+        document.getElementById("msg").textContent = err.message || String(err);
+      }
+    });
+
+    (async function () {
+      try {
+        if (!file) throw new Error("This spelling game has no word list.");
+        const loaded = JSON.parse(await Baeren.loadJson(file));
+        words = loaded.filter(function (item) { return item && item.word; });
+        if (cap > 0) words = words.slice(0, cap);
+        if (!words.length) throw new Error("That word list is empty.");
+        showWord();
+      } catch (err) {
+        document.getElementById("msg").textContent = err.message || String(err);
+      }
+    })();
+  </script>
+</body>
+</html>

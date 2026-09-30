@@ -15,6 +15,7 @@ DROP FUNCTION IF EXISTS af_daily_reset(text);
 DROP FUNCTION IF EXISTS af_delete_behavior_log(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_upload_by_id(bigint);
 DROP FUNCTION IF EXISTS af_delete_image_uploads_ilike(text, text);
+DROP FUNCTION IF EXISTS af_enqueue_spelling_ocr_review(text, text, date, int);
 DROP FUNCTION IF EXISTS af_get_battle_hub_counts(text);
 DROP FUNCTION IF EXISTS af_get_behavior_log(text, timestamp, timestamp);
 DROP FUNCTION IF EXISTS af_get_current_required_tasks(text);
@@ -67,6 +68,9 @@ DROP FUNCTION IF EXISTS af_upsert_device(text, text, text, text, text, text, tex
 DROP FUNCTION IF EXISTS af_upsert_image_upload(text, text, text);
 DROP FUNCTION IF EXISTS af_upsert_settings_row(text, text, boolean, boolean, integer);
 DROP FUNCTION IF EXISTS af_upsert_user_data_columns(text, jsonb);
+DROP FUNCTION IF EXISTS af_web_list_tasks(text);
+DROP FUNCTION IF EXISTS af_web_report_assignments(text);
+DROP FUNCTION IF EXISTS af_web_save_schedule(text, jsonb, boolean);
 
 -- -----------------------------------------------------------------------------
 -- FILE: af_get_stars_to_minutes.sql
@@ -2717,6 +2721,134 @@ GRANT EXECUTE ON FUNCTION af_maybe_advance_spelling_pools(text) TO anon, authent
 
 
 -- -----------------------------------------------------------------------------
+-- FILE: af_enqueue_spelling_ocr_review.sql
+-- -----------------------------------------------------------------------------
+-- Call site: web/spell.html after the last spelling drawing is stored.
+-- Fires once per profile, language, and day after that many OCR images are stored.
+-- Vault secret spelling_ocr_webhook_bearer is the crsr_ token only (no "Bearer " prefix).
+
+CREATE OR REPLACE FUNCTION af_enqueue_spelling_ocr_review(
+  p_profile text,
+  p_language text,
+  p_date date,
+  p_expected_count int
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions
+AS $$
+DECLARE
+  v_profile text := upper(trim(p_profile));
+  v_language text := lower(trim(p_language));
+  v_prefix text;
+  v_day text;
+  v_count int;
+  v_token text;
+  v_body text;
+  v_status int;
+  v_claimed int;
+BEGIN
+  IF v_profile IS NULL OR v_profile = '' OR v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+  IF v_language NOT IN ('eng', 'fr') THEN
+    RAISE EXCEPTION 'Invalid language: %', p_language;
+  END IF;
+  IF p_date IS NULL OR COALESCE(p_expected_count, 0) < 1 THEN
+    RETURN;
+  END IF;
+
+  v_prefix := CASE v_language WHEN 'eng' THEN 'EngSpellingOCR' ELSE 'FrSpellingOCR' END;
+  v_day := to_char(p_date, 'YYYY-MM-DD');
+
+  SELECT count(*) INTO v_count
+  FROM image_uploads
+  WHERE profile = v_profile
+    AND task LIKE v_prefix || '-' || v_day || '-%';
+
+  IF v_count < p_expected_count THEN
+    RETURN;
+  END IF;
+
+  INSERT INTO spelling_dictation_reviews (profile, review_date, language, status, webhook_sent)
+  VALUES (v_profile, p_date, v_language, 'incomplete', false)
+  ON CONFLICT (profile, review_date, language) DO NOTHING;
+
+  UPDATE spelling_dictation_reviews
+  SET webhook_sent = true
+  WHERE profile = v_profile
+    AND review_date = p_date
+    AND language = v_language
+    AND webhook_sent = false
+    AND status IS DISTINCT FROM 'complete';
+
+  GET DIAGNOSTICS v_claimed = ROW_COUNT;
+  IF v_claimed = 0 THEN
+    RETURN;
+  END IF;
+
+  SELECT decrypted_secret INTO v_token
+  FROM vault.decrypted_secrets
+  WHERE name = 'spelling_ocr_webhook_bearer'
+  LIMIT 1;
+
+  IF v_token IS NULL OR btrim(v_token) = '' THEN
+    UPDATE spelling_dictation_reviews
+    SET webhook_sent = false
+    WHERE profile = v_profile
+      AND review_date = p_date
+      AND language = v_language
+      AND status IS DISTINCT FROM 'complete';
+    RAISE WARNING 'spelling_ocr_webhook_bearer not configured in Supabase Vault';
+    RETURN;
+  END IF;
+
+  v_body := jsonb_build_object(
+    'profile', v_profile,
+    'language', v_language,
+    'date', v_day
+  )::text;
+
+  BEGIN
+    SELECT r.status INTO v_status
+    FROM extensions.http((
+      'POST',
+      'https://api2.cursor.sh/automations/webhook/2cb85974-7eea-5dd6-99ad-8d521fa2e7f7',
+      ARRAY[
+        extensions.http_header('Authorization', 'Bearer ' || btrim(v_token)),
+        extensions.http_header('Content-Type', 'application/json')
+      ]::extensions.http_header[],
+      'application/json',
+      v_body
+    )::extensions.http_request) r;
+  EXCEPTION WHEN OTHERS THEN
+    UPDATE spelling_dictation_reviews
+    SET webhook_sent = false
+    WHERE profile = v_profile
+      AND review_date = p_date
+      AND language = v_language
+      AND status IS DISTINCT FROM 'complete';
+    RAISE WARNING 'spelling OCR webhook request failed: %', SQLERRM;
+    RETURN;
+  END;
+
+  IF v_status IS NULL OR v_status < 200 OR v_status >= 300 THEN
+    UPDATE spelling_dictation_reviews
+    SET webhook_sent = false
+    WHERE profile = v_profile
+      AND review_date = p_date
+      AND language = v_language
+      AND status IS DISTINCT FROM 'complete';
+    RAISE WARNING 'spelling OCR webhook returned status %', COALESCE(v_status, -1);
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_enqueue_spelling_ocr_review(text, text, date, int) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
 -- FILE: af_maybe_record_collector_card_day.sql
 -- -----------------------------------------------------------------------------
 -- Call sites: af_update_task_completion (required), af_update_tasks_checklist_items (mark done).
@@ -3984,5 +4116,280 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_delete_behavior_log(bigint) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_web_list_tasks.sql
+-- -----------------------------------------------------------------------------
+-- Call site: web/index.html loadProfile.
+-- Today's visible assignments for one profile. Checklist stays in the table and is not listed.
+
+CREATE OR REPLACE FUNCTION af_web_list_tasks(p_profile text)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_profile text := upper(trim(p_profile));
+  v_today text;
+  v_rows jsonb;
+BEGIN
+  IF v_profile IS NULL OR v_profile = '' OR v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+
+  v_today := (ARRAY['sun','mon','tue','wed','thu','fri','sat'])[
+    extract(dow FROM (NOW() AT TIME ZONE 'America/Toronto'))::int + 1
+  ];
+
+  SELECT COALESCE(jsonb_agg(item ORDER BY section_order, sort_order), '[]'::jsonb)
+  INTO v_rows
+  FROM (
+    SELECT
+      CASE a.section
+        WHEN 'required' THEN 1
+        WHEN 'optional' THEN 2
+        WHEN 'bonus' THEN 3
+        ELSE 4
+      END AS section_order,
+      a.sort_order,
+      jsonb_build_object(
+        'section', a.section,
+        'title', a.title,
+        'launch', a.launch,
+        'stars', a.stars,
+        'url', a.url,
+        'webGame', a.web_game,
+        'totalQuestions', a.total_questions,
+        'chromePage', a.chrome_page,
+        'videoSequence', a.video_sequence,
+        'video', a.video
+      ) AS item
+    FROM web_assignments a
+    WHERE a.profile = v_profile
+      AND a.enabled
+      AND a.section <> 'checklist'
+      AND (
+        a.display_days IS NULL
+        OR btrim(a.display_days) = ''
+        OR position(v_today IN lower(a.display_days)) > 0
+      )
+  ) listed;
+
+  RETURN COALESCE(v_rows, '[]'::jsonb);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_web_list_tasks(text) TO anon, authenticated, service_role;
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_web_report_assignments.sql
+-- -----------------------------------------------------------------------------
+-- Call sites (parent reports, this repo):
+--   reports/daily_progress_report.html — today's required and practice lists.
+--   reports/index.html — home progress counts and chore titles.
+--   reports/schedule.html — week grid.
+-- All web assignments for one profile, including ones that are off. Checklist is not included.
+-- The tablet still reads the GitHub JSON configs.
+
+CREATE OR REPLACE FUNCTION af_web_report_assignments(p_profile text)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_profile text := upper(trim(p_profile));
+  v_rows jsonb;
+BEGIN
+  IF v_profile IS NULL OR v_profile = '' OR v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+
+  SELECT COALESCE(jsonb_agg(item ORDER BY section_order, sort_order), '[]'::jsonb)
+  INTO v_rows
+  FROM (
+    SELECT
+      CASE a.section
+        WHEN 'required' THEN 1
+        WHEN 'optional' THEN 2
+        WHEN 'bonus' THEN 3
+        WHEN 'checklist' THEN 4
+        ELSE 5
+      END AS section_order,
+      a.sort_order,
+      jsonb_build_object(
+        'section', a.section,
+        'title', a.title,
+        'launch', a.launch,
+        'enabled', a.enabled,
+        'sortOrder', a.sort_order,
+        'stars', a.stars,
+        'url', a.url,
+        'webGame', a.web_game,
+        'totalQuestions', a.total_questions,
+        'displayDays', a.display_days,
+        'chromePage', a.chrome_page,
+        'videoSequence', a.video_sequence,
+        'video', a.video,
+        'description', a.description
+      ) AS item
+    FROM web_assignments a
+    WHERE a.profile = v_profile
+      AND a.section <> 'checklist'
+  ) listed;
+
+  RETURN COALESCE(v_rows, '[]'::jsonb);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_web_report_assignments(text) TO anon, authenticated, service_role;
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_web_save_schedule.sql
+-- -----------------------------------------------------------------------------
+-- Call site: reports/schedule_editor.html on main.
+-- Updates web_assignments for the web home list.
+-- Does not write user_data or the GitHub config the tablet editor uses.
+
+CREATE OR REPLACE FUNCTION af_web_save_schedule(
+  p_profile text,
+  p_rows jsonb,
+  p_replace_checklist boolean DEFAULT false
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_profile text := upper(trim(p_profile));
+  r record;
+  v_launch text;
+  v_section text;
+  v_n int;
+  v_updated boolean;
+BEGIN
+  IF v_profile IS NULL OR v_profile = '' OR v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+  IF p_rows IS NULL OR jsonb_typeof(p_rows) <> 'array' THEN
+    RAISE EXCEPTION 'p_rows must be a json array';
+  END IF;
+
+  FOR r IN
+    SELECT *
+    FROM jsonb_to_recordset(p_rows) AS x(
+      section text,
+      title text,
+      launch text,
+      enabled boolean,
+      display_days text,
+      stars int,
+      total_questions int,
+      url text,
+      web_game boolean,
+      description text
+    )
+  LOOP
+    v_section := lower(trim(r.section));
+    IF v_section IS NULL OR v_section NOT IN ('required', 'optional') THEN
+      CONTINUE;
+    END IF;
+    IF r.title IS NULL OR btrim(r.title) = '' THEN
+      CONTINUE;
+    END IF;
+
+    v_launch := nullif(btrim(r.launch), '');
+    IF v_launch IS NOT NULL THEN
+      INSERT INTO web_games (launch) VALUES (v_launch) ON CONFLICT DO NOTHING;
+    END IF;
+
+    v_updated := false;
+
+    UPDATE web_assignments
+    SET enabled = COALESCE(r.enabled, enabled),
+        display_days = nullif(btrim(r.display_days), ''),
+        stars = r.stars,
+        total_questions = r.total_questions,
+        url = COALESCE(nullif(btrim(r.url), ''), url),
+        web_game = COALESCE(r.web_game, web_game),
+        description = COALESCE(nullif(btrim(r.description), ''), description)
+    WHERE profile = v_profile
+      AND section = v_section
+      AND title = r.title
+      AND launch IS NOT DISTINCT FROM v_launch;
+    GET DIAGNOSTICS v_n = ROW_COUNT;
+    IF v_n > 0 THEN
+      v_updated := true;
+    ELSIF v_launch IS NOT NULL
+      AND (
+        SELECT count(*)
+        FROM web_assignments
+        WHERE profile = v_profile
+          AND section = v_section
+          AND title = r.title
+      ) = 1
+    THEN
+      UPDATE web_assignments
+      SET enabled = COALESCE(r.enabled, enabled),
+          display_days = nullif(btrim(r.display_days), ''),
+          stars = r.stars,
+          total_questions = r.total_questions,
+          url = COALESCE(nullif(btrim(r.url), ''), url),
+          web_game = COALESCE(r.web_game, web_game),
+          description = COALESCE(nullif(btrim(r.description), ''), description),
+          launch = v_launch
+      WHERE profile = v_profile
+        AND section = v_section
+        AND title = r.title;
+      GET DIAGNOSTICS v_n = ROW_COUNT;
+      v_updated := v_n > 0;
+    END IF;
+
+    IF NOT v_updated THEN
+      INSERT INTO web_assignments (
+        profile, section, launch, title, enabled, sort_order, stars, url,
+        web_game, total_questions, display_days, description
+      )
+      VALUES (
+        v_profile,
+        v_section,
+        v_launch,
+        r.title,
+        COALESCE(r.enabled, true),
+        COALESCE((
+          SELECT max(sort_order)
+          FROM web_assignments
+          WHERE profile = v_profile AND section = v_section
+        ), 0) + 1,
+        r.stars,
+        nullif(btrim(r.url), ''),
+        COALESCE(r.web_game, false),
+        r.total_questions,
+        nullif(btrim(r.display_days), ''),
+        nullif(btrim(r.description), '')
+      );
+    END IF;
+  END LOOP;
+
+  IF COALESCE(p_replace_checklist, false) THEN
+    DELETE FROM web_assignments a
+    WHERE a.profile = v_profile
+      AND a.section = 'checklist'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM jsonb_to_recordset(p_rows) AS x(section text, title text)
+        WHERE lower(trim(x.section)) = 'checklist'
+          AND x.title = a.title
+      );
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_web_save_schedule(text, jsonb, boolean) TO anon, authenticated, service_role;
 
 

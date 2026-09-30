@@ -395,16 +395,6 @@
             <div class="section collapsible">
                 <button type="button" class="section-toggle" aria-expanded="false">
                     <svg class="section-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-                    <h3>Checklist <span class="section-count" id="checklistCount"></span></h3>
-                </button>
-                <div class="section-body">
-                    <ul class="task-list" id="checklistItems"></ul>
-                </div>
-            </div>
-
-            <div class="section collapsible">
-                <button type="button" class="section-toggle" aria-expanded="false">
-                    <svg class="section-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
                     <h3>Extra Practice <span class="section-count" id="practiceCount"></span></h3>
                 </button>
                 <div class="section-body">
@@ -449,7 +439,6 @@
             'Content-Type': 'application/json'
         };
 
-        const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
         let reportUserData = null;
         let todayChorePhotos = [];
         let openPhoto = null;
@@ -529,10 +518,54 @@
             });
         }
 
-        function collectChoreTitles(master) {
+        const WEB_SKIP = { boukili: 1, googleReadAlong: 1 };
+        const WEB_QUIZ = {
+            jkmath: 1, gr1MathStrategies: 1, gr3algebra: 1, gr3fractions: 1, gr3math: 1,
+            gr3mixedproblems: 1, gr3wordproblems: 1, canadianMoneyEasy: 1, canadianMoneyHard: 1,
+            conjugation: 1, conjugation_limparfait: 1, translation: 1, duologicalGame: 1, frenchStories: 1
+        };
+        const WEB_LATER = { printing: 1, tappableText: 1, storyRead: 1 };
+        let reportAssignments = [];
+
+        function torontoDayToken() {
+            return new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Toronto',
+                weekday: 'short'
+            }).format(new Date()).toLowerCase();
+        }
+
+        function shownOnDay(displayDays, dayToken) {
+            const days = String(displayDays || '').trim();
+            if (!days) return true;
+            return days.toLowerCase().split(',').map(part => part.trim()).includes(dayToken);
+        }
+
+        function kidCanSee(row) {
+            if (!row || row.enabled === false) return false;
+            if (WEB_SKIP[row.launch] || row.chromePage || row.videoSequence) return false;
+            if (row.webGame && row.url) return true;
+            if (WEB_QUIZ[row.launch] || row.launch === 'spellingOCR' || WEB_LATER[row.launch]) return true;
+            return false;
+        }
+
+        async function fetchWebAssignments() {
+            const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_web_report_assignments`, {
+                method: 'POST',
+                headers: restHeaders,
+                body: JSON.stringify({ p_profile: kid })
+            });
+            if (!response.ok) {
+                throw new Error(`af_web_report_assignments: ${response.status}`);
+            }
+            const rows = await response.json();
+            return Array.isArray(rows) ? rows : [];
+        }
+
+        function collectChoreTitles(rows) {
             choreMetaById = {};
             const titles = new Set();
-            for (const t of master?.required || []) {
+            for (const t of rows || []) {
+                if (t.section && t.section !== 'required') continue;
                 const launch = String(t.launch || '').toLowerCase();
                 const rawUrl = String(t.url || '');
                 const url = rawUrl.toLowerCase();
@@ -580,11 +613,11 @@
 
         async function fetchReportData() {
             try {
-                const [response, masterRes] = await Promise.all([
+                const [response, assignmentRows] = await Promise.all([
                     fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}&select=*`, {
                         headers: restHeaders
                     }),
-                    fetch(`${CONFIG_BASE}schedule_master_${kid}.json`).catch(() => null)
+                    fetchWebAssignments()
                 ]);
 
                 if (!response.ok) {
@@ -598,14 +631,8 @@
                 }
 
                 reportUserData = data[0];
-                choreTitleSet = new Set();
-                if (masterRes && masterRes.ok) {
-                    try {
-                        choreTitleSet = collectChoreTitles(await masterRes.json());
-                    } catch (masterErr) {
-                        console.warn('Schedule master unavailable for chore titles', masterErr);
-                    }
-                }
+                reportAssignments = assignmentRows;
+                choreTitleSet = collectChoreTitles(assignmentRows);
                 try {
                     todayChorePhotos = await fetchTodayChorePhotos();
                 } catch (photoErr) {
@@ -955,29 +982,28 @@
             // Parse JSONB data
             const allRequiredTasks = userData.required_tasks || {};
             const allPracticeTasks = userData.practice_tasks || {};
-            const allChecklistItems = userData.checklist_items || {};
 
-            // Filter tasks by visibility - only show tasks visible today
+            const todayToken = torontoDayToken();
             const requiredTasks = {};
-            for (const [taskName, task] of Object.entries(allRequiredTasks)) {
-                if (isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)) {
-                    requiredTasks[taskName] = task;
-                }
-            }
-
             const practiceTasks = {};
-            for (const [taskName, task] of Object.entries(allPracticeTasks)) {
-                if (isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)) {
-                    practiceTasks[taskName] = task;
+            (reportAssignments || []).forEach(function (row) {
+                if (!row || row.enabled === false || !shownOnDay(row.displayDays, todayToken)) return;
+                if (row.section === 'required' && kidCanSee(row)) {
+                    const stored = allRequiredTasks[row.title] || {};
+                    requiredTasks[row.title] = Object.assign({}, stored, {
+                        launch: row.launch,
+                        url: row.url,
+                        stars: row.stars
+                    });
+                } else if (row.section === 'optional' && kidCanSee(row)) {
+                    const stored = allPracticeTasks[row.title] || {};
+                    practiceTasks[row.title] = Object.assign({}, stored, {
+                        launch: row.launch,
+                        url: row.url,
+                        stars: row.stars
+                    });
                 }
-            }
-
-            const checklistItems = {};
-            for (const [itemKey, item] of Object.entries(allChecklistItems)) {
-                if (isTaskVisible(item.showdays, item.hidedays, item.displayDays, item.disable)) {
-                    checklistItems[itemKey] = item;
-                }
-            }
+            });
 
             const requiredTaskKeys = Object.keys(requiredTasks);
             const requiredCountEl = document.getElementById('requiredCount');
@@ -1021,36 +1047,6 @@
             }
 
             renderChorePhotos(photoChoresToday);
-
-            // Display checklist items
-            const checklistItemsList = document.getElementById('checklistItems');
-            checklistItemsList.innerHTML = '';
-            
-            const checklistItemKeys = Object.keys(checklistItems);
-            const checklistCountEl = document.getElementById('checklistCount');
-            if (checklistCountEl) checklistCountEl.textContent = `(${checklistItemKeys.length})`;
-            if (checklistItemKeys.length === 0) {
-                checklistItemsList.innerHTML = '<li class="task-item"><span class="task-name">No checklist items found</span></li>';
-            } else {
-                checklistItemKeys.forEach(itemKey => {
-                    const item = checklistItems[itemKey];
-                    const isComplete = item && (item.done === true || item.completed === true);
-                    const stars = item?.stars || 0;
-
-                    const li = document.createElement('li');
-                    li.className = `task-item ${isComplete ? '' : 'incomplete'}`;
-                    
-                    const itemName = itemKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    const starsText = stars > 0 ? ` (${stars}⭐)` : '';
-                    const statusText = isComplete ? '✓' : '○';
-                    
-                    li.innerHTML = `
-                        <span class="task-name">${statusText} ${itemName}${starsText}</span>
-                        <span class="task-info">${isComplete ? 'Complete' : 'Incomplete'}</span>
-                    `;
-                    checklistItemsList.appendChild(li);
-                });
-            }
 
             // Display practice tasks
             const practiceTasksList = document.getElementById('practiceTasks');

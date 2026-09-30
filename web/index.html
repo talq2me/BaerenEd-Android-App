@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BaerenEd</title>
+  <link rel="stylesheet" href="baeren.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Battle hub</h1>
+    <button type="button" id="configBtn">Parent setup</button>
+  </header>
+  <div class="wrap">
+    <form id="setup" class="panel" hidden>
+      <h2>Parent setup</h2>
+      <p>The key stays in this browser. It is not saved in the page.</p>
+      <label for="pinEntry">PIN</label>
+      <input id="pinEntry" type="password" inputmode="numeric" autocomplete="off">
+      <div class="row" id="pinRow" hidden><button type="button" id="pinBtn">Continue</button></div>
+      <div id="secretFields" hidden>
+        <label for="supabaseUrl">Supabase URL</label>
+        <input id="supabaseUrl" autocomplete="off" spellcheck="false">
+        <label for="supabaseKey">Supabase API key</label>
+        <input id="supabaseKey" autocomplete="off" spellcheck="false">
+        <label for="newPin">New PIN</label>
+        <input id="newPin" type="password" inputmode="numeric" autocomplete="off">
+        <div class="row"><button type="submit">Save</button></div>
+      </div>
+      <p id="setupMsg"></p>
+    </form>
+
+    <div class="profiles" id="profiles">
+      <button type="button" data-profile="AM">AM</button>
+      <button type="button" data-profile="BM">BM</button>
+      <button type="button" data-profile="TE">TE</button>
+    </div>
+    <section id="hub" class="panel" hidden>
+      <div class="hub-top">
+        <div id="counts" class="counts"></div>
+        <button type="button" id="rewardBtn">Ask for Time</button>
+      </div>
+      <a class="task pokedex-link" href="pokedex.html" id="pokedexLink">My Pokemon</a>
+      <div class="battle" id="battle"></div>
+      <div class="row maps">
+        <a class="task" href="map.html?map=required">Required</a>
+        <button type="button" id="practiceBtn" disabled>Practice</button>
+      </div>
+      <p id="hubMsg"></p>
+    </section>
+    <p id="needSetup" hidden>Save the Supabase URL and key in Parent setup to load the games.</p>
+  </div>
+  <script src="baeren.js"></script>
+  <script src="tasks.js"></script>
+  <script>
+    function fighterCard(poke) {
+      const card = document.createElement("div");
+      const img = document.createElement("img");
+      const name = document.createElement("div");
+      if (poke) {
+        img.alt = "#" + poke.pokenum;
+        img.src = Baeren.assetUrl("images/pokeSprites/sprites/pokemon/" + poke.filename);
+        name.textContent = "#" + poke.pokenum;
+      } else {
+        img.alt = "";
+        name.textContent = "None yet";
+      }
+      card.appendChild(img);
+      card.appendChild(name);
+      return card;
+    }
+
+    function renderBattle(all, unlocked) {
+      const owned = all.filter(function (poke) { return poke.prefix <= unlocked; });
+      const playerPrefix = owned.reduce(function (max, poke) { return Math.max(max, poke.prefix); }, 0);
+      const player = playerPrefix ? Tasks.pickAtPrefix(all, playerPrefix) : null;
+      const boss = Tasks.pickAtPrefix(all, unlocked + 1);
+      const battle = document.getElementById("battle");
+      battle.textContent = "";
+      battle.appendChild(fighterCard(player));
+      const vs = document.createElement("div");
+      vs.className = "vs";
+      vs.textContent = "VS";
+      battle.appendChild(vs);
+      battle.appendChild(fighterCard(boss));
+    }
+
+    function renderCounts(hub) {
+      const bank = Number(hub.kid_bank_balance || 0).toFixed(2);
+      document.getElementById("counts").textContent =
+        "$" + bank + " \u{1F3E6}   " +
+        (hub.coins_earned || 0) + " \u{1FA99}   " +
+        (hub.berries_earned || 0) + " \u{1F34D}   " +
+        (hub.banked_mins || 0) + " \u{23F1}";
+    }
+
+    async function loadHub(profile) {
+      const hub = await Baeren.rpc("af_get_battle_hub_counts", { p_profile: profile }) || {};
+      const rows = await Baeren.rpc("af_web_list_tasks", { p_profile: profile });
+      const requiredRows = await Baeren.rpc("af_get_tasks_required", { p_profile: profile });
+      const done = Tasks.completionMap(requiredRows, true);
+      const required = (rows || []).filter(function (task) {
+        return task.section === "required" && Tasks.kind(task) !== "skip" && Tasks.kind(task) !== "later";
+      });
+      const allDone = required.every(function (task) { return done[task.title] === true; });
+      document.getElementById("hub").hidden = false;
+      document.getElementById("needSetup").hidden = true;
+      renderCounts(hub);
+      document.getElementById("pokedexLink").textContent = "My Pokemon (" + (hub.pokemon_unlocked || 0) + ")";
+      const practiceBtn = document.getElementById("practiceBtn");
+      practiceBtn.disabled = !allDone;
+      document.getElementById("hubMsg").textContent = allDone
+        ? "Required games are done."
+        : "Finish the Required games to open Practice.";
+      const unlocked = Number(hub.pokemon_unlocked || 0);
+      try {
+        renderBattle(await Tasks.loadPokemonManifest(), unlocked);
+      } catch (err) {
+        document.getElementById("battle").textContent = err.message || String(err);
+      }
+    }
+
+    async function loadProfile(profile) {
+      Baeren.setProfile(profile);
+      document.querySelectorAll("#profiles button").forEach(function (btn) {
+        btn.classList.toggle("on", btn.dataset.profile === profile);
+      });
+      if (!Baeren.hasDb()) {
+        document.getElementById("hub").hidden = true;
+        document.getElementById("needSetup").hidden = false;
+        return;
+      }
+      await Baeren.ensureDailyReset();
+      await loadHub(profile);
+    }
+
+    const setup = document.getElementById("setup");
+    const secret = document.getElementById("secretFields");
+    const pinRow = document.getElementById("pinRow");
+
+    function unlockPin() {
+      if (Baeren.checkPin(document.getElementById("pinEntry").value)) {
+        secret.hidden = false;
+        pinRow.hidden = true;
+        document.getElementById("supabaseUrl").value = Baeren.cfg().url;
+        document.getElementById("supabaseKey").value = Baeren.cfg().key;
+        document.getElementById("setupMsg").textContent = "";
+      } else {
+        document.getElementById("setupMsg").textContent = "Wrong PIN.";
+      }
+    }
+
+    document.getElementById("configBtn").addEventListener("click", function () {
+      setup.hidden = !setup.hidden;
+      const hasPin = Boolean(Baeren.cfg().pin);
+      secret.hidden = hasPin;
+      pinRow.hidden = !hasPin;
+      document.getElementById("setupMsg").textContent = hasPin ? "Enter the PIN to change the saved key." : "Choose a PIN, then save the Supabase URL and key.";
+    });
+
+    document.getElementById("pinBtn").addEventListener("click", unlockPin);
+    document.getElementById("pinEntry").addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" && !pinRow.hidden) {
+        ev.preventDefault();
+        unlockPin();
+      }
+    });
+
+    setup.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      if (!pinRow.hidden) {
+        unlockPin();
+        return;
+      }
+      const url = document.getElementById("supabaseUrl").value.trim();
+      const key = document.getElementById("supabaseKey").value.trim();
+      const pin = (document.getElementById("newPin").value || document.getElementById("pinEntry").value).trim();
+      if (!url || !key || !pin) {
+        document.getElementById("setupMsg").textContent = "URL, key, and PIN are required.";
+        return;
+      }
+      Baeren.saveSetup(url, key, pin, Baeren.cfg().profile);
+      document.getElementById("setupMsg").textContent = "Saved in this browser.";
+      setup.hidden = true;
+    });
+
+    document.getElementById("rewardBtn").addEventListener("click", async function () {
+      const pin = window.prompt("Parent PIN");
+      if (pin == null) return;
+      if (!Baeren.checkPin(pin)) {
+        document.getElementById("hubMsg").textContent = "Wrong PIN.";
+        return;
+      }
+      const raw = window.prompt("Minutes to add to the reward bank");
+      if (raw == null) return;
+      const minutes = parseInt(raw, 10);
+      if (!Number.isFinite(minutes) || minutes === 0) return;
+      try {
+        await Baeren.rpc("af_reward_time_add", { p_profile: Baeren.cfg().profile, p_minutes: minutes });
+        await loadHub(Baeren.cfg().profile);
+      } catch (err) {
+        document.getElementById("hubMsg").textContent = err.message || String(err);
+      }
+    });
+
+    document.getElementById("practiceBtn").addEventListener("click", function () {
+      if (!document.getElementById("practiceBtn").disabled) location.href = "map.html?map=practice";
+    });
+
+    document.getElementById("profiles").addEventListener("click", function (ev) {
+      const btn = ev.target.closest("button");
+      if (!btn) return;
+      loadProfile(btn.dataset.profile).catch(function (err) {
+        document.getElementById("hubMsg").textContent = err.message || String(err);
+      });
+    });
+
+    loadProfile(Baeren.cfg().profile).catch(function (err) {
+      document.getElementById("needSetup").hidden = false;
+      document.getElementById("needSetup").textContent = err.message || String(err);
+    });
+  </script>
+</body>
+</html>
