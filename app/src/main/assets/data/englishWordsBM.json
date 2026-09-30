@@ -7,7 +7,7 @@
   {"word":"remarkable","sentence":"The magician performed a remarkable trick."},
   {"word":"locksmith","sentence":"The locksmith made a new key for the door."},
   {"word":"quantity","sentence":"We need a large quantity of apples for the pie."},
-  {"word":"technique","sentence":"His painting technique improved with practice."},
+  {"word":"technical","sentence":"The manual uses technical words about engines."},
   {"word":"banquet","sentence":"The school held a banquet to honor the graduates."},
   {"word":"knowledge","sentence":"Her knowledge of birds helped us identify the nest."},
   {"word":"required","sentence":"A permission slip is required for the field trip."},
@@ -18,5 +18,5 @@
   {"word":"headache","sentence":"Loud music gave him a headache."},
   {"word":"unique","sentence":"Each snowflake has a unique shape."},
   {"word":"schedule","sentence":"Check the schedule to see when practice starts."},
-  {"word":"technical","sentence":"The manual uses technical words about engines."}
+  {"word":"technique","sentence":"His painting technique improved with practice."}
 ]
