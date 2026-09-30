@@ -7,6 +7,7 @@ Tracker for moving BaerenEd from the Android app to browser pages on the `web` b
 ## Decisions
 
 - GitHub Pages hosts the pages. The Supabase anon key is typed into a parent config and stored in the browser (`localStorage`), same pattern as `reports/index.html`, behind a PIN. The key is not committed into the page source.
+- The web task list comes from `web_games` and `web_assignments`. The tablet still reads the GitHub JSON configs and the existing reset functions.
 - Speech for spelling-style games is one browser utterance at a slightly slower rate. No second slow reading of the word, and no lock-until-speech-ends.
 - YouTube, Chrome tasks, Boukili, Google Read Along, and Kung Fu videos are not ported.
 - On-device OCR scoring is not ported. Handwriting is drawn in the page and uploaded for Grok.
@@ -14,7 +15,7 @@ Tracker for moving BaerenEd from the Android app to browser pages on the `web` b
 
 ## Already HTML
 
-These run inside the Android WebView today. On `web` they need to stop calling `Android.*` and use the browser key, browser speech, and the existing RPCs (`af_update_task_completion`, game index, and so on).
+These run inside the Android WebView today. The shell opens them in `web/play.html`, which provides browser speech, JSON loading, and completion in place of `Android.*`. A box stays open until that game has been tried in the browser.
 
 - [ ] Spelling jumble (English and French)
 - [ ] Spelling drag (English and French)
@@ -48,11 +49,12 @@ These run inside the Android WebView today. On `web` they need to stop calling `
 
 ## Still to build
 
-- [ ] **Shell.** PIN config, profile (AM/BM/TE), today's task list from the existing config, open a game, write completion.
-- [ ] **Quiz page** for the shared `GameActivity` JSON (prompt, optional picture, answer tiles). Covers JK Math, Math Strategies Practice, the grade-3 set, Money, Conjugation, Translation, Duological, and French Stories. French story-read is the same idea plus page pictures and a Next button.
+- [x] **Shell.** `web/index.html` — PIN config, profile (AM/BM/TE), today's task list from the config JSON, open a game. Existing HTML games open in `web/play.html`, which supplies browser speech and completion. Writing completion still needs the Supabase key saved in that browser.
+- [x] **Quiz page.** `web/quiz.html` for the shared `GameActivity` JSON (prompt, optional picture, answer tiles). Covers JK Math, Math Strategies Practice, the grade-3 set, Money, Conjugation, Translation, Duological, and French Stories. French story-read is still separate.
 - [ ] **Trainer map.** Gym buttons and completion from the task RPCs. No YouTube, Chrome, or other-app launches.
 - [ ] **Battle hub.** Berries, Pokédex, battle, and daily spin via the existing RPCs. Reward-time button writes minutes only. It does not open BaerenLock.
-- [ ] **Printing and Spelling OCR.** Canvas, one spoken prompt at the slower rate (French and English), upload the drawing. No ML Kit score.
+- [x] **Spelling OCR.** `web/spell.html` draws the word, speaks one slower prompt, and uploads every drawing as incorrect. The last word calls `af_enqueue_spelling_ocr_review` so the Grok review scores the set.
+- [ ] **Printing.** Canvas and upload, still separate from Spelling OCR.
 - [ ] **Tappable books.** Passage, tap the word, comprehension questions. No highlight locked to the voice.
 
 ## Left off

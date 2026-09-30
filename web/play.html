@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #1b2430; color: #fff; }
+    #bar { display: flex; gap: 12px; align-items: center; padding: 10px 14px; background: #121820; }
+    #bar a { color: #9bd; }
+    #frame { width: 100%; height: calc(100vh - 48px); border: 0; background: #fff; }
+    #err { padding: 24px; }
+  </style>
+</head>
+<body>
+  <div id="bar"><a href="index.html">Back</a><span id="label"></span></div>
+  <iframe id="frame" title="Game" allow="camera; microphone"></iframe>
+  <p id="err" hidden></p>
+  <script src="baeren.js"></script>
+  <script>
+    const HTML_BASE = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/";
+    const params = new URLSearchParams(location.search);
+    const src = params.get("src") || "";
+    const task = {
+      title: params.get("title") || "Game",
+      section: params.get("section") || "optional",
+      stars: params.get("stars"),
+      launch: params.get("launch") || "",
+      freeze: params.get("freeze") === "1"
+    };
+    document.getElementById("label").textContent = task.title;
+
+    function localSrc(url) {
+      const marker = "/html/";
+      const i = url.indexOf(marker);
+      if (i >= 0) return "../app/src/main/assets/html/" + url.slice(i + marker.length);
+      return url;
+    }
+
+    function gameSearch(url) {
+      const q = url.indexOf("?");
+      return q >= 0 ? url.slice(q) : "";
+    }
+
+    function inject(html, progress) {
+      const shimBase = new URL(".", location.href).href;
+      const taskJson = JSON.stringify(task).replace(/</g, "\\u003c");
+      const searchJson = JSON.stringify(gameSearch(src)).replace(/</g, "\\u003c");
+      const tags =
+        '<script>(function(){var gameSearch=' + searchJson + ';if(!gameSearch)return;var Orig=URLSearchParams;function Patched(init){if(typeof init==="string"&&init===window.location.search)return new Orig(gameSearch);return new Orig(init);}Patched.prototype=Orig.prototype;window.URLSearchParams=Patched;})();<\/script>' +
+        '<script src="' + shimBase + 'baeren.js"><\/script>' +
+        '<script>window.BAEREN_TASK=' + taskJson + ';window.__baerenProgress=' + (Number(progress) || 0) + ';<\/script>' +
+        '<script src="' + shimBase + 'android-shim.js"><\/script>' +
+        '<base href="' + HTML_BASE + '">';
+      if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function (m) { return m + tags; });
+      return "<head>" + tags + "</head>" + html;
+    }
+
+    window.addEventListener("message", function (ev) {
+      if (!ev.data) return;
+      if (ev.data.type === "baerenDone" || ev.data.type === "baerenClose") location.href = "index.html";
+    });
+
+    (async function () {
+      if (!src) {
+        document.getElementById("err").hidden = false;
+        document.getElementById("err").textContent = "No game was selected.";
+        return;
+      }
+      try {
+        let progress = 0;
+        if (Baeren.hasDb() && task.launch) {
+          try { progress = await Baeren.loadGameIndex(task.launch); } catch (e) { console.warn(e); }
+        }
+        const res = await fetch(localSrc(src));
+        if (!res.ok) throw new Error("Could not load the game page.");
+        const html = await res.text();
+        document.getElementById("frame").srcdoc = inject(html, progress);
+      } catch (err) {
+        document.getElementById("frame").hidden = true;
+        document.getElementById("err").hidden = false;
+        document.getElementById("err").textContent = err.message || String(err);
+      }
+    })();
+  </script>
+</body>
+</html>

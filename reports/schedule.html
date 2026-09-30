@@ -300,31 +300,50 @@
         }
 
         // Fetch data for a specific kid
+        const WEB_SKIP = { boukili: 1, googleReadAlong: 1 };
+        const WEB_QUIZ = {
+            jkmath: 1, gr1MathStrategies: 1, gr3algebra: 1, gr3fractions: 1, gr3math: 1,
+            gr3mixedproblems: 1, gr3wordproblems: 1, canadianMoneyEasy: 1, canadianMoneyHard: 1,
+            conjugation: 1, conjugation_limparfait: 1, translation: 1, duologicalGame: 1, frenchStories: 1
+        };
+        const WEB_LATER = { printing: 1, tappableText: 1, storyRead: 1 };
+
+        function kidCanSee(row) {
+            if (!row || row.enabled === false) return false;
+            if (WEB_SKIP[row.launch] || row.chromePage || row.videoSequence) return false;
+            if (row.webGame && row.url) return true;
+            if (WEB_QUIZ[row.launch] || row.launch === 'spellingOCR' || WEB_LATER[row.launch]) return true;
+            return false;
+        }
+
         async function fetchKidData(kid) {
             try {
-                const response = await fetch(`${supabaseUrl}/rest/v1/user_data?profile=eq.${kid}&select=required_tasks,checklist_items`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_web_report_assignments`, {
+                    method: 'POST',
                     headers: {
                         'apikey': supabaseKey,
                         'Authorization': `Bearer ${supabaseKey}`,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({ p_profile: kid })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+                    throw new Error(`af_web_report_assignments: ${response.status} ${response.statusText}`);
                 }
 
-                const data = await response.json();
-                
-                if (!data || data.length === 0) {
-                    return { tasks: {}, checklistItems: {}, error: `No data found for profile: ${kid}` };
-                }
-
-                return {
-                    tasks: data[0].required_tasks || {},
-                    checklistItems: data[0].checklist_items || {},
-                    error: null
-                };
+                const rows = await response.json();
+                const tasks = {};
+                const checklistItems = {};
+                (Array.isArray(rows) ? rows : []).forEach(function (row) {
+                    if (!row || row.enabled === false) return;
+                    if (row.section === 'checklist') {
+                        checklistItems[row.title] = { displayDays: row.displayDays || '' };
+                    } else if (row.section === 'required' && kidCanSee(row)) {
+                        tasks[row.title] = { displayDays: row.displayDays || '' };
+                    }
+                });
+                return { tasks, checklistItems, error: null };
             } catch (error) {
                 console.error(`Error fetching data for ${kid}:`, error);
                 return { tasks: {}, checklistItems: {}, error: error.message };

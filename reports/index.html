@@ -1146,7 +1146,6 @@
         })();
 
         const KID_PROFILES = ['AM', 'BM'];
-        const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
         let kidSummaryLoad = null;
         let recordingsByProfile = { AM: [], BM: [] };
         let choreMetaByProfile = { AM: {}, BM: {} };
@@ -1182,48 +1181,54 @@
             return { choreId: m[1], rewardCash: null, date: m[2] };
         }
 
-        function isTaskVisible(showdays, hidedays, displayDays, disable) {
-            if (disable) {
-                try {
-                    let disableDate;
-                    const dateMatch = String(disable).match(/(\w{3})\s+(\d{1,2}),\s+(\d{4})/);
-                    if (dateMatch) {
-                        const months = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
-                                       jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11};
-                        const month = months[dateMatch[1].toLowerCase()];
-                        const day = parseInt(dateMatch[2], 10);
-                        const year = parseInt(dateMatch[3], 10);
-                        disableDate = new Date(year, month, day);
-                    } else {
-                        disableDate = new Date(disable);
-                    }
-                    if (disableDate && !isNaN(disableDate.getTime())) {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        disableDate.setHours(0, 0, 0, 0);
-                        if (today < disableDate) return false;
-                    }
-                } catch (e) {
-                    console.warn('Error parsing disable date:', disable, e);
-                }
-            }
+        const WEB_SKIP = { boukili: 1, googleReadAlong: 1 };
+        const WEB_QUIZ = {
+            jkmath: 1, gr1MathStrategies: 1, gr3algebra: 1, gr3fractions: 1, gr3math: 1,
+            gr3mixedproblems: 1, gr3wordproblems: 1, canadianMoneyEasy: 1, canadianMoneyHard: 1,
+            conjugation: 1, conjugation_limparfait: 1, translation: 1, duologicalGame: 1, frenchStories: 1
+        };
+        const WEB_LATER = { printing: 1, tappableText: 1, storyRead: 1 };
 
-            const todayShort = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
-            if (hidedays) {
-                if (hidedays.split(',').map(d => d.trim()).includes(todayShort)) return false;
-            }
-            if (displayDays) {
-                return displayDays.split(',').map(d => d.trim()).includes(todayShort);
-            }
-            if (showdays) {
-                return showdays.split(',').map(d => d.trim()).includes(todayShort);
-            }
-            return true;
+        function torontoDayToken() {
+            return new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Toronto',
+                weekday: 'short'
+            }).format(new Date()).toLowerCase();
         }
 
-        function collectChoreTitles(master) {
+        function shownOnDay(displayDays, dayToken) {
+            const days = String(displayDays || '').trim();
+            if (!days) return true;
+            return days.toLowerCase().split(',').map(part => part.trim()).includes(dayToken);
+        }
+
+        function kidCanSee(row) {
+            if (!row || row.enabled === false) return false;
+            if (WEB_SKIP[row.launch] || row.chromePage || row.videoSequence) return false;
+            if (row.webGame && row.url) return true;
+            if (WEB_QUIZ[row.launch] || row.launch === 'spellingOCR' || WEB_LATER[row.launch]) return true;
+            return false;
+        }
+
+        async function fetchWebAssignments(url, key, profile) {
+            const response = await fetch(`${url}/rest/v1/rpc/af_web_report_assignments`, {
+                method: 'POST',
+                headers: {
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ p_profile: profile })
+            });
+            if (!response.ok) throw new Error(`af_web_report_assignments ${profile}: ${response.status}`);
+            const rows = await response.json();
+            return Array.isArray(rows) ? rows : [];
+        }
+
+        function collectChoreTitles(rows) {
             const titles = new Set();
-            for (const t of master?.required || []) {
+            for (const t of rows || []) {
+                if (t.section && t.section !== 'required') continue;
                 const launch = String(t.launch || '').toLowerCase();
                 const url = String(t.url || '').toLowerCase();
                 if (launch.startsWith('chore') || url.includes('chorephoto') || url.includes('choreaudio') || url.includes('chorevideo')) {
@@ -1234,9 +1239,10 @@
             return titles;
         }
 
-        function collectChoreMeta(master) {
+        function collectChoreMeta(rows) {
             const meta = {};
-            for (const t of master?.required || []) {
+            for (const t of rows || []) {
+                if (t.section && t.section !== 'required') continue;
                 const launch = String(t.launch || '').toLowerCase();
                 const rawUrl = String(t.url || '');
                 const url = rawUrl.toLowerCase();
@@ -1269,13 +1275,15 @@
             return false;
         }
 
-        function summarizeProgress(userData, choreTitleSet, todayPhotos) {
+        function summarizeProgress(userData, assignments, todayPhotos) {
+            const todayToken = torontoDayToken();
             const requiredTasks = {};
-            for (const [taskName, task] of Object.entries(userData.required_tasks || {})) {
-                if (isTaskVisible(task.showdays, task.hidedays, task.displayDays, task.disable)) {
-                    requiredTasks[taskName] = task;
-                }
-            }
+            (assignments || []).forEach(function (row) {
+                if (!row || row.section !== 'required' || !kidCanSee(row) || !shownOnDay(row.displayDays, todayToken)) return;
+                const stored = (userData.required_tasks || {})[row.title] || {};
+                requiredTasks[row.title] = Object.assign({}, stored, { launch: row.launch, url: row.url });
+            });
+            const choreTitleSet = collectChoreTitles(assignments);
             const photoChores = userData.photo_chores || {};
             const requiredTaskKeys = Object.keys(requiredTasks);
             const isChore = key => isChoreRequiredTask(key, requiredTasks[key], choreTitleSet, photoChores);
@@ -1781,11 +1789,11 @@
 
             try {
                 const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
-                const [usersRes, photoRows, recordingMeta, ...masterResults] = await Promise.all([
+                const [usersRes, photoRows, recordingMeta, ...assignmentLists] = await Promise.all([
                     fetch(`${url}/rest/v1/user_data?profile=in.(AM,BM)&select=profile,required_tasks,photo_chores,kid_bank_balance`, { headers }),
                     fetchTodayChorePhotos(url, key),
                     fetchTodayRecordingMeta(url, key),
-                    ...KID_PROFILES.map(profile => fetch(`${CONFIG_BASE}schedule_master_${profile}.json`).catch(() => null))
+                    ...KID_PROFILES.map(profile => fetchWebAssignments(url, key, profile))
                 ]);
                 if (!usersRes.ok) throw new Error(`user_data: ${usersRes.status}`);
                 const users = await usersRes.json();
@@ -1796,18 +1804,8 @@
                 for (let i = 0; i < KID_PROFILES.length; i++) {
                     const profile = KID_PROFILES[i];
                     const userData = byProfile[profile];
-                    let choreTitleSet = new Set();
-                    choreMetaByProfile[profile] = {};
-                    const masterRes = masterResults[i];
-                    if (masterRes && masterRes.ok) {
-                        try {
-                            const master = await masterRes.json();
-                            choreTitleSet = collectChoreTitles(master);
-                            choreMetaByProfile[profile] = collectChoreMeta(master);
-                        } catch (e) {
-                            console.warn('Schedule master unavailable', profile, e);
-                        }
-                    }
+                    const assignments = assignmentLists[i] || [];
+                    choreMetaByProfile[profile] = collectChoreMeta(assignments);
                     photoChoresByProfile[profile] = (userData && userData.photo_chores) || {};
                     recordingsByProfile[profile] = recordingRows.filter(row => row.profile === profile);
                     const audioTasks = new Set(recordingsByProfile[profile].map(row => row.task));
@@ -1816,7 +1814,7 @@
                         clearKidSummary(profile, 'No data');
                     } else {
                         const photos = photoRows.filter(row => row.profile === profile);
-                        applyKidSummary(profile, summarizeProgress(userData, choreTitleSet, photos));
+                        applyKidSummary(profile, summarizeProgress(userData, assignments, photos));
                     }
                     renderRecordings(profile);
                     if (mediaOpenByProfile[profile] && !visualsReady(profile)) {

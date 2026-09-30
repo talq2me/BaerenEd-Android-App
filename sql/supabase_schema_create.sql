@@ -381,6 +381,55 @@ CREATE POLICY "Allow all operations on image_uploads" ON image_uploads
     USING (true)
     WITH CHECK (true);
 
+-- Same-day spelling copy task. Wrong words stay on image_uploads.task (suffix X).
+-- webhook_sent stops a second Grok POST after the language list is uploaded.
+-- status becomes complete when the child finishes the copy task.
+CREATE TABLE IF NOT EXISTS spelling_dictation_reviews (
+    profile TEXT NOT NULL,
+    review_date DATE NOT NULL,
+    language TEXT NOT NULL CHECK (language IN ('eng', 'fr')),
+    status TEXT NOT NULL DEFAULT 'incomplete',
+    webhook_sent BOOLEAN NOT NULL DEFAULT false,
+    PRIMARY KEY (profile, review_date, language)
+);
+
+ALTER TABLE spelling_dictation_reviews ENABLE ROW LEVEL SECURITY;
+
+-- Web catalog. The tablet still reads GitHub JSON. sql/web_catalog_seed.sql copies the current lists.
+CREATE TABLE IF NOT EXISTS web_games (
+    launch TEXT PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS web_assignments (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    profile TEXT NOT NULL CHECK (profile IN ('AM', 'BM', 'TE')),
+    section TEXT NOT NULL CHECK (section IN ('required', 'optional', 'bonus', 'checklist')),
+    launch TEXT REFERENCES web_games (launch),
+    title TEXT NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    sort_order INT NOT NULL DEFAULT 0,
+    stars INT,
+    url TEXT,
+    web_game BOOLEAN NOT NULL DEFAULT false,
+    total_questions INT,
+    display_days TEXT,
+    easy_days TEXT,
+    hard_days TEXT,
+    extreme_days TEXT,
+    chrome_page BOOLEAN NOT NULL DEFAULT false,
+    video_sequence TEXT,
+    video TEXT,
+    easy BOOLEAN NOT NULL DEFAULT false,
+    description TEXT,
+    block_outlines BOOLEAN NOT NULL DEFAULT false,
+    UNIQUE (profile, section, title, launch)
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_assignments_profile ON web_assignments (profile, enabled, section, sort_order);
+
+ALTER TABLE web_games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE web_assignments ENABLE ROW LEVEL SECURITY;
+
 -- Daily Spin rewards table
 CREATE TABLE IF NOT EXISTS reward_spinner (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

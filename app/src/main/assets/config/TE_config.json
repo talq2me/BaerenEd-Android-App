@@ -53,12 +53,13 @@
                     "disable": "Dec 31, 2099"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnAM.json&pool=5&poolKey=engSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
                     "stars": 3,
                     "title": "Spelling Race",
                     "launch": "spellingRace",
                     "disable": "Dec 31, 2099",
-                    "webGame": true
+                    "webGame": true,
+                    "totalQuestions": 1
                 },
                 {
                     "stars": 3,
@@ -69,7 +70,7 @@
                     "totalQuestions": 3
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsAM.json",
                     "stars": 3,
                     "title": "Eng Spelling",
                     "launch": "engSpelling",
@@ -77,10 +78,11 @@
                     "webGame": true,
                     "easydays": "mon,tue,wed",
                     "harddays": "thu,fri",
-                    "extremedays": "sat,sun"
+                    "extremedays": "sat,sun",
+                    "totalQuestions": 1
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnAM.json&pool=5&poolKey=engSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDrag",
                     "stars": 3,
                     "title": "Eng Spelling Drag",
                     "launch": "engSpellingDrag",
@@ -88,7 +90,7 @@
                     "easydays": "mon,tue,wed",
                     "harddays": "thu,fri",
                     "extremedays": "sat,sun",
-                    "totalQuestions": 5
+                    "totalQuestions": 1
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/UfliSpellingChain.html?mode=chain",
@@ -106,7 +108,7 @@
                     "displayDays": "sun,mon,tue,wed,thu,fri,sat"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsAM.json",
                     "stars": 3,
                     "title": "Fr Spelling",
                     "launch": "frSpelling",
@@ -114,10 +116,11 @@
                     "webGame": true,
                     "easydays": "thu,fri",
                     "harddays": "sat,sun",
-                    "extremedays": "mon,tue,wed"
+                    "extremedays": "mon,tue,wed",
+                    "totalQuestions": 1
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Fr Spelling Drag",
                     "launch": "frSpellingDrag",
@@ -125,10 +128,10 @@
                     "easydays": "thu,fri",
                     "harddays": "sat,sun",
                     "extremedays": "mon,tue,wed",
-                    "totalQuestions": 5
+                    "totalQuestions": 1
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsAM.json",
                     "stars": 3,
                     "title": "Fr Spelling",
                     "launch": "frSpellPhoto",
@@ -139,7 +142,7 @@
                     "extremedays": "mon,tue,wed"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsAM.json",
                     "stars": 3,
                     "title": "Eng Spelling",
                     "launch": "engSpellPhoto",
@@ -206,12 +209,13 @@
                     "totalQuestions": 5
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Snake Catch",
                     "launch": "snakeCatch",
                     "disable": "Dec 31, 2099",
-                    "webGame": true
+                    "webGame": true,
+                    "totalQuestions": 1
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/mathHole.html?mode=easy",
@@ -224,13 +228,14 @@
                     "totalQuestions": 5
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Word Garden",
                     "launch": "wordGarden",
                     "disable": "Dec 31, 2099",
                     "webGame": true,
-                    "displayDays": "tue,fri"
+                    "displayDays": "tue,fri",
+                    "totalQuestions": 1
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/numberLineMath.html",
@@ -265,21 +270,23 @@
                     "totalQuestions": 5
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Word Fishing",
                     "launch": "wordFishing",
                     "disable": "Dec 31, 2099",
                     "webGame": true,
-                    "displayDays": "wed,sat"
+                    "displayDays": "wed,sat",
+                    "totalQuestions": 1
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDrag",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDrag",
                     "stars": 3,
                     "title": "Word Factory",
                     "launch": "wordFactory",
                     "disable": "Dec 31, 2099",
-                    "webGame": true
+                    "webGame": true,
+                    "totalQuestions": 1
                 },
                 {
                     "stars": 1,
@@ -612,7 +619,7 @@
                     "disable": "Dec 31, 2099"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumblePhoto.html?file=englishWordsAM.json",
                     "stars": 3,
                     "title": "Eng Spelling (Practice)",
                     "launch": "engSpellPhoto",
@@ -623,7 +630,7 @@
                     "extremedays": "mon,tue,wed"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/englishSpellingJumble.html?mode=hard&file=englishWordsAM.json",
                     "stars": 3,
                     "title": "Eng Spelling (Practice)",
                     "launch": "engSpelling",
@@ -634,7 +641,7 @@
                     "extremedays": "sat,sun"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragEnAM.json&pool=5&poolKey=engSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDragPractice",
                     "stars": 3,
                     "title": "Eng Spelling Drag (Practice)",
                     "launch": "engSpellingDrag",
@@ -661,7 +668,7 @@
                     "videoSequence": "sequential"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumblePhoto.html?file=frenchWordsAM.json",
                     "stars": 3,
                     "title": "Fr Spelling (Practice)",
                     "launch": "frSpellPhoto",
@@ -672,7 +679,7 @@
                     "extremedays": "mon,tue,wed"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsTE.json",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsAM.json",
                     "stars": 3,
                     "title": "Fr Spelling (Practice)",
                     "launch": "frSpelling",
@@ -683,7 +690,7 @@
                     "extremedays": "mon,tue,wed"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/SpellingDrag.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDragPractice",
                     "stars": 3,
                     "title": "Fr Spelling Drag (Practice)",
                     "launch": "frSpellingDrag",
@@ -766,7 +773,7 @@
                     "disable": "Dec 31, 2099"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/snakeCatch.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDragPractice",
                     "stars": 3,
                     "title": "Snake Catch (Practice)",
                     "launch": "snakeCatch",
@@ -774,14 +781,14 @@
                     "webGame": true
                 },
                 {
-                    "url": "file=frenchWordsTE.json",
+                    "url": "file=frenchWordsAM.json",
                     "stars": 3,
                     "title": "French Spelling OCR (Practice)",
                     "launch": "spellingOCR",
                     "disable": "Dec 31, 2099"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=spellingDragEnAM.json&pool=5&poolKey=engSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/spellingRace.html?file=englishWordsAM.json&pool=all&poolKey=engSpellingDragPractice",
                     "stars": 3,
                     "title": "Spelling Race (Practice)",
                     "launch": "spellingRace",
@@ -823,7 +830,7 @@
                     "videoSequence": "sequential"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFactory.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDragPractice",
                     "stars": 3,
                     "title": "Word Factory (Practice)",
                     "launch": "wordFactory",
@@ -831,7 +838,7 @@
                     "webGame": true
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordFishing.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDragPractice",
                     "stars": 3,
                     "title": "Word Fishing (Practice)",
                     "launch": "wordFishing",
@@ -840,7 +847,7 @@
                     "displayDays": "wed,sat"
                 },
                 {
-                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=spellingDragFrAM.json&pool=5&poolKey=frSpellingDragPractice",
+                    "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/wordGarden.html?file=frenchWordsAM.json&pool=all&poolKey=frSpellingDragPractice",
                     "stars": 3,
                     "title": "Word Garden (Practice)",
                     "launch": "wordGarden",

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BaerenEd</title>
+  <link rel="stylesheet" href="baeren.css">
+</head>
+<body>
+  <header class="top">
+    <h1>BaerenEd</h1>
+    <button type="button" id="configBtn">Parent setup</button>
+  </header>
+  <div class="wrap">
+    <form id="setup" class="panel" hidden>
+      <h2>Parent setup</h2>
+      <p>The key stays in this browser. It is not saved in the page.</p>
+      <label for="pinEntry">PIN</label>
+      <input id="pinEntry" type="password" inputmode="numeric" autocomplete="off">
+      <div class="row" id="pinRow" hidden><button type="button" id="pinBtn">Continue</button></div>
+      <div id="secretFields" hidden>
+        <label for="supabaseUrl">Supabase URL</label>
+        <input id="supabaseUrl" autocomplete="off" spellcheck="false">
+        <label for="supabaseKey">Supabase API key</label>
+        <input id="supabaseKey" autocomplete="off" spellcheck="false">
+        <label for="newPin">New PIN</label>
+        <input id="newPin" type="password" inputmode="numeric" autocomplete="off">
+        <div class="row"><button type="submit">Save</button></div>
+      </div>
+      <p id="setupMsg"></p>
+    </form>
+
+    <div class="profiles" id="profiles">
+      <button type="button" data-profile="AM">AM</button>
+      <button type="button" data-profile="BM">BM</button>
+      <button type="button" data-profile="TE">TE</button>
+    </div>
+    <div id="lists"></div>
+  </div>
+  <script src="baeren.js"></script>
+  <script>
+    const QUIZ = {
+      jkmath: 1, gr1MathStrategies: 1, gr3algebra: 1, gr3fractions: 1, gr3math: 1,
+      gr3mixedproblems: 1, gr3wordproblems: 1, canadianMoneyEasy: 1, canadianMoneyHard: 1,
+      conjugation: 1, conjugation_limparfait: 1, translation: 1, duologicalGame: 1, frenchStories: 1
+    };
+    const LATER = { printing: 1, tappableText: 1, storyRead: 1 };
+    const SKIP = { boukili: 1, googleReadAlong: 1 };
+
+    function kind(task) {
+      if (SKIP[task.launch] || task.chromePage || task.videoSequence || task.playlistId) return "skip";
+      if (task.webGame && task.url) return "html";
+      if (QUIZ[task.launch]) return "quiz";
+      if (task.launch === "spellingOCR") return "spell";
+      if (LATER[task.launch]) return "later";
+      return "skip";
+    }
+
+    function openTask(task, section) {
+      const q = new URLSearchParams({
+        title: task.title || task.launch || "Game",
+        section: section,
+        stars: task.stars == null ? "" : String(task.stars),
+        launch: task.launch || ""
+      });
+      const how = kind(task);
+      if (how === "html") {
+        let src = task.url;
+        if (task.totalQuestions) {
+          src += (src.indexOf("?") >= 0 ? "&" : "?") + "totalQuestions=" + task.totalQuestions;
+        }
+        q.set("src", src);
+        location.href = "play.html?" + q.toString();
+      } else if (how === "quiz") {
+        q.set("file", task.launch + ".json");
+        if (task.totalQuestions) q.set("questions", String(task.totalQuestions));
+        location.href = "quiz.html?" + q.toString();
+      } else if (how === "spell") {
+        const raw = task.url || "";
+        const file = raw.indexOf("file=") >= 0
+          ? raw.slice(raw.indexOf("file=") + 5).split("&")[0]
+          : raw.replace(/^.*\//, "");
+        q.set("file", file);
+        if (task.totalQuestions) q.set("questions", String(task.totalQuestions));
+        location.href = "spell.html?" + q.toString();
+      }
+    }
+
+    function completionMap(rows, skipChecklist) {
+      const map = {};
+      (rows || []).forEach(function (row) {
+        if (skipChecklist && row.is_checklist) return;
+        const name = row.task_name || "";
+        if (!name) return;
+        const status = String(row.completion_status || "").toLowerCase();
+        map[name] = status === "complete" || status === "done";
+      });
+      return map;
+    }
+
+    async function loadCompletion() {
+      if (!Baeren.hasDb()) return { required: {}, optional: {} };
+      const profile = Baeren.cfg().profile;
+      await Baeren.ensureDailyReset();
+      const required = await Baeren.rpc("af_get_tasks_required", { p_profile: profile });
+      const practice = await Baeren.rpc("af_get_tasks_practice", { p_profile: profile });
+      return {
+        required: completionMap(required, true),
+        optional: completionMap(practice, false)
+      };
+    }
+
+    function isTaskDone(sectionId, title, done) {
+      if (!title || !done) return false;
+      if (sectionId === "required") return done.required[title] === true;
+      if (sectionId === "optional") return done.optional[title] === true;
+      return false;
+    }
+
+    function render(rows, done) {
+      const lists = document.getElementById("lists");
+      lists.innerHTML = "";
+      const grouped = { required: [], optional: [], bonus: [] };
+      (rows || []).forEach(function (task) {
+        if (grouped[task.section]) grouped[task.section].push(task);
+      });
+      ["required", "optional", "bonus"].forEach(function (sectionId) {
+        const tasks = grouped[sectionId].filter(function (task) { return kind(task) !== "skip"; });
+        if (!tasks.length) return;
+        const block = document.createElement("section");
+        block.className = "section";
+        const h = document.createElement("h2");
+        h.textContent = sectionId;
+        block.appendChild(h);
+        const box = document.createElement("div");
+        box.className = "tasks";
+        tasks.forEach(function (task) {
+          const title = task.title || task.launch;
+          const finished = isTaskDone(sectionId, title, done);
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "task" + (kind(task) === "later" ? " later" : "") + (finished ? " done" : "");
+          btn.textContent = title;
+          if (finished) {
+            const note = document.createElement("small");
+            note.textContent = "Done";
+            btn.appendChild(note);
+          } else if (kind(task) === "later") {
+            const note = document.createElement("small");
+            note.textContent = "Not converted yet";
+            btn.appendChild(note);
+          } else {
+            btn.addEventListener("click", function () { openTask(task, sectionId); });
+          }
+          box.appendChild(btn);
+        });
+        block.appendChild(box);
+        lists.appendChild(block);
+      });
+      if (!lists.children.length) {
+        lists.textContent = "No games for this profile today.";
+      }
+    }
+
+    async function loadProfile(profile) {
+      Baeren.setProfile(profile);
+      document.querySelectorAll("#profiles button").forEach(function (btn) {
+        btn.classList.toggle("on", btn.dataset.profile === profile);
+      });
+      if (!Baeren.hasDb()) {
+        document.getElementById("lists").textContent = "Save the Supabase URL and key in Parent setup to load the games.";
+        return;
+      }
+      await Baeren.ensureDailyReset();
+      const rows = await Baeren.rpc("af_web_list_tasks", { p_profile: profile });
+      let done = { required: {}, optional: {} };
+      let completionError = "";
+      try {
+        done = await loadCompletion();
+      } catch (err) {
+        completionError = "Could not load which games are finished.";
+        console.warn(err);
+      }
+      render(rows, done);
+      if (completionError) {
+        const note = document.createElement("p");
+        note.textContent = completionError;
+        document.getElementById("lists").prepend(note);
+      }
+    }
+
+    const setup = document.getElementById("setup");
+    const secret = document.getElementById("secretFields");
+    const pinRow = document.getElementById("pinRow");
+
+    function unlockPin() {
+      if (Baeren.checkPin(document.getElementById("pinEntry").value)) {
+        secret.hidden = false;
+        pinRow.hidden = true;
+        document.getElementById("supabaseUrl").value = Baeren.cfg().url;
+        document.getElementById("supabaseKey").value = Baeren.cfg().key;
+        document.getElementById("setupMsg").textContent = "";
+      } else {
+        document.getElementById("setupMsg").textContent = "Wrong PIN.";
+      }
+    }
+
+    document.getElementById("configBtn").addEventListener("click", function () {
+      setup.hidden = !setup.hidden;
+      const hasPin = Boolean(Baeren.cfg().pin);
+      secret.hidden = hasPin;
+      pinRow.hidden = !hasPin;
+      document.getElementById("setupMsg").textContent = hasPin ? "Enter the PIN to change the saved key." : "Choose a PIN, then save the Supabase URL and key.";
+    });
+
+    document.getElementById("pinBtn").addEventListener("click", unlockPin);
+    document.getElementById("pinEntry").addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" && !pinRow.hidden) {
+        ev.preventDefault();
+        unlockPin();
+      }
+    });
+
+    setup.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      if (!pinRow.hidden) {
+        unlockPin();
+        return;
+      }
+      const url = document.getElementById("supabaseUrl").value.trim();
+      const key = document.getElementById("supabaseKey").value.trim();
+      const pin = (document.getElementById("newPin").value || document.getElementById("pinEntry").value).trim();
+      if (!url || !key || !pin) {
+        document.getElementById("setupMsg").textContent = "URL, key, and PIN are required.";
+        return;
+      }
+      Baeren.saveSetup(url, key, pin, Baeren.cfg().profile);
+      document.getElementById("setupMsg").textContent = "Saved in this browser.";
+      setup.hidden = true;
+    });
+
+    document.getElementById("profiles").addEventListener("click", function (ev) {
+      const btn = ev.target.closest("button");
+      if (!btn) return;
+      loadProfile(btn.dataset.profile).catch(function (err) {
+        document.getElementById("lists").textContent = err.message || String(err);
+      });
+    });
+
+    loadProfile(Baeren.cfg().profile).catch(function (err) {
+      document.getElementById("lists").textContent = err.message || String(err);
+    });
+  </script>
+</body>
+</html>

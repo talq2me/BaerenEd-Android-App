@@ -93,7 +93,11 @@
         if (!len) {
             return [];
         }
-        const count = poolAll ? len : poolSize;
+        let count = poolAll ? len : poolSize;
+        const cap = parseInt(new URLSearchParams(global.location.search).get('totalQuestions') || '', 10);
+        if (Number.isFinite(cap) && cap > 0) {
+            count = Math.min(count, cap);
+        }
         if (count <= 0) {
             return [];
         }

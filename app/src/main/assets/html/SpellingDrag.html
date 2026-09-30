@@ -286,15 +286,17 @@
         function getConfig() {
             const poolCfg = SpellingPool.getConfig();
             const p = new URLSearchParams(window.location.search);
-            const tq = parseInt(p.get('totalQuestions') || '5', 10);
+            const tq = parseInt(p.get('totalQuestions') || '', 10);
+            const questionCap = Number.isFinite(tq) && tq > 0 ? tq : 0;
             poolActive = poolCfg.poolActive;
             return {
                 file: poolCfg.file,
                 poolAll: poolCfg.poolAll,
                 poolSize: poolCfg.poolSize,
+                questionCap,
                 wordsPerSession: poolActive
                     ? (poolCfg.poolAll ? 0 : poolCfg.poolSize)
-                    : (Number.isFinite(tq) && tq > 0 ? tq : 5)
+                    : (questionCap || 5)
             };
         }
 
@@ -665,7 +667,9 @@
             }
 
             if (poolActive && cfg.poolAll) {
-                wordsPerSession = allWords.length;
+                wordsPerSession = cfg.questionCap
+                    ? Math.min(allWords.length, cfg.questionCap)
+                    : allWords.length;
             }
 
             // "frenchWords" contains "en", so a raw includes('en') check speaks French lists in English.
