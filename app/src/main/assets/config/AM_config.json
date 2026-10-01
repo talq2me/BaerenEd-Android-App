@@ -138,7 +138,7 @@
                     "stars": 3,
                     "title": "FR Spelling OCR",
                     "launch": "spellingOCR",
-                    "displayDays": "sun"
+                    "displayDays": "sun,mon,tue,thu,fri,sat"
                 },
                 {
                     "url": "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/frenchSpellingJumble.html?mode=hard&file=frenchWordsAM.json",
