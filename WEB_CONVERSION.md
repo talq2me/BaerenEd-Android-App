@@ -51,9 +51,9 @@ These run inside the Android WebView today. The shell opens them in `web/play.ht
 
 - [x] **Shell.** `web/index.html` — PIN config, profile (AM/BM/TE), today's task list from the config JSON, open a game. Existing HTML games open in `web/play.html`, which supplies browser speech and completion. Writing completion still needs the Supabase key saved in that browser.
 - [x] **Quiz page.** `web/quiz.html` for the shared `GameActivity` JSON (prompt, optional picture, answer tiles). Covers JK Math, Math Strategies Practice, the grade-3 set, Money, Conjugation, Translation, Duological, and French Stories. French story-read is still separate.
-- [ ] **Battle hub.** `web/index.html` shows bank, coins, berries, and reward minutes, the current Pokémon versus the next one, and buttons for the required map, the practice map, and the full Pokédex. Practice stays grey until the required games are done. Bonus is not ported. The fight and daily spin are still to add. Reward time writes minutes only and does not open BaerenLock.
+- [ ] **Battle hub.** `web/index.html` shows the arena background, bank, coins, berries, and reward minutes, the current Pokémon versus the next one, and the battle sequence when berries are full. Practice stays grey until the required games are done. Bonus and the daily spin are not ported. Reward time writes minutes only and does not open BaerenLock.
 - [ ] **Trainer map.** `web/map.html?map=required` lists today’s required tasks and chores with completion. `web/map.html?map=practice` lists practice tasks. No YouTube, Chrome, or other-app launches.
-- [ ] **Pokédex.** `web/pokedex.html` shows the unlocked Pokémon. Opened from the battle hub.
+- [ ] **Pokédex.** `web/pokedex.html` shows the unlocked Pokémon. Unlock more with the parent PIN. Opened from the battle hub.
 - [x] **Spelling OCR.** `web/spell.html` draws the word, speaks one slower prompt, and uploads every drawing as incorrect. The last word calls `af_enqueue_spelling_ocr_review` so the Grok review scores the set.
 - [ ] **Tappable books.** English and French reading. Passage, tap the word, comprehension questions. No highlight locked to the voice. This is the only unused-looking required task still worth converting.
 

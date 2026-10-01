@@ -348,7 +348,7 @@
                     <option value="BM">BM</option>
                     <option value="TE">TE</option>
                 </select>
-                <button type="button" class="btn-save" id="saveBtn">💾 Save (DB + GitHub)</button>
+                <button type="button" class="btn-save" id="saveBtn">💾 Save</button>
                 <a href="schedule.html" class="btn-link">View schedule</a>
             </div>
         </div>
@@ -395,7 +395,7 @@
                     <h2>Required chores config</h2>
                 </button>
                 <div class="card-body">
-                    <p class="hint">Photo, audio, and video chores. Same on/off and days as required tasks. Reward is dollars (not stars). New chores are written to the database and GitHub on Save, and can be added to more than one profile.</p>
+                    <p class="hint">Photo, audio, and video chores. Same on/off and days as required tasks. Reward is dollars (not stars). New chores are saved with the web schedule, and can be added to more than one profile.</p>
                     <div id="requiredChoresList"></div>
                     <div class="add-row">
                         <button type="button" class="icon-btn" id="addChoreBtn">+ Add chore</button>
@@ -509,7 +509,6 @@
     </div>
 
     <script>
-        const CONFIG_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/config/';
         const CHORE_HTML_BASE = 'https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/';
         const ALL_PROFILES = ['AM', 'BM', 'TE'];
         const DAYS = [
@@ -526,9 +525,8 @@
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         let profile = 'AM';
-        let configJson = null;
-        /** @type {{ profile?: string, required?: object[], practice?: object[], checklist?: object[] } | null} */
-        let scheduleMaster = null;
+        /** Task definitions loaded from web_assignments. */
+        let assignmentTasks = { required: [], practice: [] };
         let dbRow = {
             required_tasks: {},
             practice_tasks: {},
@@ -546,8 +544,6 @@
 
         function supabaseUrl() { return localStorage.getItem('supabaseUrl'); }
         function supabaseKey() { return localStorage.getItem('supabaseKey'); }
-        function scheduleWriteKey() { return localStorage.getItem('scheduleWriteKey'); }
-
         const SCHEDULE_CONFIG_KEYS = ['stars', 'totalQuestions', 'displayDays', 'showdays', 'hidedays', 'disable'];
 
         /** Stable id: launch + diagram/file/poolKey from URL, else launch+title. */
@@ -572,41 +568,6 @@
             return `${sectionId}|${title}`;
         }
 
-        function dedupeMasterTasks(tasks, sectionId) {
-            const out = [];
-            const seen = new Set();
-            for (const t of tasks || []) {
-                const title = String(t?.title || t?.label || '').trim();
-                if (!title && sectionId !== 'checklist') continue;
-                const key = taskScheduleKey(t, sectionId);
-                if (seen.has(key)) continue;
-                seen.add(key);
-                out.push({ ...t, scheduleKey: key });
-            }
-            return out;
-        }
-
-        function buildScheduleMasterJson(cfg, targetProfile) {
-            const master = {
-                profile: targetProfile,
-                version: cfg?.version || '',
-                source: `${targetProfile}_config.json`,
-                required: [],
-                practice: [],
-                checklist: []
-            };
-            for (const sec of cfg?.sections || []) {
-                if (sec.id === 'required' && sec.tasks) {
-                    master.required = dedupeMasterTasks(sec.tasks, 'required');
-                } else if (sec.id === 'optional' && sec.tasks) {
-                    master.practice = dedupeMasterTasks(sec.tasks, 'practice');
-                } else if (sec.id === 'checklist' && sec.items) {
-                    master.checklist = dedupeMasterTasks(sec.items, 'checklist');
-                }
-            }
-            return master;
-        }
-
         function entryLookupKey(entry) {
             return entry.key || entry.title;
         }
@@ -619,68 +580,6 @@
                     delete target[k];
                 }
             }
-        }
-
-        function checklistItemId(label) {
-            const slug = String(label).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-            return `${profile.toLowerCase()}_${slug}`;
-        }
-
-        function buildUpdatedConfigJson() {
-            const out = JSON.parse(JSON.stringify(configJson));
-            out.version = new Date().toISOString().slice(0, 10);
-            if (!out.sections) return out;
-            for (const sec of out.sections) {
-                if (sec.id === 'required' && sec.tasks) {
-                    for (const t of sec.tasks) {
-                        const sk = taskScheduleKey(t, 'required');
-                        const entry = catalog.required.find(e => e.key === sk || e.title === t.title);
-                        if (entry) {
-                            applyScheduleFields(t, entry.data);
-                            if (isChoreTask(t) || isChoreEntry(entry)) {
-                                t.stars = 0;
-                                const reward = parseRewardCash(entry);
-                                const current = parseRewardCashFromUrl(t.url);
-                                if (t.url && (current == null || Math.abs(current - reward) >= 0.001)) {
-                                    t.url = setRewardCashOnUrl(t.url, reward);
-                                }
-                            }
-                        }
-                    }
-                    const existingTitles = new Set(sec.tasks.map(t => t.title));
-                    const existingLaunches = new Set(sec.tasks.map(t => t.launch).filter(Boolean));
-                    for (const entry of catalog.required.filter(isChoreEntry)) {
-                        const launch = entry.config?.launch || entry.data?.launch;
-                        if (existingTitles.has(entry.title) || (launch && existingLaunches.has(launch))) continue;
-                        const task = choreConfigFromEntry(entry);
-                        sec.tasks.push(task);
-                        existingTitles.add(task.title);
-                        if (task.launch) existingLaunches.add(task.launch);
-                    }
-                }
-                if (sec.id === 'optional' && sec.tasks) {
-                    for (const t of sec.tasks) {
-                        const sk = taskScheduleKey(t, 'practice');
-                        const entry = catalog.practice.find(e => e.key === sk || e.title === t.title);
-                        if (entry) applyScheduleFields(t, entry.data);
-                    }
-                }
-                if (sec.id === 'checklist') {
-                    sec.items = catalog.checklist.map(e => {
-                        const item = {
-                            label: e.title,
-                            stars: e.data.stars ?? 0,
-                            done: false,
-                            id: e.data.id || e.config?.id || checklistItemId(e.title)
-                        };
-                        ['displayDays', 'showdays', 'hidedays', 'disable'].forEach(k => {
-                            if (e.data[k]) item[k] = e.data[k];
-                        });
-                        return item;
-                    });
-                }
-            }
-            return out;
         }
 
         function isChoreTask(task) {
@@ -780,63 +679,12 @@
             return task;
         }
 
-        function ensureRequiredSection(cfg) {
-            if (!cfg.sections) cfg.sections = [];
-            let sec = cfg.sections.find(s => s.id === 'required');
-            if (!sec) {
-                sec = { id: 'required', tasks: [], title: 'Required Tasks', description: 'Complete all of these first!' };
-                cfg.sections.push(sec);
-            }
-            if (!Array.isArray(sec.tasks)) sec.tasks = [];
-            return sec;
-        }
-
         function addChoreToLocalConfig(task) {
-            if (!configJson) return;
-            const sec = ensureRequiredSection(configJson);
-            if (!sec.tasks.some(t => t.title === task.title || t.launch === task.launch)) {
-                sec.tasks.push(JSON.parse(JSON.stringify(task)));
+            const copy = JSON.parse(JSON.stringify(task));
+            copy.scheduleKey = taskScheduleKey(copy, 'required');
+            if (!assignmentTasks.required.some(t => t.title === copy.title || t.launch === copy.launch)) {
+                assignmentTasks.required.push(copy);
             }
-            if (scheduleMaster) {
-                if (!Array.isArray(scheduleMaster.required)) scheduleMaster.required = [];
-                if (!scheduleMaster.required.some(t => t.title === task.title || t.launch === task.launch)) {
-                    scheduleMaster.required.push({
-                        ...JSON.parse(JSON.stringify(task)),
-                        scheduleKey: taskScheduleKey(task, 'required')
-                    });
-                }
-            }
-        }
-
-        async function pushConfigToGitHub(updatedConfig, targetProfile) {
-            const writeKey = scheduleWriteKey();
-            if (!writeKey) return { skipped: true };
-            const url = supabaseUrl();
-            const key = supabaseKey();
-            const res = await fetch(`${url}/rest/v1/rpc/af_push_profile_config_to_github`, {
-                method: 'POST',
-                headers: {
-                    apikey: key,
-                    Authorization: `Bearer ${key}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    p_profile: targetProfile || profile,
-                    p_config_json: updatedConfig,
-                    p_write_key: writeKey,
-                    p_schedule_master_json: buildScheduleMasterJson(updatedConfig, targetProfile || profile)
-                })
-            });
-            if (!res.ok) {
-                const t = await res.text();
-                let msg = t;
-                try {
-                    const j = JSON.parse(t);
-                    msg = j.message || j.error || j.hint || t;
-                } catch (_) { /* keep raw */ }
-                throw new Error(msg);
-            }
-            return res.json();
         }
 
         const WEB_DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -1139,88 +987,15 @@
         function buildCatalog() {
             catalog = { required: [], practice: [], checklist: [] };
 
-            const dbChecklist = dbRow.checklist_items || {};
-            const dbHasChecklist = Object.keys(dbChecklist).length > 0;
-
-            const useMaster = scheduleMaster
-                && (scheduleMaster.required?.length || scheduleMaster.practice?.length || scheduleMaster.checklist?.length);
-
-            if (useMaster) {
-                for (const t of scheduleMaster.required || []) {
-                    pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
-                }
-                for (const t of scheduleMaster.practice || []) {
-                    pushCatalogEntry('practice', 'practice', t, dbRow.practice_tasks);
-                }
-                for (const it of scheduleMaster.checklist || []) {
-                    if (dbHasChecklist && !(it.label in dbChecklist)) continue;
-                    pushChecklistCatalogEntry(it, dbChecklist);
-                }
-            } else if (configJson?.sections) {
-                for (const sec of configJson.sections) {
-                    if (sec.id === 'required' && sec.tasks) {
-                        for (const t of sec.tasks) pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
-                    }
-                    if (sec.id === 'optional' && sec.tasks) {
-                        for (const t of sec.tasks) pushCatalogEntry('practice', 'practice', t, dbRow.practice_tasks);
-                    }
-                    if (sec.id === 'checklist' && sec.items?.length) {
-                        for (const it of sec.items) {
-                            if (dbHasChecklist && !(it.label in dbChecklist)) continue;
-                            pushChecklistCatalogEntry(it, dbChecklist);
-                        }
-                    }
-                }
+            for (const t of assignmentTasks.required || []) {
+                pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
             }
-
-            // Chores added in the editor (or on GitHub config) may not be in schedule_master yet
-            if (configJson?.sections) {
-                for (const sec of configJson.sections) {
-                    if (sec.id !== 'required' || !sec.tasks) continue;
-                    for (const t of sec.tasks) {
-                        if (!isChoreTask(t)) continue;
-                        if (catalog.required.find(x => x.title === t.title || x.config?.launch === t.launch)) continue;
-                        pushCatalogEntry('required', 'required', t, dbRow.required_tasks);
-                    }
-                }
-            }
-
-            // DB-only entries (legacy titles not in master/config)
-            for (const [title, data] of Object.entries(dbRow.required_tasks || {})) {
-                if (!catalog.required.find(x => x.title === title)) {
-                    catalog.required.push({
-                        key: `legacy|required|${title}`,
-                        title,
-                        config: {},
-                        data: { ...data }
-                    });
-                }
-            }
-            for (const [title, data] of Object.entries(dbRow.practice_tasks || {})) {
-                if (!catalog.practice.find(x => x.title === title)) {
-                    catalog.practice.push({
-                        key: `legacy|practice|${title}`,
-                        title,
-                        config: {},
-                        data: { ...data }
-                    });
-                }
-            }
-            for (const [label, data] of Object.entries(dbRow.checklist_items || {})) {
-                if (deletedChecklistLabels.has(label)) continue;
-                if (!catalog.checklist.find(x => x.title === label)) {
-                    catalog.checklist.push({
-                        key: `legacy|checklist|${label}`,
-                        title: label,
-                        config: {},
-                        data: { ...data }
-                    });
-                }
+            for (const t of assignmentTasks.practice || []) {
+                pushCatalogEntry('practice', 'practice', t, dbRow.practice_tasks);
             }
 
             dedupeCatalogBucket('required');
             dedupeCatalogBucket('practice');
-            dedupeCatalogBucket('checklist');
 
             const sortOnFirst = (a, b) => {
                 const ao = isScheduleOn(a.data) ? 0 : 1;
@@ -1230,16 +1005,24 @@
             };
             catalog.required.sort(sortOnFirst);
             catalog.practice.sort(sortOnFirst);
-            catalog.checklist.sort(sortOnFirst);
         }
 
         function syncCatalogToDb() {
-            dbRow.required_tasks = {};
-            catalog.required.forEach(e => { dbRow.required_tasks[e.title] = e.data; });
-            dbRow.practice_tasks = {};
-            catalog.practice.forEach(e => { dbRow.practice_tasks[e.title] = e.data; });
-            dbRow.checklist_items = {};
-            catalog.checklist.forEach(e => { dbRow.checklist_items[e.title] = e.data; });
+            function mergeBucket(entries, map) {
+                entries.forEach(entry => {
+                    const prev = map[entry.title] || {};
+                    const data = entry.data || {};
+                    const next = { ...prev, ...data };
+                    ['displayDays', 'showdays', 'hidedays'].forEach(k => {
+                        if (data[k] === undefined || data[k] === null || data[k] === '') delete next[k];
+                    });
+                    if (data.disable === undefined || data.disable === null) delete next.disable;
+                    else next.disable = data.disable;
+                    map[entry.title] = next;
+                });
+            }
+            mergeBucket(catalog.required, dbRow.required_tasks);
+            mergeBucket(catalog.practice, dbRow.practice_tasks);
         }
 
         function getOrderedWeekDays() {
@@ -1475,6 +1258,55 @@
             return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
         }
 
+        function seedTaskFromWeb(prev, row) {
+            const next = { ...(prev || {}) };
+            if (row.launch) next.launch = row.launch;
+            if (row.url) next.url = row.url;
+            if (row.webGame != null) next.webGame = row.webGame;
+            if (row.description) next.description = row.description;
+            if (row.stars != null) next.stars = row.stars;
+            if (row.totalQuestions != null) next.totalQuestions = row.totalQuestions;
+            delete next.showdays;
+            delete next.hidedays;
+            if (row.displayDays) next.displayDays = row.displayDays;
+            else delete next.displayDays;
+            next.disable = row.enabled === false ? ALWAYS_OFF_DISABLE : '';
+            if (isChoreTask(row) || isChoreTask(next)) {
+                next.stars = 0;
+                const cash = parseRewardCashFromUrl(row.url || next.url);
+                if (cash != null) next.rewardCash = cash;
+            }
+            return next;
+        }
+
+        function applyWebAssignments(rows, userRow) {
+            dbRow = {
+                required_tasks: { ...(userRow.required_tasks || {}) },
+                practice_tasks: { ...(userRow.practice_tasks || {}) },
+                checklist_items: userRow.checklist_items || {}
+            };
+            catalog = { required: [], practice: [], checklist: [] };
+            assignmentTasks = { required: [], practice: [] };
+            (Array.isArray(rows) ? rows : []).forEach(row => {
+                if (!row || (row.section !== 'required' && row.section !== 'optional')) return;
+                const bucket = row.section === 'optional' ? 'practice' : 'required';
+                const task = {
+                    title: row.title,
+                    launch: row.launch,
+                    url: row.url,
+                    webGame: row.webGame,
+                    stars: row.stars,
+                    totalQuestions: row.totalQuestions,
+                    description: row.description,
+                    displayDays: row.displayDays || ''
+                };
+                task.scheduleKey = taskScheduleKey(task, bucket);
+                assignmentTasks[bucket].push(task);
+                const map = bucket === 'practice' ? dbRow.practice_tasks : dbRow.required_tasks;
+                map[row.title] = seedTaskFromWeb(map[row.title], row);
+            });
+        }
+
         async function loadAll() {
             const url = supabaseUrl();
             const key = supabaseKey();
@@ -1488,9 +1320,16 @@
             deletedChecklistLabels = new Set();
             pendingChoreAdds = [];
             try {
-                const [cfgRes, masterRes, dbRes] = await Promise.all([
-                    fetch(`${CONFIG_BASE}${profile}_config.json`),
-                    fetch(`${CONFIG_BASE}schedule_master_${profile}.json`),
+                const [assignRes, dbRes] = await Promise.all([
+                    fetch(`${url}/rest/v1/rpc/af_web_report_assignments`, {
+                        method: 'POST',
+                        headers: {
+                            apikey: key,
+                            Authorization: `Bearer ${key}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ p_profile: profile })
+                    }),
                     fetch(`${url}/rest/v1/user_data?profile=eq.${profile}&select=required_tasks,practice_tasks,checklist_items`, {
                         headers: {
                             apikey: key,
@@ -1498,18 +1337,11 @@
                         }
                     })
                 ]);
-                if (!cfgRes.ok) throw new Error(`Config load failed: ${cfgRes.status}`);
+                if (!assignRes.ok) throw new Error(`Assignment load failed: ${assignRes.status}`);
                 if (!dbRes.ok) throw new Error(`Database load failed: ${dbRes.status}`);
-                configJson = await cfgRes.json();
-                scheduleMaster = masterRes.ok ? await masterRes.json() : null;
+                const assignments = await assignRes.json();
                 const rows = await dbRes.json();
-                const row = rows[0] || {};
-                dbRow = {
-                    required_tasks: row.required_tasks || {},
-                    practice_tasks: row.practice_tasks || {},
-                    checklist_items: row.checklist_items || {}
-                };
-                buildCatalog();
+                applyWebAssignments(assignments, rows[0] || {});
                 refreshUI();
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('editorContent').style.display = 'block';
@@ -1542,7 +1374,6 @@
                     body: JSON.stringify({
                         required_tasks: dbRow.required_tasks,
                         practice_tasks: dbRow.practice_tasks,
-                        checklist_items: dbRow.checklist_items,
                         last_updated: nowEST()
                     })
                 });
@@ -1551,39 +1382,14 @@
                     throw new Error(`${res.status} ${t}`);
                 }
 
-                let webNote = '';
-                try {
-                    await saveWebSchedule(profile, webRowsFromCatalog(), true);
-                    webNote = ' Web list updated.';
-                } catch (webErr) {
-                    webNote = ` Web list not updated: ${webErr.message}`;
-                }
-
-                const updatedConfig = buildUpdatedConfigJson();
-                configJson = updatedConfig;
-                let githubNote = '';
-                try {
-                    const gh = await pushConfigToGitHub(updatedConfig, profile);
-                    if (gh?.skipped) {
-                        githubNote = ' GitHub not updated (add schedule write key on reports home to enable).';
-                    } else if (gh?.ok) {
-                        scheduleMaster = buildScheduleMasterJson(updatedConfig, profile);
-                        const files = Array.isArray(gh.paths) && gh.paths.length
-                            ? gh.paths.map(p => String(p).split('/').pop()).join(', ')
-                            : (gh.path || `${profile}_config.json`);
-                        githubNote = ` GitHub updated (${files} on ${gh.branch}).`;
-                    }
-                } catch (ghErr) {
-                    githubNote = ` Database saved, but GitHub update failed: ${ghErr.message}`;
-                }
+                await saveWebSchedule(profile, webRowsFromCatalog(), false);
 
                 const otherNotes = await savePendingChoresToOtherProfiles();
-                if (otherNotes) githubNote += otherNotes;
                 pendingChoreAdds = [];
 
                 document.getElementById('success').style.display = 'block';
                 document.getElementById('success').textContent =
-                    `Saved schedule for ${profile}.${githubNote}${webNote}`;
+                    `Saved schedule for ${profile}.${otherNotes || ''}`;
                 deletedChecklistLabels = new Set();
             } catch (e) {
                 showError('Save failed: ' + e.message);
@@ -1624,10 +1430,6 @@
         async function addChoresToOtherProfile(targetProfile, choreTasks) {
             const url = supabaseUrl();
             const key = supabaseKey();
-            const cfgRes = await fetch(`${CONFIG_BASE}${targetProfile}_config.json`);
-            if (!cfgRes.ok) throw new Error(`Config load failed for ${targetProfile}: ${cfgRes.status}`);
-            const cfg = await cfgRes.json();
-            const sec = ensureRequiredSection(cfg);
             const dbRes = await fetch(`${url}/rest/v1/user_data?profile=eq.${targetProfile}&select=required_tasks`, {
                 headers: { apikey: key, Authorization: `Bearer ${key}` }
             });
@@ -1635,9 +1437,6 @@
             const rows = await dbRes.json();
             const requiredTasks = rows[0]?.required_tasks || {};
             for (const task of choreTasks) {
-                if (!sec.tasks.some(t => t.title === task.title || t.launch === task.launch)) {
-                    sec.tasks.push(JSON.parse(JSON.stringify(task)));
-                }
                 if (!requiredTasks[task.title]) {
                     const data = defaultDbTask(task.title, task);
                     data.launch = task.launch;
@@ -1645,18 +1444,14 @@
                     data.webGame = true;
                     data.rewardCash = parseRewardCashFromUrl(task.url) ?? 0;
                     data.stars = 0;
+                    data.disable = '';
                     requiredTasks[task.title] = data;
                 }
-            }
-            cfg.version = new Date().toISOString().slice(0, 10);
-            await patchProfileRequiredTasks(targetProfile, requiredTasks);
-            const gh = await pushConfigToGitHub(cfg, targetProfile);
-            if (gh?.skipped) {
-                throw new Error('GitHub not updated (add schedule write key on reports home)');
             }
             await saveWebSchedule(targetProfile, choreTasks.map(function (task) {
                 return webScheduleRow('required', { title: task.title, config: task, data: task });
             }), false);
+            await patchProfileRequiredTasks(targetProfile, requiredTasks);
         }
 
         async function savePendingChoresToOtherProfiles() {
@@ -1672,7 +1467,7 @@
                 if (tasksToAdd.length === 0) continue;
                 try {
                     await addChoresToOtherProfile(pr, tasksToAdd);
-                    notes.push(` Also added ${tasksToAdd.length} chore(s) to ${pr} (DB + GitHub).`);
+                    notes.push(` Also added ${tasksToAdd.length} chore(s) to ${pr}.`);
                 } catch (e) {
                     notes.push(` Failed adding chores to ${pr}: ${e.message}`);
                 }

@@ -10,13 +10,30 @@
   <header class="top">
     <a href="index.html">Battle hub</a>
     <h1 id="title">My Pokedex</h1>
+    <button type="button" id="unlockBtn">Unlock</button>
   </header>
   <div class="wrap">
+    <form id="unlockForm" class="panel" hidden>
+      <h2>Unlock Pokemon</h2>
+      <p id="unlockMsg"></p>
+      <div id="pinStep">
+        <label for="unlockPin">PIN</label>
+        <input id="unlockPin" type="password" inputmode="numeric" autocomplete="off">
+        <div class="row"><button type="button" id="unlockPinBtn">Continue</button></div>
+      </div>
+      <div id="countStep" hidden>
+        <label for="unlockCount">How many Pokemon to add</label>
+        <input id="unlockCount" inputmode="numeric" autocomplete="off">
+        <div class="row"><button type="submit" id="unlockSave">Unlock</button></div>
+      </div>
+    </form>
     <div id="pokedex" class="pokedex grid"></div>
   </div>
   <script src="baeren.js"></script>
   <script src="tasks.js"></script>
   <script>
+    let unlocked = 0;
+
     async function loadPage() {
       const box = document.getElementById("pokedex");
       if (!Baeren.hasDb()) {
@@ -25,7 +42,7 @@
       }
       await Baeren.ensureDailyReset();
       const hub = await Baeren.rpc("af_get_battle_hub_counts", { p_profile: Baeren.cfg().profile }) || {};
-      const unlocked = Number(hub.pokemon_unlocked || 0);
+      unlocked = Number(hub.pokemon_unlocked || 0);
       document.getElementById("title").textContent = "My Pokedex    Unlocked: " + unlocked;
       const all = await Tasks.loadPokemonManifest();
       const pokemon = all
@@ -45,6 +62,47 @@
       });
       if (!pokemon.length) box.textContent = "No Pokemon unlocked yet.";
     }
+
+    document.getElementById("unlockBtn").addEventListener("click", function () {
+      const form = document.getElementById("unlockForm");
+      form.hidden = !form.hidden;
+      document.getElementById("unlockMsg").textContent = "";
+      document.getElementById("pinStep").hidden = false;
+      document.getElementById("countStep").hidden = true;
+      document.getElementById("unlockPin").value = "";
+      document.getElementById("unlockCount").value = "";
+    });
+
+    document.getElementById("unlockPinBtn").addEventListener("click", function () {
+      const pin = document.getElementById("unlockPin").value;
+      if (!Baeren.checkPin(pin)) {
+        document.getElementById("unlockMsg").textContent = "Wrong PIN.";
+        return;
+      }
+      document.getElementById("unlockMsg").textContent = "";
+      document.getElementById("pinStep").hidden = true;
+      document.getElementById("countStep").hidden = false;
+    });
+
+    document.getElementById("unlockForm").addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      const count = parseInt(document.getElementById("unlockCount").value, 10);
+      if (!Number.isFinite(count) || count <= 0) {
+        document.getElementById("unlockMsg").textContent = "Enter a number greater than 0.";
+        return;
+      }
+      try {
+        const next = unlocked + count;
+        await Baeren.rpc("af_update_pokemon_unlocked", {
+          p_profile: Baeren.cfg().profile,
+          p_pokemon_unlocked: next
+        });
+        document.getElementById("unlockForm").hidden = true;
+        await loadPage();
+      } catch (err) {
+        document.getElementById("unlockMsg").textContent = err.message || String(err);
+      }
+    });
 
     loadPage().catch(function (err) {
       document.getElementById("pokedex").textContent = err.message || String(err);

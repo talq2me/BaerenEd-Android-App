@@ -3,6 +3,11 @@ body { margin: 0; font-family: system-ui, sans-serif; background: #f4f7fb; color
 .top { display: flex; gap: 16px; align-items: center; padding: 14px 18px; background: #1b3a4b; color: #fff; }
 .top a { color: #d6ecff; }
 .top h1 { margin: 0; font-size: 1.25rem; flex: 1; }
+.top-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+body.arena .top h1 { flex: 0 0 auto; margin-right: 36px; }
+body.arena .top .counts { color: #fff; flex: 1; flex-wrap: nowrap; white-space: nowrap; }
+.top-actions > button { background: #d9e4ee; color: #1c2430; }
+.top .profiles button.on { background: #fff; color: #1b3a4b; }
 .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
 .profiles, .row { display: flex; gap: 8px; flex-wrap: wrap; }
 button, .task { font: inherit; border: 0; border-radius: 12px; padding: 12px 16px; cursor: pointer; }
@@ -24,7 +29,20 @@ a.task.pokedex-link { display: block; width: fit-content; margin: 14px auto 4px;
 .pokedex.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); overflow: visible; }
 .pokedex figure { margin: 0; width: 76px; flex: 0 0 auto; text-align: center; font-size: 0.75rem; }
 .pokedex img { width: 64px; height: 64px; object-fit: contain; }
-.battle { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 16px 0 8px; text-align: center; }
+body.arena { background-color: #667eea; background-size: cover; background-position: center; background-attachment: fixed; }
+#hub.panel { background: rgba(255,255,255,.675); }
+.battle { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 8px 0 8px; text-align: center; }
+.fighter { width: 42%; max-width: 200px; }
+.meter { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: .75rem; }
+.track { flex: 1; height: 12px; background: #e0e0e0; border-radius: 6px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: #2ecc71; transition: width 2s ease; }
+.battle-msg { text-align: center; font-weight: 800; min-height: 1.2em; margin: 10px 0 0; }
+.battle-row { justify-content: center; margin: 4px 0 12px; }
+.battle-row button, #victoryClose, #unlockSave { background: #1b3a4b; color: #fff; }
+.victory { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center; justify-content: center; z-index: 5; }
+.victory[hidden] { display: none; }
+.victory-card { background: #fff; border-radius: 20px; padding: 28px; text-align: center; max-width: 320px; }
+.victory-card img { width: 150px; height: 150px; object-fit: contain; }
 .maps { justify-content: center; margin-top: 40px; }
 .maps a.task, .maps button { background: #1b3a4b; color: #fff; }
 #hubMsg { text-align: center; }

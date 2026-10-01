@@ -440,6 +440,32 @@
                         <ul class="task-list" id="bmTasks"></ul>
                     </div>
                 </div>
+
+                <div class="profile-section" id="profileTE">
+                    <div class="profile-header" onclick="toggleProfile('TE')" role="button" aria-expanded="false">
+                        <div class="profile-title">
+                            <span class="profile-chevron">›</span>
+                            <h2>TE</h2>
+                        </div>
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="teComplete">0</div>
+                                <div class="stat-label">Done</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="teIncomplete">0</div>
+                                <div class="stat-label">Left</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="teTotal">0</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-body">
+                        <ul class="task-list" id="teTasks"></ul>
+                    </div>
+                </div>
             </div>
 
             <div class="save-section">
@@ -488,118 +514,54 @@
         // Store current task data
         let taskData = {
             AM: { required_tasks: {}, checklist_items: {} },
-            BM: { required_tasks: {}, checklist_items: {} }
+            BM: { required_tasks: {}, checklist_items: {} },
+            TE: { required_tasks: {}, checklist_items: {} }
         };
 
         // Store current berries and banked minutes for each profile
         let profileMetrics = {
             AM: { berries_earned: 0, banked_mins: 0 },
-            BM: { berries_earned: 0, banked_mins: 0 }
+            BM: { berries_earned: 0, banked_mins: 0 },
+            TE: { berries_earned: 0, banked_mins: 0 }
         };
 
-        // Store config for task stars (if available)
-        let taskConfigs = {
-            AM: null,
-            BM: null
+        // Required assignments that are on today, from web_assignments.
+        let visibleRequired = {
+            AM: [],
+            BM: [],
+            TE: []
         };
 
-        // Days of the week mapping
-        const daysShortOriginal = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-
-        // Checks if a task/item is visible today
-        function isTaskVisibleToday(showdays, hidedays, displayDays, disable) {
-            const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-            const dayShort = daysShortOriginal[today];
-
-            // Check disable date first
-            if (disable) {
-                try {
-                    let disableDate;
-                    const dateMatch = disable.match(/(\w{3})\s+(\d{1,2}),\s+(\d{4})/);
-                    if (dateMatch) {
-                        const months = {jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
-                                       jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11};
-                        const month = months[dateMatch[1].toLowerCase()];
-                        const day = parseInt(dateMatch[2]);
-                        const year = parseInt(dateMatch[3]);
-                        disableDate = new Date(year, month, day);
-                    } else {
-                        disableDate = new Date(disable);
-                    }
-                    
-                    if (disableDate && !isNaN(disableDate.getTime())) {
-                        const todayDate = new Date();
-                        todayDate.setHours(0, 0, 0, 0);
-                        disableDate.setHours(0, 0, 0, 0);
-                        
-                        // If today is before the disable date, task is disabled (not visible)
-                        if (todayDate < disableDate) {
-                            return false;
-                        }
-                    }
-                } catch (e) {
-                    console.warn('Error parsing disable date:', disable, e);
-                }
-            }
-
-            // Check hidedays
-            if (hidedays) {
-                if (hidedays.split(',').map(d => d.trim().toLowerCase()).includes(dayShort)) {
-                    return false; // Hide if today is in hidedays
-                }
-            }
-
-            // Check displayDays (if set, only show on those days)
-            if (displayDays) {
-                return displayDays.split(',').map(d => d.trim().toLowerCase()).includes(dayShort);
-            }
-
-            // Check showdays
-            if (showdays) {
-                return showdays.split(',').map(d => d.trim().toLowerCase()).includes(dayShort);
-            }
-
-            // Default: visible on all days if no restrictions
-            return true;
+        function torontoDayToken() {
+            return new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Toronto',
+                weekday: 'short'
+            }).format(new Date()).toLowerCase();
         }
 
-        // Load config files to get star values (optional - will use defaults if not available)
-        async function loadConfigs() {
-            try {
-                // Try multiple possible paths for config files
-                const configPaths = [
-                    '../../app/src/main/assets/config/',
-                    '../app/src/main/assets/config/',
-                    'app/src/main/assets/config/'
-                ];
-                
-                const configFiles = ['AM_config.json', 'BM_config.json'];
-                const profiles = ['AM', 'BM'];
-                
-                for (let i = 0; i < configPaths.length; i++) {
-                    const basePath = configPaths[i];
-                    let loaded = 0;
-                    
-                    for (let j = 0; j < configFiles.length; j++) {
-                        if (!taskConfigs[profiles[j]]) {
-                            try {
-                                const response = await fetch(basePath + configFiles[j]);
-                                if (response.ok) {
-                                    taskConfigs[profiles[j]] = await response.json();
-                                    loaded++;
-                                }
-                            } catch (e) {
-                                // Try next path
-                            }
-                        }
-                    }
-                    
-                    if (loaded === 2) break; // Both configs loaded, stop trying
-                }
-            } catch (error) {
-                console.warn('Could not load config files for star values. Using defaults or stored values:', error);
-                // Continue without configs - will use defaults or values stored in task data
+        function shownToday(displayDays) {
+            const days = String(displayDays || '').trim();
+            if (!days) return true;
+            return days.toLowerCase().split(',').map(part => part.trim()).includes(torontoDayToken());
+        }
+
+        async function fetchRequiredToday(supabaseUrl, supabaseKey, profile) {
+            const response = await fetch(`${supabaseUrl}/rest/v1/rpc/af_web_report_assignments`, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ p_profile: profile })
+            });
+            if (!response.ok) {
+                throw new Error(`af_web_report_assignments ${profile}: ${response.status}`);
             }
+            const rows = await response.json();
+            return (Array.isArray(rows) ? rows : []).filter(row =>
+                row && row.section === 'required' && row.enabled !== false && shownToday(row.displayDays)
+            );
         }
 
         // Fetch tasks and checklist items from Supabase
@@ -622,9 +584,6 @@
                 document.getElementById('success').style.display = 'none';
                 document.getElementById('content').style.display = 'none';
 
-                // Load configs first to get star values
-                await loadConfigs();
-
                 const response = await fetch(`${supabaseUrl}/rest/v1/user_data?select=profile,required_tasks,checklist_items,berries_earned,banked_mins&order=profile`, {
                     headers: {
                         'apikey': supabaseKey,
@@ -642,19 +601,31 @@
                 // Initialize task data
                 taskData.AM = { required_tasks: {}, checklist_items: {} };
                 taskData.BM = { required_tasks: {}, checklist_items: {} };
+                taskData.TE = { required_tasks: {}, checklist_items: {} };
                 profileMetrics.AM = { berries_earned: 0, banked_mins: 0 };
                 profileMetrics.BM = { berries_earned: 0, banked_mins: 0 };
+                profileMetrics.TE = { berries_earned: 0, banked_mins: 0 };
+                visibleRequired.AM = [];
+                visibleRequired.BM = [];
+                visibleRequired.TE = [];
 
                 // Process each profile
                 data.forEach(profileData => {
                     const profile = profileData.profile;
-                    if (profile === 'AM' || profile === 'BM') {
+                    if (profile === 'AM' || profile === 'BM' || profile === 'TE') {
                         taskData[profile].required_tasks = profileData.required_tasks || {};
                         taskData[profile].checklist_items = profileData.checklist_items || {};
                         profileMetrics[profile].berries_earned = profileData.berries_earned || 0;
                         profileMetrics[profile].banked_mins = profileData.banked_mins || 0;
                     }
                 });
+
+                const lists = await Promise.all(['AM', 'BM', 'TE'].map(profile =>
+                    fetchRequiredToday(supabaseUrl, supabaseKey, profile)
+                ));
+                visibleRequired.AM = lists[0];
+                visibleRequired.BM = lists[1];
+                visibleRequired.TE = lists[2];
 
                 displayTasks();
                 document.getElementById('loading').style.display = 'none';
@@ -672,6 +643,7 @@
         function displayTasks() {
             displayProfileTasks('AM', taskData.AM);
             displayProfileTasks('BM', taskData.BM);
+            displayProfileTasks('TE', taskData.TE);
         }
 
         // Display tasks for a specific profile (filtered by visibility today)
@@ -679,12 +651,15 @@
             const tasksList = document.getElementById(`${profile.toLowerCase()}Tasks`);
             tasksList.innerHTML = '';
 
-            // Filter required tasks by visibility today
             const visibleRequiredTasks = {};
-            for (const [taskKey, task] of Object.entries(data.required_tasks || {})) {
-                if (isTaskVisibleToday(task.showdays, task.hidedays, task.displayDays, task.disable)) {
-                    visibleRequiredTasks[taskKey] = task;
-                }
+            for (const row of visibleRequired[profile] || []) {
+                const title = String(row.title || '').trim();
+                if (!title) continue;
+                const stored = (data.required_tasks || {})[title] || {};
+                visibleRequiredTasks[title] = {
+                    ...stored,
+                    stars: row.stars != null ? row.stars : (stored.stars || 1)
+                };
             }
 
             const totalItems = Object.keys(visibleRequiredTasks).length;
@@ -760,39 +735,10 @@
             return `${get('year')}-${pad2(get('month'))}-${pad2(get('day'))} ${pad2(get('hour'))}:${pad2(get('minute'))}:${pad2(get('second'))}.${String(t.getMilliseconds()).padStart(3, '0')}`;
         }
 
-        // Get stars for a task (from task data, config, or default)
         function getTaskStars(taskName, taskData, profile) {
-            // First, check if stars are stored in the task data itself
-            if (taskData && taskData.stars) {
-                return taskData.stars;
-            }
-            
-            // Normalize task name for matching (remove underscores, lowercase)
-            const normalizedTaskName = taskName.replace(/_/g, ' ').toLowerCase();
-            
-            // Try to get from config if available
-            const config = taskConfigs[profile];
-            if (config && config.sections) {
-                for (const section of config.sections) {
-                    if (section.tasks) {
-                        for (const task of section.tasks) {
-                            // Match by title or launch (normalized)
-                            const taskTitle = (task.title || '').toLowerCase();
-                            const taskLaunch = (task.launch || '').toLowerCase();
-                            
-                            if (taskTitle === normalizedTaskName || 
-                                taskLaunch === normalizedTaskName ||
-                                taskTitle === taskName.toLowerCase() ||
-                                taskLaunch === taskName.toLowerCase() ||
-                                task.launch === taskName) {
-                                return task.stars || task.estimatedTime || 1;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Default: 1 star per task
+            if (taskData && taskData.stars) return taskData.stars;
+            const row = (visibleRequired[profile] || []).find(item => item.title === taskName);
+            if (row && row.stars != null) return row.stars;
             return 1;
         }
 
@@ -914,7 +860,8 @@
                 // Update both profiles
                 const updates = [
                     updateProfile('AM', taskData.AM),
-                    updateProfile('BM', taskData.BM)
+                    updateProfile('BM', taskData.BM),
+                    updateProfile('TE', taskData.TE)
                 ];
 
                 await Promise.all(updates);

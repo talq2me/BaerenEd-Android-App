@@ -9,7 +9,16 @@
 <body>
   <header class="top">
     <h1>Battle hub</h1>
-    <button type="button" id="configBtn">Parent setup</button>
+    <div id="counts" class="counts"></div>
+    <div class="top-actions">
+      <div class="profiles" id="profiles">
+        <button type="button" data-profile="AM">AM</button>
+        <button type="button" data-profile="BM">BM</button>
+        <button type="button" data-profile="TE">TE</button>
+      </div>
+      <button type="button" id="rewardBtn">Ask for Time</button>
+      <button type="button" id="configBtn">Parent setup</button>
+    </div>
   </header>
   <div class="wrap">
     <form id="setup" class="panel" hidden>
@@ -30,17 +39,10 @@
       <p id="setupMsg"></p>
     </form>
 
-    <div class="profiles" id="profiles">
-      <button type="button" data-profile="AM">AM</button>
-      <button type="button" data-profile="BM">BM</button>
-      <button type="button" data-profile="TE">TE</button>
-    </div>
     <section id="hub" class="panel" hidden>
-      <div class="hub-top">
-        <div id="counts" class="counts"></div>
-        <button type="button" id="rewardBtn">Ask for Time</button>
-      </div>
       <a class="task pokedex-link" href="pokedex.html" id="pokedexLink">My Pokemon</a>
+      <p id="battleMsg" class="battle-msg"></p>
+      <div class="row battle-row"><button type="button" id="battleBtn" disabled>Battle</button></div>
       <div class="battle" id="battle"></div>
       <div class="row maps">
         <a class="task" href="map.html?map=required">Required</a>
@@ -50,11 +52,39 @@
     </section>
     <p id="needSetup" hidden>Save the Supabase URL and key in Parent setup to load the games.</p>
   </div>
+  <div id="victory" class="victory" hidden>
+    <div class="victory-card">
+      <h2>Victory!</h2>
+      <img id="victoryImg" alt="">
+      <p id="victoryName"></p>
+      <button type="button" id="victoryClose">Continue</button>
+    </div>
+  </div>
   <script src="baeren.js"></script>
   <script src="tasks.js"></script>
+  <script src="battle.js"></script>
   <script>
-    function fighterCard(poke) {
+    function meter(label, id, pct) {
+      const row = document.createElement("div");
+      row.className = "meter";
+      const name = document.createElement("span");
+      name.textContent = label;
+      const track = document.createElement("div");
+      track.className = "track";
+      const fill = document.createElement("div");
+      fill.className = "fill";
+      fill.id = id;
+      fill.style.width = pct + "%";
+      track.appendChild(fill);
+      row.appendChild(name);
+      row.appendChild(track);
+      return row;
+    }
+
+    function fighterCard(poke, who, power) {
       const card = document.createElement("div");
+      card.className = "fighter";
+      card.dataset.who = who;
       const img = document.createElement("img");
       const name = document.createElement("div");
       if (poke) {
@@ -67,22 +97,28 @@
       }
       card.appendChild(img);
       card.appendChild(name);
+      card.appendChild(meter("HP", who + "Hp", 100));
+      card.appendChild(meter("Power", who + "Power", power));
       return card;
     }
 
-    function renderBattle(all, unlocked) {
+    function renderBattle(all, unlocked, power) {
       const owned = all.filter(function (poke) { return poke.prefix <= unlocked; });
       const playerPrefix = owned.reduce(function (max, poke) { return Math.max(max, poke.prefix); }, 0);
       const player = playerPrefix ? Tasks.pickAtPrefix(all, playerPrefix) : null;
       const boss = Tasks.pickAtPrefix(all, unlocked + 1);
       const battle = document.getElementById("battle");
       battle.textContent = "";
-      battle.appendChild(fighterCard(player));
+      battle.appendChild(fighterCard(player, "player", power));
       const vs = document.createElement("div");
       vs.className = "vs";
       vs.textContent = "VS";
       battle.appendChild(vs);
-      battle.appendChild(fighterCard(boss));
+      battle.appendChild(fighterCard(boss, "boss", 100));
+      window.hubBattle = window.hubBattle || {};
+      window.hubBattle.unlocked = unlocked;
+      window.hubBattle.bossName = boss ? "#" + boss.pokenum : "Boss";
+      window.hubBattle.bossFile = boss ? boss.filename : "";
     }
 
     function renderCounts(hub) {
@@ -94,33 +130,89 @@
         (hub.banked_mins || 0) + " \u{23F1}";
     }
 
+    const PRACTICE_FILL = 16;
+
+    function countable(task) {
+      const how = Tasks.kind(task);
+      return how !== "skip" && how !== "later";
+    }
+
     async function loadHub(profile) {
       const hub = await Baeren.rpc("af_get_battle_hub_counts", { p_profile: profile }) || {};
-      const rows = await Baeren.rpc("af_web_list_tasks", { p_profile: profile });
+      const rows = await Baeren.rpc("af_web_list_tasks", { p_profile: profile }) || [];
       const requiredRows = await Baeren.rpc("af_get_tasks_required", { p_profile: profile });
-      const done = Tasks.completionMap(requiredRows, true);
-      const required = (rows || []).filter(function (task) {
-        return task.section === "required" && Tasks.kind(task) !== "skip" && Tasks.kind(task) !== "later";
+      const practiceRows = await Baeren.rpc("af_get_tasks_practice", { p_profile: profile });
+      const battleState = await Baeren.rpc("af_web_battle_state", { p_profile: profile }) || {};
+      const requiredDone = Tasks.completionMap(requiredRows, true);
+      const practiceDoneMap = Tasks.completionMap(practiceRows, false);
+      const required = rows.filter(function (task) {
+        return task.section === "required" && countable(task);
       });
-      const allDone = required.every(function (task) { return done[task.title] === true; });
+      const practice = rows.filter(function (task) {
+        return task.section === "optional" && countable(task);
+      });
+      const allDone = required.every(function (task) { return requiredDone[task.title] === true; });
+      const practiceDone = practice.filter(function (task) { return practiceDoneMap[task.title] === true; }).length;
       document.getElementById("hub").hidden = false;
       document.getElementById("needSetup").hidden = true;
       renderCounts(hub);
       document.getElementById("pokedexLink").textContent = "My Pokemon (" + (hub.pokemon_unlocked || 0) + ")";
       const practiceBtn = document.getElementById("practiceBtn");
       practiceBtn.disabled = !allDone;
-      document.getElementById("hubMsg").textContent = allDone
-        ? "Required games are done."
-        : "Finish the Required games to open Practice.";
       const unlocked = Number(hub.pokemon_unlocked || 0);
+      const battledToday = battleState.battleToday === true;
+      let doneCount;
+      let total;
+      let power;
+      let ready;
+      if (battledToday) {
+        const gained = Math.max(0, practiceDone - Number(battleState.practiceBaseline || 0));
+        doneCount = gained;
+        total = PRACTICE_FILL;
+        power = Math.min(100, Math.round(gained * 100 / PRACTICE_FILL));
+        ready = gained >= PRACTICE_FILL;
+      } else {
+        doneCount = required.filter(function (task) { return requiredDone[task.title] === true; }).length;
+        total = required.length;
+        power = total > 0 ? Math.round(doneCount * 100 / total) : 0;
+        ready = total > 0 && doneCount >= total;
+      }
+      document.getElementById("hubMsg").textContent = battledToday
+        ? (ready ? "Practice power is full." : "Finish Practice tasks to fill the power bar.")
+        : (allDone ? "Required games are done." : "Finish the Required games to open Practice.");
+      const battleBtn = document.getElementById("battleBtn");
+      battleBtn.disabled = !ready;
+      battleBtn.textContent = "Battle";
+      window.hubBattle = {
+        unlocked: unlocked,
+        done: doneCount,
+        total: total,
+        practiceDone: practiceDone,
+        practiceFill: PRACTICE_FILL
+      };
       try {
-        renderBattle(await Tasks.loadPokemonManifest(), unlocked);
+        renderBattle(await Tasks.loadPokemonManifest(), unlocked, power);
       } catch (err) {
         document.getElementById("battle").textContent = err.message || String(err);
       }
     }
 
+    function showArena() {
+      document.body.classList.add("arena");
+      const png = Baeren.assetUrl("images/arena.png");
+      const webp = Baeren.assetUrl("images/arena.webp");
+      const probe = new Image();
+      probe.onload = function () { document.body.style.backgroundImage = "url(\"" + probe.src + "\")"; };
+      probe.onerror = function () {
+        if (probe.src.indexOf(".webp") >= 0) probe.src = png;
+      };
+      probe.src = webp;
+    }
+
     async function loadProfile(profile) {
+      if (window.Battle) Battle.cancel();
+      const victory = document.getElementById("victory");
+      if (victory) victory.hidden = true;
       Baeren.setProfile(profile);
       document.querySelectorAll("#profiles button").forEach(function (btn) {
         btn.classList.toggle("on", btn.dataset.profile === profile);
@@ -203,6 +295,19 @@
       }
     });
 
+    document.getElementById("battleBtn").addEventListener("click", function () {
+      Battle.start().catch(function (err) {
+        document.getElementById("battleMsg").textContent = err.message || String(err);
+      });
+    });
+
+    document.getElementById("victoryClose").addEventListener("click", function () {
+      document.getElementById("victory").hidden = true;
+      loadHub(Baeren.cfg().profile).catch(function (err) {
+        document.getElementById("hubMsg").textContent = err.message || String(err);
+      });
+    });
+
     document.getElementById("practiceBtn").addEventListener("click", function () {
       if (!document.getElementById("practiceBtn").disabled) location.href = "map.html?map=practice";
     });
@@ -215,6 +320,7 @@
       });
     });
 
+    showArena();
     loadProfile(Baeren.cfg().profile).catch(function (err) {
       document.getElementById("needSetup").hidden = false;
       document.getElementById("needSetup").textContent = err.message || String(err);

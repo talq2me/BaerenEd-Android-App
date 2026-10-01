@@ -34,6 +34,10 @@ $files = @(
 
   "af_get_battle_hub_counts.sql",
 
+  "af_web_battle_state.sql",
+
+  "af_web_finish_battle.sql",
+
   "af_get_user_data.sql",
 
   "af_get_reward_time_state.sql",

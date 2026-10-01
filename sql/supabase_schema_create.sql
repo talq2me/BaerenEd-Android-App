@@ -112,6 +112,12 @@ CREATE TABLE IF NOT EXISTS user_data (
     -- Daily reward spinner outcome (null until spun for the day; reset by af_daily_reset).
     prize_unlocked TEXT NULL,
 
+    -- Web battle hub only. After a battle, the left power bar refills from practice tasks.
+    -- web_battle_day is the Toronto date of the last finished battle. Baseline is how many
+    -- practice tasks were already done at that moment, so only newer ones fill the bar.
+    web_battle_day DATE NULL,
+    web_battle_practice_baseline INTEGER NULL,
+
     reward_apps TEXT, -- JSON array of package names as string
     blacklisted_apps TEXT, -- JSON array of package names as string
     white_listed_apps TEXT, -- JSON array of package names as string

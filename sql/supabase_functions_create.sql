@@ -68,6 +68,8 @@ DROP FUNCTION IF EXISTS af_upsert_device(text, text, text, text, text, text, tex
 DROP FUNCTION IF EXISTS af_upsert_image_upload(text, text, text);
 DROP FUNCTION IF EXISTS af_upsert_settings_row(text, text, boolean, boolean, integer);
 DROP FUNCTION IF EXISTS af_upsert_user_data_columns(text, jsonb);
+DROP FUNCTION IF EXISTS af_web_battle_state(text);
+DROP FUNCTION IF EXISTS af_web_finish_battle(text, int);
 DROP FUNCTION IF EXISTS af_web_list_tasks(text);
 DROP FUNCTION IF EXISTS af_web_report_assignments(text);
 DROP FUNCTION IF EXISTS af_web_save_schedule(text, jsonb, boolean);
@@ -1541,6 +1543,76 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION af_get_battle_hub_counts(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_web_battle_state.sql
+-- -----------------------------------------------------------------------------
+-- Call site: web/index.html loadHub.
+-- Whether this profile already finished a battle today, and how many practice tasks
+-- were done at that moment. The web hub uses the difference to refill the power bar.
+
+CREATE OR REPLACE FUNCTION af_web_battle_state(p_profile text)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_profile text := upper(trim(p_profile));
+  v_day date;
+  v_baseline int;
+BEGIN
+  IF v_profile IS NULL OR v_profile = '' OR v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+
+  SELECT web_battle_day, COALESCE(web_battle_practice_baseline, 0)
+    INTO v_day, v_baseline
+  FROM user_data
+  WHERE profile = v_profile;
+
+  RETURN jsonb_build_object(
+    'battleToday', v_day IS NOT NULL AND v_day = (NOW() AT TIME ZONE 'America/Toronto')::date,
+    'practiceBaseline', COALESCE(v_baseline, 0)
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_web_battle_state(text) TO anon, authenticated, service_role;
+
+
+-- -----------------------------------------------------------------------------
+-- FILE: af_web_finish_battle.sql
+-- -----------------------------------------------------------------------------
+-- Call site: web/battle.js when the battle sequence ends.
+-- Records today's Toronto date and the practice-task count already finished,
+-- so the hub power bar starts again at zero.
+
+CREATE OR REPLACE FUNCTION af_web_finish_battle(p_profile text, p_practice_done int)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_profile text := upper(trim(p_profile));
+BEGIN
+  IF v_profile IS NULL OR v_profile = '' OR v_profile NOT IN ('AM', 'BM', 'TE') THEN
+    RAISE EXCEPTION 'Invalid profile: %', p_profile;
+  END IF;
+
+  UPDATE user_data
+  SET
+    web_battle_day = (NOW() AT TIME ZONE 'America/Toronto')::date,
+    web_battle_practice_baseline = GREATEST(COALESCE(p_practice_done, 0), 0),
+    last_updated = (NOW() AT TIME ZONE 'America/Toronto')
+  WHERE profile = v_profile;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION af_web_finish_battle(text, int) TO anon, authenticated, service_role;
 
 
 -- -----------------------------------------------------------------------------
@@ -4184,6 +4256,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION af_web_list_tasks(text) TO anon, authenticated, service_role;
 
+
 -- -----------------------------------------------------------------------------
 -- FILE: af_web_report_assignments.sql
 -- -----------------------------------------------------------------------------
@@ -4247,6 +4320,7 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION af_web_report_assignments(text) TO anon, authenticated, service_role;
+
 
 -- -----------------------------------------------------------------------------
 -- FILE: af_web_save_schedule.sql
