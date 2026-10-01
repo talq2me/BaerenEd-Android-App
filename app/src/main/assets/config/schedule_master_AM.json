@@ -651,7 +651,7 @@
             "stars": 3,
             "title": "FR Spelling OCR",
             "launch": "spellingOCR",
-            "displayDays": "sun",
+            "displayDays": "sun,mon,tue,thu,fri,sat",
             "scheduleKey": "required|spellingOCR|file=frenchWordsAM.json"
         },
         {
