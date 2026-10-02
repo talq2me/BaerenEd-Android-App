@@ -1,6 +1,6 @@
 /* Browser stand-in for the Android app: parent config, speech, and Supabase RPCs. */
 (function (global) {
-  const ASSETS = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets";
+  const ASSETS = "https://talq2me.github.io/BaerenEd/app/src/main/assets";
   const DEFAULT_RATE = 0.85;
 
   function readProfile() {
@@ -49,10 +49,16 @@
     sessionStorage.setItem("baerenPinOk", "1");
   }
 
+  function paintProfile(profile) {
+    const el = document.getElementById("profileLabel");
+    if (el) el.textContent = profile;
+  }
+
   function setProfile(profile) {
     if (profile !== "AM" && profile !== "BM" && profile !== "TE") return;
     localStorage.setItem("baerenProfile", profile);
     document.cookie = "baerenProfile=" + profile + "; Path=/; Max-Age=31536000; SameSite=Lax";
+    paintProfile(profile);
   }
 
   const resetReady = {};
@@ -148,14 +154,41 @@
       || null;
   }
 
+  function captureNativeRead() {
+    const bridge = global.Android;
+    if (!bridge || bridge.__baerenShim || typeof bridge.readText !== "function") return null;
+    return function (text, lang, rate) {
+      bridge.readText(String(text), String(lang || "en-US"), String(rate));
+    };
+  }
+
+  const nativeRead = captureNativeRead();
+
   function speak(text, lang, rate, onEnd) {
     if (!text) { if (onEnd) onEnd(); return; }
     let done = false;
     const finish = () => {
       if (done) return;
       done = true;
+      global.__baerenTtsDone = null;
       if (onEnd) onEnd();
     };
+    const useRate = rate == null ? DEFAULT_RATE : rate;
+    if (nativeRead) {
+      const backupMs = Math.min(20000, 800 + String(text).length * (useRate < 0.5 ? 180 : 70));
+      const timer = setTimeout(finish, backupMs);
+      global.__baerenTtsDone = function () {
+        clearTimeout(timer);
+        finish();
+      };
+      try {
+        nativeRead(text, lang || "en-US", useRate);
+        return;
+      } catch (e) {
+        clearTimeout(timer);
+        global.__baerenTtsDone = null;
+      }
+    }
     if (!global.speechSynthesis) { finish(); return; }
     voiceList().then(function (voices) {
       if (done) return;
@@ -178,6 +211,8 @@
     if (/^https?:/i.test(path)) return path;
     return `${ASSETS}/${String(path).replace(/^\//, "")}`;
   }
+
+  paintProfile(readProfile());
 
   global.Baeren = {
     ASSETS,

@@ -8,19 +8,26 @@
     body { margin: 0; font-family: system-ui, sans-serif; background: #1b2430; color: #fff; }
     #bar { display: flex; gap: 12px; align-items: center; padding: 10px 14px; background: #121820; }
     #bar a { color: #9bd; }
+    .profile-label { padding: 4px 12px; border-radius: 999px; background: #fff; color: #1b3a4b; font-weight: 800; letter-spacing: .04em; }
     #frame { width: 100%; height: calc(100vh - 48px); border: 0; background: #fff; }
     #err { padding: 24px; }
   </style>
 </head>
 <body>
-  <div id="bar"><a href="index.html">Back</a><span id="label"></span></div>
+  <div id="bar"><a href="index.html">Back</a><span id="profileLabel" class="profile-label"></span><span id="label"></span></div>
   <iframe id="frame" title="Game" allow="camera; microphone"></iframe>
   <p id="err" hidden></p>
   <script src="baeren.js"></script>
   <script>
-    const HTML_BASE = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets/html/";
+    const OLD_ASSETS = "https://talq2me.github.io/BaerenEd-Android-App/app/src/main/assets";
+    const ASSETS = "https://talq2me.github.io/BaerenEd/app/src/main/assets";
+    const HTML_BASE = ASSETS + "/html/";
+
+    function contentUrl(url) {
+      return String(url || "").split(OLD_ASSETS).join(ASSETS);
+    }
     const params = new URLSearchParams(location.search);
-    const src = params.get("src") || "";
+    const src = contentUrl(params.get("src") || "");
     const task = {
       title: params.get("title") || "Game",
       section: params.get("section") || "optional",
@@ -31,6 +38,7 @@
     document.getElementById("label").textContent = task.title;
 
     function localSrc(url) {
+      if (/^https?:/i.test(url)) return url;
       const marker = "/html/";
       const i = url.indexOf(marker);
       if (i >= 0) return "../app/src/main/assets/html/" + url.slice(i + marker.length);

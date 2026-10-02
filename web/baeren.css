@@ -7,7 +7,20 @@ body { margin: 0; font-family: system-ui, sans-serif; background: #f4f7fb; color
 body.arena .top h1 { flex: 0 0 auto; margin-right: 36px; }
 body.arena .top .counts { color: #fff; flex: 1; flex-wrap: nowrap; white-space: nowrap; }
 .top-actions > button { background: #d9e4ee; color: #1c2430; }
-.top .profiles button.on { background: #fff; color: #1b3a4b; }
+button.icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  background: #d9e4ee;
+  color: #1b3a4b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+button.icon-btn svg { width: 22px; height: 22px; display: block; }
+.profile-label { padding: 4px 12px; border-radius: 999px; background: #fff; color: #1b3a4b; font-weight: 800; letter-spacing: .04em; }
 .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
 .profiles, .row { display: flex; gap: 8px; flex-wrap: wrap; }
 button, .task { font: inherit; border: 0; border-radius: 12px; padding: 12px 16px; cursor: pointer; }

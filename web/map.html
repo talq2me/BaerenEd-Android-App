@@ -8,8 +8,15 @@
 </head>
 <body>
   <header class="top">
+    <button type="button" id="refreshBtn" class="icon-btn" aria-label="Refresh">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+        <path d="M21 3v6h-6"/>
+      </svg>
+    </button>
     <a href="index.html">Battle hub</a>
     <h1 id="title">Required</h1>
+    <span id="profileLabel" class="profile-label"></span>
   </header>
   <div class="wrap">
     <div id="lists"></div>
@@ -37,6 +44,10 @@
       const tasks = (rows || []).filter(function (task) { return task.section === section; });
       Tasks.renderSection(lists, tasks, done);
     }
+
+    document.getElementById("refreshBtn").addEventListener("click", function () {
+      location.reload();
+    });
 
     loadMap().catch(function (err) {
       document.getElementById("lists").textContent = err.message || String(err);

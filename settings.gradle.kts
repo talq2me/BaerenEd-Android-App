@@ -16,6 +16,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "BaerenEd"
 include(":app")
+include(":webview")
 include(":BaerenSettingsProvider")
 project(":BaerenSettingsProvider").projectDir = File(settingsDir, "../BaerenSettingsProvider")
 
